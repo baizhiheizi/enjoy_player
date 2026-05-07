@@ -127,8 +127,62 @@ abstract class AppLocalizations {
   /// No description provided for @tapImportToAdd.
   ///
   /// In en, this message translates to:
-  /// **'Tap + to import audio or video files.'**
+  /// **'Import audio or video from the toolbar.'**
   String get tapImportToAdd;
+
+  /// No description provided for @navMainLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary navigation'**
+  String get navMainLabel;
+
+  /// No description provided for @miniPlayerMediaVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get miniPlayerMediaVideo;
+
+  /// No description provided for @miniPlayerMediaAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get miniPlayerMediaAudio;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @settingsSectionAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsSectionAppearance;
+
+  /// No description provided for @settingsAppearanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme follows your system settings.'**
+  String get settingsAppearanceSubtitle;
+
+  /// No description provided for @settingsSectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsSectionAbout;
+
+  /// No description provided for @settingsAboutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy Player — local transcripts and shadow reading.'**
+  String get settingsAboutSubtitle;
+
+  /// No description provided for @settingsThemeRowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System theme'**
+  String get settingsThemeRowTitle;
 
   /// No description provided for @play.
   ///

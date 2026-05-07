@@ -4,6 +4,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+
 class VideoPlayerLayout extends StatelessWidget {
   const VideoPlayerLayout({
     required this.controller,
@@ -16,9 +18,11 @@ class VideoPlayerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth > 700;
+        final wide =
+            constraints.maxWidth > t.breakpointTranscriptSideBySide;
         if (wide) {
           return Row(
             children: [

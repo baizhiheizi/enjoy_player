@@ -12,6 +12,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [testing.md](testing.md) | Contributors | Test strategy or CI commands change |
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
 | [features/](features/) | Product + dev | Feature behavior changes |
+| [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
 
 ## How to add an ADR
 

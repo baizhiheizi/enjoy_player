@@ -73,7 +73,8 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_downward_rounded),
+          icon: const Icon(Icons.expand_more_rounded),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           onPressed: () {
             ref.read(playerUiProvider.notifier).collapse();
             context.pop();

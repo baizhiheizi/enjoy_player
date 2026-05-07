@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import '../../../data/db/app_database.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/active_transcript_provider.dart';
@@ -22,8 +23,10 @@ Future<void> showSubtitleTrackPicker(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(EnjoyThemeTokens.of(context).radiusLg),
+      ),
     ),
     builder: (_) => SubtitleTrackPickerSheet(mediaId: mediaId),
   );
@@ -96,6 +99,7 @@ class _SubtitleTrackPickerSheetState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final tracksAsync = ref.watch(
       allTranscriptsForMediaProvider(widget.mediaId),
     );
@@ -120,22 +124,25 @@ class _SubtitleTrackPickerSheetState
             (ctx, scrollCtrl) => Column(
               children: [
                 // Drag handle
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: _DragHandle(),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: t.space12),
+                  child: const _DragHandle(),
                 ),
                 // Title
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: t.space16 + t.space4),
                   child: Row(
                     children: [
                       Text(
                         l10n.subtitles,
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: MaterialLocalizations.of(context).closeButtonLabel,
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -146,7 +153,7 @@ class _SubtitleTrackPickerSheetState
                 Expanded(
                   child: ListView(
                     controller: scrollCtrl,
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: EdgeInsets.only(bottom: t.space16),
                     children: [
                       _SectionHeader(l10n.subtitlesPrimary),
                       ...tracks.map(
@@ -162,7 +169,7 @@ class _SubtitleTrackPickerSheetState
                               row.isEmbedded ? null : () => _deleteTrack(row),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: t.space8),
                       _SectionHeader(l10n.subtitlesTranslation),
                       // "None" option
                       RadioListTile<String?>(
@@ -193,14 +200,15 @@ class _SubtitleTrackPickerSheetState
                       ListTile(
                         leading:
                             _importing
-                                ? const SizedBox(
+                                ? SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 )
-                                : const Icon(Icons.upload_file),
+                                : const Icon(Icons.upload_file_rounded),
                         title: Text(l10n.subtitlesImportFile),
                         onTap: _importing ? null : _importFile,
                       ),
@@ -239,13 +247,16 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      padding: EdgeInsets.fromLTRB(t.space16 + t.space4, t.space12, t.space16 + t.space4, t.space4),
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          letterSpacing: 0.8,
+          color: cs.onSurfaceVariant,
+          letterSpacing: 0.9,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -310,11 +321,12 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t = EnjoyThemeTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: isEmbedded ? cs.secondaryContainer : cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(t.space4),
       ),
       child: Text(
         label,

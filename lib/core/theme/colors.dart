@@ -1,4 +1,5 @@
 /// Semantic color tokens for the player UI (M3-friendly).
+/// [AppColors.echoActive] is surfaced on widgets via [EnjoyThemeTokens.echoActive].
 library;
 
 import 'package:flutter/material.dart';

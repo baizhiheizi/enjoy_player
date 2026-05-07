@@ -3,8 +3,8 @@
 ## MVP behavior
 
 - List media from Drift `media` table (newest first).
-- FAB / import: pick a file (`FileType.media`), copy into documents via `FileStorage`, insert row, navigate to `/player/:id`.
-- Settings entry point from app bar.
+- Import: pick a file (`FileType.media`), copy into documents via `FileStorage`, insert row, navigate to `/player/:id`. Entry point is the **toolbar +** action on Library and the empty-state primary button.
+- **Navigation**: Library and Settings are reached from the persistent shell (`NavigationBar` on compact widths, `NavigationRail` from ~900px when not on the player route).
 
 ## Future
 

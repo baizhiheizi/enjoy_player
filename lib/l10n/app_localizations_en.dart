@@ -24,7 +24,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noMediaYet => 'No media yet';
 
   @override
-  String get tapImportToAdd => 'Tap + to import audio or video files.';
+  String get tapImportToAdd => 'Import audio or video from the toolbar.';
+
+  @override
+  String get navMainLabel => 'Primary navigation';
+
+  @override
+  String get miniPlayerMediaVideo => 'Video';
+
+  @override
+  String get miniPlayerMediaAudio => 'Audio';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get settingsSectionAppearance => 'Appearance';
+
+  @override
+  String get settingsAppearanceSubtitle =>
+      'Theme follows your system settings.';
+
+  @override
+  String get settingsSectionAbout => 'About';
+
+  @override
+  String get settingsAboutSubtitle =>
+      'Enjoy Player — local transcripts and shadow reading.';
+
+  @override
+  String get settingsThemeRowTitle => 'System theme';
 
   @override
   String get play => 'Play';

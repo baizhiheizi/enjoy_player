@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../player/application/display_position_provider.dart';
@@ -47,6 +48,7 @@ class TranscriptPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
     final tracksAsync = ref.watch(allTranscriptsForMediaProvider(mediaId));
     final activeIdAsync = ref.watch(activeTranscriptIdProvider(mediaId));
@@ -61,7 +63,7 @@ class TranscriptPanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+          padding: EdgeInsets.fromLTRB(t.space8, t.space8, t.space8, t.space4),
           child: Row(
             children: [
               // Active track chip — tap to open picker
@@ -96,7 +98,7 @@ class TranscriptPanel extends ConsumerWidget {
               if (lines.isEmpty) {
                 return Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all(t.space24),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -109,7 +111,7 @@ class TranscriptPanel extends ConsumerWidget {
                           l10n.noTranscriptHint,
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: t.space16),
                         FilledButton.icon(
                           onPressed: () => _import(context, ref),
                           icon: const Icon(Icons.upload_file),
@@ -141,19 +143,20 @@ class _TranscriptBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final echo = ref.watch(echoModeProvider);
     final posAsync = ref.watch(displayPositionProvider);
+    final tok = EnjoyThemeTokens.of(context);
     final secondaryAsync = ref.watch(
       secondaryTranscriptLinesForMediaProvider(mediaId),
     );
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
 
-    final t = switch (posAsync) {
+    final timeSec = switch (posAsync) {
       AsyncData(:final value) => value.inMilliseconds / 1000.0,
       _ => 0.0,
     };
-    final active = _activeIndex(lines, t);
+    final active = _activeIndex(lines, timeSec);
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: tok.space12, vertical: tok.space8),
       itemCount: lines.length,
       itemBuilder: (context, index) {
         final line = lines[index];
@@ -164,9 +167,7 @@ class _TranscriptBody extends ConsumerWidget {
             index <= echo.endLineIndex;
         final bg =
             inEcho
-                ? Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.35)
+                ? tok.echoActive.withValues(alpha: 0.22)
                 : isActive
                 ? Theme.of(context).colorScheme.surfaceContainerHighest
                 : null;
@@ -174,18 +175,18 @@ class _TranscriptBody extends ConsumerWidget {
         final secondaryText = _matchSecondary(line, secondaryLines)?.text;
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: EdgeInsets.only(bottom: tok.space8),
           child: Material(
             color: bg,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(tok.radiusSm),
             child: InkWell(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(tok.radiusSm),
               onTap:
                   () => ref
                       .read(playerInteractionsProvider.notifier)
                       .seekToLine(line, index),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: tok.transcriptLinePadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -197,7 +198,7 @@ class _TranscriptBody extends ConsumerWidget {
                       ),
                     ),
                     if (secondaryText != null) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: tok.space4),
                       Text(
                         secondaryText,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

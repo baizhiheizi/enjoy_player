@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../../../transcript/application/all_transcripts_provider.dart';
 import '../../../transcript/presentation/subtitle_track_picker_sheet.dart';
@@ -24,6 +25,8 @@ class PlayerControlsBar extends ConsumerWidget {
     final prefs = ref.watch(playerPreferencesCtrlProvider);
     final echo = ref.watch(echoModeProvider);
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
 
     if (session == null) return const SizedBox.shrink();
 
@@ -40,15 +43,24 @@ class PlayerControlsBar extends ConsumerWidget {
         durationSec > 0 ? pos.inMilliseconds / 1000 / durationSec : 0.0;
 
     return Material(
-      elevation: 4,
+      elevation: t.elevationBar,
+      surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: EdgeInsets.fromLTRB(t.space16, t.space12, t.space16, t.space16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Text(_fmtDuration(pos)),
+                SizedBox(
+                  width: 52,
+                  child: Text(
+                    _fmtDuration(pos),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: Slider(
                     value: value.clamp(0, 1),
@@ -59,119 +71,145 @@ class PlayerControlsBar extends ConsumerWidget {
                     },
                   ),
                 ),
-                Text(
-                  _fmtDuration(
-                    Duration(milliseconds: (durationSec * 1000).round()),
+                SizedBox(
+                  width: 52,
+                  child: Text(
+                    _fmtDuration(
+                      Duration(milliseconds: (durationSec * 1000).round()),
+                    ),
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: EdgeInsets.only(top: t.space4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      tooltip: l10n.previousLine,
-                      onPressed:
-                          ui.isBuffering
-                              ? null
-                              : () =>
-                                  ref
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: l10n.previousLine,
+                          onPressed:
+                              ui.isBuffering
+                                  ? null
+                                  : () => ref
                                       .read(playerInteractionsProvider.notifier)
                                       .prevLine(),
-                      icon: const Icon(Icons.skip_previous),
-                    ),
-                    IconButton.filled(
-                      tooltip: ui.isPlaying ? l10n.pause : l10n.play,
-                      onPressed:
-                          ui.isBuffering
-                              ? null
-                              : () =>
-                                  ref
-                                      .read(playerControllerProvider.notifier)
-                                      .togglePlay(),
-                      icon: Icon(ui.isPlaying ? Icons.pause : Icons.play_arrow),
-                    ),
-                    IconButton(
-                      tooltip: l10n.nextLine,
-                      onPressed:
-                          ui.isBuffering
-                              ? null
-                              : () =>
-                                  ref
-                                      .read(playerInteractionsProvider.notifier)
-                                      .nextLine(),
-                      icon: const Icon(Icons.skip_next),
-                    ),
-                    IconButton(
-                      tooltip: l10n.replayLine,
-                      onPressed:
-                          ui.isBuffering
-                              ? null
-                              : () =>
-                                  ref
-                                      .read(playerInteractionsProvider.notifier)
-                                      .replayLine(),
-                      icon: const Icon(Icons.replay),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: l10n.echoMode,
-                      color:
-                          echo.active
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                      onPressed:
-                          () =>
-                              ref
-                                  .read(playerInteractionsProvider.notifier)
-                                  .toggleEcho(),
-                      icon: const Icon(Icons.mic_none),
-                    ),
-                    _CcButton(mediaId: session.mediaId),
-                    PopupMenuButton<double>(
-                      tooltip: l10n.speed,
-                      onSelected:
-                          (rate) => ref
-                              .read(playerPreferencesCtrlProvider.notifier)
-                              .setPlaybackRate(rate),
-                      itemBuilder:
-                          (ctx) => [
-                            for (final r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0])
-                              PopupMenuItem(value: r, child: Text('${r}x')),
-                          ],
-                      child: const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Icon(Icons.speed),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 160,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.volume_down, size: 20),
-                          Expanded(
-                            child: Slider(
-                              value: prefs.volume,
-                              onChanged:
-                                  (v) => ref
-                                      .read(
-                                        playerPreferencesCtrlProvider.notifier,
-                                      )
-                                      .setVolume(v),
+                          icon: const Icon(Icons.skip_previous_rounded),
+                        ),
+                        IconButton.filled(
+                          tooltip: ui.isPlaying ? l10n.pause : l10n.play,
+                          iconSize: 32,
+                          style: IconButton.styleFrom(
+                            foregroundColor: cs.onPrimary,
+                            backgroundColor: cs.primary,
+                            disabledForegroundColor: cs.onSurface.withValues(
+                              alpha: 0.38,
+                            ),
+                            disabledBackgroundColor: cs.onSurface.withValues(
+                              alpha: 0.12,
                             ),
                           ),
-                          const Icon(Icons.volume_up, size: 20),
-                        ],
-                      ),
+                          onPressed:
+                              ui.isBuffering
+                                  ? null
+                                  : () => ref
+                                      .read(playerControllerProvider.notifier)
+                                      .togglePlay(),
+                          icon: Icon(
+                            ui.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            color: cs.onPrimary,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: l10n.nextLine,
+                          onPressed:
+                              ui.isBuffering
+                                  ? null
+                                  : () => ref
+                                      .read(playerInteractionsProvider.notifier)
+                                      .nextLine(),
+                          icon: const Icon(Icons.skip_next_rounded),
+                        ),
+                        IconButton(
+                          tooltip: l10n.replayLine,
+                          onPressed:
+                              ui.isBuffering
+                                  ? null
+                                  : () => ref
+                                      .read(playerInteractionsProvider.notifier)
+                                      .replayLine(),
+                          icon: const Icon(Icons.replay_rounded),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: t.space24),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: l10n.echoMode,
+                          color: echo.active ? t.echoActive : null,
+                          onPressed: () => ref
+                              .read(playerInteractionsProvider.notifier)
+                              .toggleEcho(),
+                          icon: const Icon(Icons.mic_none_rounded),
+                        ),
+                        _CcButton(mediaId: session.mediaId),
+                        PopupMenuButton<double>(
+                          tooltip: l10n.speed,
+                          onSelected: (rate) => ref
+                              .read(playerPreferencesCtrlProvider.notifier)
+                              .setPlaybackRate(rate),
+                          itemBuilder:
+                              (ctx) => [
+                                for (final r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0])
+                                  PopupMenuItem(value: r, child: Text('${r}x')),
+                              ],
+                          child: Padding(
+                            padding: EdgeInsets.all(t.space12),
+                            child: const Icon(Icons.speed_rounded),
+                          ),
+                        ),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 200, minWidth: 120),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.volume_down_rounded,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  value: prefs.volume,
+                                  onChanged: (v) => ref
+                                      .read(playerPreferencesCtrlProvider.notifier)
+                                      .setVolume(v),
+                                ),
+                              ),
+                              Icon(
+                                Icons.volume_up_rounded,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -198,6 +236,7 @@ class _CcButton extends ConsumerWidget {
     final tracksAsync = ref.watch(allTranscriptsForMediaProvider(mediaId));
     final hasTrack = (tracksAsync.value ?? []).isNotEmpty;
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
 
     return Stack(
       clipBehavior: Clip.none,
@@ -209,13 +248,13 @@ class _CcButton extends ConsumerWidget {
         ),
         if (hasTrack)
           Positioned(
-            top: 6,
-            right: 6,
+            top: 8,
+            right: 8,
             child: Container(
-              width: 7,
-              height: 7,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: t.ccBadge,
                 shape: BoxShape.circle,
               ),
             ),

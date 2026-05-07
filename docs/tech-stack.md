@@ -3,7 +3,7 @@
 | Concern | Choice | Notes |
 |---------|--------|-------|
 | Language | Dart ^3.7 | Strict analysis |
-| UI | Flutter 3.x / Material 3 | `buildAppTheme` in `lib/core/theme/` |
+| UI | Flutter 3.x / Material 3 + `google_fonts` | `buildAppTheme` + `EnjoyThemeTokens` in `lib/core/theme/` |
 | State | `flutter_riverpod` + `riverpod_annotation` | `@Riverpod` notifiers, `build_runner` |
 | Navigation | `go_router` | Shell route for persistent mini player |
 | Playback | `media_kit` + `media_kit_video` + `media_kit_libs_video` | Single `Player` instance |

@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+
 class AudioPlayerLayout extends StatelessWidget {
   const AudioPlayerLayout({required this.transcript, super.key});
 
@@ -10,11 +12,12 @@ class AudioPlayerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
+        constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(t.space16),
           child: transcript,
         ),
       ),
