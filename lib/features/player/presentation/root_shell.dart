@@ -36,12 +36,16 @@ class _RootShellState extends ConsumerState<RootShell> {
     if (session == null) return;
 
     final player = ref.read(playerControllerProvider.notifier).player;
-    _playingSub = player.stream.playing.listen((v) {
-      ref.read(playerUiProvider.notifier).setPlaying(v);
-    });
-    _bufferingSub = player.stream.buffering.listen((v) {
-      ref.read(playerUiProvider.notifier).setBuffering(v);
-    });
+    final ui = ref.read(playerUiProvider.notifier);
+
+    // Streams are broadcast and don't replay. The player has typically already
+    // started playing by the time openMedia awaits resolve and we get attached,
+    // so seed UI from the current snapshot before subscribing to future events.
+    ui.setPlaying(player.state.playing);
+    ui.setBuffering(player.state.buffering);
+
+    _playingSub = player.stream.playing.listen(ui.setPlaying);
+    _bufferingSub = player.stream.buffering.listen(ui.setBuffering);
   }
 
   int _navIndexForPath(String path) {

@@ -47,6 +47,12 @@ class PlayerController extends _$PlayerController {
 
   @override
   PlaybackSession? build() {
+    // Force eager construction of [videoController] so mpv has a video output
+    // bound BEFORE the first [_player.open()] call. Otherwise the first opened
+    // media plays audio only with a blank video surface, because the texture
+    // is created lazily during a later rebuild — after playback already began.
+    videoController;
+
     ref.onDispose(() async {
       _persistDebounce?.cancel();
       await _positionSub?.cancel();
