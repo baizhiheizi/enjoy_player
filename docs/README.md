@@ -1,0 +1,24 @@
+# Documentation index
+
+Maintainers and agents should keep these files **accurate** when behavior or architecture changes.
+
+| Path | Audience | Update when |
+|------|----------|-------------|
+| [AGENTS.md](../AGENTS.md) | AI agents | Global rules change |
+| [architecture.md](architecture.md) | Everyone | Layers, providers, or DB schema change |
+| [tech-stack.md](tech-stack.md) | Everyone | Dependencies or versions change |
+| [conventions.md](conventions.md) | Contributors | Style / lint / folder rules change |
+| [packaging.md](packaging.md) | Release | Platform build / signing / store prep |
+| [testing.md](testing.md) | Contributors | Test strategy or CI commands change |
+| [decisions/](decisions/) | Architects | Irreversible technical choices |
+| [features/](features/) | Product + dev | Feature behavior changes |
+
+## How to add an ADR
+
+1. Copy the template in [decisions/README.md](decisions/README.md).  
+2. Use the next number: `000N-short-title.md`.  
+3. **Do not rewrite old ADRs** — supersede with a new one.
+
+## How to update a feature spec
+
+Edit the matching file under [features/](features/) in the **same PR** as the code change.

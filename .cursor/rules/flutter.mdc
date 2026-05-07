@@ -1,0 +1,13 @@
+---
+description: Dart & Flutter conventions for enjoy_player
+alwaysApply: true
+---
+
+# Flutter project rules
+
+- Use **Riverpod** (`ConsumerWidget` / `ConsumerStatefulWidget`) — avoid `StatefulWidget` + inherited mutable singletons.
+- **Never** call `print`; use `package:logging` via `core/logging/log.dart`.
+- **Never** construct `package:media_kit` `Player()` outside `PlayerController`.
+- Prefer **`package:enjoy_player/...` imports** in presentation layers.
+- Run **`dart run build_runner build`** after editing `@DriftDatabase`, `@DriftAccessor`, or `@Riverpod` annotated APIs.
+- Match user-visible strings with **`flutter gen-l10n`** ARBs under `lib/l10n/`.

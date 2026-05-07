@@ -1,0 +1,22 @@
+# Testing
+
+## Commands
+
+```bash
+flutter test
+flutter analyze
+```
+
+## Layout
+
+| Area | Location |
+|------|----------|
+| Echo window math | `test/features/player/echo_window_test.dart` |
+| Subtitle parsers | `test/data/subtitle/subtitle_parser_test.dart` |
+| Drift smoke | `test/data/db/app_database_test.dart` |
+
+## Guidelines
+
+- Prefer **fast, deterministic** unit tests (no real `Player` in CI unless using integration harness).
+- For playback integration, plan dedicated integration tests / golden tests later.
+- After changing `@DriftDatabase` or `@Riverpod` annotations, run `dart run build_runner build` before tests.
