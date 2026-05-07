@@ -23,6 +23,7 @@
   "echoMode": "Echo mode",
   "exitEchoMode": "Exit echo mode",
   "transcript": "Transcript",
+  "playerTranscriptResizeHint": "Drag to resize the transcript panel",
   "importSubtitle": "Import subtitle",
   "noTranscript": "No transcript",
   "importSrtOrVtt": "Import an .srt or .vtt file.",

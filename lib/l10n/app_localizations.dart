@@ -232,6 +232,12 @@ abstract class AppLocalizations {
   /// **'Transcript'**
   String get transcript;
 
+  /// No description provided for @playerTranscriptResizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to resize the transcript panel'**
+  String get playerTranscriptResizeHint;
+
   /// No description provided for @importSubtitle.
   ///
   /// In en, this message translates to:

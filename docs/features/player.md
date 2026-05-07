@@ -7,6 +7,7 @@
 - Debounced persistence while playing.
 - `PlayerUi` tracks chrome mode (mini vs expanded); playing/buffering synced from `Player` streams in `RootShell`.
 - **Shell**: adaptive `NavigationBar` / `NavigationRail` + mini player; nav chrome is hidden on `/player/*` for focus.
+- **Wide layout** (`VideoPlayerLayout`): draggable transcript width (min ~240px, max 50% of width), gradient video stage, no vertical divider between panels.
 - Echo enforcement uses `lib/features/player/domain/echo_window.dart` (ported from web).
 
 ## Future

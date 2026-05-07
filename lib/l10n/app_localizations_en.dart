@@ -80,6 +80,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcript => 'Transcript';
 
   @override
+  String get playerTranscriptResizeHint =>
+      'Drag to resize the transcript panel';
+
+  @override
   String get importSubtitle => 'Import subtitle';
 
   @override
