@@ -2,12 +2,14 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:media_kit/media_kit.dart' show SubtitleTrack;
 import 'package:uuid/uuid.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import '../db/app_database.dart';
 import 'subtitle_parser.dart';
 
@@ -16,6 +18,7 @@ class EmbeddedSubtitleService {
 
   // ignore: prefer_const_constructors
   static final Uuid _uuid = Uuid();
+  static final _log = logNamed('EmbeddedSubtitleService');
 
   /// Extracts text lines from [mediaSourceUri] for each [SubtitleTrack] that
   /// is embedded (not loaded from an external URI / data string).
@@ -28,6 +31,11 @@ class EmbeddedSubtitleService {
     required List<SubtitleTrack> tracks,
     Set<int> existingTrackIndices = const {},
   }) async {
+    // ffmpeg_kit_flutter_new has no stable Windows plugin implementation in our
+    // current setup, so skip embedded extraction to avoid repeated runtime
+    // MissingPluginException spam.
+    if (Platform.isWindows) return const [];
+
     final results = <TranscriptRow>[];
     final localPath = Uri.parse(mediaSourceUri).toFilePath();
 
@@ -70,11 +78,20 @@ class EmbeddedSubtitleService {
 
   Future<String?> _extractTrackAsSrt(String filePath, int streamIndex) async {
     // ffmpeg stream selector: subtitle stream by 0-based index (0:s:0, 0:s:1, …)
-    final command = '-i "$filePath" -map 0:s:$streamIndex -f srt -';
-    final session = await FFmpegKit.execute(command);
-    final code = await session.getReturnCode();
-    if (!ReturnCode.isSuccess(code)) return null;
-    return session.getOutput();
+    try {
+      final command = '-i "$filePath" -map 0:s:$streamIndex -f srt -';
+      final session = await FFmpegKit.execute(command);
+      final code = await session.getReturnCode();
+      if (!ReturnCode.isSuccess(code)) return null;
+      return session.getOutput();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Embedded subtitle extraction failed for stream $streamIndex',
+        error,
+        stackTrace,
+      );
+      return null;
+    }
   }
 
   static String _trackLabel(SubtitleTrack track, int index) {

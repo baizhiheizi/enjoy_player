@@ -174,12 +174,18 @@ class _VideoWidthAspectViewport extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return StreamBuilder<VideoParams>(
-      stream: controller.player.stream.videoParams,
-      initialData: controller.player.state.videoParams,
+    return StreamBuilder<double>(
+      // Avoid rebuilding this subtree for every raw videoParams tick.
+      // On Windows this can overwhelm the accessibility bridge.
+      stream: controller.player.stream.videoParams
+          .map((vp) => _aspectRatio(vp, controller.player.state))
+          .distinct((a, b) => (a - b).abs() < 0.0001),
+      initialData: _aspectRatio(
+        controller.player.state.videoParams,
+        controller.player.state,
+      ),
       builder: (context, snapshot) {
-        final vp = snapshot.data ?? const VideoParams();
-        final ar = _aspectRatio(vp, controller.player.state);
+        final ar = (snapshot.data ?? (16 / 9)).clamp(0.001, 1000.0);
         final w = maxWidth;
         final h = w / ar;
 
@@ -189,13 +195,15 @@ class _VideoWidthAspectViewport extends StatelessWidget {
             child: SizedBox(
               width: w,
               height: h,
-              child: Video(
-                controller: controller,
-                controls: AdaptiveVideoControls,
-                width: w,
-                height: h,
-                fit: BoxFit.contain,
-                fill: fill,
+              child: ExcludeSemantics(
+                child: Video(
+                  controller: controller,
+                  controls: null,
+                  width: w,
+                  height: h,
+                  fit: BoxFit.contain,
+                  fill: fill,
+                ),
               ),
             ),
           ),
@@ -258,15 +266,15 @@ class _ResizeSplitter extends StatelessWidget {
       onEnter: (_) => onHover(true),
       onExit: (_) => onHover(false),
       cursor: SystemMouseCursors.resizeColumn,
-      child: Semantics(
-        label: semanticLabel,
-        child: SizedBox(
-          width: hitWidth,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onHorizontalDragUpdate: (details) {
-              onDragDelta(details.delta.dx);
-            },
+      child: SizedBox(
+        width: hitWidth,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragUpdate: (details) {
+            onDragDelta(details.delta.dx);
+          },
+          child: Tooltip(
+            message: semanticLabel,
             child: Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 160),

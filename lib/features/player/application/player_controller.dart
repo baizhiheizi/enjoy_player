@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
@@ -25,7 +26,16 @@ const _prefsKey = 'player_preferences_v1';
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController {
   late final mk.Player _player = mk.Player();
-  late final VideoController videoController = VideoController(_player);
+  late final VideoController videoController = VideoController(
+    _player,
+    // Without an initial size, media_kit_video creates a temporary 1px texture,
+    // then frees/recreates it once video params arrive. That texture churn
+    // repeatedly trips Flutter's Windows AXTree bridge.
+    configuration:
+        Platform.isWindows
+            ? const VideoControllerConfiguration(width: 1920, height: 1080)
+            : const VideoControllerConfiguration(),
+  );
 
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration>? _durationSub;

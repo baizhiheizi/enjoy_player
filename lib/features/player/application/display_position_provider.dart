@@ -10,5 +10,16 @@ part 'display_position_provider.g.dart';
 @riverpod
 Stream<Duration> displayPosition(Ref ref) {
   final ctrl = ref.watch(playerControllerProvider.notifier);
-  return ctrl.player.stream.position;
+  // Windows accessibility bridge can get flooded when semantics-heavy widgets
+  // (slider, transcript list items) rebuild for every raw position tick.
+  // Quantize updates to 200ms buckets to keep UI responsive without emitting
+  // per-frame updates.
+  const bucketMs = 200;
+  return ctrl.player.stream.position
+      .map((position) {
+        final ms = position.inMilliseconds;
+        final quantizedMs = (ms ~/ bucketMs) * bucketMs;
+        return Duration(milliseconds: quantizedMs);
+      })
+      .distinct();
 }
