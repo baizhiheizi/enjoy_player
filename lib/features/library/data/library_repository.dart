@@ -8,6 +8,23 @@ import '../../../core/errors/app_failure.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/files/file_storage.dart';
 import '../../../data/files/media_resolver.dart';
+import '../domain/media.dart';
+
+Media _mediaFromRow(MediaRow row) {
+  return Media(
+    id: row.id,
+    kind: MediaKindX.fromStorage(row.kind),
+    title: row.title,
+    sourceUri: row.sourceUri,
+    thumbnailPath: row.thumbnailPath,
+    durationMs: row.durationMs,
+    language: row.language,
+    fileHash: row.fileHash,
+    fileSize: row.fileSize,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  );
+}
 
 class MediaLibraryRepository {
   MediaLibraryRepository(this._db, this._storage);
@@ -18,7 +35,8 @@ class MediaLibraryRepository {
   final AppDatabase _db;
   final FileStorage _storage;
 
-  Stream<List<MediaRow>> watchAll() => _db.mediaDao.watchAll();
+  Stream<List<Media>> watchAll() =>
+      _db.mediaDao.watchAll().map((rows) => rows.map(_mediaFromRow).toList());
 
   Future<String> importMedia(XFile file) async {
     try {
@@ -27,12 +45,13 @@ class MediaLibraryRepository {
         Namespace.url.value,
         'enjoy:media:${result.fileHash}',
       );
-      final kind = isVideoFileName(file.name) ? 'video' : 'audio';
+      final kind =
+          isVideoFileName(file.name) ? MediaKind.video : MediaKind.audio;
       final now = DateTime.now();
       await _db.mediaDao.insertRow(
         MediaRow(
           id: id,
-          kind: kind,
+          kind: kind.storageValue,
           title: result.title,
           sourceUri: result.fileUri,
           thumbnailPath: null,
@@ -56,5 +75,8 @@ class MediaLibraryRepository {
     await _db.mediaDao.deleteId(id);
   }
 
-  Future<MediaRow?> getById(String id) => _db.mediaDao.getById(id);
+  Future<Media?> getById(String id) async {
+    final row = await _db.mediaDao.getById(id);
+    return row == null ? null : _mediaFromRow(row);
+  }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -15,12 +16,17 @@ class EnjoyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final appPrefs = ref.watch(appPreferencesCtrlProvider);
+    final mode = appPrefs.themeMode;
+    final light = buildAppTheme(Brightness.light);
+    final dark = buildAppTheme(Brightness.dark);
+
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
-      theme: buildAppTheme(Brightness.dark),
-      darkTheme: buildAppTheme(Brightness.dark),
-      themeMode: ThemeMode.dark,
-      locale: const Locale('en'),
+      theme: light,
+      darkTheme: dark,
+      themeMode: mode,
+      locale: appPrefs.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

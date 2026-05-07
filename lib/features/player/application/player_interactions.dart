@@ -1,12 +1,10 @@
 /// Line-level controls: prev / next / replay / echo toggle (maps web `usePlayerControls`).
 library;
 
-import 'dart:convert';
-
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../data/db/app_database_provider.dart';
 import '../../../data/subtitle/transcript_line.dart';
+import '../../transcript/application/transcript_repository_provider.dart';
 import 'echo_mode_provider.dart';
 import 'player_controller.dart';
 
@@ -34,12 +32,10 @@ class PlayerInteractions extends _$PlayerInteractions {
     final session = ref.read(playerControllerProvider);
     final mediaId = session?.mediaId;
     if (mediaId == null) return [];
-    final db = ref.read(appDatabaseProvider);
-    final rows = await db.transcriptDao.listForMedia(mediaId);
-    if (rows.isEmpty) return [];
-    final decoded =
-        (jsonDecode(rows.first.linesJson) as List).cast<Map<String, dynamic>>();
-    return decoded.map(TranscriptLine.fromJson).toList();
+    final repo = ref.read(transcriptRepositoryProvider);
+    final row = await repo.primaryTranscriptRowForMedia(mediaId);
+    if (row == null) return [];
+    return repo.linesForRow(row);
   }
 
   Future<void> prevLine() async {

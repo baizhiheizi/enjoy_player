@@ -9,6 +9,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/embedded_tracks_notifier.dart';
+import '../application/open_media_provider.dart';
 import '../application/player_controller.dart';
 import '../application/player_ui_provider.dart';
 import '../../transcript/presentation/subtitle_track_picker_sheet.dart';
@@ -30,19 +31,14 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final current = ref.read(playerControllerProvider);
-      if (current?.mediaId != widget.mediaId) {
-        await ref
-            .read(playerControllerProvider.notifier)
-            .openMedia(widget.mediaId);
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(playerUiProvider.notifier).expand();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final open = ref.watch(openMediaActionProvider(widget.mediaId));
     final session = ref.watch(playerControllerProvider);
     final l10n = AppLocalizations.of(context)!;
 
@@ -62,7 +58,23 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       );
     });
 
-    if (session == null) {
+    if (open.hasError) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              '${l10n.error}: ${open.error}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (session == null || session.mediaId != widget.mediaId) {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(child: CircularProgressIndicator()),
@@ -71,11 +83,12 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
 
     final isVideo = session.mediaType == 'video';
     final videoController =
-        ref.read(playerControllerProvider.notifier).videoController;
+        isVideo
+            ? ref.read(playerControllerProvider.notifier).videoController
+            : null;
     final t = EnjoyThemeTokens.of(context);
 
     return Scaffold(
-      // Black scaffold so the area behind the AppBar matches the video stage.
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black.withValues(alpha: 0.72),
@@ -102,8 +115,6 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
         actions: [
           SizedBox(width: t.space4),
         ],
-        // Bottom border to separate bar from transcript area (not needed on
-        // pure video — the black-on-black is seamless).
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Divider(
@@ -116,7 +127,7 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       body:
           isVideo
               ? VideoPlayerLayout(
-                controller: videoController,
+                controller: videoController!,
                 transcript: TranscriptPanel(mediaId: widget.mediaId),
               )
               : AudioPlayerLayout(

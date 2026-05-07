@@ -1,17 +1,17 @@
 /// Home: hero header + recent media grid (WMP-inspired).
 library;
 
-import 'dart:io' show File, Platform;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
+import '../domain/media.dart';
 import 'library_actions.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -167,7 +167,7 @@ class HomeScreen extends ConsumerWidget {
 class _HomeMediaTile extends StatefulWidget {
   const _HomeMediaTile({required this.media});
 
-  final MediaRow media;
+  final Media media;
 
   @override
   State<_HomeMediaTile> createState() => _HomeMediaTileState();
@@ -181,9 +181,9 @@ class _HomeMediaTileState extends State<_HomeMediaTile> {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final isVideo = widget.media.kind == 'video';
-    final thumb = _thumbFile(widget.media.thumbnailPath);
-    final dur = _fmtDuration(Duration(milliseconds: widget.media.durationMs));
+    final isVideo = widget.media.kind == MediaKind.video;
+    final thumb = localThumbnailFile(widget.media.thumbnailPath);
+    final dur = formatDurationHms(Duration(milliseconds: widget.media.durationMs));
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -268,26 +268,4 @@ class _HomeMediaTileState extends State<_HomeMediaTile> {
       ),
     );
   }
-
-  File? _thumbFile(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (!(Platform.isWindows ||
-        Platform.isLinux ||
-        Platform.isMacOS ||
-        Platform.isAndroid ||
-        Platform.isIOS)) {
-      return null;
-    }
-    final f = File(path);
-    return f.existsSync() ? f : null;
-  }
-}
-
-String _fmtDuration(Duration d) {
-  String two(int n) => n.toString().padLeft(2, '0');
-  final h = d.inHours;
-  final m = d.inMinutes.remainder(60);
-  final s = d.inSeconds.remainder(60);
-  if (h > 0) return '${two(h)}:${two(m)}:${two(s)}';
-  return '${two(m)}:${two(s)}';
 }

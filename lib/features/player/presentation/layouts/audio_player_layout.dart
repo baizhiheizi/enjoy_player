@@ -1,12 +1,11 @@
 /// Audio-only layout: optional hero artwork + transcript-first reading.
 library;
 
-import 'dart:io' show File, Platform;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 
 import '../../application/player_controller.dart';
 
@@ -24,18 +23,7 @@ class AudioPlayerLayout extends ConsumerWidget {
     final session = ref.watch(playerControllerProvider);
     final cs = Theme.of(context).colorScheme;
 
-    final thumbPath = session?.thumbnailUrl;
-    File? thumbFile;
-    if (thumbPath != null &&
-        thumbPath.isNotEmpty &&
-        (Platform.isWindows ||
-            Platform.isLinux ||
-            Platform.isMacOS ||
-            Platform.isAndroid ||
-            Platform.isIOS)) {
-      final f = File(thumbPath);
-      if (f.existsSync()) thumbFile = f;
-    }
+    final thumbFile = localThumbnailFile(session?.thumbnailUrl);
 
     return LayoutBuilder(
       builder: (context, constraints) {

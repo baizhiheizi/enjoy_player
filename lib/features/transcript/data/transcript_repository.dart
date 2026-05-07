@@ -9,6 +9,32 @@ import 'package:uuid/uuid.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/subtitle/subtitle_parser.dart';
+import '../../../data/subtitle/transcript_line.dart';
+import '../domain/transcript_track.dart';
+
+class _LinesCacheEntry {
+  _LinesCacheEntry(this.updatedAt, this.lines);
+  final DateTime updatedAt;
+  final List<TranscriptLine> lines;
+}
+
+List<TranscriptLine> _decodeLines(String linesJson) {
+  final decoded =
+      (jsonDecode(linesJson) as List).cast<Map<String, dynamic>>();
+  return decoded.map(TranscriptLine.fromJson).toList();
+}
+
+TranscriptTrack _trackFromRow(TranscriptRow row) {
+  return TranscriptTrack(
+    id: row.id,
+    mediaId: row.mediaId,
+    language: row.language,
+    source: row.source,
+    label: row.label,
+    isEmbedded: row.isEmbedded,
+    trackIndex: row.trackIndex,
+  );
+}
 
 class TranscriptRepository {
   TranscriptRepository(this._db);
@@ -17,6 +43,35 @@ class TranscriptRepository {
   static final Uuid _uuid = Uuid();
 
   final AppDatabase _db;
+
+  final Map<String, _LinesCacheEntry> _linesCache = {};
+
+  /// Decodes [row.linesJson] with memoization on `(id, updatedAt)`.
+  List<TranscriptLine> linesForRow(TranscriptRow row) {
+    final hit = _linesCache[row.id];
+    if (hit != null && hit.updatedAt == row.updatedAt) return hit.lines;
+    final decoded = _decodeLines(row.linesJson);
+    _linesCache[row.id] = _LinesCacheEntry(row.updatedAt, decoded);
+    return decoded;
+  }
+
+  Future<List<TranscriptLine>> linesForTranscriptId(String transcriptId) async {
+    final row = await _db.transcriptDao.getById(transcriptId);
+    if (row == null) return [];
+    return linesForRow(row);
+  }
+
+  Future<TranscriptRow?> primaryTranscriptRowForMedia(String mediaId) async {
+    final playback = await _db.sessionDao.getForMedia(mediaId);
+    final id = playback?.primaryTranscriptId;
+    if (id == null) return null;
+    return _db.transcriptDao.getById(id);
+  }
+
+  Stream<List<TranscriptTrack>> watchTracks(String mediaId) =>
+      _db.transcriptDao.watchAllForMedia(mediaId).map(
+            (rows) => rows.map(_trackFromRow).toList(),
+          );
 
   Future<void> importSubtitle({
     required String mediaId,
@@ -65,6 +120,8 @@ class TranscriptRepository {
   Future<void> setSecondaryTranscript(String mediaId, String? transcriptId) =>
       _db.sessionDao.updateSecondaryTranscript(mediaId, transcriptId);
 
-  Future<void> deleteTranscript(String transcriptId) =>
-      _db.transcriptDao.deleteId(transcriptId);
+  Future<void> deleteTranscript(String transcriptId) async {
+    _linesCache.remove(transcriptId);
+    await _db.transcriptDao.deleteId(transcriptId);
+  }
 }

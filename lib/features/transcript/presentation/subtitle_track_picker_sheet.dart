@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import '../../../data/db/app_database.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/active_transcript_provider.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/transcript_repository_provider.dart';
+import '../domain/transcript_track.dart';
 
 /// Shows a modal bottom sheet for picking primary + secondary subtitles.
 Future<void> showSubtitleTrackPicker(
@@ -72,14 +72,14 @@ class _SubtitleTrackPickerSheetState
     }
   }
 
-  Future<void> _deleteTrack(TranscriptRow row) async {
+  Future<void> _deleteTrack(TranscriptTrack track) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (ctx) => AlertDialog(
             title: Text(l10n.subtitlesDeleteTrack),
-            content: Text(row.label.isEmpty ? row.id : row.label),
+            content: Text(track.label.isEmpty ? track.id : track.label),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -93,7 +93,7 @@ class _SubtitleTrackPickerSheetState
           ),
     );
     if (confirmed != true) return;
-    await ref.read(transcriptRepositoryProvider).deleteTranscript(row.id);
+    await ref.read(transcriptRepositoryProvider).deleteTranscript(track.id);
   }
 
   @override
@@ -110,7 +110,7 @@ class _SubtitleTrackPickerSheetState
       secondaryTranscriptIdProvider(widget.mediaId),
     );
 
-    final tracks = tracksAsync.value ?? <TranscriptRow>[];
+    final tracks = tracksAsync.value ?? <TranscriptTrack>[];
     final primaryId = primaryIdAsync.value;
     final secondaryId = secondaryIdAsync.value;
 
@@ -157,16 +157,16 @@ class _SubtitleTrackPickerSheetState
                     children: [
                       _SectionHeader(l10n.subtitlesPrimary),
                       ...tracks.map(
-                        (row) => _TrackTile(
-                          row: row,
-                          selected: row.id == primaryId,
+                        (track) => _TrackTile(
+                          track: track,
+                          selected: track.id == primaryId,
                           isSecondary: false,
                           onTap:
                               () => ref
                                   .read(transcriptRepositoryProvider)
-                                  .setActiveTranscript(widget.mediaId, row.id),
+                                  .setActiveTranscript(widget.mediaId, track.id),
                           onDelete:
-                              row.isEmbedded ? null : () => _deleteTrack(row),
+                              track.isEmbedded ? null : () => _deleteTrack(track),
                         ),
                       ),
                       SizedBox(height: t.space8),
@@ -182,16 +182,16 @@ class _SubtitleTrackPickerSheetState
                         title: Text(l10n.subtitlesNone),
                       ),
                       ...tracks.map(
-                        (row) => _TrackTile(
-                          row: row,
-                          selected: row.id == secondaryId,
+                        (track) => _TrackTile(
+                          track: track,
+                          selected: track.id == secondaryId,
                           isSecondary: true,
                           onTap:
                               () => ref
                                   .read(transcriptRepositoryProvider)
                                   .setSecondaryTranscript(
                                     widget.mediaId,
-                                    row.id,
+                                    track.id,
                                   ),
                           onDelete: null, // delete only from primary section
                         ),
@@ -265,14 +265,14 @@ class _SectionHeader extends StatelessWidget {
 
 class _TrackTile extends StatelessWidget {
   const _TrackTile({
-    required this.row,
+    required this.track,
     required this.selected,
     required this.isSecondary,
     required this.onTap,
     required this.onDelete,
   });
 
-  final TranscriptRow row;
+  final TranscriptTrack track;
   final bool selected;
   final bool isSecondary;
   final VoidCallback onTap;
@@ -282,21 +282,21 @@ class _TrackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sourceBadge =
-        row.isEmbedded ? l10n.subtitlesEmbedded : l10n.subtitlesImported;
+        track.isEmbedded ? l10n.subtitlesEmbedded : l10n.subtitlesImported;
 
-    final label = row.label.isNotEmpty ? row.label : row.language;
+    final label = track.label.isNotEmpty ? track.label : track.language;
 
     return RadioListTile<String>(
-      value: row.id,
-      groupValue: selected ? row.id : null,
+      value: track.id,
+      groupValue: selected ? track.id : null,
       onChanged: (_) => onTap(),
       title: Text(label),
       subtitle: Row(
         children: [
-          _Badge(sourceBadge, isEmbedded: row.isEmbedded),
-          if (row.language.isNotEmpty && row.language != 'und') ...[
+          _Badge(sourceBadge, isEmbedded: track.isEmbedded),
+          if (track.language.isNotEmpty && track.language != 'und') ...[
             const SizedBox(width: 6),
-            _Badge(row.language.toUpperCase(), isEmbedded: false),
+            _Badge(track.language.toUpperCase(), isEmbedded: false),
           ],
         ],
       ),

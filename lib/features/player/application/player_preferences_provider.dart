@@ -7,11 +7,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/db/app_database_provider.dart';
 import '../domain/player_settings.dart';
-import 'player_controller.dart';
+import 'player_engine_provider.dart';
 
 part 'player_preferences_provider.g.dart';
 
-const _prefsKey = 'player_preferences_v1';
+const playerPreferencesStorageKey = 'player_preferences_v1';
 
 @Riverpod(keepAlive: true)
 class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
@@ -26,7 +26,7 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
 
   Future<void> _hydrate() async {
     final db = ref.read(appDatabaseProvider);
-    final raw = await db.settingsDao.getValue(_prefsKey);
+    final raw = await db.settingsDao.getValue(playerPreferencesStorageKey);
     if (raw == null) return;
     try {
       final map = jsonDecode(raw) as Map<String, dynamic>;
@@ -39,7 +39,7 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
       );
       final v = state.volume;
       _lastNonZeroVolume = v > 0.01 ? v : 1;
-      await ref.read(playerControllerProvider.notifier).applyPreferences(state);
+      await applyCurrentToEngine();
     } catch (_) {
       /* ignore corrupt prefs */
     }
@@ -48,13 +48,19 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
   Future<void> _persist() async {
     final db = ref.read(appDatabaseProvider);
     await db.settingsDao.setValue(
-      _prefsKey,
+      playerPreferencesStorageKey,
       jsonEncode({
         'volume': state.volume,
         'rate': state.playbackRate,
         'repeat': state.repeatMode.index,
       }),
     );
+  }
+
+  Future<void> applyCurrentToEngine() async {
+    final engine = ref.read(playerEngineProvider);
+    await engine.setVolumeNormalized(state.volume);
+    await engine.setRate(state.playbackRate);
   }
 
   Future<void> setVolume(double v) async {
@@ -64,7 +70,7 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
       _lastNonZeroVolume = clamped;
     }
     await _persist();
-    await ref.read(playerControllerProvider.notifier).applyPreferences(state);
+    await applyCurrentToEngine();
   }
 
   Future<void> toggleMute() async {
@@ -79,7 +85,7 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
   Future<void> setPlaybackRate(double r) async {
     state = state.copyWith(playbackRate: r.clamp(0.25, 2));
     await _persist();
-    await ref.read(playerControllerProvider.notifier).applyPreferences(state);
+    await applyCurrentToEngine();
   }
 
   Future<void> setRepeatMode(RepeatMode m) async {

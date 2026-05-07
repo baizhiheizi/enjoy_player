@@ -2,16 +2,16 @@
 library;
 
 import 'dart:async' show Timer;
-import 'dart:io' show File, Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../../../transcript/application/all_transcripts_provider.dart';
@@ -21,6 +21,7 @@ import '../../application/echo_mode_provider.dart';
 import '../../application/player_controller.dart';
 import '../../application/player_interactions.dart';
 import '../../application/player_preferences_provider.dart';
+import '../../application/player_state_providers.dart';
 import '../../application/player_ui_provider.dart';
 import '../../domain/playback_session.dart';
 final _log = logNamed('GlobalTransportBar');
@@ -38,8 +39,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(playerControllerProvider);
-    final ui = ref.watch(playerUiProvider);
     final echo = ref.watch(echoModeProvider);
+    final playingAsync = ref.watch(playerIsPlayingProvider);
+    final bufferingAsync = ref.watch(playerIsBufferingProvider);
+    final isPlaying = playingAsync.value ?? false;
+    final isBuffering = bufferingAsync.value ?? false;
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
@@ -124,7 +128,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                       tooltip: l10n.previousLine,
                       iconSize: 22,
                       onPressed:
-                          ui.isBuffering
+                          isBuffering
                               ? null
                               : () => ref
                                   .read(playerInteractionsProvider.notifier)
@@ -132,10 +136,10 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                       icon: const Icon(Icons.skip_previous_rounded),
                     ),
                     _PlayRingButton(
-                      playing: ui.isPlaying,
-                      buffering: ui.isBuffering,
+                      playing: isPlaying,
+                      buffering: isBuffering,
                       onPressed:
-                          ui.isBuffering
+                          isBuffering
                               ? null
                               : () => ref
                                   .read(playerControllerProvider.notifier)
@@ -145,7 +149,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                       tooltip: l10n.nextLine,
                       iconSize: 22,
                       onPressed:
-                          ui.isBuffering
+                          isBuffering
                               ? null
                               : () => ref
                                   .read(playerInteractionsProvider.notifier)
@@ -156,7 +160,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                       tooltip: l10n.replayLine,
                       iconSize: 22,
                       onPressed:
-                          ui.isBuffering
+                          isBuffering
                               ? null
                               : () => ref
                                   .read(playerInteractionsProvider.notifier)
@@ -282,7 +286,11 @@ class _TransportVolumeButtonState extends ConsumerState<_TransportVolumeButton> 
   }
 
   void _onPointerInside(bool inside) {
-    if (inside) _showPopup(); else _scheduleHidePopup();
+    if (inside) {
+      _showPopup();
+    } else {
+      _scheduleHidePopup();
+    }
   }
 
   void _toggleMute() {
@@ -345,7 +353,7 @@ class _TransportVolumeButtonState extends ConsumerState<_TransportVolumeButton> 
                       ),
                     ),
                     child: Consumer(
-                      builder: (_, ref, __) {
+                      builder: (_, ref, _) {
                         final vol = ref
                             .watch(playerPreferencesCtrlProvider)
                             .volume
@@ -416,7 +424,7 @@ class _TransportProgressStrip extends ConsumerWidget {
       onExit: (_) => onHoverChanged(false),
       child: Row(
         children: [
-          Text(_fmtDurationFull(position), style: timeStyle),
+          Text(formatDurationHms(position), style: timeStyle),
           const SizedBox(width: 8),
           Expanded(
             child: SliderTheme(
@@ -441,7 +449,7 @@ class _TransportProgressStrip extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            _fmtDurationFull(
+            formatDurationHms(
               Duration(milliseconds: (durationSec * 1000).round()),
             ),
             style: timeStyle,
@@ -479,7 +487,7 @@ class _TransportMeta extends ConsumerWidget {
           style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         Text(
-          '${_fmtDurationFull(pos)} / ${_fmtDurationFull(Duration(milliseconds: (session.durationSeconds * 1000).round()))}',
+          '${formatDurationHms(pos)} / ${formatDurationHms(Duration(milliseconds: (session.durationSeconds * 1000).round()))}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: tt.bodySmall?.copyWith(
@@ -498,44 +506,26 @@ class _TransportArtwork extends ConsumerWidget {
   final PlaybackSession session;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef _) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final isVideo = session.mediaType == 'video';
     const width = 64.0;
     const height = 40.0;
 
-    Widget content;
-    if (isVideo) {
-      final controller = ref.read(playerControllerProvider.notifier).videoController;
-      content = ColoredBox(
-        color: Colors.black,
-        child: ExcludeSemantics(
-          child: Video(
-            controller: controller,
-            controls: NoVideoControls,
-            width: width,
-            height: height,
-            fit: BoxFit.cover,
-            fill: Colors.black,
-            wakelock: false,
-          ),
-        ),
-      );
-    } else {
-      final thumb = _thumbnailFile(session.thumbnailUrl);
-      if (thumb != null) {
-        content = Image.file(
-          thumb,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _fallbackArt(cs, isVideo: false),
-        );
-      } else {
-        content = _fallbackArt(cs, isVideo: false);
-      }
-    }
+    // ADR-0003: single media_kit Player/VideoController — do not attach a second
+    // [Video] here; the expanded player owns the texture. Mini bar uses art only.
+    final thumb = localThumbnailFile(session.thumbnailUrl);
+    final Widget content =
+        thumb != null
+            ? Image.file(
+              thumb,
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _fallbackArt(cs, isVideo: isVideo),
+            )
+            : _fallbackArt(cs, isVideo: isVideo);
 
     return Semantics(
       label: isVideo ? l10n.miniPlayerMediaVideo : l10n.miniPlayerMediaAudio,
@@ -578,19 +568,6 @@ class _TransportArtwork extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  File? _thumbnailFile(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (!(Platform.isWindows ||
-        Platform.isLinux ||
-        Platform.isMacOS ||
-        Platform.isAndroid ||
-        Platform.isIOS)) {
-      return null;
-    }
-    final f = File(path);
-    return f.existsSync() ? f : null;
   }
 }
 
@@ -697,13 +674,4 @@ class _CcButton extends ConsumerWidget {
       ],
     );
   }
-}
-
-String _fmtDurationFull(Duration d) {
-  String two(int n) => n.toString().padLeft(2, '0');
-  final h = d.inHours;
-  final m = d.inMinutes.remainder(60);
-  final s = d.inSeconds.remainder(60);
-  if (h > 0) return '${two(h)}:${two(m)}:${two(s)}';
-  return '${two(m)}:${two(s)}';
 }
