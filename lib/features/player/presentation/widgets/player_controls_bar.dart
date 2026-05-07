@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import '../../../transcript/application/all_transcripts_provider.dart';
+import '../../../transcript/presentation/subtitle_track_picker_sheet.dart';
 import '../../application/display_position_provider.dart';
 import '../../application/echo_mode_provider.dart';
 import '../../application/player_controller.dart';
@@ -25,9 +27,8 @@ class PlayerControlsBar extends ConsumerWidget {
 
     if (session == null) return const SizedBox.shrink();
 
-    final durationSec = session.durationSeconds > 0
-        ? session.durationSeconds
-        : 1.0;
+    final durationSec =
+        session.durationSeconds > 0 ? session.durationSeconds : 1.0;
 
     final posAsync = ref.watch(displayPositionProvider);
     final pos = switch (posAsync) {
@@ -58,7 +59,11 @@ class PlayerControlsBar extends ConsumerWidget {
                     },
                   ),
                 ),
-                Text(_fmtDuration(Duration(milliseconds: (durationSec * 1000).round()))),
+                Text(
+                  _fmtDuration(
+                    Duration(milliseconds: (durationSec * 1000).round()),
+                  ),
+                ),
               ],
             ),
             Row(
@@ -68,38 +73,46 @@ class PlayerControlsBar extends ConsumerWidget {
                   children: [
                     IconButton(
                       tooltip: l10n.previousLine,
-                      onPressed: ui.isBuffering
-                          ? null
-                          : () => ref
-                              .read(playerInteractionsProvider.notifier)
-                              .prevLine(),
+                      onPressed:
+                          ui.isBuffering
+                              ? null
+                              : () =>
+                                  ref
+                                      .read(playerInteractionsProvider.notifier)
+                                      .prevLine(),
                       icon: const Icon(Icons.skip_previous),
                     ),
                     IconButton.filled(
                       tooltip: ui.isPlaying ? l10n.pause : l10n.play,
-                      onPressed: ui.isBuffering
-                          ? null
-                          : () => ref
-                              .read(playerControllerProvider.notifier)
-                              .togglePlay(),
+                      onPressed:
+                          ui.isBuffering
+                              ? null
+                              : () =>
+                                  ref
+                                      .read(playerControllerProvider.notifier)
+                                      .togglePlay(),
                       icon: Icon(ui.isPlaying ? Icons.pause : Icons.play_arrow),
                     ),
                     IconButton(
                       tooltip: l10n.nextLine,
-                      onPressed: ui.isBuffering
-                          ? null
-                          : () => ref
-                              .read(playerInteractionsProvider.notifier)
-                              .nextLine(),
+                      onPressed:
+                          ui.isBuffering
+                              ? null
+                              : () =>
+                                  ref
+                                      .read(playerInteractionsProvider.notifier)
+                                      .nextLine(),
                       icon: const Icon(Icons.skip_next),
                     ),
                     IconButton(
                       tooltip: l10n.replayLine,
-                      onPressed: ui.isBuffering
-                          ? null
-                          : () => ref
-                              .read(playerInteractionsProvider.notifier)
-                              .replayLine(),
+                      onPressed:
+                          ui.isBuffering
+                              ? null
+                              : () =>
+                                  ref
+                                      .read(playerInteractionsProvider.notifier)
+                                      .replayLine(),
                       icon: const Icon(Icons.replay),
                     ),
                   ],
@@ -108,23 +121,29 @@ class PlayerControlsBar extends ConsumerWidget {
                   children: [
                     IconButton(
                       tooltip: l10n.echoMode,
-                      color: echo.active
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      onPressed: () => ref
-                          .read(playerInteractionsProvider.notifier)
-                          .toggleEcho(),
+                      color:
+                          echo.active
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                      onPressed:
+                          () =>
+                              ref
+                                  .read(playerInteractionsProvider.notifier)
+                                  .toggleEcho(),
                       icon: const Icon(Icons.mic_none),
                     ),
+                    _CcButton(mediaId: session.mediaId),
                     PopupMenuButton<double>(
                       tooltip: l10n.speed,
-                      onSelected: (rate) => ref
-                          .read(playerPreferencesCtrlProvider.notifier)
-                          .setPlaybackRate(rate),
-                      itemBuilder: (ctx) => [
-                        for (final r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0])
-                          PopupMenuItem(value: r, child: Text('${r}x')),
-                      ],
+                      onSelected:
+                          (rate) => ref
+                              .read(playerPreferencesCtrlProvider.notifier)
+                              .setPlaybackRate(rate),
+                      itemBuilder:
+                          (ctx) => [
+                            for (final r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0])
+                              PopupMenuItem(value: r, child: Text('${r}x')),
+                          ],
                       child: const Padding(
                         padding: EdgeInsets.all(12),
                         child: Icon(Icons.speed),
@@ -138,9 +157,12 @@ class PlayerControlsBar extends ConsumerWidget {
                           Expanded(
                             child: Slider(
                               value: prefs.volume,
-                              onChanged: (v) => ref
-                                  .read(playerPreferencesCtrlProvider.notifier)
-                                  .setVolume(v),
+                              onChanged:
+                                  (v) => ref
+                                      .read(
+                                        playerPreferencesCtrlProvider.notifier,
+                                      )
+                                      .setVolume(v),
                             ),
                           ),
                           const Icon(Icons.volume_up, size: 20),
@@ -163,4 +185,42 @@ String _fmtDuration(Duration d) {
   final m = d.inMinutes.remainder(60);
   final s = d.inSeconds.remainder(60);
   return '${two(m)}:${two(s)}';
+}
+
+/// CC (closed-caption) button with a badge dot when tracks are available.
+class _CcButton extends ConsumerWidget {
+  const _CcButton({required this.mediaId});
+
+  final String mediaId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tracksAsync = ref.watch(allTranscriptsForMediaProvider(mediaId));
+    final hasTrack = (tracksAsync.value ?? []).isNotEmpty;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          tooltip: l10n.subtitles,
+          icon: const Icon(Icons.closed_caption_outlined),
+          onPressed: () => showSubtitleTrackPicker(context, ref, mediaId),
+        ),
+        if (hasTrack)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }

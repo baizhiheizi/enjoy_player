@@ -730,6 +730,42 @@ class $TranscriptsTable extends Transcripts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _trackIndexMeta = const VerificationMeta(
+    'trackIndex',
+  );
+  @override
+  late final GeneratedColumn<int> trackIndex = GeneratedColumn<int>(
+    'track_index',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isEmbeddedMeta = const VerificationMeta(
+    'isEmbedded',
+  );
+  @override
+  late final GeneratedColumn<bool> isEmbedded = GeneratedColumn<bool>(
+    'is_embedded',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_embedded" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -759,6 +795,9 @@ class $TranscriptsTable extends Transcripts
     language,
     source,
     linesJson,
+    label,
+    trackIndex,
+    isEmbedded,
     createdAt,
     updatedAt,
   ];
@@ -811,6 +850,24 @@ class $TranscriptsTable extends Transcripts
     } else if (isInserting) {
       context.missing(_linesJsonMeta);
     }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('track_index')) {
+      context.handle(
+        _trackIndexMeta,
+        trackIndex.isAcceptableOrUnknown(data['track_index']!, _trackIndexMeta),
+      );
+    }
+    if (data.containsKey('is_embedded')) {
+      context.handle(
+        _isEmbeddedMeta,
+        isEmbedded.isAcceptableOrUnknown(data['is_embedded']!, _isEmbeddedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -861,6 +918,20 @@ class $TranscriptsTable extends Transcripts
             DriftSqlType.string,
             data['${effectivePrefix}lines_json'],
           )!,
+      label:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}label'],
+          )!,
+      trackIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}track_index'],
+      ),
+      isEmbedded:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_embedded'],
+          )!,
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -886,6 +957,15 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   final String language;
   final String source;
   final String linesJson;
+
+  /// Human-readable label shown in the track picker (filename, stream title, etc.).
+  final String label;
+
+  /// For embedded tracks: the 0-based index in the container's subtitle stream list.
+  final int? trackIndex;
+
+  /// 1 if extracted from the media file itself, 0 if user-imported an external file.
+  final bool isEmbedded;
   final DateTime createdAt;
   final DateTime updatedAt;
   const TranscriptRow({
@@ -894,6 +974,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     required this.language,
     required this.source,
     required this.linesJson,
+    required this.label,
+    this.trackIndex,
+    required this.isEmbedded,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -905,6 +988,11 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     map['language'] = Variable<String>(language);
     map['source'] = Variable<String>(source);
     map['lines_json'] = Variable<String>(linesJson);
+    map['label'] = Variable<String>(label);
+    if (!nullToAbsent || trackIndex != null) {
+      map['track_index'] = Variable<int>(trackIndex);
+    }
+    map['is_embedded'] = Variable<bool>(isEmbedded);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -917,6 +1005,12 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       language: Value(language),
       source: Value(source),
       linesJson: Value(linesJson),
+      label: Value(label),
+      trackIndex:
+          trackIndex == null && nullToAbsent
+              ? const Value.absent()
+              : Value(trackIndex),
+      isEmbedded: Value(isEmbedded),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -933,6 +1027,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       language: serializer.fromJson<String>(json['language']),
       source: serializer.fromJson<String>(json['source']),
       linesJson: serializer.fromJson<String>(json['linesJson']),
+      label: serializer.fromJson<String>(json['label']),
+      trackIndex: serializer.fromJson<int?>(json['trackIndex']),
+      isEmbedded: serializer.fromJson<bool>(json['isEmbedded']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -946,6 +1043,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       'language': serializer.toJson<String>(language),
       'source': serializer.toJson<String>(source),
       'linesJson': serializer.toJson<String>(linesJson),
+      'label': serializer.toJson<String>(label),
+      'trackIndex': serializer.toJson<int?>(trackIndex),
+      'isEmbedded': serializer.toJson<bool>(isEmbedded),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -957,6 +1057,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     String? language,
     String? source,
     String? linesJson,
+    String? label,
+    Value<int?> trackIndex = const Value.absent(),
+    bool? isEmbedded,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => TranscriptRow(
@@ -965,6 +1068,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     language: language ?? this.language,
     source: source ?? this.source,
     linesJson: linesJson ?? this.linesJson,
+    label: label ?? this.label,
+    trackIndex: trackIndex.present ? trackIndex.value : this.trackIndex,
+    isEmbedded: isEmbedded ?? this.isEmbedded,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -975,6 +1081,11 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       language: data.language.present ? data.language.value : this.language,
       source: data.source.present ? data.source.value : this.source,
       linesJson: data.linesJson.present ? data.linesJson.value : this.linesJson,
+      label: data.label.present ? data.label.value : this.label,
+      trackIndex:
+          data.trackIndex.present ? data.trackIndex.value : this.trackIndex,
+      isEmbedded:
+          data.isEmbedded.present ? data.isEmbedded.value : this.isEmbedded,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -988,6 +1099,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           ..write('language: $language, ')
           ..write('source: $source, ')
           ..write('linesJson: $linesJson, ')
+          ..write('label: $label, ')
+          ..write('trackIndex: $trackIndex, ')
+          ..write('isEmbedded: $isEmbedded, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1001,6 +1115,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     language,
     source,
     linesJson,
+    label,
+    trackIndex,
+    isEmbedded,
     createdAt,
     updatedAt,
   );
@@ -1013,6 +1130,9 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           other.language == this.language &&
           other.source == this.source &&
           other.linesJson == this.linesJson &&
+          other.label == this.label &&
+          other.trackIndex == this.trackIndex &&
+          other.isEmbedded == this.isEmbedded &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1023,6 +1143,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   final Value<String> language;
   final Value<String> source;
   final Value<String> linesJson;
+  final Value<String> label;
+  final Value<int?> trackIndex;
+  final Value<bool> isEmbedded;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1032,6 +1155,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     this.language = const Value.absent(),
     this.source = const Value.absent(),
     this.linesJson = const Value.absent(),
+    this.label = const Value.absent(),
+    this.trackIndex = const Value.absent(),
+    this.isEmbedded = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1042,6 +1168,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     required String language,
     required String source,
     required String linesJson,
+    this.label = const Value.absent(),
+    this.trackIndex = const Value.absent(),
+    this.isEmbedded = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1058,6 +1187,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Expression<String>? language,
     Expression<String>? source,
     Expression<String>? linesJson,
+    Expression<String>? label,
+    Expression<int>? trackIndex,
+    Expression<bool>? isEmbedded,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1068,6 +1200,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       if (language != null) 'language': language,
       if (source != null) 'source': source,
       if (linesJson != null) 'lines_json': linesJson,
+      if (label != null) 'label': label,
+      if (trackIndex != null) 'track_index': trackIndex,
+      if (isEmbedded != null) 'is_embedded': isEmbedded,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1080,6 +1215,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Value<String>? language,
     Value<String>? source,
     Value<String>? linesJson,
+    Value<String>? label,
+    Value<int?>? trackIndex,
+    Value<bool>? isEmbedded,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1090,6 +1228,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       language: language ?? this.language,
       source: source ?? this.source,
       linesJson: linesJson ?? this.linesJson,
+      label: label ?? this.label,
+      trackIndex: trackIndex ?? this.trackIndex,
+      isEmbedded: isEmbedded ?? this.isEmbedded,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1114,6 +1255,15 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     if (linesJson.present) {
       map['lines_json'] = Variable<String>(linesJson.value);
     }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (trackIndex.present) {
+      map['track_index'] = Variable<int>(trackIndex.value);
+    }
+    if (isEmbedded.present) {
+      map['is_embedded'] = Variable<bool>(isEmbedded.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1134,6 +1284,9 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
           ..write('language: $language, ')
           ..write('source: $source, ')
           ..write('linesJson: $linesJson, ')
+          ..write('label: $label, ')
+          ..write('trackIndex: $trackIndex, ')
+          ..write('isEmbedded: $isEmbedded, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1248,6 +1401,28 @@ class $PlaybackSessionsTable extends PlaybackSessions
     requiredDuringInsert: false,
     defaultValue: const Constant(-1),
   );
+  static const VerificationMeta _primaryTranscriptIdMeta =
+      const VerificationMeta('primaryTranscriptId');
+  @override
+  late final GeneratedColumn<String> primaryTranscriptId =
+      GeneratedColumn<String>(
+        'primary_transcript_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _secondaryTranscriptIdMeta =
+      const VerificationMeta('secondaryTranscriptId');
+  @override
+  late final GeneratedColumn<String> secondaryTranscriptId =
+      GeneratedColumn<String>(
+        'secondary_transcript_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _lastActiveAtMeta = const VerificationMeta(
     'lastActiveAt',
   );
@@ -1269,6 +1444,8 @@ class $PlaybackSessionsTable extends PlaybackSessions
     echoEndLine,
     echoStartMs,
     echoEndMs,
+    primaryTranscriptId,
+    secondaryTranscriptId,
     lastActiveAt,
   ];
   @override
@@ -1345,6 +1522,24 @@ class $PlaybackSessionsTable extends PlaybackSessions
         echoEndMs.isAcceptableOrUnknown(data['echo_end_ms']!, _echoEndMsMeta),
       );
     }
+    if (data.containsKey('primary_transcript_id')) {
+      context.handle(
+        _primaryTranscriptIdMeta,
+        primaryTranscriptId.isAcceptableOrUnknown(
+          data['primary_transcript_id']!,
+          _primaryTranscriptIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('secondary_transcript_id')) {
+      context.handle(
+        _secondaryTranscriptIdMeta,
+        secondaryTranscriptId.isAcceptableOrUnknown(
+          data['secondary_transcript_id']!,
+          _secondaryTranscriptIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('last_active_at')) {
       context.handle(
         _lastActiveAtMeta,
@@ -1405,6 +1600,14 @@ class $PlaybackSessionsTable extends PlaybackSessions
             DriftSqlType.int,
             data['${effectivePrefix}echo_end_ms'],
           )!,
+      primaryTranscriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}primary_transcript_id'],
+      ),
+      secondaryTranscriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}secondary_transcript_id'],
+      ),
       lastActiveAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -1429,6 +1632,12 @@ class PlaybackSessionRow extends DataClass
   final int echoEndLine;
   final int echoStartMs;
   final int echoEndMs;
+
+  /// The transcript row id currently selected as primary (shadow-reading) track.
+  final String? primaryTranscriptId;
+
+  /// The transcript row id currently selected as secondary (translation) track.
+  final String? secondaryTranscriptId;
   final DateTime lastActiveAt;
   const PlaybackSessionRow({
     required this.mediaId,
@@ -1439,6 +1648,8 @@ class PlaybackSessionRow extends DataClass
     required this.echoEndLine,
     required this.echoStartMs,
     required this.echoEndMs,
+    this.primaryTranscriptId,
+    this.secondaryTranscriptId,
     required this.lastActiveAt,
   });
   @override
@@ -1452,6 +1663,12 @@ class PlaybackSessionRow extends DataClass
     map['echo_end_line'] = Variable<int>(echoEndLine);
     map['echo_start_ms'] = Variable<int>(echoStartMs);
     map['echo_end_ms'] = Variable<int>(echoEndMs);
+    if (!nullToAbsent || primaryTranscriptId != null) {
+      map['primary_transcript_id'] = Variable<String>(primaryTranscriptId);
+    }
+    if (!nullToAbsent || secondaryTranscriptId != null) {
+      map['secondary_transcript_id'] = Variable<String>(secondaryTranscriptId);
+    }
     map['last_active_at'] = Variable<DateTime>(lastActiveAt);
     return map;
   }
@@ -1466,6 +1683,14 @@ class PlaybackSessionRow extends DataClass
       echoEndLine: Value(echoEndLine),
       echoStartMs: Value(echoStartMs),
       echoEndMs: Value(echoEndMs),
+      primaryTranscriptId:
+          primaryTranscriptId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(primaryTranscriptId),
+      secondaryTranscriptId:
+          secondaryTranscriptId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(secondaryTranscriptId),
       lastActiveAt: Value(lastActiveAt),
     );
   }
@@ -1486,6 +1711,12 @@ class PlaybackSessionRow extends DataClass
       echoEndLine: serializer.fromJson<int>(json['echoEndLine']),
       echoStartMs: serializer.fromJson<int>(json['echoStartMs']),
       echoEndMs: serializer.fromJson<int>(json['echoEndMs']),
+      primaryTranscriptId: serializer.fromJson<String?>(
+        json['primaryTranscriptId'],
+      ),
+      secondaryTranscriptId: serializer.fromJson<String?>(
+        json['secondaryTranscriptId'],
+      ),
       lastActiveAt: serializer.fromJson<DateTime>(json['lastActiveAt']),
     );
   }
@@ -1501,6 +1732,10 @@ class PlaybackSessionRow extends DataClass
       'echoEndLine': serializer.toJson<int>(echoEndLine),
       'echoStartMs': serializer.toJson<int>(echoStartMs),
       'echoEndMs': serializer.toJson<int>(echoEndMs),
+      'primaryTranscriptId': serializer.toJson<String?>(primaryTranscriptId),
+      'secondaryTranscriptId': serializer.toJson<String?>(
+        secondaryTranscriptId,
+      ),
       'lastActiveAt': serializer.toJson<DateTime>(lastActiveAt),
     };
   }
@@ -1514,6 +1749,8 @@ class PlaybackSessionRow extends DataClass
     int? echoEndLine,
     int? echoStartMs,
     int? echoEndMs,
+    Value<String?> primaryTranscriptId = const Value.absent(),
+    Value<String?> secondaryTranscriptId = const Value.absent(),
     DateTime? lastActiveAt,
   }) => PlaybackSessionRow(
     mediaId: mediaId ?? this.mediaId,
@@ -1524,6 +1761,14 @@ class PlaybackSessionRow extends DataClass
     echoEndLine: echoEndLine ?? this.echoEndLine,
     echoStartMs: echoStartMs ?? this.echoStartMs,
     echoEndMs: echoEndMs ?? this.echoEndMs,
+    primaryTranscriptId:
+        primaryTranscriptId.present
+            ? primaryTranscriptId.value
+            : this.primaryTranscriptId,
+    secondaryTranscriptId:
+        secondaryTranscriptId.present
+            ? secondaryTranscriptId.value
+            : this.secondaryTranscriptId,
     lastActiveAt: lastActiveAt ?? this.lastActiveAt,
   );
   PlaybackSessionRow copyWithCompanion(PlaybackSessionsCompanion data) {
@@ -1546,6 +1791,14 @@ class PlaybackSessionRow extends DataClass
       echoStartMs:
           data.echoStartMs.present ? data.echoStartMs.value : this.echoStartMs,
       echoEndMs: data.echoEndMs.present ? data.echoEndMs.value : this.echoEndMs,
+      primaryTranscriptId:
+          data.primaryTranscriptId.present
+              ? data.primaryTranscriptId.value
+              : this.primaryTranscriptId,
+      secondaryTranscriptId:
+          data.secondaryTranscriptId.present
+              ? data.secondaryTranscriptId.value
+              : this.secondaryTranscriptId,
       lastActiveAt:
           data.lastActiveAt.present
               ? data.lastActiveAt.value
@@ -1564,6 +1817,8 @@ class PlaybackSessionRow extends DataClass
           ..write('echoEndLine: $echoEndLine, ')
           ..write('echoStartMs: $echoStartMs, ')
           ..write('echoEndMs: $echoEndMs, ')
+          ..write('primaryTranscriptId: $primaryTranscriptId, ')
+          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
           ..write('lastActiveAt: $lastActiveAt')
           ..write(')'))
         .toString();
@@ -1579,6 +1834,8 @@ class PlaybackSessionRow extends DataClass
     echoEndLine,
     echoStartMs,
     echoEndMs,
+    primaryTranscriptId,
+    secondaryTranscriptId,
     lastActiveAt,
   );
   @override
@@ -1593,6 +1850,8 @@ class PlaybackSessionRow extends DataClass
           other.echoEndLine == this.echoEndLine &&
           other.echoStartMs == this.echoStartMs &&
           other.echoEndMs == this.echoEndMs &&
+          other.primaryTranscriptId == this.primaryTranscriptId &&
+          other.secondaryTranscriptId == this.secondaryTranscriptId &&
           other.lastActiveAt == this.lastActiveAt);
 }
 
@@ -1605,6 +1864,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
   final Value<int> echoEndLine;
   final Value<int> echoStartMs;
   final Value<int> echoEndMs;
+  final Value<String?> primaryTranscriptId;
+  final Value<String?> secondaryTranscriptId;
   final Value<DateTime> lastActiveAt;
   final Value<int> rowid;
   const PlaybackSessionsCompanion({
@@ -1616,6 +1877,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     this.echoEndLine = const Value.absent(),
     this.echoStartMs = const Value.absent(),
     this.echoEndMs = const Value.absent(),
+    this.primaryTranscriptId = const Value.absent(),
+    this.secondaryTranscriptId = const Value.absent(),
     this.lastActiveAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1628,6 +1891,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     this.echoEndLine = const Value.absent(),
     this.echoStartMs = const Value.absent(),
     this.echoEndMs = const Value.absent(),
+    this.primaryTranscriptId = const Value.absent(),
+    this.secondaryTranscriptId = const Value.absent(),
     required DateTime lastActiveAt,
     this.rowid = const Value.absent(),
   }) : mediaId = Value(mediaId),
@@ -1641,6 +1906,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     Expression<int>? echoEndLine,
     Expression<int>? echoStartMs,
     Expression<int>? echoEndMs,
+    Expression<String>? primaryTranscriptId,
+    Expression<String>? secondaryTranscriptId,
     Expression<DateTime>? lastActiveAt,
     Expression<int>? rowid,
   }) {
@@ -1654,6 +1921,10 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
       if (echoEndLine != null) 'echo_end_line': echoEndLine,
       if (echoStartMs != null) 'echo_start_ms': echoStartMs,
       if (echoEndMs != null) 'echo_end_ms': echoEndMs,
+      if (primaryTranscriptId != null)
+        'primary_transcript_id': primaryTranscriptId,
+      if (secondaryTranscriptId != null)
+        'secondary_transcript_id': secondaryTranscriptId,
       if (lastActiveAt != null) 'last_active_at': lastActiveAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1668,6 +1939,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     Value<int>? echoEndLine,
     Value<int>? echoStartMs,
     Value<int>? echoEndMs,
+    Value<String?>? primaryTranscriptId,
+    Value<String?>? secondaryTranscriptId,
     Value<DateTime>? lastActiveAt,
     Value<int>? rowid,
   }) {
@@ -1680,6 +1953,9 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
       echoEndLine: echoEndLine ?? this.echoEndLine,
       echoStartMs: echoStartMs ?? this.echoStartMs,
       echoEndMs: echoEndMs ?? this.echoEndMs,
+      primaryTranscriptId: primaryTranscriptId ?? this.primaryTranscriptId,
+      secondaryTranscriptId:
+          secondaryTranscriptId ?? this.secondaryTranscriptId,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1712,6 +1988,16 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     if (echoEndMs.present) {
       map['echo_end_ms'] = Variable<int>(echoEndMs.value);
     }
+    if (primaryTranscriptId.present) {
+      map['primary_transcript_id'] = Variable<String>(
+        primaryTranscriptId.value,
+      );
+    }
+    if (secondaryTranscriptId.present) {
+      map['secondary_transcript_id'] = Variable<String>(
+        secondaryTranscriptId.value,
+      );
+    }
     if (lastActiveAt.present) {
       map['last_active_at'] = Variable<DateTime>(lastActiveAt.value);
     }
@@ -1732,6 +2018,8 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
           ..write('echoEndLine: $echoEndLine, ')
           ..write('echoStartMs: $echoStartMs, ')
           ..write('echoEndMs: $echoEndMs, ')
+          ..write('primaryTranscriptId: $primaryTranscriptId, ')
+          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
           ..write('lastActiveAt: $lastActiveAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2523,6 +2811,9 @@ typedef $$TranscriptsTableCreateCompanionBuilder =
       required String language,
       required String source,
       required String linesJson,
+      Value<String> label,
+      Value<int?> trackIndex,
+      Value<bool> isEmbedded,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -2534,6 +2825,9 @@ typedef $$TranscriptsTableUpdateCompanionBuilder =
       Value<String> language,
       Value<String> source,
       Value<String> linesJson,
+      Value<String> label,
+      Value<int?> trackIndex,
+      Value<bool> isEmbedded,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2588,6 +2882,21 @@ class $$TranscriptsTableFilterComposer
 
   ColumnFilters<String> get linesJson => $composableBuilder(
     column: $table.linesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get trackIndex => $composableBuilder(
+    column: $table.trackIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isEmbedded => $composableBuilder(
+    column: $table.isEmbedded,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2654,6 +2963,21 @@ class $$TranscriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get trackIndex => $composableBuilder(
+    column: $table.trackIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isEmbedded => $composableBuilder(
+    column: $table.isEmbedded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2708,6 +3032,19 @@ class $$TranscriptsTableAnnotationComposer
 
   GeneratedColumn<String> get linesJson =>
       $composableBuilder(column: $table.linesJson, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<int> get trackIndex => $composableBuilder(
+    column: $table.trackIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isEmbedded => $composableBuilder(
+    column: $table.isEmbedded,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2773,6 +3110,9 @@ class $$TranscriptsTableTableManager
                 Value<String> language = const Value.absent(),
                 Value<String> source = const Value.absent(),
                 Value<String> linesJson = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<int?> trackIndex = const Value.absent(),
+                Value<bool> isEmbedded = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2782,6 +3122,9 @@ class $$TranscriptsTableTableManager
                 language: language,
                 source: source,
                 linesJson: linesJson,
+                label: label,
+                trackIndex: trackIndex,
+                isEmbedded: isEmbedded,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2793,6 +3136,9 @@ class $$TranscriptsTableTableManager
                 required String language,
                 required String source,
                 required String linesJson,
+                Value<String> label = const Value.absent(),
+                Value<int?> trackIndex = const Value.absent(),
+                Value<bool> isEmbedded = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -2802,6 +3148,9 @@ class $$TranscriptsTableTableManager
                 language: language,
                 source: source,
                 linesJson: linesJson,
+                label: label,
+                trackIndex: trackIndex,
+                isEmbedded: isEmbedded,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2885,6 +3234,8 @@ typedef $$PlaybackSessionsTableCreateCompanionBuilder =
       Value<int> echoEndLine,
       Value<int> echoStartMs,
       Value<int> echoEndMs,
+      Value<String?> primaryTranscriptId,
+      Value<String?> secondaryTranscriptId,
       required DateTime lastActiveAt,
       Value<int> rowid,
     });
@@ -2898,6 +3249,8 @@ typedef $$PlaybackSessionsTableUpdateCompanionBuilder =
       Value<int> echoEndLine,
       Value<int> echoStartMs,
       Value<int> echoEndMs,
+      Value<String?> primaryTranscriptId,
+      Value<String?> secondaryTranscriptId,
       Value<DateTime> lastActiveAt,
       Value<int> rowid,
     });
@@ -2978,6 +3331,16 @@ class $$PlaybackSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get primaryTranscriptId => $composableBuilder(
+    column: $table.primaryTranscriptId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get lastActiveAt => $composableBuilder(
     column: $table.lastActiveAt,
     builder: (column) => ColumnFilters(column),
@@ -3051,6 +3414,16 @@ class $$PlaybackSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get primaryTranscriptId => $composableBuilder(
+    column: $table.primaryTranscriptId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get lastActiveAt => $composableBuilder(
     column: $table.lastActiveAt,
     builder: (column) => ColumnOrderings(column),
@@ -3121,6 +3494,16 @@ class $$PlaybackSessionsTableAnnotationComposer
 
   GeneratedColumn<int> get echoEndMs =>
       $composableBuilder(column: $table.echoEndMs, builder: (column) => column);
+
+  GeneratedColumn<String> get primaryTranscriptId => $composableBuilder(
+    column: $table.primaryTranscriptId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get lastActiveAt => $composableBuilder(
     column: $table.lastActiveAt,
@@ -3196,6 +3579,8 @@ class $$PlaybackSessionsTableTableManager
                 Value<int> echoEndLine = const Value.absent(),
                 Value<int> echoStartMs = const Value.absent(),
                 Value<int> echoEndMs = const Value.absent(),
+                Value<String?> primaryTranscriptId = const Value.absent(),
+                Value<String?> secondaryTranscriptId = const Value.absent(),
                 Value<DateTime> lastActiveAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PlaybackSessionsCompanion(
@@ -3207,6 +3592,8 @@ class $$PlaybackSessionsTableTableManager
                 echoEndLine: echoEndLine,
                 echoStartMs: echoStartMs,
                 echoEndMs: echoEndMs,
+                primaryTranscriptId: primaryTranscriptId,
+                secondaryTranscriptId: secondaryTranscriptId,
                 lastActiveAt: lastActiveAt,
                 rowid: rowid,
               ),
@@ -3220,6 +3607,8 @@ class $$PlaybackSessionsTableTableManager
                 Value<int> echoEndLine = const Value.absent(),
                 Value<int> echoStartMs = const Value.absent(),
                 Value<int> echoEndMs = const Value.absent(),
+                Value<String?> primaryTranscriptId = const Value.absent(),
+                Value<String?> secondaryTranscriptId = const Value.absent(),
                 required DateTime lastActiveAt,
                 Value<int> rowid = const Value.absent(),
               }) => PlaybackSessionsCompanion.insert(
@@ -3231,6 +3620,8 @@ class $$PlaybackSessionsTableTableManager
                 echoEndLine: echoEndLine,
                 echoStartMs: echoStartMs,
                 echoEndMs: echoEndMs,
+                primaryTranscriptId: primaryTranscriptId,
+                secondaryTranscriptId: secondaryTranscriptId,
                 lastActiveAt: lastActiveAt,
                 rowid: rowid,
               ),

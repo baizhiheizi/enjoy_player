@@ -10,10 +10,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
+import '../../../data/subtitle/embedded_subtitle_service.dart';
 import '../domain/echo_window.dart';
 import '../domain/playback_session.dart';
 import '../domain/player_settings.dart';
+import '../../transcript/data/transcript_repository.dart';
 import 'echo_mode_provider.dart';
+import 'embedded_tracks_notifier.dart';
 
 part 'player_controller.g.dart';
 
@@ -26,6 +29,7 @@ class PlayerController extends _$PlayerController {
 
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration>? _durationSub;
+  StreamSubscription<mk.Tracks>? _tracksSub;
 
   Timer? _persistDebounce;
 
@@ -37,6 +41,7 @@ class PlayerController extends _$PlayerController {
       _persistDebounce?.cancel();
       await _positionSub?.cancel();
       await _durationSub?.cancel();
+      await _tracksSub?.cancel();
       await _player.dispose();
     });
     return null;
@@ -52,8 +57,8 @@ class PlayerController extends _$PlayerController {
       return PlayerPreferences(
         volume: ((map['volume'] as num?)?.toDouble() ?? 1).clamp(0, 1),
         playbackRate: ((map['rate'] as num?)?.toDouble() ?? 1).clamp(0.25, 2),
-        repeatMode: RepeatMode.values[
-            repeatIdx.clamp(0, RepeatMode.values.length - 1)],
+        repeatMode:
+            RepeatMode.values[repeatIdx.clamp(0, RepeatMode.values.length - 1)],
       );
     } catch (_) {
       return PlayerPreferences.defaults;
@@ -72,8 +77,11 @@ class PlayerController extends _$PlayerController {
 
     await _positionSub?.cancel();
     await _durationSub?.cancel();
+    await _tracksSub?.cancel();
 
     await _player.open(mk.Media(row.sourceUri));
+
+    _subscribeEmbeddedTracks(mediaId, row);
 
     final prefs = await _readPrefsFromDb();
     await applyPreferences(prefs);
@@ -85,7 +93,9 @@ class PlayerController extends _$PlayerController {
     }
 
     if (persisted != null && persisted.echoActive) {
-      ref.read(echoModeProvider.notifier).restoreFromSession(
+      ref
+          .read(echoModeProvider.notifier)
+          .restoreFromSession(
             startLine: persisted.echoStartLine,
             endLine: persisted.echoEndLine,
             echoStartMs: persisted.echoStartMs,
@@ -167,6 +177,8 @@ class PlayerController extends _$PlayerController {
       if (s == null) return;
       final db = ref.read(appDatabaseProvider);
       final echo = ref.read(echoModeProvider);
+      // Preserve existing transcript selections — only write position/echo fields.
+      final existing = await db.sessionDao.getForMedia(mediaId);
       await db.sessionDao.upsert(
         PlaybackSessionRow(
           mediaId: mediaId,
@@ -177,6 +189,8 @@ class PlayerController extends _$PlayerController {
           echoEndLine: echo.endLineIndex,
           echoStartMs: (echo.startTimeSeconds * 1000).round(),
           echoEndMs: (echo.endTimeSeconds * 1000).round(),
+          primaryTranscriptId: existing?.primaryTranscriptId,
+          secondaryTranscriptId: existing?.secondaryTranscriptId,
           lastActiveAt: DateTime.now(),
         ),
       );
@@ -198,9 +212,7 @@ class PlayerController extends _$PlayerController {
         seconds = clampSeekTimeToEchoWindow(seconds, window);
       }
     }
-    await _player.seek(
-      Duration(milliseconds: (seconds * 1000).round()),
-    );
+    await _player.seek(Duration(milliseconds: (seconds * 1000).round()));
   }
 
   Future<void> seekToSeconds(double seconds) async {
@@ -219,10 +231,56 @@ class PlayerController extends _$PlayerController {
     _persistDebounce?.cancel();
     await _positionSub?.cancel();
     await _durationSub?.cancel();
+    await _tracksSub?.cancel();
     _positionSub = null;
     _durationSub = null;
+    _tracksSub = null;
     await _player.stop();
     ref.read(echoModeProvider.notifier).deactivate();
     state = null;
+  }
+
+  /// Listens once for media_kit's track list, then extracts + upserts any
+  /// embedded subtitle streams not already stored in the DB.
+  void _subscribeEmbeddedTracks(String mediaId, MediaRow row) {
+    _tracksSub?.cancel();
+    _tracksSub = _player.stream.tracks
+        .where((t) => t.subtitle.isNotEmpty)
+        .take(1)
+        .listen((tracks) async {
+          final db = ref.read(appDatabaseProvider);
+          final existing = await db.transcriptDao.listForMedia(mediaId);
+          final existingIndices =
+              existing
+                  .where((r) => r.isEmbedded && r.trackIndex != null)
+                  .map((r) => r.trackIndex!)
+                  .toSet();
+
+          final extracted = await const EmbeddedSubtitleService().extractTracks(
+            mediaId: mediaId,
+            mediaSourceUri: row.sourceUri,
+            tracks: tracks.subtitle,
+            existingTrackIndices: existingIndices,
+          );
+
+          if (extracted.isEmpty) return;
+
+          final repo = TranscriptRepository(db);
+          await repo.upsertEmbeddedTracks(extracted);
+
+          // Auto-select first embedded track as primary if none is set yet.
+          final session = await db.sessionDao.getForMedia(mediaId);
+          if (session?.primaryTranscriptId == null) {
+            await db.sessionDao.updatePrimaryTranscript(
+              mediaId,
+              extracted.first.id,
+            );
+          }
+
+          // Signal to the UI that new tracks were found (for the snackbar).
+          ref
+              .read(embeddedTracksProvider.notifier)
+              .notifyFound(mediaId, extracted.length);
+        });
   }
 }

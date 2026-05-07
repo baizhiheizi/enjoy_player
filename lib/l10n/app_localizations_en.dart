@@ -82,4 +82,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPlaceholder => 'Player preferences will appear here.';
+
+  @override
+  String get subtitles => 'Subtitles';
+
+  @override
+  String get subtitlesPrimary => 'Primary';
+
+  @override
+  String get subtitlesTranslation => 'Translation (optional)';
+
+  @override
+  String get subtitlesNone => 'None';
+
+  @override
+  String get subtitlesImportFile => 'Import subtitle file…';
+
+  @override
+  String get subtitlesEmbedded => 'Embedded';
+
+  @override
+  String get subtitlesImported => 'Imported';
+
+  @override
+  String get subtitlesDeleteTrack => 'Delete track';
+
+  @override
+  String get subtitlesDetected => 'Subtitles detected — tap CC to choose';
+
+  @override
+  String get subtitlesChoose => 'Choose';
+
+  @override
+  String get importSubtitleSuccess => 'Subtitle imported';
+
+  @override
+  String get noTranscriptHint =>
+      'Open a video with embedded subtitles, or import an .srt/.vtt file.';
 }

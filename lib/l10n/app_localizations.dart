@@ -243,6 +243,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Player preferences will appear here.'**
   String get settingsPlaceholder;
+
+  /// No description provided for @subtitles.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles'**
+  String get subtitles;
+
+  /// No description provided for @subtitlesPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get subtitlesPrimary;
+
+  /// No description provided for @subtitlesTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation (optional)'**
+  String get subtitlesTranslation;
+
+  /// No description provided for @subtitlesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get subtitlesNone;
+
+  /// No description provided for @subtitlesImportFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import subtitle file…'**
+  String get subtitlesImportFile;
+
+  /// No description provided for @subtitlesEmbedded.
+  ///
+  /// In en, this message translates to:
+  /// **'Embedded'**
+  String get subtitlesEmbedded;
+
+  /// No description provided for @subtitlesImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get subtitlesImported;
+
+  /// No description provided for @subtitlesDeleteTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete track'**
+  String get subtitlesDeleteTrack;
+
+  /// No description provided for @subtitlesDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles detected — tap CC to choose'**
+  String get subtitlesDetected;
+
+  /// No description provided for @subtitlesChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get subtitlesChoose;
+
+  /// No description provided for @importSubtitleSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle imported'**
+  String get importSubtitleSuccess;
+
+  /// No description provided for @noTranscriptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a video with embedded subtitles, or import an .srt/.vtt file.'**
+  String get noTranscriptHint;
 }
 
 class _AppLocalizationsDelegate

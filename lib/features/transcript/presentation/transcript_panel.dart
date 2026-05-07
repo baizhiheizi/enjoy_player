@@ -11,8 +11,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../player/application/display_position_provider.dart';
 import '../../player/application/echo_mode_provider.dart';
 import '../../player/application/player_interactions.dart';
+import '../application/active_transcript_provider.dart';
+import '../application/all_transcripts_provider.dart';
 import '../application/transcript_lines_provider.dart';
 import '../application/transcript_repository_provider.dart';
+import 'subtitle_track_picker_sheet.dart';
 
 class TranscriptPanel extends ConsumerWidget {
   const TranscriptPanel({required this.mediaId, super.key});
@@ -29,13 +32,14 @@ class TranscriptPanel extends ConsumerWidget {
     final path = f.path;
     if (path == null) return;
 
-    await ref.read(transcriptRepositoryProvider).importSubtitle(
-          mediaId: mediaId,
-          file: XFile(path),
-        );
+    await ref
+        .read(transcriptRepositoryProvider)
+        .importSubtitle(mediaId: mediaId, file: XFile(path));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.transcript)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.importSubtitleSuccess),
+        ),
       );
     }
   }
@@ -44,15 +48,39 @@ class TranscriptPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
+    final tracksAsync = ref.watch(allTranscriptsForMediaProvider(mediaId));
+    final activeIdAsync = ref.watch(activeTranscriptIdProvider(mediaId));
+
+    final tracks = tracksAsync.value ?? [];
+    final activeId = activeIdAsync.value;
+    final activeTrack = tracks.where((t) => t.id == activeId).firstOrNull;
+    final activeLabel =
+        (activeTrack?.label.isNotEmpty == true) ? activeTrack!.label : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
           child: Row(
             children: [
-              Text(l10n.transcript, style: Theme.of(context).textTheme.titleMedium),
+              // Active track chip — tap to open picker
+              if (tracks.isNotEmpty)
+                ActionChip(
+                  avatar: const Icon(Icons.closed_caption_outlined, size: 16),
+                  label: Text(
+                    activeLabel ?? l10n.subtitles,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onPressed:
+                      () => showSubtitleTrackPicker(context, ref, mediaId),
+                )
+              else
+                Text(
+                  l10n.transcript,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               const Spacer(),
               TextButton.icon(
                 onPressed: () => _import(context, ref),
@@ -77,13 +105,22 @@ class TranscriptPanel extends ConsumerWidget {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        Text(l10n.importSrtOrVtt, textAlign: TextAlign.center),
+                        Text(
+                          l10n.noTranscriptHint,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => _import(context, ref),
+                          icon: const Icon(Icons.upload_file),
+                          label: Text(l10n.importSubtitle),
+                        ),
                       ],
                     ),
                   ),
                 );
               }
-              return _TranscriptBody(lines: lines);
+              return _TranscriptBody(mediaId: mediaId, lines: lines);
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('${l10n.error}: $e')),
@@ -95,14 +132,19 @@ class TranscriptPanel extends ConsumerWidget {
 }
 
 class _TranscriptBody extends ConsumerWidget {
-  const _TranscriptBody({required this.lines});
+  const _TranscriptBody({required this.mediaId, required this.lines});
 
+  final String mediaId;
   final List<TranscriptLine> lines;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final echo = ref.watch(echoModeProvider);
     final posAsync = ref.watch(displayPositionProvider);
+    final secondaryAsync = ref.watch(
+      secondaryTranscriptLinesForMediaProvider(mediaId),
+    );
+    final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
 
     final t = switch (posAsync) {
       AsyncData(:final value) => value.inMilliseconds / 1000.0,
@@ -116,17 +158,20 @@ class _TranscriptBody extends ConsumerWidget {
       itemBuilder: (context, index) {
         final line = lines[index];
         final isActive = index == active;
-        final inEcho = echo.active &&
+        final inEcho =
+            echo.active &&
             index >= echo.startLineIndex &&
             index <= echo.endLineIndex;
-        final bg = inEcho
-            ? Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.35)
-            : isActive
+        final bg =
+            inEcho
+                ? Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.35)
+                : isActive
                 ? Theme.of(context).colorScheme.surfaceContainerHighest
                 : null;
+
+        final secondaryText = _matchSecondary(line, secondaryLines)?.text;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -135,17 +180,33 @@ class _TranscriptBody extends ConsumerWidget {
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
-              onTap: () => ref
-                  .read(playerInteractionsProvider.notifier)
-                  .seekToLine(line, index),
+              onTap:
+                  () => ref
+                      .read(playerInteractionsProvider.notifier)
+                      .seekToLine(line, index),
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Text(
-                  line.text,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      line.text,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.normal,
                       ),
+                    ),
+                    if (secondaryText != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        secondaryText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -163,5 +224,29 @@ class _TranscriptBody extends ConsumerWidget {
       if (t >= lines[i].startSeconds) return i;
     }
     return -1;
+  }
+
+  /// Returns the secondary line whose midpoint falls within [primary]'s range,
+  /// or the nearest secondary line if none overlaps.
+  TranscriptLine? _matchSecondary(
+    TranscriptLine primary,
+    List<TranscriptLine> secondary,
+  ) {
+    if (secondary.isEmpty) return null;
+    final pStart = primary.startSeconds;
+    final pEnd = primary.endSeconds;
+
+    // 1. Prefer a line whose midpoint is inside the primary range.
+    for (final s in secondary) {
+      final mid = s.startSeconds + (s.endSeconds - s.startSeconds) / 2;
+      if (mid >= pStart && mid < pEnd) return s;
+    }
+
+    // 2. Fall back to the last secondary line that started before primary ends.
+    TranscriptLine? best;
+    for (final s in secondary) {
+      if (s.startSeconds < pEnd) best = s;
+    }
+    return best;
   }
 }

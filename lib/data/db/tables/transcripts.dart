@@ -16,6 +16,15 @@ class Transcripts extends Table {
   TextColumn get language => text()();
   TextColumn get source => text()();
   TextColumn get linesJson => text()();
+
+  /// Human-readable label shown in the track picker (filename, stream title, etc.).
+  TextColumn get label => text().withDefault(const Constant(''))();
+
+  /// For embedded tracks: the 0-based index in the container's subtitle stream list.
+  IntColumn get trackIndex => integer().nullable()();
+
+  /// 1 if extracted from the media file itself, 0 if user-imported an external file.
+  BoolColumn get isEmbedded => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

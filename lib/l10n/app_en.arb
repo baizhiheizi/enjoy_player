@@ -24,5 +24,17 @@
   "volume": "Volume",
   "repeatNone": "Repeat off",
   "repeatSegment": "Repeat segment",
-  "settingsPlaceholder": "Player preferences will appear here."
+  "settingsPlaceholder": "Player preferences will appear here.",
+  "subtitles": "Subtitles",
+  "subtitlesPrimary": "Primary",
+  "subtitlesTranslation": "Translation (optional)",
+  "subtitlesNone": "None",
+  "subtitlesImportFile": "Import subtitle file…",
+  "subtitlesEmbedded": "Embedded",
+  "subtitlesImported": "Imported",
+  "subtitlesDeleteTrack": "Delete track",
+  "subtitlesDetected": "Subtitles detected — tap CC to choose",
+  "subtitlesChoose": "Choose",
+  "importSubtitleSuccess": "Subtitle imported",
+  "noTranscriptHint": "Open a video with embedded subtitles, or import an .srt/.vtt file."
 }

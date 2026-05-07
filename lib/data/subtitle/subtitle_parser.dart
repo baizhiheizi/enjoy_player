@@ -14,6 +14,10 @@ class SubtitleParserFacade implements SubtitleParser {
   static const SrtParser srt = SrtParser();
   static const VttParser vtt = VttParser();
 
+  /// Strips ASS/SSA override tags like {\an8}, {\pos(...)}, {\c&H...&}, etc.
+  static String stripAssTags(String text) =>
+      text.replaceAll(RegExp(r'\{[^}]*\}'), '').trim();
+
   List<TranscriptLine> parseWithHint(String content, {String? fileName}) {
     final lower = fileName?.toLowerCase() ?? '';
     if (lower.endsWith('.vtt')) return vtt.parse(content);
@@ -33,8 +37,10 @@ class SrtParser implements SubtitleParser {
 
   @override
   List<TranscriptLine> parse(String content) {
-    final lines =
-        content.replaceAll('\r\n', '\n').replaceAll('\r', '\n').split('\n');
+    final lines = content
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .split('\n');
     final cues = <TranscriptLine>[];
     var i = 0;
     while (i < lines.length) {
@@ -68,11 +74,7 @@ class SrtParser implements SubtitleParser {
       final text = textBuf.toString().trim();
       if (text.isNotEmpty && end > start) {
         cues.add(
-          TranscriptLine(
-            text: text,
-            startMs: start,
-            durationMs: end - start,
-          ),
+          TranscriptLine(text: text, startMs: start, durationMs: end - start),
         );
       }
     }
