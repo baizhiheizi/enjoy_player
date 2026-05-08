@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -16,6 +17,7 @@ import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/audio/wav_duration_ms.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -30,6 +32,16 @@ String _shortSaveError(Object e) {
   final s = e.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
   if (s.length <= 180) return s;
   return '${s.substring(0, 177)}…';
+}
+
+RecordingRow? _resolvedSelectedRow(List<RecordingRow> list, String? selectedId) {
+  if (list.isEmpty) return null;
+  if (selectedId != null) {
+    for (final r in list) {
+      if (r.id == selectedId) return r;
+    }
+  }
+  return list.first;
 }
 
 class ShadowReadingPanel extends ConsumerStatefulWidget {
@@ -61,7 +73,7 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
 class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
   final AudioRecorder _recorder = AudioRecorder();
   bool _recording = false;
-  int? _selectedIdx;
+  String? _selectedRecordingId;
   String? _mediaPath;
   Future<String?>? _mediaPathFuture;
 
@@ -78,6 +90,13 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     if (oldWidget.mediaId != widget.mediaId) {
       _mediaPath = null;
       _mediaPathFuture = null;
+    }
+    if (oldWidget.mediaId != widget.mediaId ||
+        oldWidget.startSec != widget.startSec ||
+        oldWidget.endSec != widget.endSec ||
+        oldWidget.language != widget.language ||
+        oldWidget.targetType != widget.targetType) {
+      _selectedRecordingId = null;
     }
   }
 
@@ -214,6 +233,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
         updatedAt: now,
       );
       await db.recordingDao.insertRow(row);
+      if (mounted) {
+        setState(() => _selectedRecordingId = id);
+      }
     } catch (e, st) {
       _log.warning('save recording failed', e, st);
       if (mounted) {
@@ -226,9 +248,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     }
   }
 
-  Future<void> _playRecording(String path) async {
+  Future<void> _playOrPauseTake(String path) async {
     try {
-      await ref.read(recordingPreviewPlayerProvider).play(path);
+      await ref.read(recordingPreviewPlayerProvider).playOrPauseTake(path);
     } catch (e, st) {
       _log.warning('shadow take playback failed', e, st);
       if (!mounted) return;
@@ -240,14 +262,20 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
   }
 
   Future<void> _deleteRecording(RecordingRow r) async {
+    final preview = ref.read(recordingPreviewPlayerProvider);
     final lp = r.localPath;
     if (lp != null && lp.isNotEmpty) {
       try {
+        if (preview.loadedPath == File(lp).absolute.path) {
+          await preview.stop();
+        }
         await File(lp).delete();
       } catch (_) {}
     }
     await ref.read(appDatabaseProvider).recordingDao.deleteId(r.id);
-    setState(() => _selectedIdx = null);
+    if (mounted) {
+      setState(() => _selectedRecordingId = null);
+    }
   }
 
   Future<void> _onHotkeyRecordingPulse(AppLocalizations l10n) async {
@@ -267,11 +295,10 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     );
     if (!mounted) return;
     if (list.isEmpty) return;
-    final i = _selectedIdx ?? 0;
-    final safe = i >= 0 && i < list.length ? i : 0;
-    final path = list[safe].localPath;
+    final sel = _resolvedSelectedRow(list, _selectedRecordingId);
+    final path = sel?.localPath;
     if (path != null && path.isNotEmpty) {
-      await _playRecording(path);
+      await _playOrPauseTake(path);
     }
   }
 
@@ -288,6 +315,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     final l10n = AppLocalizations.of(context)!;
     final ttPlayRecording =
         hotkeyTooltipLabel(ref, 'player.playRecording', l10n.shadowRecordingPlay);
+    final ttPauseRecording =
+        hotkeyTooltipLabel(ref, 'player.playRecording', l10n.shadowRecordingPause);
     final ttToggleRecording = hotkeyTooltipLabel(
       ref,
       'player.toggleRecording',
@@ -336,12 +365,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
           ),
           builder: (context, recSnap) {
             final list = recSnap.data ?? [];
-            final sel =
-                _selectedIdx != null &&
-                    _selectedIdx! >= 0 &&
-                    _selectedIdx! < list.length
-                ? list[_selectedIdx!]
-                : null;
+            final sel = _resolvedSelectedRow(list, _selectedRecordingId);
 
             return Padding(
               padding: EdgeInsets.only(bottom: tok.space8),
@@ -401,62 +425,28 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                             color: scheme.onSurfaceVariant,
                           ),
                         )
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: list.length,
-                          separatorBuilder: (context, index) =>
-                              SizedBox(height: tok.space8),
-                          itemBuilder: (context, i) {
-                            final r = list[i];
-                            final selected = _selectedIdx == i;
-                            return Material(
-                              color:
-                                  selected
-                                      ? scheme.primary.withValues(alpha: 0.12)
-                                      : Colors.transparent,
-                              borderRadius: BorderRadius.circular(tok.radiusSm),
-                              child: ListTile(
-                                dense: true,
-                                selected: selected,
-                                title: Text(
-                                  '${l10n.shadowRecordingTake} ${list.length - i}',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                subtitle: Text(
-                                  '${(r.durationMs / 1000).toStringAsFixed(1)} s',
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      tooltip: ttPlayRecording,
-                                      icon: const Icon(Icons.play_arrow),
-                                      onPressed:
-                                          widget.echoActive && r.localPath != null
-                                          ? () => _playRecording(r.localPath!)
-                                          : null,
-                                    ),
-                                    IconButton(
-                                      tooltip: l10n.shadowRecordingDelete,
-                                      icon: Icon(
-                                        Icons.delete_outline,
-                                        color: scheme.error,
-                                      ),
-                                      onPressed:
-                                          widget.echoActive
-                                          ? () => _deleteRecording(r)
-                                          : null,
-                                    ),
-                                  ],
-                                ),
-                                onTap:
-                                    widget.echoActive
-                                    ? () => setState(() => _selectedIdx = i)
-                                    : null,
-                              ),
-                            );
+                      else if (sel != null)
+                        _CompactTakeRow(
+                          row: sel,
+                          list: list,
+                          echoActive: widget.echoActive,
+                          scheme: scheme,
+                          tok: tok,
+                          l10n: l10n,
+                          ttPlayRecording: ttPlayRecording,
+                          ttPauseRecording: ttPauseRecording,
+                          onPlayOrPause: () {
+                            final path = sel.localPath;
+                            if (path != null && path.isNotEmpty) {
+                              unawaited(_playOrPauseTake(path));
+                            }
+                          },
+                          onDelete: () => unawaited(_deleteRecording(sel)),
+                          onChooseTake: (id) async {
+                            await ref.read(recordingPreviewPlayerProvider).stop();
+                            if (mounted) {
+                              setState(() => _selectedRecordingId = id);
+                            }
                           },
                         ),
                       SizedBox(height: tok.space12),
@@ -478,6 +468,189 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                 ),
               ),
             );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CompactTakeRow extends ConsumerWidget {
+  const _CompactTakeRow({
+    required this.row,
+    required this.list,
+    required this.echoActive,
+    required this.scheme,
+    required this.tok,
+    required this.l10n,
+    required this.ttPlayRecording,
+    required this.ttPauseRecording,
+    required this.onPlayOrPause,
+    required this.onDelete,
+    required this.onChooseTake,
+  });
+
+  final RecordingRow row;
+  final List<RecordingRow> list;
+  final bool echoActive;
+  final ColorScheme scheme;
+  final EnjoyThemeTokens tok;
+  final AppLocalizations l10n;
+  final String ttPlayRecording;
+  final String ttPauseRecording;
+  final VoidCallback onPlayOrPause;
+  final VoidCallback onDelete;
+  final Future<void> Function(String id) onChooseTake;
+
+  int _takeNumber(RecordingRow r) {
+    final i = list.indexWhere((e) => e.id == r.id);
+    if (i < 0) return list.length;
+    return list.length - i;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final preview = ref.watch(recordingPreviewPlayerProvider);
+    final path = row.localPath;
+    final canPlay =
+        echoActive &&
+        path != null &&
+        path.isNotEmpty &&
+        !kIsWeb;
+
+    return Material(
+      color: scheme.primary.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(tok.radiusSm),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: tok.space8, vertical: tok.space4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${l10n.shadowRecordingTake} ${_takeNumber(row)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  SizedBox(height: tok.space4),
+                  _TakePreviewTime(row: row),
+                ],
+              ),
+            ),
+            if (path != null && path.isNotEmpty)
+              StreamBuilder<bool>(
+                stream: preview.playing,
+                initialData: false,
+                builder: (context, playSnap) {
+                  final abs = File(path).absolute.path;
+                  final playingThis =
+                      (playSnap.data ?? false) && preview.loadedPath == abs;
+                  return IconButton(
+                    tooltip: playingThis ? ttPauseRecording : ttPlayRecording,
+                    icon: Icon(
+                      playingThis ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    ),
+                    onPressed: canPlay ? onPlayOrPause : null,
+                  );
+                },
+              )
+            else
+              IconButton(
+                tooltip: ttPlayRecording,
+                icon: const Icon(Icons.play_arrow_rounded),
+                onPressed: null,
+              ),
+            IconButton(
+              tooltip: l10n.shadowRecordingDelete,
+              icon: Icon(
+                Icons.delete_outline,
+                color: scheme.error,
+              ),
+              onPressed: echoActive ? onDelete : null,
+            ),
+            if (list.length > 1)
+              PopupMenuButton<String>(
+                tooltip: l10n.shadowRecordingChooseTake,
+                onSelected: (id) {
+                  if (!echoActive) return;
+                  unawaited(onChooseTake(id));
+                },
+                itemBuilder: (context) {
+                  return [
+                    for (var i = 0; i < list.length; i++)
+                      PopupMenuItem<String>(
+                        value: list[i].id,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 28,
+                              child:
+                                  list[i].id == row.id
+                                  ? Icon(Icons.check, size: 20, color: scheme.primary)
+                                  : const SizedBox.shrink(),
+                            ),
+                            Expanded(
+                              child: Text(
+                                '${l10n.shadowRecordingTake} ${list.length - i} · '
+                                '${(list[i].durationMs / 1000).toStringAsFixed(1)} s',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ];
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(tok.space8),
+                  child: Icon(Icons.more_vert, color: scheme.onSurfaceVariant),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TakePreviewTime extends ConsumerWidget {
+  const _TakePreviewTime({required this.row});
+
+  final RecordingRow row;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final preview = ref.watch(recordingPreviewPlayerProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    final lp = row.localPath;
+    if (lp == null || lp.isEmpty) {
+      return Text(
+        '${(row.durationMs / 1000).toStringAsFixed(1)} s',
+        style: style,
+      );
+    }
+    final abs = File(lp).absolute.path;
+    return StreamBuilder<Duration>(
+      stream: preview.position,
+      initialData: Duration.zero,
+      builder: (context, posSnap) {
+        return StreamBuilder<Duration>(
+          stream: preview.duration,
+          initialData: Duration.zero,
+          builder: (context, durSnap) {
+            final loaded = preview.loadedPath == abs;
+            final pos = posSnap.data ?? Duration.zero;
+            var total = durSnap.data ?? Duration.zero;
+            if (total <= Duration.zero && row.durationMs > 0) {
+              total = Duration(milliseconds: row.durationMs);
+            }
+            final text = loaded
+                ? '${formatDurationHms(pos)} / ${formatDurationHms(total)}'
+                : '${formatDurationHms(Duration.zero)} / ${formatDurationHms(total)}';
+            return Text(text, style: style);
           },
         );
       },

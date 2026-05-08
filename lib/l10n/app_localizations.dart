@@ -604,6 +604,18 @@ abstract class AppLocalizations {
   /// **'Play'**
   String get shadowRecordingPlay;
 
+  /// No description provided for @shadowRecordingPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get shadowRecordingPause;
+
+  /// No description provided for @shadowRecordingChooseTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch take'**
+  String get shadowRecordingChooseTake;
+
   /// No description provided for @shadowRecordingDelete.
   ///
   /// In en, this message translates to:

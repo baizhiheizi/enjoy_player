@@ -85,6 +85,8 @@
   "shadowRecordingEmpty": "No recordings for this segment yet.",
   "shadowRecordingTake": "Take",
   "shadowRecordingPlay": "Play",
+  "shadowRecordingPause": "Pause",
+  "shadowRecordingChooseTake": "Switch take",
   "shadowRecordingDelete": "Delete",
   "shadowRecordingRecord": "Record",
   "shadowRecordingStop": "Stop",

@@ -6,7 +6,7 @@
 - `normalizeEchoWindow`, `clampSeekTimeToEchoWindow`, `decideEchoPlaybackTime` match web `echo-utils.ts` semantics (segment end **pauses** and rewinds to segment start for replay — not auto-loop).
 - `PlayerController` applies clamp / pause-and-rewind while echo active.
 - State persisted in `echo_sessions` (latest session per `targetType` + `targetId`).
-- **Shadow reading**: below the echo region, [`ShadowReadingPanel`](../../lib/features/shadow_reading/presentation/shadow_reading_panel.dart) supports mic recording (saved to `recordings`), playback of takes via a dedicated **`media_kit`** preview player ([`recording_preview_player`](../../lib/core/audio/recording_preview_player.dart)), optional **pitch contour** analysis (FFmpeg PCM extract + YIN envelope — see `shadow_reading/`).
+- **Shadow reading**: below the echo region, [`ShadowReadingPanel`](../../lib/features/shadow_reading/presentation/shadow_reading_panel.dart) supports mic recording (saved to `recordings`), a **compact take player** (one take visible at a time, defaulting to the newest; overflow menu to switch takes), **play/pause** with **elapsed / duration** on the dedicated **`media_kit`** preview player ([`recording_preview_player`](../../lib/core/audio/recording_preview_player.dart)), optional **pitch contour** analysis (FFmpeg PCM extract + YIN envelope — see `shadow_reading/`).
 
 ## Future
 

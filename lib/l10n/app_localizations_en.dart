@@ -271,6 +271,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shadowRecordingPlay => 'Play';
 
   @override
+  String get shadowRecordingPause => 'Pause';
+
+  @override
+  String get shadowRecordingChooseTake => 'Switch take';
+
+  @override
   String get shadowRecordingDelete => 'Delete';
 
   @override
