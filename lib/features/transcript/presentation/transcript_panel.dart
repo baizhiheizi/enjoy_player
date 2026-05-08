@@ -208,8 +208,16 @@ class _TranscriptLineTileState extends State<_TranscriptLineTile> {
     final baseBody = Theme.of(context).textTheme.bodyLarge ?? const TextStyle();
     final defaultFg = scheme.onSurface;
 
+    final echoCurrent = widget.isActive && widget.inEcho;
+
     Color? bg;
-    if (widget.isActive) {
+    if (echoCurrent) {
+      bg = Color.lerp(
+        tok.echoActive.withValues(alpha: 0.42),
+        scheme.primary.withValues(alpha: 0.22),
+        0.4,
+      );
+    } else if (widget.isActive) {
       bg = scheme.primary.withValues(alpha: 0.18);
     } else if (widget.inEcho) {
       bg = tok.echoActive.withValues(alpha: 0.22);
@@ -235,49 +243,49 @@ class _TranscriptLineTileState extends State<_TranscriptLineTile> {
           borderRadius: BorderRadius.circular(tok.radiusSm),
           onTap: widget.onTap,
           hoverColor: Colors.transparent,
-          highlightColor: scheme.primary.withValues(alpha: 0.08),
-          splashColor: scheme.primary.withValues(alpha: 0.12),
+          highlightColor:
+              echoCurrent
+                  ? tok.echoActive.withValues(alpha: 0.14)
+                  : scheme.primary.withValues(alpha: 0.08),
+          splashColor:
+              echoCurrent
+                  ? tok.echoActive.withValues(alpha: 0.18)
+                  : scheme.primary.withValues(alpha: 0.12),
           child: Padding(
             padding: tok.transcriptLinePadding,
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 52,
-                  child: Text(
-                    formatTranscriptTimestampMs(widget.line.startMs),
-                    style: timestampStyle,
+                Row(
+                  children: [
+                    Text(
+                      formatTranscriptTimestampMs(widget.line.startMs),
+                      style: timestampStyle,
+                    ),
+                  ],
+                ),
+                SizedBox(height: tok.space4),
+                Text.rich(
+                  transcriptMarkupToTextSpan(
+                    widget.line.text,
+                    baseBody,
+                    defaultColor: defaultFg,
+                    emphasize: widget.isActive,
                   ),
                 ),
-                SizedBox(width: tok.space8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        transcriptMarkupToTextSpan(
-                          widget.line.text,
-                          baseBody,
-                          defaultColor: defaultFg,
-                          emphasize: widget.isActive,
-                        ),
-                      ),
-                      if (widget.secondaryText != null) ...[
-                        SizedBox(height: tok.space4),
-                        Text.rich(
-                          transcriptMarkupToTextSpan(
-                            widget.secondaryText!,
-                            (Theme.of(context).textTheme.bodySmall ??
-                                    const TextStyle())
-                                .copyWith(fontStyle: FontStyle.italic),
-                            defaultColor: scheme.onSurfaceVariant,
-                            emphasize: false,
-                          ),
-                        ),
-                      ],
-                    ],
+                if (widget.secondaryText != null) ...[
+                  SizedBox(height: tok.space4),
+                  Text.rich(
+                    transcriptMarkupToTextSpan(
+                      widget.secondaryText!,
+                      (Theme.of(context).textTheme.bodySmall ??
+                              const TextStyle())
+                          .copyWith(fontStyle: FontStyle.italic),
+                      defaultColor: scheme.onSurfaceVariant,
+                      emphasize: false,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
