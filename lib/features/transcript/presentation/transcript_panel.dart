@@ -11,11 +11,12 @@ import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../../player/application/display_position_provider.dart';
+import '../../player/application/player_controller.dart';
 import '../../player/application/echo_mode_provider.dart';
 import '../../player/application/player_interactions.dart';
 import '../../player/application/player_state_providers.dart';
+import '../../shadow_reading/presentation/shadow_reading_panel.dart';
 import 'echo_region_controls_bar.dart';
-import 'shadow_reading_zone_placeholder.dart';
 import '../application/transcript_lines_provider.dart';
 import '../application/transcript_repository_provider.dart';
 
@@ -179,6 +180,7 @@ class _TranscriptBodyState extends ConsumerState<_TranscriptBody> {
           Padding(
             padding: EdgeInsets.only(bottom: tok.space8),
             child: _EchoRegionMergedCard(
+              mediaId: widget.mediaId,
               lines: lines,
               echo: echo,
               activeCueIndex: active,
@@ -234,6 +236,7 @@ class _TranscriptBodyState extends ConsumerState<_TranscriptBody> {
 
 class _EchoRegionMergedCard extends ConsumerWidget {
   const _EchoRegionMergedCard({
+    required this.mediaId,
     required this.lines,
     required this.echo,
     required this.activeCueIndex,
@@ -241,6 +244,7 @@ class _EchoRegionMergedCard extends ConsumerWidget {
     required this.activeLineKey,
   });
 
+  final String mediaId;
   final List<TranscriptLine> lines;
   final EchoState echo;
   final int activeCueIndex;
@@ -251,6 +255,7 @@ class _EchoRegionMergedCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
+    final session = ref.watch(playerControllerProvider);
 
     final shell = Color.lerp(
       tok.echoActive.withValues(alpha: 0.16),
@@ -345,8 +350,15 @@ class _EchoRegionMergedCard extends ConsumerWidget {
         ),
         if (showShadow) ...[
           SizedBox(height: tok.space16),
-          ShadowReadingZonePlaceholder(
-            referenceSnippet: echoReferencePlainText(lines, echo),
+          ShadowReadingPanel(
+            mediaId: mediaId,
+            targetType: session?.dexieTargetType ?? 'Audio',
+            language: session?.language ?? 'en',
+            startSec: echo.startTimeSeconds,
+            endSec: echo.endTimeSeconds,
+            referenceText: echoReferencePlainText(lines, echo),
+            echoActive: echo.active,
+            currentTimeSec: session?.currentTimeSeconds,
           ),
         ],
       ],

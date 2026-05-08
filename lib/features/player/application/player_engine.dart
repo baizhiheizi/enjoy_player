@@ -30,6 +30,8 @@ abstract class PlayerEngine {
 
   Future<void> play();
 
+  Future<void> pause();
+
   Future<void> stop();
 
   Future<void> dispose();
@@ -81,6 +83,9 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   Future<void> play() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
 
   @override
   Future<void> stop() => _player.stop();

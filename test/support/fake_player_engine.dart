@@ -88,6 +88,9 @@ class FakePlayerEngine implements PlayerEngine {
   Future<void> play() async {}
 
   @override
+  Future<void> pause() async {}
+
+  @override
   Future<void> stop() async {}
 
   @override

@@ -541,7 +541,7 @@ abstract class AppLocalizations {
   /// No description provided for @shadowReadingHint.
   ///
   /// In en, this message translates to:
-  /// **'Practice speaking along this segment. Recording and feedback will be added later.'**
+  /// **'Practice speaking along this segment. Record your voice and compare pitch with the reference.'**
   String get shadowReadingHint;
 
   /// No description provided for @shadowReadingReferenceSnippet.
@@ -549,6 +549,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reference'**
   String get shadowReadingReferenceSnippet;
+
+  /// No description provided for @pitchContourTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch contour'**
+  String get pitchContourTitle;
+
+  /// No description provided for @pitchContourError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not analyze pitch for this segment.'**
+  String get pitchContourError;
+
+  /// No description provided for @pitchContourWaveform.
+  ///
+  /// In en, this message translates to:
+  /// **'Waveform'**
+  String get pitchContourWaveform;
+
+  /// No description provided for @pitchContourReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference pitch'**
+  String get pitchContourReference;
+
+  /// No description provided for @pitchContourUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pitch'**
+  String get pitchContourUser;
+
+  /// No description provided for @shadowRecordingExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved takes'**
+  String get shadowRecordingExisting;
+
+  /// No description provided for @shadowRecordingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recordings for this segment yet.'**
+  String get shadowRecordingEmpty;
+
+  /// No description provided for @shadowRecordingTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take'**
+  String get shadowRecordingTake;
+
+  /// No description provided for @shadowRecordingPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get shadowRecordingPlay;
+
+  /// No description provided for @shadowRecordingDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get shadowRecordingDelete;
+
+  /// No description provided for @shadowRecordingRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get shadowRecordingRecord;
+
+  /// No description provided for @shadowRecordingStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get shadowRecordingStop;
+
+  /// No description provided for @shadowRecordingMicDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission is required to record.'**
+  String get shadowRecordingMicDenied;
+
+  /// Save failed after recording stopped; reason is a short technical detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save recording: {reason}'**
+  String shadowRecordingSaveFailed(String reason);
+
+  /// No description provided for @shadowRecordingPlaybackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t play this take.'**
+  String get shadowRecordingPlaybackFailed;
 }
 
 class _AppLocalizationsDelegate

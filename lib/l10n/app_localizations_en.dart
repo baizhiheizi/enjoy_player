@@ -238,8 +238,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shadowReadingHint =>
-      'Practice speaking along this segment. Recording and feedback will be added later.';
+      'Practice speaking along this segment. Record your voice and compare pitch with the reference.';
 
   @override
   String get shadowReadingReferenceSnippet => 'Reference';
+
+  @override
+  String get pitchContourTitle => 'Pitch contour';
+
+  @override
+  String get pitchContourError => 'Could not analyze pitch for this segment.';
+
+  @override
+  String get pitchContourWaveform => 'Waveform';
+
+  @override
+  String get pitchContourReference => 'Reference pitch';
+
+  @override
+  String get pitchContourUser => 'Your pitch';
+
+  @override
+  String get shadowRecordingExisting => 'Saved takes';
+
+  @override
+  String get shadowRecordingEmpty => 'No recordings for this segment yet.';
+
+  @override
+  String get shadowRecordingTake => 'Take';
+
+  @override
+  String get shadowRecordingPlay => 'Play';
+
+  @override
+  String get shadowRecordingDelete => 'Delete';
+
+  @override
+  String get shadowRecordingRecord => 'Record';
+
+  @override
+  String get shadowRecordingStop => 'Stop';
+
+  @override
+  String get shadowRecordingMicDenied =>
+      'Microphone permission is required to record.';
+
+  @override
+  String shadowRecordingSaveFailed(String reason) {
+    return 'Couldn\'t save recording: $reason';
+  }
+
+  @override
+  String get shadowRecordingPlaybackFailed => 'Couldn\'t play this take.';
 }

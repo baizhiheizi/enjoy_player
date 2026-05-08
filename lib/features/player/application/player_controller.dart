@@ -218,7 +218,11 @@ class PlayerController extends _$PlayerController {
       case EchoOk():
         return;
       case EchoClamp(:final timeSeconds):
-      case EchoLoop(:final timeSeconds):
+        await engine.seek(
+          Duration(milliseconds: (timeSeconds * 1000).round()),
+        );
+      case EchoPauseAndRewind(:final timeSeconds):
+        await engine.pause();
         await engine.seek(
           Duration(milliseconds: (timeSeconds * 1000).round()),
         );

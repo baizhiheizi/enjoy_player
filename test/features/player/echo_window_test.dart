@@ -34,10 +34,10 @@ void main() {
     expect(t, greaterThanOrEqualTo(w.start));
   });
 
-  test('decideEchoPlaybackTime loops near end', () {
+  test('decideEchoPlaybackTime pauses-and-rewinds near end', () {
     final w = (start: 1.0, end: 2.0);
     final d = decideEchoPlaybackTime(2.0, w);
-    expect(d, isA<EchoLoop>());
-    expect((d as EchoLoop).timeSeconds, w.start);
+    expect(d, isA<EchoPauseAndRewind>());
+    expect((d as EchoPauseAndRewind).timeSeconds, w.start);
   });
 }

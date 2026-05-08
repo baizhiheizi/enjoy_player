@@ -19,8 +19,8 @@ sealed class EchoPlaybackDecision {
   static EchoPlaybackDecision clamp(double timeSeconds) =>
       EchoClamp(timeSeconds);
 
-  static EchoPlaybackDecision loop(double timeSeconds) =>
-      EchoLoop(timeSeconds);
+  static EchoPlaybackDecision pauseAndRewind(double timeSeconds) =>
+      EchoPauseAndRewind(timeSeconds);
 }
 
 final class EchoOk extends EchoPlaybackDecision {
@@ -32,8 +32,9 @@ final class EchoClamp extends EchoPlaybackDecision {
   final double timeSeconds;
 }
 
-final class EchoLoop extends EchoPlaybackDecision {
-  const EchoLoop(this.timeSeconds);
+/// Pause playback and rewind for replay from segment start (shadow-reading UX).
+final class EchoPauseAndRewind extends EchoPlaybackDecision {
+  const EchoPauseAndRewind(this.timeSeconds);
   final double timeSeconds;
 }
 
@@ -101,7 +102,7 @@ EchoPlaybackDecision decideEchoPlaybackTime(
   }
 
   if (currentTimeSeconds >= window.end - endGuardSeconds) {
-    return EchoPlaybackDecision.loop(window.start);
+    return EchoPlaybackDecision.pauseAndRewind(window.start);
   }
 
   return EchoPlaybackDecision.ok;

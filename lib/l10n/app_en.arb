@@ -74,6 +74,30 @@
   "shrinkEchoBackward": "Shrink echo backward",
   "shrinkEchoForward": "Shrink echo forward",
   "shadowReadingTitle": "Shadow reading",
-  "shadowReadingHint": "Practice speaking along this segment. Recording and feedback will be added later.",
-  "shadowReadingReferenceSnippet": "Reference"
+  "shadowReadingHint": "Practice speaking along this segment. Record your voice and compare pitch with the reference.",
+  "shadowReadingReferenceSnippet": "Reference",
+  "pitchContourTitle": "Pitch contour",
+  "pitchContourError": "Could not analyze pitch for this segment.",
+  "pitchContourWaveform": "Waveform",
+  "pitchContourReference": "Reference pitch",
+  "pitchContourUser": "Your pitch",
+  "shadowRecordingExisting": "Saved takes",
+  "shadowRecordingEmpty": "No recordings for this segment yet.",
+  "shadowRecordingTake": "Take",
+  "shadowRecordingPlay": "Play",
+  "shadowRecordingDelete": "Delete",
+  "shadowRecordingRecord": "Record",
+  "shadowRecordingStop": "Stop",
+  "shadowRecordingMicDenied": "Microphone permission is required to record.",
+  "shadowRecordingSaveFailed": "Couldn't save recording: {reason}",
+  "@shadowRecordingSaveFailed": {
+    "description": "Save failed after recording stopped; reason is a short technical detail.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "Duration probe failed"
+      }
+    }
+  },
+  "shadowRecordingPlaybackFailed": "Couldn't play this take."
 }

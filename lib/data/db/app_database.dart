@@ -309,11 +309,59 @@ class RecordingDao extends DatabaseAccessor<AppDatabase> with _$RecordingDaoMixi
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .watch();
 
+  /// Echo-region overlap — same rules as web `getRecordingsByEchoRegion`.
+  Stream<List<RecordingRow>> watchByEchoRegion({
+    required String targetType,
+    required String targetId,
+    required String language,
+    required int echoStartMs,
+    required int echoEndMs,
+  }) =>
+      (select(recordings)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) &
+                  t.targetId.equals(targetId) &
+                  t.language.equals(language),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch()
+          .map((rows) => rows.where((r) => recordingOverlapsEchoRegion(r, echoStartMs, echoEndMs)).toList());
+
+  Future<List<RecordingRow>> listByEchoRegion({
+    required String targetType,
+    required String targetId,
+    required String language,
+    required int echoStartMs,
+    required int echoEndMs,
+  }) async {
+    final rows =
+        await (select(recordings)
+              ..where(
+                (t) =>
+                    t.targetType.equals(targetType) &
+                    t.targetId.equals(targetId) &
+                    t.language.equals(language),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+            .get();
+    return rows.where((r) => recordingOverlapsEchoRegion(r, echoStartMs, echoEndMs)).toList();
+  }
+
   Future<void> insertRow(RecordingRow row) =>
       into(recordings).insert(row, mode: InsertMode.insertOrReplace);
 
   Future<void> deleteId(String id) =>
       (delete(recordings)..where((t) => t.id.equals(id))).go();
+}
+
+/// Recording `[referenceStartMs, referenceStartMs + referenceDurationMs)` vs echo `[echoStartMs, echoEndMs)`.
+bool recordingOverlapsEchoRegion(RecordingRow r, int echoStartMs, int echoEndMs) {
+  final recordingStart = r.referenceStartMs;
+  final recordingEnd = r.referenceStartMs + r.referenceDurationMs;
+  final overlapStart = recordingStart > echoStartMs ? recordingStart : echoStartMs;
+  final overlapEnd = recordingEnd < echoEndMs ? recordingEnd : echoEndMs;
+  return overlapStart < overlapEnd;
 }
 
 @DriftAccessor(tables: [Dictations])
