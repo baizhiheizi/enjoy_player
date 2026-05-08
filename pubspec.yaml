@@ -19,10 +19,14 @@ dependencies:
   drift: ^2.26.0
   drift_flutter: ^0.2.4
   file_picker: ^12.0.0-beta.1
+  freezed_annotation: ^3.0.0
   flutter_riverpod: ^3.0.2
+  flutter_secure_storage: ^8.1.0
   go_router: ^17.2.3
+  http: ^1.4.0
   google_fonts: ^8.1.0
   intl: any
+  json_annotation: ^4.9.0
   logging: ^1.3.0
   meta: ^1.16.0
   media_kit: ^1.2.2
@@ -34,6 +38,7 @@ dependencies:
   record: ^6.2.0
   riverpod_annotation: ^4.0.0
   sqlite3_flutter_libs: ^0.5.28
+  url_launcher: ^6.3.1
   uuid: ^4.5.1
 
 dev_dependencies:
@@ -45,7 +50,6 @@ dev_dependencies:
   custom_lint: ^0.8.0
   drift_dev: ^2.26.0
   freezed: ^3.0.0
-  freezed_annotation: ^3.0.0
   json_serializable: ^6.9.5
   riverpod_generator: ^4.0.0+1
   riverpod_lint: ^3.0.2

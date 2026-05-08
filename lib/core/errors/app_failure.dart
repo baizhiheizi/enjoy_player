@@ -20,3 +20,13 @@ final class DatabaseFailure extends AppFailure {
 final class PlaybackFailure extends AppFailure {
   const PlaybackFailure(super.message);
 }
+
+final class NetworkFailure extends AppFailure {
+  const NetworkFailure(super.message, {this.statusCode});
+
+  final int? statusCode;
+}
+
+final class AuthFailure extends AppFailure {
+  const AuthFailure(super.message);
+}

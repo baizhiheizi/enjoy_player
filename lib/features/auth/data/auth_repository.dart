@@ -1,0 +1,180 @@
+/// Persists session token + profile cache; calls [AuthApi].
+library;
+
+import 'dart:convert';
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/data/api/api_exception.dart';
+import 'package:enjoy_player/data/api/api_client_provider.dart';
+import 'package:enjoy_player/data/api/secure_token_store.dart';
+import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+
+part 'auth_repository.g.dart';
+
+@Riverpod(keepAlive: true)
+AuthRepository authRepository(Ref ref) {
+  return AuthRepository(
+    authApi: AuthApi(ref.watch(apiClientProvider)),
+    tokenStore: ref.watch(secureTokenStoreProvider),
+    settingsDao: ref.watch(appDatabaseProvider).settingsDao,
+  );
+}
+
+class AuthRepository {
+  AuthRepository({
+    required AuthApi authApi,
+    required SecureTokenStore tokenStore,
+    required SettingsDao settingsDao,
+  })  : _authApi = authApi,
+        _tokenStore = tokenStore,
+        _settingsDao = settingsDao;
+
+  final AuthApi _authApi;
+  final SecureTokenStore _tokenStore;
+  final SettingsDao _settingsDao;
+
+  Future<({String requestId, String verificationUrl})> startAuth() async {
+    try {
+      final m = await _authApi.startAuth();
+      final requestId = m['requestId'] as String?;
+      final verificationUrl = m['verificationUrl'] as String?;
+      if (requestId == null ||
+          requestId.isEmpty ||
+          verificationUrl == null ||
+          verificationUrl.isEmpty) {
+        throw const AuthFailure('Invalid start_auth response');
+      }
+      return (requestId: requestId, verificationUrl: verificationUrl);
+    } on ApiException catch (e) {
+      throw AuthFailure(e.message);
+    }
+  }
+
+  Future<PollAuthOutcome> pollAuth(String requestId) async {
+    try {
+      final m = await _authApi.pollAuth(requestId);
+      final status = m['status'] as String?;
+      if (status == 'approved') {
+        final token = m['accessToken'] as String?;
+        final user = m['user'];
+        if (token == null || token.isEmpty || user is! Map<String, dynamic>) {
+          throw const AuthFailure('Invalid poll approved response');
+        }
+        return PollAuthOutcomeApproved(accessToken: token, user: user);
+      }
+      return const PollAuthOutcomePending();
+    } on ApiException catch (e) {
+      throw AuthFailure(e.message);
+    }
+  }
+
+  Future<void> persistAccessToken(String token) =>
+      _tokenStore.writeAccessToken(token);
+
+  Future<UserProfile> fetchProfile() async {
+    try {
+      final m = await _authApi.profile();
+      final profile = UserProfile.fromJson(m);
+      await _cacheProfile(profile);
+      return profile;
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        await clearSession();
+      }
+      throw AuthFailure(e.message);
+    }
+  }
+
+  Future<UserProfile> updateProfile(UpdateProfileRequest request) async {
+    try {
+      final body = request.toUserJson();
+      if (body.isEmpty) {
+        return fetchProfile();
+      }
+      final m = await _authApi.updateProfile(body);
+      final profile = UserProfile.fromJson(m);
+      await _cacheProfile(profile);
+      return profile;
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        await clearSession();
+      }
+      throw AuthFailure(e.message);
+    }
+  }
+
+  Future<UserProfile?> readCachedProfile() async {
+    final raw = await _settingsDao.getValue(SettingsKeys.authLastProfile);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return UserProfile.fromJson(decoded);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _cacheProfile(UserProfile profile) async {
+    await _settingsDao.setValue(
+      SettingsKeys.authLastProfile,
+      jsonEncode(profile.toJson()),
+    );
+  }
+
+  Future<bool> hasAccessToken() async {
+    final t = await _tokenStore.readAccessToken();
+    return t != null && t.isNotEmpty;
+  }
+
+  /// Cold start: token + optional cached profile, else fetch profile.
+  Future<AuthState> loadInitialAuthState() async {
+    final hasToken = await hasAccessToken();
+    if (!hasToken) {
+      await _settingsDao.setValue(SettingsKeys.authLastProfile, '');
+      return const AuthSignedOut();
+    }
+    final cached = await readCachedProfile();
+    if (cached != null) {
+      return AuthSignedIn(profile: cached);
+    }
+    try {
+      final profile = await fetchProfile();
+      return AuthSignedIn(profile: profile);
+    } on AuthFailure {
+      await clearSession();
+      return const AuthSignedOut();
+    }
+  }
+
+  Future<void> clearSession() async {
+    await _tokenStore.clearAccessToken();
+    await _settingsDao.setValue(SettingsKeys.authLastProfile, '');
+  }
+}
+
+sealed class PollAuthOutcome {
+  const PollAuthOutcome();
+}
+
+final class PollAuthOutcomePending extends PollAuthOutcome {
+  const PollAuthOutcomePending();
+}
+
+final class PollAuthOutcomeApproved extends PollAuthOutcome {
+  const PollAuthOutcomeApproved({
+    required this.accessToken,
+    required this.user,
+  });
+
+  final String accessToken;
+  final Map<String, dynamic> user;
+}

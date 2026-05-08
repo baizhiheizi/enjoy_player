@@ -1,4 +1,6 @@
 /// Builds tooltip strings with the active keyboard shortcut (customizable via [HotkeysCtrl]).
+library;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/hotkeys_ctrl.dart';

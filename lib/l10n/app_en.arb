@@ -139,5 +139,40 @@
   "hotkeysDescCloseModal": "Close modal",
   "hotkeysStubSearch": "Search is not available yet.",
   "hotkeysStubAssessment": "Pronunciation assessment is not available yet.",
-  "hotkeysStubDictation": "Dictation mode is not available yet."
+  "hotkeysStubDictation": "Dictation mode is not available yet.",
+  "authSignInTitle": "Sign in to Enjoy",
+  "authSignInSubtitle": "We will open your browser to sign in. When you are done, return here — we will detect completion automatically.",
+  "authSignInCta": "Continue in browser",
+  "authWaitingForApproval": "Waiting for approval in your browser…",
+  "authCancel": "Cancel",
+  "authSignOut": "Sign out",
+  "profileTitle": "Profile",
+  "profileFieldName": "Name",
+  "profileFieldEmail": "Email",
+  "profileFieldGoal": "Daily goal (minutes)",
+  "profileFieldLearningLanguage": "Learning language",
+  "profileFieldNativeLanguage": "Native language",
+  "profileFieldRequired": "Required",
+  "profileSave": "Save",
+  "profileSaveSuccess": "Profile saved",
+  "profileSubscriptionFree": "Free",
+  "profileSubscriptionPro": "Pro",
+  "profileBalance": "Balance: {value}",
+  "@profileBalance": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSectionAccount": "Account",
+  "settingsSectionAdvanced": "Advanced",
+  "settingsApiBaseUrl": "API base URL",
+  "settingsApiBaseUrlHint": "Example: https://api.enjoy.bot",
+  "settingsApiBaseUrlSave": "Save API URL",
+  "settingsAccountSignedOut": "Not signed in",
+  "settingsAccountOpenProfile": "Open profile",
+  "settingsAccountSignIn": "Sign in",
+  "errorNetwork": "Network error",
+  "errorUnauthorized": "Session expired — please sign in again"
 }

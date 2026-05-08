@@ -11,8 +11,11 @@
 | Files | `file_picker` + `path_provider` + `cross_file` | Import copies into app documents |
 | IDs | `uuid` | v5 namespaced IDs for media from file hash |
 | Logging | `logging` | Wrapper `logNamed` |
+| Networking | `http` | Enjoy API client under `lib/data/api/` |
+| Secure storage | `flutter_secure_storage` | Access token only |
+| Browser / deep links | `url_launcher` | OAuth `start_auth` browser step |
 | i18n | `flutter_localizations` + ARB | MVP English only (`lib/l10n/app_en.arb`) |
 | Codegen | `build_runner`, `drift_dev`, `riverpod_generator` | Run after schema/provider edits |
 | Lint | `flutter_lints`, `custom_lint`, `riverpod_lint` | See `analysis_options.yaml` |
 
-Deferred (ADR-0005): `flutter_inappwebview`, cloud sync, URL streaming UX polish.
+Deferred (ADR-0005): `flutter_inappwebview`, URL streaming UX polish. Library/recording **cloud sync** remains deferred; see [ADR-0006](decisions/0006-auth-and-profile-sync.md) for optional auth + profile scope.

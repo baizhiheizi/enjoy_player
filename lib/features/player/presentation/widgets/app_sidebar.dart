@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/sidebar_account_chip.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -115,6 +116,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               onTap: () => context.go('/library'),
             ),
             const Spacer(),
+            const SidebarAccountChip(),
             Padding(
               padding: EdgeInsets.only(bottom: t.space12),
               child: _SidebarNavItem(

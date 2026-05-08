@@ -412,4 +412,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hotkeysStubDictation => 'Dictation mode is not available yet.';
+
+  @override
+  String get authSignInTitle => 'Sign in to Enjoy';
+
+  @override
+  String get authSignInSubtitle =>
+      'We will open your browser to sign in. When you are done, return here — we will detect completion automatically.';
+
+  @override
+  String get authSignInCta => 'Continue in browser';
+
+  @override
+  String get authWaitingForApproval => 'Waiting for approval in your browser…';
+
+  @override
+  String get authCancel => 'Cancel';
+
+  @override
+  String get authSignOut => 'Sign out';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profileFieldName => 'Name';
+
+  @override
+  String get profileFieldEmail => 'Email';
+
+  @override
+  String get profileFieldGoal => 'Daily goal (minutes)';
+
+  @override
+  String get profileFieldLearningLanguage => 'Learning language';
+
+  @override
+  String get profileFieldNativeLanguage => 'Native language';
+
+  @override
+  String get profileFieldRequired => 'Required';
+
+  @override
+  String get profileSave => 'Save';
+
+  @override
+  String get profileSaveSuccess => 'Profile saved';
+
+  @override
+  String get profileSubscriptionFree => 'Free';
+
+  @override
+  String get profileSubscriptionPro => 'Pro';
+
+  @override
+  String profileBalance(String value) {
+    return 'Balance: $value';
+  }
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionAdvanced => 'Advanced';
+
+  @override
+  String get settingsApiBaseUrl => 'API base URL';
+
+  @override
+  String get settingsApiBaseUrlHint => 'Example: https://api.enjoy.bot';
+
+  @override
+  String get settingsApiBaseUrlSave => 'Save API URL';
+
+  @override
+  String get settingsAccountSignedOut => 'Not signed in';
+
+  @override
+  String get settingsAccountOpenProfile => 'Open profile';
+
+  @override
+  String get settingsAccountSignIn => 'Sign in';
+
+  @override
+  String get errorNetwork => 'Network error';
+
+  @override
+  String get errorUnauthorized => 'Session expired — please sign in again';
 }

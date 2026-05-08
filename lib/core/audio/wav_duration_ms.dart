@@ -1,4 +1,5 @@
 /// PCM WAVE duration from RIFF `fmt ` + `data` chunks (no codec playback).
+library;
 
 import 'dart:typed_data';
 

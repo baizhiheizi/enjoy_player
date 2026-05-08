@@ -39,7 +39,7 @@ class ParsedHotkey {
 ParsedHotkey parseHotkeyString(String binding) {
   final raw = binding.trim();
   if (raw.isEmpty) {
-    throw FormatException('Empty hotkey binding');
+    throw const FormatException('Empty hotkey binding');
   }
   final parts =
       raw.split('+').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -315,27 +315,43 @@ String? serializeChordFromKeyEvent(KeyDownEvent event) {
   }
 
   String? mainToken;
-  if (key == LogicalKeyboardKey.space) mainToken = 'space';
-  else if (key == LogicalKeyboardKey.escape) mainToken = 'escape';
-  else if (key == LogicalKeyboardKey.enter) mainToken = 'enter';
-  else if (key == LogicalKeyboardKey.tab) mainToken = 'tab';
-  else if (key == LogicalKeyboardKey.backspace) mainToken = 'backspace';
-  else if (key == LogicalKeyboardKey.delete) mainToken = 'delete';
-  else if (key == LogicalKeyboardKey.comma) mainToken = 'comma';
-  else if (key == LogicalKeyboardKey.period) mainToken = 'period';
-  else if (key == LogicalKeyboardKey.slash) {
+  if (key == LogicalKeyboardKey.space) {
+    mainToken = 'space';
+  } else if (key == LogicalKeyboardKey.escape) {
+    mainToken = 'escape';
+  } else if (key == LogicalKeyboardKey.enter) {
+    mainToken = 'enter';
+  } else if (key == LogicalKeyboardKey.tab) {
+    mainToken = 'tab';
+  } else if (key == LogicalKeyboardKey.backspace) {
+    mainToken = 'backspace';
+  } else if (key == LogicalKeyboardKey.delete) {
+    mainToken = 'delete';
+  } else if (key == LogicalKeyboardKey.comma) {
+    mainToken = 'comma';
+  } else if (key == LogicalKeyboardKey.period) {
+    mainToken = 'period';
+  } else if (key == LogicalKeyboardKey.slash) {
     mainToken = hk.isShiftPressed ? 'slash' : '/';
-  }
-  else if (key == LogicalKeyboardKey.bracketLeft) mainToken = '[';
-  else if (key == LogicalKeyboardKey.bracketRight) mainToken = ']';
-  else if (key == LogicalKeyboardKey.backslash) mainToken = 'backslash';
-  else if (key == LogicalKeyboardKey.minus) mainToken = 'minus';
-  else if (key == LogicalKeyboardKey.equal) mainToken = 'equal';
-  else if (key == LogicalKeyboardKey.arrowLeft) mainToken = 'arrowleft';
-  else if (key == LogicalKeyboardKey.arrowRight) mainToken = 'arrowright';
-  else if (key == LogicalKeyboardKey.arrowUp) mainToken = 'arrowup';
-  else if (key == LogicalKeyboardKey.arrowDown) mainToken = 'arrowdown';
-  else {
+  } else if (key == LogicalKeyboardKey.bracketLeft) {
+    mainToken = '[';
+  } else if (key == LogicalKeyboardKey.bracketRight) {
+    mainToken = ']';
+  } else if (key == LogicalKeyboardKey.backslash) {
+    mainToken = 'backslash';
+  } else if (key == LogicalKeyboardKey.minus) {
+    mainToken = 'minus';
+  } else if (key == LogicalKeyboardKey.equal) {
+    mainToken = 'equal';
+  } else if (key == LogicalKeyboardKey.arrowLeft) {
+    mainToken = 'arrowleft';
+  } else if (key == LogicalKeyboardKey.arrowRight) {
+    mainToken = 'arrowright';
+  } else if (key == LogicalKeyboardKey.arrowUp) {
+    mainToken = 'arrowup';
+  } else if (key == LogicalKeyboardKey.arrowDown) {
+    mainToken = 'arrowdown';
+  } else {
     const letterKeys = <LogicalKeyboardKey>[
       LogicalKeyboardKey.keyA,
       LogicalKeyboardKey.keyB,

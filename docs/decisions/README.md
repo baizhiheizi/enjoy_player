@@ -29,3 +29,4 @@ Trade-offs, follow-up work, risks.
 | [0003](0003-player-core-media-kit.md) | media_kit as sole player engine |
 | [0004](0004-feature-first-architecture.md) | Feature-first directory layout |
 | [0005](0005-mvp-scope-local-only.md) | MVP scope — local files only |
+| [0006](0006-auth-and-profile-sync.md) | Auth, profile, settings sync (browser flow) |

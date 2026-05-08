@@ -17,30 +17,47 @@ class EnjoyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    final appPrefs = ref.watch(appPreferencesCtrlProvider);
-    final mode = appPrefs.themeMode;
+    final prefsAsync = ref.watch(appPreferencesCtrlProvider);
     final light = buildAppTheme(Brightness.light);
     final dark = buildAppTheme(Brightness.dark);
 
-    return MaterialApp.router(
-      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
-      theme: light,
-      darkTheme: dark,
-      themeMode: mode,
-      locale: appPrefs.locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: router,
-      builder: (context, child) {
-        return AppHotkeysKeyboardListener(
-          child: child ?? const SizedBox.shrink(),
+    return prefsAsync.when(
+      data: (prefs) {
+        return MaterialApp.router(
+          onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
+          theme: light,
+          darkTheme: dark,
+          themeMode: prefs.themeMode,
+          locale: prefs.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+          builder: (context, child) {
+            return AppHotkeysKeyboardListener(
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
         );
       },
+      loading: () => MaterialApp(
+        theme: dark,
+        darkTheme: dark,
+        themeMode: ThemeMode.dark,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (e, _) => MaterialApp(
+        theme: dark,
+        darkTheme: dark,
+        themeMode: ThemeMode.dark,
+        home: Scaffold(body: Center(child: Text('$e'))),
+      ),
     );
   }
 }

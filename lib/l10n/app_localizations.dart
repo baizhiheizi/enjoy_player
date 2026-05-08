@@ -879,6 +879,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dictation mode is not available yet.'**
   String get hotkeysStubDictation;
+
+  /// No description provided for @authSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Enjoy'**
+  String get authSignInTitle;
+
+  /// No description provided for @authSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We will open your browser to sign in. When you are done, return here — we will detect completion automatically.'**
+  String get authSignInSubtitle;
+
+  /// No description provided for @authSignInCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue in browser'**
+  String get authSignInCta;
+
+  /// No description provided for @authWaitingForApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval in your browser…'**
+  String get authWaitingForApproval;
+
+  /// No description provided for @authCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get authCancel;
+
+  /// No description provided for @authSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get authSignOut;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get profileFieldName;
+
+  /// No description provided for @profileFieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get profileFieldEmail;
+
+  /// No description provided for @profileFieldGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily goal (minutes)'**
+  String get profileFieldGoal;
+
+  /// No description provided for @profileFieldLearningLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning language'**
+  String get profileFieldLearningLanguage;
+
+  /// No description provided for @profileFieldNativeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Native language'**
+  String get profileFieldNativeLanguage;
+
+  /// No description provided for @profileFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get profileFieldRequired;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get profileSave;
+
+  /// No description provided for @profileSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSaveSuccess;
+
+  /// No description provided for @profileSubscriptionFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get profileSubscriptionFree;
+
+  /// No description provided for @profileSubscriptionPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get profileSubscriptionPro;
+
+  /// No description provided for @profileBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance: {value}'**
+  String profileBalance(String value);
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsSectionAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get settingsSectionAdvanced;
+
+  /// No description provided for @settingsApiBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API base URL'**
+  String get settingsApiBaseUrl;
+
+  /// No description provided for @settingsApiBaseUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: https://api.enjoy.bot'**
+  String get settingsApiBaseUrlHint;
+
+  /// No description provided for @settingsApiBaseUrlSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save API URL'**
+  String get settingsApiBaseUrlSave;
+
+  /// No description provided for @settingsAccountSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get settingsAccountSignedOut;
+
+  /// No description provided for @settingsAccountOpenProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Open profile'**
+  String get settingsAccountOpenProfile;
+
+  /// No description provided for @settingsAccountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get settingsAccountSignIn;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error'**
+  String get errorNetwork;
+
+  /// No description provided for @errorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired — please sign in again'**
+  String get errorUnauthorized;
 }
 
 class _AppLocalizationsDelegate

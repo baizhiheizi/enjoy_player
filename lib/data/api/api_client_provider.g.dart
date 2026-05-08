@@ -1,0 +1,136 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'api_client_provider.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(httpClient)
+final httpClientProvider = HttpClientProvider._();
+
+final class HttpClientProvider
+    extends $FunctionalProvider<http.Client, http.Client, http.Client>
+    with $Provider<http.Client> {
+  HttpClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'httpClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$httpClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<http.Client> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  http.Client create(Ref ref) {
+    return httpClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(http.Client value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<http.Client>(value),
+    );
+  }
+}
+
+String _$httpClientHash() => r'd1382e35293d651a778f94a1adde8bd5c2531210';
+
+@ProviderFor(ApiBaseUrl)
+final apiBaseUrlProvider = ApiBaseUrlProvider._();
+
+final class ApiBaseUrlProvider
+    extends $AsyncNotifierProvider<ApiBaseUrl, String> {
+  ApiBaseUrlProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'apiBaseUrlProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$apiBaseUrlHash();
+
+  @$internal
+  @override
+  ApiBaseUrl create() => ApiBaseUrl();
+}
+
+String _$apiBaseUrlHash() => r'd3c65c176011e4d98c81884c7ba2b2cf260c2c16';
+
+abstract class _$ApiBaseUrl extends $AsyncNotifier<String> {
+  FutureOr<String> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<String>, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<String>, String>,
+              AsyncValue<String>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(apiClient)
+final apiClientProvider = ApiClientProvider._();
+
+final class ApiClientProvider
+    extends $FunctionalProvider<ApiClient, ApiClient, ApiClient>
+    with $Provider<ApiClient> {
+  ApiClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'apiClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$apiClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ApiClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ApiClient create(Ref ref) {
+    return apiClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ApiClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ApiClient>(value),
+    );
+  }
+}
+
+String _$apiClientHash() => r'1e513f1ce9c39f3dead123e74003b1272063199e';

@@ -49,7 +49,13 @@ sequenceDiagram
 | `recordings` | Pronunciation recordings (sync-ready) |
 | `dictations` | Dictation attempts (sync-ready) |
 | `sync_queue` | Offline sync queue (reserved for post-login sync) |
-| `settings` | Key/value JSON blobs (player prefs) |
+| `settings` | Key/value JSON blobs (player prefs, hotkeys, **API base URL**, **auth profile cache**, app locale prefs) |
+
+## Optional Enjoy account (auth)
+
+- **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).
+- **Tokens:** `flutter_secure_storage` (access token only).
+- **Browser sign-in:** `url_launcher` for `start_auth` / `poll` flow ([ADR-0006](decisions/0006-auth-and-profile-sync.md), [features/auth.md](features/auth.md)).
 
 ## Routing
 
