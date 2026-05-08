@@ -1,9 +1,7 @@
-/// Drift table: transcript payloads linked to media (JSON lines).
+/// Drift table: transcript payloads (aligned with weapp Dexie `transcripts`).
 library;
 
 import 'package:drift/drift.dart';
-
-import 'medias.dart';
 
 @DataClassName('TranscriptRow')
 class Transcripts extends Table {
@@ -11,20 +9,20 @@ class Transcripts extends Table {
   String get tableName => 'transcripts';
 
   TextColumn get id => text()();
-  TextColumn get mediaId =>
-      text().references(Medias, #id, onDelete: KeyAction.cascade)();
+  /// Weapp `TargetType`: `Video` | `Audio` | `Example` | `Ebook`.
+  TextColumn get targetType => text()();
+  TextColumn get targetId => text()();
   TextColumn get language => text()();
+  /// Weapp `TranscriptSource`: `official` | `auto` | `ai` | `user`.
   TextColumn get source => text()();
-  TextColumn get linesJson => text()();
-
-  /// Human-readable label shown in the track picker (filename, stream title, etc.).
+  /// JSON array of `TranscriptLine` (ms-based), same shape as weapp `timeline`.
+  TextColumn get timelineJson => text()();
+  TextColumn get referenceId => text().nullable()();
   TextColumn get label => text().withDefault(const Constant(''))();
-
-  /// For embedded tracks: the 0-based index in the container's subtitle stream list.
   IntColumn get trackIndex => integer().nullable()();
-
-  /// 1 if extracted from the media file itself, 0 if user-imported an external file.
   BoolColumn get isEmbedded => boolean().withDefault(const Constant(false))();
+  TextColumn get syncStatus => text().nullable()();
+  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

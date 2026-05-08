@@ -1,143 +1,67 @@
 /// Reactive subtitle lines for the active primary and secondary transcripts.
 library;
 
-import 'dart:async';
-
+import 'package:async/async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
+import '../../../data/db/media_target_resolver.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../data/transcript_repository.dart';
 import 'transcript_repository_provider.dart';
 
-Stream<List<TranscriptLine>> _primaryLinesForMedia(
-  AppDatabase db,
+List<TranscriptLine> _linesForActiveId(
   TranscriptRepository repo,
-  String mediaId,
+  List<TranscriptRow> transcriptRows,
+  String? activeId,
 ) {
-  return Stream<List<TranscriptLine>>.multi((controller) {
-    PlaybackSessionRow? session;
-    var transcriptRows = <TranscriptRow>[];
-
-    void emit() {
-      final activeId = session?.primaryTranscriptId;
-      if (activeId == null) {
-        controller.add(<TranscriptLine>[]);
-        return;
-      }
-      TranscriptRow? row;
-      for (final r in transcriptRows) {
-        if (r.id == activeId) {
-          row = r;
-          break;
-        }
-      }
-      if (row == null) {
-        controller.add(<TranscriptLine>[]);
-      } else {
-        controller.add(repo.linesForRow(row));
-      }
+  if (activeId == null) return <TranscriptLine>[];
+  for (final r in transcriptRows) {
+    if (r.id == activeId) {
+      return repo.linesForRow(r);
     }
-
-    late final StreamSubscription<PlaybackSessionRow?> subSession;
-    late final StreamSubscription<List<TranscriptRow>> subTranscripts;
-    subSession = db.sessionDao.watchForMedia(mediaId).listen(
-      (s) {
-        session = s;
-        emit();
-      },
-      onError: controller.addError,
-    );
-    subTranscripts = db.transcriptDao.watchForMedia(mediaId).listen(
-      (rows) {
-        transcriptRows = rows;
-        emit();
-      },
-      onError: controller.addError,
-    );
-
-    Future<void> seedFromDb() async {
-      try {
-        session = await db.sessionDao.getForMedia(mediaId);
-        transcriptRows = await db.transcriptDao.listForMedia(mediaId);
-        emit();
-      } catch (e, st) {
-        controller.addError(e, st);
-      }
-    }
-
-    scheduleMicrotask(seedFromDb);
-
-    controller.onCancel = () {
-      subSession.cancel();
-      subTranscripts.cancel();
-    };
-  });
+  }
+  return <TranscriptLine>[];
 }
 
-Stream<List<TranscriptLine>> _secondaryLinesForMedia(
+Future<List<TranscriptLine>> _computeLines(
   AppDatabase db,
   TranscriptRepository repo,
-  String mediaId,
-) {
-  return Stream<List<TranscriptLine>>.multi((controller) {
-    PlaybackSessionRow? session;
-    var transcriptRows = <TranscriptRow>[];
+  String tt,
+  String mediaId, {
+  required bool primary,
+}) async {
+  final echo = await db.echoSessionDao.getLatestForTarget(tt, mediaId);
+  final rows = await db.transcriptDao.listForTarget(tt, mediaId);
+  final id =
+      primary ? echo?.transcriptId : echo?.secondaryTranscriptId;
+  return _linesForActiveId(repo, rows, id);
+}
 
-    void emit() {
-      final secondaryId = session?.secondaryTranscriptId;
-      if (secondaryId == null) {
-        controller.add(<TranscriptLine>[]);
-        return;
-      }
-      TranscriptRow? row;
-      for (final r in transcriptRows) {
-        if (r.id == secondaryId) {
-          row = r;
-          break;
-        }
-      }
-      if (row == null) {
-        controller.add(<TranscriptLine>[]);
-      } else {
-        controller.add(repo.linesForRow(row));
-      }
+Stream<List<TranscriptLine>> _linesForMedia(
+  AppDatabase db,
+  TranscriptRepository repo,
+  String mediaId, {
+  required bool primary,
+}) {
+  return Stream.fromFuture(dexieTargetTypeForId(db, mediaId)).asyncExpand((tt) {
+    if (tt == null) {
+      return Stream.value(<TranscriptLine>[]);
     }
-
-    late final StreamSubscription<PlaybackSessionRow?> subSession;
-    late final StreamSubscription<List<TranscriptRow>> subTranscripts;
-    subSession = db.sessionDao.watchForMedia(mediaId).listen(
-      (s) {
-        session = s;
-        emit();
-      },
-      onError: controller.addError,
-    );
-    subTranscripts = db.transcriptDao.watchForMedia(mediaId).listen(
-      (rows) {
-        transcriptRows = rows;
-        emit();
-      },
-      onError: controller.addError,
-    );
-
-    Future<void> seedFromDb() async {
-      try {
-        session = await db.sessionDao.getForMedia(mediaId);
-        transcriptRows = await db.transcriptDao.listForMedia(mediaId);
-        emit();
-      } catch (e, st) {
-        controller.addError(e, st);
-      }
-    }
-
-    scheduleMicrotask(seedFromDb);
-
-    controller.onCancel = () {
-      subSession.cancel();
-      subTranscripts.cancel();
-    };
+    return Stream.fromFuture(
+      _computeLines(db, repo, tt, mediaId, primary: primary),
+    ).asyncExpand((initial) async* {
+      yield initial;
+      yield* StreamGroup.merge([
+        db.echoSessionDao.watchLatestForTarget(tt, mediaId).asyncMap(
+              (_) => _computeLines(db, repo, tt, mediaId, primary: primary),
+            ),
+        db.transcriptDao.watchAllForTarget(tt, mediaId).asyncMap(
+              (_) => _computeLines(db, repo, tt, mediaId, primary: primary),
+            ),
+      ]);
+    });
   });
 }
 
@@ -146,7 +70,7 @@ final transcriptLinesForMediaProvider =
     StreamProvider.family<List<TranscriptLine>, String>((ref, mediaId) {
       final db = ref.watch(appDatabaseProvider);
       final repo = ref.watch(transcriptRepositoryProvider);
-      return _primaryLinesForMedia(db, repo, mediaId);
+      return _linesForMedia(db, repo, mediaId, primary: true);
     });
 
 /// Lines for the secondary (translation) transcript.
@@ -154,5 +78,5 @@ final secondaryTranscriptLinesForMediaProvider =
     StreamProvider.family<List<TranscriptLine>, String>((ref, mediaId) {
       final db = ref.watch(appDatabaseProvider);
       final repo = ref.watch(transcriptRepositoryProvider);
-      return _secondaryLinesForMedia(db, repo, mediaId);
+      return _linesForMedia(db, repo, mediaId, primary: false);
     });

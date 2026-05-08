@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
@@ -11,7 +12,6 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../support/test_path_provider.dart';
 
@@ -43,17 +43,23 @@ void main() {
     test('getById maps row to Media domain', () async {
       final now = DateTime.now();
       const id = 'id-1';
-      await db.mediaDao.insertRow(
-        MediaRow(
+      await db.videoDao.insertRow(
+        VideoRow(
           id: id,
-          kind: 'video',
+          vid: 'hh',
+          provider: 'user',
           title: 'Clip',
-          sourceUri: 'file:///x.mp4',
-          thumbnailPath: '/thumb.png',
-          durationMs: 12_000,
+          description: null,
+          thumbnailUrl: '/thumb.png',
+          durationSeconds: 12,
           language: 'ja',
-          fileHash: 'hh',
-          fileSize: 99,
+          source: null,
+          localUri: 'file:///x.mp4',
+          md5: null,
+          size: 99,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         ),
@@ -69,10 +75,7 @@ void main() {
     test('importMedia stores file and returns deterministic id', () async {
       final bytes = utf8.encode('hello-import');
       final hash = sha256.convert(bytes).toString();
-      final expectedId = const Uuid().v5(
-        Namespace.url.value,
-        'enjoy:media:$hash',
-      );
+      final expectedId = enjoyAudioId(aid: hash);
 
       final src = File(p.join(root.path, 'in.txt'));
       await src.writeAsBytes(bytes);
@@ -82,24 +85,33 @@ void main() {
 
       final media = await repo.getById(id);
       expect(media, isNotNull);
-      expect(media!.fileHash, hash);
+      expect(media!.contentHash, hash);
       expect(media.kind, MediaKind.audio);
     });
 
     test('deleteMedia removes row', () async {
       final now = DateTime.now();
       const id = 'gone';
-      await db.mediaDao.insertRow(
-        MediaRow(
+      await db.audioDao.insertRow(
+        AudioRow(
           id: id,
-          kind: 'audio',
+          aid: 'f',
+          provider: 'user',
           title: 'x',
-          sourceUri: 'file:///x.mp3',
-          thumbnailPath: null,
-          durationMs: 0,
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
           language: 'und',
-          fileHash: 'f',
-          fileSize: 1,
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///x.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         ),

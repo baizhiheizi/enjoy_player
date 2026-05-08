@@ -20,6 +20,7 @@ class EmbeddedTrackSync {
 
   Future<void> startForMedia({
     required String mediaId,
+    required String dexieTargetType,
     required String sourceUri,
   }) async {
     await _sub?.cancel();
@@ -31,7 +32,10 @@ class EmbeddedTrackSync {
         .take(1)
         .listen((tracks) async {
           final db = _ref.read(appDatabaseProvider);
-          final existing = await db.transcriptDao.listForMedia(mediaId);
+          final existing = await db.transcriptDao.listForTarget(
+            dexieTargetType,
+            mediaId,
+          );
           final existingIndices =
               existing
                   .where((r) => r.isEmbedded && r.trackIndex != null)
@@ -39,7 +43,8 @@ class EmbeddedTrackSync {
                   .toSet();
 
           final extracted = await const EmbeddedSubtitleService().extractTracks(
-            mediaId: mediaId,
+            targetId: mediaId,
+            targetTypeDexie: dexieTargetType,
             mediaSourceUri: sourceUri,
             tracks: tracks.subtitle,
             existingTrackIndices: existingIndices,
@@ -50,9 +55,13 @@ class EmbeddedTrackSync {
           final repo = _ref.read(transcriptRepositoryProvider);
           await repo.upsertEmbeddedTracks(extracted);
 
-          final session = await db.sessionDao.getForMedia(mediaId);
-          if (session?.primaryTranscriptId == null) {
-            await db.sessionDao.updatePrimaryTranscript(
+          final session = await db.echoSessionDao.getLatestForTarget(
+            dexieTargetType,
+            mediaId,
+          );
+          if (session?.transcriptId == null) {
+            await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+              dexieTargetType,
               mediaId,
               extracted.first.id,
             );

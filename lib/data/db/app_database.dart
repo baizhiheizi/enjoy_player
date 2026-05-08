@@ -3,63 +3,106 @@ library;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-import 'tables/medias.dart';
-import 'tables/playback_sessions.dart';
+import 'tables/audios.dart';
+import 'tables/dictations.dart';
+import 'tables/echo_sessions.dart';
+import 'tables/recordings.dart';
 import 'tables/settings.dart';
+import 'tables/sync_queue.dart';
 import 'tables/transcripts.dart';
+import 'tables/videos.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Medias, Transcripts, PlaybackSessions, SettingsKv],
-  daos: [MediaDao, TranscriptDao, SessionDao, SettingsDao],
+  tables: [
+    Videos,
+    Audios,
+    Transcripts,
+    EchoSessions,
+    Recordings,
+    Dictations,
+    SyncQueue,
+    SettingsKv,
+  ],
+  daos: [
+    VideoDao,
+    AudioDao,
+    TranscriptDao,
+    EchoSessionDao,
+    RecordingDao,
+    DictationDao,
+    SyncQueueDao,
+    SettingsDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? driftDatabase(name: 'enjoy_player'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
     onUpgrade: (m, from, to) async {
-      if (from < 2) {
-        await m.addColumn(transcripts, transcripts.label);
-        await m.addColumn(transcripts, transcripts.trackIndex);
-        await m.addColumn(transcripts, transcripts.isEmbedded);
-        await m.addColumn(
-          playbackSessions,
-          playbackSessions.primaryTranscriptId,
-        );
-        await m.addColumn(
-          playbackSessions,
-          playbackSessions.secondaryTranscriptId,
-        );
+      const tables = <String>[
+        'sync_queue',
+        'dictations',
+        'recordings',
+        'echo_sessions',
+        'transcripts',
+        'videos',
+        'audios',
+        'playback_sessions',
+        'media',
+        'settings',
+      ];
+      for (final name in tables) {
+        await m.database.customStatement('DROP TABLE IF EXISTS $name');
       }
+      await m.createAll();
     },
   );
 }
 
-@DriftAccessor(tables: [Medias])
-class MediaDao extends DatabaseAccessor<AppDatabase> with _$MediaDaoMixin {
-  MediaDao(super.db);
+@DriftAccessor(tables: [Videos])
+class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
+  VideoDao(super.db);
 
-  Future<List<MediaRow>> get all => select(medias).get();
+  Stream<List<VideoRow>> watchAll() =>
+      (select(videos)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
 
-  Stream<List<MediaRow>> watchAll() =>
-      (select(medias)
-        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+  Future<VideoRow?> getById(String id) =>
+      (select(videos)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<MediaRow?> getById(String id) =>
-      (select(medias)..where((t) => t.id.equals(id))).getSingleOrNull();
-
-  Future<void> insertRow(MediaRow row) =>
-      into(medias).insert(row, mode: InsertMode.insertOrReplace);
+  Future<void> insertRow(VideoRow row) =>
+      into(videos).insert(row, mode: InsertMode.insertOrReplace);
 
   Future<void> deleteId(String id) =>
-      (delete(medias)..where((t) => t.id.equals(id))).go();
+      (delete(videos)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [Audios])
+class AudioDao extends DatabaseAccessor<AppDatabase> with _$AudioDaoMixin {
+  AudioDao(super.db);
+
+  Stream<List<AudioRow>> watchAll() =>
+      (select(audios)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+
+  Future<AudioRow?> getById(String id) =>
+      (select(audios)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<void> insertRow(AudioRow row) =>
+      into(audios).insert(row, mode: InsertMode.insertOrReplace);
+
+  Future<void> deleteId(String id) =>
+      (delete(audios)..where((t) => t.id.equals(id))).go();
 }
 
 @DriftAccessor(tables: [Transcripts])
@@ -67,17 +110,27 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
     with _$TranscriptDaoMixin {
   TranscriptDao(super.db);
 
-  /// Legacy: returns all rows ordered by language (kept for compatibility).
-  Stream<List<TranscriptRow>> watchForMedia(String mediaId) =>
+  Stream<List<TranscriptRow>> watchForTarget(
+    String targetType,
+    String targetId,
+  ) =>
       (select(transcripts)
-            ..where((t) => t.mediaId.equals(mediaId))
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
             ..orderBy([(t) => OrderingTerm.asc(t.language)]))
           .watch();
 
-  /// All tracks for a media: embedded first, then imported (by createdAt).
-  Stream<List<TranscriptRow>> watchAllForMedia(String mediaId) =>
+  Stream<List<TranscriptRow>> watchAllForTarget(
+    String targetType,
+    String targetId,
+  ) =>
       (select(transcripts)
-            ..where((t) => t.mediaId.equals(mediaId))
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
             ..orderBy([
               (t) => OrderingTerm.desc(t.isEmbedded),
               (t) => OrderingTerm.asc(t.createdAt),
@@ -87,8 +140,16 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
   Future<TranscriptRow?> getById(String id) =>
       (select(transcripts)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<List<TranscriptRow>> listForMedia(String mediaId) =>
-      (select(transcripts)..where((t) => t.mediaId.equals(mediaId))).get();
+  Future<List<TranscriptRow>> listForTarget(
+    String targetType,
+    String targetId,
+  ) =>
+      (select(transcripts)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            ))
+          .get();
 
   Future<void> upsert(TranscriptRow row) =>
       into(transcripts).insert(row, mode: InsertMode.insertOrReplace);
@@ -97,38 +158,229 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
       (delete(transcripts)..where((t) => t.id.equals(id))).go();
 }
 
-@DriftAccessor(tables: [PlaybackSessions])
-class SessionDao extends DatabaseAccessor<AppDatabase> with _$SessionDaoMixin {
-  SessionDao(super.db);
+@DriftAccessor(tables: [EchoSessions])
+class EchoSessionDao extends DatabaseAccessor<AppDatabase>
+    with _$EchoSessionDaoMixin {
+  EchoSessionDao(super.db);
 
-  Future<PlaybackSessionRow?> getForMedia(String mediaId) =>
-      (select(playbackSessions)
-        ..where((t) => t.mediaId.equals(mediaId))).getSingleOrNull();
+  // ignore: prefer_const_constructors — Uuid() is not const
+  static final Uuid _uuid = Uuid();
 
-  Stream<PlaybackSessionRow?> watchForMedia(String mediaId) =>
-      (select(playbackSessions)
-        ..where((t) => t.mediaId.equals(mediaId))).watchSingleOrNull();
+  EchoSessionRow _newSession({
+    required String targetType,
+    required String targetId,
+    String language = 'und',
+    String? transcriptId,
+    String? secondaryTranscriptId,
+  }) {
+    final now = DateTime.now();
+    return EchoSessionRow(
+      id: _uuid.v4(),
+      targetType: targetType,
+      targetId: targetId,
+      language: language,
+      currentTimeMs: 0,
+      playbackRate: 1,
+      volume: 1,
+      echoStartMs: null,
+      echoEndMs: null,
+      transcriptId: transcriptId,
+      secondaryTranscriptId: secondaryTranscriptId,
+      recordingsCount: 0,
+      recordingsDurationMs: 0,
+      lastRecordingAt: null,
+      currentSegmentIndex: -1,
+      echoActive: false,
+      echoStartLine: -1,
+      echoEndLine: -1,
+      startedAt: now,
+      lastActiveAt: now,
+      completedAt: null,
+      syncStatus: null,
+      serverUpdatedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
 
-  Future<void> upsert(PlaybackSessionRow row) =>
-      into(playbackSessions).insert(row, mode: InsertMode.insertOrReplace);
+  /// Ensures at least one echo session row exists for the target (creates if missing).
+  Future<EchoSessionRow> getOrCreateLatestForTarget(
+    String targetType,
+    String targetId,
+  ) async {
+    final existing = await getLatestForTarget(targetType, targetId);
+    if (existing != null) return existing;
+    final row = _newSession(targetType: targetType, targetId: targetId);
+    await into(echoSessions).insert(row);
+    return row;
+  }
 
-  Future<void> updatePrimaryTranscript(String mediaId, String? transcriptId) =>
-      (update(playbackSessions)..where((t) => t.mediaId.equals(mediaId))).write(
-        PlaybackSessionsCompanion(primaryTranscriptId: Value(transcriptId)),
+  Future<EchoSessionRow?> getLatestForTarget(
+    String targetType,
+    String targetId,
+  ) =>
+      (select(echoSessions)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.lastActiveAt)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  Stream<EchoSessionRow?> watchLatestForTarget(
+    String targetType,
+    String targetId,
+  ) =>
+      (select(echoSessions)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.lastActiveAt)])
+            ..limit(1))
+          .watch()
+          .map((rows) => rows.isEmpty ? null : rows.first);
+
+  Future<void> upsert(EchoSessionRow row) =>
+      into(echoSessions).insert(row, mode: InsertMode.insertOrReplace);
+
+  Future<void> updatePrimaryTranscriptForTarget(
+    String targetType,
+    String targetId,
+    String? transcriptId,
+  ) async {
+    final latest = await getLatestForTarget(targetType, targetId);
+    final now = DateTime.now();
+    if (latest == null) {
+      await into(echoSessions).insert(
+        _newSession(
+          targetType: targetType,
+          targetId: targetId,
+          transcriptId: transcriptId,
+        ),
+      );
+    } else {
+      await (update(echoSessions)..where((t) => t.id.equals(latest.id))).write(
+        EchoSessionsCompanion(
+          transcriptId: Value(transcriptId),
+          updatedAt: Value(now),
+        ),
+      );
+    }
+  }
+
+  Future<void> updateSecondaryTranscriptForTarget(
+    String targetType,
+    String targetId,
+    String? secondaryTranscriptId,
+  ) async {
+    final latest = await getLatestForTarget(targetType, targetId);
+    final now = DateTime.now();
+    if (latest == null) {
+      await into(echoSessions).insert(
+        _newSession(
+          targetType: targetType,
+          targetId: targetId,
+          secondaryTranscriptId: secondaryTranscriptId,
+        ),
+      );
+    } else {
+      await (update(echoSessions)..where((t) => t.id.equals(latest.id))).write(
+        EchoSessionsCompanion(
+          secondaryTranscriptId: Value(secondaryTranscriptId),
+          updatedAt: Value(now),
+        ),
+      );
+    }
+  }
+}
+
+@DriftAccessor(tables: [Recordings])
+class RecordingDao extends DatabaseAccessor<AppDatabase> with _$RecordingDaoMixin {
+  RecordingDao(super.db);
+
+  Stream<List<RecordingRow>> watchByTarget(String targetType, String targetId) =>
+      (select(recordings)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<void> insertRow(RecordingRow row) =>
+      into(recordings).insert(row, mode: InsertMode.insertOrReplace);
+
+  Future<void> deleteId(String id) =>
+      (delete(recordings)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [Dictations])
+class DictationDao extends DatabaseAccessor<AppDatabase> with _$DictationDaoMixin {
+  DictationDao(super.db);
+
+  Stream<List<DictationRow>> watchByTarget(String targetType, String targetId) =>
+      (select(dictations)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch();
+
+  Future<void> insertRow(DictationRow row) =>
+      into(dictations).insert(row, mode: InsertMode.insertOrReplace);
+
+  Future<void> deleteId(String id) =>
+      (delete(dictations)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [SyncQueue])
+class SyncQueueDao extends DatabaseAccessor<AppDatabase> with _$SyncQueueDaoMixin {
+  SyncQueueDao(super.db);
+
+  Future<int> enqueue({
+    required String entityType,
+    required String entityId,
+    required String action,
+    String? payloadJson,
+  }) =>
+      into(syncQueue).insert(
+        SyncQueueCompanion.insert(
+          entityType: entityType,
+          entityId: entityId,
+          action: action,
+          payloadJson: Value(payloadJson),
+          createdAt: DateTime.now(),
+        ),
       );
 
-  Future<void> updateSecondaryTranscript(
-    String mediaId,
-    String? transcriptId,
-  ) => (update(playbackSessions)
-    ..where((t) => t.mediaId.equals(mediaId))).write(
-    PlaybackSessionsCompanion(secondaryTranscriptId: Value(transcriptId)),
-  );
+  Future<List<SyncQueueRow>> peekBatch({int limit = 50}) =>
+      (select(syncQueue)
+            ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
+            ..limit(limit))
+          .get();
+
+  Future<void> markAttempted(int id, {String? error}) async {
+    final existing =
+        await (select(syncQueue)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return;
+    await (update(syncQueue)..where((t) => t.id.equals(id))).write(
+      SyncQueueCompanion(
+        retryCount: Value(existing.retryCount + 1),
+        lastAttempt: Value(DateTime.now()),
+        error: Value(error),
+      ),
+    );
+  }
+
+  Future<void> deleteId(int id) =>
+      (delete(syncQueue)..where((t) => t.id.equals(id))).go();
 }
 
 @DriftAccessor(tables: [SettingsKv])
-class SettingsDao extends DatabaseAccessor<AppDatabase>
-    with _$SettingsDaoMixin {
+class SettingsDao extends DatabaseAccessor<AppDatabase> with _$SettingsDaoMixin {
   SettingsDao(super.db);
 
   Future<String?> getValue(String key) async {

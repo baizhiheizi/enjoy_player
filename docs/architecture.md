@@ -31,20 +31,24 @@ sequenceDiagram
   participant MK as media_kit Player
 
   Lib->>Repo: importMedia XFile
-  Repo->>DB: insert MediaRow
+  Repo->>DB: insert VideoRow / AudioRow
   Lib->>PC: openMedia id
   PC->>MK: open Media uri
   MK-->>PC: position stream
-  PC->>DB: upsert PlaybackSessionRow debounced
+  PC->>DB: upsert EchoSessionRow debounced
 ```
 
 ## Drift tables (summary)
 
 | Table | Purpose |
 |-------|---------|
-| `media` | Local file URI, hash, kind, duration |
-| `transcripts` | JSON lines per media |
-| `playback_sessions` | Position + echo window (keyed by `mediaId`) |
+| `videos` | Local video URI, `vid` hash, duration (seconds), sync metadata |
+| `audios` | Local audio URI, `aid` hash, duration, optional TTS fields, sync metadata |
+| `transcripts` | `targetType` + `targetId` (weapp-style), JSON `timeline`, sync metadata |
+| `echo_sessions` | Playback + echo window + primary/secondary transcript ids per target |
+| `recordings` | Pronunciation recordings (sync-ready) |
+| `dictations` | Dictation attempts (sync-ready) |
+| `sync_queue` | Offline sync queue (reserved for post-login sync) |
 | `settings` | Key/value JSON blobs (player prefs) |
 
 ## Routing

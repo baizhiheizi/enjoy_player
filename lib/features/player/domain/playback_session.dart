@@ -1,9 +1,10 @@
-/// In-memory playback session (maps web `PlaybackSession`).
+/// In-memory playback session (maps web `PlaybackSession` / echo session slice).
 library;
 
 class PlaybackSession {
   const PlaybackSession({
     required this.mediaId,
+    required this.dexieTargetType,
     required this.mediaType,
     required this.mediaTitle,
     this.thumbnailUrl,
@@ -17,6 +18,8 @@ class PlaybackSession {
   });
 
   final String mediaId;
+  /// Weapp `TargetType` for the open media (`Video` | `Audio`).
+  final String dexieTargetType;
   final String mediaType;
   final String mediaTitle;
   final String? thumbnailUrl;
@@ -30,6 +33,7 @@ class PlaybackSession {
 
   PlaybackSession copyWith({
     String? mediaId,
+    String? dexieTargetType,
     String? mediaType,
     String? mediaTitle,
     String? thumbnailUrl,
@@ -43,6 +47,7 @@ class PlaybackSession {
   }) {
     return PlaybackSession(
       mediaId: mediaId ?? this.mediaId,
+      dexieTargetType: dexieTargetType ?? this.dexieTargetType,
       mediaType: mediaType ?? this.mediaType,
       mediaTitle: mediaTitle ?? this.mediaTitle,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,

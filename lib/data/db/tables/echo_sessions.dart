@@ -1,0 +1,48 @@
+/// Drift table: echo / playback practice session (aligned with weapp `echoSessions`).
+library;
+
+import 'package:drift/drift.dart';
+
+@DataClassName('EchoSessionRow')
+class EchoSessions extends Table {
+  @override
+  String get tableName => 'echo_sessions';
+
+  TextColumn get id => text()();
+  TextColumn get targetType => text()();
+  TextColumn get targetId => text()();
+  TextColumn get language => text().withDefault(const Constant('und'))();
+
+  IntColumn get currentTimeMs => integer().withDefault(const Constant(0))();
+  RealColumn get playbackRate =>
+      real().withDefault(const Constant(1.0))();
+  RealColumn get volume => real().withDefault(const Constant(1.0))();
+  IntColumn get echoStartMs => integer().nullable()();
+  IntColumn get echoEndMs => integer().nullable()();
+  /// Primary transcript (weapp `transcriptId`).
+  TextColumn get transcriptId => text().nullable()();
+  TextColumn get secondaryTranscriptId => text().nullable()();
+
+  IntColumn get recordingsCount => integer().withDefault(const Constant(0))();
+  IntColumn get recordingsDurationMs =>
+      integer().withDefault(const Constant(0))();
+  DateTimeColumn get lastRecordingAt => dateTime().nullable()();
+
+  IntColumn get currentSegmentIndex =>
+      integer().withDefault(const Constant(-1))();
+  BoolColumn get echoActive => boolean().withDefault(const Constant(false))();
+  IntColumn get echoStartLine => integer().withDefault(const Constant(-1))();
+  IntColumn get echoEndLine => integer().withDefault(const Constant(-1))();
+
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get lastActiveAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
+  TextColumn get syncStatus => text().nullable()();
+  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

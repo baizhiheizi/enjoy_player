@@ -3,11 +3,11 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
+class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MediasTable(this.attachedDatabase, [this._alias]);
+  $VideosTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -17,14 +17,26 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  static const VerificationMeta _vidMeta = const VerificationMeta('vid');
   @override
-  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
-    'kind',
+  late final GeneratedColumn<String> vid = GeneratedColumn<String>(
+    'vid',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerMeta = const VerificationMeta(
+    'provider',
+  );
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+    'provider',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('user'),
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
@@ -35,34 +47,34 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _sourceUriMeta = const VerificationMeta(
-    'sourceUri',
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
   );
   @override
-  late final GeneratedColumn<String> sourceUri = GeneratedColumn<String>(
-    'source_uri',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _thumbnailPathMeta = const VerificationMeta(
-    'thumbnailPath',
-  );
-  @override
-  late final GeneratedColumn<String> thumbnailPath = GeneratedColumn<String>(
-    'thumbnail_path',
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _durationMsMeta = const VerificationMeta(
-    'durationMs',
+  static const VerificationMeta _thumbnailUrlMeta = const VerificationMeta(
+    'thumbnailUrl',
   );
   @override
-  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
-    'duration_ms',
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+    'thumbnail_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -81,28 +93,78 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant('und'),
   );
-  static const VerificationMeta _fileHashMeta = const VerificationMeta(
-    'fileHash',
-  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
-  late final GeneratedColumn<String> fileHash = GeneratedColumn<String>(
-    'file_hash',
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
-  static const VerificationMeta _fileSizeMeta = const VerificationMeta(
-    'fileSize',
+  static const VerificationMeta _localUriMeta = const VerificationMeta(
+    'localUri',
   );
   @override
-  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
-    'file_size',
+  late final GeneratedColumn<String> localUri = GeneratedColumn<String>(
+    'local_uri',
     aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
+  @override
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaUrlMeta = const VerificationMeta(
+    'mediaUrl',
+  );
+  @override
+  late final GeneratedColumn<String> mediaUrl = GeneratedColumn<String>(
+    'media_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -128,14 +190,20 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    kind,
+    vid,
+    provider,
     title,
-    sourceUri,
-    thumbnailPath,
-    durationMs,
+    description,
+    thumbnailUrl,
+    durationSeconds,
     language,
-    fileHash,
-    fileSize,
+    source,
+    localUri,
+    md5,
+    size,
+    mediaUrl,
+    syncStatus,
+    serverUpdatedAt,
     createdAt,
     updatedAt,
   ];
@@ -143,10 +211,10 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'media';
+  static const String $name = 'videos';
   @override
   VerificationContext validateIntegrity(
-    Insertable<MediaRow> instance, {
+    Insertable<VideoRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -156,13 +224,19 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('kind')) {
+    if (data.containsKey('vid')) {
       context.handle(
-        _kindMeta,
-        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+        _vidMeta,
+        vid.isAcceptableOrUnknown(data['vid']!, _vidMeta),
       );
     } else if (isInserting) {
-      context.missing(_kindMeta);
+      context.missing(_vidMeta);
+    }
+    if (data.containsKey('provider')) {
+      context.handle(
+        _providerMeta,
+        provider.isAcceptableOrUnknown(data['provider']!, _providerMeta),
+      );
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -172,27 +246,31 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('source_uri')) {
+    if (data.containsKey('description')) {
       context.handle(
-        _sourceUriMeta,
-        sourceUri.isAcceptableOrUnknown(data['source_uri']!, _sourceUriMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sourceUriMeta);
-    }
-    if (data.containsKey('thumbnail_path')) {
-      context.handle(
-        _thumbnailPathMeta,
-        thumbnailPath.isAcceptableOrUnknown(
-          data['thumbnail_path']!,
-          _thumbnailPathMeta,
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
         ),
       );
     }
-    if (data.containsKey('duration_ms')) {
+    if (data.containsKey('thumbnail_url')) {
       context.handle(
-        _durationMsMeta,
-        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+        _thumbnailUrlMeta,
+        thumbnailUrl.isAcceptableOrUnknown(
+          data['thumbnail_url']!,
+          _thumbnailUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
       );
     }
     if (data.containsKey('language')) {
@@ -201,21 +279,50 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
         language.isAcceptableOrUnknown(data['language']!, _languageMeta),
       );
     }
-    if (data.containsKey('file_hash')) {
+    if (data.containsKey('source')) {
       context.handle(
-        _fileHashMeta,
-        fileHash.isAcceptableOrUnknown(data['file_hash']!, _fileHashMeta),
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fileHashMeta);
     }
-    if (data.containsKey('file_size')) {
+    if (data.containsKey('local_uri')) {
       context.handle(
-        _fileSizeMeta,
-        fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta),
+        _localUriMeta,
+        localUri.isAcceptableOrUnknown(data['local_uri']!, _localUriMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fileSizeMeta);
+    }
+    if (data.containsKey('md5')) {
+      context.handle(
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
+      );
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    }
+    if (data.containsKey('media_url')) {
+      context.handle(
+        _mediaUrlMeta,
+        mediaUrl.isAcceptableOrUnknown(data['media_url']!, _mediaUrlMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -239,53 +346,75 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  MediaRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  VideoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MediaRow(
+    return VideoRow(
       id:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
-      kind:
+      vid:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}kind'],
+            data['${effectivePrefix}vid'],
+          )!,
+      provider:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}provider'],
           )!,
       title:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}title'],
           )!,
-      sourceUri:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}source_uri'],
-          )!,
-      thumbnailPath: attachedDatabase.typeMapping.read(
+      description: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}thumbnail_path'],
+        data['${effectivePrefix}description'],
       ),
-      durationMs:
+      thumbnailUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}thumbnail_url'],
+      ),
+      durationSeconds:
           attachedDatabase.typeMapping.read(
             DriftSqlType.int,
-            data['${effectivePrefix}duration_ms'],
+            data['${effectivePrefix}duration_seconds'],
           )!,
       language:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}language'],
           )!,
-      fileHash:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}file_hash'],
-          )!,
-      fileSize:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}file_size'],
-          )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      ),
+      localUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_uri'],
+      ),
+      md5: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}md5'],
+      ),
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      ),
+      mediaUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_url'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -300,33 +429,49 @@ class $MediasTable extends Medias with TableInfo<$MediasTable, MediaRow> {
   }
 
   @override
-  $MediasTable createAlias(String alias) {
-    return $MediasTable(attachedDatabase, alias);
+  $VideosTable createAlias(String alias) {
+    return $VideosTable(attachedDatabase, alias);
   }
 }
 
-class MediaRow extends DataClass implements Insertable<MediaRow> {
+class VideoRow extends DataClass implements Insertable<VideoRow> {
   final String id;
-  final String kind;
+  final String vid;
+  final String provider;
   final String title;
-  final String sourceUri;
-  final String? thumbnailPath;
-  final int durationMs;
+  final String? description;
+  final String? thumbnailUrl;
+
+  /// Duration in whole seconds (weapp `Video.duration`).
+  final int durationSeconds;
   final String language;
-  final String fileHash;
-  final int fileSize;
+  final String? source;
+
+  /// Local file URI (replaces web `fileHandle` / `blob`).
+  final String? localUri;
+  final String? md5;
+  final int? size;
+  final String? mediaUrl;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const MediaRow({
+  const VideoRow({
     required this.id,
-    required this.kind,
+    required this.vid,
+    required this.provider,
     required this.title,
-    required this.sourceUri,
-    this.thumbnailPath,
-    required this.durationMs,
+    this.description,
+    this.thumbnailUrl,
+    required this.durationSeconds,
     required this.language,
-    required this.fileHash,
-    required this.fileSize,
+    this.source,
+    this.localUri,
+    this.md5,
+    this.size,
+    this.mediaUrl,
+    this.syncStatus,
+    this.serverUpdatedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -334,55 +479,105 @@ class MediaRow extends DataClass implements Insertable<MediaRow> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['kind'] = Variable<String>(kind);
+    map['vid'] = Variable<String>(vid);
+    map['provider'] = Variable<String>(provider);
     map['title'] = Variable<String>(title);
-    map['source_uri'] = Variable<String>(sourceUri);
-    if (!nullToAbsent || thumbnailPath != null) {
-      map['thumbnail_path'] = Variable<String>(thumbnailPath);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
     }
-    map['duration_ms'] = Variable<int>(durationMs);
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    map['duration_seconds'] = Variable<int>(durationSeconds);
     map['language'] = Variable<String>(language);
-    map['file_hash'] = Variable<String>(fileHash);
-    map['file_size'] = Variable<int>(fileSize);
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    if (!nullToAbsent || localUri != null) {
+      map['local_uri'] = Variable<String>(localUri);
+    }
+    if (!nullToAbsent || md5 != null) {
+      map['md5'] = Variable<String>(md5);
+    }
+    if (!nullToAbsent || size != null) {
+      map['size'] = Variable<int>(size);
+    }
+    if (!nullToAbsent || mediaUrl != null) {
+      map['media_url'] = Variable<String>(mediaUrl);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  MediasCompanion toCompanion(bool nullToAbsent) {
-    return MediasCompanion(
+  VideosCompanion toCompanion(bool nullToAbsent) {
+    return VideosCompanion(
       id: Value(id),
-      kind: Value(kind),
+      vid: Value(vid),
+      provider: Value(provider),
       title: Value(title),
-      sourceUri: Value(sourceUri),
-      thumbnailPath:
-          thumbnailPath == null && nullToAbsent
+      description:
+          description == null && nullToAbsent
               ? const Value.absent()
-              : Value(thumbnailPath),
-      durationMs: Value(durationMs),
+              : Value(description),
+      thumbnailUrl:
+          thumbnailUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(thumbnailUrl),
+      durationSeconds: Value(durationSeconds),
       language: Value(language),
-      fileHash: Value(fileHash),
-      fileSize: Value(fileSize),
+      source:
+          source == null && nullToAbsent ? const Value.absent() : Value(source),
+      localUri:
+          localUri == null && nullToAbsent
+              ? const Value.absent()
+              : Value(localUri),
+      md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
+      size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      mediaUrl:
+          mediaUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(mediaUrl),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
   }
 
-  factory MediaRow.fromJson(
+  factory VideoRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MediaRow(
+    return VideoRow(
       id: serializer.fromJson<String>(json['id']),
-      kind: serializer.fromJson<String>(json['kind']),
+      vid: serializer.fromJson<String>(json['vid']),
+      provider: serializer.fromJson<String>(json['provider']),
       title: serializer.fromJson<String>(json['title']),
-      sourceUri: serializer.fromJson<String>(json['sourceUri']),
-      thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
-      durationMs: serializer.fromJson<int>(json['durationMs']),
+      description: serializer.fromJson<String?>(json['description']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
       language: serializer.fromJson<String>(json['language']),
-      fileHash: serializer.fromJson<String>(json['fileHash']),
-      fileSize: serializer.fromJson<int>(json['fileSize']),
+      source: serializer.fromJson<String?>(json['source']),
+      localUri: serializer.fromJson<String?>(json['localUri']),
+      md5: serializer.fromJson<String?>(json['md5']),
+      size: serializer.fromJson<int?>(json['size']),
+      mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -392,60 +587,91 @@ class MediaRow extends DataClass implements Insertable<MediaRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'kind': serializer.toJson<String>(kind),
+      'vid': serializer.toJson<String>(vid),
+      'provider': serializer.toJson<String>(provider),
       'title': serializer.toJson<String>(title),
-      'sourceUri': serializer.toJson<String>(sourceUri),
-      'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
-      'durationMs': serializer.toJson<int>(durationMs),
+      'description': serializer.toJson<String?>(description),
+      'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
       'language': serializer.toJson<String>(language),
-      'fileHash': serializer.toJson<String>(fileHash),
-      'fileSize': serializer.toJson<int>(fileSize),
+      'source': serializer.toJson<String?>(source),
+      'localUri': serializer.toJson<String?>(localUri),
+      'md5': serializer.toJson<String?>(md5),
+      'size': serializer.toJson<int?>(size),
+      'mediaUrl': serializer.toJson<String?>(mediaUrl),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  MediaRow copyWith({
+  VideoRow copyWith({
     String? id,
-    String? kind,
+    String? vid,
+    String? provider,
     String? title,
-    String? sourceUri,
-    Value<String?> thumbnailPath = const Value.absent(),
-    int? durationMs,
+    Value<String?> description = const Value.absent(),
+    Value<String?> thumbnailUrl = const Value.absent(),
+    int? durationSeconds,
     String? language,
-    String? fileHash,
-    int? fileSize,
+    Value<String?> source = const Value.absent(),
+    Value<String?> localUri = const Value.absent(),
+    Value<String?> md5 = const Value.absent(),
+    Value<int?> size = const Value.absent(),
+    Value<String?> mediaUrl = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) => MediaRow(
+  }) => VideoRow(
     id: id ?? this.id,
-    kind: kind ?? this.kind,
+    vid: vid ?? this.vid,
+    provider: provider ?? this.provider,
     title: title ?? this.title,
-    sourceUri: sourceUri ?? this.sourceUri,
-    thumbnailPath:
-        thumbnailPath.present ? thumbnailPath.value : this.thumbnailPath,
-    durationMs: durationMs ?? this.durationMs,
+    description: description.present ? description.value : this.description,
+    thumbnailUrl: thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
     language: language ?? this.language,
-    fileHash: fileHash ?? this.fileHash,
-    fileSize: fileSize ?? this.fileSize,
+    source: source.present ? source.value : this.source,
+    localUri: localUri.present ? localUri.value : this.localUri,
+    md5: md5.present ? md5.value : this.md5,
+    size: size.present ? size.value : this.size,
+    mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  MediaRow copyWithCompanion(MediasCompanion data) {
-    return MediaRow(
+  VideoRow copyWithCompanion(VideosCompanion data) {
+    return VideoRow(
       id: data.id.present ? data.id.value : this.id,
-      kind: data.kind.present ? data.kind.value : this.kind,
+      vid: data.vid.present ? data.vid.value : this.vid,
+      provider: data.provider.present ? data.provider.value : this.provider,
       title: data.title.present ? data.title.value : this.title,
-      sourceUri: data.sourceUri.present ? data.sourceUri.value : this.sourceUri,
-      thumbnailPath:
-          data.thumbnailPath.present
-              ? data.thumbnailPath.value
-              : this.thumbnailPath,
-      durationMs:
-          data.durationMs.present ? data.durationMs.value : this.durationMs,
+      description:
+          data.description.present ? data.description.value : this.description,
+      thumbnailUrl:
+          data.thumbnailUrl.present
+              ? data.thumbnailUrl.value
+              : this.thumbnailUrl,
+      durationSeconds:
+          data.durationSeconds.present
+              ? data.durationSeconds.value
+              : this.durationSeconds,
       language: data.language.present ? data.language.value : this.language,
-      fileHash: data.fileHash.present ? data.fileHash.value : this.fileHash,
-      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+      source: data.source.present ? data.source.value : this.source,
+      localUri: data.localUri.present ? data.localUri.value : this.localUri,
+      md5: data.md5.present ? data.md5.value : this.md5,
+      size: data.size.present ? data.size.value : this.size,
+      mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -453,16 +679,22 @@ class MediaRow extends DataClass implements Insertable<MediaRow> {
 
   @override
   String toString() {
-    return (StringBuffer('MediaRow(')
+    return (StringBuffer('VideoRow(')
           ..write('id: $id, ')
-          ..write('kind: $kind, ')
+          ..write('vid: $vid, ')
+          ..write('provider: $provider, ')
           ..write('title: $title, ')
-          ..write('sourceUri: $sourceUri, ')
-          ..write('thumbnailPath: $thumbnailPath, ')
-          ..write('durationMs: $durationMs, ')
+          ..write('description: $description, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('language: $language, ')
-          ..write('fileHash: $fileHash, ')
-          ..write('fileSize: $fileSize, ')
+          ..write('source: $source, ')
+          ..write('localUri: $localUri, ')
+          ..write('md5: $md5, ')
+          ..write('size: $size, ')
+          ..write('mediaUrl: $mediaUrl, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -472,136 +704,187 @@ class MediaRow extends DataClass implements Insertable<MediaRow> {
   @override
   int get hashCode => Object.hash(
     id,
-    kind,
+    vid,
+    provider,
     title,
-    sourceUri,
-    thumbnailPath,
-    durationMs,
+    description,
+    thumbnailUrl,
+    durationSeconds,
     language,
-    fileHash,
-    fileSize,
+    source,
+    localUri,
+    md5,
+    size,
+    mediaUrl,
+    syncStatus,
+    serverUpdatedAt,
     createdAt,
     updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MediaRow &&
+      (other is VideoRow &&
           other.id == this.id &&
-          other.kind == this.kind &&
+          other.vid == this.vid &&
+          other.provider == this.provider &&
           other.title == this.title &&
-          other.sourceUri == this.sourceUri &&
-          other.thumbnailPath == this.thumbnailPath &&
-          other.durationMs == this.durationMs &&
+          other.description == this.description &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.durationSeconds == this.durationSeconds &&
           other.language == this.language &&
-          other.fileHash == this.fileHash &&
-          other.fileSize == this.fileSize &&
+          other.source == this.source &&
+          other.localUri == this.localUri &&
+          other.md5 == this.md5 &&
+          other.size == this.size &&
+          other.mediaUrl == this.mediaUrl &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
-class MediasCompanion extends UpdateCompanion<MediaRow> {
+class VideosCompanion extends UpdateCompanion<VideoRow> {
   final Value<String> id;
-  final Value<String> kind;
+  final Value<String> vid;
+  final Value<String> provider;
   final Value<String> title;
-  final Value<String> sourceUri;
-  final Value<String?> thumbnailPath;
-  final Value<int> durationMs;
+  final Value<String?> description;
+  final Value<String?> thumbnailUrl;
+  final Value<int> durationSeconds;
   final Value<String> language;
-  final Value<String> fileHash;
-  final Value<int> fileSize;
+  final Value<String?> source;
+  final Value<String?> localUri;
+  final Value<String?> md5;
+  final Value<int?> size;
+  final Value<String?> mediaUrl;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const MediasCompanion({
+  const VideosCompanion({
     this.id = const Value.absent(),
-    this.kind = const Value.absent(),
+    this.vid = const Value.absent(),
+    this.provider = const Value.absent(),
     this.title = const Value.absent(),
-    this.sourceUri = const Value.absent(),
-    this.thumbnailPath = const Value.absent(),
-    this.durationMs = const Value.absent(),
+    this.description = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.language = const Value.absent(),
-    this.fileHash = const Value.absent(),
-    this.fileSize = const Value.absent(),
+    this.source = const Value.absent(),
+    this.localUri = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.size = const Value.absent(),
+    this.mediaUrl = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  MediasCompanion.insert({
+  VideosCompanion.insert({
     required String id,
-    required String kind,
+    required String vid,
+    this.provider = const Value.absent(),
     required String title,
-    required String sourceUri,
-    this.thumbnailPath = const Value.absent(),
-    this.durationMs = const Value.absent(),
+    this.description = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.language = const Value.absent(),
-    required String fileHash,
-    required int fileSize,
+    this.source = const Value.absent(),
+    this.localUri = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.size = const Value.absent(),
+    this.mediaUrl = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       kind = Value(kind),
+       vid = Value(vid),
        title = Value(title),
-       sourceUri = Value(sourceUri),
-       fileHash = Value(fileHash),
-       fileSize = Value(fileSize),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
-  static Insertable<MediaRow> custom({
+  static Insertable<VideoRow> custom({
     Expression<String>? id,
-    Expression<String>? kind,
+    Expression<String>? vid,
+    Expression<String>? provider,
     Expression<String>? title,
-    Expression<String>? sourceUri,
-    Expression<String>? thumbnailPath,
-    Expression<int>? durationMs,
+    Expression<String>? description,
+    Expression<String>? thumbnailUrl,
+    Expression<int>? durationSeconds,
     Expression<String>? language,
-    Expression<String>? fileHash,
-    Expression<int>? fileSize,
+    Expression<String>? source,
+    Expression<String>? localUri,
+    Expression<String>? md5,
+    Expression<int>? size,
+    Expression<String>? mediaUrl,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (kind != null) 'kind': kind,
+      if (vid != null) 'vid': vid,
+      if (provider != null) 'provider': provider,
       if (title != null) 'title': title,
-      if (sourceUri != null) 'source_uri': sourceUri,
-      if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
-      if (durationMs != null) 'duration_ms': durationMs,
+      if (description != null) 'description': description,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (language != null) 'language': language,
-      if (fileHash != null) 'file_hash': fileHash,
-      if (fileSize != null) 'file_size': fileSize,
+      if (source != null) 'source': source,
+      if (localUri != null) 'local_uri': localUri,
+      if (md5 != null) 'md5': md5,
+      if (size != null) 'size': size,
+      if (mediaUrl != null) 'media_url': mediaUrl,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  MediasCompanion copyWith({
+  VideosCompanion copyWith({
     Value<String>? id,
-    Value<String>? kind,
+    Value<String>? vid,
+    Value<String>? provider,
     Value<String>? title,
-    Value<String>? sourceUri,
-    Value<String?>? thumbnailPath,
-    Value<int>? durationMs,
+    Value<String?>? description,
+    Value<String?>? thumbnailUrl,
+    Value<int>? durationSeconds,
     Value<String>? language,
-    Value<String>? fileHash,
-    Value<int>? fileSize,
+    Value<String?>? source,
+    Value<String?>? localUri,
+    Value<String?>? md5,
+    Value<int?>? size,
+    Value<String?>? mediaUrl,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
-    return MediasCompanion(
+    return VideosCompanion(
       id: id ?? this.id,
-      kind: kind ?? this.kind,
+      vid: vid ?? this.vid,
+      provider: provider ?? this.provider,
       title: title ?? this.title,
-      sourceUri: sourceUri ?? this.sourceUri,
-      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
-      durationMs: durationMs ?? this.durationMs,
+      description: description ?? this.description,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       language: language ?? this.language,
-      fileHash: fileHash ?? this.fileHash,
-      fileSize: fileSize ?? this.fileSize,
+      source: source ?? this.source,
+      localUri: localUri ?? this.localUri,
+      md5: md5 ?? this.md5,
+      size: size ?? this.size,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -614,29 +897,47 @@ class MediasCompanion extends UpdateCompanion<MediaRow> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (kind.present) {
-      map['kind'] = Variable<String>(kind.value);
+    if (vid.present) {
+      map['vid'] = Variable<String>(vid.value);
+    }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (sourceUri.present) {
-      map['source_uri'] = Variable<String>(sourceUri.value);
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
-    if (thumbnailPath.present) {
-      map['thumbnail_path'] = Variable<String>(thumbnailPath.value);
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
     }
-    if (durationMs.present) {
-      map['duration_ms'] = Variable<int>(durationMs.value);
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
     }
     if (language.present) {
       map['language'] = Variable<String>(language.value);
     }
-    if (fileHash.present) {
-      map['file_hash'] = Variable<String>(fileHash.value);
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
     }
-    if (fileSize.present) {
-      map['file_size'] = Variable<int>(fileSize.value);
+    if (localUri.present) {
+      map['local_uri'] = Variable<String>(localUri.value);
+    }
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (mediaUrl.present) {
+      map['media_url'] = Variable<String>(mediaUrl.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -652,16 +953,1146 @@ class MediasCompanion extends UpdateCompanion<MediaRow> {
 
   @override
   String toString() {
-    return (StringBuffer('MediasCompanion(')
+    return (StringBuffer('VideosCompanion(')
           ..write('id: $id, ')
-          ..write('kind: $kind, ')
+          ..write('vid: $vid, ')
+          ..write('provider: $provider, ')
           ..write('title: $title, ')
-          ..write('sourceUri: $sourceUri, ')
-          ..write('thumbnailPath: $thumbnailPath, ')
-          ..write('durationMs: $durationMs, ')
+          ..write('description: $description, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('language: $language, ')
-          ..write('fileHash: $fileHash, ')
-          ..write('fileSize: $fileSize, ')
+          ..write('source: $source, ')
+          ..write('localUri: $localUri, ')
+          ..write('md5: $md5, ')
+          ..write('size: $size, ')
+          ..write('mediaUrl: $mediaUrl, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AudiosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _aidMeta = const VerificationMeta('aid');
+  @override
+  late final GeneratedColumn<String> aid = GeneratedColumn<String>(
+    'aid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerMeta = const VerificationMeta(
+    'provider',
+  );
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+    'provider',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('user'),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _thumbnailUrlMeta = const VerificationMeta(
+    'thumbnailUrl',
+  );
+  @override
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+    'thumbnail_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('und'),
+  );
+  static const VerificationMeta _translationKeyMeta = const VerificationMeta(
+    'translationKey',
+  );
+  @override
+  late final GeneratedColumn<String> translationKey = GeneratedColumn<String>(
+    'translation_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceTextMeta = const VerificationMeta(
+    'sourceText',
+  );
+  @override
+  late final GeneratedColumn<String> sourceText = GeneratedColumn<String>(
+    'source_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _voiceMeta = const VerificationMeta('voice');
+  @override
+  late final GeneratedColumn<String> voice = GeneratedColumn<String>(
+    'voice',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localUriMeta = const VerificationMeta(
+    'localUri',
+  );
+  @override
+  late final GeneratedColumn<String> localUri = GeneratedColumn<String>(
+    'local_uri',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
+  @override
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaUrlMeta = const VerificationMeta(
+    'mediaUrl',
+  );
+  @override
+  late final GeneratedColumn<String> mediaUrl = GeneratedColumn<String>(
+    'media_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    aid,
+    provider,
+    title,
+    description,
+    thumbnailUrl,
+    durationSeconds,
+    language,
+    translationKey,
+    sourceText,
+    voice,
+    source,
+    localUri,
+    md5,
+    size,
+    mediaUrl,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'audios';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AudioRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('aid')) {
+      context.handle(
+        _aidMeta,
+        aid.isAcceptableOrUnknown(data['aid']!, _aidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_aidMeta);
+    }
+    if (data.containsKey('provider')) {
+      context.handle(
+        _providerMeta,
+        provider.isAcceptableOrUnknown(data['provider']!, _providerMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('thumbnail_url')) {
+      context.handle(
+        _thumbnailUrlMeta,
+        thumbnailUrl.isAcceptableOrUnknown(
+          data['thumbnail_url']!,
+          _thumbnailUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
+    if (data.containsKey('translation_key')) {
+      context.handle(
+        _translationKeyMeta,
+        translationKey.isAcceptableOrUnknown(
+          data['translation_key']!,
+          _translationKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_text')) {
+      context.handle(
+        _sourceTextMeta,
+        sourceText.isAcceptableOrUnknown(data['source_text']!, _sourceTextMeta),
+      );
+    }
+    if (data.containsKey('voice')) {
+      context.handle(
+        _voiceMeta,
+        voice.isAcceptableOrUnknown(data['voice']!, _voiceMeta),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('local_uri')) {
+      context.handle(
+        _localUriMeta,
+        localUri.isAcceptableOrUnknown(data['local_uri']!, _localUriMeta),
+      );
+    }
+    if (data.containsKey('md5')) {
+      context.handle(
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
+      );
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    }
+    if (data.containsKey('media_url')) {
+      context.handle(
+        _mediaUrlMeta,
+        mediaUrl.isAcceptableOrUnknown(data['media_url']!, _mediaUrlMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AudioRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AudioRow(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      aid:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}aid'],
+          )!,
+      provider:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}provider'],
+          )!,
+      title:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}title'],
+          )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      thumbnailUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}thumbnail_url'],
+      ),
+      durationSeconds:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}duration_seconds'],
+          )!,
+      language:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}language'],
+          )!,
+      translationKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}translation_key'],
+      ),
+      sourceText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_text'],
+      ),
+      voice: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voice'],
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      ),
+      localUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_uri'],
+      ),
+      md5: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}md5'],
+      ),
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      ),
+      mediaUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_url'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+    );
+  }
+
+  @override
+  $AudiosTable createAlias(String alias) {
+    return $AudiosTable(attachedDatabase, alias);
+  }
+}
+
+class AudioRow extends DataClass implements Insertable<AudioRow> {
+  final String id;
+  final String aid;
+  final String provider;
+  final String title;
+  final String? description;
+  final String? thumbnailUrl;
+  final int durationSeconds;
+  final String language;
+  final String? translationKey;
+  final String? sourceText;
+  final String? voice;
+  final String? source;
+  final String? localUri;
+  final String? md5;
+  final int? size;
+  final String? mediaUrl;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AudioRow({
+    required this.id,
+    required this.aid,
+    required this.provider,
+    required this.title,
+    this.description,
+    this.thumbnailUrl,
+    required this.durationSeconds,
+    required this.language,
+    this.translationKey,
+    this.sourceText,
+    this.voice,
+    this.source,
+    this.localUri,
+    this.md5,
+    this.size,
+    this.mediaUrl,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['aid'] = Variable<String>(aid);
+    map['provider'] = Variable<String>(provider);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    map['language'] = Variable<String>(language);
+    if (!nullToAbsent || translationKey != null) {
+      map['translation_key'] = Variable<String>(translationKey);
+    }
+    if (!nullToAbsent || sourceText != null) {
+      map['source_text'] = Variable<String>(sourceText);
+    }
+    if (!nullToAbsent || voice != null) {
+      map['voice'] = Variable<String>(voice);
+    }
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    if (!nullToAbsent || localUri != null) {
+      map['local_uri'] = Variable<String>(localUri);
+    }
+    if (!nullToAbsent || md5 != null) {
+      map['md5'] = Variable<String>(md5);
+    }
+    if (!nullToAbsent || size != null) {
+      map['size'] = Variable<int>(size);
+    }
+    if (!nullToAbsent || mediaUrl != null) {
+      map['media_url'] = Variable<String>(mediaUrl);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AudiosCompanion toCompanion(bool nullToAbsent) {
+    return AudiosCompanion(
+      id: Value(id),
+      aid: Value(aid),
+      provider: Value(provider),
+      title: Value(title),
+      description:
+          description == null && nullToAbsent
+              ? const Value.absent()
+              : Value(description),
+      thumbnailUrl:
+          thumbnailUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(thumbnailUrl),
+      durationSeconds: Value(durationSeconds),
+      language: Value(language),
+      translationKey:
+          translationKey == null && nullToAbsent
+              ? const Value.absent()
+              : Value(translationKey),
+      sourceText:
+          sourceText == null && nullToAbsent
+              ? const Value.absent()
+              : Value(sourceText),
+      voice:
+          voice == null && nullToAbsent ? const Value.absent() : Value(voice),
+      source:
+          source == null && nullToAbsent ? const Value.absent() : Value(source),
+      localUri:
+          localUri == null && nullToAbsent
+              ? const Value.absent()
+              : Value(localUri),
+      md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
+      size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      mediaUrl:
+          mediaUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(mediaUrl),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AudioRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AudioRow(
+      id: serializer.fromJson<String>(json['id']),
+      aid: serializer.fromJson<String>(json['aid']),
+      provider: serializer.fromJson<String>(json['provider']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      language: serializer.fromJson<String>(json['language']),
+      translationKey: serializer.fromJson<String?>(json['translationKey']),
+      sourceText: serializer.fromJson<String?>(json['sourceText']),
+      voice: serializer.fromJson<String?>(json['voice']),
+      source: serializer.fromJson<String?>(json['source']),
+      localUri: serializer.fromJson<String?>(json['localUri']),
+      md5: serializer.fromJson<String?>(json['md5']),
+      size: serializer.fromJson<int?>(json['size']),
+      mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'aid': serializer.toJson<String>(aid),
+      'provider': serializer.toJson<String>(provider),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
+      'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'language': serializer.toJson<String>(language),
+      'translationKey': serializer.toJson<String?>(translationKey),
+      'sourceText': serializer.toJson<String?>(sourceText),
+      'voice': serializer.toJson<String?>(voice),
+      'source': serializer.toJson<String?>(source),
+      'localUri': serializer.toJson<String?>(localUri),
+      'md5': serializer.toJson<String?>(md5),
+      'size': serializer.toJson<int?>(size),
+      'mediaUrl': serializer.toJson<String?>(mediaUrl),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AudioRow copyWith({
+    String? id,
+    String? aid,
+    String? provider,
+    String? title,
+    Value<String?> description = const Value.absent(),
+    Value<String?> thumbnailUrl = const Value.absent(),
+    int? durationSeconds,
+    String? language,
+    Value<String?> translationKey = const Value.absent(),
+    Value<String?> sourceText = const Value.absent(),
+    Value<String?> voice = const Value.absent(),
+    Value<String?> source = const Value.absent(),
+    Value<String?> localUri = const Value.absent(),
+    Value<String?> md5 = const Value.absent(),
+    Value<int?> size = const Value.absent(),
+    Value<String?> mediaUrl = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => AudioRow(
+    id: id ?? this.id,
+    aid: aid ?? this.aid,
+    provider: provider ?? this.provider,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
+    thumbnailUrl: thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    language: language ?? this.language,
+    translationKey:
+        translationKey.present ? translationKey.value : this.translationKey,
+    sourceText: sourceText.present ? sourceText.value : this.sourceText,
+    voice: voice.present ? voice.value : this.voice,
+    source: source.present ? source.value : this.source,
+    localUri: localUri.present ? localUri.value : this.localUri,
+    md5: md5.present ? md5.value : this.md5,
+    size: size.present ? size.value : this.size,
+    mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AudioRow copyWithCompanion(AudiosCompanion data) {
+    return AudioRow(
+      id: data.id.present ? data.id.value : this.id,
+      aid: data.aid.present ? data.aid.value : this.aid,
+      provider: data.provider.present ? data.provider.value : this.provider,
+      title: data.title.present ? data.title.value : this.title,
+      description:
+          data.description.present ? data.description.value : this.description,
+      thumbnailUrl:
+          data.thumbnailUrl.present
+              ? data.thumbnailUrl.value
+              : this.thumbnailUrl,
+      durationSeconds:
+          data.durationSeconds.present
+              ? data.durationSeconds.value
+              : this.durationSeconds,
+      language: data.language.present ? data.language.value : this.language,
+      translationKey:
+          data.translationKey.present
+              ? data.translationKey.value
+              : this.translationKey,
+      sourceText:
+          data.sourceText.present ? data.sourceText.value : this.sourceText,
+      voice: data.voice.present ? data.voice.value : this.voice,
+      source: data.source.present ? data.source.value : this.source,
+      localUri: data.localUri.present ? data.localUri.value : this.localUri,
+      md5: data.md5.present ? data.md5.value : this.md5,
+      size: data.size.present ? data.size.value : this.size,
+      mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AudioRow(')
+          ..write('id: $id, ')
+          ..write('aid: $aid, ')
+          ..write('provider: $provider, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('language: $language, ')
+          ..write('translationKey: $translationKey, ')
+          ..write('sourceText: $sourceText, ')
+          ..write('voice: $voice, ')
+          ..write('source: $source, ')
+          ..write('localUri: $localUri, ')
+          ..write('md5: $md5, ')
+          ..write('size: $size, ')
+          ..write('mediaUrl: $mediaUrl, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    aid,
+    provider,
+    title,
+    description,
+    thumbnailUrl,
+    durationSeconds,
+    language,
+    translationKey,
+    sourceText,
+    voice,
+    source,
+    localUri,
+    md5,
+    size,
+    mediaUrl,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AudioRow &&
+          other.id == this.id &&
+          other.aid == this.aid &&
+          other.provider == this.provider &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.durationSeconds == this.durationSeconds &&
+          other.language == this.language &&
+          other.translationKey == this.translationKey &&
+          other.sourceText == this.sourceText &&
+          other.voice == this.voice &&
+          other.source == this.source &&
+          other.localUri == this.localUri &&
+          other.md5 == this.md5 &&
+          other.size == this.size &&
+          other.mediaUrl == this.mediaUrl &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AudiosCompanion extends UpdateCompanion<AudioRow> {
+  final Value<String> id;
+  final Value<String> aid;
+  final Value<String> provider;
+  final Value<String> title;
+  final Value<String?> description;
+  final Value<String?> thumbnailUrl;
+  final Value<int> durationSeconds;
+  final Value<String> language;
+  final Value<String?> translationKey;
+  final Value<String?> sourceText;
+  final Value<String?> voice;
+  final Value<String?> source;
+  final Value<String?> localUri;
+  final Value<String?> md5;
+  final Value<int?> size;
+  final Value<String?> mediaUrl;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const AudiosCompanion({
+    this.id = const Value.absent(),
+    this.aid = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.language = const Value.absent(),
+    this.translationKey = const Value.absent(),
+    this.sourceText = const Value.absent(),
+    this.voice = const Value.absent(),
+    this.source = const Value.absent(),
+    this.localUri = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.size = const Value.absent(),
+    this.mediaUrl = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AudiosCompanion.insert({
+    required String id,
+    required String aid,
+    this.provider = const Value.absent(),
+    required String title,
+    this.description = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.language = const Value.absent(),
+    this.translationKey = const Value.absent(),
+    this.sourceText = const Value.absent(),
+    this.voice = const Value.absent(),
+    this.source = const Value.absent(),
+    this.localUri = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.size = const Value.absent(),
+    this.mediaUrl = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       aid = Value(aid),
+       title = Value(title),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AudioRow> custom({
+    Expression<String>? id,
+    Expression<String>? aid,
+    Expression<String>? provider,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? thumbnailUrl,
+    Expression<int>? durationSeconds,
+    Expression<String>? language,
+    Expression<String>? translationKey,
+    Expression<String>? sourceText,
+    Expression<String>? voice,
+    Expression<String>? source,
+    Expression<String>? localUri,
+    Expression<String>? md5,
+    Expression<int>? size,
+    Expression<String>? mediaUrl,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (aid != null) 'aid': aid,
+      if (provider != null) 'provider': provider,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (language != null) 'language': language,
+      if (translationKey != null) 'translation_key': translationKey,
+      if (sourceText != null) 'source_text': sourceText,
+      if (voice != null) 'voice': voice,
+      if (source != null) 'source': source,
+      if (localUri != null) 'local_uri': localUri,
+      if (md5 != null) 'md5': md5,
+      if (size != null) 'size': size,
+      if (mediaUrl != null) 'media_url': mediaUrl,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AudiosCompanion copyWith({
+    Value<String>? id,
+    Value<String>? aid,
+    Value<String>? provider,
+    Value<String>? title,
+    Value<String?>? description,
+    Value<String?>? thumbnailUrl,
+    Value<int>? durationSeconds,
+    Value<String>? language,
+    Value<String?>? translationKey,
+    Value<String?>? sourceText,
+    Value<String?>? voice,
+    Value<String?>? source,
+    Value<String?>? localUri,
+    Value<String?>? md5,
+    Value<int?>? size,
+    Value<String?>? mediaUrl,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AudiosCompanion(
+      id: id ?? this.id,
+      aid: aid ?? this.aid,
+      provider: provider ?? this.provider,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      language: language ?? this.language,
+      translationKey: translationKey ?? this.translationKey,
+      sourceText: sourceText ?? this.sourceText,
+      voice: voice ?? this.voice,
+      source: source ?? this.source,
+      localUri: localUri ?? this.localUri,
+      md5: md5 ?? this.md5,
+      size: size ?? this.size,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (aid.present) {
+      map['aid'] = Variable<String>(aid.value);
+    }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (translationKey.present) {
+      map['translation_key'] = Variable<String>(translationKey.value);
+    }
+    if (sourceText.present) {
+      map['source_text'] = Variable<String>(sourceText.value);
+    }
+    if (voice.present) {
+      map['voice'] = Variable<String>(voice.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (localUri.present) {
+      map['local_uri'] = Variable<String>(localUri.value);
+    }
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (mediaUrl.present) {
+      map['media_url'] = Variable<String>(mediaUrl.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AudiosCompanion(')
+          ..write('id: $id, ')
+          ..write('aid: $aid, ')
+          ..write('provider: $provider, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('language: $language, ')
+          ..write('translationKey: $translationKey, ')
+          ..write('sourceText: $sourceText, ')
+          ..write('voice: $voice, ')
+          ..write('source: $source, ')
+          ..write('localUri: $localUri, ')
+          ..write('md5: $md5, ')
+          ..write('size: $size, ')
+          ..write('mediaUrl: $mediaUrl, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -685,19 +2116,27 @@ class $TranscriptsTable extends Transcripts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _mediaIdMeta = const VerificationMeta(
-    'mediaId',
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
   );
   @override
-  late final GeneratedColumn<String> mediaId = GeneratedColumn<String>(
-    'media_id',
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES media (id) ON DELETE CASCADE',
-    ),
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _languageMeta = const VerificationMeta(
     'language',
@@ -719,16 +2158,27 @@ class $TranscriptsTable extends Transcripts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _linesJsonMeta = const VerificationMeta(
-    'linesJson',
+  static const VerificationMeta _timelineJsonMeta = const VerificationMeta(
+    'timelineJson',
   );
   @override
-  late final GeneratedColumn<String> linesJson = GeneratedColumn<String>(
-    'lines_json',
+  late final GeneratedColumn<String> timelineJson = GeneratedColumn<String>(
+    'timeline_json',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceIdMeta = const VerificationMeta(
+    'referenceId',
+  );
+  @override
+  late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
+    'reference_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _labelMeta = const VerificationMeta('label');
   @override
@@ -766,6 +2216,29 @@ class $TranscriptsTable extends Transcripts
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -791,13 +2264,17 @@ class $TranscriptsTable extends Transcripts
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    mediaId,
+    targetType,
+    targetId,
     language,
     source,
-    linesJson,
+    timelineJson,
+    referenceId,
     label,
     trackIndex,
     isEmbedded,
+    syncStatus,
+    serverUpdatedAt,
     createdAt,
     updatedAt,
   ];
@@ -818,13 +2295,21 @@ class $TranscriptsTable extends Transcripts
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('media_id')) {
+    if (data.containsKey('target_type')) {
       context.handle(
-        _mediaIdMeta,
-        mediaId.isAcceptableOrUnknown(data['media_id']!, _mediaIdMeta),
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
       );
     } else if (isInserting) {
-      context.missing(_mediaIdMeta);
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
     }
     if (data.containsKey('language')) {
       context.handle(
@@ -842,13 +2327,25 @@ class $TranscriptsTable extends Transcripts
     } else if (isInserting) {
       context.missing(_sourceMeta);
     }
-    if (data.containsKey('lines_json')) {
+    if (data.containsKey('timeline_json')) {
       context.handle(
-        _linesJsonMeta,
-        linesJson.isAcceptableOrUnknown(data['lines_json']!, _linesJsonMeta),
+        _timelineJsonMeta,
+        timelineJson.isAcceptableOrUnknown(
+          data['timeline_json']!,
+          _timelineJsonMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_linesJsonMeta);
+      context.missing(_timelineJsonMeta);
+    }
+    if (data.containsKey('reference_id')) {
+      context.handle(
+        _referenceIdMeta,
+        referenceId.isAcceptableOrUnknown(
+          data['reference_id']!,
+          _referenceIdMeta,
+        ),
+      );
     }
     if (data.containsKey('label')) {
       context.handle(
@@ -866,6 +2363,21 @@ class $TranscriptsTable extends Transcripts
       context.handle(
         _isEmbeddedMeta,
         isEmbedded.isAcceptableOrUnknown(data['is_embedded']!, _isEmbeddedMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -898,10 +2410,15 @@ class $TranscriptsTable extends Transcripts
             DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
-      mediaId:
+      targetType:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}media_id'],
+            data['${effectivePrefix}target_type'],
+          )!,
+      targetId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_id'],
           )!,
       language:
           attachedDatabase.typeMapping.read(
@@ -913,11 +2430,15 @@ class $TranscriptsTable extends Transcripts
             DriftSqlType.string,
             data['${effectivePrefix}source'],
           )!,
-      linesJson:
+      timelineJson:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}lines_json'],
+            data['${effectivePrefix}timeline_json'],
           )!,
+      referenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference_id'],
+      ),
       label:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
@@ -932,6 +2453,14 @@ class $TranscriptsTable extends Transcripts
             DriftSqlType.bool,
             data['${effectivePrefix}is_embedded'],
           )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -953,30 +2482,38 @@ class $TranscriptsTable extends Transcripts
 
 class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   final String id;
-  final String mediaId;
+
+  /// Weapp `TargetType`: `Video` | `Audio` | `Example` | `Ebook`.
+  final String targetType;
+  final String targetId;
   final String language;
+
+  /// Weapp `TranscriptSource`: `official` | `auto` | `ai` | `user`.
   final String source;
-  final String linesJson;
 
-  /// Human-readable label shown in the track picker (filename, stream title, etc.).
+  /// JSON array of `TranscriptLine` (ms-based), same shape as weapp `timeline`.
+  final String timelineJson;
+  final String? referenceId;
   final String label;
-
-  /// For embedded tracks: the 0-based index in the container's subtitle stream list.
   final int? trackIndex;
-
-  /// 1 if extracted from the media file itself, 0 if user-imported an external file.
   final bool isEmbedded;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   const TranscriptRow({
     required this.id,
-    required this.mediaId,
+    required this.targetType,
+    required this.targetId,
     required this.language,
     required this.source,
-    required this.linesJson,
+    required this.timelineJson,
+    this.referenceId,
     required this.label,
     this.trackIndex,
     required this.isEmbedded,
+    this.syncStatus,
+    this.serverUpdatedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -984,15 +2521,25 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['media_id'] = Variable<String>(mediaId);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
     map['language'] = Variable<String>(language);
     map['source'] = Variable<String>(source);
-    map['lines_json'] = Variable<String>(linesJson);
+    map['timeline_json'] = Variable<String>(timelineJson);
+    if (!nullToAbsent || referenceId != null) {
+      map['reference_id'] = Variable<String>(referenceId);
+    }
     map['label'] = Variable<String>(label);
     if (!nullToAbsent || trackIndex != null) {
       map['track_index'] = Variable<int>(trackIndex);
     }
     map['is_embedded'] = Variable<bool>(isEmbedded);
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1001,16 +2548,29 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   TranscriptsCompanion toCompanion(bool nullToAbsent) {
     return TranscriptsCompanion(
       id: Value(id),
-      mediaId: Value(mediaId),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
       language: Value(language),
       source: Value(source),
-      linesJson: Value(linesJson),
+      timelineJson: Value(timelineJson),
+      referenceId:
+          referenceId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(referenceId),
       label: Value(label),
       trackIndex:
           trackIndex == null && nullToAbsent
               ? const Value.absent()
               : Value(trackIndex),
       isEmbedded: Value(isEmbedded),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1023,13 +2583,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TranscriptRow(
       id: serializer.fromJson<String>(json['id']),
-      mediaId: serializer.fromJson<String>(json['mediaId']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
       language: serializer.fromJson<String>(json['language']),
       source: serializer.fromJson<String>(json['source']),
-      linesJson: serializer.fromJson<String>(json['linesJson']),
+      timelineJson: serializer.fromJson<String>(json['timelineJson']),
+      referenceId: serializer.fromJson<String?>(json['referenceId']),
       label: serializer.fromJson<String>(json['label']),
       trackIndex: serializer.fromJson<int?>(json['trackIndex']),
       isEmbedded: serializer.fromJson<bool>(json['isEmbedded']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1039,13 +2603,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'mediaId': serializer.toJson<String>(mediaId),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
       'language': serializer.toJson<String>(language),
       'source': serializer.toJson<String>(source),
-      'linesJson': serializer.toJson<String>(linesJson),
+      'timelineJson': serializer.toJson<String>(timelineJson),
+      'referenceId': serializer.toJson<String?>(referenceId),
       'label': serializer.toJson<String>(label),
       'trackIndex': serializer.toJson<int?>(trackIndex),
       'isEmbedded': serializer.toJson<bool>(isEmbedded),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1053,39 +2621,61 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
 
   TranscriptRow copyWith({
     String? id,
-    String? mediaId,
+    String? targetType,
+    String? targetId,
     String? language,
     String? source,
-    String? linesJson,
+    String? timelineJson,
+    Value<String?> referenceId = const Value.absent(),
     String? label,
     Value<int?> trackIndex = const Value.absent(),
     bool? isEmbedded,
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => TranscriptRow(
     id: id ?? this.id,
-    mediaId: mediaId ?? this.mediaId,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
     language: language ?? this.language,
     source: source ?? this.source,
-    linesJson: linesJson ?? this.linesJson,
+    timelineJson: timelineJson ?? this.timelineJson,
+    referenceId: referenceId.present ? referenceId.value : this.referenceId,
     label: label ?? this.label,
     trackIndex: trackIndex.present ? trackIndex.value : this.trackIndex,
     isEmbedded: isEmbedded ?? this.isEmbedded,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   TranscriptRow copyWithCompanion(TranscriptsCompanion data) {
     return TranscriptRow(
       id: data.id.present ? data.id.value : this.id,
-      mediaId: data.mediaId.present ? data.mediaId.value : this.mediaId,
+      targetType:
+          data.targetType.present ? data.targetType.value : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
       language: data.language.present ? data.language.value : this.language,
       source: data.source.present ? data.source.value : this.source,
-      linesJson: data.linesJson.present ? data.linesJson.value : this.linesJson,
+      timelineJson:
+          data.timelineJson.present
+              ? data.timelineJson.value
+              : this.timelineJson,
+      referenceId:
+          data.referenceId.present ? data.referenceId.value : this.referenceId,
       label: data.label.present ? data.label.value : this.label,
       trackIndex:
           data.trackIndex.present ? data.trackIndex.value : this.trackIndex,
       isEmbedded:
           data.isEmbedded.present ? data.isEmbedded.value : this.isEmbedded,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1095,13 +2685,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   String toString() {
     return (StringBuffer('TranscriptRow(')
           ..write('id: $id, ')
-          ..write('mediaId: $mediaId, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
           ..write('language: $language, ')
           ..write('source: $source, ')
-          ..write('linesJson: $linesJson, ')
+          ..write('timelineJson: $timelineJson, ')
+          ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
           ..write('trackIndex: $trackIndex, ')
           ..write('isEmbedded: $isEmbedded, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1111,13 +2705,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   @override
   int get hashCode => Object.hash(
     id,
-    mediaId,
+    targetType,
+    targetId,
     language,
     source,
-    linesJson,
+    timelineJson,
+    referenceId,
     label,
     trackIndex,
     isEmbedded,
+    syncStatus,
+    serverUpdatedAt,
     createdAt,
     updatedAt,
   );
@@ -1126,83 +2724,108 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       identical(this, other) ||
       (other is TranscriptRow &&
           other.id == this.id &&
-          other.mediaId == this.mediaId &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
           other.language == this.language &&
           other.source == this.source &&
-          other.linesJson == this.linesJson &&
+          other.timelineJson == this.timelineJson &&
+          other.referenceId == this.referenceId &&
           other.label == this.label &&
           other.trackIndex == this.trackIndex &&
           other.isEmbedded == this.isEmbedded &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
 class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   final Value<String> id;
-  final Value<String> mediaId;
+  final Value<String> targetType;
+  final Value<String> targetId;
   final Value<String> language;
   final Value<String> source;
-  final Value<String> linesJson;
+  final Value<String> timelineJson;
+  final Value<String?> referenceId;
   final Value<String> label;
   final Value<int?> trackIndex;
   final Value<bool> isEmbedded;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const TranscriptsCompanion({
     this.id = const Value.absent(),
-    this.mediaId = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
     this.language = const Value.absent(),
     this.source = const Value.absent(),
-    this.linesJson = const Value.absent(),
+    this.timelineJson = const Value.absent(),
+    this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
     this.isEmbedded = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TranscriptsCompanion.insert({
     required String id,
-    required String mediaId,
+    required String targetType,
+    required String targetId,
     required String language,
     required String source,
-    required String linesJson,
+    required String timelineJson,
+    this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
     this.isEmbedded = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       mediaId = Value(mediaId),
+       targetType = Value(targetType),
+       targetId = Value(targetId),
        language = Value(language),
        source = Value(source),
-       linesJson = Value(linesJson),
+       timelineJson = Value(timelineJson),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<TranscriptRow> custom({
     Expression<String>? id,
-    Expression<String>? mediaId,
+    Expression<String>? targetType,
+    Expression<String>? targetId,
     Expression<String>? language,
     Expression<String>? source,
-    Expression<String>? linesJson,
+    Expression<String>? timelineJson,
+    Expression<String>? referenceId,
     Expression<String>? label,
     Expression<int>? trackIndex,
     Expression<bool>? isEmbedded,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (mediaId != null) 'media_id': mediaId,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
       if (language != null) 'language': language,
       if (source != null) 'source': source,
-      if (linesJson != null) 'lines_json': linesJson,
+      if (timelineJson != null) 'timeline_json': timelineJson,
+      if (referenceId != null) 'reference_id': referenceId,
       if (label != null) 'label': label,
       if (trackIndex != null) 'track_index': trackIndex,
       if (isEmbedded != null) 'is_embedded': isEmbedded,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1211,26 +2834,34 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
 
   TranscriptsCompanion copyWith({
     Value<String>? id,
-    Value<String>? mediaId,
+    Value<String>? targetType,
+    Value<String>? targetId,
     Value<String>? language,
     Value<String>? source,
-    Value<String>? linesJson,
+    Value<String>? timelineJson,
+    Value<String?>? referenceId,
     Value<String>? label,
     Value<int?>? trackIndex,
     Value<bool>? isEmbedded,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return TranscriptsCompanion(
       id: id ?? this.id,
-      mediaId: mediaId ?? this.mediaId,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
       language: language ?? this.language,
       source: source ?? this.source,
-      linesJson: linesJson ?? this.linesJson,
+      timelineJson: timelineJson ?? this.timelineJson,
+      referenceId: referenceId ?? this.referenceId,
       label: label ?? this.label,
       trackIndex: trackIndex ?? this.trackIndex,
       isEmbedded: isEmbedded ?? this.isEmbedded,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1243,8 +2874,11 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (mediaId.present) {
-      map['media_id'] = Variable<String>(mediaId.value);
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
     }
     if (language.present) {
       map['language'] = Variable<String>(language.value);
@@ -1252,8 +2886,11 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     if (source.present) {
       map['source'] = Variable<String>(source.value);
     }
-    if (linesJson.present) {
-      map['lines_json'] = Variable<String>(linesJson.value);
+    if (timelineJson.present) {
+      map['timeline_json'] = Variable<String>(timelineJson.value);
+    }
+    if (referenceId.present) {
+      map['reference_id'] = Variable<String>(referenceId.value);
     }
     if (label.present) {
       map['label'] = Variable<String>(label.value);
@@ -1263,6 +2900,12 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     }
     if (isEmbedded.present) {
       map['is_embedded'] = Variable<bool>(isEmbedded.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1280,13 +2923,17 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   String toString() {
     return (StringBuffer('TranscriptsCompanion(')
           ..write('id: $id, ')
-          ..write('mediaId: $mediaId, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
           ..write('language: $language, ')
           ..write('source: $source, ')
-          ..write('linesJson: $linesJson, ')
+          ..write('timelineJson: $timelineJson, ')
+          ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
           ..write('trackIndex: $trackIndex, ')
           ..write('isEmbedded: $isEmbedded, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1295,38 +2942,168 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   }
 }
 
-class $PlaybackSessionsTable extends PlaybackSessions
-    with TableInfo<$PlaybackSessionsTable, PlaybackSessionRow> {
+class $EchoSessionsTable extends EchoSessions
+    with TableInfo<$EchoSessionsTable, EchoSessionRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $PlaybackSessionsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _mediaIdMeta = const VerificationMeta(
-    'mediaId',
-  );
+  $EchoSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<String> mediaId = GeneratedColumn<String>(
-    'media_id',
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES media (id) ON DELETE CASCADE',
-    ),
   );
-  static const VerificationMeta _positionMsMeta = const VerificationMeta(
-    'positionMs',
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
   );
   @override
-  late final GeneratedColumn<int> positionMs = GeneratedColumn<int>(
-    'position_ms',
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('und'),
+  );
+  static const VerificationMeta _currentTimeMsMeta = const VerificationMeta(
+    'currentTimeMs',
+  );
+  @override
+  late final GeneratedColumn<int> currentTimeMs = GeneratedColumn<int>(
+    'current_time_ms',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _playbackRateMeta = const VerificationMeta(
+    'playbackRate',
+  );
+  @override
+  late final GeneratedColumn<double> playbackRate = GeneratedColumn<double>(
+    'playback_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  static const VerificationMeta _volumeMeta = const VerificationMeta('volume');
+  @override
+  late final GeneratedColumn<double> volume = GeneratedColumn<double>(
+    'volume',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  static const VerificationMeta _echoStartMsMeta = const VerificationMeta(
+    'echoStartMs',
+  );
+  @override
+  late final GeneratedColumn<int> echoStartMs = GeneratedColumn<int>(
+    'echo_start_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _echoEndMsMeta = const VerificationMeta(
+    'echoEndMs',
+  );
+  @override
+  late final GeneratedColumn<int> echoEndMs = GeneratedColumn<int>(
+    'echo_end_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _transcriptIdMeta = const VerificationMeta(
+    'transcriptId',
+  );
+  @override
+  late final GeneratedColumn<String> transcriptId = GeneratedColumn<String>(
+    'transcript_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _secondaryTranscriptIdMeta =
+      const VerificationMeta('secondaryTranscriptId');
+  @override
+  late final GeneratedColumn<String> secondaryTranscriptId =
+      GeneratedColumn<String>(
+        'secondary_transcript_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _recordingsCountMeta = const VerificationMeta(
+    'recordingsCount',
+  );
+  @override
+  late final GeneratedColumn<int> recordingsCount = GeneratedColumn<int>(
+    'recordings_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _recordingsDurationMsMeta =
+      const VerificationMeta('recordingsDurationMs');
+  @override
+  late final GeneratedColumn<int> recordingsDurationMs = GeneratedColumn<int>(
+    'recordings_duration_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastRecordingAtMeta = const VerificationMeta(
+    'lastRecordingAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastRecordingAt =
+      GeneratedColumn<DateTime>(
+        'last_recording_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _currentSegmentIndexMeta =
       const VerificationMeta('currentSegmentIndex');
   @override
@@ -1377,52 +3154,17 @@ class $PlaybackSessionsTable extends PlaybackSessions
     requiredDuringInsert: false,
     defaultValue: const Constant(-1),
   );
-  static const VerificationMeta _echoStartMsMeta = const VerificationMeta(
-    'echoStartMs',
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
   );
   @override
-  late final GeneratedColumn<int> echoStartMs = GeneratedColumn<int>(
-    'echo_start_ms',
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
     aliasedName,
     false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(-1),
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
   );
-  static const VerificationMeta _echoEndMsMeta = const VerificationMeta(
-    'echoEndMs',
-  );
-  @override
-  late final GeneratedColumn<int> echoEndMs = GeneratedColumn<int>(
-    'echo_end_ms',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(-1),
-  );
-  static const VerificationMeta _primaryTranscriptIdMeta =
-      const VerificationMeta('primaryTranscriptId');
-  @override
-  late final GeneratedColumn<String> primaryTranscriptId =
-      GeneratedColumn<String>(
-        'primary_transcript_id',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _secondaryTranscriptIdMeta =
-      const VerificationMeta('secondaryTranscriptId');
-  @override
-  late final GeneratedColumn<String> secondaryTranscriptId =
-      GeneratedColumn<String>(
-        'secondary_transcript_id',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
   static const VerificationMeta _lastActiveAtMeta = const VerificationMeta(
     'lastActiveAt',
   );
@@ -1434,44 +3176,211 @@ class $PlaybackSessionsTable extends PlaybackSessions
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-    mediaId,
-    positionMs,
+    id,
+    targetType,
+    targetId,
+    language,
+    currentTimeMs,
+    playbackRate,
+    volume,
+    echoStartMs,
+    echoEndMs,
+    transcriptId,
+    secondaryTranscriptId,
+    recordingsCount,
+    recordingsDurationMs,
+    lastRecordingAt,
     currentSegmentIndex,
     echoActive,
     echoStartLine,
     echoEndLine,
-    echoStartMs,
-    echoEndMs,
-    primaryTranscriptId,
-    secondaryTranscriptId,
+    startedAt,
     lastActiveAt,
+    completedAt,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'playback_sessions';
+  static const String $name = 'echo_sessions';
   @override
   VerificationContext validateIntegrity(
-    Insertable<PlaybackSessionRow> instance, {
+    Insertable<EchoSessionRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('media_id')) {
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('target_type')) {
       context.handle(
-        _mediaIdMeta,
-        mediaId.isAcceptableOrUnknown(data['media_id']!, _mediaIdMeta),
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
       );
     } else if (isInserting) {
-      context.missing(_mediaIdMeta);
+      context.missing(_targetTypeMeta);
     }
-    if (data.containsKey('position_ms')) {
+    if (data.containsKey('target_id')) {
       context.handle(
-        _positionMsMeta,
-        positionMs.isAcceptableOrUnknown(data['position_ms']!, _positionMsMeta),
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
+    if (data.containsKey('current_time_ms')) {
+      context.handle(
+        _currentTimeMsMeta,
+        currentTimeMs.isAcceptableOrUnknown(
+          data['current_time_ms']!,
+          _currentTimeMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('playback_rate')) {
+      context.handle(
+        _playbackRateMeta,
+        playbackRate.isAcceptableOrUnknown(
+          data['playback_rate']!,
+          _playbackRateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('volume')) {
+      context.handle(
+        _volumeMeta,
+        volume.isAcceptableOrUnknown(data['volume']!, _volumeMeta),
+      );
+    }
+    if (data.containsKey('echo_start_ms')) {
+      context.handle(
+        _echoStartMsMeta,
+        echoStartMs.isAcceptableOrUnknown(
+          data['echo_start_ms']!,
+          _echoStartMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('echo_end_ms')) {
+      context.handle(
+        _echoEndMsMeta,
+        echoEndMs.isAcceptableOrUnknown(data['echo_end_ms']!, _echoEndMsMeta),
+      );
+    }
+    if (data.containsKey('transcript_id')) {
+      context.handle(
+        _transcriptIdMeta,
+        transcriptId.isAcceptableOrUnknown(
+          data['transcript_id']!,
+          _transcriptIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('secondary_transcript_id')) {
+      context.handle(
+        _secondaryTranscriptIdMeta,
+        secondaryTranscriptId.isAcceptableOrUnknown(
+          data['secondary_transcript_id']!,
+          _secondaryTranscriptIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recordings_count')) {
+      context.handle(
+        _recordingsCountMeta,
+        recordingsCount.isAcceptableOrUnknown(
+          data['recordings_count']!,
+          _recordingsCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recordings_duration_ms')) {
+      context.handle(
+        _recordingsDurationMsMeta,
+        recordingsDurationMs.isAcceptableOrUnknown(
+          data['recordings_duration_ms']!,
+          _recordingsDurationMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_recording_at')) {
+      context.handle(
+        _lastRecordingAtMeta,
+        lastRecordingAt.isAcceptableOrUnknown(
+          data['last_recording_at']!,
+          _lastRecordingAtMeta,
+        ),
       );
     }
     if (data.containsKey('current_segment_index')) {
@@ -1507,38 +3416,13 @@ class $PlaybackSessionsTable extends PlaybackSessions
         ),
       );
     }
-    if (data.containsKey('echo_start_ms')) {
+    if (data.containsKey('started_at')) {
       context.handle(
-        _echoStartMsMeta,
-        echoStartMs.isAcceptableOrUnknown(
-          data['echo_start_ms']!,
-          _echoStartMsMeta,
-        ),
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
       );
-    }
-    if (data.containsKey('echo_end_ms')) {
-      context.handle(
-        _echoEndMsMeta,
-        echoEndMs.isAcceptableOrUnknown(data['echo_end_ms']!, _echoEndMsMeta),
-      );
-    }
-    if (data.containsKey('primary_transcript_id')) {
-      context.handle(
-        _primaryTranscriptIdMeta,
-        primaryTranscriptId.isAcceptableOrUnknown(
-          data['primary_transcript_id']!,
-          _primaryTranscriptIdMeta,
-        ),
-      );
-    }
-    if (data.containsKey('secondary_transcript_id')) {
-      context.handle(
-        _secondaryTranscriptIdMeta,
-        secondaryTranscriptId.isAcceptableOrUnknown(
-          data['secondary_transcript_id']!,
-          _secondaryTranscriptIdMeta,
-        ),
-      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
     }
     if (data.containsKey('last_active_at')) {
       context.handle(
@@ -1551,25 +3435,120 @@ class $PlaybackSessionsTable extends PlaybackSessions
     } else if (isInserting) {
       context.missing(_lastActiveAtMeta);
     }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {mediaId};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  PlaybackSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  EchoSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PlaybackSessionRow(
-      mediaId:
+    return EchoSessionRow(
+      id:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}media_id'],
+            data['${effectivePrefix}id'],
           )!,
-      positionMs:
+      targetType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_type'],
+          )!,
+      targetId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_id'],
+          )!,
+      language:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}language'],
+          )!,
+      currentTimeMs:
           attachedDatabase.typeMapping.read(
             DriftSqlType.int,
-            data['${effectivePrefix}position_ms'],
+            data['${effectivePrefix}current_time_ms'],
           )!,
+      playbackRate:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}playback_rate'],
+          )!,
+      volume:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}volume'],
+          )!,
+      echoStartMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}echo_start_ms'],
+      ),
+      echoEndMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}echo_end_ms'],
+      ),
+      transcriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transcript_id'],
+      ),
+      secondaryTranscriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}secondary_transcript_id'],
+      ),
+      recordingsCount:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}recordings_count'],
+          )!,
+      recordingsDurationMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}recordings_duration_ms'],
+          )!,
+      lastRecordingAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_recording_at'],
+      ),
       currentSegmentIndex:
           attachedDatabase.typeMapping.read(
             DriftSqlType.int,
@@ -1590,192 +3569,373 @@ class $PlaybackSessionsTable extends PlaybackSessions
             DriftSqlType.int,
             data['${effectivePrefix}echo_end_line'],
           )!,
-      echoStartMs:
+      startedAt:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}echo_start_ms'],
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}started_at'],
           )!,
-      echoEndMs:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}echo_end_ms'],
-          )!,
-      primaryTranscriptId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}primary_transcript_id'],
-      ),
-      secondaryTranscriptId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}secondary_transcript_id'],
-      ),
       lastActiveAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
             data['${effectivePrefix}last_active_at'],
           )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
     );
   }
 
   @override
-  $PlaybackSessionsTable createAlias(String alias) {
-    return $PlaybackSessionsTable(attachedDatabase, alias);
+  $EchoSessionsTable createAlias(String alias) {
+    return $EchoSessionsTable(attachedDatabase, alias);
   }
 }
 
-class PlaybackSessionRow extends DataClass
-    implements Insertable<PlaybackSessionRow> {
-  final String mediaId;
-  final int positionMs;
+class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
+  final String id;
+  final String targetType;
+  final String targetId;
+  final String language;
+  final int currentTimeMs;
+  final double playbackRate;
+  final double volume;
+  final int? echoStartMs;
+  final int? echoEndMs;
+
+  /// Primary transcript (weapp `transcriptId`).
+  final String? transcriptId;
+  final String? secondaryTranscriptId;
+  final int recordingsCount;
+  final int recordingsDurationMs;
+  final DateTime? lastRecordingAt;
   final int currentSegmentIndex;
   final bool echoActive;
   final int echoStartLine;
   final int echoEndLine;
-  final int echoStartMs;
-  final int echoEndMs;
-
-  /// The transcript row id currently selected as primary (shadow-reading) track.
-  final String? primaryTranscriptId;
-
-  /// The transcript row id currently selected as secondary (translation) track.
-  final String? secondaryTranscriptId;
+  final DateTime startedAt;
   final DateTime lastActiveAt;
-  const PlaybackSessionRow({
-    required this.mediaId,
-    required this.positionMs,
+  final DateTime? completedAt;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const EchoSessionRow({
+    required this.id,
+    required this.targetType,
+    required this.targetId,
+    required this.language,
+    required this.currentTimeMs,
+    required this.playbackRate,
+    required this.volume,
+    this.echoStartMs,
+    this.echoEndMs,
+    this.transcriptId,
+    this.secondaryTranscriptId,
+    required this.recordingsCount,
+    required this.recordingsDurationMs,
+    this.lastRecordingAt,
     required this.currentSegmentIndex,
     required this.echoActive,
     required this.echoStartLine,
     required this.echoEndLine,
-    required this.echoStartMs,
-    required this.echoEndMs,
-    this.primaryTranscriptId,
-    this.secondaryTranscriptId,
+    required this.startedAt,
     required this.lastActiveAt,
+    this.completedAt,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['media_id'] = Variable<String>(mediaId);
-    map['position_ms'] = Variable<int>(positionMs);
-    map['current_segment_index'] = Variable<int>(currentSegmentIndex);
-    map['echo_active'] = Variable<bool>(echoActive);
-    map['echo_start_line'] = Variable<int>(echoStartLine);
-    map['echo_end_line'] = Variable<int>(echoEndLine);
-    map['echo_start_ms'] = Variable<int>(echoStartMs);
-    map['echo_end_ms'] = Variable<int>(echoEndMs);
-    if (!nullToAbsent || primaryTranscriptId != null) {
-      map['primary_transcript_id'] = Variable<String>(primaryTranscriptId);
+    map['id'] = Variable<String>(id);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
+    map['language'] = Variable<String>(language);
+    map['current_time_ms'] = Variable<int>(currentTimeMs);
+    map['playback_rate'] = Variable<double>(playbackRate);
+    map['volume'] = Variable<double>(volume);
+    if (!nullToAbsent || echoStartMs != null) {
+      map['echo_start_ms'] = Variable<int>(echoStartMs);
+    }
+    if (!nullToAbsent || echoEndMs != null) {
+      map['echo_end_ms'] = Variable<int>(echoEndMs);
+    }
+    if (!nullToAbsent || transcriptId != null) {
+      map['transcript_id'] = Variable<String>(transcriptId);
     }
     if (!nullToAbsent || secondaryTranscriptId != null) {
       map['secondary_transcript_id'] = Variable<String>(secondaryTranscriptId);
     }
+    map['recordings_count'] = Variable<int>(recordingsCount);
+    map['recordings_duration_ms'] = Variable<int>(recordingsDurationMs);
+    if (!nullToAbsent || lastRecordingAt != null) {
+      map['last_recording_at'] = Variable<DateTime>(lastRecordingAt);
+    }
+    map['current_segment_index'] = Variable<int>(currentSegmentIndex);
+    map['echo_active'] = Variable<bool>(echoActive);
+    map['echo_start_line'] = Variable<int>(echoStartLine);
+    map['echo_end_line'] = Variable<int>(echoEndLine);
+    map['started_at'] = Variable<DateTime>(startedAt);
     map['last_active_at'] = Variable<DateTime>(lastActiveAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  PlaybackSessionsCompanion toCompanion(bool nullToAbsent) {
-    return PlaybackSessionsCompanion(
-      mediaId: Value(mediaId),
-      positionMs: Value(positionMs),
-      currentSegmentIndex: Value(currentSegmentIndex),
-      echoActive: Value(echoActive),
-      echoStartLine: Value(echoStartLine),
-      echoEndLine: Value(echoEndLine),
-      echoStartMs: Value(echoStartMs),
-      echoEndMs: Value(echoEndMs),
-      primaryTranscriptId:
-          primaryTranscriptId == null && nullToAbsent
+  EchoSessionsCompanion toCompanion(bool nullToAbsent) {
+    return EchoSessionsCompanion(
+      id: Value(id),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+      language: Value(language),
+      currentTimeMs: Value(currentTimeMs),
+      playbackRate: Value(playbackRate),
+      volume: Value(volume),
+      echoStartMs:
+          echoStartMs == null && nullToAbsent
               ? const Value.absent()
-              : Value(primaryTranscriptId),
+              : Value(echoStartMs),
+      echoEndMs:
+          echoEndMs == null && nullToAbsent
+              ? const Value.absent()
+              : Value(echoEndMs),
+      transcriptId:
+          transcriptId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(transcriptId),
       secondaryTranscriptId:
           secondaryTranscriptId == null && nullToAbsent
               ? const Value.absent()
               : Value(secondaryTranscriptId),
+      recordingsCount: Value(recordingsCount),
+      recordingsDurationMs: Value(recordingsDurationMs),
+      lastRecordingAt:
+          lastRecordingAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(lastRecordingAt),
+      currentSegmentIndex: Value(currentSegmentIndex),
+      echoActive: Value(echoActive),
+      echoStartLine: Value(echoStartLine),
+      echoEndLine: Value(echoEndLine),
+      startedAt: Value(startedAt),
       lastActiveAt: Value(lastActiveAt),
+      completedAt:
+          completedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(completedAt),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
-  factory PlaybackSessionRow.fromJson(
+  factory EchoSessionRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PlaybackSessionRow(
-      mediaId: serializer.fromJson<String>(json['mediaId']),
-      positionMs: serializer.fromJson<int>(json['positionMs']),
+    return EchoSessionRow(
+      id: serializer.fromJson<String>(json['id']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+      language: serializer.fromJson<String>(json['language']),
+      currentTimeMs: serializer.fromJson<int>(json['currentTimeMs']),
+      playbackRate: serializer.fromJson<double>(json['playbackRate']),
+      volume: serializer.fromJson<double>(json['volume']),
+      echoStartMs: serializer.fromJson<int?>(json['echoStartMs']),
+      echoEndMs: serializer.fromJson<int?>(json['echoEndMs']),
+      transcriptId: serializer.fromJson<String?>(json['transcriptId']),
+      secondaryTranscriptId: serializer.fromJson<String?>(
+        json['secondaryTranscriptId'],
+      ),
+      recordingsCount: serializer.fromJson<int>(json['recordingsCount']),
+      recordingsDurationMs: serializer.fromJson<int>(
+        json['recordingsDurationMs'],
+      ),
+      lastRecordingAt: serializer.fromJson<DateTime?>(json['lastRecordingAt']),
       currentSegmentIndex: serializer.fromJson<int>(
         json['currentSegmentIndex'],
       ),
       echoActive: serializer.fromJson<bool>(json['echoActive']),
       echoStartLine: serializer.fromJson<int>(json['echoStartLine']),
       echoEndLine: serializer.fromJson<int>(json['echoEndLine']),
-      echoStartMs: serializer.fromJson<int>(json['echoStartMs']),
-      echoEndMs: serializer.fromJson<int>(json['echoEndMs']),
-      primaryTranscriptId: serializer.fromJson<String?>(
-        json['primaryTranscriptId'],
-      ),
-      secondaryTranscriptId: serializer.fromJson<String?>(
-        json['secondaryTranscriptId'],
-      ),
+      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       lastActiveAt: serializer.fromJson<DateTime>(json['lastActiveAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'mediaId': serializer.toJson<String>(mediaId),
-      'positionMs': serializer.toJson<int>(positionMs),
+      'id': serializer.toJson<String>(id),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
+      'language': serializer.toJson<String>(language),
+      'currentTimeMs': serializer.toJson<int>(currentTimeMs),
+      'playbackRate': serializer.toJson<double>(playbackRate),
+      'volume': serializer.toJson<double>(volume),
+      'echoStartMs': serializer.toJson<int?>(echoStartMs),
+      'echoEndMs': serializer.toJson<int?>(echoEndMs),
+      'transcriptId': serializer.toJson<String?>(transcriptId),
+      'secondaryTranscriptId': serializer.toJson<String?>(
+        secondaryTranscriptId,
+      ),
+      'recordingsCount': serializer.toJson<int>(recordingsCount),
+      'recordingsDurationMs': serializer.toJson<int>(recordingsDurationMs),
+      'lastRecordingAt': serializer.toJson<DateTime?>(lastRecordingAt),
       'currentSegmentIndex': serializer.toJson<int>(currentSegmentIndex),
       'echoActive': serializer.toJson<bool>(echoActive),
       'echoStartLine': serializer.toJson<int>(echoStartLine),
       'echoEndLine': serializer.toJson<int>(echoEndLine),
-      'echoStartMs': serializer.toJson<int>(echoStartMs),
-      'echoEndMs': serializer.toJson<int>(echoEndMs),
-      'primaryTranscriptId': serializer.toJson<String?>(primaryTranscriptId),
-      'secondaryTranscriptId': serializer.toJson<String?>(
-        secondaryTranscriptId,
-      ),
+      'startedAt': serializer.toJson<DateTime>(startedAt),
       'lastActiveAt': serializer.toJson<DateTime>(lastActiveAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  PlaybackSessionRow copyWith({
-    String? mediaId,
-    int? positionMs,
+  EchoSessionRow copyWith({
+    String? id,
+    String? targetType,
+    String? targetId,
+    String? language,
+    int? currentTimeMs,
+    double? playbackRate,
+    double? volume,
+    Value<int?> echoStartMs = const Value.absent(),
+    Value<int?> echoEndMs = const Value.absent(),
+    Value<String?> transcriptId = const Value.absent(),
+    Value<String?> secondaryTranscriptId = const Value.absent(),
+    int? recordingsCount,
+    int? recordingsDurationMs,
+    Value<DateTime?> lastRecordingAt = const Value.absent(),
     int? currentSegmentIndex,
     bool? echoActive,
     int? echoStartLine,
     int? echoEndLine,
-    int? echoStartMs,
-    int? echoEndMs,
-    Value<String?> primaryTranscriptId = const Value.absent(),
-    Value<String?> secondaryTranscriptId = const Value.absent(),
+    DateTime? startedAt,
     DateTime? lastActiveAt,
-  }) => PlaybackSessionRow(
-    mediaId: mediaId ?? this.mediaId,
-    positionMs: positionMs ?? this.positionMs,
-    currentSegmentIndex: currentSegmentIndex ?? this.currentSegmentIndex,
-    echoActive: echoActive ?? this.echoActive,
-    echoStartLine: echoStartLine ?? this.echoStartLine,
-    echoEndLine: echoEndLine ?? this.echoEndLine,
-    echoStartMs: echoStartMs ?? this.echoStartMs,
-    echoEndMs: echoEndMs ?? this.echoEndMs,
-    primaryTranscriptId:
-        primaryTranscriptId.present
-            ? primaryTranscriptId.value
-            : this.primaryTranscriptId,
+    Value<DateTime?> completedAt = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => EchoSessionRow(
+    id: id ?? this.id,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+    language: language ?? this.language,
+    currentTimeMs: currentTimeMs ?? this.currentTimeMs,
+    playbackRate: playbackRate ?? this.playbackRate,
+    volume: volume ?? this.volume,
+    echoStartMs: echoStartMs.present ? echoStartMs.value : this.echoStartMs,
+    echoEndMs: echoEndMs.present ? echoEndMs.value : this.echoEndMs,
+    transcriptId: transcriptId.present ? transcriptId.value : this.transcriptId,
     secondaryTranscriptId:
         secondaryTranscriptId.present
             ? secondaryTranscriptId.value
             : this.secondaryTranscriptId,
+    recordingsCount: recordingsCount ?? this.recordingsCount,
+    recordingsDurationMs: recordingsDurationMs ?? this.recordingsDurationMs,
+    lastRecordingAt:
+        lastRecordingAt.present ? lastRecordingAt.value : this.lastRecordingAt,
+    currentSegmentIndex: currentSegmentIndex ?? this.currentSegmentIndex,
+    echoActive: echoActive ?? this.echoActive,
+    echoStartLine: echoStartLine ?? this.echoStartLine,
+    echoEndLine: echoEndLine ?? this.echoEndLine,
+    startedAt: startedAt ?? this.startedAt,
     lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
-  PlaybackSessionRow copyWithCompanion(PlaybackSessionsCompanion data) {
-    return PlaybackSessionRow(
-      mediaId: data.mediaId.present ? data.mediaId.value : this.mediaId,
-      positionMs:
-          data.positionMs.present ? data.positionMs.value : this.positionMs,
+  EchoSessionRow copyWithCompanion(EchoSessionsCompanion data) {
+    return EchoSessionRow(
+      id: data.id.present ? data.id.value : this.id,
+      targetType:
+          data.targetType.present ? data.targetType.value : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      language: data.language.present ? data.language.value : this.language,
+      currentTimeMs:
+          data.currentTimeMs.present
+              ? data.currentTimeMs.value
+              : this.currentTimeMs,
+      playbackRate:
+          data.playbackRate.present
+              ? data.playbackRate.value
+              : this.playbackRate,
+      volume: data.volume.present ? data.volume.value : this.volume,
+      echoStartMs:
+          data.echoStartMs.present ? data.echoStartMs.value : this.echoStartMs,
+      echoEndMs: data.echoEndMs.present ? data.echoEndMs.value : this.echoEndMs,
+      transcriptId:
+          data.transcriptId.present
+              ? data.transcriptId.value
+              : this.transcriptId,
+      secondaryTranscriptId:
+          data.secondaryTranscriptId.present
+              ? data.secondaryTranscriptId.value
+              : this.secondaryTranscriptId,
+      recordingsCount:
+          data.recordingsCount.present
+              ? data.recordingsCount.value
+              : this.recordingsCount,
+      recordingsDurationMs:
+          data.recordingsDurationMs.present
+              ? data.recordingsDurationMs.value
+              : this.recordingsDurationMs,
+      lastRecordingAt:
+          data.lastRecordingAt.present
+              ? data.lastRecordingAt.value
+              : this.lastRecordingAt,
       currentSegmentIndex:
           data.currentSegmentIndex.present
               ? data.currentSegmentIndex.value
@@ -1788,175 +3948,320 @@ class PlaybackSessionRow extends DataClass
               : this.echoStartLine,
       echoEndLine:
           data.echoEndLine.present ? data.echoEndLine.value : this.echoEndLine,
-      echoStartMs:
-          data.echoStartMs.present ? data.echoStartMs.value : this.echoStartMs,
-      echoEndMs: data.echoEndMs.present ? data.echoEndMs.value : this.echoEndMs,
-      primaryTranscriptId:
-          data.primaryTranscriptId.present
-              ? data.primaryTranscriptId.value
-              : this.primaryTranscriptId,
-      secondaryTranscriptId:
-          data.secondaryTranscriptId.present
-              ? data.secondaryTranscriptId.value
-              : this.secondaryTranscriptId,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       lastActiveAt:
           data.lastActiveAt.present
               ? data.lastActiveAt.value
               : this.lastActiveAt,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('PlaybackSessionRow(')
-          ..write('mediaId: $mediaId, ')
-          ..write('positionMs: $positionMs, ')
+    return (StringBuffer('EchoSessionRow(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('language: $language, ')
+          ..write('currentTimeMs: $currentTimeMs, ')
+          ..write('playbackRate: $playbackRate, ')
+          ..write('volume: $volume, ')
+          ..write('echoStartMs: $echoStartMs, ')
+          ..write('echoEndMs: $echoEndMs, ')
+          ..write('transcriptId: $transcriptId, ')
+          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
+          ..write('recordingsCount: $recordingsCount, ')
+          ..write('recordingsDurationMs: $recordingsDurationMs, ')
+          ..write('lastRecordingAt: $lastRecordingAt, ')
           ..write('currentSegmentIndex: $currentSegmentIndex, ')
           ..write('echoActive: $echoActive, ')
           ..write('echoStartLine: $echoStartLine, ')
           ..write('echoEndLine: $echoEndLine, ')
-          ..write('echoStartMs: $echoStartMs, ')
-          ..write('echoEndMs: $echoEndMs, ')
-          ..write('primaryTranscriptId: $primaryTranscriptId, ')
-          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
-          ..write('lastActiveAt: $lastActiveAt')
+          ..write('startedAt: $startedAt, ')
+          ..write('lastActiveAt: $lastActiveAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    mediaId,
-    positionMs,
+  int get hashCode => Object.hashAll([
+    id,
+    targetType,
+    targetId,
+    language,
+    currentTimeMs,
+    playbackRate,
+    volume,
+    echoStartMs,
+    echoEndMs,
+    transcriptId,
+    secondaryTranscriptId,
+    recordingsCount,
+    recordingsDurationMs,
+    lastRecordingAt,
     currentSegmentIndex,
     echoActive,
     echoStartLine,
     echoEndLine,
-    echoStartMs,
-    echoEndMs,
-    primaryTranscriptId,
-    secondaryTranscriptId,
+    startedAt,
     lastActiveAt,
-  );
+    completedAt,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PlaybackSessionRow &&
-          other.mediaId == this.mediaId &&
-          other.positionMs == this.positionMs &&
+      (other is EchoSessionRow &&
+          other.id == this.id &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
+          other.language == this.language &&
+          other.currentTimeMs == this.currentTimeMs &&
+          other.playbackRate == this.playbackRate &&
+          other.volume == this.volume &&
+          other.echoStartMs == this.echoStartMs &&
+          other.echoEndMs == this.echoEndMs &&
+          other.transcriptId == this.transcriptId &&
+          other.secondaryTranscriptId == this.secondaryTranscriptId &&
+          other.recordingsCount == this.recordingsCount &&
+          other.recordingsDurationMs == this.recordingsDurationMs &&
+          other.lastRecordingAt == this.lastRecordingAt &&
           other.currentSegmentIndex == this.currentSegmentIndex &&
           other.echoActive == this.echoActive &&
           other.echoStartLine == this.echoStartLine &&
           other.echoEndLine == this.echoEndLine &&
-          other.echoStartMs == this.echoStartMs &&
-          other.echoEndMs == this.echoEndMs &&
-          other.primaryTranscriptId == this.primaryTranscriptId &&
-          other.secondaryTranscriptId == this.secondaryTranscriptId &&
-          other.lastActiveAt == this.lastActiveAt);
+          other.startedAt == this.startedAt &&
+          other.lastActiveAt == this.lastActiveAt &&
+          other.completedAt == this.completedAt &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
-class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
-  final Value<String> mediaId;
-  final Value<int> positionMs;
+class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
+  final Value<String> id;
+  final Value<String> targetType;
+  final Value<String> targetId;
+  final Value<String> language;
+  final Value<int> currentTimeMs;
+  final Value<double> playbackRate;
+  final Value<double> volume;
+  final Value<int?> echoStartMs;
+  final Value<int?> echoEndMs;
+  final Value<String?> transcriptId;
+  final Value<String?> secondaryTranscriptId;
+  final Value<int> recordingsCount;
+  final Value<int> recordingsDurationMs;
+  final Value<DateTime?> lastRecordingAt;
   final Value<int> currentSegmentIndex;
   final Value<bool> echoActive;
   final Value<int> echoStartLine;
   final Value<int> echoEndLine;
-  final Value<int> echoStartMs;
-  final Value<int> echoEndMs;
-  final Value<String?> primaryTranscriptId;
-  final Value<String?> secondaryTranscriptId;
+  final Value<DateTime> startedAt;
   final Value<DateTime> lastActiveAt;
+  final Value<DateTime?> completedAt;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const PlaybackSessionsCompanion({
-    this.mediaId = const Value.absent(),
-    this.positionMs = const Value.absent(),
+  const EchoSessionsCompanion({
+    this.id = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.language = const Value.absent(),
+    this.currentTimeMs = const Value.absent(),
+    this.playbackRate = const Value.absent(),
+    this.volume = const Value.absent(),
+    this.echoStartMs = const Value.absent(),
+    this.echoEndMs = const Value.absent(),
+    this.transcriptId = const Value.absent(),
+    this.secondaryTranscriptId = const Value.absent(),
+    this.recordingsCount = const Value.absent(),
+    this.recordingsDurationMs = const Value.absent(),
+    this.lastRecordingAt = const Value.absent(),
     this.currentSegmentIndex = const Value.absent(),
     this.echoActive = const Value.absent(),
     this.echoStartLine = const Value.absent(),
     this.echoEndLine = const Value.absent(),
-    this.echoStartMs = const Value.absent(),
-    this.echoEndMs = const Value.absent(),
-    this.primaryTranscriptId = const Value.absent(),
-    this.secondaryTranscriptId = const Value.absent(),
+    this.startedAt = const Value.absent(),
     this.lastActiveAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  PlaybackSessionsCompanion.insert({
-    required String mediaId,
-    this.positionMs = const Value.absent(),
+  EchoSessionsCompanion.insert({
+    required String id,
+    required String targetType,
+    required String targetId,
+    this.language = const Value.absent(),
+    this.currentTimeMs = const Value.absent(),
+    this.playbackRate = const Value.absent(),
+    this.volume = const Value.absent(),
+    this.echoStartMs = const Value.absent(),
+    this.echoEndMs = const Value.absent(),
+    this.transcriptId = const Value.absent(),
+    this.secondaryTranscriptId = const Value.absent(),
+    this.recordingsCount = const Value.absent(),
+    this.recordingsDurationMs = const Value.absent(),
+    this.lastRecordingAt = const Value.absent(),
     this.currentSegmentIndex = const Value.absent(),
     this.echoActive = const Value.absent(),
     this.echoStartLine = const Value.absent(),
     this.echoEndLine = const Value.absent(),
-    this.echoStartMs = const Value.absent(),
-    this.echoEndMs = const Value.absent(),
-    this.primaryTranscriptId = const Value.absent(),
-    this.secondaryTranscriptId = const Value.absent(),
+    required DateTime startedAt,
     required DateTime lastActiveAt,
+    this.completedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : mediaId = Value(mediaId),
-       lastActiveAt = Value(lastActiveAt);
-  static Insertable<PlaybackSessionRow> custom({
-    Expression<String>? mediaId,
-    Expression<int>? positionMs,
+  }) : id = Value(id),
+       targetType = Value(targetType),
+       targetId = Value(targetId),
+       startedAt = Value(startedAt),
+       lastActiveAt = Value(lastActiveAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<EchoSessionRow> custom({
+    Expression<String>? id,
+    Expression<String>? targetType,
+    Expression<String>? targetId,
+    Expression<String>? language,
+    Expression<int>? currentTimeMs,
+    Expression<double>? playbackRate,
+    Expression<double>? volume,
+    Expression<int>? echoStartMs,
+    Expression<int>? echoEndMs,
+    Expression<String>? transcriptId,
+    Expression<String>? secondaryTranscriptId,
+    Expression<int>? recordingsCount,
+    Expression<int>? recordingsDurationMs,
+    Expression<DateTime>? lastRecordingAt,
     Expression<int>? currentSegmentIndex,
     Expression<bool>? echoActive,
     Expression<int>? echoStartLine,
     Expression<int>? echoEndLine,
-    Expression<int>? echoStartMs,
-    Expression<int>? echoEndMs,
-    Expression<String>? primaryTranscriptId,
-    Expression<String>? secondaryTranscriptId,
+    Expression<DateTime>? startedAt,
     Expression<DateTime>? lastActiveAt,
+    Expression<DateTime>? completedAt,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (mediaId != null) 'media_id': mediaId,
-      if (positionMs != null) 'position_ms': positionMs,
+      if (id != null) 'id': id,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (language != null) 'language': language,
+      if (currentTimeMs != null) 'current_time_ms': currentTimeMs,
+      if (playbackRate != null) 'playback_rate': playbackRate,
+      if (volume != null) 'volume': volume,
+      if (echoStartMs != null) 'echo_start_ms': echoStartMs,
+      if (echoEndMs != null) 'echo_end_ms': echoEndMs,
+      if (transcriptId != null) 'transcript_id': transcriptId,
+      if (secondaryTranscriptId != null)
+        'secondary_transcript_id': secondaryTranscriptId,
+      if (recordingsCount != null) 'recordings_count': recordingsCount,
+      if (recordingsDurationMs != null)
+        'recordings_duration_ms': recordingsDurationMs,
+      if (lastRecordingAt != null) 'last_recording_at': lastRecordingAt,
       if (currentSegmentIndex != null)
         'current_segment_index': currentSegmentIndex,
       if (echoActive != null) 'echo_active': echoActive,
       if (echoStartLine != null) 'echo_start_line': echoStartLine,
       if (echoEndLine != null) 'echo_end_line': echoEndLine,
-      if (echoStartMs != null) 'echo_start_ms': echoStartMs,
-      if (echoEndMs != null) 'echo_end_ms': echoEndMs,
-      if (primaryTranscriptId != null)
-        'primary_transcript_id': primaryTranscriptId,
-      if (secondaryTranscriptId != null)
-        'secondary_transcript_id': secondaryTranscriptId,
+      if (startedAt != null) 'started_at': startedAt,
       if (lastActiveAt != null) 'last_active_at': lastActiveAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  PlaybackSessionsCompanion copyWith({
-    Value<String>? mediaId,
-    Value<int>? positionMs,
+  EchoSessionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? targetType,
+    Value<String>? targetId,
+    Value<String>? language,
+    Value<int>? currentTimeMs,
+    Value<double>? playbackRate,
+    Value<double>? volume,
+    Value<int?>? echoStartMs,
+    Value<int?>? echoEndMs,
+    Value<String?>? transcriptId,
+    Value<String?>? secondaryTranscriptId,
+    Value<int>? recordingsCount,
+    Value<int>? recordingsDurationMs,
+    Value<DateTime?>? lastRecordingAt,
     Value<int>? currentSegmentIndex,
     Value<bool>? echoActive,
     Value<int>? echoStartLine,
     Value<int>? echoEndLine,
-    Value<int>? echoStartMs,
-    Value<int>? echoEndMs,
-    Value<String?>? primaryTranscriptId,
-    Value<String?>? secondaryTranscriptId,
+    Value<DateTime>? startedAt,
     Value<DateTime>? lastActiveAt,
+    Value<DateTime?>? completedAt,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
-    return PlaybackSessionsCompanion(
-      mediaId: mediaId ?? this.mediaId,
-      positionMs: positionMs ?? this.positionMs,
+    return EchoSessionsCompanion(
+      id: id ?? this.id,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      language: language ?? this.language,
+      currentTimeMs: currentTimeMs ?? this.currentTimeMs,
+      playbackRate: playbackRate ?? this.playbackRate,
+      volume: volume ?? this.volume,
+      echoStartMs: echoStartMs ?? this.echoStartMs,
+      echoEndMs: echoEndMs ?? this.echoEndMs,
+      transcriptId: transcriptId ?? this.transcriptId,
+      secondaryTranscriptId:
+          secondaryTranscriptId ?? this.secondaryTranscriptId,
+      recordingsCount: recordingsCount ?? this.recordingsCount,
+      recordingsDurationMs: recordingsDurationMs ?? this.recordingsDurationMs,
+      lastRecordingAt: lastRecordingAt ?? this.lastRecordingAt,
       currentSegmentIndex: currentSegmentIndex ?? this.currentSegmentIndex,
       echoActive: echoActive ?? this.echoActive,
       echoStartLine: echoStartLine ?? this.echoStartLine,
       echoEndLine: echoEndLine ?? this.echoEndLine,
-      echoStartMs: echoStartMs ?? this.echoStartMs,
-      echoEndMs: echoEndMs ?? this.echoEndMs,
-      primaryTranscriptId: primaryTranscriptId ?? this.primaryTranscriptId,
-      secondaryTranscriptId:
-          secondaryTranscriptId ?? this.secondaryTranscriptId,
+      startedAt: startedAt ?? this.startedAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+      completedAt: completedAt ?? this.completedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1964,11 +4269,49 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (mediaId.present) {
-      map['media_id'] = Variable<String>(mediaId.value);
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
     }
-    if (positionMs.present) {
-      map['position_ms'] = Variable<int>(positionMs.value);
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (currentTimeMs.present) {
+      map['current_time_ms'] = Variable<int>(currentTimeMs.value);
+    }
+    if (playbackRate.present) {
+      map['playback_rate'] = Variable<double>(playbackRate.value);
+    }
+    if (volume.present) {
+      map['volume'] = Variable<double>(volume.value);
+    }
+    if (echoStartMs.present) {
+      map['echo_start_ms'] = Variable<int>(echoStartMs.value);
+    }
+    if (echoEndMs.present) {
+      map['echo_end_ms'] = Variable<int>(echoEndMs.value);
+    }
+    if (transcriptId.present) {
+      map['transcript_id'] = Variable<String>(transcriptId.value);
+    }
+    if (secondaryTranscriptId.present) {
+      map['secondary_transcript_id'] = Variable<String>(
+        secondaryTranscriptId.value,
+      );
+    }
+    if (recordingsCount.present) {
+      map['recordings_count'] = Variable<int>(recordingsCount.value);
+    }
+    if (recordingsDurationMs.present) {
+      map['recordings_duration_ms'] = Variable<int>(recordingsDurationMs.value);
+    }
+    if (lastRecordingAt.present) {
+      map['last_recording_at'] = Variable<DateTime>(lastRecordingAt.value);
     }
     if (currentSegmentIndex.present) {
       map['current_segment_index'] = Variable<int>(currentSegmentIndex.value);
@@ -1982,24 +4325,26 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
     if (echoEndLine.present) {
       map['echo_end_line'] = Variable<int>(echoEndLine.value);
     }
-    if (echoStartMs.present) {
-      map['echo_start_ms'] = Variable<int>(echoStartMs.value);
-    }
-    if (echoEndMs.present) {
-      map['echo_end_ms'] = Variable<int>(echoEndMs.value);
-    }
-    if (primaryTranscriptId.present) {
-      map['primary_transcript_id'] = Variable<String>(
-        primaryTranscriptId.value,
-      );
-    }
-    if (secondaryTranscriptId.present) {
-      map['secondary_transcript_id'] = Variable<String>(
-        secondaryTranscriptId.value,
-      );
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
     }
     if (lastActiveAt.present) {
       map['last_active_at'] = Variable<DateTime>(lastActiveAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2009,19 +4354,2561 @@ class PlaybackSessionsCompanion extends UpdateCompanion<PlaybackSessionRow> {
 
   @override
   String toString() {
-    return (StringBuffer('PlaybackSessionsCompanion(')
-          ..write('mediaId: $mediaId, ')
-          ..write('positionMs: $positionMs, ')
+    return (StringBuffer('EchoSessionsCompanion(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('language: $language, ')
+          ..write('currentTimeMs: $currentTimeMs, ')
+          ..write('playbackRate: $playbackRate, ')
+          ..write('volume: $volume, ')
+          ..write('echoStartMs: $echoStartMs, ')
+          ..write('echoEndMs: $echoEndMs, ')
+          ..write('transcriptId: $transcriptId, ')
+          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
+          ..write('recordingsCount: $recordingsCount, ')
+          ..write('recordingsDurationMs: $recordingsDurationMs, ')
+          ..write('lastRecordingAt: $lastRecordingAt, ')
           ..write('currentSegmentIndex: $currentSegmentIndex, ')
           ..write('echoActive: $echoActive, ')
           ..write('echoStartLine: $echoStartLine, ')
           ..write('echoEndLine: $echoEndLine, ')
-          ..write('echoStartMs: $echoStartMs, ')
-          ..write('echoEndMs: $echoEndMs, ')
-          ..write('primaryTranscriptId: $primaryTranscriptId, ')
-          ..write('secondaryTranscriptId: $secondaryTranscriptId, ')
+          ..write('startedAt: $startedAt, ')
           ..write('lastActiveAt: $lastActiveAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecordingsTable extends Recordings
+    with TableInfo<$RecordingsTable, RecordingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecordingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceStartMsMeta = const VerificationMeta(
+    'referenceStartMs',
+  );
+  @override
+  late final GeneratedColumn<int> referenceStartMs = GeneratedColumn<int>(
+    'reference_start_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceDurationMsMeta =
+      const VerificationMeta('referenceDurationMs');
+  @override
+  late final GeneratedColumn<int> referenceDurationMs = GeneratedColumn<int>(
+    'reference_duration_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceTextMeta = const VerificationMeta(
+    'referenceText',
+  );
+  @override
+  late final GeneratedColumn<String> referenceText = GeneratedColumn<String>(
+    'reference_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
+  @override
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _audioUrlMeta = const VerificationMeta(
+    'audioUrl',
+  );
+  @override
+  late final GeneratedColumn<String> audioUrl = GeneratedColumn<String>(
+    'audio_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pronunciationScoreMeta =
+      const VerificationMeta('pronunciationScore');
+  @override
+  late final GeneratedColumn<int> pronunciationScore = GeneratedColumn<int>(
+    'pronunciation_score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _assessmentJsonMeta = const VerificationMeta(
+    'assessmentJson',
+  );
+  @override
+  late final GeneratedColumn<String> assessmentJson = GeneratedColumn<String>(
+    'assessment_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localPathMeta = const VerificationMeta(
+    'localPath',
+  );
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+    'local_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    targetType,
+    targetId,
+    referenceStartMs,
+    referenceDurationMs,
+    referenceText,
+    language,
+    durationMs,
+    md5,
+    audioUrl,
+    pronunciationScore,
+    assessmentJson,
+    localPath,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recordings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecordingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('reference_start_ms')) {
+      context.handle(
+        _referenceStartMsMeta,
+        referenceStartMs.isAcceptableOrUnknown(
+          data['reference_start_ms']!,
+          _referenceStartMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceStartMsMeta);
+    }
+    if (data.containsKey('reference_duration_ms')) {
+      context.handle(
+        _referenceDurationMsMeta,
+        referenceDurationMs.isAcceptableOrUnknown(
+          data['reference_duration_ms']!,
+          _referenceDurationMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceDurationMsMeta);
+    }
+    if (data.containsKey('reference_text')) {
+      context.handle(
+        _referenceTextMeta,
+        referenceText.isAcceptableOrUnknown(
+          data['reference_text']!,
+          _referenceTextMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceTextMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languageMeta);
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_durationMsMeta);
+    }
+    if (data.containsKey('md5')) {
+      context.handle(
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
+      );
+    }
+    if (data.containsKey('audio_url')) {
+      context.handle(
+        _audioUrlMeta,
+        audioUrl.isAcceptableOrUnknown(data['audio_url']!, _audioUrlMeta),
+      );
+    }
+    if (data.containsKey('pronunciation_score')) {
+      context.handle(
+        _pronunciationScoreMeta,
+        pronunciationScore.isAcceptableOrUnknown(
+          data['pronunciation_score']!,
+          _pronunciationScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('assessment_json')) {
+      context.handle(
+        _assessmentJsonMeta,
+        assessmentJson.isAcceptableOrUnknown(
+          data['assessment_json']!,
+          _assessmentJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(
+        _localPathMeta,
+        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecordingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecordingRow(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      targetType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_type'],
+          )!,
+      targetId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_id'],
+          )!,
+      referenceStartMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}reference_start_ms'],
+          )!,
+      referenceDurationMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}reference_duration_ms'],
+          )!,
+      referenceText:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}reference_text'],
+          )!,
+      language:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}language'],
+          )!,
+      durationMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}duration_ms'],
+          )!,
+      md5: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}md5'],
+      ),
+      audioUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}audio_url'],
+      ),
+      pronunciationScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pronunciation_score'],
+      ),
+      assessmentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}assessment_json'],
+      ),
+      localPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_path'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+    );
+  }
+
+  @override
+  $RecordingsTable createAlias(String alias) {
+    return $RecordingsTable(attachedDatabase, alias);
+  }
+}
+
+class RecordingRow extends DataClass implements Insertable<RecordingRow> {
+  final String id;
+  final String targetType;
+  final String targetId;
+  final int referenceStartMs;
+  final int referenceDurationMs;
+  final String referenceText;
+  final String language;
+  final int durationMs;
+  final String? md5;
+  final String? audioUrl;
+  final int? pronunciationScore;
+  final String? assessmentJson;
+  final String? localPath;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const RecordingRow({
+    required this.id,
+    required this.targetType,
+    required this.targetId,
+    required this.referenceStartMs,
+    required this.referenceDurationMs,
+    required this.referenceText,
+    required this.language,
+    required this.durationMs,
+    this.md5,
+    this.audioUrl,
+    this.pronunciationScore,
+    this.assessmentJson,
+    this.localPath,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
+    map['reference_start_ms'] = Variable<int>(referenceStartMs);
+    map['reference_duration_ms'] = Variable<int>(referenceDurationMs);
+    map['reference_text'] = Variable<String>(referenceText);
+    map['language'] = Variable<String>(language);
+    map['duration_ms'] = Variable<int>(durationMs);
+    if (!nullToAbsent || md5 != null) {
+      map['md5'] = Variable<String>(md5);
+    }
+    if (!nullToAbsent || audioUrl != null) {
+      map['audio_url'] = Variable<String>(audioUrl);
+    }
+    if (!nullToAbsent || pronunciationScore != null) {
+      map['pronunciation_score'] = Variable<int>(pronunciationScore);
+    }
+    if (!nullToAbsent || assessmentJson != null) {
+      map['assessment_json'] = Variable<String>(assessmentJson);
+    }
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RecordingsCompanion toCompanion(bool nullToAbsent) {
+    return RecordingsCompanion(
+      id: Value(id),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+      referenceStartMs: Value(referenceStartMs),
+      referenceDurationMs: Value(referenceDurationMs),
+      referenceText: Value(referenceText),
+      language: Value(language),
+      durationMs: Value(durationMs),
+      md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
+      audioUrl:
+          audioUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(audioUrl),
+      pronunciationScore:
+          pronunciationScore == null && nullToAbsent
+              ? const Value.absent()
+              : Value(pronunciationScore),
+      assessmentJson:
+          assessmentJson == null && nullToAbsent
+              ? const Value.absent()
+              : Value(assessmentJson),
+      localPath:
+          localPath == null && nullToAbsent
+              ? const Value.absent()
+              : Value(localPath),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RecordingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecordingRow(
+      id: serializer.fromJson<String>(json['id']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+      referenceStartMs: serializer.fromJson<int>(json['referenceStartMs']),
+      referenceDurationMs: serializer.fromJson<int>(
+        json['referenceDurationMs'],
+      ),
+      referenceText: serializer.fromJson<String>(json['referenceText']),
+      language: serializer.fromJson<String>(json['language']),
+      durationMs: serializer.fromJson<int>(json['durationMs']),
+      md5: serializer.fromJson<String?>(json['md5']),
+      audioUrl: serializer.fromJson<String?>(json['audioUrl']),
+      pronunciationScore: serializer.fromJson<int?>(json['pronunciationScore']),
+      assessmentJson: serializer.fromJson<String?>(json['assessmentJson']),
+      localPath: serializer.fromJson<String?>(json['localPath']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
+      'referenceStartMs': serializer.toJson<int>(referenceStartMs),
+      'referenceDurationMs': serializer.toJson<int>(referenceDurationMs),
+      'referenceText': serializer.toJson<String>(referenceText),
+      'language': serializer.toJson<String>(language),
+      'durationMs': serializer.toJson<int>(durationMs),
+      'md5': serializer.toJson<String?>(md5),
+      'audioUrl': serializer.toJson<String?>(audioUrl),
+      'pronunciationScore': serializer.toJson<int?>(pronunciationScore),
+      'assessmentJson': serializer.toJson<String?>(assessmentJson),
+      'localPath': serializer.toJson<String?>(localPath),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RecordingRow copyWith({
+    String? id,
+    String? targetType,
+    String? targetId,
+    int? referenceStartMs,
+    int? referenceDurationMs,
+    String? referenceText,
+    String? language,
+    int? durationMs,
+    Value<String?> md5 = const Value.absent(),
+    Value<String?> audioUrl = const Value.absent(),
+    Value<int?> pronunciationScore = const Value.absent(),
+    Value<String?> assessmentJson = const Value.absent(),
+    Value<String?> localPath = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => RecordingRow(
+    id: id ?? this.id,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+    referenceStartMs: referenceStartMs ?? this.referenceStartMs,
+    referenceDurationMs: referenceDurationMs ?? this.referenceDurationMs,
+    referenceText: referenceText ?? this.referenceText,
+    language: language ?? this.language,
+    durationMs: durationMs ?? this.durationMs,
+    md5: md5.present ? md5.value : this.md5,
+    audioUrl: audioUrl.present ? audioUrl.value : this.audioUrl,
+    pronunciationScore:
+        pronunciationScore.present
+            ? pronunciationScore.value
+            : this.pronunciationScore,
+    assessmentJson:
+        assessmentJson.present ? assessmentJson.value : this.assessmentJson,
+    localPath: localPath.present ? localPath.value : this.localPath,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RecordingRow copyWithCompanion(RecordingsCompanion data) {
+    return RecordingRow(
+      id: data.id.present ? data.id.value : this.id,
+      targetType:
+          data.targetType.present ? data.targetType.value : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      referenceStartMs:
+          data.referenceStartMs.present
+              ? data.referenceStartMs.value
+              : this.referenceStartMs,
+      referenceDurationMs:
+          data.referenceDurationMs.present
+              ? data.referenceDurationMs.value
+              : this.referenceDurationMs,
+      referenceText:
+          data.referenceText.present
+              ? data.referenceText.value
+              : this.referenceText,
+      language: data.language.present ? data.language.value : this.language,
+      durationMs:
+          data.durationMs.present ? data.durationMs.value : this.durationMs,
+      md5: data.md5.present ? data.md5.value : this.md5,
+      audioUrl: data.audioUrl.present ? data.audioUrl.value : this.audioUrl,
+      pronunciationScore:
+          data.pronunciationScore.present
+              ? data.pronunciationScore.value
+              : this.pronunciationScore,
+      assessmentJson:
+          data.assessmentJson.present
+              ? data.assessmentJson.value
+              : this.assessmentJson,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordingRow(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('referenceStartMs: $referenceStartMs, ')
+          ..write('referenceDurationMs: $referenceDurationMs, ')
+          ..write('referenceText: $referenceText, ')
+          ..write('language: $language, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('md5: $md5, ')
+          ..write('audioUrl: $audioUrl, ')
+          ..write('pronunciationScore: $pronunciationScore, ')
+          ..write('assessmentJson: $assessmentJson, ')
+          ..write('localPath: $localPath, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    targetType,
+    targetId,
+    referenceStartMs,
+    referenceDurationMs,
+    referenceText,
+    language,
+    durationMs,
+    md5,
+    audioUrl,
+    pronunciationScore,
+    assessmentJson,
+    localPath,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecordingRow &&
+          other.id == this.id &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
+          other.referenceStartMs == this.referenceStartMs &&
+          other.referenceDurationMs == this.referenceDurationMs &&
+          other.referenceText == this.referenceText &&
+          other.language == this.language &&
+          other.durationMs == this.durationMs &&
+          other.md5 == this.md5 &&
+          other.audioUrl == this.audioUrl &&
+          other.pronunciationScore == this.pronunciationScore &&
+          other.assessmentJson == this.assessmentJson &&
+          other.localPath == this.localPath &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
+  final Value<String> id;
+  final Value<String> targetType;
+  final Value<String> targetId;
+  final Value<int> referenceStartMs;
+  final Value<int> referenceDurationMs;
+  final Value<String> referenceText;
+  final Value<String> language;
+  final Value<int> durationMs;
+  final Value<String?> md5;
+  final Value<String?> audioUrl;
+  final Value<int?> pronunciationScore;
+  final Value<String?> assessmentJson;
+  final Value<String?> localPath;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RecordingsCompanion({
+    this.id = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.referenceStartMs = const Value.absent(),
+    this.referenceDurationMs = const Value.absent(),
+    this.referenceText = const Value.absent(),
+    this.language = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.audioUrl = const Value.absent(),
+    this.pronunciationScore = const Value.absent(),
+    this.assessmentJson = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecordingsCompanion.insert({
+    required String id,
+    required String targetType,
+    required String targetId,
+    required int referenceStartMs,
+    required int referenceDurationMs,
+    required String referenceText,
+    required String language,
+    required int durationMs,
+    this.md5 = const Value.absent(),
+    this.audioUrl = const Value.absent(),
+    this.pronunciationScore = const Value.absent(),
+    this.assessmentJson = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       targetType = Value(targetType),
+       targetId = Value(targetId),
+       referenceStartMs = Value(referenceStartMs),
+       referenceDurationMs = Value(referenceDurationMs),
+       referenceText = Value(referenceText),
+       language = Value(language),
+       durationMs = Value(durationMs),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<RecordingRow> custom({
+    Expression<String>? id,
+    Expression<String>? targetType,
+    Expression<String>? targetId,
+    Expression<int>? referenceStartMs,
+    Expression<int>? referenceDurationMs,
+    Expression<String>? referenceText,
+    Expression<String>? language,
+    Expression<int>? durationMs,
+    Expression<String>? md5,
+    Expression<String>? audioUrl,
+    Expression<int>? pronunciationScore,
+    Expression<String>? assessmentJson,
+    Expression<String>? localPath,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (referenceStartMs != null) 'reference_start_ms': referenceStartMs,
+      if (referenceDurationMs != null)
+        'reference_duration_ms': referenceDurationMs,
+      if (referenceText != null) 'reference_text': referenceText,
+      if (language != null) 'language': language,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (md5 != null) 'md5': md5,
+      if (audioUrl != null) 'audio_url': audioUrl,
+      if (pronunciationScore != null) 'pronunciation_score': pronunciationScore,
+      if (assessmentJson != null) 'assessment_json': assessmentJson,
+      if (localPath != null) 'local_path': localPath,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecordingsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? targetType,
+    Value<String>? targetId,
+    Value<int>? referenceStartMs,
+    Value<int>? referenceDurationMs,
+    Value<String>? referenceText,
+    Value<String>? language,
+    Value<int>? durationMs,
+    Value<String?>? md5,
+    Value<String?>? audioUrl,
+    Value<int?>? pronunciationScore,
+    Value<String?>? assessmentJson,
+    Value<String?>? localPath,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RecordingsCompanion(
+      id: id ?? this.id,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      referenceStartMs: referenceStartMs ?? this.referenceStartMs,
+      referenceDurationMs: referenceDurationMs ?? this.referenceDurationMs,
+      referenceText: referenceText ?? this.referenceText,
+      language: language ?? this.language,
+      durationMs: durationMs ?? this.durationMs,
+      md5: md5 ?? this.md5,
+      audioUrl: audioUrl ?? this.audioUrl,
+      pronunciationScore: pronunciationScore ?? this.pronunciationScore,
+      assessmentJson: assessmentJson ?? this.assessmentJson,
+      localPath: localPath ?? this.localPath,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (referenceStartMs.present) {
+      map['reference_start_ms'] = Variable<int>(referenceStartMs.value);
+    }
+    if (referenceDurationMs.present) {
+      map['reference_duration_ms'] = Variable<int>(referenceDurationMs.value);
+    }
+    if (referenceText.present) {
+      map['reference_text'] = Variable<String>(referenceText.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
+    }
+    if (audioUrl.present) {
+      map['audio_url'] = Variable<String>(audioUrl.value);
+    }
+    if (pronunciationScore.present) {
+      map['pronunciation_score'] = Variable<int>(pronunciationScore.value);
+    }
+    if (assessmentJson.present) {
+      map['assessment_json'] = Variable<String>(assessmentJson.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordingsCompanion(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('referenceStartMs: $referenceStartMs, ')
+          ..write('referenceDurationMs: $referenceDurationMs, ')
+          ..write('referenceText: $referenceText, ')
+          ..write('language: $language, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('md5: $md5, ')
+          ..write('audioUrl: $audioUrl, ')
+          ..write('pronunciationScore: $pronunciationScore, ')
+          ..write('assessmentJson: $assessmentJson, ')
+          ..write('localPath: $localPath, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DictationsTable extends Dictations
+    with TableInfo<$DictationsTable, DictationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DictationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceStartMsMeta = const VerificationMeta(
+    'referenceStartMs',
+  );
+  @override
+  late final GeneratedColumn<int> referenceStartMs = GeneratedColumn<int>(
+    'reference_start_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceDurationMsMeta =
+      const VerificationMeta('referenceDurationMs');
+  @override
+  late final GeneratedColumn<int> referenceDurationMs = GeneratedColumn<int>(
+    'reference_duration_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceTextMeta = const VerificationMeta(
+    'referenceText',
+  );
+  @override
+  late final GeneratedColumn<String> referenceText = GeneratedColumn<String>(
+    'reference_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userInputMeta = const VerificationMeta(
+    'userInput',
+  );
+  @override
+  late final GeneratedColumn<String> userInput = GeneratedColumn<String>(
+    'user_input',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accuracyMeta = const VerificationMeta(
+    'accuracy',
+  );
+  @override
+  late final GeneratedColumn<int> accuracy = GeneratedColumn<int>(
+    'accuracy',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _correctWordsMeta = const VerificationMeta(
+    'correctWords',
+  );
+  @override
+  late final GeneratedColumn<int> correctWords = GeneratedColumn<int>(
+    'correct_words',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _missedWordsMeta = const VerificationMeta(
+    'missedWords',
+  );
+  @override
+  late final GeneratedColumn<int> missedWords = GeneratedColumn<int>(
+    'missed_words',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _extraWordsMeta = const VerificationMeta(
+    'extraWords',
+  );
+  @override
+  late final GeneratedColumn<int> extraWords = GeneratedColumn<int>(
+    'extra_words',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    targetType,
+    targetId,
+    referenceStartMs,
+    referenceDurationMs,
+    referenceText,
+    language,
+    userInput,
+    accuracy,
+    correctWords,
+    missedWords,
+    extraWords,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'dictations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DictationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('reference_start_ms')) {
+      context.handle(
+        _referenceStartMsMeta,
+        referenceStartMs.isAcceptableOrUnknown(
+          data['reference_start_ms']!,
+          _referenceStartMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceStartMsMeta);
+    }
+    if (data.containsKey('reference_duration_ms')) {
+      context.handle(
+        _referenceDurationMsMeta,
+        referenceDurationMs.isAcceptableOrUnknown(
+          data['reference_duration_ms']!,
+          _referenceDurationMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceDurationMsMeta);
+    }
+    if (data.containsKey('reference_text')) {
+      context.handle(
+        _referenceTextMeta,
+        referenceText.isAcceptableOrUnknown(
+          data['reference_text']!,
+          _referenceTextMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceTextMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languageMeta);
+    }
+    if (data.containsKey('user_input')) {
+      context.handle(
+        _userInputMeta,
+        userInput.isAcceptableOrUnknown(data['user_input']!, _userInputMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userInputMeta);
+    }
+    if (data.containsKey('accuracy')) {
+      context.handle(
+        _accuracyMeta,
+        accuracy.isAcceptableOrUnknown(data['accuracy']!, _accuracyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accuracyMeta);
+    }
+    if (data.containsKey('correct_words')) {
+      context.handle(
+        _correctWordsMeta,
+        correctWords.isAcceptableOrUnknown(
+          data['correct_words']!,
+          _correctWordsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_correctWordsMeta);
+    }
+    if (data.containsKey('missed_words')) {
+      context.handle(
+        _missedWordsMeta,
+        missedWords.isAcceptableOrUnknown(
+          data['missed_words']!,
+          _missedWordsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_missedWordsMeta);
+    }
+    if (data.containsKey('extra_words')) {
+      context.handle(
+        _extraWordsMeta,
+        extraWords.isAcceptableOrUnknown(data['extra_words']!, _extraWordsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_extraWordsMeta);
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DictationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DictationRow(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      targetType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_type'],
+          )!,
+      targetId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_id'],
+          )!,
+      referenceStartMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}reference_start_ms'],
+          )!,
+      referenceDurationMs:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}reference_duration_ms'],
+          )!,
+      referenceText:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}reference_text'],
+          )!,
+      language:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}language'],
+          )!,
+      userInput:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}user_input'],
+          )!,
+      accuracy:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}accuracy'],
+          )!,
+      correctWords:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}correct_words'],
+          )!,
+      missedWords:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}missed_words'],
+          )!,
+      extraWords:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}extra_words'],
+          )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+    );
+  }
+
+  @override
+  $DictationsTable createAlias(String alias) {
+    return $DictationsTable(attachedDatabase, alias);
+  }
+}
+
+class DictationRow extends DataClass implements Insertable<DictationRow> {
+  final String id;
+  final String targetType;
+  final String targetId;
+  final int referenceStartMs;
+  final int referenceDurationMs;
+  final String referenceText;
+  final String language;
+  final String userInput;
+  final int accuracy;
+  final int correctWords;
+  final int missedWords;
+  final int extraWords;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const DictationRow({
+    required this.id,
+    required this.targetType,
+    required this.targetId,
+    required this.referenceStartMs,
+    required this.referenceDurationMs,
+    required this.referenceText,
+    required this.language,
+    required this.userInput,
+    required this.accuracy,
+    required this.correctWords,
+    required this.missedWords,
+    required this.extraWords,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
+    map['reference_start_ms'] = Variable<int>(referenceStartMs);
+    map['reference_duration_ms'] = Variable<int>(referenceDurationMs);
+    map['reference_text'] = Variable<String>(referenceText);
+    map['language'] = Variable<String>(language);
+    map['user_input'] = Variable<String>(userInput);
+    map['accuracy'] = Variable<int>(accuracy);
+    map['correct_words'] = Variable<int>(correctWords);
+    map['missed_words'] = Variable<int>(missedWords);
+    map['extra_words'] = Variable<int>(extraWords);
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DictationsCompanion toCompanion(bool nullToAbsent) {
+    return DictationsCompanion(
+      id: Value(id),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+      referenceStartMs: Value(referenceStartMs),
+      referenceDurationMs: Value(referenceDurationMs),
+      referenceText: Value(referenceText),
+      language: Value(language),
+      userInput: Value(userInput),
+      accuracy: Value(accuracy),
+      correctWords: Value(correctWords),
+      missedWords: Value(missedWords),
+      extraWords: Value(extraWords),
+      syncStatus:
+          syncStatus == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncStatus),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DictationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DictationRow(
+      id: serializer.fromJson<String>(json['id']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+      referenceStartMs: serializer.fromJson<int>(json['referenceStartMs']),
+      referenceDurationMs: serializer.fromJson<int>(
+        json['referenceDurationMs'],
+      ),
+      referenceText: serializer.fromJson<String>(json['referenceText']),
+      language: serializer.fromJson<String>(json['language']),
+      userInput: serializer.fromJson<String>(json['userInput']),
+      accuracy: serializer.fromJson<int>(json['accuracy']),
+      correctWords: serializer.fromJson<int>(json['correctWords']),
+      missedWords: serializer.fromJson<int>(json['missedWords']),
+      extraWords: serializer.fromJson<int>(json['extraWords']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
+      'referenceStartMs': serializer.toJson<int>(referenceStartMs),
+      'referenceDurationMs': serializer.toJson<int>(referenceDurationMs),
+      'referenceText': serializer.toJson<String>(referenceText),
+      'language': serializer.toJson<String>(language),
+      'userInput': serializer.toJson<String>(userInput),
+      'accuracy': serializer.toJson<int>(accuracy),
+      'correctWords': serializer.toJson<int>(correctWords),
+      'missedWords': serializer.toJson<int>(missedWords),
+      'extraWords': serializer.toJson<int>(extraWords),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DictationRow copyWith({
+    String? id,
+    String? targetType,
+    String? targetId,
+    int? referenceStartMs,
+    int? referenceDurationMs,
+    String? referenceText,
+    String? language,
+    String? userInput,
+    int? accuracy,
+    int? correctWords,
+    int? missedWords,
+    int? extraWords,
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => DictationRow(
+    id: id ?? this.id,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+    referenceStartMs: referenceStartMs ?? this.referenceStartMs,
+    referenceDurationMs: referenceDurationMs ?? this.referenceDurationMs,
+    referenceText: referenceText ?? this.referenceText,
+    language: language ?? this.language,
+    userInput: userInput ?? this.userInput,
+    accuracy: accuracy ?? this.accuracy,
+    correctWords: correctWords ?? this.correctWords,
+    missedWords: missedWords ?? this.missedWords,
+    extraWords: extraWords ?? this.extraWords,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DictationRow copyWithCompanion(DictationsCompanion data) {
+    return DictationRow(
+      id: data.id.present ? data.id.value : this.id,
+      targetType:
+          data.targetType.present ? data.targetType.value : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      referenceStartMs:
+          data.referenceStartMs.present
+              ? data.referenceStartMs.value
+              : this.referenceStartMs,
+      referenceDurationMs:
+          data.referenceDurationMs.present
+              ? data.referenceDurationMs.value
+              : this.referenceDurationMs,
+      referenceText:
+          data.referenceText.present
+              ? data.referenceText.value
+              : this.referenceText,
+      language: data.language.present ? data.language.value : this.language,
+      userInput: data.userInput.present ? data.userInput.value : this.userInput,
+      accuracy: data.accuracy.present ? data.accuracy.value : this.accuracy,
+      correctWords:
+          data.correctWords.present
+              ? data.correctWords.value
+              : this.correctWords,
+      missedWords:
+          data.missedWords.present ? data.missedWords.value : this.missedWords,
+      extraWords:
+          data.extraWords.present ? data.extraWords.value : this.extraWords,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DictationRow(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('referenceStartMs: $referenceStartMs, ')
+          ..write('referenceDurationMs: $referenceDurationMs, ')
+          ..write('referenceText: $referenceText, ')
+          ..write('language: $language, ')
+          ..write('userInput: $userInput, ')
+          ..write('accuracy: $accuracy, ')
+          ..write('correctWords: $correctWords, ')
+          ..write('missedWords: $missedWords, ')
+          ..write('extraWords: $extraWords, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    targetType,
+    targetId,
+    referenceStartMs,
+    referenceDurationMs,
+    referenceText,
+    language,
+    userInput,
+    accuracy,
+    correctWords,
+    missedWords,
+    extraWords,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DictationRow &&
+          other.id == this.id &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
+          other.referenceStartMs == this.referenceStartMs &&
+          other.referenceDurationMs == this.referenceDurationMs &&
+          other.referenceText == this.referenceText &&
+          other.language == this.language &&
+          other.userInput == this.userInput &&
+          other.accuracy == this.accuracy &&
+          other.correctWords == this.correctWords &&
+          other.missedWords == this.missedWords &&
+          other.extraWords == this.extraWords &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DictationsCompanion extends UpdateCompanion<DictationRow> {
+  final Value<String> id;
+  final Value<String> targetType;
+  final Value<String> targetId;
+  final Value<int> referenceStartMs;
+  final Value<int> referenceDurationMs;
+  final Value<String> referenceText;
+  final Value<String> language;
+  final Value<String> userInput;
+  final Value<int> accuracy;
+  final Value<int> correctWords;
+  final Value<int> missedWords;
+  final Value<int> extraWords;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DictationsCompanion({
+    this.id = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.referenceStartMs = const Value.absent(),
+    this.referenceDurationMs = const Value.absent(),
+    this.referenceText = const Value.absent(),
+    this.language = const Value.absent(),
+    this.userInput = const Value.absent(),
+    this.accuracy = const Value.absent(),
+    this.correctWords = const Value.absent(),
+    this.missedWords = const Value.absent(),
+    this.extraWords = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DictationsCompanion.insert({
+    required String id,
+    required String targetType,
+    required String targetId,
+    required int referenceStartMs,
+    required int referenceDurationMs,
+    required String referenceText,
+    required String language,
+    required String userInput,
+    required int accuracy,
+    required int correctWords,
+    required int missedWords,
+    required int extraWords,
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       targetType = Value(targetType),
+       targetId = Value(targetId),
+       referenceStartMs = Value(referenceStartMs),
+       referenceDurationMs = Value(referenceDurationMs),
+       referenceText = Value(referenceText),
+       language = Value(language),
+       userInput = Value(userInput),
+       accuracy = Value(accuracy),
+       correctWords = Value(correctWords),
+       missedWords = Value(missedWords),
+       extraWords = Value(extraWords),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<DictationRow> custom({
+    Expression<String>? id,
+    Expression<String>? targetType,
+    Expression<String>? targetId,
+    Expression<int>? referenceStartMs,
+    Expression<int>? referenceDurationMs,
+    Expression<String>? referenceText,
+    Expression<String>? language,
+    Expression<String>? userInput,
+    Expression<int>? accuracy,
+    Expression<int>? correctWords,
+    Expression<int>? missedWords,
+    Expression<int>? extraWords,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (referenceStartMs != null) 'reference_start_ms': referenceStartMs,
+      if (referenceDurationMs != null)
+        'reference_duration_ms': referenceDurationMs,
+      if (referenceText != null) 'reference_text': referenceText,
+      if (language != null) 'language': language,
+      if (userInput != null) 'user_input': userInput,
+      if (accuracy != null) 'accuracy': accuracy,
+      if (correctWords != null) 'correct_words': correctWords,
+      if (missedWords != null) 'missed_words': missedWords,
+      if (extraWords != null) 'extra_words': extraWords,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DictationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? targetType,
+    Value<String>? targetId,
+    Value<int>? referenceStartMs,
+    Value<int>? referenceDurationMs,
+    Value<String>? referenceText,
+    Value<String>? language,
+    Value<String>? userInput,
+    Value<int>? accuracy,
+    Value<int>? correctWords,
+    Value<int>? missedWords,
+    Value<int>? extraWords,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return DictationsCompanion(
+      id: id ?? this.id,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      referenceStartMs: referenceStartMs ?? this.referenceStartMs,
+      referenceDurationMs: referenceDurationMs ?? this.referenceDurationMs,
+      referenceText: referenceText ?? this.referenceText,
+      language: language ?? this.language,
+      userInput: userInput ?? this.userInput,
+      accuracy: accuracy ?? this.accuracy,
+      correctWords: correctWords ?? this.correctWords,
+      missedWords: missedWords ?? this.missedWords,
+      extraWords: extraWords ?? this.extraWords,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (referenceStartMs.present) {
+      map['reference_start_ms'] = Variable<int>(referenceStartMs.value);
+    }
+    if (referenceDurationMs.present) {
+      map['reference_duration_ms'] = Variable<int>(referenceDurationMs.value);
+    }
+    if (referenceText.present) {
+      map['reference_text'] = Variable<String>(referenceText.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (userInput.present) {
+      map['user_input'] = Variable<String>(userInput.value);
+    }
+    if (accuracy.present) {
+      map['accuracy'] = Variable<int>(accuracy.value);
+    }
+    if (correctWords.present) {
+      map['correct_words'] = Variable<int>(correctWords.value);
+    }
+    if (missedWords.present) {
+      map['missed_words'] = Variable<int>(missedWords.value);
+    }
+    if (extraWords.present) {
+      map['extra_words'] = Variable<int>(extraWords.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DictationsCompanion(')
+          ..write('id: $id, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('referenceStartMs: $referenceStartMs, ')
+          ..write('referenceDurationMs: $referenceDurationMs, ')
+          ..write('referenceText: $referenceText, ')
+          ..write('language: $language, ')
+          ..write('userInput: $userInput, ')
+          ..write('accuracy: $accuracy, ')
+          ..write('correctWords: $correctWords, ')
+          ..write('missedWords: $missedWords, ')
+          ..write('extraWords: $extraWords, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncQueueTable extends SyncQueue
+    with TableInfo<$SyncQueueTable, SyncQueueRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncQueueTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actionMeta = const VerificationMeta('action');
+  @override
+  late final GeneratedColumn<String> action = GeneratedColumn<String>(
+    'action',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retryCountMeta = const VerificationMeta(
+    'retryCount',
+  );
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+    'retry_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastAttemptMeta = const VerificationMeta(
+    'lastAttempt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastAttempt = GeneratedColumn<DateTime>(
+    'last_attempt',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorMeta = const VerificationMeta('error');
+  @override
+  late final GeneratedColumn<String> error = GeneratedColumn<String>(
+    'error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entityType,
+    entityId,
+    action,
+    payloadJson,
+    retryCount,
+    lastAttempt,
+    error,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_queue';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncQueueRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('action')) {
+      context.handle(
+        _actionMeta,
+        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+        _retryCountMeta,
+        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
+      );
+    }
+    if (data.containsKey('last_attempt')) {
+      context.handle(
+        _lastAttemptMeta,
+        lastAttempt.isAcceptableOrUnknown(
+          data['last_attempt']!,
+          _lastAttemptMeta,
+        ),
+      );
+    }
+    if (data.containsKey('error')) {
+      context.handle(
+        _errorMeta,
+        error.isAcceptableOrUnknown(data['error']!, _errorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SyncQueueRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncQueueRow(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}id'],
+          )!,
+      entityType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_type'],
+          )!,
+      entityId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_id'],
+          )!,
+      action:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}action'],
+          )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      ),
+      retryCount:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}retry_count'],
+          )!,
+      lastAttempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_attempt'],
+      ),
+      error: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+    );
+  }
+
+  @override
+  $SyncQueueTable createAlias(String alias) {
+    return $SyncQueueTable(attachedDatabase, alias);
+  }
+}
+
+class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
+  final int id;
+  final String entityType;
+  final String entityId;
+  final String action;
+  final String? payloadJson;
+  final int retryCount;
+  final DateTime? lastAttempt;
+  final String? error;
+  final DateTime createdAt;
+  const SyncQueueRow({
+    required this.id,
+    required this.entityType,
+    required this.entityId,
+    required this.action,
+    this.payloadJson,
+    required this.retryCount,
+    this.lastAttempt,
+    this.error,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['action'] = Variable<String>(action);
+    if (!nullToAbsent || payloadJson != null) {
+      map['payload_json'] = Variable<String>(payloadJson);
+    }
+    map['retry_count'] = Variable<int>(retryCount);
+    if (!nullToAbsent || lastAttempt != null) {
+      map['last_attempt'] = Variable<DateTime>(lastAttempt);
+    }
+    if (!nullToAbsent || error != null) {
+      map['error'] = Variable<String>(error);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SyncQueueCompanion toCompanion(bool nullToAbsent) {
+    return SyncQueueCompanion(
+      id: Value(id),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      action: Value(action),
+      payloadJson:
+          payloadJson == null && nullToAbsent
+              ? const Value.absent()
+              : Value(payloadJson),
+      retryCount: Value(retryCount),
+      lastAttempt:
+          lastAttempt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(lastAttempt),
+      error:
+          error == null && nullToAbsent ? const Value.absent() : Value(error),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SyncQueueRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncQueueRow(
+      id: serializer.fromJson<int>(json['id']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      action: serializer.fromJson<String>(json['action']),
+      payloadJson: serializer.fromJson<String?>(json['payloadJson']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      lastAttempt: serializer.fromJson<DateTime?>(json['lastAttempt']),
+      error: serializer.fromJson<String?>(json['error']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'action': serializer.toJson<String>(action),
+      'payloadJson': serializer.toJson<String?>(payloadJson),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'lastAttempt': serializer.toJson<DateTime?>(lastAttempt),
+      'error': serializer.toJson<String?>(error),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SyncQueueRow copyWith({
+    int? id,
+    String? entityType,
+    String? entityId,
+    String? action,
+    Value<String?> payloadJson = const Value.absent(),
+    int? retryCount,
+    Value<DateTime?> lastAttempt = const Value.absent(),
+    Value<String?> error = const Value.absent(),
+    DateTime? createdAt,
+  }) => SyncQueueRow(
+    id: id ?? this.id,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    action: action ?? this.action,
+    payloadJson: payloadJson.present ? payloadJson.value : this.payloadJson,
+    retryCount: retryCount ?? this.retryCount,
+    lastAttempt: lastAttempt.present ? lastAttempt.value : this.lastAttempt,
+    error: error.present ? error.value : this.error,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SyncQueueRow copyWithCompanion(SyncQueueCompanion data) {
+    return SyncQueueRow(
+      id: data.id.present ? data.id.value : this.id,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      action: data.action.present ? data.action.value : this.action,
+      payloadJson:
+          data.payloadJson.present ? data.payloadJson.value : this.payloadJson,
+      retryCount:
+          data.retryCount.present ? data.retryCount.value : this.retryCount,
+      lastAttempt:
+          data.lastAttempt.present ? data.lastAttempt.value : this.lastAttempt,
+      error: data.error.present ? data.error.value : this.error,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncQueueRow(')
+          ..write('id: $id, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('action: $action, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('lastAttempt: $lastAttempt, ')
+          ..write('error: $error, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    entityType,
+    entityId,
+    action,
+    payloadJson,
+    retryCount,
+    lastAttempt,
+    error,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncQueueRow &&
+          other.id == this.id &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.action == this.action &&
+          other.payloadJson == this.payloadJson &&
+          other.retryCount == this.retryCount &&
+          other.lastAttempt == this.lastAttempt &&
+          other.error == this.error &&
+          other.createdAt == this.createdAt);
+}
+
+class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
+  final Value<int> id;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String> action;
+  final Value<String?> payloadJson;
+  final Value<int> retryCount;
+  final Value<DateTime?> lastAttempt;
+  final Value<String?> error;
+  final Value<DateTime> createdAt;
+  const SyncQueueCompanion({
+    this.id = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.action = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.lastAttempt = const Value.absent(),
+    this.error = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SyncQueueCompanion.insert({
+    this.id = const Value.absent(),
+    required String entityType,
+    required String entityId,
+    required String action,
+    this.payloadJson = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.lastAttempt = const Value.absent(),
+    this.error = const Value.absent(),
+    required DateTime createdAt,
+  }) : entityType = Value(entityType),
+       entityId = Value(entityId),
+       action = Value(action),
+       createdAt = Value(createdAt);
+  static Insertable<SyncQueueRow> custom({
+    Expression<int>? id,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? action,
+    Expression<String>? payloadJson,
+    Expression<int>? retryCount,
+    Expression<DateTime>? lastAttempt,
+    Expression<String>? error,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (action != null) 'action': action,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (lastAttempt != null) 'last_attempt': lastAttempt,
+      if (error != null) 'error': error,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SyncQueueCompanion copyWith({
+    Value<int>? id,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String>? action,
+    Value<String?>? payloadJson,
+    Value<int>? retryCount,
+    Value<DateTime?>? lastAttempt,
+    Value<String?>? error,
+    Value<DateTime>? createdAt,
+  }) {
+    return SyncQueueCompanion(
+      id: id ?? this.id,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      action: action ?? this.action,
+      payloadJson: payloadJson ?? this.payloadJson,
+      retryCount: retryCount ?? this.retryCount,
+      lastAttempt: lastAttempt ?? this.lastAttempt,
+      error: error ?? this.error,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (lastAttempt.present) {
+      map['last_attempt'] = Variable<DateTime>(lastAttempt.value);
+    }
+    if (error.present) {
+      map['error'] = Variable<String>(error.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncQueueCompanion(')
+          ..write('id: $id, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('action: $action, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('lastAttempt: $lastAttempt, ')
+          ..write('error: $error, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -2240,122 +7127,86 @@ class SettingsKvCompanion extends UpdateCompanion<SettingRow> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
-  late final $MediasTable medias = $MediasTable(this);
+  late final $VideosTable videos = $VideosTable(this);
+  late final $AudiosTable audios = $AudiosTable(this);
   late final $TranscriptsTable transcripts = $TranscriptsTable(this);
-  late final $PlaybackSessionsTable playbackSessions = $PlaybackSessionsTable(
-    this,
-  );
+  late final $EchoSessionsTable echoSessions = $EchoSessionsTable(this);
+  late final $RecordingsTable recordings = $RecordingsTable(this);
+  late final $DictationsTable dictations = $DictationsTable(this);
+  late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $SettingsKvTable settingsKv = $SettingsKvTable(this);
-  late final MediaDao mediaDao = MediaDao(this as AppDatabase);
+  late final VideoDao videoDao = VideoDao(this as AppDatabase);
+  late final AudioDao audioDao = AudioDao(this as AppDatabase);
   late final TranscriptDao transcriptDao = TranscriptDao(this as AppDatabase);
-  late final SessionDao sessionDao = SessionDao(this as AppDatabase);
+  late final EchoSessionDao echoSessionDao = EchoSessionDao(
+    this as AppDatabase,
+  );
+  late final RecordingDao recordingDao = RecordingDao(this as AppDatabase);
+  late final DictationDao dictationDao = DictationDao(this as AppDatabase);
+  late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    medias,
+    videos,
+    audios,
     transcripts,
-    playbackSessions,
+    echoSessions,
+    recordings,
+    dictations,
+    syncQueue,
     settingsKv,
   ];
-  @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'media',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('transcripts', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'media',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('playback_sessions', kind: UpdateKind.delete)],
-    ),
-  ]);
 }
 
-typedef $$MediasTableCreateCompanionBuilder =
-    MediasCompanion Function({
+typedef $$VideosTableCreateCompanionBuilder =
+    VideosCompanion Function({
       required String id,
-      required String kind,
+      required String vid,
+      Value<String> provider,
       required String title,
-      required String sourceUri,
-      Value<String?> thumbnailPath,
-      Value<int> durationMs,
+      Value<String?> description,
+      Value<String?> thumbnailUrl,
+      Value<int> durationSeconds,
       Value<String> language,
-      required String fileHash,
-      required int fileSize,
+      Value<String?> source,
+      Value<String?> localUri,
+      Value<String?> md5,
+      Value<int?> size,
+      Value<String?> mediaUrl,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
     });
-typedef $$MediasTableUpdateCompanionBuilder =
-    MediasCompanion Function({
+typedef $$VideosTableUpdateCompanionBuilder =
+    VideosCompanion Function({
       Value<String> id,
-      Value<String> kind,
+      Value<String> vid,
+      Value<String> provider,
       Value<String> title,
-      Value<String> sourceUri,
-      Value<String?> thumbnailPath,
-      Value<int> durationMs,
+      Value<String?> description,
+      Value<String?> thumbnailUrl,
+      Value<int> durationSeconds,
       Value<String> language,
-      Value<String> fileHash,
-      Value<int> fileSize,
+      Value<String?> source,
+      Value<String?> localUri,
+      Value<String?> md5,
+      Value<int?> size,
+      Value<String?> mediaUrl,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
-final class $$MediasTableReferences
-    extends BaseReferences<_$AppDatabase, $MediasTable, MediaRow> {
-  $$MediasTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$TranscriptsTable, List<TranscriptRow>>
-  _transcriptsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.transcripts,
-    aliasName: $_aliasNameGenerator(db.medias.id, db.transcripts.mediaId),
-  );
-
-  $$TranscriptsTableProcessedTableManager get transcriptsRefs {
-    final manager = $$TranscriptsTableTableManager(
-      $_db,
-      $_db.transcripts,
-    ).filter((f) => f.mediaId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_transcriptsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$PlaybackSessionsTable, List<PlaybackSessionRow>>
-  _playbackSessionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.playbackSessions,
-    aliasName: $_aliasNameGenerator(db.medias.id, db.playbackSessions.mediaId),
-  );
-
-  $$PlaybackSessionsTableProcessedTableManager get playbackSessionsRefs {
-    final manager = $$PlaybackSessionsTableTableManager(
-      $_db,
-      $_db.playbackSessions,
-    ).filter((f) => f.mediaId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _playbackSessionsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$MediasTableFilterComposer
-    extends Composer<_$AppDatabase, $MediasTable> {
-  $$MediasTableFilterComposer({
+class $$VideosTableFilterComposer
+    extends Composer<_$AppDatabase, $VideosTable> {
+  $$VideosTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2367,8 +7218,13 @@ class $$MediasTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get kind => $composableBuilder(
-    column: $table.kind,
+  ColumnFilters<String> get vid => $composableBuilder(
+    column: $table.vid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get provider => $composableBuilder(
+    column: $table.provider,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2377,18 +7233,18 @@ class $$MediasTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get sourceUri => $composableBuilder(
-    column: $table.sourceUri,
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get thumbnailPath => $composableBuilder(
-    column: $table.thumbnailPath,
+  ColumnFilters<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get durationMs => $composableBuilder(
-    column: $table.durationMs,
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2397,13 +7253,38 @@ class $$MediasTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get fileHash => $composableBuilder(
-    column: $table.fileHash,
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get fileSize => $composableBuilder(
-    column: $table.fileSize,
+  ColumnFilters<String> get localUri => $composableBuilder(
+    column: $table.localUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaUrl => $composableBuilder(
+    column: $table.mediaUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2416,61 +7297,11 @@ class $$MediasTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> transcriptsRefs(
-    Expression<bool> Function($$TranscriptsTableFilterComposer f) f,
-  ) {
-    final $$TranscriptsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.transcripts,
-      getReferencedColumn: (t) => t.mediaId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TranscriptsTableFilterComposer(
-            $db: $db,
-            $table: $db.transcripts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> playbackSessionsRefs(
-    Expression<bool> Function($$PlaybackSessionsTableFilterComposer f) f,
-  ) {
-    final $$PlaybackSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.playbackSessions,
-      getReferencedColumn: (t) => t.mediaId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PlaybackSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.playbackSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
-class $$MediasTableOrderingComposer
-    extends Composer<_$AppDatabase, $MediasTable> {
-  $$MediasTableOrderingComposer({
+class $$VideosTableOrderingComposer
+    extends Composer<_$AppDatabase, $VideosTable> {
+  $$VideosTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2482,8 +7313,13 @@ class $$MediasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get kind => $composableBuilder(
-    column: $table.kind,
+  ColumnOrderings<String> get vid => $composableBuilder(
+    column: $table.vid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get provider => $composableBuilder(
+    column: $table.provider,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2492,18 +7328,18 @@ class $$MediasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get sourceUri => $composableBuilder(
-    column: $table.sourceUri,
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get thumbnailPath => $composableBuilder(
-    column: $table.thumbnailPath,
+  ColumnOrderings<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get durationMs => $composableBuilder(
-    column: $table.durationMs,
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2512,13 +7348,38 @@ class $$MediasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get fileHash => $composableBuilder(
-    column: $table.fileHash,
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get fileSize => $composableBuilder(
-    column: $table.fileSize,
+  ColumnOrderings<String> get localUri => $composableBuilder(
+    column: $table.localUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaUrl => $composableBuilder(
+    column: $table.mediaUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2533,9 +7394,9 @@ class $$MediasTableOrderingComposer
   );
 }
 
-class $$MediasTableAnnotationComposer
-    extends Composer<_$AppDatabase, $MediasTable> {
-  $$MediasTableAnnotationComposer({
+class $$VideosTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VideosTable> {
+  $$VideosTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2545,144 +7406,127 @@ class $$MediasTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get kind =>
-      $composableBuilder(column: $table.kind, builder: (column) => column);
+  GeneratedColumn<String> get vid =>
+      $composableBuilder(column: $table.vid, builder: (column) => column);
+
+  GeneratedColumn<String> get provider =>
+      $composableBuilder(column: $table.provider, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<String> get sourceUri =>
-      $composableBuilder(column: $table.sourceUri, builder: (column) => column);
-
-  GeneratedColumn<String> get thumbnailPath => $composableBuilder(
-    column: $table.thumbnailPath,
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get durationMs => $composableBuilder(
-    column: $table.durationMs,
+  GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => column,
   );
 
   GeneratedColumn<String> get language =>
       $composableBuilder(column: $table.language, builder: (column) => column);
 
-  GeneratedColumn<String> get fileHash =>
-      $composableBuilder(column: $table.fileHash, builder: (column) => column);
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
 
-  GeneratedColumn<int> get fileSize =>
-      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+  GeneratedColumn<String> get localUri =>
+      $composableBuilder(column: $table.localUri, builder: (column) => column);
+
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaUrl =>
+      $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  Expression<T> transcriptsRefs<T extends Object>(
-    Expression<T> Function($$TranscriptsTableAnnotationComposer a) f,
-  ) {
-    final $$TranscriptsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.transcripts,
-      getReferencedColumn: (t) => t.mediaId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TranscriptsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.transcripts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> playbackSessionsRefs<T extends Object>(
-    Expression<T> Function($$PlaybackSessionsTableAnnotationComposer a) f,
-  ) {
-    final $$PlaybackSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.playbackSessions,
-      getReferencedColumn: (t) => t.mediaId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PlaybackSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.playbackSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
-class $$MediasTableTableManager
+class $$VideosTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $MediasTable,
-          MediaRow,
-          $$MediasTableFilterComposer,
-          $$MediasTableOrderingComposer,
-          $$MediasTableAnnotationComposer,
-          $$MediasTableCreateCompanionBuilder,
-          $$MediasTableUpdateCompanionBuilder,
-          (MediaRow, $$MediasTableReferences),
-          MediaRow,
-          PrefetchHooks Function({
-            bool transcriptsRefs,
-            bool playbackSessionsRefs,
-          })
+          $VideosTable,
+          VideoRow,
+          $$VideosTableFilterComposer,
+          $$VideosTableOrderingComposer,
+          $$VideosTableAnnotationComposer,
+          $$VideosTableCreateCompanionBuilder,
+          $$VideosTableUpdateCompanionBuilder,
+          (VideoRow, BaseReferences<_$AppDatabase, $VideosTable, VideoRow>),
+          VideoRow,
+          PrefetchHooks Function()
         > {
-  $$MediasTableTableManager(_$AppDatabase db, $MediasTable table)
+  $$VideosTableTableManager(_$AppDatabase db, $VideosTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer:
-              () => $$MediasTableFilterComposer($db: db, $table: table),
+              () => $$VideosTableFilterComposer($db: db, $table: table),
           createOrderingComposer:
-              () => $$MediasTableOrderingComposer($db: db, $table: table),
+              () => $$VideosTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer:
-              () => $$MediasTableAnnotationComposer($db: db, $table: table),
+              () => $$VideosTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> kind = const Value.absent(),
+                Value<String> vid = const Value.absent(),
+                Value<String> provider = const Value.absent(),
                 Value<String> title = const Value.absent(),
-                Value<String> sourceUri = const Value.absent(),
-                Value<String?> thumbnailPath = const Value.absent(),
-                Value<int> durationMs = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<String> language = const Value.absent(),
-                Value<String> fileHash = const Value.absent(),
-                Value<int> fileSize = const Value.absent(),
+                Value<String?> source = const Value.absent(),
+                Value<String?> localUri = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => MediasCompanion(
+              }) => VideosCompanion(
                 id: id,
-                kind: kind,
+                vid: vid,
+                provider: provider,
                 title: title,
-                sourceUri: sourceUri,
-                thumbnailPath: thumbnailPath,
-                durationMs: durationMs,
+                description: description,
+                thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
                 language: language,
-                fileHash: fileHash,
-                fileSize: fileSize,
+                source: source,
+                localUri: localUri,
+                md5: md5,
+                size: size,
+                mediaUrl: mediaUrl,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2690,27 +7534,39 @@ class $$MediasTableTableManager
           createCompanionCallback:
               ({
                 required String id,
-                required String kind,
+                required String vid,
+                Value<String> provider = const Value.absent(),
                 required String title,
-                required String sourceUri,
-                Value<String?> thumbnailPath = const Value.absent(),
-                Value<int> durationMs = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
                 Value<String> language = const Value.absent(),
-                required String fileHash,
-                required int fileSize,
+                Value<String?> source = const Value.absent(),
+                Value<String?> localUri = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
-              }) => MediasCompanion.insert(
+              }) => VideosCompanion.insert(
                 id: id,
-                kind: kind,
+                vid: vid,
+                provider: provider,
                 title: title,
-                sourceUri: sourceUri,
-                thumbnailPath: thumbnailPath,
-                durationMs: durationMs,
+                description: description,
+                thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
                 language: language,
-                fileHash: fileHash,
-                fileSize: fileSize,
+                source: source,
+                localUri: localUri,
+                md5: md5,
+                size: size,
+                mediaUrl: mediaUrl,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2721,99 +7577,543 @@ class $$MediasTableTableManager
                       .map(
                         (e) => (
                           e.readTable(table),
-                          $$MediasTableReferences(db, table, e),
+                          BaseReferences(db, table, e),
                         ),
                       )
                       .toList(),
-          prefetchHooksCallback: ({
-            transcriptsRefs = false,
-            playbackSessionsRefs = false,
-          }) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (transcriptsRefs) db.transcripts,
-                if (playbackSessionsRefs) db.playbackSessions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (transcriptsRefs)
-                    await $_getPrefetchedData<
-                      MediaRow,
-                      $MediasTable,
-                      TranscriptRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$MediasTableReferences
-                          ._transcriptsRefsTable(db),
-                      managerFromTypedResult:
-                          (p0) =>
-                              $$MediasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).transcriptsRefs,
-                      referencedItemsForCurrentItem:
-                          (item, referencedItems) => referencedItems.where(
-                            (e) => e.mediaId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                  if (playbackSessionsRefs)
-                    await $_getPrefetchedData<
-                      MediaRow,
-                      $MediasTable,
-                      PlaybackSessionRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$MediasTableReferences
-                          ._playbackSessionsRefsTable(db),
-                      managerFromTypedResult:
-                          (p0) =>
-                              $$MediasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).playbackSessionsRefs,
-                      referencedItemsForCurrentItem:
-                          (item, referencedItems) => referencedItems.where(
-                            (e) => e.mediaId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
 
-typedef $$MediasTableProcessedTableManager =
+typedef $$VideosTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $MediasTable,
-      MediaRow,
-      $$MediasTableFilterComposer,
-      $$MediasTableOrderingComposer,
-      $$MediasTableAnnotationComposer,
-      $$MediasTableCreateCompanionBuilder,
-      $$MediasTableUpdateCompanionBuilder,
-      (MediaRow, $$MediasTableReferences),
-      MediaRow,
-      PrefetchHooks Function({bool transcriptsRefs, bool playbackSessionsRefs})
+      $VideosTable,
+      VideoRow,
+      $$VideosTableFilterComposer,
+      $$VideosTableOrderingComposer,
+      $$VideosTableAnnotationComposer,
+      $$VideosTableCreateCompanionBuilder,
+      $$VideosTableUpdateCompanionBuilder,
+      (VideoRow, BaseReferences<_$AppDatabase, $VideosTable, VideoRow>),
+      VideoRow,
+      PrefetchHooks Function()
+    >;
+typedef $$AudiosTableCreateCompanionBuilder =
+    AudiosCompanion Function({
+      required String id,
+      required String aid,
+      Value<String> provider,
+      required String title,
+      Value<String?> description,
+      Value<String?> thumbnailUrl,
+      Value<int> durationSeconds,
+      Value<String> language,
+      Value<String?> translationKey,
+      Value<String?> sourceText,
+      Value<String?> voice,
+      Value<String?> source,
+      Value<String?> localUri,
+      Value<String?> md5,
+      Value<int?> size,
+      Value<String?> mediaUrl,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$AudiosTableUpdateCompanionBuilder =
+    AudiosCompanion Function({
+      Value<String> id,
+      Value<String> aid,
+      Value<String> provider,
+      Value<String> title,
+      Value<String?> description,
+      Value<String?> thumbnailUrl,
+      Value<int> durationSeconds,
+      Value<String> language,
+      Value<String?> translationKey,
+      Value<String?> sourceText,
+      Value<String?> voice,
+      Value<String?> source,
+      Value<String?> localUri,
+      Value<String?> md5,
+      Value<int?> size,
+      Value<String?> mediaUrl,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$AudiosTableFilterComposer
+    extends Composer<_$AppDatabase, $AudiosTable> {
+  $$AudiosTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get aid => $composableBuilder(
+    column: $table.aid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get provider => $composableBuilder(
+    column: $table.provider,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get translationKey => $composableBuilder(
+    column: $table.translationKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceText => $composableBuilder(
+    column: $table.sourceText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voice => $composableBuilder(
+    column: $table.voice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localUri => $composableBuilder(
+    column: $table.localUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaUrl => $composableBuilder(
+    column: $table.mediaUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AudiosTableOrderingComposer
+    extends Composer<_$AppDatabase, $AudiosTable> {
+  $$AudiosTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get aid => $composableBuilder(
+    column: $table.aid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get provider => $composableBuilder(
+    column: $table.provider,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get translationKey => $composableBuilder(
+    column: $table.translationKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceText => $composableBuilder(
+    column: $table.sourceText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voice => $composableBuilder(
+    column: $table.voice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localUri => $composableBuilder(
+    column: $table.localUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaUrl => $composableBuilder(
+    column: $table.mediaUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AudiosTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AudiosTable> {
+  $$AudiosTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get aid =>
+      $composableBuilder(column: $table.aid, builder: (column) => column);
+
+  GeneratedColumn<String> get provider =>
+      $composableBuilder(column: $table.provider, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
+    column: $table.thumbnailUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<String> get translationKey => $composableBuilder(
+    column: $table.translationKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceText => $composableBuilder(
+    column: $table.sourceText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get voice =>
+      $composableBuilder(column: $table.voice, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get localUri =>
+      $composableBuilder(column: $table.localUri, builder: (column) => column);
+
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaUrl =>
+      $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AudiosTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AudiosTable,
+          AudioRow,
+          $$AudiosTableFilterComposer,
+          $$AudiosTableOrderingComposer,
+          $$AudiosTableAnnotationComposer,
+          $$AudiosTableCreateCompanionBuilder,
+          $$AudiosTableUpdateCompanionBuilder,
+          (AudioRow, BaseReferences<_$AppDatabase, $AudiosTable, AudioRow>),
+          AudioRow,
+          PrefetchHooks Function()
+        > {
+  $$AudiosTableTableManager(_$AppDatabase db, $AudiosTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$AudiosTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$AudiosTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$AudiosTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> aid = const Value.absent(),
+                Value<String> provider = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String?> translationKey = const Value.absent(),
+                Value<String?> sourceText = const Value.absent(),
+                Value<String?> voice = const Value.absent(),
+                Value<String?> source = const Value.absent(),
+                Value<String?> localUri = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AudiosCompanion(
+                id: id,
+                aid: aid,
+                provider: provider,
+                title: title,
+                description: description,
+                thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
+                language: language,
+                translationKey: translationKey,
+                sourceText: sourceText,
+                voice: voice,
+                source: source,
+                localUri: localUri,
+                md5: md5,
+                size: size,
+                mediaUrl: mediaUrl,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String aid,
+                Value<String> provider = const Value.absent(),
+                required String title,
+                Value<String?> description = const Value.absent(),
+                Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String?> translationKey = const Value.absent(),
+                Value<String?> sourceText = const Value.absent(),
+                Value<String?> voice = const Value.absent(),
+                Value<String?> source = const Value.absent(),
+                Value<String?> localUri = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AudiosCompanion.insert(
+                id: id,
+                aid: aid,
+                provider: provider,
+                title: title,
+                description: description,
+                thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
+                language: language,
+                translationKey: translationKey,
+                sourceText: sourceText,
+                voice: voice,
+                source: source,
+                localUri: localUri,
+                md5: md5,
+                size: size,
+                mediaUrl: mediaUrl,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AudiosTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AudiosTable,
+      AudioRow,
+      $$AudiosTableFilterComposer,
+      $$AudiosTableOrderingComposer,
+      $$AudiosTableAnnotationComposer,
+      $$AudiosTableCreateCompanionBuilder,
+      $$AudiosTableUpdateCompanionBuilder,
+      (AudioRow, BaseReferences<_$AppDatabase, $AudiosTable, AudioRow>),
+      AudioRow,
+      PrefetchHooks Function()
     >;
 typedef $$TranscriptsTableCreateCompanionBuilder =
     TranscriptsCompanion Function({
       required String id,
-      required String mediaId,
+      required String targetType,
+      required String targetId,
       required String language,
       required String source,
-      required String linesJson,
+      required String timelineJson,
+      Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
       Value<bool> isEmbedded,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -2821,40 +8121,21 @@ typedef $$TranscriptsTableCreateCompanionBuilder =
 typedef $$TranscriptsTableUpdateCompanionBuilder =
     TranscriptsCompanion Function({
       Value<String> id,
-      Value<String> mediaId,
+      Value<String> targetType,
+      Value<String> targetId,
       Value<String> language,
       Value<String> source,
-      Value<String> linesJson,
+      Value<String> timelineJson,
+      Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
       Value<bool> isEmbedded,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
-
-final class $$TranscriptsTableReferences
-    extends BaseReferences<_$AppDatabase, $TranscriptsTable, TranscriptRow> {
-  $$TranscriptsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $MediasTable _mediaIdTable(_$AppDatabase db) => db.medias.createAlias(
-    $_aliasNameGenerator(db.transcripts.mediaId, db.medias.id),
-  );
-
-  $$MediasTableProcessedTableManager get mediaId {
-    final $_column = $_itemColumn<String>('media_id')!;
-
-    final manager = $$MediasTableTableManager(
-      $_db,
-      $_db.medias,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_mediaIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$TranscriptsTableFilterComposer
     extends Composer<_$AppDatabase, $TranscriptsTable> {
@@ -2870,6 +8151,16 @@ class $$TranscriptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get language => $composableBuilder(
     column: $table.language,
     builder: (column) => ColumnFilters(column),
@@ -2880,8 +8171,13 @@ class $$TranscriptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get linesJson => $composableBuilder(
-    column: $table.linesJson,
+  ColumnFilters<String> get timelineJson => $composableBuilder(
+    column: $table.timelineJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2900,6 +8196,16 @@ class $$TranscriptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -2909,29 +8215,6 @@ class $$TranscriptsTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$MediasTableFilterComposer get mediaId {
-    final $$MediasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableFilterComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$TranscriptsTableOrderingComposer
@@ -2948,6 +8231,16 @@ class $$TranscriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get language => $composableBuilder(
     column: $table.language,
     builder: (column) => ColumnOrderings(column),
@@ -2958,8 +8251,13 @@ class $$TranscriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get linesJson => $composableBuilder(
-    column: $table.linesJson,
+  ColumnOrderings<String> get timelineJson => $composableBuilder(
+    column: $table.timelineJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2978,6 +8276,16 @@ class $$TranscriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2987,29 +8295,6 @@ class $$TranscriptsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$MediasTableOrderingComposer get mediaId {
-    final $$MediasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableOrderingComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$TranscriptsTableAnnotationComposer
@@ -3024,14 +8309,29 @@ class $$TranscriptsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
   GeneratedColumn<String> get language =>
       $composableBuilder(column: $table.language, builder: (column) => column);
 
   GeneratedColumn<String> get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
 
-  GeneratedColumn<String> get linesJson =>
-      $composableBuilder(column: $table.linesJson, builder: (column) => column);
+  GeneratedColumn<String> get timelineJson => $composableBuilder(
+    column: $table.timelineJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get label =>
       $composableBuilder(column: $table.label, builder: (column) => column);
@@ -3046,34 +8346,21 @@ class $$TranscriptsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  $$MediasTableAnnotationComposer get mediaId {
-    final $$MediasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$TranscriptsTableTableManager
@@ -3087,9 +8374,12 @@ class $$TranscriptsTableTableManager
           $$TranscriptsTableAnnotationComposer,
           $$TranscriptsTableCreateCompanionBuilder,
           $$TranscriptsTableUpdateCompanionBuilder,
-          (TranscriptRow, $$TranscriptsTableReferences),
+          (
+            TranscriptRow,
+            BaseReferences<_$AppDatabase, $TranscriptsTable, TranscriptRow>,
+          ),
           TranscriptRow,
-          PrefetchHooks Function({bool mediaId})
+          PrefetchHooks Function()
         > {
   $$TranscriptsTableTableManager(_$AppDatabase db, $TranscriptsTable table)
     : super(
@@ -3106,25 +8396,33 @@ class $$TranscriptsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> mediaId = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
                 Value<String> language = const Value.absent(),
                 Value<String> source = const Value.absent(),
-                Value<String> linesJson = const Value.absent(),
+                Value<String> timelineJson = const Value.absent(),
+                Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
                 Value<bool> isEmbedded = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TranscriptsCompanion(
                 id: id,
-                mediaId: mediaId,
+                targetType: targetType,
+                targetId: targetId,
                 language: language,
                 source: source,
-                linesJson: linesJson,
+                timelineJson: timelineJson,
+                referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
                 isEmbedded: isEmbedded,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -3132,25 +8430,33 @@ class $$TranscriptsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
-                required String mediaId,
+                required String targetType,
+                required String targetId,
                 required String language,
                 required String source,
-                required String linesJson,
+                required String timelineJson,
+                Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
                 Value<bool> isEmbedded = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => TranscriptsCompanion.insert(
                 id: id,
-                mediaId: mediaId,
+                targetType: targetType,
+                targetId: targetId,
                 language: language,
                 source: source,
-                linesJson: linesJson,
+                timelineJson: timelineJson,
+                referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
                 isEmbedded: isEmbedded,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -3161,51 +8467,11 @@ class $$TranscriptsTableTableManager
                       .map(
                         (e) => (
                           e.readTable(table),
-                          $$TranscriptsTableReferences(db, table, e),
+                          BaseReferences(db, table, e),
                         ),
                       )
                       .toList(),
-          prefetchHooksCallback: ({mediaId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                T extends TableManagerState<
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic
-                >
-              >(state) {
-                if (mediaId) {
-                  state =
-                      state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.mediaId,
-                            referencedTable: $$TranscriptsTableReferences
-                                ._mediaIdTable(db),
-                            referencedColumn:
-                                $$TranscriptsTableReferences
-                                    ._mediaIdTable(db)
-                                    .id,
-                          )
-                          as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -3220,84 +8486,148 @@ typedef $$TranscriptsTableProcessedTableManager =
       $$TranscriptsTableAnnotationComposer,
       $$TranscriptsTableCreateCompanionBuilder,
       $$TranscriptsTableUpdateCompanionBuilder,
-      (TranscriptRow, $$TranscriptsTableReferences),
+      (
+        TranscriptRow,
+        BaseReferences<_$AppDatabase, $TranscriptsTable, TranscriptRow>,
+      ),
       TranscriptRow,
-      PrefetchHooks Function({bool mediaId})
+      PrefetchHooks Function()
     >;
-typedef $$PlaybackSessionsTableCreateCompanionBuilder =
-    PlaybackSessionsCompanion Function({
-      required String mediaId,
-      Value<int> positionMs,
+typedef $$EchoSessionsTableCreateCompanionBuilder =
+    EchoSessionsCompanion Function({
+      required String id,
+      required String targetType,
+      required String targetId,
+      Value<String> language,
+      Value<int> currentTimeMs,
+      Value<double> playbackRate,
+      Value<double> volume,
+      Value<int?> echoStartMs,
+      Value<int?> echoEndMs,
+      Value<String?> transcriptId,
+      Value<String?> secondaryTranscriptId,
+      Value<int> recordingsCount,
+      Value<int> recordingsDurationMs,
+      Value<DateTime?> lastRecordingAt,
       Value<int> currentSegmentIndex,
       Value<bool> echoActive,
       Value<int> echoStartLine,
       Value<int> echoEndLine,
-      Value<int> echoStartMs,
-      Value<int> echoEndMs,
-      Value<String?> primaryTranscriptId,
-      Value<String?> secondaryTranscriptId,
+      required DateTime startedAt,
       required DateTime lastActiveAt,
+      Value<DateTime?> completedAt,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       Value<int> rowid,
     });
-typedef $$PlaybackSessionsTableUpdateCompanionBuilder =
-    PlaybackSessionsCompanion Function({
-      Value<String> mediaId,
-      Value<int> positionMs,
+typedef $$EchoSessionsTableUpdateCompanionBuilder =
+    EchoSessionsCompanion Function({
+      Value<String> id,
+      Value<String> targetType,
+      Value<String> targetId,
+      Value<String> language,
+      Value<int> currentTimeMs,
+      Value<double> playbackRate,
+      Value<double> volume,
+      Value<int?> echoStartMs,
+      Value<int?> echoEndMs,
+      Value<String?> transcriptId,
+      Value<String?> secondaryTranscriptId,
+      Value<int> recordingsCount,
+      Value<int> recordingsDurationMs,
+      Value<DateTime?> lastRecordingAt,
       Value<int> currentSegmentIndex,
       Value<bool> echoActive,
       Value<int> echoStartLine,
       Value<int> echoEndLine,
-      Value<int> echoStartMs,
-      Value<int> echoEndMs,
-      Value<String?> primaryTranscriptId,
-      Value<String?> secondaryTranscriptId,
+      Value<DateTime> startedAt,
       Value<DateTime> lastActiveAt,
+      Value<DateTime?> completedAt,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
-final class $$PlaybackSessionsTableReferences
-    extends
-        BaseReferences<
-          _$AppDatabase,
-          $PlaybackSessionsTable,
-          PlaybackSessionRow
-        > {
-  $$PlaybackSessionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $MediasTable _mediaIdTable(_$AppDatabase db) => db.medias.createAlias(
-    $_aliasNameGenerator(db.playbackSessions.mediaId, db.medias.id),
-  );
-
-  $$MediasTableProcessedTableManager get mediaId {
-    final $_column = $_itemColumn<String>('media_id')!;
-
-    final manager = $$MediasTableTableManager(
-      $_db,
-      $_db.medias,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_mediaIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$PlaybackSessionsTableFilterComposer
-    extends Composer<_$AppDatabase, $PlaybackSessionsTable> {
-  $$PlaybackSessionsTableFilterComposer({
+class $$EchoSessionsTableFilterComposer
+    extends Composer<_$AppDatabase, $EchoSessionsTable> {
+  $$EchoSessionsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get positionMs => $composableBuilder(
-    column: $table.positionMs,
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentTimeMs => $composableBuilder(
+    column: $table.currentTimeMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get playbackRate => $composableBuilder(
+    column: $table.playbackRate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get volume => $composableBuilder(
+    column: $table.volume,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get echoStartMs => $composableBuilder(
+    column: $table.echoStartMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get echoEndMs => $composableBuilder(
+    column: $table.echoEndMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transcriptId => $composableBuilder(
+    column: $table.transcriptId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recordingsCount => $composableBuilder(
+    column: $table.recordingsCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recordingsDurationMs => $composableBuilder(
+    column: $table.recordingsDurationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastRecordingAt => $composableBuilder(
+    column: $table.lastRecordingAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3321,23 +8651,8 @@ class $$PlaybackSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get echoStartMs => $composableBuilder(
-    column: $table.echoStartMs,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get echoEndMs => $composableBuilder(
-    column: $table.echoEndMs,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get primaryTranscriptId => $composableBuilder(
-    column: $table.primaryTranscriptId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get secondaryTranscriptId => $composableBuilder(
-    column: $table.secondaryTranscriptId,
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3346,41 +8661,108 @@ class $$PlaybackSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$MediasTableFilterComposer get mediaId {
-    final $$MediasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableFilterComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$PlaybackSessionsTableOrderingComposer
-    extends Composer<_$AppDatabase, $PlaybackSessionsTable> {
-  $$PlaybackSessionsTableOrderingComposer({
+class $$EchoSessionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EchoSessionsTable> {
+  $$EchoSessionsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get positionMs => $composableBuilder(
-    column: $table.positionMs,
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentTimeMs => $composableBuilder(
+    column: $table.currentTimeMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get playbackRate => $composableBuilder(
+    column: $table.playbackRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get volume => $composableBuilder(
+    column: $table.volume,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get echoStartMs => $composableBuilder(
+    column: $table.echoStartMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get echoEndMs => $composableBuilder(
+    column: $table.echoEndMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transcriptId => $composableBuilder(
+    column: $table.transcriptId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recordingsCount => $composableBuilder(
+    column: $table.recordingsCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recordingsDurationMs => $composableBuilder(
+    column: $table.recordingsDurationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastRecordingAt => $composableBuilder(
+    column: $table.lastRecordingAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3404,23 +8786,8 @@ class $$PlaybackSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get echoStartMs => $composableBuilder(
-    column: $table.echoStartMs,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get echoEndMs => $composableBuilder(
-    column: $table.echoEndMs,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get primaryTranscriptId => $composableBuilder(
-    column: $table.primaryTranscriptId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get secondaryTranscriptId => $composableBuilder(
-    column: $table.secondaryTranscriptId,
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3429,41 +8796,98 @@ class $$PlaybackSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$MediasTableOrderingComposer get mediaId {
-    final $$MediasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableOrderingComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$PlaybackSessionsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $PlaybackSessionsTable> {
-  $$PlaybackSessionsTableAnnotationComposer({
+class $$EchoSessionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EchoSessionsTable> {
+  $$EchoSessionsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get positionMs => $composableBuilder(
-    column: $table.positionMs,
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<int> get currentTimeMs => $composableBuilder(
+    column: $table.currentTimeMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get playbackRate => $composableBuilder(
+    column: $table.playbackRate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get volume =>
+      $composableBuilder(column: $table.volume, builder: (column) => column);
+
+  GeneratedColumn<int> get echoStartMs => $composableBuilder(
+    column: $table.echoStartMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get echoEndMs =>
+      $composableBuilder(column: $table.echoEndMs, builder: (column) => column);
+
+  GeneratedColumn<String> get transcriptId => $composableBuilder(
+    column: $table.transcriptId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get secondaryTranscriptId => $composableBuilder(
+    column: $table.secondaryTranscriptId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recordingsCount => $composableBuilder(
+    column: $table.recordingsCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recordingsDurationMs => $composableBuilder(
+    column: $table.recordingsDurationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastRecordingAt => $composableBuilder(
+    column: $table.lastRecordingAt,
     builder: (column) => column,
   );
 
@@ -3487,142 +8911,176 @@ class $$PlaybackSessionsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get echoStartMs => $composableBuilder(
-    column: $table.echoStartMs,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get echoEndMs =>
-      $composableBuilder(column: $table.echoEndMs, builder: (column) => column);
-
-  GeneratedColumn<String> get primaryTranscriptId => $composableBuilder(
-    column: $table.primaryTranscriptId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get secondaryTranscriptId => $composableBuilder(
-    column: $table.secondaryTranscriptId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastActiveAt => $composableBuilder(
     column: $table.lastActiveAt,
     builder: (column) => column,
   );
 
-  $$MediasTableAnnotationComposer get mediaId {
-    final $$MediasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mediaId,
-      referencedTable: $db.medias,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MediasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.medias,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $$PlaybackSessionsTableTableManager
+class $$EchoSessionsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $PlaybackSessionsTable,
-          PlaybackSessionRow,
-          $$PlaybackSessionsTableFilterComposer,
-          $$PlaybackSessionsTableOrderingComposer,
-          $$PlaybackSessionsTableAnnotationComposer,
-          $$PlaybackSessionsTableCreateCompanionBuilder,
-          $$PlaybackSessionsTableUpdateCompanionBuilder,
-          (PlaybackSessionRow, $$PlaybackSessionsTableReferences),
-          PlaybackSessionRow,
-          PrefetchHooks Function({bool mediaId})
+          $EchoSessionsTable,
+          EchoSessionRow,
+          $$EchoSessionsTableFilterComposer,
+          $$EchoSessionsTableOrderingComposer,
+          $$EchoSessionsTableAnnotationComposer,
+          $$EchoSessionsTableCreateCompanionBuilder,
+          $$EchoSessionsTableUpdateCompanionBuilder,
+          (
+            EchoSessionRow,
+            BaseReferences<_$AppDatabase, $EchoSessionsTable, EchoSessionRow>,
+          ),
+          EchoSessionRow,
+          PrefetchHooks Function()
         > {
-  $$PlaybackSessionsTableTableManager(
-    _$AppDatabase db,
-    $PlaybackSessionsTable table,
-  ) : super(
+  $$EchoSessionsTableTableManager(_$AppDatabase db, $EchoSessionsTable table)
+    : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer:
-              () =>
-                  $$PlaybackSessionsTableFilterComposer($db: db, $table: table),
+              () => $$EchoSessionsTableFilterComposer($db: db, $table: table),
           createOrderingComposer:
-              () => $$PlaybackSessionsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
+              () => $$EchoSessionsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer:
-              () => $$PlaybackSessionsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+              () =>
+                  $$EchoSessionsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> mediaId = const Value.absent(),
-                Value<int> positionMs = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<int> currentTimeMs = const Value.absent(),
+                Value<double> playbackRate = const Value.absent(),
+                Value<double> volume = const Value.absent(),
+                Value<int?> echoStartMs = const Value.absent(),
+                Value<int?> echoEndMs = const Value.absent(),
+                Value<String?> transcriptId = const Value.absent(),
+                Value<String?> secondaryTranscriptId = const Value.absent(),
+                Value<int> recordingsCount = const Value.absent(),
+                Value<int> recordingsDurationMs = const Value.absent(),
+                Value<DateTime?> lastRecordingAt = const Value.absent(),
                 Value<int> currentSegmentIndex = const Value.absent(),
                 Value<bool> echoActive = const Value.absent(),
                 Value<int> echoStartLine = const Value.absent(),
                 Value<int> echoEndLine = const Value.absent(),
-                Value<int> echoStartMs = const Value.absent(),
-                Value<int> echoEndMs = const Value.absent(),
-                Value<String?> primaryTranscriptId = const Value.absent(),
-                Value<String?> secondaryTranscriptId = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime> lastActiveAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => PlaybackSessionsCompanion(
-                mediaId: mediaId,
-                positionMs: positionMs,
+              }) => EchoSessionsCompanion(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                language: language,
+                currentTimeMs: currentTimeMs,
+                playbackRate: playbackRate,
+                volume: volume,
+                echoStartMs: echoStartMs,
+                echoEndMs: echoEndMs,
+                transcriptId: transcriptId,
+                secondaryTranscriptId: secondaryTranscriptId,
+                recordingsCount: recordingsCount,
+                recordingsDurationMs: recordingsDurationMs,
+                lastRecordingAt: lastRecordingAt,
                 currentSegmentIndex: currentSegmentIndex,
                 echoActive: echoActive,
                 echoStartLine: echoStartLine,
                 echoEndLine: echoEndLine,
-                echoStartMs: echoStartMs,
-                echoEndMs: echoEndMs,
-                primaryTranscriptId: primaryTranscriptId,
-                secondaryTranscriptId: secondaryTranscriptId,
+                startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
+                completedAt: completedAt,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required String mediaId,
-                Value<int> positionMs = const Value.absent(),
+                required String id,
+                required String targetType,
+                required String targetId,
+                Value<String> language = const Value.absent(),
+                Value<int> currentTimeMs = const Value.absent(),
+                Value<double> playbackRate = const Value.absent(),
+                Value<double> volume = const Value.absent(),
+                Value<int?> echoStartMs = const Value.absent(),
+                Value<int?> echoEndMs = const Value.absent(),
+                Value<String?> transcriptId = const Value.absent(),
+                Value<String?> secondaryTranscriptId = const Value.absent(),
+                Value<int> recordingsCount = const Value.absent(),
+                Value<int> recordingsDurationMs = const Value.absent(),
+                Value<DateTime?> lastRecordingAt = const Value.absent(),
                 Value<int> currentSegmentIndex = const Value.absent(),
                 Value<bool> echoActive = const Value.absent(),
                 Value<int> echoStartLine = const Value.absent(),
                 Value<int> echoEndLine = const Value.absent(),
-                Value<int> echoStartMs = const Value.absent(),
-                Value<int> echoEndMs = const Value.absent(),
-                Value<String?> primaryTranscriptId = const Value.absent(),
-                Value<String?> secondaryTranscriptId = const Value.absent(),
+                required DateTime startedAt,
                 required DateTime lastActiveAt,
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
-              }) => PlaybackSessionsCompanion.insert(
-                mediaId: mediaId,
-                positionMs: positionMs,
+              }) => EchoSessionsCompanion.insert(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                language: language,
+                currentTimeMs: currentTimeMs,
+                playbackRate: playbackRate,
+                volume: volume,
+                echoStartMs: echoStartMs,
+                echoEndMs: echoEndMs,
+                transcriptId: transcriptId,
+                secondaryTranscriptId: secondaryTranscriptId,
+                recordingsCount: recordingsCount,
+                recordingsDurationMs: recordingsDurationMs,
+                lastRecordingAt: lastRecordingAt,
                 currentSegmentIndex: currentSegmentIndex,
                 echoActive: echoActive,
                 echoStartLine: echoStartLine,
                 echoEndLine: echoEndLine,
-                echoStartMs: echoStartMs,
-                echoEndMs: echoEndMs,
-                primaryTranscriptId: primaryTranscriptId,
-                secondaryTranscriptId: secondaryTranscriptId,
+                startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
+                completedAt: completedAt,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper:
@@ -3631,68 +9089,1203 @@ class $$PlaybackSessionsTableTableManager
                       .map(
                         (e) => (
                           e.readTable(table),
-                          $$PlaybackSessionsTableReferences(db, table, e),
+                          BaseReferences(db, table, e),
                         ),
                       )
                       .toList(),
-          prefetchHooksCallback: ({mediaId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                T extends TableManagerState<
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic,
-                  dynamic
-                >
-              >(state) {
-                if (mediaId) {
-                  state =
-                      state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.mediaId,
-                            referencedTable: $$PlaybackSessionsTableReferences
-                                ._mediaIdTable(db),
-                            referencedColumn:
-                                $$PlaybackSessionsTableReferences
-                                    ._mediaIdTable(db)
-                                    .id,
-                          )
-                          as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
 
-typedef $$PlaybackSessionsTableProcessedTableManager =
+typedef $$EchoSessionsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $PlaybackSessionsTable,
-      PlaybackSessionRow,
-      $$PlaybackSessionsTableFilterComposer,
-      $$PlaybackSessionsTableOrderingComposer,
-      $$PlaybackSessionsTableAnnotationComposer,
-      $$PlaybackSessionsTableCreateCompanionBuilder,
-      $$PlaybackSessionsTableUpdateCompanionBuilder,
-      (PlaybackSessionRow, $$PlaybackSessionsTableReferences),
-      PlaybackSessionRow,
-      PrefetchHooks Function({bool mediaId})
+      $EchoSessionsTable,
+      EchoSessionRow,
+      $$EchoSessionsTableFilterComposer,
+      $$EchoSessionsTableOrderingComposer,
+      $$EchoSessionsTableAnnotationComposer,
+      $$EchoSessionsTableCreateCompanionBuilder,
+      $$EchoSessionsTableUpdateCompanionBuilder,
+      (
+        EchoSessionRow,
+        BaseReferences<_$AppDatabase, $EchoSessionsTable, EchoSessionRow>,
+      ),
+      EchoSessionRow,
+      PrefetchHooks Function()
+    >;
+typedef $$RecordingsTableCreateCompanionBuilder =
+    RecordingsCompanion Function({
+      required String id,
+      required String targetType,
+      required String targetId,
+      required int referenceStartMs,
+      required int referenceDurationMs,
+      required String referenceText,
+      required String language,
+      required int durationMs,
+      Value<String?> md5,
+      Value<String?> audioUrl,
+      Value<int?> pronunciationScore,
+      Value<String?> assessmentJson,
+      Value<String?> localPath,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RecordingsTableUpdateCompanionBuilder =
+    RecordingsCompanion Function({
+      Value<String> id,
+      Value<String> targetType,
+      Value<String> targetId,
+      Value<int> referenceStartMs,
+      Value<int> referenceDurationMs,
+      Value<String> referenceText,
+      Value<String> language,
+      Value<int> durationMs,
+      Value<String?> md5,
+      Value<String?> audioUrl,
+      Value<int?> pronunciationScore,
+      Value<String?> assessmentJson,
+      Value<String?> localPath,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$RecordingsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecordingsTable> {
+  $$RecordingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get audioUrl => $composableBuilder(
+    column: $table.audioUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pronunciationScore => $composableBuilder(
+    column: $table.pronunciationScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get assessmentJson => $composableBuilder(
+    column: $table.assessmentJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecordingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecordingsTable> {
+  $$RecordingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get audioUrl => $composableBuilder(
+    column: $table.audioUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pronunciationScore => $composableBuilder(
+    column: $table.pronunciationScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get assessmentJson => $composableBuilder(
+    column: $table.assessmentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecordingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecordingsTable> {
+  $$RecordingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
+
+  GeneratedColumn<String> get audioUrl =>
+      $composableBuilder(column: $table.audioUrl, builder: (column) => column);
+
+  GeneratedColumn<int> get pronunciationScore => $composableBuilder(
+    column: $table.pronunciationScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get assessmentJson => $composableBuilder(
+    column: $table.assessmentJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$RecordingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecordingsTable,
+          RecordingRow,
+          $$RecordingsTableFilterComposer,
+          $$RecordingsTableOrderingComposer,
+          $$RecordingsTableAnnotationComposer,
+          $$RecordingsTableCreateCompanionBuilder,
+          $$RecordingsTableUpdateCompanionBuilder,
+          (
+            RecordingRow,
+            BaseReferences<_$AppDatabase, $RecordingsTable, RecordingRow>,
+          ),
+          RecordingRow,
+          PrefetchHooks Function()
+        > {
+  $$RecordingsTableTableManager(_$AppDatabase db, $RecordingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$RecordingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$RecordingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$RecordingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<int> referenceStartMs = const Value.absent(),
+                Value<int> referenceDurationMs = const Value.absent(),
+                Value<String> referenceText = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<int> durationMs = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<String?> audioUrl = const Value.absent(),
+                Value<int?> pronunciationScore = const Value.absent(),
+                Value<String?> assessmentJson = const Value.absent(),
+                Value<String?> localPath = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecordingsCompanion(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                referenceStartMs: referenceStartMs,
+                referenceDurationMs: referenceDurationMs,
+                referenceText: referenceText,
+                language: language,
+                durationMs: durationMs,
+                md5: md5,
+                audioUrl: audioUrl,
+                pronunciationScore: pronunciationScore,
+                assessmentJson: assessmentJson,
+                localPath: localPath,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String targetType,
+                required String targetId,
+                required int referenceStartMs,
+                required int referenceDurationMs,
+                required String referenceText,
+                required String language,
+                required int durationMs,
+                Value<String?> md5 = const Value.absent(),
+                Value<String?> audioUrl = const Value.absent(),
+                Value<int?> pronunciationScore = const Value.absent(),
+                Value<String?> assessmentJson = const Value.absent(),
+                Value<String?> localPath = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RecordingsCompanion.insert(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                referenceStartMs: referenceStartMs,
+                referenceDurationMs: referenceDurationMs,
+                referenceText: referenceText,
+                language: language,
+                durationMs: durationMs,
+                md5: md5,
+                audioUrl: audioUrl,
+                pronunciationScore: pronunciationScore,
+                assessmentJson: assessmentJson,
+                localPath: localPath,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecordingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecordingsTable,
+      RecordingRow,
+      $$RecordingsTableFilterComposer,
+      $$RecordingsTableOrderingComposer,
+      $$RecordingsTableAnnotationComposer,
+      $$RecordingsTableCreateCompanionBuilder,
+      $$RecordingsTableUpdateCompanionBuilder,
+      (
+        RecordingRow,
+        BaseReferences<_$AppDatabase, $RecordingsTable, RecordingRow>,
+      ),
+      RecordingRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DictationsTableCreateCompanionBuilder =
+    DictationsCompanion Function({
+      required String id,
+      required String targetType,
+      required String targetId,
+      required int referenceStartMs,
+      required int referenceDurationMs,
+      required String referenceText,
+      required String language,
+      required String userInput,
+      required int accuracy,
+      required int correctWords,
+      required int missedWords,
+      required int extraWords,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$DictationsTableUpdateCompanionBuilder =
+    DictationsCompanion Function({
+      Value<String> id,
+      Value<String> targetType,
+      Value<String> targetId,
+      Value<int> referenceStartMs,
+      Value<int> referenceDurationMs,
+      Value<String> referenceText,
+      Value<String> language,
+      Value<String> userInput,
+      Value<int> accuracy,
+      Value<int> correctWords,
+      Value<int> missedWords,
+      Value<int> extraWords,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$DictationsTableFilterComposer
+    extends Composer<_$AppDatabase, $DictationsTable> {
+  $$DictationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userInput => $composableBuilder(
+    column: $table.userInput,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accuracy => $composableBuilder(
+    column: $table.accuracy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get correctWords => $composableBuilder(
+    column: $table.correctWords,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get missedWords => $composableBuilder(
+    column: $table.missedWords,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get extraWords => $composableBuilder(
+    column: $table.extraWords,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DictationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DictationsTable> {
+  $$DictationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userInput => $composableBuilder(
+    column: $table.userInput,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accuracy => $composableBuilder(
+    column: $table.accuracy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get correctWords => $composableBuilder(
+    column: $table.correctWords,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get missedWords => $composableBuilder(
+    column: $table.missedWords,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get extraWords => $composableBuilder(
+    column: $table.extraWords,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DictationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DictationsTable> {
+  $$DictationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<int> get referenceStartMs => $composableBuilder(
+    column: $table.referenceStartMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get referenceDurationMs => $composableBuilder(
+    column: $table.referenceDurationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referenceText => $composableBuilder(
+    column: $table.referenceText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<String> get userInput =>
+      $composableBuilder(column: $table.userInput, builder: (column) => column);
+
+  GeneratedColumn<int> get accuracy =>
+      $composableBuilder(column: $table.accuracy, builder: (column) => column);
+
+  GeneratedColumn<int> get correctWords => $composableBuilder(
+    column: $table.correctWords,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get missedWords => $composableBuilder(
+    column: $table.missedWords,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get extraWords => $composableBuilder(
+    column: $table.extraWords,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DictationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DictationsTable,
+          DictationRow,
+          $$DictationsTableFilterComposer,
+          $$DictationsTableOrderingComposer,
+          $$DictationsTableAnnotationComposer,
+          $$DictationsTableCreateCompanionBuilder,
+          $$DictationsTableUpdateCompanionBuilder,
+          (
+            DictationRow,
+            BaseReferences<_$AppDatabase, $DictationsTable, DictationRow>,
+          ),
+          DictationRow,
+          PrefetchHooks Function()
+        > {
+  $$DictationsTableTableManager(_$AppDatabase db, $DictationsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$DictationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$DictationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$DictationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<int> referenceStartMs = const Value.absent(),
+                Value<int> referenceDurationMs = const Value.absent(),
+                Value<String> referenceText = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String> userInput = const Value.absent(),
+                Value<int> accuracy = const Value.absent(),
+                Value<int> correctWords = const Value.absent(),
+                Value<int> missedWords = const Value.absent(),
+                Value<int> extraWords = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DictationsCompanion(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                referenceStartMs: referenceStartMs,
+                referenceDurationMs: referenceDurationMs,
+                referenceText: referenceText,
+                language: language,
+                userInput: userInput,
+                accuracy: accuracy,
+                correctWords: correctWords,
+                missedWords: missedWords,
+                extraWords: extraWords,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String targetType,
+                required String targetId,
+                required int referenceStartMs,
+                required int referenceDurationMs,
+                required String referenceText,
+                required String language,
+                required String userInput,
+                required int accuracy,
+                required int correctWords,
+                required int missedWords,
+                required int extraWords,
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DictationsCompanion.insert(
+                id: id,
+                targetType: targetType,
+                targetId: targetId,
+                referenceStartMs: referenceStartMs,
+                referenceDurationMs: referenceDurationMs,
+                referenceText: referenceText,
+                language: language,
+                userInput: userInput,
+                accuracy: accuracy,
+                correctWords: correctWords,
+                missedWords: missedWords,
+                extraWords: extraWords,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DictationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DictationsTable,
+      DictationRow,
+      $$DictationsTableFilterComposer,
+      $$DictationsTableOrderingComposer,
+      $$DictationsTableAnnotationComposer,
+      $$DictationsTableCreateCompanionBuilder,
+      $$DictationsTableUpdateCompanionBuilder,
+      (
+        DictationRow,
+        BaseReferences<_$AppDatabase, $DictationsTable, DictationRow>,
+      ),
+      DictationRow,
+      PrefetchHooks Function()
+    >;
+typedef $$SyncQueueTableCreateCompanionBuilder =
+    SyncQueueCompanion Function({
+      Value<int> id,
+      required String entityType,
+      required String entityId,
+      required String action,
+      Value<String?> payloadJson,
+      Value<int> retryCount,
+      Value<DateTime?> lastAttempt,
+      Value<String?> error,
+      required DateTime createdAt,
+    });
+typedef $$SyncQueueTableUpdateCompanionBuilder =
+    SyncQueueCompanion Function({
+      Value<int> id,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String> action,
+      Value<String?> payloadJson,
+      Value<int> retryCount,
+      Value<DateTime?> lastAttempt,
+      Value<String?> error,
+      Value<DateTime> createdAt,
+    });
+
+class $$SyncQueueTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncQueueTable> {
+  $$SyncQueueTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastAttempt => $composableBuilder(
+    column: $table.lastAttempt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncQueueTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncQueueTable> {
+  $$SyncQueueTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastAttempt => $composableBuilder(
+    column: $table.lastAttempt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncQueueTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncQueueTable> {
+  $$SyncQueueTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get action =>
+      $composableBuilder(column: $table.action, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+    column: $table.retryCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastAttempt => $composableBuilder(
+    column: $table.lastAttempt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get error =>
+      $composableBuilder(column: $table.error, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SyncQueueTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncQueueTable,
+          SyncQueueRow,
+          $$SyncQueueTableFilterComposer,
+          $$SyncQueueTableOrderingComposer,
+          $$SyncQueueTableAnnotationComposer,
+          $$SyncQueueTableCreateCompanionBuilder,
+          $$SyncQueueTableUpdateCompanionBuilder,
+          (
+            SyncQueueRow,
+            BaseReferences<_$AppDatabase, $SyncQueueTable, SyncQueueRow>,
+          ),
+          SyncQueueRow,
+          PrefetchHooks Function()
+        > {
+  $$SyncQueueTableTableManager(_$AppDatabase db, $SyncQueueTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$SyncQueueTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$SyncQueueTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$SyncQueueTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String> action = const Value.absent(),
+                Value<String?> payloadJson = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime?> lastAttempt = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => SyncQueueCompanion(
+                id: id,
+                entityType: entityType,
+                entityId: entityId,
+                action: action,
+                payloadJson: payloadJson,
+                retryCount: retryCount,
+                lastAttempt: lastAttempt,
+                error: error,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String entityType,
+                required String entityId,
+                required String action,
+                Value<String?> payloadJson = const Value.absent(),
+                Value<int> retryCount = const Value.absent(),
+                Value<DateTime?> lastAttempt = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                required DateTime createdAt,
+              }) => SyncQueueCompanion.insert(
+                id: id,
+                entityType: entityType,
+                entityId: entityId,
+                action: action,
+                payloadJson: payloadJson,
+                retryCount: retryCount,
+                lastAttempt: lastAttempt,
+                error: error,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncQueueTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncQueueTable,
+      SyncQueueRow,
+      $$SyncQueueTableFilterComposer,
+      $$SyncQueueTableOrderingComposer,
+      $$SyncQueueTableAnnotationComposer,
+      $$SyncQueueTableCreateCompanionBuilder,
+      $$SyncQueueTableUpdateCompanionBuilder,
+      (
+        SyncQueueRow,
+        BaseReferences<_$AppDatabase, $SyncQueueTable, SyncQueueRow>,
+      ),
+      SyncQueueRow,
+      PrefetchHooks Function()
     >;
 typedef $$SettingsKvTableCreateCompanionBuilder =
     SettingsKvCompanion Function({
@@ -3841,30 +10434,49 @@ typedef $$SettingsKvTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
-  $$MediasTableTableManager get medias =>
-      $$MediasTableTableManager(_db, _db.medias);
+  $$VideosTableTableManager get videos =>
+      $$VideosTableTableManager(_db, _db.videos);
+  $$AudiosTableTableManager get audios =>
+      $$AudiosTableTableManager(_db, _db.audios);
   $$TranscriptsTableTableManager get transcripts =>
       $$TranscriptsTableTableManager(_db, _db.transcripts);
-  $$PlaybackSessionsTableTableManager get playbackSessions =>
-      $$PlaybackSessionsTableTableManager(_db, _db.playbackSessions);
+  $$EchoSessionsTableTableManager get echoSessions =>
+      $$EchoSessionsTableTableManager(_db, _db.echoSessions);
+  $$RecordingsTableTableManager get recordings =>
+      $$RecordingsTableTableManager(_db, _db.recordings);
+  $$DictationsTableTableManager get dictations =>
+      $$DictationsTableTableManager(_db, _db.dictations);
+  $$SyncQueueTableTableManager get syncQueue =>
+      $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$SettingsKvTableTableManager get settingsKv =>
       $$SettingsKvTableTableManager(_db, _db.settingsKv);
 }
 
-mixin _$MediaDaoMixin on DatabaseAccessor<AppDatabase> {
-  $MediasTable get medias => attachedDatabase.medias;
-  MediaDaoManager get managers => MediaDaoManager(this);
+mixin _$VideoDaoMixin on DatabaseAccessor<AppDatabase> {
+  $VideosTable get videos => attachedDatabase.videos;
+  VideoDaoManager get managers => VideoDaoManager(this);
 }
 
-class MediaDaoManager {
-  final _$MediaDaoMixin _db;
-  MediaDaoManager(this._db);
-  $$MediasTableTableManager get medias =>
-      $$MediasTableTableManager(_db.attachedDatabase, _db.medias);
+class VideoDaoManager {
+  final _$VideoDaoMixin _db;
+  VideoDaoManager(this._db);
+  $$VideosTableTableManager get videos =>
+      $$VideosTableTableManager(_db.attachedDatabase, _db.videos);
+}
+
+mixin _$AudioDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AudiosTable get audios => attachedDatabase.audios;
+  AudioDaoManager get managers => AudioDaoManager(this);
+}
+
+class AudioDaoManager {
+  final _$AudioDaoMixin _db;
+  AudioDaoManager(this._db);
+  $$AudiosTableTableManager get audios =>
+      $$AudiosTableTableManager(_db.attachedDatabase, _db.audios);
 }
 
 mixin _$TranscriptDaoMixin on DatabaseAccessor<AppDatabase> {
-  $MediasTable get medias => attachedDatabase.medias;
   $TranscriptsTable get transcripts => attachedDatabase.transcripts;
   TranscriptDaoManager get managers => TranscriptDaoManager(this);
 }
@@ -3872,29 +10484,56 @@ mixin _$TranscriptDaoMixin on DatabaseAccessor<AppDatabase> {
 class TranscriptDaoManager {
   final _$TranscriptDaoMixin _db;
   TranscriptDaoManager(this._db);
-  $$MediasTableTableManager get medias =>
-      $$MediasTableTableManager(_db.attachedDatabase, _db.medias);
   $$TranscriptsTableTableManager get transcripts =>
       $$TranscriptsTableTableManager(_db.attachedDatabase, _db.transcripts);
 }
 
-mixin _$SessionDaoMixin on DatabaseAccessor<AppDatabase> {
-  $MediasTable get medias => attachedDatabase.medias;
-  $PlaybackSessionsTable get playbackSessions =>
-      attachedDatabase.playbackSessions;
-  SessionDaoManager get managers => SessionDaoManager(this);
+mixin _$EchoSessionDaoMixin on DatabaseAccessor<AppDatabase> {
+  $EchoSessionsTable get echoSessions => attachedDatabase.echoSessions;
+  EchoSessionDaoManager get managers => EchoSessionDaoManager(this);
 }
 
-class SessionDaoManager {
-  final _$SessionDaoMixin _db;
-  SessionDaoManager(this._db);
-  $$MediasTableTableManager get medias =>
-      $$MediasTableTableManager(_db.attachedDatabase, _db.medias);
-  $$PlaybackSessionsTableTableManager get playbackSessions =>
-      $$PlaybackSessionsTableTableManager(
-        _db.attachedDatabase,
-        _db.playbackSessions,
-      );
+class EchoSessionDaoManager {
+  final _$EchoSessionDaoMixin _db;
+  EchoSessionDaoManager(this._db);
+  $$EchoSessionsTableTableManager get echoSessions =>
+      $$EchoSessionsTableTableManager(_db.attachedDatabase, _db.echoSessions);
+}
+
+mixin _$RecordingDaoMixin on DatabaseAccessor<AppDatabase> {
+  $RecordingsTable get recordings => attachedDatabase.recordings;
+  RecordingDaoManager get managers => RecordingDaoManager(this);
+}
+
+class RecordingDaoManager {
+  final _$RecordingDaoMixin _db;
+  RecordingDaoManager(this._db);
+  $$RecordingsTableTableManager get recordings =>
+      $$RecordingsTableTableManager(_db.attachedDatabase, _db.recordings);
+}
+
+mixin _$DictationDaoMixin on DatabaseAccessor<AppDatabase> {
+  $DictationsTable get dictations => attachedDatabase.dictations;
+  DictationDaoManager get managers => DictationDaoManager(this);
+}
+
+class DictationDaoManager {
+  final _$DictationDaoMixin _db;
+  DictationDaoManager(this._db);
+  $$DictationsTableTableManager get dictations =>
+      $$DictationsTableTableManager(_db.attachedDatabase, _db.dictations);
+}
+
+mixin _$SyncQueueDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SyncQueueTable get syncQueue => attachedDatabase.syncQueue;
+  SyncQueueDaoManager get managers => SyncQueueDaoManager(this);
+}
+
+class SyncQueueDaoManager {
+  final _$SyncQueueDaoMixin _db;
+  SyncQueueDaoManager(this._db);
+  $$SyncQueueTableTableManager get syncQueue =>
+      $$SyncQueueTableTableManager(_db.attachedDatabase, _db.syncQueue);
 }
 
 mixin _$SettingsDaoMixin on DatabaseAccessor<AppDatabase> {

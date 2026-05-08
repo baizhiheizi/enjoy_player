@@ -9,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
+import '../../library/domain/media.dart';
 import '../domain/echo_window.dart';
 import '../domain/playback_session.dart';
 import 'echo_mode_provider.dart';
@@ -65,12 +66,21 @@ class PlayerController extends _$PlayerController {
     final gen = ++_openGeneration;
 
     final db = ref.read(appDatabaseProvider);
-    final row = await db.mediaDao.getById(mediaId);
-    if (row == null) return;
+    final video = await db.videoDao.getById(mediaId);
+    final audio = video == null ? await db.audioDao.getById(mediaId) : null;
+    if (video == null && audio == null) return;
+
+    final kind = video != null ? MediaKind.video : MediaKind.audio;
+    final dexie = kind.dexieTargetType;
+    final sourceUri = video?.localUri ?? audio!.localUri ?? '';
+    final title = video?.title ?? audio!.title;
+    final thumb = video?.thumbnailUrl ?? audio?.thumbnailUrl;
+    final language = video?.language ?? audio!.language;
+    final durationSec = video?.durationSeconds ?? audio!.durationSeconds;
 
     // Bind video output before first decode on Windows (see media_kit_video notes).
     // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
-    if (Platform.isWindows && row.kind == 'video') {
+    if (Platform.isWindows && kind == MediaKind.video) {
       videoController;
     }
 
@@ -79,59 +89,73 @@ class PlayerController extends _$PlayerController {
     _positionSub = null;
     _durationSub = null;
 
-    await engine.openUri(row.sourceUri);
+    await engine.openUri(sourceUri);
     if (gen != _openGeneration) return;
 
     unawaited(
       ref.read(embeddedTrackSyncProvider).startForMedia(
         mediaId: mediaId,
-        sourceUri: row.sourceUri,
+        dexieTargetType: dexie,
+        sourceUri: sourceUri,
       ),
     );
 
     await ref.read(playerPreferencesCtrlProvider.notifier).applyCurrentToEngine();
     if (gen != _openGeneration) return;
 
-    final persisted = await db.sessionDao.getForMedia(mediaId);
-    final posMs = persisted?.positionMs ?? 0;
+    final persisted = await db.echoSessionDao.getLatestForTarget(dexie, mediaId);
+    final posMs = persisted?.currentTimeMs ?? 0;
     if (posMs > 0) {
       await engine.seek(Duration(milliseconds: posMs));
     }
     if (gen != _openGeneration) return;
 
     if (persisted != null && persisted.echoActive) {
-      ref
-          .read(echoModeProvider.notifier)
-          .restoreFromSession(
-            startLine: persisted.echoStartLine,
-            endLine: persisted.echoEndLine,
-            echoStartMs: persisted.echoStartMs,
-            echoEndMs: persisted.echoEndMs,
-          );
+      ref.read(echoModeProvider.notifier).restoreFromSession(
+        startLine: persisted.echoStartLine,
+        endLine: persisted.echoEndLine,
+        echoStartMs: persisted.echoStartMs ?? 0,
+        echoEndMs: persisted.echoEndMs ?? 0,
+      );
     } else {
       ref.read(echoModeProvider.notifier).deactivate();
     }
 
     final now = DateTime.now();
     state = PlaybackSession(
-      mediaId: row.id,
-      mediaType: row.kind,
-      mediaTitle: row.title,
-      thumbnailUrl: row.thumbnailPath,
+      mediaId: mediaId,
+      dexieTargetType: dexie,
+      mediaType: kind.storageValue,
+      mediaTitle: title,
+      thumbnailUrl: thumb,
       durationSeconds:
-          row.durationMs > 0 ? row.durationMs / 1000.0 : posMs / 1000.0,
+          durationSec > 0 ? durationSec.toDouble() : posMs / 1000.0,
       currentTimeSeconds: posMs / 1000.0,
       currentSegmentIndex: persisted?.currentSegmentIndex ?? -1,
-      language: row.language,
+      language: language,
       startedAt: now,
       lastActiveAt: now,
     );
 
     if (gen != _openGeneration) return;
-    _subscribeStreams(mediaId, row, gen);
+    _subscribeStreams(
+      mediaId: mediaId,
+      dexieTargetType: dexie,
+      kind: kind,
+      video: video,
+      audio: audio,
+      gen: gen,
+    );
   }
 
-  void _subscribeStreams(String mediaId, MediaRow row, int gen) {
+  void _subscribeStreams({
+    required String mediaId,
+    required String dexieTargetType,
+    required MediaKind kind,
+    required VideoRow? video,
+    required AudioRow? audio,
+    required int gen,
+  }) {
     _positionSub = engine.position.listen((pos) {
       if (gen != _openGeneration) return;
       final seconds = pos.inMilliseconds / 1000.0;
@@ -144,6 +168,7 @@ class PlayerController extends _$PlayerController {
       if (s != null) {
         ref.read(playbackSessionPersisterProvider).schedule(
           mediaId: mediaId,
+          dexieTargetType: dexieTargetType,
           session: s,
           echo: ref.read(echoModeProvider),
         );
@@ -153,12 +178,22 @@ class PlayerController extends _$PlayerController {
     _durationSub = engine.duration.listen((d) async {
       if (gen != _openGeneration) return;
       if (d <= Duration.zero) return;
-      final ms = d.inMilliseconds;
-      state = state?.copyWith(durationSeconds: ms / 1000.0);
+      final sec = d.inMilliseconds ~/ 1000;
+      state = state?.copyWith(durationSeconds: d.inMilliseconds / 1000.0);
       final db = ref.read(appDatabaseProvider);
-      if (row.durationMs == 0) {
-        await db.mediaDao.insertRow(
-          row.copyWith(durationMs: ms, updatedAt: DateTime.now()),
+      if (kind == MediaKind.video && video != null && video.durationSeconds == 0) {
+        await db.videoDao.insertRow(
+          video.copyWith(
+            durationSeconds: sec,
+            updatedAt: DateTime.now(),
+          ),
+        );
+      } else if (kind == MediaKind.audio && audio != null && audio.durationSeconds == 0) {
+        await db.audioDao.insertRow(
+          audio.copyWith(
+            durationSeconds: sec,
+            updatedAt: DateTime.now(),
+          ),
         );
       }
     });

@@ -41,7 +41,7 @@ final class PlayerUiProvider
   }
 }
 
-String _$playerUiHash() => r'0c8da397bc7c2e13bd281340b8eadf600c4a2ac7';
+String _$playerUiHash() => r'f67760388c6da2afa513793e912c7f9c5661bbd8';
 
 abstract class _$PlayerUi extends $Notifier<PlayerUiState> {
   PlayerUiState build();

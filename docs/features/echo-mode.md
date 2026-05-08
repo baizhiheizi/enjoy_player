@@ -5,7 +5,7 @@
 - Echo region stores line indices + start/end times (seconds).
 - `normalizeEchoWindow`, `clampSeekTimeToEchoWindow`, `decideEchoPlaybackTime` match web `echo-utils.ts` semantics.
 - `PlayerController` applies loop/clamp while echo active.
-- State persisted in `playback_sessions` echo columns.
+- State persisted in `echo_sessions` (latest session per `targetType` + `targetId`).
 
 ## Future
 

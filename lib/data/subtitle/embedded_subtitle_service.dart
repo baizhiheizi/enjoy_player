@@ -7,17 +7,15 @@ import 'dart:io';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:media_kit/media_kit.dart' show SubtitleTrack;
-import 'package:uuid/uuid.dart';
 
-import 'package:enjoy_player/core/logging/log.dart';
+import '../../core/ids/enjoy_ids.dart';
+import '../../core/logging/log.dart';
 import '../db/app_database.dart';
 import 'subtitle_parser.dart';
 
 class EmbeddedSubtitleService {
   const EmbeddedSubtitleService();
 
-  // ignore: prefer_const_constructors
-  static final Uuid _uuid = Uuid();
   static final _log = logNamed('EmbeddedSubtitleService');
 
   /// Extracts text lines from [mediaSourceUri] for each [SubtitleTrack] that
@@ -26,7 +24,8 @@ class EmbeddedSubtitleService {
   /// Already-imported embedded tracks can be excluded by passing their
   /// [existingTrackIndices] so we don't re-extract unchanged tracks.
   Future<List<TranscriptRow>> extractTracks({
-    required String mediaId,
+    required String targetId,
+    required String targetTypeDexie,
     required String mediaSourceUri,
     required List<SubtitleTrack> tracks,
     Set<int> existingTrackIndices = const {},
@@ -58,16 +57,30 @@ class EmbeddedSubtitleService {
       final label = _trackLabel(track, i);
       final json = jsonEncode(lines.map((e) => e.toJson()).toList());
       final now = DateTime.now();
+      final language = track.language ?? 'und';
+      const source = 'official';
+      // Deterministic id: disambiguate multiple embedded streams (not in weapp v5 formula).
+      final idKey = '${language}_emb$i';
+      final id = enjoyTranscriptId(
+        targetType: targetTypeDexie,
+        targetId: targetId,
+        language: idKey,
+        source: source,
+      );
       results.add(
         TranscriptRow(
-          id: _uuid.v4(),
-          mediaId: mediaId,
-          language: track.language ?? 'und',
-          source: 'embedded',
-          linesJson: json,
+          id: id,
+          targetType: targetTypeDexie,
+          targetId: targetId,
+          language: language,
+          source: source,
+          timelineJson: json,
+          referenceId: 'embedded:$i',
           label: label,
           trackIndex: i,
           isEmbedded: true,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         ),

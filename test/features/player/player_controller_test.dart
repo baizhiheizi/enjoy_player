@@ -23,21 +23,54 @@ void main() {
       String kind = 'audio',
     }) async {
       final now = DateTime.now();
-      await db.mediaDao.insertRow(
-        MediaRow(
-          id: id,
-          kind: kind,
-          title: 't',
-          sourceUri: uri,
-          thumbnailPath: null,
-          durationMs: 600_000,
-          language: 'en',
-          fileHash: 'x',
-          fileSize: 1,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      if (kind == 'video') {
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'x',
+            provider: 'user',
+            title: 't',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 600,
+            language: 'en',
+            source: null,
+            localUri: uri,
+            md5: null,
+            size: 1,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      } else {
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: id,
+            aid: 'x',
+            provider: 'user',
+            title: 't',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 600,
+            language: 'en',
+            translationKey: null,
+            sourceText: null,
+            voice: null,
+            source: null,
+            localUri: uri,
+            md5: null,
+            size: 1,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
       return id;
     }
 
@@ -67,6 +100,7 @@ void main() {
       expect(session, isNotNull);
       expect(session!.mediaId, id);
       expect(session.mediaTitle, 't');
+      expect(session.dexieTargetType, 'Audio');
       expect(fake.openUris, contains('file:///a.mp3'));
     });
 
@@ -94,9 +128,9 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 550));
 
-      final row = await db.sessionDao.getForMedia(id);
+      final row = await db.echoSessionDao.getLatestForTarget('Audio', id);
       expect(row, isNotNull);
-      expect(row!.positionMs, closeTo(7000, 50));
+      expect(row!.currentTimeMs, closeTo(7000, 50));
     });
 
     test('echo mode seeks back into window', () async {

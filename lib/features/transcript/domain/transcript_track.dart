@@ -4,7 +4,8 @@ library;
 class TranscriptTrack {
   const TranscriptTrack({
     required this.id,
-    required this.mediaId,
+    required this.targetType,
+    required this.targetId,
     required this.language,
     required this.source,
     required this.label,
@@ -13,7 +14,9 @@ class TranscriptTrack {
   });
 
   final String id;
-  final String mediaId;
+  /// Dexie `TargetType` (`Video` | `Audio` | …).
+  final String targetType;
+  final String targetId;
   final String language;
   final String source;
   final String label;

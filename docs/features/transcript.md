@@ -2,8 +2,8 @@
 
 ## MVP behavior
 
-- Primary transcript = first row returned by `TranscriptDao.watchForMedia`.
-- Import `.srt` / `.vtt` via `SubtitleParserFacade` storing JSON in `lines_json`.
+- Primary transcript = `echo_sessions.transcript_id` for the latest session on `(targetType, targetId)` (same id as library media row).
+- Import `.srt` / `.vtt` via `SubtitleParserFacade` storing JSON in `transcripts.timeline_json`.
 - Tap line → seek + optional echo region update (via `PlayerInteractions`).
 - **Track / import entry**: Use the player **CC** control (opens subtitle sheet). The transcript panel has no duplicate header row.
 - Subtitle track picker uses shared bottom-sheet theming and spacing from `EnjoyThemeTokens`.

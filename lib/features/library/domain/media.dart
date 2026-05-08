@@ -9,6 +9,12 @@ extension MediaKindX on MediaKind {
     MediaKind.video => 'video',
   };
 
+  /// Weapp / Dexie `TargetType` string (`Video` | `Audio`).
+  String get dexieTargetType => switch (this) {
+    MediaKind.video => 'Video',
+    MediaKind.audio => 'Audio',
+  };
+
   static MediaKind fromStorage(String kind) {
     switch (kind) {
       case 'video':
@@ -28,8 +34,11 @@ class Media {
     this.thumbnailPath,
     required this.durationMs,
     required this.language,
-    required this.fileHash,
+    /// SHA-256 content id (`vid` for video, `aid` for audio in weapp terms).
+    required this.contentHash,
     required this.fileSize,
+    this.mediaUrl,
+    this.source,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -41,8 +50,15 @@ class Media {
   final String? thumbnailPath;
   final int durationMs;
   final String language;
-  final String fileHash;
+  final String contentHash;
   final int fileSize;
+  final String? mediaUrl;
+  final String? source;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// Alias for weapp naming (`vid` / `aid`).
+  String get vidOrAid => contentHash;
+
+  String get dexieTargetType => kind.dexieTargetType;
 }

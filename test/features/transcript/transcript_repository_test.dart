@@ -23,18 +23,22 @@ void main() {
     TranscriptRow makeRow({
       required String id,
       required DateTime updatedAt,
-      String linesJson = '[{"text":"a","start":0,"duration":1000}]',
+      String timelineJson = '[{"text":"a","start":0,"duration":1000}]',
     }) {
       final now = DateTime.now();
       return TranscriptRow(
         id: id,
-        mediaId: 'm1',
+        targetType: 'Audio',
+        targetId: 'm1',
         language: 'und',
-        source: 'import',
-        linesJson: linesJson,
+        source: 'user',
+        timelineJson: timelineJson,
+        referenceId: null,
         label: 'L',
         trackIndex: null,
         isEmbedded: false,
+        syncStatus: null,
+        serverUpdatedAt: null,
         createdAt: now,
         updatedAt: updatedAt,
       );
@@ -50,7 +54,7 @@ void main() {
       final r2 = makeRow(
         id: 't1',
         updatedAt: t.add(const Duration(seconds: 1)),
-        linesJson: '[{"text":"b","start":0,"duration":500}]',
+        timelineJson: '[{"text":"b","start":0,"duration":500}]',
       );
       final c = repo.linesForRow(r2);
       expect(identical(a, c), isFalse);
@@ -59,40 +63,33 @@ void main() {
 
     test('setActiveTranscript and setSecondaryTranscript update session', () async {
       final now = DateTime.now();
-      await db.mediaDao.insertRow(
-        MediaRow(
+      await db.audioDao.insertRow(
+        AudioRow(
           id: 'm1',
-          kind: 'audio',
+          aid: 'f',
+          provider: 'user',
           title: 't',
-          sourceUri: 'file:///a.mp3',
-          thumbnailPath: null,
-          durationMs: 0,
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
           language: 'und',
-          fileHash: 'f',
-          fileSize: 1,
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///a.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         ),
       );
 
-      await db.sessionDao.upsert(
-        PlaybackSessionRow(
-          mediaId: 'm1',
-          positionMs: 0,
-          currentSegmentIndex: -1,
-          echoActive: false,
-          echoStartLine: -1,
-          echoEndLine: -1,
-          echoStartMs: 0,
-          echoEndMs: 0,
-          primaryTranscriptId: null,
-          secondaryTranscriptId: null,
-          lastActiveAt: now,
-        ),
-      );
-
       final tid = 'tr-1';
-      final linesJson = jsonEncode(
+      final timelineJson = jsonEncode(
         [
           const TranscriptLine(text: 'x', startMs: 0, durationMs: 100).toJson(),
         ],
@@ -101,13 +98,17 @@ void main() {
       await db.transcriptDao.upsert(
         TranscriptRow(
           id: tid,
-          mediaId: 'm1',
+          targetType: 'Audio',
+          targetId: 'm1',
           language: 'en',
-          source: 'import',
-          linesJson: linesJson,
+          source: 'user',
+          timelineJson: timelineJson,
+          referenceId: null,
           label: 'en',
           trackIndex: null,
           isEmbedded: false,
+          syncStatus: null,
+          serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         ),
@@ -116,8 +117,8 @@ void main() {
       await repo.setActiveTranscript('m1', tid);
       await repo.setSecondaryTranscript('m1', tid);
 
-      final s = await db.sessionDao.getForMedia('m1');
-      expect(s?.primaryTranscriptId, tid);
+      final s = await db.echoSessionDao.getLatestForTarget('Audio', 'm1');
+      expect(s?.transcriptId, tid);
       expect(s?.secondaryTranscriptId, tid);
     });
   });

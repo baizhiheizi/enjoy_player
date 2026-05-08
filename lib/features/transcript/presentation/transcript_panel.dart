@@ -1,8 +1,6 @@
 /// Scrollable transcript with tap-to-seek and echo-aware highlighting.
 library;
 
-import 'dart:ui' show FontFeature;
-
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
