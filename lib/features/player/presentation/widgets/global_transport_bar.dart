@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../../../transcript/application/all_transcripts_provider.dart';
@@ -49,6 +50,24 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     final cs = Theme.of(context).colorScheme;
     final path = GoRouterState.of(context).uri.path;
     final onPlayer = path.startsWith('/player/');
+
+    final ttPrev = hotkeyTooltipLabel(ref, 'player.prevLine', l10n.previousLine);
+    final ttNext = hotkeyTooltipLabel(ref, 'player.nextLine', l10n.nextLine);
+    final ttReplay = hotkeyTooltipLabel(ref, 'player.replayLine', l10n.replayLine);
+    final ttEcho = hotkeyTooltipLabel(ref, 'player.toggleEchoMode', l10n.echoMode);
+    final ttSpeed =
+        hotkeyTooltipPair(ref, 'player.slowDown', 'player.speedUp', l10n.speed);
+    final ttExpand = hotkeyTooltipLabel(
+      ref,
+      'player.toggleExpand',
+      onPlayer ? l10n.transportCollapse : l10n.transportExpand,
+    );
+    final ttPlayPause =
+        hotkeyTooltipLabel(
+          ref,
+          'player.togglePlay',
+          isPlaying ? l10n.pause : l10n.play,
+        );
 
     if (session == null) return const SizedBox.shrink();
 
@@ -125,7 +144,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: l10n.previousLine,
+                      tooltip: ttPrev,
                       iconSize: 22,
                       onPressed:
                           isBuffering
@@ -138,6 +157,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                     _PlayRingButton(
                       playing: isPlaying,
                       buffering: isBuffering,
+                      tooltip: ttPlayPause,
                       onPressed:
                           isBuffering
                               ? null
@@ -146,7 +166,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                   .togglePlay(),
                     ),
                     IconButton(
-                      tooltip: l10n.nextLine,
+                      tooltip: ttNext,
                       iconSize: 22,
                       onPressed:
                           isBuffering
@@ -157,7 +177,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                       icon: const Icon(Icons.skip_next_rounded),
                     ),
                     IconButton(
-                      tooltip: l10n.replayLine,
+                      tooltip: ttReplay,
                       iconSize: 22,
                       onPressed:
                           isBuffering
@@ -179,7 +199,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            tooltip: l10n.echoMode,
+                            tooltip: ttEcho,
                             color: echo.active ? t.echoActive : null,
                             style:
                                 echo.active
@@ -195,7 +215,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                           ),
                           _CcButton(mediaId: session.mediaId),
                           PopupMenuButton<double>(
-                            tooltip: l10n.speed,
+                            tooltip: ttSpeed,
                             onSelected: (rate) => ref
                                 .read(playerPreferencesCtrlProvider.notifier)
                                 .setPlaybackRate(rate),
@@ -216,8 +236,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                             onPressed: () => _log.fine('fullscreen toggled (stub)'),
                           ),
                           IconButton(
-                            tooltip:
-                                onPlayer ? l10n.transportCollapse : l10n.transportExpand,
+                            tooltip: ttExpand,
                             icon: Icon(
                               onPlayer ? Icons.expand_more_rounded : Icons.open_in_full_rounded,
                             ),
@@ -575,22 +594,23 @@ class _PlayRingButton extends StatelessWidget {
   const _PlayRingButton({
     required this.playing,
     required this.buffering,
+    required this.tooltip,
     required this.onPressed,
   });
 
   final bool playing;
   final bool buffering;
+  final String tooltip;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Tooltip(
-        message: playing ? l10n.pause : l10n.play,
+        message: tooltip,
         child: Material(
           color: Colors.transparent,
           clipBehavior: Clip.antiAlias,

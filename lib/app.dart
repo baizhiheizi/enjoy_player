@@ -22,22 +22,25 @@ class EnjoyApp extends ConsumerWidget {
     final light = buildAppTheme(Brightness.light);
     final dark = buildAppTheme(Brightness.dark);
 
-    return AppHotkeysKeyboardListener(
-      child: MaterialApp.router(
-        onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
-        theme: light,
-        darkTheme: dark,
-        themeMode: mode,
-        locale: appPrefs.locale,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: router,
-      ),
+    return MaterialApp.router(
+      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
+      theme: light,
+      darkTheme: dark,
+      themeMode: mode,
+      locale: appPrefs.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
+      builder: (context, child) {
+        return AppHotkeysKeyboardListener(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

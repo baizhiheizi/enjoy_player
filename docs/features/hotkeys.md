@@ -19,4 +19,4 @@ Settings → **Keyboard shortcuts**: tap a row to capture a new chord; conflicts
 
 - Definitions: `lib/features/hotkeys/domain/hotkey_definitions.dart`
 - Persistence: `lib/features/hotkeys/application/hotkeys_ctrl.dart`
-- Dispatch: `lib/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart` (`HardwareKeyboard.addHandler` wrapping `MaterialApp`)
+- Dispatch: `lib/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart` (`HardwareKeyboard.addHandler`). Mounted via **`MaterialApp.router`'s `builder`** so the listener sits **under** `MaterialApp` / GoRouter (valid overlay + `ref.read(appRouterProvider)` for path/navigation — avoids `GoRouterState.of(context)` when context was above the router).

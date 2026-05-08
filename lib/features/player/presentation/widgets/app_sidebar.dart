@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -40,6 +41,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final path = GoRouterState.of(context).uri.path;
+    final searchTooltip =
+        hotkeyTooltipLabel(ref, 'library.search', l10n.hotkeysDescLibrarySearch);
 
     return SizedBox(
       width: t.sidebarWidth,
@@ -71,26 +74,29 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(t.space16, 0, t.space16, t.space12),
-              child: TextField(
-                focusNode: ref.watch(librarySearchFocusNodeProvider),
-                controller: _searchController,
-                onChanged: (v) =>
-                    ref.read(librarySearchProvider.notifier).setQuery(v),
-                style: Theme.of(context).textTheme.bodyMedium,
-                decoration: InputDecoration(
-                  hintText: l10n.searchHint,
-                  prefixIcon: Icon(Icons.search_rounded, color: cs.onSurfaceVariant, size: 22),
-                  filled: true,
-                  fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(t.radiusSm),
-                    borderSide: BorderSide.none,
+              child: Tooltip(
+                message: searchTooltip,
+                child: TextField(
+                  focusNode: ref.watch(librarySearchFocusNodeProvider),
+                  controller: _searchController,
+                  onChanged: (v) =>
+                      ref.read(librarySearchProvider.notifier).setQuery(v),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  decoration: InputDecoration(
+                    hintText: l10n.searchHint,
+                    prefixIcon: Icon(Icons.search_rounded, color: cs.onSurfaceVariant, size: 22),
+                    filled: true,
+                    fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(t.radiusSm),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.space12,
+                      vertical: t.space12,
+                    ),
+                    isDense: true,
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: t.space12,
-                    vertical: t.space12,
-                  ),
-                  isDense: true,
                 ),
               ),
             ),

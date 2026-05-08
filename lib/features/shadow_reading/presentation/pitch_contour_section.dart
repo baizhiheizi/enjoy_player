@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/echo_region_pitch_analyzer.dart';
@@ -153,6 +154,8 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     );
 
     final l10n = AppLocalizations.of(context)!;
+    final pitchTooltip =
+        hotkeyTooltipLabel(ref, 'player.togglePitchContour', l10n.pitchContourTitle);
     final scheme = Theme.of(context).colorScheme;
     final refColor = scheme.tertiary;
     final userColor = scheme.secondary;
@@ -168,23 +171,26 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        InkWell(
-          onTap: () => unawaited(_toggleExpanded()),
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Icon(
-                  _expanded ? Icons.expand_less : Icons.expand_more,
-                  color: scheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.pitchContourTitle,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ],
+        Tooltip(
+          message: pitchTooltip,
+          child: InkWell(
+            onTap: () => unawaited(_toggleExpanded()),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.pitchContourTitle,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

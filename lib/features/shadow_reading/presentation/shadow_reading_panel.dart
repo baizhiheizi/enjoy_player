@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -285,6 +286,13 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final ttPlayRecording =
+        hotkeyTooltipLabel(ref, 'player.playRecording', l10n.shadowRecordingPlay);
+    final ttToggleRecording = hotkeyTooltipLabel(
+      ref,
+      'player.toggleRecording',
+      _recording ? l10n.shadowRecordingStop : l10n.shadowRecordingRecord,
+    );
     ref.listen<int>(
       shadowReadingHotkeyBusProvider.select((s) => s.recording),
       (prev, next) {
@@ -423,7 +431,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      tooltip: l10n.shadowRecordingPlay,
+                                      tooltip: ttPlayRecording,
                                       icon: const Icon(Icons.play_arrow),
                                       onPressed:
                                           widget.echoActive && r.localPath != null
@@ -452,14 +460,17 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
                           },
                         ),
                       SizedBox(height: tok.space12),
-                      FilledButton.icon(
-                        onPressed:
-                            widget.echoActive
-                            ? () => _toggleRecord(l10n)
-                            : null,
-                        icon: Icon(_recording ? Icons.stop : Icons.mic),
-                        label: Text(
-                          _recording ? l10n.shadowRecordingStop : l10n.shadowRecordingRecord,
+                      Tooltip(
+                        message: ttToggleRecording,
+                        child: FilledButton.icon(
+                          onPressed:
+                              widget.echoActive
+                              ? () => _toggleRecord(l10n)
+                              : null,
+                          icon: Icon(_recording ? Icons.stop : Icons.mic),
+                          label: Text(
+                            _recording ? l10n.shadowRecordingStop : l10n.shadowRecordingRecord,
+                          ),
                         ),
                       ),
                     ],

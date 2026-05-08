@@ -2,14 +2,15 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-
+import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 enum EchoRegionBarPosition { top, bottom }
 
-class EchoRegionControlsBar extends StatelessWidget {
+class EchoRegionControlsBar extends ConsumerWidget {
   const EchoRegionControlsBar({
     required this.position,
     required this.expandDisabled,
@@ -30,7 +31,7 @@ class EchoRegionControlsBar extends StatelessWidget {
   final bool dense;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
@@ -43,6 +44,17 @@ class EchoRegionControlsBar extends StatelessWidget {
         position == EchoRegionBarPosition.top
             ? l10n.shrinkEchoBackward
             : l10n.shrinkEchoForward;
+
+    final expandId =
+        position == EchoRegionBarPosition.top
+            ? 'player.expandEchoBackward'
+            : 'player.expandEchoForward';
+    final shrinkId =
+        position == EchoRegionBarPosition.top
+            ? 'player.shrinkEchoBackward'
+            : 'player.shrinkEchoForward';
+    final expandTip = hotkeyTooltipLabel(ref, expandId, expandLabel);
+    final shrinkTip = hotkeyTooltipLabel(ref, shrinkId, shrinkLabel);
 
     final expandIcon =
         position == EchoRegionBarPosition.top
@@ -66,7 +78,7 @@ class EchoRegionControlsBar extends StatelessWidget {
           ),
           SizedBox(width: tok.space8),
           Tooltip(
-            message: expandLabel,
+            message: expandTip,
             child: IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: expandDisabled ? null : onExpand,
@@ -74,7 +86,7 @@ class EchoRegionControlsBar extends StatelessWidget {
             ),
           ),
           Tooltip(
-            message: shrinkLabel,
+            message: shrinkTip,
             child: IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: shrinkDisabled ? null : onShrink,

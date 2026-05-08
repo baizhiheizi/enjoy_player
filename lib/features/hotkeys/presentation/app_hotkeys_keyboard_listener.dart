@@ -7,9 +7,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
@@ -69,12 +69,12 @@ class _AppHotkeysKeyboardListenerState
     if (_primaryFocusIsEditable()) return false;
 
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
+    final goRouter = ref.read(appRouterProvider);
 
     // Modal: Escape closes nested routes (dialogs, sheets).
     if (_matches(event, ctrl, 'modal.close')) {
-      final nav = Navigator.of(context);
-      if (nav.canPop()) {
-        nav.pop();
+      if (goRouter.canPop()) {
+        goRouter.pop();
         return true;
       }
     }
@@ -90,7 +90,7 @@ class _AppHotkeysKeyboardListenerState
     }
 
     if (_matches(event, ctrl, 'global.settings')) {
-      context.go('/settings');
+      goRouter.go('/settings');
       return true;
     }
 
@@ -105,7 +105,7 @@ class _AppHotkeysKeyboardListenerState
       return true;
     }
 
-    final path = GoRouterState.of(context).uri.path;
+    final path = goRouter.state.uri.path;
     if (path.startsWith('/library') && _matches(event, ctrl, 'library.search')) {
       ref.read(librarySearchFocusNodeProvider).requestFocus();
       return true;
@@ -122,9 +122,9 @@ class _AppHotkeysKeyboardListenerState
         final onPlayer = path.startsWith('/player/');
         if (onPlayer) {
           ref.read(playerUiProvider.notifier).collapse();
-          context.pop();
+          goRouter.pop();
         } else {
-          context.push('/player/${session.mediaId}');
+          goRouter.push('/player/${session.mediaId}');
         }
         return true;
       }
