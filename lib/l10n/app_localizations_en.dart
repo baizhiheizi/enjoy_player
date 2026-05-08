@@ -480,7 +480,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsApiBaseUrl => 'API base URL';
 
   @override
-  String get settingsApiBaseUrlHint => 'Example: https://api.enjoy.bot';
+  String get settingsApiBaseUrlHint => 'Example: https://enjoy.bot';
 
   @override
   String get settingsApiBaseUrlSave => 'Save API URL';

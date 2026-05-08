@@ -1009,7 +1009,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsApiBaseUrlHint.
   ///
   /// In en, this message translates to:
-  /// **'Example: https://api.enjoy.bot'**
+  /// **'Example: https://enjoy.bot'**
   String get settingsApiBaseUrlHint;
 
   /// No description provided for @settingsApiBaseUrlSave.

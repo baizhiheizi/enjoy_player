@@ -7,7 +7,7 @@
 - Last **profile snapshot** is cached in Drift (`auth.last_profile`) for fast cold start when a token exists.
 - **Profile** screen calls `GET/PATCH /api/v1/profile` with camelCase JSON; the HTTP client maps camelCase ↔ snake_case like the web `@enjoy/api` client.
 - **Locale / learning / native language** from the server profile are applied to app preferences (Drift `prefs.*`) on login and profile refresh.
-- **API base URL** is configurable under Settings → Advanced (`api.base_url` in Drift); default `https://api.enjoy.bot`.
+- **API base URL** is configurable under Settings → Advanced (`api.base_url` in Drift); default `https://enjoy.bot`.
 
 ## REST clients (scaffold)
 

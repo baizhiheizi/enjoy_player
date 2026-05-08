@@ -168,7 +168,7 @@
   "settingsSectionAccount": "Account",
   "settingsSectionAdvanced": "Advanced",
   "settingsApiBaseUrl": "API base URL",
-  "settingsApiBaseUrlHint": "Example: https://api.enjoy.bot",
+  "settingsApiBaseUrlHint": "Example: https://enjoy.bot",
   "settingsApiBaseUrlSave": "Save API URL",
   "settingsAccountSignedOut": "Not signed in",
   "settingsAccountOpenProfile": "Open profile",
