@@ -290,4 +290,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shadowRecordingPlaybackFailed => 'Couldn\'t play this take.';
+
+  @override
+  String get hotkeysTitle => 'Keyboard shortcuts';
+
+  @override
+  String get hotkeysHintFooter => 'Press Shift+/ (?) to open this list.';
+
+  @override
+  String get hotkeysCustomizedBadge => 'Custom';
+
+  @override
+  String get hotkeysSectionKeyboard => 'Keyboard shortcuts';
+
+  @override
+  String get hotkeysResetBinding => 'Reset';
+
+  @override
+  String get hotkeysResetAll => 'Reset all shortcuts';
+
+  @override
+  String get hotkeysCaptureTitle => 'Press new shortcut';
+
+  @override
+  String get hotkeysCaptureHint => 'Press a key combination. Escape cancels.';
+
+  @override
+  String get hotkeysConflictError => 'That shortcut is already used.';
+
+  @override
+  String get hotkeysScopeGlobal => 'Global';
+
+  @override
+  String get hotkeysScopePlayer => 'Player';
+
+  @override
+  String get hotkeysScopeLibrary => 'Library';
+
+  @override
+  String get hotkeysScopeModal => 'Modal';
+
+  @override
+  String get hotkeysDescHelp => 'Show keyboard shortcuts';
+
+  @override
+  String get hotkeysDescSearch => 'Open search';
+
+  @override
+  String get hotkeysDescSettings => 'Open settings';
+
+  @override
+  String get hotkeysDescTogglePlay => 'Play / Pause';
+
+  @override
+  String get hotkeysDescToggleExpand => 'Toggle player expand/collapse';
+
+  @override
+  String get hotkeysDescPrevLine => 'Play previous line';
+
+  @override
+  String get hotkeysDescNextLine => 'Play next line';
+
+  @override
+  String get hotkeysDescReplayLine => 'Replay current line';
+
+  @override
+  String get hotkeysDescToggleEchoMode => 'Toggle Echo mode';
+
+  @override
+  String get hotkeysDescToggleDictationMode => 'Toggle dictation mode';
+
+  @override
+  String get hotkeysDescToggleRecording => 'Start/Stop recording';
+
+  @override
+  String get hotkeysDescToggleAssessment =>
+      'Show/Hide pronunciation assessment';
+
+  @override
+  String get hotkeysDescTogglePitchContour => 'Show/Hide pitch contour';
+
+  @override
+  String get hotkeysDescPlayRecording => 'Play/Pause recording';
+
+  @override
+  String get hotkeysDescSlowDown => 'Slow down playback speed';
+
+  @override
+  String get hotkeysDescSpeedUp => 'Speed up playback speed';
+
+  @override
+  String get hotkeysDescExpandEchoBackward => 'Expand Echo region backward';
+
+  @override
+  String get hotkeysDescExpandEchoForward => 'Expand Echo region forward';
+
+  @override
+  String get hotkeysDescShrinkEchoBackward => 'Shrink Echo region backward';
+
+  @override
+  String get hotkeysDescShrinkEchoForward => 'Shrink Echo region forward';
+
+  @override
+  String get hotkeysDescLibrarySearch => 'Focus search';
+
+  @override
+  String get hotkeysDescCloseModal => 'Close modal';
+
+  @override
+  String get hotkeysStubSearch => 'Search is not available yet.';
+
+  @override
+  String get hotkeysStubAssessment =>
+      'Pronunciation assessment is not available yet.';
+
+  @override
+  String get hotkeysStubDictation => 'Dictation mode is not available yet.';
 }

@@ -1,12 +1,15 @@
 /// Collapsible pitch contour with analysis — mirrors web `PitchContourSection`.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/echo_region_pitch_analyzer.dart';
+import '../application/shadow_reading_hotkey_bus.dart';
 import '../domain/echo_region_analysis.dart';
 import 'pitch_contour_chart.dart';
 
@@ -125,8 +128,30 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     );
   }
 
+  Future<void> _toggleExpanded() async {
+    final next = !_expanded;
+    setState(() => _expanded = next);
+    if (next && _reference == null) {
+      await _loadReference();
+    }
+    if (next &&
+        widget.selectedRecordingPath != null &&
+        _user == null &&
+        _reference != null) {
+      await _loadUser();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(
+      shadowReadingHotkeyBusProvider.select((s) => s.pitchContour),
+      (prev, next) {
+        if (prev == next) return;
+        unawaited(_toggleExpanded());
+      },
+    );
+
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final refColor = scheme.tertiary;
@@ -144,19 +169,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         InkWell(
-          onTap: () async {
-            final next = !_expanded;
-            setState(() => _expanded = next);
-            if (next && _reference == null) {
-              await _loadReference();
-            }
-            if (next &&
-                widget.selectedRecordingPath != null &&
-                _user == null &&
-                _reference != null) {
-              await _loadUser();
-            }
-          },
+          onTap: () => unawaited(_toggleExpanded()),
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),

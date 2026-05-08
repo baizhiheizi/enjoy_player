@@ -639,6 +639,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t play this take.'**
   String get shadowRecordingPlaybackFailed;
+
+  /// No description provided for @hotkeysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get hotkeysTitle;
+
+  /// No description provided for @hotkeysHintFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Shift+/ (?) to open this list.'**
+  String get hotkeysHintFooter;
+
+  /// No description provided for @hotkeysCustomizedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get hotkeysCustomizedBadge;
+
+  /// No description provided for @hotkeysSectionKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get hotkeysSectionKeyboard;
+
+  /// No description provided for @hotkeysResetBinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get hotkeysResetBinding;
+
+  /// No description provided for @hotkeysResetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all shortcuts'**
+  String get hotkeysResetAll;
+
+  /// No description provided for @hotkeysCaptureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Press new shortcut'**
+  String get hotkeysCaptureTitle;
+
+  /// No description provided for @hotkeysCaptureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Press a key combination. Escape cancels.'**
+  String get hotkeysCaptureHint;
+
+  /// No description provided for @hotkeysConflictError.
+  ///
+  /// In en, this message translates to:
+  /// **'That shortcut is already used.'**
+  String get hotkeysConflictError;
+
+  /// No description provided for @hotkeysScopeGlobal.
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get hotkeysScopeGlobal;
+
+  /// No description provided for @hotkeysScopePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get hotkeysScopePlayer;
+
+  /// No description provided for @hotkeysScopeLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get hotkeysScopeLibrary;
+
+  /// No description provided for @hotkeysScopeModal.
+  ///
+  /// In en, this message translates to:
+  /// **'Modal'**
+  String get hotkeysScopeModal;
+
+  /// No description provided for @hotkeysDescHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Show keyboard shortcuts'**
+  String get hotkeysDescHelp;
+
+  /// No description provided for @hotkeysDescSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Open search'**
+  String get hotkeysDescSearch;
+
+  /// No description provided for @hotkeysDescSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get hotkeysDescSettings;
+
+  /// No description provided for @hotkeysDescTogglePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play / Pause'**
+  String get hotkeysDescTogglePlay;
+
+  /// No description provided for @hotkeysDescToggleExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle player expand/collapse'**
+  String get hotkeysDescToggleExpand;
+
+  /// No description provided for @hotkeysDescPrevLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Play previous line'**
+  String get hotkeysDescPrevLine;
+
+  /// No description provided for @hotkeysDescNextLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Play next line'**
+  String get hotkeysDescNextLine;
+
+  /// No description provided for @hotkeysDescReplayLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay current line'**
+  String get hotkeysDescReplayLine;
+
+  /// No description provided for @hotkeysDescToggleEchoMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Echo mode'**
+  String get hotkeysDescToggleEchoMode;
+
+  /// No description provided for @hotkeysDescToggleDictationMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle dictation mode'**
+  String get hotkeysDescToggleDictationMode;
+
+  /// No description provided for @hotkeysDescToggleRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Start/Stop recording'**
+  String get hotkeysDescToggleRecording;
+
+  /// No description provided for @hotkeysDescToggleAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Show/Hide pronunciation assessment'**
+  String get hotkeysDescToggleAssessment;
+
+  /// No description provided for @hotkeysDescTogglePitchContour.
+  ///
+  /// In en, this message translates to:
+  /// **'Show/Hide pitch contour'**
+  String get hotkeysDescTogglePitchContour;
+
+  /// No description provided for @hotkeysDescPlayRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Play/Pause recording'**
+  String get hotkeysDescPlayRecording;
+
+  /// No description provided for @hotkeysDescSlowDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow down playback speed'**
+  String get hotkeysDescSlowDown;
+
+  /// No description provided for @hotkeysDescSpeedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed up playback speed'**
+  String get hotkeysDescSpeedUp;
+
+  /// No description provided for @hotkeysDescExpandEchoBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand Echo region backward'**
+  String get hotkeysDescExpandEchoBackward;
+
+  /// No description provided for @hotkeysDescExpandEchoForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand Echo region forward'**
+  String get hotkeysDescExpandEchoForward;
+
+  /// No description provided for @hotkeysDescShrinkEchoBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Shrink Echo region backward'**
+  String get hotkeysDescShrinkEchoBackward;
+
+  /// No description provided for @hotkeysDescShrinkEchoForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Shrink Echo region forward'**
+  String get hotkeysDescShrinkEchoForward;
+
+  /// No description provided for @hotkeysDescLibrarySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus search'**
+  String get hotkeysDescLibrarySearch;
+
+  /// No description provided for @hotkeysDescCloseModal.
+  ///
+  /// In en, this message translates to:
+  /// **'Close modal'**
+  String get hotkeysDescCloseModal;
+
+  /// No description provided for @hotkeysStubSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search is not available yet.'**
+  String get hotkeysStubSearch;
+
+  /// No description provided for @hotkeysStubAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation assessment is not available yet.'**
+  String get hotkeysStubAssessment;
+
+  /// No description provided for @hotkeysStubDictation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictation mode is not available yet.'**
+  String get hotkeysStubDictation;
 }
 
 class _AppLocalizationsDelegate

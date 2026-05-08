@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'pitch_contour_section.dart';
@@ -248,9 +249,64 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     setState(() => _selectedIdx = null);
   }
 
+  Future<void> _onHotkeyRecordingPulse(AppLocalizations l10n) async {
+    if (!widget.echoActive) return;
+    await _toggleRecord(l10n);
+  }
+
+  Future<void> _onHotkeyPlaybackPulse() async {
+    if (!widget.echoActive) return;
+    final db = ref.read(appDatabaseProvider);
+    final list = await db.recordingDao.listByEchoRegion(
+      targetType: widget.targetType,
+      targetId: widget.mediaId,
+      language: widget.language,
+      echoStartMs: (widget.startSec * 1000).round(),
+      echoEndMs: (widget.endSec * 1000).round(),
+    );
+    if (!mounted) return;
+    if (list.isEmpty) return;
+    final i = _selectedIdx ?? 0;
+    final safe = i >= 0 && i < list.length ? i : 0;
+    final path = list[safe].localPath;
+    if (path != null && path.isNotEmpty) {
+      await _playRecording(path);
+    }
+  }
+
+  void _onHotkeyAssessmentPulse() {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.hotkeysStubAssessment)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ref.listen<int>(
+      shadowReadingHotkeyBusProvider.select((s) => s.recording),
+      (prev, next) {
+        if (prev == next) return;
+        unawaited(_onHotkeyRecordingPulse(l10n));
+      },
+    );
+    ref.listen<int>(
+      shadowReadingHotkeyBusProvider.select((s) => s.playback),
+      (prev, next) {
+        if (prev == next) return;
+        unawaited(_onHotkeyPlaybackPulse());
+      },
+    );
+    ref.listen<int>(
+      shadowReadingHotkeyBusProvider.select((s) => s.assessment),
+      (prev, next) {
+        if (prev == next) return;
+        _onHotkeyAssessmentPulse();
+      },
+    );
+
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
 

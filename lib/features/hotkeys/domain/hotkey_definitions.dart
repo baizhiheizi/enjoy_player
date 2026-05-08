@@ -1,0 +1,197 @@
+/// Default shortcuts for enjoy_player (subset of web `HOTKEY_DEFINITIONS`).
+library;
+
+import 'hotkey_definition.dart';
+
+/// Stable Settings KV key for JSON map of action id → binding string.
+const String kHotkeysCustomBindingsKey = 'hotkeys_custom_bindings';
+
+final List<HotkeyDefinition> hotkeyDefinitions = [
+  const HotkeyDefinition(
+    id: 'global.help',
+    defaultKeys: 'shift+slash',
+    description: 'Show keyboard shortcuts',
+    descriptionKey: 'help',
+    scope: HotkeyScope.global,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'global.search',
+    defaultKeys: 'ctrl+k',
+    description: 'Open search',
+    descriptionKey: 'search',
+    scope: HotkeyScope.global,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'global.settings',
+    defaultKeys: 'ctrl+comma',
+    description: 'Open settings',
+    descriptionKey: 'settings',
+    scope: HotkeyScope.global,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.togglePlay',
+    defaultKeys: 'space',
+    description: 'Play / Pause',
+    descriptionKey: 'togglePlay',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.toggleExpand',
+    defaultKeys: 'ctrl+shift+p',
+    description: 'Toggle player expand/collapse',
+    descriptionKey: 'toggleExpand',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.prevLine',
+    defaultKeys: 'a',
+    description: 'Play previous line',
+    descriptionKey: 'prevLine',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.nextLine',
+    defaultKeys: 'd',
+    description: 'Play next line',
+    descriptionKey: 'nextLine',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.replayLine',
+    defaultKeys: 's',
+    description: 'Replay current line',
+    descriptionKey: 'replayLine',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.toggleEchoMode',
+    defaultKeys: 'e',
+    description: 'Toggle Echo mode',
+    descriptionKey: 'toggleEchoMode',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.toggleDictationMode',
+    defaultKeys: 'h',
+    description: 'Toggle dictation mode',
+    descriptionKey: 'toggleDictationMode',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.toggleRecording',
+    defaultKeys: 'r',
+    description: 'Start/Stop recording',
+    descriptionKey: 'toggleRecording',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.toggleAssessment',
+    defaultKeys: 'v',
+    description: 'Show/Hide pronunciation assessment',
+    descriptionKey: 'toggleAssessment',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.togglePitchContour',
+    defaultKeys: 'p',
+    description: 'Show/Hide pitch contour',
+    descriptionKey: 'togglePitchContour',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.playRecording',
+    defaultKeys: 'g',
+    description: 'Play/Pause recording',
+    descriptionKey: 'playRecording',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.slowDown',
+    defaultKeys: 'shift+comma',
+    description: 'Slow down playback speed',
+    descriptionKey: 'slowDown',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.speedUp',
+    defaultKeys: 'shift+period',
+    description: 'Speed up playback speed',
+    descriptionKey: 'speedUp',
+    scope: HotkeyScope.player,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.expandEchoBackward',
+    defaultKeys: '[',
+    description: 'Expand Echo region backward',
+    descriptionKey: 'expandEchoBackward',
+    scope: HotkeyScope.player,
+    customizable: true,
+    useKey: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.expandEchoForward',
+    defaultKeys: ']',
+    description: 'Expand Echo region forward',
+    descriptionKey: 'expandEchoForward',
+    scope: HotkeyScope.player,
+    customizable: true,
+    useKey: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.shrinkEchoBackward',
+    defaultKeys: '{',
+    description: 'Shrink Echo region backward',
+    descriptionKey: 'shrinkEchoBackward',
+    scope: HotkeyScope.player,
+    customizable: true,
+    useKey: true,
+  ),
+  const HotkeyDefinition(
+    id: 'player.shrinkEchoForward',
+    defaultKeys: '}',
+    description: 'Shrink Echo region forward',
+    descriptionKey: 'shrinkEchoForward',
+    scope: HotkeyScope.player,
+    customizable: true,
+    useKey: true,
+  ),
+  const HotkeyDefinition(
+    id: 'library.search',
+    defaultKeys: '/',
+    description: 'Focus search',
+    descriptionKey: 'librarySearch',
+    scope: HotkeyScope.library,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
+    id: 'modal.close',
+    defaultKeys: 'escape',
+    description: 'Close modal',
+    descriptionKey: 'closeModal',
+    scope: HotkeyScope.modal,
+    customizable: false,
+  ),
+];
+
+final Map<String, HotkeyDefinition> hotkeyDefinitionMap = {
+  for (final d in hotkeyDefinitions) d.id: d,
+};
+
+List<HotkeyDefinition> hotkeysByScope(HotkeyScope scope) =>
+    hotkeyDefinitions.where((d) => d.scope == scope).toList();

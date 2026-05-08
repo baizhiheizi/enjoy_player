@@ -110,6 +110,38 @@ class PlayerInteractions extends _$PlayerInteractions {
         );
   }
 
+  Future<void> expandEchoBackward() async {
+    final echo = ref.read(echoModeProvider);
+    if (!echo.active) return;
+    final lines = await _lines();
+    if (lines.isEmpty) return;
+    ref.read(echoModeProvider.notifier).expandEchoBackward(lines);
+  }
+
+  Future<void> expandEchoForward() async {
+    final echo = ref.read(echoModeProvider);
+    if (!echo.active) return;
+    final lines = await _lines();
+    if (lines.isEmpty) return;
+    ref.read(echoModeProvider.notifier).expandEchoForward(lines);
+  }
+
+  Future<void> shrinkEchoBackward() async {
+    final echo = ref.read(echoModeProvider);
+    if (!echo.active) return;
+    final lines = await _lines();
+    if (lines.isEmpty) return;
+    ref.read(echoModeProvider.notifier).shrinkEchoBackward(lines);
+  }
+
+  Future<void> shrinkEchoForward() async {
+    final echo = ref.read(echoModeProvider);
+    if (!echo.active) return;
+    final lines = await _lines();
+    if (lines.isEmpty) return;
+    ref.read(echoModeProvider.notifier).shrinkEchoForward(lines);
+  }
+
   Future<void> seekToProgressFraction(double fraction) async {
     final session = ref.read(playerControllerProvider);
     if (session == null) return;

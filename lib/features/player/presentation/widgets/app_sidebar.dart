@@ -9,6 +9,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import '../../../library/application/library_search_focus_provider.dart';
 import '../../../library/application/library_search_provider.dart';
 
 class AppSidebar extends ConsumerStatefulWidget {
@@ -71,6 +72,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
             Padding(
               padding: EdgeInsets.fromLTRB(t.space16, 0, t.space16, t.space12),
               child: TextField(
+                focusNode: ref.watch(librarySearchFocusNodeProvider),
                 controller: _searchController,
                 onChanged: (v) =>
                     ref.read(librarySearchProvider.notifier).setQuery(v),

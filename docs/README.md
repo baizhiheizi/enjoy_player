@@ -13,6 +13,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
 | [features/](features/) | Product + dev | Feature behavior changes |
 | [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
+| [features/hotkeys.md](features/hotkeys.md) | Product + dev | Keyboard shortcuts or customization behavior changes |
 
 ## How to add an ADR
 

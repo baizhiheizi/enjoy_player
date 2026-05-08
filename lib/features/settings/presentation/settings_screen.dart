@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_settings_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -28,6 +29,12 @@ class SettingsScreen extends StatelessWidget {
               l10n.settingsThemeDarkLocked,
               style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
             ),
+          ),
+          SizedBox(height: t.space8),
+          _SectionLabel(text: l10n.hotkeysSectionKeyboard),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: t.space16),
+            child: const HotkeysSettingsSection(),
           ),
           SizedBox(height: t.space8),
           _SectionLabel(text: l10n.settingsSectionAbout),
