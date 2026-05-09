@@ -1,11 +1,11 @@
 {
-    "name": "enjoy_player",
-    "short_name": "enjoy_player",
+    "name": "Enjoy Player",
+    "short_name": "Enjoy Player",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#4797F5",
-    "description": "A new Flutter project.",
+    "description": "Cross-platform audio/video player for language learning with transcripts and shadow reading.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
