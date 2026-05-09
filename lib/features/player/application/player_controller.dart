@@ -75,7 +75,12 @@ class PlayerController extends _$PlayerController {
 
     final kind = video != null ? MediaKind.video : MediaKind.audio;
     final dexie = kind.dexieTargetType;
-    final sourceUri = video?.localUri ?? audio!.localUri ?? '';
+    final sourceUri =
+        video?.localUri ??
+        video?.mediaUrl ??
+        audio?.localUri ??
+        audio?.mediaUrl ??
+        '';
     final title = video?.title ?? audio!.title;
     final thumb = video?.thumbnailUrl ?? audio?.thumbnailUrl;
     final language = video?.language ?? audio!.language;
