@@ -1048,6 +1048,12 @@ abstract class AppLocalizations {
   /// **'Cloud sync'**
   String get settingsSectionSync;
 
+  /// No description provided for @settingsSectionDataMigration.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data'**
+  String get settingsSectionDataMigration;
+
   /// No description provided for @syncSettingsTileTitle.
   ///
   /// In en, this message translates to:
@@ -1335,6 +1341,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected size: unknown'**
   String get mediaLocateSizeUnknown;
+
+  /// No description provided for @migrationBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move your local data'**
+  String get migrationBannerTitle;
+
+  /// No description provided for @migrationBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We noticed you have media and practice history saved locally. Would you like to move it to your account?'**
+  String get migrationBannerBody;
+
+  /// No description provided for @migrationBannerActionMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move data'**
+  String get migrationBannerActionMove;
+
+  /// No description provided for @migrationBannerActionDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get migrationBannerActionDismiss;
+
+  /// No description provided for @settingsMigrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Migrate local data'**
+  String get settingsMigrationTitle;
+
+  /// No description provided for @settingsMigrationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move your guest media and history to this account'**
+  String get settingsMigrationSubtitle;
+
+  /// No description provided for @migrationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data moved successfully'**
+  String get migrationSuccess;
+
+  /// No description provided for @migrationMigrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not move data. Try again later.'**
+  String get migrationMigrationFailed;
 }
 
 class _AppLocalizationsDelegate

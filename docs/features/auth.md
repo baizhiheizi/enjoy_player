@@ -9,6 +9,7 @@
 - **Profile** screen calls `GET/PATCH /api/v1/profile` with camelCase JSON; the HTTP client maps camelCase ↔ snake_case like the web `@enjoy/api` client.
 - **Locale / learning / native language** from the server profile are applied to app preferences (Drift `prefs.*`) on login and profile refresh.
 - **API base URL** is configurable under Settings → Advanced (`api.base_url` in the **guest** Drift DB `enjoy_player`); default `https://enjoy.bot`. Session-scoped data (library, prefs, sync cursors) lives in `appDatabaseProvider` (guest DB when signed out, per-user file when signed in).
+- **Guest → account migration**: If the guest DB still has library or practice data after sign-in, a **Home** banner offers to copy it into the signed-in user's DB and clear those tables on the guest DB (API base URL and other guest settings stay). **Not now** hides the banner (stored in user DB as `migration.guest_dismissed`); **Settings → Local data** repeats the action while guest data exists.
 
 ## REST clients
 

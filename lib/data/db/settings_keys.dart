@@ -14,6 +14,9 @@ abstract final class SettingsKeys {
 
   /// ISO-8601 UTC timestamp of last fully successful full sync (downloads + queue).
   static const String syncLastFullSyncAt = 'sync.last_full_sync_at';
+
+  /// User dismissed the guest-data migration banner (`true` / absent).
+  static const String migrationGuestDismissed = 'migration.guest_dismissed';
 }
 
 /// Default Enjoy API origin (no trailing slash).

@@ -175,6 +175,7 @@
   },
   "settingsSectionAccount": "Account",
   "settingsSectionSync": "Cloud sync",
+  "settingsSectionDataMigration": "Local data",
   "syncSettingsTileTitle": "Sync status",
   "syncSettingsTileSubtitleSignedOut": "Sign in to sync library and recordings",
   "syncSettingsTileSubtitleUpToDate": "Up to date",
@@ -250,5 +251,13 @@
       }
     }
   },
-  "mediaLocateSizeUnknown": "Expected size: unknown"
+  "mediaLocateSizeUnknown": "Expected size: unknown",
+  "migrationBannerTitle": "Move your local data",
+  "migrationBannerBody": "We noticed you have media and practice history saved locally. Would you like to move it to your account?",
+  "migrationBannerActionMove": "Move data",
+  "migrationBannerActionDismiss": "Not now",
+  "settingsMigrationTitle": "Migrate local data",
+  "settingsMigrationSubtitle": "Move your guest media and history to this account",
+  "migrationSuccess": "Data moved successfully",
+  "migrationMigrationFailed": "Could not move data. Try again later."
 }

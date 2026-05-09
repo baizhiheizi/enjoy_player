@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/guest_migration_banner.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
 import 'package:enjoy_player/features/library/presentation/todays_goal_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -35,105 +36,121 @@ class HomeScreen extends ConsumerWidget {
     final t = EnjoyThemeTokens.of(context);
 
     return Scaffold(
-      body: mediaAsync.when(
-        data: (items) {
-          final sorted = [...items]
-            ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          final recent = sorted.take(_kRecentLimit).toList();
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const GuestMigrationBanner(),
+          Expanded(
+            child: mediaAsync.when(
+              data: (items) {
+                final sorted = [...items]
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                final recent = sorted.take(_kRecentLimit).toList();
 
-          if (recent.isEmpty) {
-            return EmptyState(
-              icon: Icons.collections_bookmark_rounded,
-              title: l10n.homeEmptyTitle,
-              subtitle: l10n.homeEmptyHint,
-              action: () => importMediaFromPicker(context, ref),
-              actionLabel: l10n.actionOpenFiles,
-            );
-          }
+                if (recent.isEmpty) {
+                  return EmptyState(
+                    icon: Icons.collections_bookmark_rounded,
+                    title: l10n.homeEmptyTitle,
+                    subtitle: l10n.homeEmptyHint,
+                    action: () => importMediaFromPicker(context, ref),
+                    actionLabel: l10n.actionOpenFiles,
+                  );
+                }
 
-          return CustomScrollView(
-            slivers: [
-              // Editorial header
-              SliverToBoxAdapter(
-                child: EditorialHeader(
-                  title: l10n.homeTitle,
-                  trailing: FilledButton.icon(
-                    onPressed: () => importMediaFromPicker(context, ref),
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: Text(l10n.actionOpenFiles),
-                  ),
-                ),
-              ),
+                return CustomScrollView(
+                  slivers: [
+                    // Editorial header
+                    SliverToBoxAdapter(
+                      child: EditorialHeader(
+                        title: l10n.homeTitle,
+                        trailing: FilledButton.icon(
+                          onPressed: () => importMediaFromPicker(context, ref),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: Text(l10n.actionOpenFiles),
+                        ),
+                      ),
+                    ),
 
-              // Today's goal + community (signed-in, responsive grid)
-              const SliverToBoxAdapter(child: _HomeInsightCards()),
+                    // Today's goal + community (signed-in, responsive grid)
+                    const SliverToBoxAdapter(child: _HomeInsightCards()),
 
-              // Recents section label
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space24,
-                  0,
-                  t.space24,
-                  t.space12,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    l10n.homeRecentMedia,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+                    // Recents section label
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        t.space24,
+                        0,
+                        t.space24,
+                        t.space12,
+                      ),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          l10n.homeRecentMedia,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Media grid
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: t.space24),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 220,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 16 / 14.5,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final m = recent[index];
+                          return _HomeMediaTile(media: m);
+                        }, childCount: recent.length),
+                      ),
+                    ),
+
+                    SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) {
+                final cs = Theme.of(context).colorScheme;
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(t.space24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: cs.error,
+                        ),
+                        SizedBox(height: t.space16),
+                        Text(
+                          '${l10n.error}: $e',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        SizedBox(height: t.space16),
+                        FilledButton.tonal(
+                          onPressed: () => ref.invalidate(libraryMediaProvider),
+                          child: Text(l10n.retry),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ),
-
-              // Media grid
-              SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: t.space24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 220,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 16 / 14.5,
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final m = recent[index];
-                    return _HomeMediaTile(media: m);
-                  }, childCount: recent.length),
-                ),
-              ),
-
-              SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) {
-          final cs = Theme.of(context).colorScheme;
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(t.space24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline_rounded, size: 48, color: cs.error),
-                  SizedBox(height: t.space16),
-                  Text(
-                    '${l10n.error}: $e',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  SizedBox(height: t.space16),
-                  FilledButton.tonal(
-                    onPressed: () => ref.invalidate(libraryMediaProvider),
-                    child: Text(l10n.retry),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
