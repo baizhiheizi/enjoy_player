@@ -36,6 +36,7 @@ class AuthCtrl extends _$AuthCtrl {
   Future<void> startSignIn() async {
     final repo = ref.read(authRepositoryProvider);
     _pollTimer?.cancel();
+    _log.info('auth: calling start_auth');
     final start = await repo.startAuth();
     final gen = ++_pollGeneration;
     state = AsyncData(
@@ -53,7 +54,10 @@ class AuthCtrl extends _$AuthCtrl {
       _log.warning('launchUrl failed for $uri');
       return;
     }
-    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+
+    // [Timer.periodic] waits one full period before the first tick — run an
+    // immediate poll so HTTP logs and approval appear without a 2s gap.
+    Future<void> pollTick() async {
       if (gen != _pollGeneration) return;
       final s = state.valueOrNull;
       if (s is! AuthSigningIn) {
@@ -81,6 +85,12 @@ class AuthCtrl extends _$AuthCtrl {
       } catch (e, st) {
         _log.warning('poll auth failed', e, st);
       }
+    }
+
+    _log.info('auth: polling until approved (every 2s, first tick now)');
+    unawaited(pollTick());
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      unawaited(pollTick());
     });
   }
 

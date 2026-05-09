@@ -3,9 +3,11 @@ library;
 
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
@@ -18,6 +20,21 @@ import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 
 part 'auth_repository.g.dart';
+
+final Logger _log = logNamed('auth');
+
+/// Nested JSON maps from [decodeJsonToCamel] are often [Map<dynamic, dynamic>],
+/// not [Map<String, dynamic>], so always normalize before strict typing.
+Map<String, dynamic>? _jsonObjectAsStringMap(Object? value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return Map<String, dynamic>.from(
+      value.map((k, v) => MapEntry(k.toString(), v)),
+    );
+  }
+  return null;
+}
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
@@ -64,8 +81,13 @@ class AuthRepository {
       final status = m['status'] as String?;
       if (status == 'approved') {
         final token = m['accessToken'] as String?;
-        final user = m['user'];
-        if (token == null || token.isEmpty || user is! Map<String, dynamic>) {
+        final user = _jsonObjectAsStringMap(m['user']);
+        if (token == null || token.isEmpty || user == null) {
+          _log.warning(
+            'poll approved: expected accessToken + user object; '
+            'topKeys=${m.keys.toList()} userType=${m['user']?.runtimeType} '
+            'tokenMissing=${token == null || token.isEmpty}',
+          );
           throw const AuthFailure('Invalid poll approved response');
         }
         return PollAuthOutcomeApproved(accessToken: token, user: user);

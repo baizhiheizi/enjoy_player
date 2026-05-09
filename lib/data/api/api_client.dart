@@ -14,6 +14,12 @@ import 'package:enjoy_player/data/api/json_isolate.dart';
 
 final Logger _log = logNamed('api');
 
+/// Request/response lines at [Level.INFO] so they appear when
+/// [Logger.root.level] is [Level.INFO] (profile/release), not only [Level.ALL].
+void _apiHttpTrace(String message) {
+  _log.info(message);
+}
+
 typedef GetBaseUrl = Future<String> Function();
 typedef GetAccessToken = Future<String?> Function();
 
@@ -245,21 +251,40 @@ class ApiClient {
             jsonEncode(transformBody ? convertKeysToSnake(body) : body),
           );
 
-    _log.fine('$method $uri');
+    final sw = Stopwatch()..start();
+    _apiHttpTrace('HTTP → $method $uri');
 
-    switch (method) {
-      case 'GET':
-        return _client.get(uri, headers: headers);
-      case 'POST':
-        return _client.post(uri, headers: headers, body: bodyBytes);
-      case 'PATCH':
-        return _client.patch(uri, headers: headers, body: bodyBytes);
-      case 'PUT':
-        return _client.put(uri, headers: headers, body: bodyBytes);
-      case 'DELETE':
-        return _client.delete(uri, headers: headers);
-      default:
-        throw ApiException(message: 'Unsupported method $method');
+    try {
+      final http.Response response;
+      switch (method) {
+        case 'GET':
+          response = await _client.get(uri, headers: headers);
+        case 'POST':
+          response = await _client.post(uri, headers: headers, body: bodyBytes);
+        case 'PATCH':
+          response =
+              await _client.patch(uri, headers: headers, body: bodyBytes);
+        case 'PUT':
+          response = await _client.put(uri, headers: headers, body: bodyBytes);
+        case 'DELETE':
+          response = await _client.delete(uri, headers: headers);
+        default:
+          throw ApiException(message: 'Unsupported method $method');
+      }
+      sw.stop();
+      _apiHttpTrace(
+        'HTTP ← $method $uri ${response.statusCode} '
+        '${sw.elapsedMilliseconds}ms len=${response.bodyBytes.length}',
+      );
+      return response;
+    } catch (e, st) {
+      sw.stop();
+      _log.warning(
+        'HTTP ✗ $method $uri after ${sw.elapsedMilliseconds}ms: $e',
+        e,
+        st,
+      );
+      rethrow;
     }
   }
 
