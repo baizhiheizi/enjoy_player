@@ -505,4 +505,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorUnauthorized => 'Session expired — please sign in again';
+
+  @override
+  String get communityActivity => 'Community Activity';
+
+  @override
+  String get communityToday => 'Community Today';
+
+  @override
+  String get homeRecordingsToday => 'Recordings';
+
+  @override
+  String get homePracticeTime => 'Practice Time';
+
+  @override
+  String get homeActiveLearners => 'Active Learners';
+
+  @override
+  String homePeopleLearning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people learning',
+      one: '$count person learning',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeNoActiveUsers => 'No active users';
 }

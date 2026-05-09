@@ -176,5 +176,20 @@
   "settingsAccountOpenProfile": "Open profile",
   "settingsAccountSignIn": "Sign in",
   "errorNetwork": "Network error",
-  "errorUnauthorized": "Session expired — please sign in again"
+  "errorUnauthorized": "Session expired — please sign in again",
+  "communityActivity": "Community Activity",
+  "communityToday": "Community Today",
+  "homeRecordingsToday": "Recordings",
+  "homePracticeTime": "Practice Time",
+  "homeActiveLearners": "Active Learners",
+  "homePeopleLearning": "{count, plural, one{{count} person learning} other{{count} people learning}}",
+  "@homePeopleLearning": {
+    "description": "Headline for how many people are learning in the community.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNoActiveUsers": "No active users"
 }

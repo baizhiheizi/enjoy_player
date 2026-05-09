@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
@@ -76,6 +77,7 @@ class HomeScreen extends ConsumerWidget {
                         icon: const Icon(Icons.folder_open_rounded),
                         label: Text(l10n.actionOpenFiles),
                       ),
+                      const CommunityActivityCard(),
                     ],
                   ),
                 ),
@@ -131,6 +133,12 @@ class HomeScreen extends ConsumerWidget {
                     },
                     childCount: recent.length,
                   ),
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, 0),
+                sliver: const SliverToBoxAdapter(
+                  child: CommunityActivityCard(),
                 ),
               ),
             ],

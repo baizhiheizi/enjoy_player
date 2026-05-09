@@ -1059,6 +1059,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Session expired — please sign in again'**
   String get errorUnauthorized;
+
+  /// No description provided for @communityActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Activity'**
+  String get communityActivity;
+
+  /// No description provided for @communityToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Today'**
+  String get communityToday;
+
+  /// No description provided for @homeRecordingsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Recordings'**
+  String get homeRecordingsToday;
+
+  /// No description provided for @homePracticeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice Time'**
+  String get homePracticeTime;
+
+  /// No description provided for @homeActiveLearners.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Learners'**
+  String get homeActiveLearners;
+
+  /// Headline for how many people are learning in the community.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} person learning} other{{count} people learning}}'**
+  String homePeopleLearning(int count);
+
+  /// No description provided for @homeNoActiveUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No active users'**
+  String get homeNoActiveUsers;
 }
 
 class _AppLocalizationsDelegate
