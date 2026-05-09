@@ -139,8 +139,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               onTap: () => context.go('/'),
             ),
             _SidebarNavItem(
-              icon: Icons.library_music_outlined,
-              selectedIcon: Icons.library_music_rounded,
+              icon: Icons.collections_bookmark_outlined,
+              selectedIcon: Icons.collections_bookmark_rounded,
               label: l10n.libraryTitle,
               selected: path.startsWith('/library'),
               onTap: () => context.go('/library'),

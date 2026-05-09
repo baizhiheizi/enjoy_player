@@ -27,17 +27,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEmptyHint => 'Open a file or drop one here to start.';
 
   @override
-  String get libraryTabMusic => 'Music';
+  String get libraryTabAudio => 'Audio';
 
   @override
   String get libraryTabVideo => 'Video';
 
   @override
-  String get libraryEmptyMusicTitle => 'We couldn\'t find any music';
+  String get libraryEmptyAudioTitle => 'We couldn\'t find any audio';
 
   @override
-  String get libraryEmptyMusicHint =>
-      'Your library doesn\'t contain any music content.';
+  String get libraryEmptyAudioHint =>
+      'Your library doesn\'t contain any audio content.';
 
   @override
   String get libraryEmptyVideoTitle => 'We couldn\'t find any videos';

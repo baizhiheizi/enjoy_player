@@ -109,8 +109,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                       segments: [
                         ButtonSegment<String>(
                           value: 'audio',
-                          icon: const Icon(Icons.music_note_rounded, size: 16),
-                          label: Text(l10n.libraryTabMusic),
+                          icon: const Icon(Icons.graphic_eq_rounded, size: 16),
+                          label: Text(l10n.libraryTabAudio),
                         ),
                         ButtonSegment<String>(
                           value: 'video',
@@ -138,7 +138,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _MusicLibraryBody(items: audioItems),
+                    _AudioLibraryBody(items: audioItems),
                     _VideoLibraryBody(items: videoItems),
                   ],
                 ),
@@ -174,10 +174,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 }
 
-// ── Music tab ───────────────────────────────────────────────────────────────
+// ── Audio tab ───────────────────────────────────────────────────────────────
 
-class _MusicLibraryBody extends StatelessWidget {
-  const _MusicLibraryBody({required this.items});
+class _AudioLibraryBody extends StatelessWidget {
+  const _AudioLibraryBody({required this.items});
 
   final List<Media> items;
 
@@ -188,9 +188,9 @@ class _MusicLibraryBody extends StatelessWidget {
 
     if (items.isEmpty) {
       return EmptyState(
-        icon: Icons.music_note_rounded,
-        title: l10n.libraryEmptyMusicTitle,
-        subtitle: l10n.libraryEmptyMusicHint,
+        icon: Icons.graphic_eq_rounded,
+        title: l10n.libraryEmptyAudioTitle,
+        subtitle: l10n.libraryEmptyAudioHint,
       );
     }
 

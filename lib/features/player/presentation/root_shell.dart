@@ -69,8 +69,8 @@ class RootShell extends ConsumerWidget {
                       label: l10n.homeTitle,
                     ),
                     NavigationDestination(
-                      icon: const Icon(Icons.library_music_outlined),
-                      selectedIcon: const Icon(Icons.library_music_rounded),
+                      icon: const Icon(Icons.collections_bookmark_outlined),
+                      selectedIcon: const Icon(Icons.collections_bookmark_rounded),
                       label: l10n.libraryTitle,
                     ),
                     NavigationDestination(

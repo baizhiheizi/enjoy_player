@@ -130,11 +130,11 @@ abstract class AppLocalizations {
   /// **'Open a file or drop one here to start.'**
   String get homeEmptyHint;
 
-  /// No description provided for @libraryTabMusic.
+  /// No description provided for @libraryTabAudio.
   ///
   /// In en, this message translates to:
-  /// **'Music'**
-  String get libraryTabMusic;
+  /// **'Audio'**
+  String get libraryTabAudio;
 
   /// No description provided for @libraryTabVideo.
   ///
@@ -142,17 +142,17 @@ abstract class AppLocalizations {
   /// **'Video'**
   String get libraryTabVideo;
 
-  /// No description provided for @libraryEmptyMusicTitle.
+  /// No description provided for @libraryEmptyAudioTitle.
   ///
   /// In en, this message translates to:
-  /// **'We couldn\'t find any music'**
-  String get libraryEmptyMusicTitle;
+  /// **'We couldn\'t find any audio'**
+  String get libraryEmptyAudioTitle;
 
-  /// No description provided for @libraryEmptyMusicHint.
+  /// No description provided for @libraryEmptyAudioHint.
   ///
   /// In en, this message translates to:
-  /// **'Your library doesn\'t contain any music content.'**
-  String get libraryEmptyMusicHint;
+  /// **'Your library doesn\'t contain any audio content.'**
+  String get libraryEmptyAudioHint;
 
   /// No description provided for @libraryEmptyVideoTitle.
   ///

@@ -39,7 +39,7 @@ class HomeScreen extends ConsumerWidget {
 
           if (recent.isEmpty) {
             return EmptyState(
-              icon: Icons.library_music_rounded,
+              icon: Icons.collections_bookmark_rounded,
               title: l10n.homeEmptyTitle,
               subtitle: l10n.homeEmptyHint,
               action: () => importMediaFromPicker(context, ref),
