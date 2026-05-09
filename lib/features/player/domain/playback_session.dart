@@ -61,3 +61,28 @@ class PlaybackSession {
     );
   }
 }
+
+/// Stable subset for navigation chrome and artwork — excludes clock fields so UI
+/// does not rebuild on every position tick ([PlaybackSession.currentTimeSeconds]).
+typedef PlaybackChrome = ({
+  String mediaId,
+  String dexieTargetType,
+  String mediaType,
+  String mediaTitle,
+  String? thumbnailUrl,
+  double durationSeconds,
+  String language,
+});
+
+PlaybackChrome? playbackChromeOf(PlaybackSession? session) {
+  if (session == null) return null;
+  return (
+    mediaId: session.mediaId,
+    dexieTargetType: session.dexieTargetType,
+    mediaType: session.mediaType,
+    mediaTitle: session.mediaTitle,
+    thumbnailUrl: session.thumbnailUrl,
+    durationSeconds: session.durationSeconds,
+    language: session.language,
+  );
+}

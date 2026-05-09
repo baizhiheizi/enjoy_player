@@ -52,7 +52,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
 
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(playerControllerProvider);
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
     final echo = ref.watch(echoModeProvider);
     final playingAsync = ref.watch(playerIsPlayingProvider);
     final bufferingAsync = ref.watch(playerIsBufferingProvider);
@@ -101,19 +101,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       isPlaying ? l10n.pause : l10n.play,
     );
 
-    if (session == null) return const SizedBox.shrink();
-
-    final durationSec =
-        session.durationSeconds > 0 ? session.durationSeconds : 1.0;
-
-    final posAsync = ref.watch(displayPositionProvider);
-    final pos = switch (posAsync) {
-      AsyncData(:final value) => value,
-      _ => Duration.zero,
-    };
-
-    final value =
-        durationSec > 0 ? pos.inMilliseconds / 1000 / durationSec : 0.0;
+    if (chrome == null) return const SizedBox.shrink();
 
     final primaryTransport = <Widget>[
       if (!narrowLayout)
@@ -175,7 +163,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
             () => ref.read(playerInteractionsProvider.notifier).toggleEcho(),
         icon: const Icon(Icons.mic_none_rounded),
       ),
-      _CcButton(mediaId: session.mediaId),
+      _CcButton(mediaId: chrome.mediaId),
       PopupMenuButton<double>(
         tooltip: ttSpeed,
         onSelected:
@@ -217,7 +205,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         ),
       ),
       const _TransportVolumeButton(),
-      _FullscreenButton(isVideo: session.mediaType == 'video'),
+      _FullscreenButton(isVideo: chrome.mediaType == 'video'),
       if (!onPlayer)
         IconButton(
           tooltip: hotkeyTooltipLabel(
@@ -226,48 +214,45 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
             l10n.transportExpand,
           ),
           icon: const Icon(Icons.open_in_full_rounded),
-          onPressed: () => context.push('/player/${session.mediaId}'),
+          onPressed: () => context.push('/player/${chrome.mediaId}'),
         ),
     ];
 
-    final inner = Theme(
-      data: Theme.of(context).copyWith(
-        iconButtonTheme: IconButtonThemeData(
-          style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(t.space12, t.space8, t.space12, 0),
-            child: _TransportProgressStrip(
-              session: session,
-              position: pos,
-              fraction: value.clamp(0, 1),
-              hovered: _sliderHovered,
-              onHoverChanged: (v) => setState(() => _sliderHovered = v),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barWidth = constraints.maxWidth;
+        final inner = Theme(
+          data: Theme.of(context).copyWith(
+            iconButtonTheme: IconButtonThemeData(
+              style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              t.space12,
-              t.space4,
-              t.space12,
-              t.space12,
-            ),
-            child: SizedBox(
-              height: 56,
-              child:
-                  hideBottomMediaInfo
-                      ? LayoutBuilder(
-                        builder: (context, constraints) {
-                          return SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(t.space12, t.space8, t.space12, 0),
+                child: _TransportProgressStrip(
+                  chrome: chrome,
+                  hovered: _sliderHovered,
+                  onHoverChanged: (v) => setState(() => _sliderHovered = v),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  t.space12,
+                  t.space4,
+                  t.space12,
+                  t.space12,
+                ),
+                child: SizedBox(
+                  height: 56,
+                  child:
+                      hideBottomMediaInfo
+                          ? SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: constraints.maxWidth,
-                              ),
+                              constraints: BoxConstraints(minWidth: barWidth),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -284,10 +269,8 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      )
-                      : Row(
+                          )
+                          : Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
@@ -298,7 +281,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (!onPlayer) ...[
-                                    _TransportArtwork(session: session),
+                                    _TransportArtwork(chrome: chrome),
                                     SizedBox(width: t.space12),
                                   ],
                                   Flexible(
@@ -315,7 +298,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                             onPlayer
                                                 ? null
                                                 : () => context.push(
-                                                  '/player/${session.mediaId}',
+                                                  '/player/${chrome.mediaId}',
                                                 ),
                                         borderRadius: BorderRadius.circular(
                                           t.radiusSm,
@@ -326,7 +309,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                             horizontal: t.space4,
                                           ),
                                           child: _TransportMeta(
-                                            session: session,
+                                            chrome: chrome,
                                           ),
                                         ),
                                       ),
@@ -353,17 +336,19 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                               ),
                             ),
                           ),
-                        ],
-                      ),
-            ),
+                            ],
+                          ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
 
-    return GlassSurface(
-      padding: EdgeInsets.zero,
-      child: Material(color: Colors.transparent, child: inner),
+        return GlassSurface(
+          padding: EdgeInsets.zero,
+          child: Material(color: Colors.transparent, child: inner),
+        );
+      },
     );
   }
 }
@@ -514,16 +499,12 @@ class _TransportVolumeButtonState
 
 class _TransportProgressStrip extends ConsumerWidget {
   const _TransportProgressStrip({
-    required this.session,
-    required this.position,
-    required this.fraction,
+    required this.chrome,
     required this.hovered,
     required this.onHoverChanged,
   });
 
-  final PlaybackSession session;
-  final Duration position;
-  final double fraction;
+  final PlaybackChrome chrome;
   final bool hovered;
   final ValueChanged<bool> onHoverChanged;
 
@@ -532,7 +513,15 @@ class _TransportProgressStrip extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final durationSec =
-        session.durationSeconds > 0 ? session.durationSeconds : 1.0;
+        chrome.durationSeconds > 0 ? chrome.durationSeconds : 1.0;
+
+    final posAsync = ref.watch(displayPositionProvider);
+    final pos = switch (posAsync) {
+      AsyncData(:final value) => value,
+      _ => Duration.zero,
+    };
+    final fraction =
+        durationSec > 0 ? pos.inMilliseconds / 1000 / durationSec : 0.0;
 
     final timeStyle = tt.labelSmall?.copyWith(
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -544,26 +533,28 @@ class _TransportProgressStrip extends ConsumerWidget {
       onExit: (_) => onHoverChanged(false),
       child: Row(
         children: [
-          Text(formatDurationHms(position), style: timeStyle),
+          Text(formatDurationHms(pos), style: timeStyle),
           const SizedBox(width: 8),
           Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
-                thumbShape: RoundSliderThumbShape(
-                  enabledThumbRadius: hovered ? 6 : 0,
+            child: ExcludeSemantics(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 3,
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: hovered ? 6 : 1,
+                  ),
+                  overlayShape: SliderComponentShape.noOverlay,
+                  activeTrackColor: cs.primary,
+                  inactiveTrackColor: cs.onSurface.withValues(alpha: 0.12),
+                  thumbColor: cs.primary,
                 ),
-                overlayShape: SliderComponentShape.noOverlay,
-                activeTrackColor: cs.primary,
-                inactiveTrackColor: cs.onSurface.withValues(alpha: 0.12),
-                thumbColor: cs.primary,
-              ),
-              child: Slider(
-                value: fraction.clamp(0, 1),
-                onChanged:
-                    (v) => ref
-                        .read(playerInteractionsProvider.notifier)
-                        .seekToProgressFraction(v),
+                child: Slider(
+                  value: fraction.clamp(0, 1),
+                  onChanged:
+                      (v) => ref
+                          .read(playerInteractionsProvider.notifier)
+                          .seekToProgressFraction(v),
+                ),
               ),
             ),
           ),
@@ -581,9 +572,9 @@ class _TransportProgressStrip extends ConsumerWidget {
 }
 
 class _TransportMeta extends ConsumerWidget {
-  const _TransportMeta({required this.session});
+  const _TransportMeta({required this.chrome});
 
-  final PlaybackSession session;
+  final PlaybackChrome chrome;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -601,13 +592,13 @@ class _TransportMeta extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          session.mediaTitle,
+          chrome.mediaTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         Text(
-          '${formatDurationHms(pos)} / ${formatDurationHms(Duration(milliseconds: (session.durationSeconds * 1000).round()))}',
+          '${formatDurationHms(pos)} / ${formatDurationHms(Duration(milliseconds: (chrome.durationSeconds * 1000).round()))}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: tt.bodySmall?.copyWith(
@@ -621,21 +612,21 @@ class _TransportMeta extends ConsumerWidget {
 }
 
 class _TransportArtwork extends ConsumerWidget {
-  const _TransportArtwork({required this.session});
+  const _TransportArtwork({required this.chrome});
 
-  final PlaybackSession session;
+  final PlaybackChrome chrome;
 
   @override
   Widget build(BuildContext context, WidgetRef _) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final isVideo = session.mediaType == 'video';
+    final isVideo = chrome.mediaType == 'video';
     const width = 64.0;
     const height = 40.0;
 
     // ADR-0003: single media_kit Player/VideoController — do not attach a second
     // [Video] here; the expanded player owns the texture. Mini bar uses art only.
-    final thumb = localThumbnailFile(session.thumbnailUrl);
+    final thumb = localThumbnailFile(chrome.thumbnailUrl);
     final Widget content =
         thumb != null
             ? Image.file(
@@ -660,7 +651,7 @@ class _TransportArtwork extends ConsumerWidget {
             side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
           ),
           child: InkWell(
-            onTap: () => context.push('/player/${session.mediaId}'),
+            onTap: () => context.push('/player/${chrome.mediaId}'),
             child: content,
           ),
         ),

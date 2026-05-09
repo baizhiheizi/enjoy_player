@@ -12,10 +12,13 @@ Stream<T> _seedThenFollow<T>(T seed, Stream<T> rest) async* {
 
 final playerIsPlayingProvider = StreamProvider<bool>((ref) {
   final engine = ref.watch(playerEngineProvider);
-  return _seedThenFollow(engine.player.state.playing, engine.playing);
+  return _seedThenFollow(engine.player.state.playing, engine.playing).distinct();
 });
 
 final playerIsBufferingProvider = StreamProvider<bool>((ref) {
   final engine = ref.watch(playerEngineProvider);
-  return _seedThenFollow(engine.player.state.buffering, engine.buffering);
+  return _seedThenFollow(
+    engine.player.state.buffering,
+    engine.buffering,
+  ).distinct();
 });

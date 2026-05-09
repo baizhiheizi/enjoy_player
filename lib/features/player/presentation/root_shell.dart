@@ -44,7 +44,8 @@ class RootShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(syncCtrlProvider);
-    final session = ref.watch(playerControllerProvider);
+    final sessionActive =
+        ref.watch(playerControllerProvider.select((s) => s != null));
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
     final onPlayer = path.startsWith('/player/');
@@ -59,7 +60,7 @@ class RootShell extends ConsumerWidget {
           final pageColumn = Column(
             children: [
               Expanded(child: child),
-              if (session != null) const GlobalTransportBar(),
+              if (sessionActive) const GlobalTransportBar(),
               if (!useSidebar && !onPlayer)
                 NavigationBar(
                   selectedIndex: _navIndexForPath(path),

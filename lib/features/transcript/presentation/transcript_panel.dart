@@ -11,12 +11,14 @@ import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import '../../player/application/display_position_provider.dart';
 import '../../player/application/player_controller.dart';
 import '../../player/application/echo_mode_provider.dart';
 import '../../player/application/player_interactions.dart';
 import '../../player/application/player_state_providers.dart';
 import '../../shadow_reading/presentation/shadow_reading_panel.dart';
+import '../application/transcript_playback_highlight_provider.dart';
 import 'echo_region_controls_bar.dart';
 import '../application/transcript_lines_provider.dart';
 import '../application/transcript_repository_provider.dart';
@@ -61,30 +63,70 @@ class TranscriptPanel extends ConsumerWidget {
           child: linesAsync.when(
             data: (lines) {
               if (lines.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(t.space24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          l10n.noTranscript,
-                          style: Theme.of(context).textTheme.titleMedium,
+                final scheme = Theme.of(context).colorScheme;
+                return LayoutBuilder(
+                  builder: (context, viewport) {
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: t.space8,
+                        vertical: t.space16,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                        child: Center(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHighest.withValues(
+                                alpha: 0.55,
+                              ),
+                              borderRadius: BorderRadius.circular(t.radiusMd),
+                              border: Border.all(
+                                color: scheme.outlineVariant.withValues(
+                                  alpha: 0.35,
+                                ),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(t.space24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.subtitles_outlined,
+                                    size: 40,
+                                    color: scheme.primary.withValues(alpha: 0.85),
+                                  ),
+                                  SizedBox(height: t.space16),
+                                  Text(
+                                    l10n.noTranscript,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  SizedBox(height: t.space8),
+                                  Text(
+                                    l10n.noTranscriptHint,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodyMedium
+                                        ?.copyWith(
+                                          color: scheme.onSurfaceVariant,
+                                          height: 1.35,
+                                        ),
+                                  ),
+                                  SizedBox(height: t.space24),
+                                  FilledButton.icon(
+                                    onPressed: () => _import(context, ref),
+                                    icon: const Icon(Icons.upload_file_rounded),
+                                    label: Text(l10n.importSubtitle),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.noTranscriptHint,
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: t.space16),
-                        FilledButton.icon(
-                          onPressed: () => _import(context, ref),
-                          icon: const Icon(Icons.upload_file),
-                          label: Text(l10n.importSubtitle),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               }
               return _TranscriptBody(mediaId: mediaId, lines: lines);
@@ -135,14 +177,7 @@ class _TranscriptBodyState extends ConsumerState<_TranscriptBody> {
     };
     if (!playing) return;
 
-    final posAsync = ref.read(displayPositionProvider);
-    final timeSec = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds / 1000.0,
-      _ => 0.0,
-    };
-    final echo = ref.read(echoModeProvider);
-    final active = transcriptActiveIndex(widget.lines, timeSec);
-    final activeForUi = transcriptActiveIndexForEchoUi(echo, active);
+    final activeForUi = ref.read(transcriptPlaybackHighlightProvider(widget.mediaId));
     if (activeForUi < 0) return;
 
     if (!force && activeForUi == _lastScrolledIndex) return;
@@ -190,22 +225,21 @@ class _TranscriptBodyState extends ConsumerState<_TranscriptBody> {
   @override
   Widget build(BuildContext context) {
     final echo = ref.watch(echoModeProvider);
-    final posAsync = ref.watch(displayPositionProvider);
+    final activeForUi = ref.watch(
+      transcriptPlaybackHighlightProvider(widget.mediaId).select((i) => i),
+    );
     final tok = EnjoyThemeTokens.of(context);
     final secondaryAsync = ref.watch(
       secondaryTranscriptLinesForMediaProvider(widget.mediaId),
     );
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
 
-    final timeSec = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds / 1000.0,
-      _ => 0.0,
-    };
-    final active = transcriptActiveIndex(widget.lines, timeSec);
-    final activeForUi = transcriptActiveIndexForEchoUi(echo, active);
-
-    ref.listen(displayPositionProvider, (_, _) {
-      _scheduleScrollActiveLineIntoView();
+    ref.listen(transcriptPlaybackHighlightProvider(widget.mediaId), (
+      prev,
+      next,
+    ) {
+      if (prev == next) return;
+      _scheduleScrollActiveLineIntoView(force: true);
     });
     ref.listen(playerIsPlayingProvider, (_, _) {
       _scheduleScrollActiveLineIntoView(force: true);
@@ -300,7 +334,12 @@ class _EchoRegionMergedCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
-    final session = ref.watch(playerControllerProvider);
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final posAsync = ref.watch(displayPositionProvider);
+    final currentTimeSec = switch (posAsync) {
+      AsyncData(:final value) => value.inMilliseconds / 1000.0,
+      _ => 0.0,
+    };
 
     // Neutral surface — no colored background; left rail carries the echo accent.
     final shell = scheme.surfaceContainerLow;
@@ -425,42 +464,18 @@ class _EchoRegionMergedCard extends ConsumerWidget {
           SizedBox(height: tok.space16),
           ShadowReadingPanel(
             mediaId: mediaId,
-            targetType: session?.dexieTargetType ?? 'Audio',
-            language: session?.language ?? 'en',
+            targetType: chrome?.dexieTargetType ?? 'Audio',
+            language: chrome?.language ?? 'en',
             startSec: echo.startTimeSeconds,
             endSec: echo.endTimeSeconds,
             referenceText: echoReferencePlainText(lines, echo),
             echoActive: echo.active,
-            currentTimeSec: session?.currentTimeSeconds,
+            currentTimeSec: currentTimeSec,
           ),
         ],
       ],
     );
   }
-}
-
-/// Active cue index for [t] in seconds.
-int transcriptActiveIndex(List<TranscriptLine> lines, double t) {
-  for (var i = 0; i < lines.length; i++) {
-    if (t >= lines[i].startSeconds && t < lines[i].endSeconds) return i;
-  }
-  for (var i = lines.length - 1; i >= 0; i--) {
-    if (t >= lines[i].startSeconds) return i;
-  }
-  return -1;
-}
-
-/// When echo mode is on, only cues inside `[startLineIndex, endLineIndex]` may show
-/// the active highlight; otherwise [globalActive] is ignored for transcript UI (gaps
-/// can resolve to a cue outside the echo segment).
-int transcriptActiveIndexForEchoUi(EchoState echo, int globalActive) {
-  if (globalActive < 0) return -1;
-  if (!echo.active) return globalActive;
-  if (globalActive >= echo.startLineIndex &&
-      globalActive <= echo.endLineIndex) {
-    return globalActive;
-  }
-  return -1;
 }
 
 /// Secondary line whose midpoint falls within [primary]'s range, else nearest.

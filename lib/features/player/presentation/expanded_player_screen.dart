@@ -45,7 +45,7 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final open = ref.watch(openMediaActionProvider(widget.mediaId));
-    final session = ref.watch(playerControllerProvider);
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
     final isPlaying = ref.watch(playerIsPlayingProvider).value ?? false;
     final paletteAsync = ref.watch(currentArtworkPaletteProvider);
     final accent = paletteAsync.value?.dominant;
@@ -67,11 +67,11 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       );
     });
 
-    if (session != null && session.mediaId == widget.mediaId) {
+    if (chrome != null && chrome.mediaId == widget.mediaId) {
       return _playerScaffold(
         context: context,
         ref: ref,
-        session: session,
+        chrome: chrome,
         isPlaying: isPlaying,
         accent: accent,
         l10n: l10n,
@@ -107,13 +107,13 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
   Widget _playerScaffold({
     required BuildContext context,
     required WidgetRef ref,
-    required PlaybackSession session,
+    required PlaybackChrome chrome,
     required bool isPlaying,
     required Color? accent,
     required AppLocalizations l10n,
     required ColorScheme cs,
   }) {
-    final isVideo = session.mediaType == 'video';
+    final isVideo = chrome.mediaType == 'video';
     final videoController =
         isVideo ? ref.read(playerControllerProvider.notifier).videoController : null;
 
@@ -155,7 +155,7 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
                 },
               ),
               title: Text(
-                session.mediaTitle,
+                chrome.mediaTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(

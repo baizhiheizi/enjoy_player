@@ -12,9 +12,10 @@ export 'artwork_palette.dart';
 /// Artwork palette for the currently playing session.
 /// Returns null when no media is playing or artwork extraction fails.
 final currentArtworkPaletteProvider = FutureProvider<ArtworkPalette?>((ref) async {
-  final session = ref.watch(playerControllerProvider);
-  if (session == null) return null;
-  final file = localThumbnailFile(session.thumbnailUrl);
+  final thumbnailUrl = ref.watch(
+    playerControllerProvider.select((s) => s?.thumbnailUrl),
+  );
+  final file = localThumbnailFile(thumbnailUrl);
   return extractArtworkPalette(file?.path);
 });
 

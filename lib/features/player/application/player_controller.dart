@@ -31,6 +31,9 @@ class PlayerController extends _$PlayerController {
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration>? _durationSub;
 
+  /// Last emitted UI bucket for raw [engine.position] ticks (see [_subscribeStreams]).
+  int? _lastPositionEmitBucket;
+
   /// Incremented on each [openMedia] call; stale async work bails out.
   int _openGeneration = 0;
 
@@ -205,10 +208,26 @@ class PlayerController extends _$PlayerController {
     required AudioRow? audio,
     required int gen,
   }) {
+    _lastPositionEmitBucket = null;
+    // Raw mpv position can arrive very often (notably streaming). Updating
+    // [PlaybackSession] on every tick rebuilds all [playerControllerProvider]
+    // listeners and can overwhelm the Windows semantics bridge — same motivation
+    // as [displayPositionProvider]'s 200ms quantization.
+    const positionBucketMs = 400;
     _positionSub = engine.position.listen((pos) {
       if (gen != _openGeneration) return;
       final seconds = pos.inMilliseconds / 1000.0;
       unawaited(_applyEcho(seconds));
+
+      final bucket = pos.inMilliseconds ~/ positionBucketMs;
+      final prevSec = state?.currentTimeSeconds;
+      final likelySeek =
+          prevSec != null && (seconds - prevSec).abs() > 0.35;
+      if (!likelySeek && bucket == _lastPositionEmitBucket) {
+        return;
+      }
+      _lastPositionEmitBucket = bucket;
+
       state = state?.copyWith(
         currentTimeSeconds: seconds,
         lastActiveAt: DateTime.now(),
@@ -226,8 +245,13 @@ class PlayerController extends _$PlayerController {
     _durationSub = engine.duration.listen((d) async {
       if (gen != _openGeneration) return;
       if (d <= Duration.zero) return;
+      final newSec = d.inMilliseconds / 1000.0;
+      final prevSec = state?.durationSeconds;
+      if (prevSec != null && (newSec - prevSec).abs() < 0.001) {
+        return;
+      }
       final sec = d.inMilliseconds ~/ 1000;
-      state = state?.copyWith(durationSeconds: d.inMilliseconds / 1000.0);
+      state = state?.copyWith(durationSeconds: newSec);
       final db = ref.read(appDatabaseProvider);
       if (kind == MediaKind.video && video != null && video.durationSeconds == 0) {
         await db.videoDao.insertRow(
@@ -326,6 +350,7 @@ class PlayerController extends _$PlayerController {
     await _durationSub?.cancel();
     _positionSub = null;
     _durationSub = null;
+    _lastPositionEmitBucket = null;
     await engine.stop();
     ref.read(echoModeProvider.notifier).deactivate();
     state = null;

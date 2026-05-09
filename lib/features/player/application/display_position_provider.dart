@@ -12,7 +12,7 @@ Stream<Duration> displayPosition(Ref ref) {
   final engine = ref.watch(playerEngineProvider);
   // Windows accessibility bridge can get flooded when semantics-heavy widgets
   // (slider, transcript list items) rebuild for every raw position tick.
-  const bucketMs = 200;
+  const bucketMs = 400;
   return engine.position
       .map((position) {
         final ms = position.inMilliseconds;
