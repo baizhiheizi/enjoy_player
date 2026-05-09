@@ -639,4 +639,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeGoalStartNow => 'Start your practice now!';
+
+  @override
+  String get mediaLocateTitle => 'Locate media file';
+
+  @override
+  String get mediaLocateBody =>
+      'This item was added on another device. Choose the same file on this computer. We verify it matches your library using a secure fingerprint.';
+
+  @override
+  String get mediaLocateChooseFile => 'Choose file';
+
+  @override
+  String get mediaLocateHashMismatch =>
+      'That file does not match this item. Make sure you selected the correct file.';
+
+  @override
+  String mediaLocateExpectedSize(String sizeLabel) {
+    return 'Expected size: $sizeLabel';
+  }
+
+  @override
+  String get mediaLocateSizeUnknown => 'Expected size: unknown';
 }

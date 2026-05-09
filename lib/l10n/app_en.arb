@@ -237,5 +237,18 @@
   "homeGoalHalfway": "Halfway there! You can do it!",
   "homeGoalGoodStart": "Good start! Keep practicing!",
   "homeGoalJustStarted": "Just started! Every minute counts!",
-  "homeGoalStartNow": "Start your practice now!"
+  "homeGoalStartNow": "Start your practice now!",
+  "mediaLocateTitle": "Locate media file",
+  "mediaLocateBody": "This item was added on another device. Choose the same file on this computer. We verify it matches your library using a secure fingerprint.",
+  "mediaLocateChooseFile": "Choose file",
+  "mediaLocateHashMismatch": "That file does not match this item. Make sure you selected the correct file.",
+  "mediaLocateExpectedSize": "Expected size: {sizeLabel}",
+  "@mediaLocateExpectedSize": {
+    "placeholders": {
+      "sizeLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "mediaLocateSizeUnknown": "Expected size: unknown"
 }

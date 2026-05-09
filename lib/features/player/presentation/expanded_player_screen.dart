@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
+import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/embedded_tracks_notifier.dart';
@@ -19,6 +21,7 @@ import '../../transcript/presentation/subtitle_track_picker_sheet.dart';
 import '../../transcript/presentation/transcript_panel.dart';
 import 'layouts/audio_player_layout.dart';
 import 'layouts/video_player_layout.dart';
+import 'locate_media_screen.dart';
 
 class ExpandedPlayerScreen extends ConsumerStatefulWidget {
   const ExpandedPlayerScreen({required this.mediaId, super.key});
@@ -64,14 +67,30 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       );
     });
 
+    if (session != null && session.mediaId == widget.mediaId) {
+      return _playerScaffold(
+        context: context,
+        ref: ref,
+        session: session,
+        isPlaying: isPlaying,
+        accent: accent,
+        l10n: l10n,
+        cs: cs,
+      );
+    }
+
     if (open.hasError) {
+      final err = open.error;
+      if (err is MediaNeedsRelocateException) {
+        return LocateMediaScreen(info: err);
+      }
       return Scaffold(
         backgroundColor: cs.surface,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              '${l10n.error}: ${open.error}',
+              '${l10n.error}: $err',
               textAlign: TextAlign.center,
             ),
           ),
@@ -79,13 +98,21 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       );
     }
 
-    if (session == null || session.mediaId != widget.mediaId) {
-      return Scaffold(
-        backgroundColor: cs.surface,
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    return Scaffold(
+      backgroundColor: cs.surface,
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
 
+  Widget _playerScaffold({
+    required BuildContext context,
+    required WidgetRef ref,
+    required PlaybackSession session,
+    required bool isPlaying,
+    required Color? accent,
+    required AppLocalizations l10n,
+    required ColorScheme cs,
+  }) {
     final isVideo = session.mediaType == 'video';
     final videoController =
         isVideo ? ref.read(playerControllerProvider.notifier).videoController : null;

@@ -62,3 +62,11 @@ class Media {
 
   String get dexieTargetType => kind.dexieTargetType;
 }
+
+extension MediaSourceKind on Media {
+  /// Remote/streaming URL from sync (vs local file).
+  bool get isLink => mediaUrl != null && mediaUrl!.isNotEmpty;
+
+  /// Local file playback (no `mediaUrl`); may still need relocation on this device.
+  bool get isLocal => !isLink;
+}

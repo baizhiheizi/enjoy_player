@@ -1299,6 +1299,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start your practice now!'**
   String get homeGoalStartNow;
+
+  /// No description provided for @mediaLocateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Locate media file'**
+  String get mediaLocateTitle;
+
+  /// No description provided for @mediaLocateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was added on another device. Choose the same file on this computer. We verify it matches your library using a secure fingerprint.'**
+  String get mediaLocateBody;
+
+  /// No description provided for @mediaLocateChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get mediaLocateChooseFile;
+
+  /// No description provided for @mediaLocateHashMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'That file does not match this item. Make sure you selected the correct file.'**
+  String get mediaLocateHashMismatch;
+
+  /// No description provided for @mediaLocateExpectedSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected size: {sizeLabel}'**
+  String mediaLocateExpectedSize(String sizeLabel);
+
+  /// No description provided for @mediaLocateSizeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected size: unknown'**
+  String get mediaLocateSizeUnknown;
 }
 
 class _AppLocalizationsDelegate

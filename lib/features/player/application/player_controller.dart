@@ -4,16 +4,20 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
+import '../../library/application/library_repository_provider.dart';
 import '../../library/domain/media.dart';
 import '../domain/echo_window.dart';
+import '../domain/media_relocate_exception.dart';
 import '../domain/playback_session.dart';
 import 'echo_mode_provider.dart';
 import 'embedded_track_sync.dart';
+import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
 import 'player_engine.dart';
 import 'player_engine_provider.dart';
@@ -62,6 +66,23 @@ class PlayerController extends _$PlayerController {
     return null;
   }
 
+  bool _localUriPlayable(String? uri) {
+    if (uri == null || uri.isEmpty) return false;
+    try {
+      return File.fromUri(Uri.parse(uri)).existsSync();
+    } on Object {
+      return false;
+    }
+  }
+
+  Future<void> relocateAndOpen(String mediaId, XFile picked) async {
+    final lib = ref.read(mediaLibraryRepositoryProvider);
+    await lib.relocateLocalFile(mediaId: mediaId, picked: picked);
+    state = null;
+    await openMedia(mediaId);
+    ref.invalidate(openMediaActionProvider(mediaId));
+  }
+
   Future<void> openMedia(String mediaId) async {
     // Re-entering `/player/:id` while this media is already active — skip reload.
     if (state?.mediaId == mediaId) return;
@@ -75,13 +96,30 @@ class PlayerController extends _$PlayerController {
 
     final kind = video != null ? MediaKind.video : MediaKind.audio;
     final dexie = kind.dexieTargetType;
-    final sourceUri =
-        video?.localUri ??
-        video?.mediaUrl ??
-        audio?.localUri ??
-        audio?.mediaUrl ??
-        '';
     final title = video?.title ?? audio!.title;
+
+    final netUri = video?.mediaUrl ?? audio?.mediaUrl;
+    final String sourceUri;
+    if (netUri != null && netUri.isNotEmpty) {
+      sourceUri = netUri;
+    } else {
+      final local = video?.localUri ?? audio?.localUri;
+      if (_localUriPlayable(local)) {
+        sourceUri = local!;
+      } else {
+        final fingerprint = video?.md5 ?? audio?.md5;
+        if (fingerprint != null && fingerprint.isNotEmpty) {
+          throw MediaNeedsRelocateException(
+            mediaId: mediaId,
+            kind: kind,
+            title: title,
+            expectedHash: fingerprint,
+            expectedSize: video?.size ?? audio?.size,
+          );
+        }
+        sourceUri = '';
+      }
+    }
     final thumb = video?.thumbnailUrl ?? audio?.thumbnailUrl;
     final language = video?.language ?? audio!.language;
     final durationSec = video?.durationSeconds ?? audio!.durationSeconds;

@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -183,5 +184,74 @@ class MediaLibraryRepository {
     final a = await _db.audioDao.getById(id);
     if (a != null) return _mediaFromAudio(a);
     return null;
+  }
+
+  /// Copy a user-picked file into app storage only if its SHA-256 matches the
+  /// row's `md5` field, then set [localUri] for playback on this device.
+  Future<void> relocateLocalFile({
+    required String mediaId,
+    required XFile picked,
+  }) async {
+    try {
+      final video = await _db.videoDao.getById(mediaId);
+      if (video != null) {
+        final hash = video.md5;
+        if (hash == null || hash.isEmpty) {
+          throw const FileFailure(
+            'Cannot locate file: this item has no content fingerprint.',
+          );
+        }
+        final result = await _storage.importPickedFileExpectingHash(
+          picked,
+          expectedHashHex: hash,
+        );
+        await _db.videoDao.insertRow(
+          video.copyWith(
+            localUri: Value(result.fileUri),
+            size: Value(result.fileSize),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await _enqueueSync?.call(
+          SyncEntityType.video,
+          mediaId,
+          SyncAction.update,
+        );
+        return;
+      }
+
+      final audio = await _db.audioDao.getById(mediaId);
+      if (audio != null) {
+        final hash = audio.md5;
+        if (hash == null || hash.isEmpty) {
+          throw const FileFailure(
+            'Cannot locate file: this item has no content fingerprint.',
+          );
+        }
+        final result = await _storage.importPickedFileExpectingHash(
+          picked,
+          expectedHashHex: hash,
+        );
+        await _db.audioDao.insertRow(
+          audio.copyWith(
+            localUri: Value(result.fileUri),
+            size: Value(result.fileSize),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await _enqueueSync?.call(
+          SyncEntityType.audio,
+          mediaId,
+          SyncAction.update,
+        );
+        return;
+      }
+
+      throw const FileFailure('Media not found.');
+    } on AppFailure {
+      rethrow;
+    } catch (e, st) {
+      Error.throwWithStackTrace(FileFailure('Relocate failed: $e'), st);
+    }
   }
 }

@@ -36,6 +36,8 @@ typedef _ImportIsolateArgs = ({
   String tempFileName,
   String ext,
   String title,
+  /// When set, import fails with [FileFailure] if SHA-256 hex does not match.
+  String? expectedHashHex,
 });
 
 typedef _ImportIsolateResult = ({
@@ -66,6 +68,15 @@ Future<_ImportIsolateResult> _importMediaFileInIsolate(_ImportIsolateArgs args) 
   await controller.close();
   final digest = await hashFuture;
   final hash = digest.toString();
+
+  final expected = args.expectedHashHex;
+  if (expected != null && expected.isNotEmpty && expected != hash) {
+    if (await tempFile.exists()) {
+      await tempFile.delete();
+    }
+    // String is reliably passed across [Isolate.run] error boundaries.
+    throw 'HASH_MISMATCH';
+  }
 
   final destPath = p.join(args.mediaDirPath, '$hash${args.ext}');
   final destFile = File(destPath);
@@ -118,6 +129,7 @@ class FileStorage {
           tempFileName: tempFileName,
           ext: ext,
           title: title,
+          expectedHashHex: null,
         )),
       );
 
@@ -130,6 +142,73 @@ class FileStorage {
     } catch (e, st) {
       if (e is FileFailure) {
         Error.throwWithStackTrace(e, st);
+      }
+      if (e == 'HASH_MISMATCH') {
+        Error.throwWithStackTrace(
+          const FileFailure(
+            'Hash mismatch: file does not match synced media.',
+          ),
+          st,
+        );
+      }
+      Error.throwWithStackTrace(
+        FileFailure('Import failed: $e'),
+        st,
+      );
+    }
+  }
+
+  /// Like [importPickedFile], but only succeeds when the file's SHA-256 hex
+  /// matches [expectedHashHex] (same value stored in Drift `md5` column).
+  Future<FileImportResult> importPickedFileExpectingHash(
+    XFile file, {
+    required String expectedHashHex,
+  }) async {
+    try {
+      final path = file.path;
+      if (path.isEmpty) {
+        throw const FileFailure('Import failed: no file path');
+      }
+
+      final docs = await getApplicationDocumentsDirectory();
+      final mediaDir = Directory(p.join(docs.path, 'media'));
+      if (!await mediaDir.exists()) {
+        await mediaDir.create(recursive: true);
+      }
+
+      final ext = p.extension(file.name).toLowerCase();
+      final tempFileName = '.tmp_${_uuid.v4()}$ext';
+      final title = p.basenameWithoutExtension(file.name);
+      final mediaDirPath = mediaDir.path;
+
+      final worker = await Isolate.run(
+        () => _importMediaFileInIsolate((
+          sourcePath: path,
+          mediaDirPath: mediaDirPath,
+          tempFileName: tempFileName,
+          ext: ext,
+          title: title,
+          expectedHashHex: expectedHashHex,
+        )),
+      );
+
+      return FileImportResult(
+        localPath: worker.localPath,
+        fileHash: worker.fileHash,
+        fileSize: worker.fileSize,
+        title: worker.title,
+      );
+    } catch (e, st) {
+      if (e is FileFailure) {
+        Error.throwWithStackTrace(e, st);
+      }
+      if (e == 'HASH_MISMATCH') {
+        Error.throwWithStackTrace(
+          const FileFailure(
+            'Hash mismatch: file does not match synced media.',
+          ),
+          st,
+        );
       }
       Error.throwWithStackTrace(
         FileFailure('Import failed: $e'),
