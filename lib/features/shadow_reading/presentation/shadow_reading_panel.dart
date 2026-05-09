@@ -22,6 +22,8 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/sync/application/sync_providers.dart';
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'pitch_contour_section.dart';
@@ -233,6 +235,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
         updatedAt: now,
       );
       await db.recordingDao.insertRow(row);
+      await ref
+          .read(syncEnqueueProvider)(SyncEntityType.recording, id, SyncAction.create);
       if (mounted) {
         setState(() => _selectedRecordingId = id);
       }
@@ -262,6 +266,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
   }
 
   Future<void> _deleteRecording(RecordingRow r) async {
+    await ref
+        .read(syncEnqueueProvider)(SyncEntityType.recording, r.id, SyncAction.delete);
     final preview = ref.read(recordingPreviewPlayerProvider);
     final lp = r.localPath;
     if (lp != null && lp.isNotEmpty) {

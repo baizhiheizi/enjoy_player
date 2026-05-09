@@ -10,9 +10,9 @@
 - **Locale / learning / native language** from the server profile are applied to app preferences (Drift `prefs.*`) on login and profile refresh.
 - **API base URL** is configurable under Settings → Advanced (`api.base_url` in Drift); default `https://enjoy.bot`.
 
-## REST clients (scaffold)
+## REST clients
 
-Typed list/object helpers live under `lib/data/api/services/` for audios, videos, transcripts, and recordings. They are **not** wired into library or echo flows yet.
+Typed list/object helpers live under `lib/data/api/services/` for audios, videos, transcripts, and recordings. **Metadata sync** uses the mine endpoints for audios/videos/recordings when signed in ([features/sync.md](features/sync.md)).
 
 ## Related ADR
 

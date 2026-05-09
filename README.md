@@ -35,7 +35,6 @@ flutter test
 | [docs/architecture.md](docs/architecture.md) | Structure & flows |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records |
 | [docs/features/](docs/features/) | Feature specs |
-| [brainfile.md](brainfile.md) | Kanban task board |
 
 ## Tech highlights
 

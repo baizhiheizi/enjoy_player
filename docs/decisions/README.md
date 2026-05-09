@@ -33,3 +33,4 @@ Trade-offs, follow-up work, risks.
 | [0007](0007-dynamic-color-from-artwork.md) | Dynamic color from media artwork |
 | [0008](0008-light-mode-parity.md) | Light mode parity |
 | [0009](0009-platform-adaptive-shell.md) | Platform-adaptive shell nuances |
+| [0010](0010-cloud-sync-mvp.md) | Cloud sync MVP — metadata (audio/video/recording) |

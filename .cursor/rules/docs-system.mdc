@@ -1,5 +1,5 @@
 ---
-description: When to update docs, ADRs, and brainfile
+description: When to update docs, ADRs
 alwaysApply: true
 ---
 
@@ -7,6 +7,5 @@ alwaysApply: true
 
 - **ADRs** (`docs/decisions/`): record any *architecture* or *product-scope* decision that is costly to reverse. Never rewrite merged ADRs — supersede with `ADR-XXXX`.
 - **Feature specs** (`docs/features/`): update in the same PR when behavior of that feature changes.
-- **brainfile.md**: move tasks across kanban columns; preserve YAML IDs & structure.
 - **AGENTS.md**: update when global agent rules change (tooling, forbidden patterns, verification commands).
 - Link new docs from `docs/README.md` when adding a top-level guide.

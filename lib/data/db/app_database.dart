@@ -348,6 +348,9 @@ class RecordingDao extends DatabaseAccessor<AppDatabase> with _$RecordingDaoMixi
     return rows.where((r) => recordingOverlapsEchoRegion(r, echoStartMs, echoEndMs)).toList();
   }
 
+  Future<RecordingRow?> getById(String id) =>
+      (select(recordings)..where((t) => t.id.equals(id))).getSingleOrNull();
+
   Future<void> insertRow(RecordingRow row) =>
       into(recordings).insert(row, mode: InsertMode.insertOrReplace);
 

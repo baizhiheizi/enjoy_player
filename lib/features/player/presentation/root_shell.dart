@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
+import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/player_controller.dart';
@@ -42,6 +43,7 @@ class RootShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(syncCtrlProvider);
     final session = ref.watch(playerControllerProvider);
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;

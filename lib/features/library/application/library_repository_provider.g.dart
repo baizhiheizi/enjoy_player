@@ -55,4 +55,4 @@ final class MediaLibraryRepositoryProvider
 }
 
 String _$mediaLibraryRepositoryHash() =>
-    r'65c7ee03e0dfcef7ee1906265149753a41f5a578';
+    r'ca0e4abf58a860e0b67ea0c8e00ae4837f40638e';

@@ -5,6 +5,8 @@ import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
 
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+
 import '../../../core/errors/app_failure.dart';
 import '../../../core/ids/enjoy_ids.dart';
 import '../../../data/db/app_database.dart';
@@ -49,10 +51,15 @@ Media _mediaFromAudio(AudioRow row) {
 }
 
 class MediaLibraryRepository {
-  MediaLibraryRepository(this._db, this._storage);
+  MediaLibraryRepository(
+    this._db,
+    this._storage, {
+    SyncEnqueueFn? enqueueSync,
+  }) : _enqueueSync = enqueueSync;
 
   final AppDatabase _db;
   final FileStorage _storage;
+  final SyncEnqueueFn? _enqueueSync;
 
   Stream<List<Media>> watchAll() {
     late StreamSubscription<List<VideoRow>> subV;
@@ -119,6 +126,7 @@ class MediaLibraryRepository {
             updatedAt: now,
           ),
         );
+        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
         return id;
       }
       final id = enjoyAudioId(aid: result.fileHash);
@@ -146,6 +154,7 @@ class MediaLibraryRepository {
           updatedAt: now,
         ),
       );
+      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
       return id;
     } on AppFailure {
       rethrow;
@@ -157,8 +166,13 @@ class MediaLibraryRepository {
   Future<void> deleteMedia(String id) async {
     final v = await _db.videoDao.getById(id);
     if (v != null) {
+      await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.delete);
       await _db.videoDao.deleteId(id);
       return;
+    }
+    final a = await _db.audioDao.getById(id);
+    if (a != null) {
+      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.delete);
     }
     await _db.audioDao.deleteId(id);
   }

@@ -8,6 +8,11 @@ abstract final class SettingsKeys {
   static const String prefsLocale = 'prefs.locale';
   static const String prefsLearningLanguage = 'prefs.learning_language';
   static const String prefsNativeLanguage = 'prefs.native_language';
+
+  /// ISO-8601 cursor for incremental `updatedAfter` downloads.
+  static const String syncCursorAudio = 'sync.cursor.audio';
+  static const String syncCursorVideo = 'sync.cursor.video';
+  static const String syncCursorRecording = 'sync.cursor.recording';
 }
 
 /// Default Enjoy API origin (no trailing slash).

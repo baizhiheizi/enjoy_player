@@ -48,7 +48,7 @@ sequenceDiagram
 | `echo_sessions` | Playback + echo window + primary/secondary transcript ids per target |
 | `recordings` | Pronunciation recordings (sync-ready) |
 | `dictations` | Dictation attempts (sync-ready) |
-| `sync_queue` | Offline sync queue (reserved for post-login sync) |
+| `sync_queue` | Offline-first outbound sync queue (`SyncCtrl` + [`features/sync.md`](features/sync.md)) |
 | `settings` | Key/value JSON blobs (player prefs, hotkeys, **API base URL**, **auth profile cache**, app locale prefs) |
 
 ## Optional Enjoy account (auth)
@@ -56,6 +56,7 @@ sequenceDiagram
 - **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).
 - **Tokens:** `flutter_secure_storage` (access token only).
 - **Browser sign-in:** `url_launcher` for `start_auth` / `poll` flow ([ADR-0006](decisions/0006-auth-and-profile-sync.md), [features/auth.md](features/auth.md)).
+- **Cloud metadata sync:** when signed in, [`SyncCtrl`](../lib/features/sync/application/sync_controller.dart) downloads audios/videos/recordings and drains `sync_queue` ([ADR-0010](decisions/0010-cloud-sync-mvp.md), [features/sync.md](features/sync.md)).
 
 ## Routing
 
