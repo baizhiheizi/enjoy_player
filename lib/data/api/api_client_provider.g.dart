@@ -74,7 +74,7 @@ final class ApiBaseUrlProvider
   ApiBaseUrl create() => ApiBaseUrl();
 }
 
-String _$apiBaseUrlHash() => r'd3c65c176011e4d98c81884c7ba2b2cf260c2c16';
+String _$apiBaseUrlHash() => r'5e023e662a469b54c1894f21bcf61aafe3b275a9';
 
 abstract class _$ApiBaseUrl extends $AsyncNotifier<String> {
   FutureOr<String> build();

@@ -12,7 +12,7 @@ void main() {
     late TranscriptRepository repo;
 
     setUp(() {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(executor: NativeDatabase.memory());
       repo = TranscriptRepository(db);
     });
 

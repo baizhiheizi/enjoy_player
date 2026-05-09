@@ -22,7 +22,7 @@ http.Client httpClient(Ref ref) {
 class ApiBaseUrl extends _$ApiBaseUrl {
   @override
   Future<String> build() async {
-    final db = ref.watch(appDatabaseProvider);
+    final db = ref.watch(guestAppDatabaseProvider);
     final raw = await db.settingsDao.getValue(SettingsKeys.apiBaseUrl);
     return _normalize(raw ?? kDefaultApiBaseUrl);
   }
@@ -30,7 +30,7 @@ class ApiBaseUrl extends _$ApiBaseUrl {
   /// Persists and refreshes [apiClientProvider].
   Future<void> setBaseUrl(String input) async {
     final normalized = _normalize(input);
-    await ref.read(appDatabaseProvider).settingsDao.setValue(
+    await ref.read(guestAppDatabaseProvider).settingsDao.setValue(
           SettingsKeys.apiBaseUrl,
           normalized,
         );

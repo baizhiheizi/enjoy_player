@@ -95,7 +95,7 @@ void main() {
     }
 
     setUp(() {
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(executor: NativeDatabase.memory());
       fake = FakePlayerEngine();
       container = ProviderContainer(
         overrides: [

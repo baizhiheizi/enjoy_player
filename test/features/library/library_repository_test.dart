@@ -29,7 +29,7 @@ void main() {
       original = PathProviderPlatform.instance;
       root = Directory.systemTemp.createTempSync('enjoy_lib_repo_test');
       PathProviderPlatform.instance = TestPathProvider(root.path);
-      db = AppDatabase(NativeDatabase.memory());
+      db = AppDatabase(executor: NativeDatabase.memory());
       repo = MediaLibraryRepository(db, FileStorage());
     });
 

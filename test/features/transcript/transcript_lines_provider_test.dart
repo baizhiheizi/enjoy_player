@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('dexieTargetTypeForId resolves Audio row', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(executor: NativeDatabase.memory());
     addTearDown(db.close);
     final now = DateTime.now();
     await db.audioDao.insertRow(
@@ -40,7 +40,7 @@ void main() {
   });
 
   test('primary transcript lines decode via TranscriptRepository', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(executor: NativeDatabase.memory());
     addTearDown(db.close);
     final now = DateTime.now();
     const mediaId = 'media-1';

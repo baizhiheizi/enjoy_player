@@ -12,9 +12,6 @@ import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
-import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -41,7 +38,6 @@ AuthRepository authRepository(Ref ref) {
   return AuthRepository(
     authApi: AuthApi(ref.watch(apiClientProvider)),
     tokenStore: ref.watch(secureTokenStoreProvider),
-    settingsDao: ref.watch(appDatabaseProvider).settingsDao,
   );
 }
 
@@ -49,14 +45,11 @@ class AuthRepository {
   AuthRepository({
     required AuthApi authApi,
     required SecureTokenStore tokenStore,
-    required SettingsDao settingsDao,
   })  : _authApi = authApi,
-        _tokenStore = tokenStore,
-        _settingsDao = settingsDao;
+        _tokenStore = tokenStore;
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
-  final SettingsDao _settingsDao;
 
   Future<({String requestId, String verificationUrl})> startAuth() async {
     try {
@@ -134,7 +127,7 @@ class AuthRepository {
   }
 
   Future<UserProfile?> readCachedProfile() async {
-    final raw = await _settingsDao.getValue(SettingsKeys.authLastProfile);
+    final raw = await _tokenStore.readCachedProfileJson();
     if (raw == null || raw.isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
@@ -146,10 +139,7 @@ class AuthRepository {
   }
 
   Future<void> _cacheProfile(UserProfile profile) async {
-    await _settingsDao.setValue(
-      SettingsKeys.authLastProfile,
-      jsonEncode(profile.toJson()),
-    );
+    await _tokenStore.writeCachedProfileJson(jsonEncode(profile.toJson()));
   }
 
   Future<bool> hasAccessToken() async {
@@ -161,7 +151,7 @@ class AuthRepository {
   Future<AuthState> loadInitialAuthState() async {
     final hasToken = await hasAccessToken();
     if (!hasToken) {
-      await _settingsDao.setValue(SettingsKeys.authLastProfile, '');
+      await _tokenStore.clearCachedProfile();
       return const AuthSignedOut();
     }
     final cached = await readCachedProfile();
@@ -178,8 +168,7 @@ class AuthRepository {
   }
 
   Future<void> clearSession() async {
-    await _tokenStore.clearAccessToken();
-    await _settingsDao.setValue(SettingsKeys.authLastProfile, '');
+    await _tokenStore.clearAllAuthSecrets();
   }
 }
 

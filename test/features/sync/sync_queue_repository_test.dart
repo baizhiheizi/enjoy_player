@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('SyncQueueRepository addOrUpsert refreshes existing composite row', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(executor: NativeDatabase.memory());
     addTearDown(db.close);
     final repo = SyncQueueRepository(db);
 

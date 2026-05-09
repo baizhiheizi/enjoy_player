@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('AppDatabase can insert and read audio', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(executor: NativeDatabase.memory());
     addTearDown(db.close);
 
     final now = DateTime.now();

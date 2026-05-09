@@ -35,3 +35,4 @@ Trade-offs, follow-up work, risks.
 | [0009](0009-platform-adaptive-shell.md) | Platform-adaptive shell nuances |
 | [0010](0010-cloud-sync-mvp.md) | Cloud sync MVP — metadata (audio/video/recording) |
 | [0011](0011-dark-mode-only.md) | Dark mode only + logo-aligned brand (supersedes 0008) |
+| [0012](0012-per-user-sqlite-isolation.md) | Per-user SQLite + secure profile cache (partial supersession of 0006) |

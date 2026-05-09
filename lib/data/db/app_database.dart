@@ -39,8 +39,11 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'enjoy_player'));
+  /// Default Drift database name (guest / signed-out local data).
+  static const String guestDatabaseName = 'enjoy_player';
+
+  AppDatabase({QueryExecutor? executor, String name = guestDatabaseName})
+    : super(executor ?? driftDatabase(name: name));
 
   @override
   int get schemaVersion => 3;
