@@ -12,6 +12,10 @@ abstract final class SettingsKeys {
   static const String syncCursorVideo = 'sync.cursor.video';
   static const String syncCursorRecording = 'sync.cursor.recording';
 
+  /// Per-target recording pull (`sync.cursor.recording.{targetType}.{targetId}`).
+  static String syncCursorRecordingTarget(String targetType, String targetId) =>
+      'sync.cursor.recording.$targetType.$targetId';
+
   /// ISO-8601 UTC timestamp of last fully successful full sync (downloads + queue).
   static const String syncLastFullSyncAt = 'sync.last_full_sync_at';
 

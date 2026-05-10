@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/sign_in_screen.dart';
+import 'package:enjoy_player/features/cloud/presentation/cloud_screen.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
 import 'package:enjoy_player/features/library/presentation/library_screen.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_screen.dart';
@@ -52,6 +53,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/library',
             builder: (context, state) => const LibraryScreen(),
+          ),
+          GoRoute(
+            path: '/cloud',
+            builder: (context, state) => const CloudScreen(),
           ),
           GoRoute(
             path: '/player/:mediaId',

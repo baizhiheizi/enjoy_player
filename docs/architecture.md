@@ -56,7 +56,7 @@ sequenceDiagram
 - **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).
 - **Tokens:** `flutter_secure_storage` (access token only).
 - **Browser sign-in:** `url_launcher` for `start_auth` / `poll` flow ([ADR-0006](decisions/0006-auth-and-profile-sync.md), [features/auth.md](features/auth.md)).
-- **Cloud metadata sync:** when signed in, [`SyncCtrl`](../lib/features/sync/application/sync_controller.dart) downloads audios/videos/recordings and drains `sync_queue` ([ADR-0010](decisions/0010-cloud-sync-mvp.md), [features/sync.md](features/sync.md)).
+- **Cloud metadata sync:** when signed in, [`SyncCtrl`](../lib/features/sync/application/sync_controller.dart) runs re-key for offline imports, drains `sync_queue`, and (when signed in and the player opens media) pulls recording metadata per target — see [ADR-0013](decisions/0013-local-first-sync.md), [features/sync.md](features/sync.md), [features/cloud.md](features/cloud.md).
 
 ## Routing
 

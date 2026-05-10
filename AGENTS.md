@@ -18,7 +18,7 @@ Guidance for humans and AI coding agents working in this repository.
 
 ## MVP scope
 
-Local audio/video files only, transcripts via `.srt`/`.vtt`, echo (shadow-reading) mode. **Metadata sync** for library media + recordings when signed in ([ADR-0010](docs/decisions/0010-cloud-sync-mvp.md)). YouTube / URL streaming / **media file uploads** are **out of scope** until ADR supersession (see ADR-0005 / ADR-0010).
+Local audio/video files only, transcripts via `.srt`/`.vtt`, echo (shadow-reading) mode. **Metadata sync** (local-first queue + optional Cloud index + per-target recording pulls) when signed in ([ADR-0010](docs/decisions/0010-cloud-sync-mvp.md), [ADR-0013](docs/decisions/0013-local-first-sync.md)). YouTube / URL streaming / **media file uploads** are **out of scope** until ADR supersession (see ADR-0005 / ADR-0010).
 
 ## Codegen
 

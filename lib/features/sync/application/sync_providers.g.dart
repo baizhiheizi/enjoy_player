@@ -227,6 +227,55 @@ final class SyncDownloadServiceProvider
 String _$syncDownloadServiceHash() =>
     r'bd29b8afaa903812ebfc8fff44aed9608fff7751';
 
+@ProviderFor(recordingTargetSyncService)
+final recordingTargetSyncServiceProvider =
+    RecordingTargetSyncServiceProvider._();
+
+final class RecordingTargetSyncServiceProvider
+    extends
+        $FunctionalProvider<
+          RecordingTargetSyncService,
+          RecordingTargetSyncService,
+          RecordingTargetSyncService
+        >
+    with $Provider<RecordingTargetSyncService> {
+  RecordingTargetSyncServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recordingTargetSyncServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recordingTargetSyncServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecordingTargetSyncService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecordingTargetSyncService create(Ref ref) {
+    return recordingTargetSyncService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecordingTargetSyncService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecordingTargetSyncService>(value),
+    );
+  }
+}
+
+String _$recordingTargetSyncServiceHash() =>
+    r'd596b59f534f9b57dc71eb94ac8340ca361a2514';
+
 @ProviderFor(syncEngine)
 final syncEngineProvider = SyncEngineProvider._();
 

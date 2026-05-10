@@ -11,6 +11,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/sync/application/rekey_local_rows.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -46,6 +47,14 @@ class SyncCtrl extends _$SyncCtrl {
 
   Future<void> _onSignedIn() async {
     try {
+      final auth = ref.read(authCtrlProvider).valueOrNull;
+      if (auth is AuthSignedIn) {
+        await rekeyLocalMediaRowsOnSignIn(
+          db: ref.read(appDatabaseProvider),
+          userId: auth.profile.id,
+          enqueue: ref.read(syncEnqueueProvider),
+        );
+      }
       final result =
           await ref.read(syncEngineProvider).fullSync(const SyncOptions());
       await _persistLastFullSyncTimestamp(result);

@@ -8,15 +8,19 @@ import 'package:cross_file/cross_file.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../data/db/app_database.dart';
-import '../../../data/db/app_database_provider.dart';
-import '../../library/application/library_repository_provider.dart';
-import '../../library/domain/media.dart';
-import '../domain/echo_window.dart';
-import '../domain/media_relocate_exception.dart';
-import '../domain/playback_session.dart';
-import 'echo_mode_provider.dart';
-import '../../transcript/application/transcript_repository_provider.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
+import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/features/player/domain/echo_window.dart';
+import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/sync/application/sync_providers.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
 import 'player_engine.dart';
@@ -145,6 +149,16 @@ class PlayerController extends _$PlayerController {
     unawaited(
       ref.read(transcriptRepositoryProvider).fetchCloudTranscripts(mediaId),
     );
+
+    final auth = ref.read(authCtrlProvider).valueOrNull;
+    if (auth is AuthSignedIn) {
+      unawaited(
+        ref.read(recordingTargetSyncServiceProvider).pullRecordingsForTarget(
+              targetType: dexie,
+              targetId: mediaId,
+            ),
+      );
+    }
 
     await ref.read(playerPreferencesCtrlProvider.notifier).applyCurrentToEngine();
     if (gen != _openGeneration) return;

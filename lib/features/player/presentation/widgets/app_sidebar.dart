@@ -149,6 +149,13 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               selected: path.startsWith('/library'),
               onTap: () => context.go('/library'),
             ),
+            _SidebarNavItem(
+              icon: Icons.cloud_outlined,
+              selectedIcon: Icons.cloud_rounded,
+              label: l10n.cloudScreenTitle,
+              selected: path.startsWith('/cloud'),
+              onTap: () => context.go('/cloud'),
+            ),
 
             const Spacer(),
 

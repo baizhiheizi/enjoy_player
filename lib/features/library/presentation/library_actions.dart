@@ -10,6 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -50,8 +53,11 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
   await Future<void>.delayed(Duration.zero);
 
   try {
+    final auth = ref.read(authCtrlProvider).valueOrNull;
+    final userId = auth is AuthSignedIn ? auth.profile.id : null;
     final id = await ref.read(mediaLibraryRepositoryProvider).importMedia(
           XFile(path),
+          signedInUserId: userId,
         );
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();

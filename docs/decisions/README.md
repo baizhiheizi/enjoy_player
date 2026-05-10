@@ -36,3 +36,4 @@ Trade-offs, follow-up work, risks.
 | [0010](0010-cloud-sync-mvp.md) | Cloud sync MVP — metadata (audio/video/recording) |
 | [0011](0011-dark-mode-only.md) | Dark mode only + logo-aligned brand (supersedes 0008) |
 | [0012](0012-per-user-sqlite-isolation.md) | Per-user SQLite + secure profile cache (partial supersession of 0006) |
+| [0013](0013-local-first-sync.md) | Local-first cloud sync + Cloud index (supersedes 0010 download behavior on player) |

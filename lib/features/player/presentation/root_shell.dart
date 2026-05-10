@@ -20,7 +20,8 @@ class RootShell extends ConsumerWidget {
   final Widget child;
 
   int _navIndexForPath(String path) {
-    if (path.startsWith('/settings')) return 2;
+    if (path.startsWith('/settings')) return 3;
+    if (path.startsWith('/cloud')) return 2;
     if (path.startsWith('/library')) return 1;
     return 0;
   }
@@ -34,6 +35,9 @@ class RootShell extends ConsumerWidget {
         context.go('/library');
         return;
       case 2:
+        context.go('/cloud');
+        return;
+      case 3:
         context.go('/settings');
         return;
       default:
@@ -75,6 +79,11 @@ class RootShell extends ConsumerWidget {
                       icon: const Icon(Icons.collections_bookmark_outlined),
                       selectedIcon: const Icon(Icons.collections_bookmark_rounded),
                       label: l10n.libraryTitle,
+                    ),
+                    NavigationDestination(
+                      icon: const Icon(Icons.cloud_outlined),
+                      selectedIcon: const Icon(Icons.cloud_rounded),
+                      label: l10n.cloudScreenTitle,
                     ),
                     NavigationDestination(
                       icon: const Icon(Icons.settings_outlined),

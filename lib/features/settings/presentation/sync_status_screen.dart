@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/sync/application/pending_rekey_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -139,6 +140,7 @@ class _SignedInBody extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final snapshotAsync = ref.watch(syncQueueSnapshotProvider);
     final lastSyncAsync = ref.watch(syncLastFullSyncAtProvider);
+    final pendingRekeyAsync = ref.watch(pendingRekeyRowCountProvider);
 
     final dateFmt = DateFormat.yMMMd().add_jm();
 
@@ -168,6 +170,36 @@ class _SignedInBody extends ConsumerWidget {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           error: (e, _) => Text('$e', style: tt.bodyMedium),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.syncPendingRekeyLabel,
+          style: tt.titleSmall?.copyWith(color: cs.onSurfaceVariant),
+        ),
+        const SizedBox(height: 4),
+        pendingRekeyAsync.when(
+          data: (count) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '$count',
+                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              if (count > 0) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.syncPendingRekeyHint,
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
+            ],
+          ),
+          loading: () => const SizedBox(
+            height: 22,
+            width: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          error: (e, _) => Text('$e'),
         ),
         const SizedBox(height: 24),
         snapshotAsync.when(

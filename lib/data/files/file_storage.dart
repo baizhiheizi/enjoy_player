@@ -6,23 +6,24 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/app_failure.dart';
+import 'chunked_file_hash.dart';
 
 class FileImportResult {
   const FileImportResult({
     required this.localPath,
-    required this.fileHash,
+    required this.contentHashHex,
     required this.fileSize,
     required this.title,
   });
 
   final String localPath;
-  final String fileHash;
+  /// Web-aligned partial SHA-256 fingerprint (see [chunkedContentSha256HexFromFileSync]).
+  final String contentHashHex;
   final int fileSize;
   final String title;
 
@@ -36,55 +37,53 @@ typedef _ImportIsolateArgs = ({
   String tempFileName,
   String ext,
   String title,
-  /// When set, import fails with [FileFailure] if SHA-256 hex does not match.
+  /// When set, import fails with [FileFailure] if chunked hash hex does not match.
   String? expectedHashHex,
 });
 
 typedef _ImportIsolateResult = ({
   String localPath,
-  String fileHash,
+  String contentHashHex,
   int fileSize,
   String title,
 });
 
-/// Heavy read + SHA-256 + write runs off the UI isolate.
-Future<_ImportIsolateResult> _importMediaFileInIsolate(_ImportIsolateArgs args) async {
-  final source = File(args.sourcePath);
-  final tempPath = p.join(args.mediaDirPath, args.tempFileName);
-  final tempFile = File(tempPath);
-
-  final controller = StreamController<List<int>>();
-  final hashFuture = sha256.bind(controller.stream).first;
-  var length = 0;
-  final sink = tempFile.openWrite();
-
+/// Copy bytes from source to temp; no hashing (hash computed separately).
+Future<void> _streamCopyFile(String sourcePath, String destPath) async {
+  final source = File(sourcePath);
+  final dest = File(destPath);
+  final sink = dest.openWrite();
   await for (final chunk in source.openRead()) {
-    length += chunk.length;
     sink.add(chunk);
-    controller.add(chunk);
   }
   await sink.flush();
   await sink.close();
-  await controller.close();
-  final digest = await hashFuture;
-  final hash = digest.toString();
+}
+
+Future<_ImportIsolateResult> _importMediaFileInIsolate(_ImportIsolateArgs args) async {
+  final tempPath = p.join(args.mediaDirPath, args.tempFileName);
+  final tempFile = File(tempPath);
+
+  final contentHashHex = chunkedContentSha256HexFromFileSync(args.sourcePath);
 
   final expected = args.expectedHashHex;
-  if (expected != null && expected.isNotEmpty && expected != hash) {
+  if (expected != null && expected.isNotEmpty && expected != contentHashHex) {
     if (await tempFile.exists()) {
       await tempFile.delete();
     }
-    // String is reliably passed across [Isolate.run] error boundaries.
     throw 'HASH_MISMATCH';
   }
 
-  final destPath = p.join(args.mediaDirPath, '$hash${args.ext}');
+  await _streamCopyFile(args.sourcePath, tempPath);
+  final writtenLength = await tempFile.length();
+
+  final destPath = p.join(args.mediaDirPath, '$contentHashHex${args.ext}');
   final destFile = File(destPath);
   if (await destFile.exists()) {
     await tempFile.delete();
     return (
       localPath: destPath,
-      fileHash: hash,
+      contentHashHex: contentHashHex,
       fileSize: await destFile.length(),
       title: args.title,
     );
@@ -94,8 +93,8 @@ Future<_ImportIsolateResult> _importMediaFileInIsolate(_ImportIsolateArgs args) 
 
   return (
     localPath: destPath,
-    fileHash: hash,
-    fileSize: length,
+    contentHashHex: contentHashHex,
+    fileSize: writtenLength,
     title: args.title,
   );
 }
@@ -135,7 +134,7 @@ class FileStorage {
 
       return FileImportResult(
         localPath: worker.localPath,
-        fileHash: worker.fileHash,
+        contentHashHex: worker.contentHashHex,
         fileSize: worker.fileSize,
         title: worker.title,
       );
@@ -158,8 +157,8 @@ class FileStorage {
     }
   }
 
-  /// Like [importPickedFile], but only succeeds when the file's SHA-256 hex
-  /// matches [expectedHashHex] (same value stored in Drift `md5` column).
+  /// Like [importPickedFile], but only succeeds when the file's chunked SHA-256
+  /// hex matches [expectedHashHex] (same value stored in Drift `md5` column).
   Future<FileImportResult> importPickedFileExpectingHash(
     XFile file, {
     required String expectedHashHex,
@@ -194,7 +193,7 @@ class FileStorage {
 
       return FileImportResult(
         localPath: worker.localPath,
-        fileHash: worker.fileHash,
+        contentHashHex: worker.contentHashHex,
         fileSize: worker.fileSize,
         title: worker.title,
       );

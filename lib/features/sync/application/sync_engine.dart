@@ -37,15 +37,13 @@ class SyncEngine {
   final AppDatabase _db;
   final SyncQueueRepository _queue;
   final SyncUploadService _upload;
+  // ignore: unused_field — reserved for optional manual / debug full downloads.
   final SyncDownloadService _download;
 
   Future<SyncResult> fullSync(SyncOptions options) async {
-    final audio = await _download.downloadAudios();
-    final video = await _download.downloadVideos();
-    final recording = await _download.downloadRecordings();
-    final merged = audio.merge(video).merge(recording);
-    final up = await processQueue(options);
-    return merged.merge(up);
+    // Local-first: do not mirror remote audios/videos/recordings into the library.
+    // Outbound queue drain only (see docs/features/sync.md).
+    return processQueue(options);
   }
 
   Future<SyncResult> processQueue(SyncOptions options) async {

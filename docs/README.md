@@ -16,6 +16,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/hotkeys.md](features/hotkeys.md) | Product + dev | Keyboard shortcuts or customization behavior changes |
 | [features/auth.md](features/auth.md) | Product + dev | Sign-in, profile, API base URL, or settings sync behavior changes |
 | [features/sync.md](features/sync.md) | Product + dev | Cloud metadata sync (library + recordings + queue) behavior changes |
+| [features/cloud.md](features/cloud.md) | Product + dev | Remote media index (add-to-library) behavior changes |
 
 ## How to add an ADR
 

@@ -2,6 +2,9 @@
 /// [apps/web/src/db/id-generator.ts].
 library;
 
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 
 /// RFC 4122 URL namespace (same as web `UUID_NAMESPACE`).
@@ -15,6 +18,25 @@ String enjoyVideoId({String provider = 'user', required String vid}) =>
 
 String enjoyAudioId({String provider = 'user', required String aid}) =>
     _uuid.v5(enjoyUuidNamespaceUrl, 'audio:$provider:$aid');
+
+/// Same as web `hashString` in [apps/web/src/db/id-generator.ts].
+String enjoySha256HexOfString(String input) =>
+    sha256.convert(utf8.encode(input)).toString();
+
+/// Web `generateLocalAudioAid` — scoped `aid` so the same bytes + same user
+/// always map to one remote row.
+String enjoyLocalAudioAid({
+  required String contentHashHex,
+  required String userId,
+}) =>
+    enjoySha256HexOfString('$contentHashHex:$userId');
+
+/// Web `generateLocalVideoVid` — same formula as audio `aid`.
+String enjoyLocalVideoVid({
+  required String contentHashHex,
+  required String userId,
+}) =>
+    enjoySha256HexOfString('$contentHashHex:$userId');
 
 String enjoyTranscriptId({
   required String targetType,

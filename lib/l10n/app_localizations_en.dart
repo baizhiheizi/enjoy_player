@@ -575,6 +575,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncScreenGoSignIn => 'Sign in';
 
   @override
+  String get syncPendingRekeyLabel => 'Imports pending account link';
+
+  @override
+  String get syncPendingRekeyHint =>
+      'These items were added while signed out. They will be linked to your account and queued for upload after you sign in.';
+
+  @override
+  String get cloudScreenTitle => 'Cloud';
+
+  @override
+  String get cloudTabAudio => 'Audio';
+
+  @override
+  String get cloudTabVideo => 'Video';
+
+  @override
+  String get cloudSignedOutBody =>
+      'Sign in to browse media saved to your Enjoy account.';
+
+  @override
+  String get cloudAddToLibrary => 'Add to library';
+
+  @override
+  String get cloudAlreadyInLibrary => 'Already in library';
+
+  @override
+  String get cloudAddedToLibrary => 'Added to your local library.';
+
+  @override
+  String get cloudEmpty => 'No items in this list.';
+
+  @override
+  String get cloudHasMediaUrlHint => 'Streams from your saved URL when opened.';
+
+  @override
+  String get cloudNoMediaUrlHint =>
+      'No remote file URL — use Locate file in the player when you open this item.';
+
+  @override
+  String get cloudRefreshTooltip => 'Refresh this tab';
+
+  @override
+  String get cloudAddToLibraryTooltip => 'Add to library';
+
+  @override
+  String get cloudEmptyAudioTitle => 'No cloud audio yet';
+
+  @override
+  String get cloudEmptyAudioSubtitle =>
+      'Items you save while signed in will appear here.';
+
+  @override
+  String get cloudEmptyVideoTitle => 'No cloud video yet';
+
+  @override
+  String get cloudEmptyVideoSubtitle =>
+      'Items you save while signed in will appear here.';
+
+  @override
   String get syncSnackSuccess => 'Sync finished successfully.';
 
   @override

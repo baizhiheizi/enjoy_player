@@ -11,6 +11,7 @@ import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
 import 'package:enjoy_player/features/sync/application/queue_for_sync.dart';
 import 'package:enjoy_player/features/sync/application/sync_engine.dart';
+import 'package:enjoy_player/features/sync/data/recording_target_sync_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
@@ -45,6 +46,13 @@ SyncDownloadService syncDownloadService(Ref ref) => SyncDownloadService(
       db: ref.watch(appDatabaseProvider),
       audioApi: AudioApi(ref.watch(apiClientProvider)),
       videoApi: VideoApi(ref.watch(apiClientProvider)),
+      recordingApi: RecordingApi(ref.watch(apiClientProvider)),
+    );
+
+@Riverpod(keepAlive: true)
+RecordingTargetSyncService recordingTargetSyncService(Ref ref) =>
+    RecordingTargetSyncService(
+      db: ref.watch(appDatabaseProvider),
       recordingApi: RecordingApi(ref.watch(apiClientProvider)),
     );
 

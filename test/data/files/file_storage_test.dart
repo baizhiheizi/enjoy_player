@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/data/files/chunked_file_hash.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -14,7 +15,7 @@ import '../../support/test_path_provider.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('importPickedFile streams hash and matches sha256 of source', () async {
+  test('importPickedFile uses web-aligned partial hash for 4MiB file', () async {
     final original = PathProviderPlatform.instance;
     final root = Directory.systemTemp.createTempSync('enjoy_file_storage_test');
     PathProviderPlatform.instance = TestPathProvider(root.path);
@@ -31,21 +32,17 @@ void main() {
     for (var i = 0; i < size; i++) {
       data[i] = (i * 17 + 3) & 0xff;
     }
-    final expectedHash = sha256.convert(data).toString();
-
     final srcPath = p.join(root.path, 'big.bin');
     await File(srcPath).writeAsBytes(data, flush: true);
+    final expectedHash = chunkedContentSha256HexFromFileSync(srcPath);
 
     final storage = FileStorage();
     final result = await storage.importPickedFile(XFile(srcPath, name: 'big.bin'));
 
-    expect(result.fileHash, expectedHash);
+    expect(result.contentHashHex, expectedHash);
     expect(result.fileSize, size);
     expect(File(result.localPath).existsSync(), isTrue);
-    expect(
-      sha256.convert(await File(result.localPath).readAsBytes()).toString(),
-      expectedHash,
-    );
+    expect(await File(result.localPath).readAsBytes(), data);
   });
 
   test('importPickedFileExpectingHash succeeds when hash matches', () async {
@@ -71,7 +68,7 @@ void main() {
       expectedHashHex: expectedHash,
     );
 
-    expect(result.fileHash, expectedHash);
+    expect(result.contentHashHex, expectedHash);
     expect(File(result.localPath).existsSync(), isTrue);
   });
 

@@ -1180,6 +1180,114 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get syncScreenGoSignIn;
 
+  /// No description provided for @syncPendingRekeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Imports pending account link'**
+  String get syncPendingRekeyLabel;
+
+  /// No description provided for @syncPendingRekeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These items were added while signed out. They will be linked to your account and queued for upload after you sign in.'**
+  String get syncPendingRekeyHint;
+
+  /// No description provided for @cloudScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get cloudScreenTitle;
+
+  /// No description provided for @cloudTabAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get cloudTabAudio;
+
+  /// No description provided for @cloudTabVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get cloudTabVideo;
+
+  /// No description provided for @cloudSignedOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to browse media saved to your Enjoy account.'**
+  String get cloudSignedOutBody;
+
+  /// No description provided for @cloudAddToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to library'**
+  String get cloudAddToLibrary;
+
+  /// No description provided for @cloudAlreadyInLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in library'**
+  String get cloudAlreadyInLibrary;
+
+  /// No description provided for @cloudAddedToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your local library.'**
+  String get cloudAddedToLibrary;
+
+  /// No description provided for @cloudEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this list.'**
+  String get cloudEmpty;
+
+  /// No description provided for @cloudHasMediaUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Streams from your saved URL when opened.'**
+  String get cloudHasMediaUrlHint;
+
+  /// No description provided for @cloudNoMediaUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No remote file URL — use Locate file in the player when you open this item.'**
+  String get cloudNoMediaUrlHint;
+
+  /// No description provided for @cloudRefreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh this tab'**
+  String get cloudRefreshTooltip;
+
+  /// No description provided for @cloudAddToLibraryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to library'**
+  String get cloudAddToLibraryTooltip;
+
+  /// No description provided for @cloudEmptyAudioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cloud audio yet'**
+  String get cloudEmptyAudioTitle;
+
+  /// No description provided for @cloudEmptyAudioSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items you save while signed in will appear here.'**
+  String get cloudEmptyAudioSubtitle;
+
+  /// No description provided for @cloudEmptyVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cloud video yet'**
+  String get cloudEmptyVideoTitle;
+
+  /// No description provided for @cloudEmptyVideoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items you save while signed in will appear here.'**
+  String get cloudEmptyVideoSubtitle;
+
   /// No description provided for @syncSnackSuccess.
   ///
   /// In en, this message translates to:

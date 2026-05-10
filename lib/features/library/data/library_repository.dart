@@ -6,22 +6,21 @@ import 'dart:async';
 import 'package:cross_file/cross_file.dart';
 import 'package:drift/drift.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/ids/enjoy_ids.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/data/files/media_resolver.dart';
+import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
-
-import '../../../core/errors/app_failure.dart';
-import '../../../core/ids/enjoy_ids.dart';
-import '../../../data/db/app_database.dart';
-import '../../../data/files/ffmpeg_media_probe.dart';
-import '../../../data/files/file_storage.dart';
-import '../../../data/files/media_resolver.dart';
-import '../domain/media.dart';
 
 Media _mediaFromVideo(VideoRow row) {
   return Media(
     id: row.id,
     kind: MediaKind.video,
     title: row.title,
-    sourceUri: row.localUri ?? '',
+    sourceUri: row.localUri ?? row.mediaUrl ?? '',
     thumbnailPath: row.thumbnailUrl,
     durationMs: row.durationSeconds * 1000,
     language: row.language,
@@ -39,7 +38,7 @@ Media _mediaFromAudio(AudioRow row) {
     id: row.id,
     kind: MediaKind.audio,
     title: row.title,
-    sourceUri: row.localUri ?? '',
+    sourceUri: row.localUri ?? row.mediaUrl ?? '',
     thumbnailPath: row.thumbnailUrl,
     durationMs: row.durationSeconds * 1000,
     language: row.language,
@@ -99,17 +98,38 @@ class MediaLibraryRepository {
     });
   }
 
-  Future<String> importMedia(XFile file) async {
+  /// [signedInUserId] when non-null enables web-aligned `aid`/`vid` + outbound sync.
+  Future<String> importMedia(
+    XFile file, {
+    String? signedInUserId,
+  }) async {
     try {
       final result = await _storage.importPickedFile(file);
       final kind =
           isVideoFileName(file.name) ? MediaKind.video : MediaKind.audio;
       final now = DateTime.now();
+      final contentHash = result.contentHashHex;
+      final signedIn = signedInUserId != null && signedInUserId.isNotEmpty;
+
       if (kind == MediaKind.video) {
-        final id = enjoyVideoId(vid: result.fileHash);
+        late final String id;
+        late final String vid;
+        late final String syncStatus;
+        if (signedIn) {
+          vid = enjoyLocalVideoVid(
+            contentHashHex: contentHash,
+            userId: signedInUserId,
+          );
+          id = enjoyVideoId(vid: vid);
+          syncStatus = 'pending';
+        } else {
+          vid = contentHash;
+          id = enjoyVideoId(vid: vid);
+          syncStatus = 'local-pending-rekey';
+        }
         final row = VideoRow(
           id: id,
-          vid: result.fileHash,
+          vid: vid,
           provider: 'user',
           title: result.title,
           description: null,
@@ -118,23 +138,40 @@ class MediaLibraryRepository {
           language: 'und',
           source: null,
           localUri: result.fileUri,
-          md5: result.fileHash,
+          md5: contentHash,
           size: result.fileSize,
           mediaUrl: null,
-          syncStatus: 'local',
+          syncStatus: syncStatus,
           serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
         );
         await _db.videoDao.insertRow(row);
         unawaited(_probeAndPatchDuration(id, result.fileUri, video: true));
-        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
+        if (signedIn) {
+          await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
+        }
         return id;
       }
-      final id = enjoyAudioId(aid: result.fileHash);
+
+      late final String id;
+      late final String aid;
+      late final String syncStatus;
+      if (signedIn) {
+        aid = enjoyLocalAudioAid(
+          contentHashHex: contentHash,
+          userId: signedInUserId,
+        );
+        id = enjoyAudioId(aid: aid);
+        syncStatus = 'pending';
+      } else {
+        aid = contentHash;
+        id = enjoyAudioId(aid: aid);
+        syncStatus = 'local-pending-rekey';
+      }
       final audioRow = AudioRow(
         id: id,
-        aid: result.fileHash,
+        aid: aid,
         provider: 'user',
         title: result.title,
         description: null,
@@ -146,17 +183,19 @@ class MediaLibraryRepository {
         voice: null,
         source: null,
         localUri: result.fileUri,
-        md5: result.fileHash,
+        md5: contentHash,
         size: result.fileSize,
         mediaUrl: null,
-        syncStatus: 'local',
+        syncStatus: syncStatus,
         serverUpdatedAt: null,
         createdAt: now,
         updatedAt: now,
       );
       await _db.audioDao.insertRow(audioRow);
       unawaited(_probeAndPatchDuration(id, result.fileUri, video: false));
-      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
+      if (signedIn) {
+        await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
+      }
       return id;
     } on AppFailure {
       rethrow;
@@ -216,7 +255,7 @@ class MediaLibraryRepository {
     return null;
   }
 
-  /// Copy a user-picked file into app storage only if its SHA-256 matches the
+  /// Copy a user-picked file into app storage only if its chunked SHA-256 matches the
   /// row's `md5` field, then set [localUri] for playback on this device.
   Future<void> relocateLocalFile({
     required String mediaId,

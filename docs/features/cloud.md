@@ -1,0 +1,22 @@
+# Cloud (remote media index)
+
+## Purpose
+
+Browse **your** remote Enjoy **audio** and **video** metadata (`GET /api/v1/mine/audios|videos`) without automatically copying rows into the local Library. The player stays **local-first**: the Library tab only shows what exists in Drift.
+
+## Flow
+
+1. User opens **Cloud** from the sidebar (or bottom navigation).
+2. Lists are loaded page by page using `updatedAfter` cursors (same API as the legacy full sync download).
+3. **Add to library** inserts one row into `audios` / `videos` via the same merge shape as server JSON (`localUri` stays null; `mediaUrl` is preserved when the server provided it).
+4. Items with a `mediaUrl` can play from that URL in the expanded player; items without a URL still appear in the Library and use **Locate file** (hash match) like other synced metadata-only rows.
+
+## Requirements
+
+- Must be signed in (Enjoy account). When signed out, the screen explains that sign-in is required.
+
+## Related
+
+- [Sync](sync.md)
+- [ADR-0013](../decisions/0013-local-first-sync.md)
+- UI: [`CloudScreen`](../../lib/features/cloud/presentation/cloud_screen.dart) — same `MediaCard` row/tile primitives as Library (editorial header, segmented Audio/Video, generative covers).
