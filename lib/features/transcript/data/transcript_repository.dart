@@ -17,6 +17,7 @@ import '../../../data/subtitle/embedded_subtitle_service.dart';
 import '../../../data/subtitle/subtitle_parser.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../domain/transcript_track.dart';
+import 'transcript_timeline_parse.dart';
 
 class _LinesCacheEntry {
   _LinesCacheEntry(this.updatedAt, this.lines);
@@ -147,16 +148,22 @@ class TranscriptRepository {
     try {
       final list = await api.transcripts(targetId: mediaId, targetType: tt);
       final now = DateTime.now();
+      var storedCount = 0;
       for (final item in list) {
         final row = _transcriptRowFromServerMap(item, fallbackNow: now);
         if (row == null) continue;
         await _db.transcriptDao.upsert(row);
+        storedCount++;
       }
 
-      await _db.transcriptFetchStateDao.upsertFetched(tt, mediaId, now);
+      // Do not mark "fetched" if the server returned transcript rows we could not
+      // persist (e.g. shape mismatch); allows retry on next play.
+      if (list.isEmpty || storedCount > 0) {
+        await _db.transcriptFetchStateDao.upsertFetched(tt, mediaId, now);
+      }
 
       final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
-      if (session?.transcriptId == null && list.isNotEmpty) {
+      if (session?.transcriptId == null && storedCount > 0) {
         final rows = await _db.transcriptDao.listForTarget(tt, mediaId);
         _sortTranscriptRows(rows);
         if (rows.isNotEmpty) {
@@ -192,14 +199,7 @@ class TranscriptRepository {
     }
 
     final source = _normalizeSource(rawSource);
-    final lines = <TranscriptLine>[];
-    if (timeline is List) {
-      for (final e in timeline) {
-        if (e is Map<String, dynamic>) {
-          lines.add(TranscriptLine.fromJson(e));
-        }
-      }
-    }
+    final lines = transcriptLinesFromApiTimeline(timeline);
     if (lines.isEmpty) return null;
 
     final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
