@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:media_kit/media_kit.dart' as mk;
 
@@ -21,6 +22,10 @@ class FakePlayerEngine implements PlayerEngine {
 
   final List<String> openUris = <String>[];
   final List<Duration> seekCalls = <Duration>[];
+  int screenshotCalls = 0;
+
+  /// Returned by [screenshot]; defaults to null (simulate failure / no frame).
+  Uint8List? screenshotReturnValue;
 
   /// Optional hook to stall [openUri] (re-entrancy tests).
   Future<void> Function()? openDelay;
@@ -92,6 +97,12 @@ class FakePlayerEngine implements PlayerEngine {
 
   @override
   Future<void> stop() async {}
+
+  @override
+  Future<Uint8List?> screenshot({String? format}) async {
+    screenshotCalls++;
+    return screenshotReturnValue;
+  }
 
   @override
   Future<void> dispose() async {

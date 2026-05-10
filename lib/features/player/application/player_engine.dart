@@ -1,6 +1,8 @@
 /// Abstraction over the playback backend (default: media_kit) for testability.
 library;
 
+import 'dart:typed_data';
+
 import 'package:media_kit/media_kit.dart' as mk;
 
 /// Contract implemented by [MediaKitPlayerEngine] in production and fakes in tests.
@@ -33,6 +35,9 @@ abstract class PlayerEngine {
   Future<void> pause();
 
   Future<void> stop();
+
+  /// Encoded frame capture (`image/jpeg`, `image/png`, or raw when [format] is null).
+  Future<Uint8List?> screenshot({String? format});
 
   Future<void> dispose();
 }
@@ -89,6 +94,10 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   Future<void> stop() => _player.stop();
+
+  @override
+  Future<Uint8List?> screenshot({String? format}) =>
+      _player.screenshot(format: format);
 
   @override
   Future<void> dispose() => _player.dispose();

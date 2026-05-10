@@ -209,8 +209,34 @@ void main() {
       expect(row!.localUri, isNull);
     });
 
-    test('backfillMissingVideoThumbnails does not throw on empty library', () async {
-      await repo.backfillMissingVideoThumbnails();
+    test('ensureVideoPosterAfterMetadataInsert does not set thumbnail_url', () async {
+      final now = DateTime.now();
+      const id = 'v-poster-hook';
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: id,
+          vid: 'x',
+          provider: 'user',
+          title: 't',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          source: null,
+          localUri: null,
+          md5: List.generate(64, (_) => 'a').join(),
+          size: 1,
+          mediaUrl: 'https://example.com/video.mp4',
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final row = await db.videoDao.getById(id);
+      await repo.ensureVideoPosterAfterMetadataInsert(row!);
+      final after = await db.videoDao.getById(id);
+      expect(after!.thumbnailUrl, isNull);
     });
   });
 }

@@ -8,9 +8,13 @@ import 'package:cross_file/cross_file.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
+import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/files/video_poster_extract.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
@@ -28,6 +32,8 @@ import 'player_engine_provider.dart';
 import 'player_preferences_provider.dart';
 
 part 'player_controller.g.dart';
+
+final _logPosterCapture = logNamed('VideoPosterCapture');
 
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController {
@@ -131,7 +137,9 @@ class PlayerController extends _$PlayerController {
 
     // Bind video output before first decode on Windows (see media_kit_video notes).
     // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
-    if (Platform.isWindows && kind == MediaKind.video) {
+    if (kind == MediaKind.video &&
+        engine is MediaKitPlayerEngine &&
+        Platform.isWindows) {
       videoController;
     }
 
@@ -206,6 +214,100 @@ class PlayerController extends _$PlayerController {
       audio: audio,
       gen: gen,
     );
+
+    if (kind == MediaKind.video && video != null) {
+      _scheduleVideoPosterCapture(
+        mediaId: mediaId,
+        video: video,
+        restoredPositionMs: posMs,
+        gen: gen,
+      );
+    }
+  }
+
+  void _scheduleVideoPosterCapture({
+    required String mediaId,
+    required VideoRow video,
+    required int restoredPositionMs,
+    required int gen,
+  }) {
+    if (isRemoteThumbnailUrl(video.thumbnailUrl)) return;
+    if (localThumbnailFile(video.thumbnailUrl) != null) return;
+
+    unawaited(
+      _captureAndPersistVideoPoster(
+        mediaId: mediaId,
+        video: video,
+        restoredPositionMs: restoredPositionMs,
+        gen: gen,
+      ),
+    );
+  }
+
+  Future<void> _captureAndPersistVideoPoster({
+    required String mediaId,
+    required VideoRow video,
+    required int restoredPositionMs,
+    required int gen,
+  }) async {
+    var soughtForPoster = false;
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      if (gen != _openGeneration) return;
+      if (state?.mediaId != mediaId) return;
+
+      final sessionDur = state?.durationSeconds;
+      final durSec =
+          video.durationSeconds > 0
+              ? video.durationSeconds
+              : (sessionDur != null && sessionDur > 0
+                  ? sessionDur.floor()
+                  : 0);
+
+      final posterSeconds = posterSeekSeconds(durSec > 0 ? durSec : null);
+      final posterMs = (posterSeconds * 1000).round();
+
+      final needSeekToPoster = restoredPositionMs == 0 && posterMs > 0;
+      if (needSeekToPoster) {
+        soughtForPoster = true;
+        await engine.seek(Duration(milliseconds: posterMs));
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        if (gen != _openGeneration) return;
+        if (state?.mediaId != mediaId) return;
+      }
+
+      final bytes = await engine.screenshot(format: 'image/jpeg');
+      if (bytes == null || bytes.isEmpty) return;
+      if (gen != _openGeneration) return;
+
+      final db = ref.read(appDatabaseProvider);
+      final latest = await db.videoDao.getById(mediaId);
+      if (latest == null) return;
+      if (isRemoteThumbnailUrl(latest.thumbnailUrl)) return;
+      if (localThumbnailFile(latest.thumbnailUrl) != null) return;
+
+      final outPath = await videoThumbnailPathForContentHash(
+        posterStorageKeyHexForVideo(latest),
+      );
+      final f = File(outPath);
+      await f.writeAsBytes(bytes, flush: true);
+      final absoluteThumb = f.absolute.path;
+      await db.videoDao.updateLocalThumbnail(mediaId, absoluteThumb);
+
+      if (gen == _openGeneration && state?.mediaId == mediaId) {
+        state = state?.copyWith(thumbnailUrl: absoluteThumb);
+      }
+    } on Object catch (e, st) {
+      _logPosterCapture.fine('video poster capture failed', e, st);
+    } finally {
+      if (soughtForPoster && gen == _openGeneration) {
+        try {
+          await engine.seek(Duration.zero);
+        } on Object {
+          // Best-effort restore start position after poster sampling seek.
+        }
+      }
+    }
   }
 
   void _subscribeStreams({

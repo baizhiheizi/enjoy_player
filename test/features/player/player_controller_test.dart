@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -12,8 +13,10 @@ import 'package:enjoy_player/features/transcript/data/transcript_repository.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import '../../support/fake_player_engine.dart';
+import '../../support/test_path_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,8 @@ void main() {
     late AppDatabase db;
     late FakePlayerEngine fake;
     late ProviderContainer container;
+    late PathProviderPlatform originalPathProvider;
+    late Directory pathProviderRoot;
 
     Future<String> insertMedia({
       required String id,
@@ -29,6 +34,7 @@ void main() {
       String? localUri,
       String? mediaUrl,
       String? md5,
+      String? thumbnailUrl,
     }) async {
       final now = DateTime.now();
       late final String effectiveLocal;
@@ -53,7 +59,7 @@ void main() {
             provider: 'user',
             title: 't',
             description: null,
-            thumbnailUrl: null,
+            thumbnailUrl: thumbnailUrl,
             durationSeconds: 600,
             language: 'en',
             source: null,
@@ -75,7 +81,7 @@ void main() {
             provider: 'user',
             title: 't',
             description: null,
-            thumbnailUrl: null,
+            thumbnailUrl: thumbnailUrl,
             durationSeconds: 600,
             language: 'en',
             translationKey: null,
@@ -97,6 +103,12 @@ void main() {
     }
 
     setUp(() {
+      originalPathProvider = PathProviderPlatform.instance;
+      pathProviderRoot = Directory.systemTemp.createTempSync(
+        'enjoy_player_ctrl_path',
+      );
+      PathProviderPlatform.instance = TestPathProvider(pathProviderRoot.path);
+
       db = AppDatabase(executor: NativeDatabase.memory());
       fake = FakePlayerEngine();
       container = ProviderContainer(
@@ -109,6 +121,11 @@ void main() {
     });
 
     tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      if (pathProviderRoot.existsSync()) {
+        pathProviderRoot.deleteSync(recursive: true);
+      }
+
       container.dispose();
       await db.close();
       await fake.dispose();
@@ -247,6 +264,68 @@ void main() {
       final n = container.read(playerControllerProvider.notifier);
       await n.openMedia(id);
       expect(fake.openUris, ['https://example.com/media.mp4']);
+    });
+
+    test('openMedia persists video poster from screenshot when thumbnail missing', () async {
+      const hash =
+          '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+      final id = await insertMedia(id: 'v-cap', kind: 'video', md5: hash);
+      fake.screenshotReturnValue = Uint8List.fromList(const [10, 11, 12]);
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+
+      expect(fake.screenshotCalls, greaterThanOrEqualTo(1));
+      final row = await db.videoDao.getById(id);
+      expect(row!.thumbnailUrl, isNotNull);
+      final thumbFile = File(row.thumbnailUrl!);
+      expect(thumbFile.existsSync(), isTrue);
+      expect(await thumbFile.readAsBytes(), fake.screenshotReturnValue);
+
+      final session = container.read(playerControllerProvider);
+      expect(session?.thumbnailUrl, row.thumbnailUrl);
+    });
+
+    test('openMedia skips poster capture when remote thumbnail url set', () async {
+      final id = await insertMedia(
+        id: 'v-remote',
+        kind: 'video',
+        thumbnailUrl: 'https://cdn.example/x.jpg',
+      );
+      fake.screenshotReturnValue = Uint8List.fromList(const [1, 2, 3]);
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(fake.screenshotCalls, 0);
+    });
+
+    test('openMedia skips poster capture when local thumbnail file exists', () async {
+      final tmp = File(
+        p.join(
+          Directory.systemTemp.path,
+          'enjoy_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg',
+        ),
+      );
+      await tmp.writeAsBytes(const [1, 2, 3]);
+      final id = await insertMedia(
+        id: 'v-has-thumb',
+        kind: 'video',
+        thumbnailUrl: tmp.path,
+      );
+      fake.screenshotReturnValue = Uint8List.fromList(const [9, 9, 9]);
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(fake.screenshotCalls, 0);
+    });
+
+    test('openMedia does not capture poster for audio', () async {
+      final id = await insertMedia(id: 'a-cap');
+      fake.screenshotReturnValue = Uint8List.fromList(const [1]);
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      expect(fake.screenshotCalls, 0);
     });
   });
 }

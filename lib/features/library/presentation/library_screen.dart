@@ -11,7 +11,6 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
-import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -230,7 +229,7 @@ class _AudioRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final thumb = localThumbnailFile(media.thumbnailPath);
+    final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
     final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
     final paletteAsync = ref.watch(artworkPaletteProvider(media.thumbnailPath));
@@ -297,7 +296,7 @@ class _VideoTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final thumb = localThumbnailFile(media.thumbnailPath);
+    final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
     final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
     final paletteAsync = ref.watch(artworkPaletteProvider(media.thumbnailPath));

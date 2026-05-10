@@ -7,6 +7,7 @@
 - Debounced persistence via `PlaybackSessionPersister`; embedded subtitle discovery via `EmbeddedTrackSync`.
 - `PlayerUi` tracks chrome mode (mini vs expanded) only; playing/buffering come from `playerIsPlayingProvider` / `playerIsBufferingProvider` (stream providers over the engine, each seeded with `Player.state` so the transport bar matches the engine immediately after route changes).
 - Re-opening `/player/:mediaId` while that media is already the active session does **not** call `openUri` again (avoids restarting playback when expanding from the mini player).
+- **Video library poster**: when a `VideoRow` has no `http(s)` `thumbnail_url` and no readable local thumbnail file, after open the controller may capture a JPEG via `PlayerEngine.screenshot` (`image/jpeg`) and write `media_thumbs/<key>.jpg`, then patch Drift (see `library.md`). Remote artwork URLs are never overwritten.
 - **Synced local-only media**: If metadata was synced from another device but this machine has no file at `localUri`, and the row has a content fingerprint (`md5` column — SHA-256 hex), opening the player shows **Locate media file**. The user picks the same file; the app imports it only when the hash matches, then updates `localUri` and enqueues a sync update.
 - **Shell**: adaptive `NavigationBar` / `NavigationRail` + mini player; nav chrome is hidden on `/player/*` for focus.
 - **Wide layout** (`VideoPlayerLayout`): draggable transcript width (min ~240px, max 50% of width), gradient video stage, no vertical divider between panels.

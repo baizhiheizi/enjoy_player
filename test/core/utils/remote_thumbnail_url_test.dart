@@ -23,4 +23,11 @@ void main() {
       expect(remoteThumbnailForCard(null), isNull);
     });
   });
+
+  group('localThumbnailFileForCard', () {
+    test('null for remote urls so cards use Image.network', () {
+      expect(localThumbnailFileForCard('https://x/a.jpg'), isNull);
+      expect(localThumbnailFileForCard('http://x/a.jpg'), isNull);
+    });
+  });
 }

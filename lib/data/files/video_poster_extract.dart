@@ -1,9 +1,12 @@
 /// Extract a single JPEG poster frame from a local video for library thumbnails.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:path/path.dart' as p;
@@ -12,6 +15,13 @@ import 'package:path_provider/path_provider.dart';
 import 'ffmpeg_media_probe.dart';
 
 final _log = logNamed('VideoPosterExtract');
+
+/// Stable key for `media_thumbs/<hex>.jpg` (content hash, else SHA-256 of row id).
+String posterStorageKeyHexForVideo(VideoRow row) {
+  final m = row.md5;
+  if (m != null && m.isNotEmpty) return m;
+  return sha256.convert(utf8.encode(row.id)).toString();
+}
 
 bool _isNetworkMediaInput(String path) {
   final lower = path.toLowerCase();
