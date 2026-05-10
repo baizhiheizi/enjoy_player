@@ -67,13 +67,28 @@
   "subtitlesTranslation": "Translation (optional)",
   "subtitlesNone": "None",
   "subtitlesImportFile": "Import subtitle file…",
-  "subtitlesEmbedded": "Embedded",
-  "subtitlesImported": "Imported",
   "subtitlesDeleteTrack": "Delete track",
-  "subtitlesDetected": "Subtitles detected — tap CC to choose",
-  "subtitlesChoose": "Choose",
   "importSubtitleSuccess": "Subtitle imported",
-  "noTranscriptHint": "Open a video with embedded subtitles, or import an .srt/.vtt file.",
+  "noTranscriptHint": "Cloud transcripts load when you play media (once). For video, use Extract embedded or import an .srt/.vtt file.",
+  "subtitlesExtractEmbedded": "Extract embedded subtitles",
+  "subtitlesRefreshCloud": "Refresh transcripts from cloud",
+  "subtitlesImportLanguageTitle": "Subtitle language",
+  "subtitlesImportLanguageHint": "BCP-47 code (e.g. en, zh-TW). Use und if unknown.",
+  "subtitlesProviderOfficial": "Official",
+  "subtitlesProviderAuto": "Auto",
+  "subtitlesProviderAi": "AI",
+  "subtitlesProviderUser": "User",
+  "subtitlesExtractNoTracks": "No embedded subtitle tracks found.",
+  "subtitlesExtractedCount": "Extracted {count} subtitle track(s).",
+  "@subtitlesExtractedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subtitlesRefreshDone": "Transcripts updated from cloud.",
+  "subtitlesNoPlayableUri": "Could not resolve a playable file for this item.",
   "expandEchoBackward": "Expand echo backward",
   "expandEchoForward": "Expand echo forward",
   "shrinkEchoBackward": "Shrink echo backward",

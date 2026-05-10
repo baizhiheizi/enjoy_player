@@ -11,6 +11,7 @@ import 'tables/echo_sessions.dart';
 import 'tables/recordings.dart';
 import 'tables/settings.dart';
 import 'tables/sync_queue.dart';
+import 'tables/transcript_fetch_states.dart';
 import 'tables/transcripts.dart';
 import 'tables/videos.dart';
 
@@ -21,6 +22,7 @@ part 'app_database.g.dart';
     Videos,
     Audios,
     Transcripts,
+    TranscriptFetchStates,
     EchoSessions,
     Recordings,
     Dictations,
@@ -31,6 +33,7 @@ part 'app_database.g.dart';
     VideoDao,
     AudioDao,
     TranscriptDao,
+    TranscriptFetchStateDao,
     EchoSessionDao,
     RecordingDao,
     DictationDao,
@@ -46,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: name));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +63,7 @@ class AppDatabase extends _$AppDatabase {
         'recordings',
         'echo_sessions',
         'transcripts',
+        'transcript_fetch_states',
         'videos',
         'audios',
         'playback_sessions',
@@ -135,7 +139,8 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
                   t.targetType.equals(targetType) & t.targetId.equals(targetId),
             )
             ..orderBy([
-              (t) => OrderingTerm.desc(t.isEmbedded),
+              (t) => OrderingTerm.asc(t.source),
+              (t) => OrderingTerm.asc(t.language),
               (t) => OrderingTerm.asc(t.createdAt),
             ]))
           .watch();
@@ -159,6 +164,37 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> deleteId(String id) =>
       (delete(transcripts)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [TranscriptFetchStates])
+class TranscriptFetchStateDao extends DatabaseAccessor<AppDatabase>
+    with _$TranscriptFetchStateDaoMixin {
+  TranscriptFetchStateDao(super.db);
+
+  Future<TranscriptFetchStateRow?> getForTarget(
+    String targetType,
+    String targetId,
+  ) =>
+      (select(transcriptFetchStates)
+            ..where(
+              (t) =>
+                  t.targetType.equals(targetType) & t.targetId.equals(targetId),
+            ))
+          .getSingleOrNull();
+
+  Future<void> upsertFetched(
+    String targetType,
+    String targetId,
+    DateTime lastFetchedAt,
+  ) =>
+      into(transcriptFetchStates).insert(
+        TranscriptFetchStateRow(
+          targetType: targetType,
+          targetId: targetId,
+          lastFetchedAt: lastFetchedAt,
+        ),
+        mode: InsertMode.insertOrReplace,
+      );
 }
 
 @DriftAccessor(tables: [EchoSessions])

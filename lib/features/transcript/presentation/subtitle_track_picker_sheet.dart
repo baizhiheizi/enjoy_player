@@ -2,13 +2,21 @@
 // ignore_for_file: deprecated_member_use
 library;
 
+import 'dart:async';
+
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import '../../../l10n/app_localizations.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/media_target_resolver.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'import_subtitle_language_dialog.dart';
+import '../../player/application/player_controller.dart';
+import '../../player/application/player_engine_provider.dart';
 import '../application/active_transcript_provider.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/transcript_repository_provider.dart';
@@ -25,6 +33,36 @@ EdgeInsetsDirectional _sheetRowPadding(EnjoyThemeTokens t) =>
       t.space8,
       t.space4,
     );
+
+String _providerLabel(AppLocalizations l10n, String source) {
+  switch (source) {
+    case 'official':
+      return l10n.subtitlesProviderOfficial;
+    case 'auto':
+      return l10n.subtitlesProviderAuto;
+    case 'ai':
+      return l10n.subtitlesProviderAi;
+    case 'user':
+      return l10n.subtitlesProviderUser;
+    default:
+      return source.toUpperCase();
+  }
+}
+
+({Color bg, Color fg}) _providerBadgeColors(ColorScheme cs, String source) {
+  switch (source) {
+    case 'official':
+      return (bg: cs.primaryContainer, fg: cs.onPrimaryContainer);
+    case 'auto':
+      return (bg: cs.tertiaryContainer, fg: cs.onTertiaryContainer);
+    case 'ai':
+      return (bg: cs.secondaryContainer, fg: cs.onSecondaryContainer);
+    case 'user':
+      return (bg: cs.surfaceContainerHighest, fg: cs.onSurfaceVariant);
+    default:
+      return (bg: cs.surfaceContainerHigh, fg: cs.onSurfaceVariant);
+  }
+}
 
 /// Shows a modal bottom sheet for picking primary + secondary subtitles.
 Future<void> showSubtitleTrackPicker(
@@ -59,6 +97,8 @@ class SubtitleTrackPickerSheet extends ConsumerStatefulWidget {
 class _SubtitleTrackPickerSheetState
     extends ConsumerState<SubtitleTrackPickerSheet> {
   bool _importing = false;
+  bool _extractingEmbedded = false;
+  bool _refreshingCloud = false;
 
   Future<void> _importFile() async {
     final pick = await FilePicker.pickFiles(
@@ -69,11 +109,23 @@ class _SubtitleTrackPickerSheetState
     final f = pick.files.single;
     if (f.path == null) return;
 
+    if (!mounted) return;
+    final hint = languageHintFromSubtitleFileName(f.name);
+    final lang = await showImportSubtitleLanguageDialog(
+      context,
+      initialLanguage: hint,
+    );
+    if (lang == null) return;
+    final trimmed = lang.trim();
+    if (trimmed.isEmpty) return;
+
     setState(() => _importing = true);
     try {
-      await ref
-          .read(transcriptRepositoryProvider)
-          .importSubtitle(mediaId: widget.mediaId, file: XFile(f.path!));
+      await ref.read(transcriptRepositoryProvider).importSubtitle(
+        mediaId: widget.mediaId,
+        file: XFile(f.path!),
+        language: trimmed,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -83,6 +135,71 @@ class _SubtitleTrackPickerSheetState
       }
     } finally {
       if (mounted) setState(() => _importing = false);
+    }
+  }
+
+  Future<void> _extractEmbedded() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _extractingEmbedded = true);
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final uri = await resolvePlayableSourceUri(db, widget.mediaId);
+      if (uri == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.subtitlesNoPlayableUri)),
+          );
+        }
+        return;
+      }
+
+      final engine = ref.read(playerEngineProvider);
+      var playerSubs = <mk.SubtitleTrack>[];
+      try {
+        final t = await engine.tracks
+            .firstWhere((e) => e.subtitle.isNotEmpty)
+            .timeout(const Duration(seconds: 2));
+        playerSubs = t.subtitle;
+      } on TimeoutException {
+        // media_kit may not list subtitles until metadata is ready — ffmpeg probe
+        // in [TranscriptRepository.extractEmbeddedTracks] still runs.
+      }
+
+      final count = await ref.read(transcriptRepositoryProvider).extractEmbeddedTracks(
+        mediaId: widget.mediaId,
+        sourceUri: uri,
+        playerSubtitleTracks: playerSubs,
+      );
+
+      if (!mounted) return;
+      if (count == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.subtitlesExtractNoTracks)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.subtitlesExtractedCount(count))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _extractingEmbedded = false);
+    }
+  }
+
+  Future<void> _refreshCloud() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _refreshingCloud = true);
+    try {
+      await ref
+          .read(transcriptRepositoryProvider)
+          .fetchCloudTranscripts(widget.mediaId, force: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.subtitlesRefreshDone)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _refreshingCloud = false);
     }
   }
 
@@ -118,10 +235,9 @@ class _SubtitleTrackPickerSheetState
     required List<TranscriptTrack> tracks,
     required String? primaryId,
     required String? secondaryId,
+    required bool showExtractEmbedded,
   }) {
     final theme = Theme.of(context);
-    VoidCallback? onDeleteFor(TranscriptTrack track) =>
-        track.isEmbedded ? null : () => _deleteTrack(track);
 
     return ListView(
       controller: scrollCtrl,
@@ -154,7 +270,7 @@ class _SubtitleTrackPickerSheetState
                   () => ref
                       .read(transcriptRepositoryProvider)
                       .setActiveTranscript(widget.mediaId, track.id),
-              onDelete: onDeleteFor(track),
+              onDelete: () => _deleteTrack(track),
             ),
           ),
         SizedBox(height: t.space8),
@@ -178,10 +294,53 @@ class _SubtitleTrackPickerSheetState
                 () => ref
                     .read(transcriptRepositoryProvider)
                     .setSecondaryTranscript(widget.mediaId, track.id),
-            onDelete: onDeleteFor(track),
+            onDelete: () => _deleteTrack(track),
           ),
         ),
         const Divider(),
+        if (showExtractEmbedded)
+          ListTile(
+            contentPadding: _sheetRowPadding(t),
+            leading:
+                _extractingEmbedded
+                    ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.colorScheme.primary,
+                      ),
+                    )
+                    : Icon(
+                      Icons.subtitles_outlined,
+                      size: 24,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+            title: Text(l10n.subtitlesExtractEmbedded),
+            enabled: !_extractingEmbedded,
+            onTap: _extractingEmbedded ? null : _extractEmbedded,
+          ),
+        ListTile(
+          contentPadding: _sheetRowPadding(t),
+          leading:
+              _refreshingCloud
+                  ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
+                  : Icon(
+                    Icons.cloud_download_outlined,
+                    size: 24,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+          title: Text(l10n.subtitlesRefreshCloud),
+          enabled: !_refreshingCloud,
+          onTap: _refreshingCloud ? null : _refreshCloud,
+        ),
         ListTile(
           contentPadding: _sheetRowPadding(t),
           leading:
@@ -223,6 +382,9 @@ class _SubtitleTrackPickerSheetState
 
     final primaryId = primaryIdAsync.value;
     final secondaryId = secondaryIdAsync.value;
+    final session = ref.watch(playerControllerProvider);
+    final showExtractEmbedded =
+        session != null && session.dexieTargetType == 'Video';
 
     return SafeArea(
       child: DraggableScrollableSheet(
@@ -272,6 +434,7 @@ class _SubtitleTrackPickerSheetState
                         tracks: tracks,
                         primaryId: primaryId,
                         secondaryId: secondaryId,
+                        showExtractEmbedded: showExtractEmbedded,
                       ),
                   loading:
                       () => ListView(
@@ -405,14 +568,15 @@ class _TrackTile extends StatelessWidget {
   final EdgeInsetsGeometry contentPadding;
   final String? groupValue;
   final VoidCallback onTap;
-  final VoidCallback? onDelete;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final sourceBadge =
-        track.isEmbedded ? l10n.subtitlesEmbedded : l10n.subtitlesImported;
+    final cs = Theme.of(context).colorScheme;
+    final providerLabel = _providerLabel(l10n, track.source);
+    final badgeColors = _providerBadgeColors(cs, track.source);
 
     final label = track.label.isNotEmpty ? track.label : track.language;
 
@@ -428,37 +592,46 @@ class _TrackTile extends StatelessWidget {
           spacing: t.space8,
           runSpacing: t.space4,
           children: [
-            _Badge(sourceBadge, isEmbedded: track.isEmbedded),
+            _Badge(
+              label: providerLabel,
+              background: badgeColors.bg,
+              foreground: badgeColors.fg,
+            ),
             if (track.language.isNotEmpty && track.language != 'und')
-              _Badge(track.language.toUpperCase(), isEmbedded: false),
+              _Badge(
+                label: track.language.toUpperCase(),
+                background: cs.surfaceContainerHighest,
+                foreground: cs.onSurfaceVariant,
+              ),
           ],
         ),
       ),
-      secondary:
-          onDelete != null
-              ? IconButton(
-                style: IconButton.styleFrom(
-                  minimumSize: const Size(48, 48),
-                  fixedSize: const Size(48, 48),
-                ),
-                icon: const Icon(Icons.delete_outline),
-                tooltip: l10n.subtitlesDeleteTrack,
-                onPressed: onDelete,
-              )
-              : null,
+      secondary: IconButton(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          fixedSize: const Size(48, 48),
+        ),
+        icon: const Icon(Icons.delete_outline),
+        tooltip: l10n.subtitlesDeleteTrack,
+        onPressed: onDelete,
+      ),
     );
   }
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge(this.label, {required this.isEmbedded});
+  const _Badge({
+    required this.label,
+    required this.background,
+    required this.foreground,
+  });
 
   final String label;
-  final bool isEmbedded;
+  final Color background;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final t = EnjoyThemeTokens.of(context);
     return Container(
       padding: EdgeInsets.symmetric(
@@ -466,13 +639,13 @@ class _Badge extends StatelessWidget {
         vertical: t.space4,
       ),
       decoration: BoxDecoration(
-        color: isEmbedded ? cs.secondaryContainer : cs.surfaceContainerHighest,
+        color: background,
         borderRadius: BorderRadius.circular(t.space4),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: isEmbedded ? cs.onSecondaryContainer : cs.onSurfaceVariant,
+          color: foreground,
           fontWeight: FontWeight.w500,
         ),
       ),

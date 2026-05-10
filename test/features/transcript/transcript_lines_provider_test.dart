@@ -92,7 +92,6 @@ void main() {
         referenceId: null,
         label: 'en',
         trackIndex: null,
-        isEmbedded: false,
         syncStatus: null,
         serverUpdatedAt: null,
         createdAt: now,

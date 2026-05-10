@@ -16,7 +16,7 @@ import '../domain/echo_window.dart';
 import '../domain/media_relocate_exception.dart';
 import '../domain/playback_session.dart';
 import 'echo_mode_provider.dart';
-import 'embedded_track_sync.dart';
+import '../../transcript/application/transcript_repository_provider.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
 import 'player_engine.dart';
@@ -56,11 +56,9 @@ class PlayerController extends _$PlayerController {
     ref.watch(playerEngineProvider);
 
     final persister = ref.read(playbackSessionPersisterProvider);
-    final embeddedSync = ref.read(embeddedTrackSyncProvider);
 
     ref.onDispose(() async {
       persister.cancel();
-      await embeddedSync.cancel();
       await _positionSub?.cancel();
       await _durationSub?.cancel();
       _positionSub = null;
@@ -145,11 +143,7 @@ class PlayerController extends _$PlayerController {
     if (gen != _openGeneration) return;
 
     unawaited(
-      ref.read(embeddedTrackSyncProvider).startForMedia(
-        mediaId: mediaId,
-        dexieTargetType: dexie,
-        sourceUri: sourceUri,
-      ),
+      ref.read(transcriptRepositoryProvider).fetchCloudTranscripts(mediaId),
     );
 
     await ref.read(playerPreferencesCtrlProvider.notifier).applyCurrentToEngine();
@@ -345,7 +339,6 @@ class PlayerController extends _$PlayerController {
 
   Future<void> clear() async {
     ref.read(playbackSessionPersisterProvider).cancel();
-    await ref.read(embeddedTrackSyncProvider).cancel();
     await _positionSub?.cancel();
     await _durationSub?.cancel();
     _positionSub = null;

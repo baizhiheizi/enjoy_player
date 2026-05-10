@@ -11,17 +11,18 @@ import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:enjoy_player/features/player/application/display_position_provider.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_interactions.dart';
+import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
-import '../../player/application/display_position_provider.dart';
-import '../../player/application/player_controller.dart';
-import '../../player/application/echo_mode_provider.dart';
-import '../../player/application/player_interactions.dart';
-import '../../player/application/player_state_providers.dart';
-import '../../shadow_reading/presentation/shadow_reading_panel.dart';
-import '../application/transcript_playback_highlight_provider.dart';
-import 'echo_region_controls_bar.dart';
-import '../application/transcript_lines_provider.dart';
-import '../application/transcript_repository_provider.dart';
+import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
+import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
 
 class TranscriptPanel extends ConsumerWidget {
   const TranscriptPanel({required this.mediaId, super.key});
@@ -37,10 +38,22 @@ class TranscriptPanel extends ConsumerWidget {
     final f = pick.files.single;
     final path = f.path;
     if (path == null) return;
+    if (!context.mounted) return;
 
-    await ref
-        .read(transcriptRepositoryProvider)
-        .importSubtitle(mediaId: mediaId, file: XFile(path));
+    final hint = languageHintFromSubtitleFileName(f.name);
+    final lang = await showImportSubtitleLanguageDialog(
+      context,
+      initialLanguage: hint,
+    );
+    if (lang == null) return;
+    final trimmed = lang.trim();
+    if (trimmed.isEmpty) return;
+
+    await ref.read(transcriptRepositoryProvider).importSubtitle(
+      mediaId: mediaId,
+      file: XFile(path),
+      language: trimmed,
+    );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

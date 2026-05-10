@@ -12,12 +12,10 @@ import 'package:enjoy_player/features/player/domain/media_relocate_exception.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import '../application/embedded_tracks_notifier.dart';
 import '../application/open_media_provider.dart';
 import '../application/player_controller.dart';
 import '../application/player_state_providers.dart';
 import '../application/player_ui_provider.dart';
-import '../../transcript/presentation/subtitle_track_picker_sheet.dart';
 import '../../transcript/presentation/transcript_panel.dart';
 import 'layouts/audio_player_layout.dart';
 import 'layouts/video_player_layout.dart';
@@ -51,21 +49,6 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
     final accent = paletteAsync.value?.dominant;
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-
-    ref.listen(embeddedTracksProvider, (_, event) {
-      if (event == null) return;
-      if (event.mediaId != widget.mediaId) return;
-      ref.read(embeddedTracksProvider.notifier).consume();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.subtitlesDetected),
-          action: SnackBarAction(
-            label: l10n.subtitlesChoose,
-            onPressed: () => showSubtitleTrackPicker(context, ref, widget.mediaId),
-          ),
-        ),
-      );
-    });
 
     if (chrome != null && chrome.mediaId == widget.mediaId) {
       return _playerScaffold(

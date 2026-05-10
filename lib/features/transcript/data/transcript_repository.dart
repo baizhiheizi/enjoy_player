@@ -4,11 +4,16 @@ library;
 import 'dart:convert';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:logging/logging.dart';
+import 'package:media_kit/media_kit.dart' as mk;
 import 'package:path/path.dart' as p;
 
 import '../../../core/ids/enjoy_ids.dart';
+import '../../../core/logging/log.dart';
+import '../../../data/api/services/transcript_api.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/db/media_target_resolver.dart';
+import '../../../data/subtitle/embedded_subtitle_service.dart';
 import '../../../data/subtitle/subtitle_parser.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../domain/transcript_track.dart';
@@ -33,15 +38,60 @@ TranscriptTrack _trackFromRow(TranscriptRow row) {
     language: row.language,
     source: row.source,
     label: row.label,
-    isEmbedded: row.isEmbedded,
     trackIndex: row.trackIndex,
   );
 }
 
+int _sourcePriority(String source) {
+  switch (source) {
+    case 'official':
+      return 0;
+    case 'auto':
+      return 1;
+    case 'ai':
+      return 2;
+    case 'user':
+      return 3;
+    default:
+      return 4;
+  }
+}
+
+void _sortTranscriptRows(List<TranscriptRow> rows) {
+  rows.sort((a, b) {
+    final pa = _sourcePriority(a.source);
+    final pb = _sourcePriority(b.source);
+    if (pa != pb) return pa.compareTo(pb);
+    return a.createdAt.compareTo(b.createdAt);
+  });
+}
+
+String _normalizeSource(String raw) {
+  switch (raw) {
+    case 'official':
+    case 'auto':
+    case 'ai':
+    case 'user':
+      return raw;
+    default:
+      return 'official';
+  }
+}
+
+DateTime _parseServerDate(dynamic v, DateTime fallback) {
+  if (v is String) {
+    return DateTime.tryParse(v) ?? fallback;
+  }
+  return fallback;
+}
+
+final Logger _log = logNamed('TranscriptRepository');
+
 class TranscriptRepository {
-  TranscriptRepository(this._db);
+  TranscriptRepository(this._db, [this._transcriptApi]);
 
   final AppDatabase _db;
+  final TranscriptApi? _transcriptApi;
 
   final Map<String, _LinesCacheEntry> _linesCache = {};
 
@@ -68,14 +118,117 @@ class TranscriptRepository {
         if (tt == null) {
           return Stream.value(<TranscriptTrack>[]);
         }
-        return _db.transcriptDao.watchAllForTarget(tt, mediaId).map(
-              (rows) => rows.map(_trackFromRow).toList(),
-            );
+        return _db.transcriptDao.watchAllForTarget(tt, mediaId).map((rows) {
+          final sorted = [...rows];
+          _sortTranscriptRows(sorted);
+          return sorted.map(_trackFromRow).toList();
+        });
       });
+
+  /// Fetches transcripts from the Enjoy API and upserts them locally.
+  ///
+  /// When [force] is false, skips if this target was already fetched once
+  /// ([TranscriptFetchStates]). On success, marks fetch state. Errors are
+  /// logged and do not mark fetched (so the next open can retry).
+  Future<void> fetchCloudTranscripts(
+    String mediaId, {
+    bool force = false,
+  }) async {
+    final tt = await dexieTargetTypeForId(_db, mediaId);
+    if (tt == null) return;
+    final api = _transcriptApi;
+    if (api == null) return;
+
+    if (!force) {
+      final state = await _db.transcriptFetchStateDao.getForTarget(tt, mediaId);
+      if (state != null) return;
+    }
+
+    try {
+      final list = await api.transcripts(targetId: mediaId, targetType: tt);
+      final now = DateTime.now();
+      for (final item in list) {
+        final row = _transcriptRowFromServerMap(item, fallbackNow: now);
+        if (row == null) continue;
+        await _db.transcriptDao.upsert(row);
+      }
+
+      await _db.transcriptFetchStateDao.upsertFetched(tt, mediaId, now);
+
+      final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
+      if (session?.transcriptId == null && list.isNotEmpty) {
+        final rows = await _db.transcriptDao.listForTarget(tt, mediaId);
+        _sortTranscriptRows(rows);
+        if (rows.isNotEmpty) {
+          await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
+            tt,
+            mediaId,
+            rows.first.id,
+          );
+        }
+      }
+    } on Object catch (e, st) {
+      _log.warning('fetchCloudTranscripts failed for $mediaId', e, st);
+    }
+  }
+
+  TranscriptRow? _transcriptRowFromServerMap(
+    Map<String, dynamic> json, {
+    required DateTime fallbackNow,
+  }) {
+    final id = json['id'] as String?;
+    final targetType = json['targetType'] as String?;
+    final targetId = json['targetId'] as String?;
+    final language = json['language'] as String?;
+    final rawSource = json['source'] as String?;
+    final timeline = json['timeline'];
+
+    if (id == null ||
+        targetType == null ||
+        targetId == null ||
+        language == null ||
+        rawSource == null) {
+      return null;
+    }
+
+    final source = _normalizeSource(rawSource);
+    final lines = <TranscriptLine>[];
+    if (timeline is List) {
+      for (final e in timeline) {
+        if (e is Map<String, dynamic>) {
+          lines.add(TranscriptLine.fromJson(e));
+        }
+      }
+    }
+    if (lines.isEmpty) return null;
+
+    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final createdAt = _parseServerDate(json['createdAt'], fallbackNow);
+    final updatedAt = _parseServerDate(json['updatedAt'], fallbackNow);
+    final label = (json['label'] as String?) ?? '';
+    final referenceId = json['referenceId'] as String?;
+
+    return TranscriptRow(
+      id: id,
+      targetType: targetType,
+      targetId: targetId,
+      language: language,
+      source: source,
+      timelineJson: timelineJson,
+      referenceId: referenceId,
+      label: label,
+      trackIndex: null,
+      syncStatus: 'synced',
+      serverUpdatedAt: updatedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 
   Future<void> importSubtitle({
     required String mediaId,
     required XFile file,
+    required String language,
     String? label,
   }) async {
     final tt = await dexieTargetTypeForId(_db, mediaId);
@@ -86,7 +239,6 @@ class TranscriptRepository {
       fileName: file.name,
     );
     final json = jsonEncode(lines.map((e) => e.toJson()).toList());
-    const language = 'und';
     const source = 'user';
     final id = enjoyTranscriptId(
       targetType: tt,
@@ -106,7 +258,6 @@ class TranscriptRepository {
         referenceId: null,
         label: label ?? p.basenameWithoutExtension(file.name),
         trackIndex: null,
-        isEmbedded: false,
         syncStatus: 'local',
         serverUpdatedAt: null,
         createdAt: now,
@@ -119,10 +270,51 @@ class TranscriptRepository {
     }
   }
 
-  Future<void> upsertEmbeddedTracks(List<TranscriptRow> rows) async {
-    for (final row in rows) {
+  /// Extracts embedded subtitle streams via ffmpeg; stored as `source: user`.
+  ///
+  /// Returns the number of new/updated transcript rows written.
+  ///
+  /// [playerSubtitleTracks] may be empty: subtitle streams are then discovered
+  /// via `ffmpeg -i` (see [EmbeddedSubtitleService.extractTracks]).
+  Future<int> extractEmbeddedTracks({
+    required String mediaId,
+    required String sourceUri,
+    List<mk.SubtitleTrack> playerSubtitleTracks = const [],
+  }) async {
+    final tt = await dexieTargetTypeForId(_db, mediaId);
+    if (tt == null) return 0;
+
+    final existing = await _db.transcriptDao.listForTarget(tt, mediaId);
+    final existingIndices =
+        existing
+            .where((r) => r.trackIndex != null)
+            .map((r) => r.trackIndex!)
+            .toSet();
+
+    final extracted = await const EmbeddedSubtitleService().extractTracks(
+      targetId: mediaId,
+      targetTypeDexie: tt,
+      mediaSourceUri: sourceUri,
+      tracks: playerSubtitleTracks,
+      existingTrackIndices: existingIndices,
+    );
+
+    if (extracted.isEmpty) return 0;
+
+    for (final row in extracted) {
       await _db.transcriptDao.upsert(row);
     }
+
+    final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
+    if (session?.transcriptId == null) {
+      await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
+        tt,
+        mediaId,
+        extracted.first.id,
+      );
+    }
+
+    return extracted.length;
   }
 
   Future<void> setActiveTranscript(String mediaId, String transcriptId) async {
@@ -190,8 +382,8 @@ class TranscriptRepository {
     }
   }
 
-  /// Picks the next primary transcript for [targetId], matching
-  /// [TranscriptDao.watchAllForTarget] order (embedded first, then `createdAt`).
+  /// Picks the next primary transcript for [targetId] after delete:
+  /// [official] > [auto] > [ai] > [user], then earliest [createdAt].
   Future<String?> _nextPrimaryAfterDelete(
     String targetType,
     String targetId,
@@ -201,12 +393,7 @@ class TranscriptRepository {
       targetId,
     );
     if (remaining.isEmpty) return null;
-    remaining.sort((a, b) {
-      if (a.isEmbedded != b.isEmbedded) {
-        return b.isEmbedded ? 1 : -1;
-      }
-      return a.createdAt.compareTo(b.createdAt);
-    });
+    _sortTranscriptRows(remaining);
     return remaining.first.id;
   }
 }

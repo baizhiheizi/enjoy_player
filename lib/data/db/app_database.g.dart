@@ -2201,21 +2201,6 @@ class $TranscriptsTable extends Transcripts
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _isEmbeddedMeta = const VerificationMeta(
-    'isEmbedded',
-  );
-  @override
-  late final GeneratedColumn<bool> isEmbedded = GeneratedColumn<bool>(
-    'is_embedded',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_embedded" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -2272,7 +2257,6 @@ class $TranscriptsTable extends Transcripts
     referenceId,
     label,
     trackIndex,
-    isEmbedded,
     syncStatus,
     serverUpdatedAt,
     createdAt,
@@ -2359,12 +2343,6 @@ class $TranscriptsTable extends Transcripts
         trackIndex.isAcceptableOrUnknown(data['track_index']!, _trackIndexMeta),
       );
     }
-    if (data.containsKey('is_embedded')) {
-      context.handle(
-        _isEmbeddedMeta,
-        isEmbedded.isAcceptableOrUnknown(data['is_embedded']!, _isEmbeddedMeta),
-      );
-    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -2448,11 +2426,6 @@ class $TranscriptsTable extends Transcripts
         DriftSqlType.int,
         data['${effectivePrefix}track_index'],
       ),
-      isEmbedded:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}is_embedded'],
-          )!,
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_status'],
@@ -2496,7 +2469,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   final String? referenceId;
   final String label;
   final int? trackIndex;
-  final bool isEmbedded;
   final String? syncStatus;
   final DateTime? serverUpdatedAt;
   final DateTime createdAt;
@@ -2511,7 +2483,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     this.referenceId,
     required this.label,
     this.trackIndex,
-    required this.isEmbedded,
     this.syncStatus,
     this.serverUpdatedAt,
     required this.createdAt,
@@ -2533,7 +2504,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     if (!nullToAbsent || trackIndex != null) {
       map['track_index'] = Variable<int>(trackIndex);
     }
-    map['is_embedded'] = Variable<bool>(isEmbedded);
     if (!nullToAbsent || syncStatus != null) {
       map['sync_status'] = Variable<String>(syncStatus);
     }
@@ -2562,7 +2532,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           trackIndex == null && nullToAbsent
               ? const Value.absent()
               : Value(trackIndex),
-      isEmbedded: Value(isEmbedded),
       syncStatus:
           syncStatus == null && nullToAbsent
               ? const Value.absent()
@@ -2591,7 +2560,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       referenceId: serializer.fromJson<String?>(json['referenceId']),
       label: serializer.fromJson<String>(json['label']),
       trackIndex: serializer.fromJson<int?>(json['trackIndex']),
-      isEmbedded: serializer.fromJson<bool>(json['isEmbedded']),
       syncStatus: serializer.fromJson<String?>(json['syncStatus']),
       serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2611,7 +2579,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       'referenceId': serializer.toJson<String?>(referenceId),
       'label': serializer.toJson<String>(label),
       'trackIndex': serializer.toJson<int?>(trackIndex),
-      'isEmbedded': serializer.toJson<bool>(isEmbedded),
       'syncStatus': serializer.toJson<String?>(syncStatus),
       'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2629,7 +2596,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     Value<String?> referenceId = const Value.absent(),
     String? label,
     Value<int?> trackIndex = const Value.absent(),
-    bool? isEmbedded,
     Value<String?> syncStatus = const Value.absent(),
     Value<DateTime?> serverUpdatedAt = const Value.absent(),
     DateTime? createdAt,
@@ -2644,7 +2610,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     referenceId: referenceId.present ? referenceId.value : this.referenceId,
     label: label ?? this.label,
     trackIndex: trackIndex.present ? trackIndex.value : this.trackIndex,
-    isEmbedded: isEmbedded ?? this.isEmbedded,
     syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
     serverUpdatedAt:
         serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
@@ -2668,8 +2633,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       label: data.label.present ? data.label.value : this.label,
       trackIndex:
           data.trackIndex.present ? data.trackIndex.value : this.trackIndex,
-      isEmbedded:
-          data.isEmbedded.present ? data.isEmbedded.value : this.isEmbedded,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       serverUpdatedAt:
@@ -2693,7 +2656,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
           ..write('trackIndex: $trackIndex, ')
-          ..write('isEmbedded: $isEmbedded, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -2713,7 +2675,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     referenceId,
     label,
     trackIndex,
-    isEmbedded,
     syncStatus,
     serverUpdatedAt,
     createdAt,
@@ -2732,7 +2693,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           other.referenceId == this.referenceId &&
           other.label == this.label &&
           other.trackIndex == this.trackIndex &&
-          other.isEmbedded == this.isEmbedded &&
           other.syncStatus == this.syncStatus &&
           other.serverUpdatedAt == this.serverUpdatedAt &&
           other.createdAt == this.createdAt &&
@@ -2749,7 +2709,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   final Value<String?> referenceId;
   final Value<String> label;
   final Value<int?> trackIndex;
-  final Value<bool> isEmbedded;
   final Value<String?> syncStatus;
   final Value<DateTime?> serverUpdatedAt;
   final Value<DateTime> createdAt;
@@ -2765,7 +2724,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
-    this.isEmbedded = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2782,7 +2740,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
-    this.isEmbedded = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
     required DateTime createdAt,
@@ -2806,7 +2763,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Expression<String>? referenceId,
     Expression<String>? label,
     Expression<int>? trackIndex,
-    Expression<bool>? isEmbedded,
     Expression<String>? syncStatus,
     Expression<DateTime>? serverUpdatedAt,
     Expression<DateTime>? createdAt,
@@ -2823,7 +2779,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       if (referenceId != null) 'reference_id': referenceId,
       if (label != null) 'label': label,
       if (trackIndex != null) 'track_index': trackIndex,
-      if (isEmbedded != null) 'is_embedded': isEmbedded,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -2842,7 +2797,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Value<String?>? referenceId,
     Value<String>? label,
     Value<int?>? trackIndex,
-    Value<bool>? isEmbedded,
     Value<String?>? syncStatus,
     Value<DateTime?>? serverUpdatedAt,
     Value<DateTime>? createdAt,
@@ -2859,7 +2813,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       referenceId: referenceId ?? this.referenceId,
       label: label ?? this.label,
       trackIndex: trackIndex ?? this.trackIndex,
-      isEmbedded: isEmbedded ?? this.isEmbedded,
       syncStatus: syncStatus ?? this.syncStatus,
       serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -2898,9 +2851,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     if (trackIndex.present) {
       map['track_index'] = Variable<int>(trackIndex.value);
     }
-    if (isEmbedded.present) {
-      map['is_embedded'] = Variable<bool>(isEmbedded.value);
-    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -2931,11 +2881,298 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
           ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
           ..write('trackIndex: $trackIndex, ')
-          ..write('isEmbedded: $isEmbedded, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TranscriptFetchStatesTable extends TranscriptFetchStates
+    with TableInfo<$TranscriptFetchStatesTable, TranscriptFetchStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TranscriptFetchStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastFetchedAtMeta = const VerificationMeta(
+    'lastFetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastFetchedAt =
+      GeneratedColumn<DateTime>(
+        'last_fetched_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [targetType, targetId, lastFetchedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transcript_fetch_states';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TranscriptFetchStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('last_fetched_at')) {
+      context.handle(
+        _lastFetchedAtMeta,
+        lastFetchedAt.isAcceptableOrUnknown(
+          data['last_fetched_at']!,
+          _lastFetchedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastFetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {targetType, targetId};
+  @override
+  TranscriptFetchStateRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TranscriptFetchStateRow(
+      targetType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_type'],
+          )!,
+      targetId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}target_id'],
+          )!,
+      lastFetchedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}last_fetched_at'],
+          )!,
+    );
+  }
+
+  @override
+  $TranscriptFetchStatesTable createAlias(String alias) {
+    return $TranscriptFetchStatesTable(attachedDatabase, alias);
+  }
+}
+
+class TranscriptFetchStateRow extends DataClass
+    implements Insertable<TranscriptFetchStateRow> {
+  /// Dexie `TargetType`: `Video` | `Audio`.
+  final String targetType;
+  final String targetId;
+  final DateTime lastFetchedAt;
+  const TranscriptFetchStateRow({
+    required this.targetType,
+    required this.targetId,
+    required this.lastFetchedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
+    map['last_fetched_at'] = Variable<DateTime>(lastFetchedAt);
+    return map;
+  }
+
+  TranscriptFetchStatesCompanion toCompanion(bool nullToAbsent) {
+    return TranscriptFetchStatesCompanion(
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+      lastFetchedAt: Value(lastFetchedAt),
+    );
+  }
+
+  factory TranscriptFetchStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TranscriptFetchStateRow(
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+      lastFetchedAt: serializer.fromJson<DateTime>(json['lastFetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
+      'lastFetchedAt': serializer.toJson<DateTime>(lastFetchedAt),
+    };
+  }
+
+  TranscriptFetchStateRow copyWith({
+    String? targetType,
+    String? targetId,
+    DateTime? lastFetchedAt,
+  }) => TranscriptFetchStateRow(
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+    lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
+  );
+  TranscriptFetchStateRow copyWithCompanion(
+    TranscriptFetchStatesCompanion data,
+  ) {
+    return TranscriptFetchStateRow(
+      targetType:
+          data.targetType.present ? data.targetType.value : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      lastFetchedAt:
+          data.lastFetchedAt.present
+              ? data.lastFetchedAt.value
+              : this.lastFetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TranscriptFetchStateRow(')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('lastFetchedAt: $lastFetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(targetType, targetId, lastFetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TranscriptFetchStateRow &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
+          other.lastFetchedAt == this.lastFetchedAt);
+}
+
+class TranscriptFetchStatesCompanion
+    extends UpdateCompanion<TranscriptFetchStateRow> {
+  final Value<String> targetType;
+  final Value<String> targetId;
+  final Value<DateTime> lastFetchedAt;
+  final Value<int> rowid;
+  const TranscriptFetchStatesCompanion({
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.lastFetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TranscriptFetchStatesCompanion.insert({
+    required String targetType,
+    required String targetId,
+    required DateTime lastFetchedAt,
+    this.rowid = const Value.absent(),
+  }) : targetType = Value(targetType),
+       targetId = Value(targetId),
+       lastFetchedAt = Value(lastFetchedAt);
+  static Insertable<TranscriptFetchStateRow> custom({
+    Expression<String>? targetType,
+    Expression<String>? targetId,
+    Expression<DateTime>? lastFetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (lastFetchedAt != null) 'last_fetched_at': lastFetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TranscriptFetchStatesCompanion copyWith({
+    Value<String>? targetType,
+    Value<String>? targetId,
+    Value<DateTime>? lastFetchedAt,
+    Value<int>? rowid,
+  }) {
+    return TranscriptFetchStatesCompanion(
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (lastFetchedAt.present) {
+      map['last_fetched_at'] = Variable<DateTime>(lastFetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TranscriptFetchStatesCompanion(')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('lastFetchedAt: $lastFetchedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7130,6 +7367,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VideosTable videos = $VideosTable(this);
   late final $AudiosTable audios = $AudiosTable(this);
   late final $TranscriptsTable transcripts = $TranscriptsTable(this);
+  late final $TranscriptFetchStatesTable transcriptFetchStates =
+      $TranscriptFetchStatesTable(this);
   late final $EchoSessionsTable echoSessions = $EchoSessionsTable(this);
   late final $RecordingsTable recordings = $RecordingsTable(this);
   late final $DictationsTable dictations = $DictationsTable(this);
@@ -7138,6 +7377,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final VideoDao videoDao = VideoDao(this as AppDatabase);
   late final AudioDao audioDao = AudioDao(this as AppDatabase);
   late final TranscriptDao transcriptDao = TranscriptDao(this as AppDatabase);
+  late final TranscriptFetchStateDao transcriptFetchStateDao =
+      TranscriptFetchStateDao(this as AppDatabase);
   late final EchoSessionDao echoSessionDao = EchoSessionDao(
     this as AppDatabase,
   );
@@ -7153,6 +7394,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     videos,
     audios,
     transcripts,
+    transcriptFetchStates,
     echoSessions,
     recordings,
     dictations,
@@ -8111,7 +8353,6 @@ typedef $$TranscriptsTableCreateCompanionBuilder =
       Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
-      Value<bool> isEmbedded,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
       required DateTime createdAt,
@@ -8129,7 +8370,6 @@ typedef $$TranscriptsTableUpdateCompanionBuilder =
       Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
-      Value<bool> isEmbedded,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
       Value<DateTime> createdAt,
@@ -8188,11 +8428,6 @@ class $$TranscriptsTableFilterComposer
 
   ColumnFilters<int> get trackIndex => $composableBuilder(
     column: $table.trackIndex,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isEmbedded => $composableBuilder(
-    column: $table.isEmbedded,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8271,11 +8506,6 @@ class $$TranscriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isEmbedded => $composableBuilder(
-    column: $table.isEmbedded,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -8341,11 +8571,6 @@ class $$TranscriptsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<bool> get isEmbedded => $composableBuilder(
-    column: $table.isEmbedded,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => column,
@@ -8404,7 +8629,6 @@ class $$TranscriptsTableTableManager
                 Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
-                Value<bool> isEmbedded = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -8420,7 +8644,6 @@ class $$TranscriptsTableTableManager
                 referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
-                isEmbedded: isEmbedded,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
@@ -8438,7 +8661,6 @@ class $$TranscriptsTableTableManager
                 Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
-                Value<bool> isEmbedded = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 required DateTime createdAt,
@@ -8454,7 +8676,6 @@ class $$TranscriptsTableTableManager
                 referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
-                isEmbedded: isEmbedded,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,
                 createdAt: createdAt,
@@ -8491,6 +8712,198 @@ typedef $$TranscriptsTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $TranscriptsTable, TranscriptRow>,
       ),
       TranscriptRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TranscriptFetchStatesTableCreateCompanionBuilder =
+    TranscriptFetchStatesCompanion Function({
+      required String targetType,
+      required String targetId,
+      required DateTime lastFetchedAt,
+      Value<int> rowid,
+    });
+typedef $$TranscriptFetchStatesTableUpdateCompanionBuilder =
+    TranscriptFetchStatesCompanion Function({
+      Value<String> targetType,
+      Value<String> targetId,
+      Value<DateTime> lastFetchedAt,
+      Value<int> rowid,
+    });
+
+class $$TranscriptFetchStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $TranscriptFetchStatesTable> {
+  $$TranscriptFetchStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastFetchedAt => $composableBuilder(
+    column: $table.lastFetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TranscriptFetchStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TranscriptFetchStatesTable> {
+  $$TranscriptFetchStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastFetchedAt => $composableBuilder(
+    column: $table.lastFetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TranscriptFetchStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TranscriptFetchStatesTable> {
+  $$TranscriptFetchStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastFetchedAt => $composableBuilder(
+    column: $table.lastFetchedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$TranscriptFetchStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TranscriptFetchStatesTable,
+          TranscriptFetchStateRow,
+          $$TranscriptFetchStatesTableFilterComposer,
+          $$TranscriptFetchStatesTableOrderingComposer,
+          $$TranscriptFetchStatesTableAnnotationComposer,
+          $$TranscriptFetchStatesTableCreateCompanionBuilder,
+          $$TranscriptFetchStatesTableUpdateCompanionBuilder,
+          (
+            TranscriptFetchStateRow,
+            BaseReferences<
+              _$AppDatabase,
+              $TranscriptFetchStatesTable,
+              TranscriptFetchStateRow
+            >,
+          ),
+          TranscriptFetchStateRow,
+          PrefetchHooks Function()
+        > {
+  $$TranscriptFetchStatesTableTableManager(
+    _$AppDatabase db,
+    $TranscriptFetchStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$TranscriptFetchStatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer:
+              () => $$TranscriptFetchStatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer:
+              () => $$TranscriptFetchStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<DateTime> lastFetchedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TranscriptFetchStatesCompanion(
+                targetType: targetType,
+                targetId: targetId,
+                lastFetchedAt: lastFetchedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String targetType,
+                required String targetId,
+                required DateTime lastFetchedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TranscriptFetchStatesCompanion.insert(
+                targetType: targetType,
+                targetId: targetId,
+                lastFetchedAt: lastFetchedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TranscriptFetchStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TranscriptFetchStatesTable,
+      TranscriptFetchStateRow,
+      $$TranscriptFetchStatesTableFilterComposer,
+      $$TranscriptFetchStatesTableOrderingComposer,
+      $$TranscriptFetchStatesTableAnnotationComposer,
+      $$TranscriptFetchStatesTableCreateCompanionBuilder,
+      $$TranscriptFetchStatesTableUpdateCompanionBuilder,
+      (
+        TranscriptFetchStateRow,
+        BaseReferences<
+          _$AppDatabase,
+          $TranscriptFetchStatesTable,
+          TranscriptFetchStateRow
+        >,
+      ),
+      TranscriptFetchStateRow,
       PrefetchHooks Function()
     >;
 typedef $$EchoSessionsTableCreateCompanionBuilder =
@@ -10440,6 +10853,8 @@ class $AppDatabaseManager {
       $$AudiosTableTableManager(_db, _db.audios);
   $$TranscriptsTableTableManager get transcripts =>
       $$TranscriptsTableTableManager(_db, _db.transcripts);
+  $$TranscriptFetchStatesTableTableManager get transcriptFetchStates =>
+      $$TranscriptFetchStatesTableTableManager(_db, _db.transcriptFetchStates);
   $$EchoSessionsTableTableManager get echoSessions =>
       $$EchoSessionsTableTableManager(_db, _db.echoSessions);
   $$RecordingsTableTableManager get recordings =>
@@ -10486,6 +10901,23 @@ class TranscriptDaoManager {
   TranscriptDaoManager(this._db);
   $$TranscriptsTableTableManager get transcripts =>
       $$TranscriptsTableTableManager(_db.attachedDatabase, _db.transcripts);
+}
+
+mixin _$TranscriptFetchStateDaoMixin on DatabaseAccessor<AppDatabase> {
+  $TranscriptFetchStatesTable get transcriptFetchStates =>
+      attachedDatabase.transcriptFetchStates;
+  TranscriptFetchStateDaoManager get managers =>
+      TranscriptFetchStateDaoManager(this);
+}
+
+class TranscriptFetchStateDaoManager {
+  final _$TranscriptFetchStateDaoMixin _db;
+  TranscriptFetchStateDaoManager(this._db);
+  $$TranscriptFetchStatesTableTableManager get transcriptFetchStates =>
+      $$TranscriptFetchStatesTableTableManager(
+        _db.attachedDatabase,
+        _db.transcriptFetchStates,
+      );
 }
 
 mixin _$EchoSessionDaoMixin on DatabaseAccessor<AppDatabase> {

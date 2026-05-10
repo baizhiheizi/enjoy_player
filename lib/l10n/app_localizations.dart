@@ -496,35 +496,11 @@ abstract class AppLocalizations {
   /// **'Import subtitle file…'**
   String get subtitlesImportFile;
 
-  /// No description provided for @subtitlesEmbedded.
-  ///
-  /// In en, this message translates to:
-  /// **'Embedded'**
-  String get subtitlesEmbedded;
-
-  /// No description provided for @subtitlesImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Imported'**
-  String get subtitlesImported;
-
   /// No description provided for @subtitlesDeleteTrack.
   ///
   /// In en, this message translates to:
   /// **'Delete track'**
   String get subtitlesDeleteTrack;
-
-  /// No description provided for @subtitlesDetected.
-  ///
-  /// In en, this message translates to:
-  /// **'Subtitles detected — tap CC to choose'**
-  String get subtitlesDetected;
-
-  /// No description provided for @subtitlesChoose.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose'**
-  String get subtitlesChoose;
 
   /// No description provided for @importSubtitleSuccess.
   ///
@@ -535,8 +511,80 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscriptHint.
   ///
   /// In en, this message translates to:
-  /// **'Open a video with embedded subtitles, or import an .srt/.vtt file.'**
+  /// **'Cloud transcripts load when you play media (once). For video, use Extract embedded or import an .srt/.vtt file.'**
   String get noTranscriptHint;
+
+  /// No description provided for @subtitlesExtractEmbedded.
+  ///
+  /// In en, this message translates to:
+  /// **'Extract embedded subtitles'**
+  String get subtitlesExtractEmbedded;
+
+  /// No description provided for @subtitlesRefreshCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh transcripts from cloud'**
+  String get subtitlesRefreshCloud;
+
+  /// No description provided for @subtitlesImportLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle language'**
+  String get subtitlesImportLanguageTitle;
+
+  /// No description provided for @subtitlesImportLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'BCP-47 code (e.g. en, zh-TW). Use und if unknown.'**
+  String get subtitlesImportLanguageHint;
+
+  /// No description provided for @subtitlesProviderOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Official'**
+  String get subtitlesProviderOfficial;
+
+  /// No description provided for @subtitlesProviderAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get subtitlesProviderAuto;
+
+  /// No description provided for @subtitlesProviderAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get subtitlesProviderAi;
+
+  /// No description provided for @subtitlesProviderUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get subtitlesProviderUser;
+
+  /// No description provided for @subtitlesExtractNoTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'No embedded subtitle tracks found.'**
+  String get subtitlesExtractNoTracks;
+
+  /// No description provided for @subtitlesExtractedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracted {count} subtitle track(s).'**
+  String subtitlesExtractedCount(int count);
+
+  /// No description provided for @subtitlesRefreshDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcripts updated from cloud.'**
+  String get subtitlesRefreshDone;
+
+  /// No description provided for @subtitlesNoPlayableUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not resolve a playable file for this item.'**
+  String get subtitlesNoPlayableUri;
 
   /// No description provided for @expandEchoBackward.
   ///

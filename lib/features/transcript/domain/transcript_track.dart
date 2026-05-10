@@ -9,7 +9,6 @@ class TranscriptTrack {
     required this.language,
     required this.source,
     required this.label,
-    required this.isEmbedded,
     this.trackIndex,
   });
 
@@ -20,6 +19,5 @@ class TranscriptTrack {
   final String language;
   final String source;
   final String label;
-  final bool isEmbedded;
   final int? trackIndex;
 }

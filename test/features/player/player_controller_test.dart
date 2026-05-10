@@ -7,6 +7,8 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -101,6 +103,7 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
           playerEngineProvider.overrideWithValue(fake),
+          transcriptRepositoryProvider.overrideWithValue(TranscriptRepository(db)),
         ],
       );
     });

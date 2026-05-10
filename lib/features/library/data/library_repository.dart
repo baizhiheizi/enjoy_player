@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/ids/enjoy_ids.dart';
 import '../../../data/db/app_database.dart';
+import '../../../data/files/ffmpeg_media_probe.dart';
 import '../../../data/files/file_storage.dart';
 import '../../../data/files/media_resolver.dart';
 import '../domain/media.dart';
@@ -106,44 +107,15 @@ class MediaLibraryRepository {
       final now = DateTime.now();
       if (kind == MediaKind.video) {
         final id = enjoyVideoId(vid: result.fileHash);
-        await _db.videoDao.insertRow(
-          VideoRow(
-            id: id,
-            vid: result.fileHash,
-            provider: 'user',
-            title: result.title,
-            description: null,
-            thumbnailUrl: null,
-            durationSeconds: 0,
-            language: 'und',
-            source: null,
-            localUri: result.fileUri,
-            md5: result.fileHash,
-            size: result.fileSize,
-            mediaUrl: null,
-            syncStatus: 'local',
-            serverUpdatedAt: null,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
-        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
-        return id;
-      }
-      final id = enjoyAudioId(aid: result.fileHash);
-      await _db.audioDao.insertRow(
-        AudioRow(
+        final row = VideoRow(
           id: id,
-          aid: result.fileHash,
+          vid: result.fileHash,
           provider: 'user',
           title: result.title,
           description: null,
           thumbnailUrl: null,
           durationSeconds: 0,
           language: 'und',
-          translationKey: null,
-          sourceText: null,
-          voice: null,
           source: null,
           localUri: result.fileUri,
           md5: result.fileHash,
@@ -153,14 +125,72 @@ class MediaLibraryRepository {
           serverUpdatedAt: null,
           createdAt: now,
           updatedAt: now,
-        ),
+        );
+        await _db.videoDao.insertRow(row);
+        unawaited(_probeAndPatchDuration(id, result.fileUri, video: true));
+        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
+        return id;
+      }
+      final id = enjoyAudioId(aid: result.fileHash);
+      final audioRow = AudioRow(
+        id: id,
+        aid: result.fileHash,
+        provider: 'user',
+        title: result.title,
+        description: null,
+        thumbnailUrl: null,
+        durationSeconds: 0,
+        language: 'und',
+        translationKey: null,
+        sourceText: null,
+        voice: null,
+        source: null,
+        localUri: result.fileUri,
+        md5: result.fileHash,
+        size: result.fileSize,
+        mediaUrl: null,
+        syncStatus: 'local',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
       );
+      await _db.audioDao.insertRow(audioRow);
+      unawaited(_probeAndPatchDuration(id, result.fileUri, video: false));
       await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
       return id;
     } on AppFailure {
       rethrow;
     } catch (e, st) {
       Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
+    }
+  }
+
+  /// Fills `duration_seconds` when still zero after import, using `ffmpeg -i`.
+  Future<void> _probeAndPatchDuration(
+    String mediaId,
+    String fileUri, {
+    required bool video,
+  }) async {
+    final ffmpeg = await FfmpegMediaProbe.resolveFfmpegExecutable();
+    if (ffmpeg == null) return;
+    final input = FfmpegMediaProbe.mediaInputForFfmpeg(fileUri);
+    final stderr = await FfmpegMediaProbe.loadIdentifyStderr(ffmpeg, input);
+    if (stderr == null || stderr.isEmpty) return;
+    final sec = FfmpegMediaProbe.parseDurationSeconds(stderr);
+    if (sec == null || sec <= 0) return;
+
+    if (video) {
+      final row = await _db.videoDao.getById(mediaId);
+      if (row == null || row.durationSeconds != 0) return;
+      await _db.videoDao.insertRow(
+        row.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+      );
+    } else {
+      final row = await _db.audioDao.getById(mediaId);
+      if (row == null || row.durationSeconds != 0) return;
+      await _db.audioDao.insertRow(
+        row.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+      );
     }
   }
 

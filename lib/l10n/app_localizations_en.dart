@@ -215,26 +215,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtitlesImportFile => 'Import subtitle file…';
 
   @override
-  String get subtitlesEmbedded => 'Embedded';
-
-  @override
-  String get subtitlesImported => 'Imported';
-
-  @override
   String get subtitlesDeleteTrack => 'Delete track';
-
-  @override
-  String get subtitlesDetected => 'Subtitles detected — tap CC to choose';
-
-  @override
-  String get subtitlesChoose => 'Choose';
 
   @override
   String get importSubtitleSuccess => 'Subtitle imported';
 
   @override
   String get noTranscriptHint =>
-      'Open a video with embedded subtitles, or import an .srt/.vtt file.';
+      'Cloud transcripts load when you play media (once). For video, use Extract embedded or import an .srt/.vtt file.';
+
+  @override
+  String get subtitlesExtractEmbedded => 'Extract embedded subtitles';
+
+  @override
+  String get subtitlesRefreshCloud => 'Refresh transcripts from cloud';
+
+  @override
+  String get subtitlesImportLanguageTitle => 'Subtitle language';
+
+  @override
+  String get subtitlesImportLanguageHint =>
+      'BCP-47 code (e.g. en, zh-TW). Use und if unknown.';
+
+  @override
+  String get subtitlesProviderOfficial => 'Official';
+
+  @override
+  String get subtitlesProviderAuto => 'Auto';
+
+  @override
+  String get subtitlesProviderAi => 'AI';
+
+  @override
+  String get subtitlesProviderUser => 'User';
+
+  @override
+  String get subtitlesExtractNoTracks => 'No embedded subtitle tracks found.';
+
+  @override
+  String subtitlesExtractedCount(int count) {
+    return 'Extracted $count subtitle track(s).';
+  }
+
+  @override
+  String get subtitlesRefreshDone => 'Transcripts updated from cloud.';
+
+  @override
+  String get subtitlesNoPlayableUri =>
+      'Could not resolve a playable file for this item.';
 
   @override
   String get expandEchoBackward => 'Expand echo backward';

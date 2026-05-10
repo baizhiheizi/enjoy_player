@@ -20,7 +20,6 @@ class Transcripts extends Table {
   TextColumn get referenceId => text().nullable()();
   TextColumn get label => text().withDefault(const Constant(''))();
   IntColumn get trackIndex => integer().nullable()();
-  BoolColumn get isEmbedded => boolean().withDefault(const Constant(false))();
   TextColumn get syncStatus => text().nullable()();
   DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
