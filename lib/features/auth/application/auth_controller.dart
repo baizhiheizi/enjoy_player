@@ -30,7 +30,23 @@ class AuthCtrl extends _$AuthCtrl {
       _pollTimer?.cancel();
       _pollTimer = null;
     });
-    return ref.read(authRepositoryProvider).loadInitialAuthState();
+    final sw = Stopwatch()..start();
+    _log.info('auth: loadInitialAuthState start');
+    try {
+      final state = await ref.read(authRepositoryProvider).loadInitialAuthState();
+      _log.info(
+        'auth: loadInitialAuthState done in ${sw.elapsedMilliseconds}ms '
+        '(${state.runtimeType})',
+      );
+      return state;
+    } catch (e, st) {
+      _log.warning(
+        'auth: loadInitialAuthState failed after ${sw.elapsedMilliseconds}ms',
+        e,
+        st,
+      );
+      rethrow;
+    }
   }
 
   Future<void> startSignIn() async {

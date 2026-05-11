@@ -49,4 +49,4 @@ final class LearningStatisticsProvider
 }
 
 String _$learningStatisticsHash() =>
-    r'238a9fad5ea2f3202acc6631942d73cd7f435ad9';
+    r'703b06cd133db27b34c4108ef796a65b8b8c3720';

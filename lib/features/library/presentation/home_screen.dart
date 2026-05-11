@@ -24,6 +24,15 @@ import '../application/library_media_provider.dart';
 import '../domain/media.dart';
 import 'library_actions.dart';
 
+/// Matches the recents grid on the loaded home screen.
+const SliverGridDelegateWithMaxCrossAxisExtent _kHomeRecentGridDelegate =
+    SliverGridDelegateWithMaxCrossAxisExtent(
+      maxCrossAxisExtent: 220,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 16 / 14.5,
+    );
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -100,13 +109,7 @@ class HomeScreen extends ConsumerWidget {
                     SliverPadding(
                       padding: EdgeInsets.symmetric(horizontal: t.space24),
                       sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 220,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 16 / 14.5,
-                            ),
+                        gridDelegate: _kHomeRecentGridDelegate,
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final m = recent[index];
                           return _HomeMediaTile(media: m);
@@ -118,7 +121,7 @@ class HomeScreen extends ConsumerWidget {
                   ],
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const _HomeLoadingScrollView(),
               error: (e, _) {
                 final cs = Theme.of(context).colorScheme;
                 return Center(
@@ -156,13 +159,130 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HomeInsightCards extends ConsumerWidget {
-  const _HomeInsightCards();
+/// Home layout while [libraryMediaProvider] has not emitted yet — mirrors the
+/// loaded scroll view so insight cards (Today's Goal skeleton, community) mount
+/// and network work can overlap with the first DB query.
+class _HomeLoadingScrollView extends ConsumerWidget {
+  const _HomeLoadingScrollView();
 
-  static const double _kWideBreakpoint = 720;
+  static const int _kSkeletonTileCount = 8;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EditorialHeader(
+            title: l10n.homeTitle,
+            trailing: FilledButton.icon(
+              onPressed: () => showImportChooser(context, ref),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: Text(l10n.actionImport),
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: _HomeInsightCards()),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            t.space24,
+            0,
+            t.space24,
+            t.space12,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Text(
+              l10n.homeRecentMedia,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: t.space24),
+          sliver: SliverGrid(
+            gridDelegate: _kHomeRecentGridDelegate,
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => const _HomeRecentGridSkeletonTile(),
+              childCount: _kSkeletonTileCount,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+      ],
+    );
+  }
+}
+
+class _HomeRecentGridSkeletonTile extends StatelessWidget {
+  const _HomeRecentGridSkeletonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final base =
+        Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.6,
+        );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(t.radiusXl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: ColoredBox(color: base)),
+          Padding(
+            padding: EdgeInsets.all(t.space8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: base,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                SizedBox(height: t.space4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    height: 12,
+                    width: 88,
+                    decoration: BoxDecoration(
+                      color: base,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeInsightCards extends ConsumerStatefulWidget {
+  const _HomeInsightCards();
+
+  @override
+  ConsumerState<_HomeInsightCards> createState() => _HomeInsightCardsState();
+}
+
+class _HomeInsightCardsState extends ConsumerState<_HomeInsightCards> {
+  static const double _kWideBreakpoint = 720;
+
+  bool _postFrameScheduled = false;
+  bool _insightsReady = false;
+
+  @override
+  Widget build(BuildContext context) {
     final authAsync = ref.watch(authCtrlProvider);
     final t = EnjoyThemeTokens.of(context);
 
@@ -171,7 +291,51 @@ class _HomeInsightCards extends ConsumerWidget {
       orElse: () => false,
     );
 
-    if (!isSignedIn) return const SizedBox.shrink();
+    if (!isSignedIn) {
+      _postFrameScheduled = false;
+      _insightsReady = false;
+      return const SizedBox.shrink();
+    }
+
+    if (!_insightsReady) {
+      if (!_postFrameScheduled) {
+        _postFrameScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _insightsReady = true;
+            _postFrameScheduled = false;
+          });
+        });
+      }
+      return Padding(
+        padding: EdgeInsets.fromLTRB(t.space24, t.space24, t.space24, t.space24),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= _kWideBreakpoint;
+            final gap = t.space12;
+            if (wide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _HomeInsightSkeletonCard(t: t)),
+                  SizedBox(width: gap),
+                  Expanded(child: _HomeInsightSkeletonCard(t: t)),
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _HomeInsightSkeletonCard(t: t),
+                SizedBox(height: gap),
+                _HomeInsightSkeletonCard(t: t),
+              ],
+            );
+          },
+        ),
+      );
+    }
 
     return Padding(
       padding: EdgeInsets.fromLTRB(t.space24, t.space24, t.space24, t.space24),
@@ -181,17 +345,15 @@ class _HomeInsightCards extends ConsumerWidget {
           final gap = t.space12;
 
           if (wide) {
-            return IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Expanded(child: TodaysGoalCard()),
-                  SizedBox(width: gap),
-                  const Expanded(
-                    child: CommunityActivityCard(outerPadding: EdgeInsets.zero),
-                  ),
-                ],
-              ),
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: TodaysGoalCard()),
+                SizedBox(width: gap),
+                const Expanded(
+                  child: CommunityActivityCard(outerPadding: EdgeInsets.zero),
+                ),
+              ],
             );
           }
 
@@ -204,6 +366,69 @@ class _HomeInsightCards extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Lightweight placeholders shown for one frame before insight API providers mount.
+class _HomeInsightSkeletonCard extends StatelessWidget {
+  const _HomeInsightSkeletonCard({required this.t});
+
+  final EnjoyThemeTokens t;
+
+  @override
+  Widget build(BuildContext context) {
+    final base =
+        Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.6,
+        );
+    return Card(
+      margin: EdgeInsets.zero,
+      child: SizedBox(
+        height: 240,
+        child: Padding(
+          padding: EdgeInsets.all(t.space16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: base,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  SizedBox(width: t.space8),
+                  Expanded(
+                    child: Container(
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: base,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Center(
+                child: Container(
+                  width: 112,
+                  height: 112,
+                  decoration: BoxDecoration(
+                    color: base,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
       ),
     );
   }

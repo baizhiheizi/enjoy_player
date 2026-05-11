@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
@@ -34,7 +35,11 @@ class SyncCtrl extends _$SyncCtrl {
       final prevIn = previous?.valueOrNull is AuthSignedIn;
       final nextIn = next.valueOrNull is AuthSignedIn;
       if (nextIn && !prevIn) {
-        unawaited(_onSignedIn());
+        // Run after first frame so Home / prefs / insight HTTP can schedule work
+        // without contending with rekey + queue drain on the same Drift isolate.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(_onSignedIn());
+        });
       }
       if (!nextIn && prevIn) {
         _periodic?.cancel();
@@ -48,13 +53,17 @@ class SyncCtrl extends _$SyncCtrl {
   Future<void> _onSignedIn() async {
     try {
       final auth = ref.read(authCtrlProvider).valueOrNull;
-      if (auth is AuthSignedIn) {
-        await rekeyLocalMediaRowsOnSignIn(
-          db: ref.read(appDatabaseProvider),
-          userId: auth.profile.id,
-          enqueue: ref.read(syncEnqueueProvider),
-        );
-      }
+      if (auth is! AuthSignedIn) return;
+
+      await rekeyLocalMediaRowsOnSignIn(
+        db: ref.read(appDatabaseProvider),
+        userId: auth.profile.id,
+        enqueue: ref.read(syncEnqueueProvider),
+      );
+
+      // Let other microtasks (e.g. home insight GETs) run before queue drain.
+      await Future<void>.delayed(Duration.zero);
+
       final result =
           await ref.read(syncEngineProvider).fullSync(const SyncOptions());
       await _persistLastFullSyncTimestamp(result);

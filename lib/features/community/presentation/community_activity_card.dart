@@ -135,9 +135,13 @@ class _LoadingCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              LinearProgressIndicator(
-                minHeight: 3,
-                borderRadius: BorderRadius.circular(999),
+              Container(
+                height: 3,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: base,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
               SizedBox(height: t.space16),
               Container(

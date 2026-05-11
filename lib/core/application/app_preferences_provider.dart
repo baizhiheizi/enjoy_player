@@ -2,13 +2,17 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 
 part 'app_preferences_provider.g.dart';
+
+final Logger _prefsLog = logNamed('prefs');
 
 class AppPreferencesState {
   const AppPreferencesState({
@@ -44,6 +48,8 @@ class AppPreferencesState {
 class AppPreferencesCtrl extends _$AppPreferencesCtrl {
   @override
   Future<AppPreferencesState> build() async {
+    final sw = Stopwatch()..start();
+    _prefsLog.info('prefs: build start');
     final db = ref.watch(appDatabaseProvider);
     final localeRaw = await db.settingsDao.getValue(SettingsKeys.prefsLocale);
     final learnRaw =
@@ -51,11 +57,13 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     final nativeRaw =
         await db.settingsDao.getValue(SettingsKeys.prefsNativeLanguage);
 
-    return AppPreferencesState(
+    final out = AppPreferencesState(
       locale: _decodeLocale(localeRaw),
       learningLanguage: learnRaw?.isEmpty ?? true ? null : learnRaw,
       nativeLanguage: nativeRaw?.isEmpty ?? true ? null : nativeRaw,
     );
+    _prefsLog.info('prefs: build done in ${sw.elapsedMilliseconds}ms');
+    return out;
   }
 
   Future<void> setLocale(Locale? locale) async {
