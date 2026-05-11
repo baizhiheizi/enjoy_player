@@ -65,7 +65,11 @@ GoRouter appRouter(Ref ref) {
             pageBuilder: (context, state) {
               final id = state.pathParameters['mediaId']!;
               return CustomTransitionPage<void>(
-                key: state.pageKey,
+                // Keep the player page identity stable across `/player/:id`
+                // changes. Windows WebView platform views are fragile when
+                // rapidly destroyed/recreated; reusing the page lets the
+                // YouTube engine navigate the existing WebView instead.
+                key: const ValueKey('player-page'),
                 child: ExpandedPlayerScreen(mediaId: id),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {

@@ -3,9 +3,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -456,7 +456,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
       trailing: trailing,
       onTap: () {
         if (_inLibrary == true) {
-          context.push('/player/${item.id}');
+          openPlayerRoute(context, item.id);
         }
       },
     );
@@ -666,7 +666,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
           accentColor: accent,
           onTap: () {
             if (_inLibrary == true) {
-              context.push('/player/${item.id}');
+              openPlayerRoute(context, item.id);
             }
           },
         ),

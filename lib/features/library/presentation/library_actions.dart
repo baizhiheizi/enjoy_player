@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -65,7 +66,7 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
       Navigator.of(context, rootNavigator: true).pop();
     }
     if (context.mounted) {
-      context.push('/player/$id');
+      openPlayerRoute(context, id);
     }
   } on AppFailure catch (e) {
     if (context.mounted) {
@@ -256,7 +257,7 @@ Future<void> importYoutubeFromDialog(BuildContext context, WidgetRef ref) async 
       Navigator.of(context, rootNavigator: true).pop();
     }
     if (context.mounted) {
-      context.push('/player/$id');
+      openPlayerRoute(context, id);
     }
   } on AppFailure catch (e) {
     if (context.mounted) {

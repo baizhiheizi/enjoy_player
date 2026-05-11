@@ -3,8 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -251,7 +251,7 @@ class _AudioRow extends ConsumerWidget {
       accentColor: accent,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => context.push('/player/${media.id}'),
+      onTap: () => openPlayerRoute(context, media.id),
     );
   }
 }
@@ -319,7 +319,7 @@ class _VideoTile extends ConsumerWidget {
       accentColor: accent,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => context.push('/player/${media.id}'),
+      onTap: () => openPlayerRoute(context, media.id),
     );
   }
 }

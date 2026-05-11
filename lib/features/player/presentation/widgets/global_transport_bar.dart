@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
@@ -212,7 +213,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
             l10n.transportExpand,
           ),
           icon: const Icon(Icons.open_in_full_rounded),
-          onPressed: () => context.push('/player/${chrome.mediaId}'),
+          onPressed: () => openPlayerRoute(context, chrome.mediaId),
         ),
     ];
 
@@ -302,8 +303,9 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                         onTap:
                                             onPlayer
                                                 ? null
-                                                : () => context.push(
-                                                  '/player/${chrome.mediaId}',
+                                                : () => openPlayerRoute(
+                                                  context,
+                                                  chrome.mediaId,
                                                 ),
                                         borderRadius: BorderRadius.circular(
                                           t.radiusSm,
@@ -650,7 +652,7 @@ class _TransportArtwork extends ConsumerWidget {
             side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
           ),
           child: InkWell(
-            onTap: () => context.push('/player/${chrome.mediaId}'),
+            onTap: () => openPlayerRoute(context, chrome.mediaId),
             child: content,
           ),
         ),
