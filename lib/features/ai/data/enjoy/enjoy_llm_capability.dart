@@ -1,0 +1,63 @@
+import 'package:enjoy_player/data/api/api_exception.dart';
+import 'package:enjoy_player/data/api/services/ai/chat_api.dart';
+import 'package:enjoy_player/features/ai/domain/capabilities/llm_capability.dart';
+import 'package:enjoy_player/features/ai/domain/chat_message.dart';
+
+final class EnjoyLlmCapability implements LlmCapability {
+  EnjoyLlmCapability(this._api);
+
+  final ChatApi _api;
+
+  String _contentFromResponse(Map<String, dynamic> map) {
+    final choices = map['choices'] as List<dynamic>?;
+    final first = choices?.isNotEmpty == true ? choices!.first : null;
+    if (first is! Map<String, dynamic>) {
+      throw const ApiException(message: 'No choices in chat completion', statusCode: 502);
+    }
+    final message = first['message'];
+    if (message is! Map<String, dynamic>) {
+      throw const ApiException(message: 'No message in completion choice', statusCode: 502);
+    }
+    final content = message['content'] as String?;
+    if (content == null || content.isEmpty) {
+      throw const ApiException(message: 'Empty completion content', statusCode: 502);
+    }
+    return content;
+  }
+
+  @override
+  Future<String> generateText({
+    String? systemPrompt,
+    required String userPrompt,
+    double? temperature,
+    int? maxTokens,
+  }) {
+    final messages = <ChatMessage>[
+      if (systemPrompt != null && systemPrompt.isNotEmpty)
+        ChatMessage(role: ChatMessage.roleSystem, content: systemPrompt),
+      ChatMessage(role: ChatMessage.roleUser, content: userPrompt),
+    ];
+    return generateChatCompletion(
+      messages: messages,
+      temperature: temperature ?? 0.7,
+      maxTokens: maxTokens ?? 2048,
+    );
+  }
+
+  @override
+  Future<String> generateChatCompletion({
+    required List<ChatMessage> messages,
+    double? temperature,
+    int? maxTokens,
+    Map<String, dynamic>? responseFormat,
+  }) async {
+    final map = await _api.completions(
+      messages: messages,
+      temperature: temperature ?? 0.7,
+      maxTokens: maxTokens ?? 2048,
+      stream: false,
+      responseFormat: responseFormat,
+    );
+    return _contentFromResponse(map);
+  }
+}

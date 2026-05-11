@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/routing/auth_router_tick.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
@@ -87,6 +88,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/settings/sync',
             builder: (context, state) => const SyncStatusScreen(),
+          ),
+          GoRoute(
+            path: '/settings/ai-playground',
+            builder: (context, state) => const AiPlaygroundScreen(),
           ),
           GoRoute(
             path: '/profile',

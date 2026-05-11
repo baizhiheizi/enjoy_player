@@ -119,6 +119,91 @@ class ApiClient {
         allowEmptyBody: true,
       );
 
+  /// Multipart POST (e.g. Whisper) returning a JSON object with camelCase keys.
+  Future<Map<String, dynamic>> postMultipartJson(
+    String path, {
+    required String fileFieldName,
+    required List<int> fileBytes,
+    String? fileFilename,
+    Map<String, String> fields = const {},
+    bool requireAuth = true,
+  }) async {
+    final base = _trimTrailingSlash(await getBaseUrl());
+    final uriBase = Uri.parse(base);
+    final pathUri = Uri.parse(path);
+    final merged = uriBase.resolveUri(pathUri);
+
+    String? bearer;
+    if (sendAuthHeader && requireAuth) {
+      final token = await getAccessToken();
+      if (token == null || token.isEmpty) {
+        throw const ApiException(
+          message: 'Not authenticated',
+          statusCode: 401,
+        );
+      }
+      bearer = token;
+    }
+
+    final request = http.MultipartRequest('POST', merged);
+    request.headers['Accept'] = 'application/json';
+    if (bearer != null) {
+      request.headers['Authorization'] = 'Bearer $bearer';
+    }
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fileFieldName,
+        fileBytes,
+        filename: fileFilename,
+      ),
+    );
+    for (final e in fields.entries) {
+      request.fields[e.key] = e.value;
+    }
+
+    final sw = Stopwatch()..start();
+    _apiHttpTrace('HTTP → POST $merged (multipart)');
+    try {
+      final streamed = await _client.send(request);
+      final bodyBytes = await streamed.stream.toBytes();
+      sw.stop();
+      final response = http.Response.bytes(
+        bodyBytes,
+        streamed.statusCode,
+        headers: streamed.headers,
+        request: request,
+      );
+      _apiHttpTrace(
+        'HTTP ← POST $merged ${response.statusCode} '
+        '${sw.elapsedMilliseconds}ms len=${bodyBytes.length}',
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = await _decodeResponseBody(response);
+        if (decoded is! Map) {
+          throw ApiException(
+            message: 'Expected JSON object',
+            statusCode: response.statusCode,
+            body: decoded,
+          );
+        }
+        return Map<String, dynamic>.from(
+          decoded.map((k, v) => MapEntry(k.toString(), v)),
+        );
+      }
+      await _throwApiError(response);
+      throw AssertionError('unreachable');
+    } catch (e, st) {
+      sw.stop();
+      _log.warning(
+        'HTTP ✗ POST $merged (multipart) after ${sw.elapsedMilliseconds}ms: $e',
+        e,
+        st,
+      );
+      rethrow;
+    }
+  }
+
   Future<Object?> _decodeResponseBody(http.Response response) async {
     final raw = response.body;
     if (raw.isEmpty) return null;

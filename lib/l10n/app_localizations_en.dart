@@ -808,4 +808,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryDeleteMediaFailed => 'Could not remove this item.';
+
+  @override
+  String get settingsSectionDeveloper => 'Developer';
+
+  @override
+  String get settingsAiPlaygroundTileTitle => 'AI playground';
+
+  @override
+  String get settingsAiPlaygroundTileSubtitle =>
+      'Exercise ASR, chat, translation, and dictionary APIs';
+
+  @override
+  String get aiPlaygroundTitle => 'AI playground';
+
+  @override
+  String get aiPlaygroundIntro =>
+      'Calls the Enjoy API using your saved base URL and access token. TTS and pronunciation assessment are not wired on Flutter yet (see ADR-0014).';
+
+  @override
+  String get aiPlaygroundPickAudio => 'Pick audio file';
+
+  @override
+  String get aiPlaygroundTranscribe => 'Transcribe';
+
+  @override
+  String get aiPlaygroundChatSystem => 'System (optional)';
+
+  @override
+  String get aiPlaygroundChatUser => 'User message';
+
+  @override
+  String get aiPlaygroundSendChat => 'Send chat';
+
+  @override
+  String get aiPlaygroundTranslateSource => 'Source language';
+
+  @override
+  String get aiPlaygroundTranslateTarget => 'Target language';
+
+  @override
+  String get aiPlaygroundTranslateText => 'Text to translate';
+
+  @override
+  String get aiPlaygroundTranslate => 'Translate';
+
+  @override
+  String get aiPlaygroundDictWord => 'Word';
+
+  @override
+  String get aiPlaygroundDictSource => 'Source language';
+
+  @override
+  String get aiPlaygroundDictTarget => 'Target language';
+
+  @override
+  String get aiPlaygroundDictLookup => 'Dictionary lookup';
+
+  @override
+  String get aiPlaygroundTtsDisabled =>
+      'TTS is not available in this build (Azure Speech integration pending).';
+
+  @override
+  String get aiPlaygroundAssessmentDisabled =>
+      'Pronunciation assessment is not available in this build (Azure Speech integration pending).';
+
+  @override
+  String get aiPlaygroundOutput => 'Output';
+
+  @override
+  String get aiPlaygroundClearOutput => 'Clear output';
+
+  @override
+  String get aiPlaygroundSectionAsr => 'ASR';
+
+  @override
+  String get aiPlaygroundSectionChat => 'Chat';
+
+  @override
+  String get aiPlaygroundSectionTranslation => 'Translation';
+
+  @override
+  String get aiPlaygroundSectionDictionary => 'Dictionary';
+
+  @override
+  String get aiPlaygroundSectionTtsAssessment => 'TTS / Assessment';
 }

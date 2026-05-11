@@ -37,3 +37,4 @@ Trade-offs, follow-up work, risks.
 | [0011](0011-dark-mode-only.md) | Dark mode only + logo-aligned brand (supersedes 0008) |
 | [0012](0012-per-user-sqlite-isolation.md) | Per-user SQLite + secure profile cache (partial supersession of 0006) |
 | [0013](0013-local-first-sync.md) | Local-first cloud sync + Cloud index (supersedes 0010 download behavior on player) |
+| [0014](0014-ai-capabilities-layer.md) | AI capabilities layer (Enjoy worker + capability pattern; BYOK/local placeholders) |

@@ -362,6 +362,31 @@ class SettingsScreen extends ConsumerWidget {
 
           SliverToBoxAdapter(child: SizedBox(height: t.space8)),
 
+          // ── Developer ───────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: _SectionLabel(text: l10n.settingsSectionDeveloper),
+          ),
+          SliverToBoxAdapter(
+            child: _SettingsCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Icon(Icons.science_outlined, color: cs.primary),
+                title: Text(
+                  l10n.settingsAiPlaygroundTileTitle,
+                  style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  l10n.settingsAiPlaygroundTileSubtitle,
+                  style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push('/settings/ai-playground'),
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(child: SizedBox(height: t.space8)),
+
           // ── About ───────────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: _SectionLabel(text: l10n.settingsSectionAbout),

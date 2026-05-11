@@ -1593,6 +1593,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not remove this item.'**
   String get libraryDeleteMediaFailed;
+
+  /// No description provided for @settingsSectionDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get settingsSectionDeveloper;
+
+  /// No description provided for @settingsAiPlaygroundTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI playground'**
+  String get settingsAiPlaygroundTileTitle;
+
+  /// No description provided for @settingsAiPlaygroundTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise ASR, chat, translation, and dictionary APIs'**
+  String get settingsAiPlaygroundTileSubtitle;
+
+  /// No description provided for @aiPlaygroundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI playground'**
+  String get aiPlaygroundTitle;
+
+  /// No description provided for @aiPlaygroundIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls the Enjoy API using your saved base URL and access token. TTS and pronunciation assessment are not wired on Flutter yet (see ADR-0014).'**
+  String get aiPlaygroundIntro;
+
+  /// No description provided for @aiPlaygroundPickAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick audio file'**
+  String get aiPlaygroundPickAudio;
+
+  /// No description provided for @aiPlaygroundTranscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribe'**
+  String get aiPlaygroundTranscribe;
+
+  /// No description provided for @aiPlaygroundChatSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System (optional)'**
+  String get aiPlaygroundChatSystem;
+
+  /// No description provided for @aiPlaygroundChatUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User message'**
+  String get aiPlaygroundChatUser;
+
+  /// No description provided for @aiPlaygroundSendChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Send chat'**
+  String get aiPlaygroundSendChat;
+
+  /// No description provided for @aiPlaygroundTranslateSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source language'**
+  String get aiPlaygroundTranslateSource;
+
+  /// No description provided for @aiPlaygroundTranslateTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target language'**
+  String get aiPlaygroundTranslateTarget;
+
+  /// No description provided for @aiPlaygroundTranslateText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text to translate'**
+  String get aiPlaygroundTranslateText;
+
+  /// No description provided for @aiPlaygroundTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get aiPlaygroundTranslate;
+
+  /// No description provided for @aiPlaygroundDictWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Word'**
+  String get aiPlaygroundDictWord;
+
+  /// No description provided for @aiPlaygroundDictSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source language'**
+  String get aiPlaygroundDictSource;
+
+  /// No description provided for @aiPlaygroundDictTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target language'**
+  String get aiPlaygroundDictTarget;
+
+  /// No description provided for @aiPlaygroundDictLookup.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary lookup'**
+  String get aiPlaygroundDictLookup;
+
+  /// No description provided for @aiPlaygroundTtsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS is not available in this build (Azure Speech integration pending).'**
+  String get aiPlaygroundTtsDisabled;
+
+  /// No description provided for @aiPlaygroundAssessmentDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation assessment is not available in this build (Azure Speech integration pending).'**
+  String get aiPlaygroundAssessmentDisabled;
+
+  /// No description provided for @aiPlaygroundOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Output'**
+  String get aiPlaygroundOutput;
+
+  /// No description provided for @aiPlaygroundClearOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear output'**
+  String get aiPlaygroundClearOutput;
+
+  /// No description provided for @aiPlaygroundSectionAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'ASR'**
+  String get aiPlaygroundSectionAsr;
+
+  /// No description provided for @aiPlaygroundSectionChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get aiPlaygroundSectionChat;
+
+  /// No description provided for @aiPlaygroundSectionTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation'**
+  String get aiPlaygroundSectionTranslation;
+
+  /// No description provided for @aiPlaygroundSectionDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary'**
+  String get aiPlaygroundSectionDictionary;
+
+  /// No description provided for @aiPlaygroundSectionTtsAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS / Assessment'**
+  String get aiPlaygroundSectionTtsAssessment;
 }
 
 class _AppLocalizationsDelegate

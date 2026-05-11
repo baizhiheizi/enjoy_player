@@ -30,3 +30,8 @@ final class NetworkFailure extends AppFailure {
 final class AuthFailure extends AppFailure {
   const AuthFailure(super.message);
 }
+
+/// Worker returned HTTP 402 (AI credits exhausted or billing block).
+final class CreditsFailure extends AppFailure {
+  const CreditsFailure(super.message);
+}
