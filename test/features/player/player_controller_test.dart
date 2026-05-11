@@ -35,6 +35,7 @@ void main() {
       String? mediaUrl,
       String? md5,
       String? thumbnailUrl,
+      int durationSeconds = 600,
     }) async {
       final now = DateTime.now();
       late final String effectiveLocal;
@@ -60,7 +61,7 @@ void main() {
             title: 't',
             description: null,
             thumbnailUrl: thumbnailUrl,
-            durationSeconds: 600,
+            durationSeconds: durationSeconds,
             language: 'en',
             source: null,
             localUri: effectiveLocal,
@@ -82,7 +83,7 @@ void main() {
             title: 't',
             description: null,
             thumbnailUrl: thumbnailUrl,
-            durationSeconds: 600,
+            durationSeconds: durationSeconds,
             language: 'en',
             translationKey: null,
             sourceText: null,
@@ -326,6 +327,34 @@ void main() {
       await n.openMedia(id);
       await Future<void>.delayed(const Duration(milliseconds: 800));
       expect(fake.screenshotCalls, 0);
+    });
+
+    test('openMedia applies default volume and rate to engine', () async {
+      final id = await insertMedia(id: 'prefs-1');
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      expect(fake.lastVolume, 1.0);
+      expect(fake.lastRate, 1.0);
+    });
+
+    test('clear stops engine and clears session', () async {
+      final id = await insertMedia(id: 'clr-1');
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      expect(container.read(playerControllerProvider), isNotNull);
+      await n.clear();
+      expect(container.read(playerControllerProvider), isNull);
+      expect(fake.stopCallCount, greaterThan(0));
+    });
+
+    test('openMedia persists decoded duration when video row duration is zero', () async {
+      final id = await insertMedia(id: 'v-dur0', kind: 'video', durationSeconds: 0);
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      fake.emitDuration(const Duration(seconds: 91));
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      final row = await db.videoDao.getById(id);
+      expect(row!.durationSeconds, 91);
     });
   });
 }

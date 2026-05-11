@@ -215,6 +215,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
+  String get playerOpenGenericError => 'Could not open this item.';
+
+  @override
+  String playbackRateTimes(String rate) {
+    return '${rate}x';
+  }
+
+  @override
   String get speed => 'Speed';
 
   @override

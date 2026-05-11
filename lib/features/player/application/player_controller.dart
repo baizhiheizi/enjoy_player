@@ -7,36 +7,24 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/core/utils/local_thumbnail.dart';
-import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_target_resolver.dart';
-import 'package:enjoy_player/data/files/video_poster_extract.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
-import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
-import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
-import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
-import 'package:enjoy_player/features/sync/application/sync_providers.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
+import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/playback_open_resolver.dart';
+import 'package:enjoy_player/features/player/application/player_engine_binding.dart';
+import 'package:enjoy_player/features/player/application/player_open_side_effects.dart';
+import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
+import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
-import 'player_engine.dart';
-import 'player_engine_rev.dart';
 import 'player_engine_test_double_provider.dart';
-import 'player_preferences_provider.dart';
 
 part 'player_controller.g.dart';
-
-final _logPosterCapture = logNamed('VideoPosterCapture');
 
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController {
@@ -77,23 +65,6 @@ class PlayerController extends _$PlayerController {
     return null;
   }
 
-  Future<void> _ensureEngineForSource(PlayableSource source) async {
-    if (ref.read(playerEngineTestDoubleProvider) != null) return;
-    final wantYt = source is YoutubePlayableSource;
-    final haveYt = _ownedEngine is YoutubePlayerEngine;
-    if (wantYt && !haveYt) {
-      await _ownedEngine?.dispose();
-      _ownedEngine = YoutubePlayerEngine();
-      ref.read(playerEngineRevProvider.notifier).bump();
-      return;
-    }
-    if (!wantYt && haveYt) {
-      await _ownedEngine?.dispose();
-      _ownedEngine = MediaKitPlayerEngine();
-      ref.read(playerEngineRevProvider.notifier).bump();
-    }
-  }
-
   Future<void> relocateAndOpen(String mediaId, XFile picked) async {
     final lib = ref.read(mediaLibraryRepositoryProvider);
     await lib.relocateLocalFile(mediaId: mediaId, picked: picked);
@@ -109,34 +80,26 @@ class PlayerController extends _$PlayerController {
     final gen = ++_openGeneration;
 
     final db = ref.read(appDatabaseProvider);
-    final video = await db.videoDao.getById(mediaId);
-    final audio = video == null ? await db.audioDao.getById(mediaId) : null;
-    if (video == null && audio == null) return;
+    final resolved = await resolvePlaybackOpen(db, mediaId);
+    if (resolved == null) return;
 
-    final kind = video != null ? MediaKind.video : MediaKind.audio;
-    final dexie = kind.dexieTargetType;
-    final title = video?.title ?? audio!.title;
+    final video = resolved.video;
+    final audio = resolved.audio;
+    final kind = resolved.kind;
+    final dexie = resolved.dexieTargetType;
+    final title = resolved.title;
+    final playable = resolved.playable;
 
-    final playable = await resolvePlayableSource(db, mediaId);
-    if (playable == null) {
-      final fingerprint = video?.md5 ?? audio?.md5;
-      if (fingerprint != null && fingerprint.isNotEmpty) {
-        throw MediaNeedsRelocateException(
-          mediaId: mediaId,
-          kind: kind,
-          title: title,
-          expectedHash: fingerprint,
-          expectedSize: video?.size ?? audio?.size,
-        );
-      }
-      return;
-    }
+    await ensureEngineForPlayableSource(
+      ref,
+      playable: playable,
+      getOwnedEngine: () => _ownedEngine,
+      setOwnedEngine: (e) => _ownedEngine = e,
+    );
 
-    await _ensureEngineForSource(playable);
-
-    final thumb = video?.thumbnailUrl ?? audio?.thumbnailUrl;
-    final language = video?.language ?? audio!.language;
-    final durationSec = video?.durationSeconds ?? audio!.durationSeconds;
+    final thumb = resolved.thumbnailUrl;
+    final language = resolved.language;
+    final durationSec = resolved.durationSeconds;
 
     // Bind video output before first decode on Windows (see media_kit_video notes).
     // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
@@ -157,19 +120,11 @@ class PlayerController extends _$PlayerController {
     await _activeEngine.disableRenderedSubtitles();
     if (gen != _openGeneration) return;
 
-    unawaited(
-      ref.read(transcriptRepositoryProvider).fetchCloudTranscripts(mediaId),
+    schedulePlayerOpenSideEffects(
+      ref,
+      mediaId: mediaId,
+      dexieTargetType: dexie,
     );
-
-    final auth = ref.read(authCtrlProvider).valueOrNull;
-    if (auth is AuthSignedIn) {
-      unawaited(
-        ref.read(recordingTargetSyncServiceProvider).pullRecordingsForTarget(
-              targetType: dexie,
-              targetId: mediaId,
-            ),
-      );
-    }
 
     await ref.read(playerPreferencesCtrlProvider.notifier).applyCurrentToEngine();
     if (gen != _openGeneration) return;
@@ -221,97 +176,19 @@ class PlayerController extends _$PlayerController {
     if (kind == MediaKind.video &&
         video != null &&
         _activeEngine.supportsVideoPosterCapture) {
-      _scheduleVideoPosterCapture(
+      ref.read(videoPosterCaptureServiceProvider).scheduleCapture(
         mediaId: mediaId,
         video: video,
         restoredPositionMs: posMs,
         gen: gen,
+        currentOpenGeneration: () => _openGeneration,
+        currentSessionMediaId: () => state?.mediaId,
+        sessionDurationSeconds: () => state?.durationSeconds,
+        activeEngine: _activeEngine,
+        onSessionThumbnail: (path) {
+          state = state?.copyWith(thumbnailUrl: path);
+        },
       );
-    }
-  }
-
-  void _scheduleVideoPosterCapture({
-    required String mediaId,
-    required VideoRow video,
-    required int restoredPositionMs,
-    required int gen,
-  }) {
-    if (isRemoteThumbnailUrl(video.thumbnailUrl)) return;
-    if (localThumbnailFile(video.thumbnailUrl) != null) return;
-
-    unawaited(
-      _captureAndPersistVideoPoster(
-        mediaId: mediaId,
-        video: video,
-        restoredPositionMs: restoredPositionMs,
-        gen: gen,
-      ),
-    );
-  }
-
-  Future<void> _captureAndPersistVideoPoster({
-    required String mediaId,
-    required VideoRow video,
-    required int restoredPositionMs,
-    required int gen,
-  }) async {
-    var soughtForPoster = false;
-    try {
-      await Future<void>.delayed(const Duration(milliseconds: 450));
-      if (gen != _openGeneration) return;
-      if (state?.mediaId != mediaId) return;
-
-      final sessionDur = state?.durationSeconds;
-      final durSec =
-          video.durationSeconds > 0
-              ? video.durationSeconds
-              : (sessionDur != null && sessionDur > 0
-                  ? sessionDur.floor()
-                  : 0);
-
-      final posterSeconds = posterSeekSeconds(durSec > 0 ? durSec : null);
-      final posterMs = (posterSeconds * 1000).round();
-
-      final needSeekToPoster = restoredPositionMs == 0 && posterMs > 0;
-      if (needSeekToPoster) {
-        soughtForPoster = true;
-        await _activeEngine.seek(Duration(milliseconds: posterMs));
-        await Future<void>.delayed(const Duration(milliseconds: 350));
-        if (gen != _openGeneration) return;
-        if (state?.mediaId != mediaId) return;
-      }
-
-      final bytes = await _activeEngine.screenshot(format: 'image/jpeg');
-      if (bytes == null || bytes.isEmpty) return;
-      if (gen != _openGeneration) return;
-
-      final db = ref.read(appDatabaseProvider);
-      final latest = await db.videoDao.getById(mediaId);
-      if (latest == null) return;
-      if (isRemoteThumbnailUrl(latest.thumbnailUrl)) return;
-      if (localThumbnailFile(latest.thumbnailUrl) != null) return;
-
-      final outPath = await videoThumbnailPathForContentHash(
-        posterStorageKeyHexForVideo(latest),
-      );
-      final f = File(outPath);
-      await f.writeAsBytes(bytes, flush: true);
-      final absoluteThumb = f.absolute.path;
-      await db.videoDao.updateLocalThumbnail(mediaId, absoluteThumb);
-
-      if (gen == _openGeneration && state?.mediaId == mediaId) {
-        state = state?.copyWith(thumbnailUrl: absoluteThumb);
-      }
-    } on Object catch (e, st) {
-      _logPosterCapture.fine('video poster capture failed', e, st);
-    } finally {
-      if (soughtForPoster && gen == _openGeneration) {
-        try {
-          await _activeEngine.seek(Duration.zero);
-        } on Object {
-          // Best-effort restore start position after poster sampling seek.
-        }
-      }
     }
   }
 

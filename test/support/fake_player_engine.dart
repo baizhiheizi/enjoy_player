@@ -118,7 +118,11 @@ class FakePlayerEngine implements PlayerEngine {
   Future<void> pause() async {}
 
   @override
-  Future<void> stop() async {}
+  Future<void> stop() async {
+    stopCallCount++;
+  }
+
+  int stopCallCount = 0;
 
   @override
   Future<Uint8List?> screenshot({String? format}) async {

@@ -496,6 +496,18 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get error;
 
+  /// No description provided for @playerOpenGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this item.'**
+  String get playerOpenGenericError;
+
+  /// No description provided for @playbackRateTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{rate}x'**
+  String playbackRateTimes(String rate);
+
   /// No description provided for @speed.
   ///
   /// In en, this message translates to:

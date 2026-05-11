@@ -67,6 +67,15 @@
   "miniPlayerOpen": "Open player",
   "loading": "Loading…",
   "error": "Error",
+  "playerOpenGenericError": "Could not open this item.",
+  "playbackRateTimes": "{rate}x",
+  "@playbackRateTimes": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "speed": "Speed",
   "volume": "Volume",
   "transportMute": "Mute",
