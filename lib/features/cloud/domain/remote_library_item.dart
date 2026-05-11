@@ -12,6 +12,7 @@ class RemoteLibraryItem {
     this.mediaUrl,
     this.md5,
     this.size,
+    required this.provider,
     required this.rawJson,
   });
 
@@ -24,5 +25,7 @@ class RemoteLibraryItem {
   final String? mediaUrl;
   final String? md5;
   final int? size;
+  /// Row `provider` after server-json normalization (e.g. `user`, `youtube`).
+  final String provider;
   final Map<String, dynamic> rawJson;
 }

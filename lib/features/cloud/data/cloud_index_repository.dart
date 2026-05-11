@@ -50,6 +50,7 @@ class CloudIndexRepository {
       mediaUrl: row.mediaUrl,
       md5: row.md5,
       size: row.size,
+      provider: row.provider,
       rawJson: Map<String, dynamic>.from(m),
     );
   }
@@ -66,6 +67,7 @@ class CloudIndexRepository {
       mediaUrl: row.mediaUrl,
       md5: row.md5,
       size: row.size,
+      provider: row.provider,
       rawJson: Map<String, dynamic>.from(m),
     );
   }

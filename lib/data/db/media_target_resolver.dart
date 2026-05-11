@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
 import 'app_database.dart';
@@ -28,8 +29,16 @@ Future<PlayableSource?> resolvePlayableSource(AppDatabase db, String mediaId) as
   final audio = video == null ? await db.audioDao.getById(mediaId) : null;
   if (video == null && audio == null) return null;
 
-  if (video != null && video.provider == 'youtube') {
-    return YoutubePlayableSource(video.vid);
+  if (video != null) {
+    final ytId = youtubePlaybackVideoId(
+      provider: video.provider,
+      vid: video.vid,
+      mediaUrl: video.mediaUrl,
+      source: video.source,
+    );
+    if (ytId != null) {
+      return YoutubePlayableSource(ytId);
+    }
   }
 
   final netUri = video?.mediaUrl ?? audio?.mediaUrl;
@@ -49,8 +58,16 @@ Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
   final audio = video == null ? await db.audioDao.getById(mediaId) : null;
   if (video == null && audio == null) return null;
 
-  if (video?.provider == 'youtube') {
-    return null;
+  if (video != null) {
+    final ytId = youtubePlaybackVideoId(
+      provider: video.provider,
+      vid: video.vid,
+      mediaUrl: video.mediaUrl,
+      source: video.source,
+    );
+    if (ytId != null) {
+      return null;
+    }
   }
 
   final netUri = video?.mediaUrl ?? audio?.mediaUrl;

@@ -4,6 +4,7 @@ library;
 import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
+import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 
 export 'package:enjoy_player/core/utils/remote_thumbnail_url.dart'
@@ -125,10 +126,19 @@ VideoRow videoRowFromServerJson(Map<String, dynamic> json) {
   final now = DateTime.now();
   final updatedAt = requireIsoDate(json['updatedAt'], now);
   final createdAt = requireIsoDate(json['createdAt'], updatedAt);
+  final vid = json['vid'] as String? ?? json['id'] as String;
+  final mediaUrl = json['mediaUrl'] as String?;
+  final source = json['source'] as String?;
+  final provider = normalizeServerVideoProviderFields(
+    rawProvider: json['provider'] as String?,
+    vid: vid,
+    mediaUrl: mediaUrl,
+    source: source,
+  );
   return VideoRow(
     id: json['id'] as String,
-    vid: json['vid'] as String? ?? json['id'] as String,
-    provider: json['provider'] as String? ?? 'user',
+    vid: vid,
+    provider: provider,
     title: json['title'] as String? ?? '',
     description: json['description'] as String?,
     thumbnailUrl: json['thumbnailUrl'] as String?,

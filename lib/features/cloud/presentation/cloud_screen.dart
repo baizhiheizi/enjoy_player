@@ -454,6 +454,8 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
       isVideo: false,
       accentColor: accent,
       trailing: trailing,
+      providerBadge:
+          item.provider == 'youtube' ? l10n.youtubeBadge : null,
       onTap: () {
         if (_inLibrary == true) {
           openPlayerRoute(context, item.id);
@@ -664,6 +666,8 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
           coverSeed: seed,
           isVideo: true,
           accentColor: accent,
+          providerBadge:
+              item.provider == 'youtube' ? l10n.youtubeBadge : null,
           onTap: () {
             if (_inLibrary == true) {
               openPlayerRoute(context, item.id);

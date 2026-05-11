@@ -164,6 +164,69 @@ void main() {
     });
   });
 
+  group('videoRowFromServerJson', () {
+    test('infers youtube when provider missing and vid is YouTube id', () {
+      final t = DateTime.utc(2025, 6, 1);
+      final row = videoRowFromServerJson({
+        'id': '550e8400-e29b-41d4-a716-446655440001',
+        'vid': 'dQw4w9WgXcQ',
+        'title': 'Rick',
+        'durationSeconds': 212,
+        'language': 'en',
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.provider, 'youtube');
+      expect(row.vid, 'dQw4w9WgXcQ');
+    });
+
+    test('infers youtube from source field when provider is user', () {
+      final t = DateTime.utc(2025, 6, 1);
+      final row = videoRowFromServerJson({
+        'id': '550e8400-e29b-41d4-a716-446655440002',
+        'vid': 'x',
+        'provider': 'user',
+        'source': 'youtube',
+        'title': 'T',
+        'durationSeconds': 1,
+        'language': 'en',
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.provider, 'youtube');
+    });
+
+    test('infers youtube from mediaUrl when provider missing', () {
+      final t = DateTime.utc(2025, 6, 1);
+      final row = videoRowFromServerJson({
+        'id': '550e8400-e29b-41d4-a716-446655440003',
+        'vid': 'not-used',
+        'title': 'T',
+        'mediaUrl': 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+        'durationSeconds': 1,
+        'language': 'en',
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.provider, 'youtube');
+    });
+
+    test('does not override explicit netflix provider', () {
+      final t = DateTime.utc(2025, 6, 1);
+      final row = videoRowFromServerJson({
+        'id': '550e8400-e29b-41d4-a716-446655440004',
+        'vid': 'dQw4w9WgXcQ',
+        'provider': 'netflix',
+        'title': 'T',
+        'durationSeconds': 1,
+        'language': 'en',
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.provider, 'netflix');
+    });
+  });
+
   group('mergeAudioLastWriteWins', () {
     test('server newer replaces metadata but keeps localUri', () {
       final localTime = DateTime.utc(2025, 1, 1);

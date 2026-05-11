@@ -9,7 +9,7 @@ Browse **your** remote Enjoy **audio** and **video** metadata (`GET /api/v1/mine
 1. User opens **Cloud** from the sidebar (or bottom navigation).
 2. Lists are loaded page by page using `updatedAfter` cursors (same API as the legacy full sync download).
 3. **Add to library** inserts one row into `audios` / `videos` via the same merge shape as server JSON (`localUri` stays null; `mediaUrl` is preserved when the server provided it).
-4. Items with a `mediaUrl` can play from that URL in the expanded player; items without a URL still appear in the Library and use **Locate file** (hash match) like other synced metadata-only rows.
+4. Items with a `mediaUrl` can play from that URL in the expanded player when the app routes them to **media_kit**. **YouTube** rows (including when the cloud payload omitted `provider` but `vid` / `source` / `mediaUrl` identify YouTube) open in the **YouTube WebView** engine, not **Locate file**. Other items without a resolvable URL still appear in the Library and use **Locate file** (hash match) like other synced metadata-only rows.
 
 ## Requirements
 
