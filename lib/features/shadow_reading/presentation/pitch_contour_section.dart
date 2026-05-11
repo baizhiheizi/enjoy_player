@@ -22,6 +22,12 @@ class PitchContourSection extends ConsumerStatefulWidget {
     this.currentTimeRelativeSec,
     this.selectedRecordingPath,
     this.selectedRecordingDurationMs,
+    /// When non-null, expansion is controlled by the parent ([expanded] drives UI).
+    this.expanded,
+    /// Called when the section should toggle (header tap or hotkey). Parent updates [expanded].
+    this.onToggleExpanded,
+    /// When false, only the expandable body (chart + chips) is rendered — no chevron row.
+    this.showHeader = true,
     super.key,
   });
 
@@ -31,6 +37,13 @@ class PitchContourSection extends ConsumerStatefulWidget {
   final double? currentTimeRelativeSec;
   final String? selectedRecordingPath;
   final int? selectedRecordingDurationMs;
+
+  /// Null: use internal [_expanded]. Non-null: parent-controlled.
+  final bool? expanded;
+
+  final VoidCallback? onToggleExpanded;
+
+  final bool showHeader;
 
   @override
   ConsumerState<PitchContourSection> createState() => _PitchContourSectionState();
@@ -43,6 +56,19 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   Object? _error;
   bool _loading = false;
   PitchContourVisibility _vis = const PitchContourVisibility();
+
+  bool get _effectiveExpanded => widget.expanded ?? _expanded;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_effectiveExpanded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_syncExpandLoads());
+      });
+    }
+  }
 
   @override
   void didUpdateWidget(covariant PitchContourSection oldWidget) {
@@ -57,9 +83,27 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     if (oldWidget.selectedRecordingPath != widget.selectedRecordingPath ||
         oldWidget.selectedRecordingDurationMs != widget.selectedRecordingDurationMs) {
       _user = null;
-      if (_expanded && widget.selectedRecordingPath != null) {
-        _loadUser();
+      if (_effectiveExpanded && widget.selectedRecordingPath != null) {
+        unawaited(_loadUser());
       }
+    }
+
+    if (oldWidget.expanded != widget.expanded && widget.expanded == true) {
+      unawaited(_syncExpandLoads());
+    }
+  }
+
+  /// Loads reference + user when section opens (mirrors expand transition).
+  Future<void> _syncExpandLoads() async {
+    if (!_effectiveExpanded) return;
+    if (_reference == null) {
+      await _loadReference();
+    }
+    if (_effectiveExpanded &&
+        widget.selectedRecordingPath != null &&
+        _user == null &&
+        _reference != null) {
+      await _loadUser();
     }
   }
 
@@ -130,6 +174,10 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   }
 
   Future<void> _toggleExpanded() async {
+    if (widget.onToggleExpanded != null) {
+      widget.onToggleExpanded!();
+      return;
+    }
     final next = !_expanded;
     setState(() => _expanded = next);
     if (next && _reference == null) {
@@ -168,81 +216,86 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       progress = (rel / refDur).clamp(0.0, 1.0);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Tooltip(
-          message: pitchTooltip,
-          child: InkWell(
-            onTap: () => unawaited(_toggleExpanded()),
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
+    final body = _effectiveExpanded
+        ? [
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              Text(
+                l10n.pitchContourError,
+                style: TextStyle(color: scheme.error),
+              )
+            else ...[
+              PitchContourChart(
+                points: merged,
+                referenceColor: refColor,
+                userColor: userColor,
+                visibility: _vis,
+                progress: progress,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
                 children: [
-                  Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
-                    color: scheme.onSurfaceVariant,
+                  FilterChip(
+                    label: Text(l10n.pitchContourWaveform),
+                    selected: _vis.showWaveform,
+                    onSelected: (v) => setState(() {
+                      _vis = _vis.copyWith(showWaveform: v);
+                    }),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.pitchContourTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
+                  FilterChip(
+                    label: Text(l10n.pitchContourReference),
+                    selected: _vis.showReference,
+                    onSelected: (v) => setState(() {
+                      _vis = _vis.copyWith(showReference: v);
+                    }),
+                  ),
+                  FilterChip(
+                    label: Text(l10n.pitchContourUser),
+                    selected: _vis.showUser,
+                    onSelected: (v) => setState(() {
+                      _vis = _vis.copyWith(showUser: v);
+                    }),
                   ),
                 ],
               ),
+            ],
+          ]
+        : <Widget>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.showHeader)
+          Tooltip(
+            message: pitchTooltip,
+            child: InkWell(
+              onTap: () => unawaited(_toggleExpanded()),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      _effectiveExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.pitchContourTitle,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-        if (_expanded) ...[
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
-            Text(
-              l10n.pitchContourError,
-              style: TextStyle(color: scheme.error),
-            )
-          else ...[
-            PitchContourChart(
-              points: merged,
-              referenceColor: refColor,
-              userColor: userColor,
-              visibility: _vis,
-              progress: progress,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                FilterChip(
-                  label: Text(l10n.pitchContourWaveform),
-                  selected: _vis.showWaveform,
-                  onSelected: (v) => setState(() {
-                    _vis = _vis.copyWith(showWaveform: v);
-                  }),
-                ),
-                FilterChip(
-                  label: Text(l10n.pitchContourReference),
-                  selected: _vis.showReference,
-                  onSelected: (v) => setState(() {
-                    _vis = _vis.copyWith(showReference: v);
-                  }),
-                ),
-                FilterChip(
-                  label: Text(l10n.pitchContourUser),
-                  selected: _vis.showUser,
-                  onSelected: (v) => setState(() {
-                    _vis = _vis.copyWith(showUser: v);
-                  }),
-                ),
-              ],
-            ),
-          ],
-        ],
+        ...body,
       ],
     );
   }

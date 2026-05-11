@@ -700,6 +700,18 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get shadowRecordingDelete;
 
+  /// No description provided for @shadowRecordingDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this take?'**
+  String get shadowRecordingDeleteConfirmTitle;
+
+  /// No description provided for @shadowRecordingDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{takeLabel} will be permanently deleted. This cannot be undone.'**
+  String shadowRecordingDeleteConfirmMessage(String takeLabel);
+
   /// No description provided for @shadowRecordingRecord.
   ///
   /// In en, this message translates to:

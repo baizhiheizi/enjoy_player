@@ -323,6 +323,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shadowRecordingDelete => 'Delete';
 
   @override
+  String get shadowRecordingDeleteConfirmTitle => 'Delete this take?';
+
+  @override
+  String shadowRecordingDeleteConfirmMessage(String takeLabel) {
+    return '$takeLabel will be permanently deleted. This cannot be undone.';
+  }
+
+  @override
   String get shadowRecordingRecord => 'Record';
 
   @override

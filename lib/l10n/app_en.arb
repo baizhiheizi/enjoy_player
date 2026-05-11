@@ -108,6 +108,16 @@
   "shadowRecordingPause": "Pause",
   "shadowRecordingChooseTake": "Switch take",
   "shadowRecordingDelete": "Delete",
+  "shadowRecordingDeleteConfirmTitle": "Delete this take?",
+  "shadowRecordingDeleteConfirmMessage": "{takeLabel} will be permanently deleted. This cannot be undone.",
+  "@shadowRecordingDeleteConfirmMessage": {
+    "placeholders": {
+      "takeLabel": {
+        "type": "String",
+        "example": "Take 4 · 4.1 s"
+      }
+    }
+  },
   "shadowRecordingRecord": "Record",
   "shadowRecordingStop": "Stop",
   "shadowRecordingMicDenied": "Microphone permission is required to record.",

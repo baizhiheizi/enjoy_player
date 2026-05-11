@@ -1,4 +1,4 @@
-/// Full-width bottom transport: progress, times, artwork, play ring, tools.
+/// Full-width bottom transport: progress, times, play controls, artwork/meta, tools.
 library;
 
 import 'dart:async' show Timer;
@@ -104,17 +104,6 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     if (chrome == null) return const SizedBox.shrink();
 
     final primaryTransport = <Widget>[
-      if (!narrowLayout)
-        IconButton(
-          tooltip: ttPrev,
-          iconSize: 22,
-          onPressed:
-              isBuffering
-                  ? null
-                  : () =>
-                      ref.read(playerInteractionsProvider.notifier).prevLine(),
-          icon: const Icon(Icons.skip_previous_rounded),
-        ),
       _PlayRingButton(
         playing: isPlaying,
         buffering: isBuffering,
@@ -126,17 +115,26 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                 : () =>
                     ref.read(playerControllerProvider.notifier).togglePlay(),
       ),
-      if (!narrowLayout)
-        IconButton(
-          tooltip: ttNext,
-          iconSize: 22,
-          onPressed:
-              isBuffering
-                  ? null
-                  : () =>
-                      ref.read(playerInteractionsProvider.notifier).nextLine(),
-          icon: const Icon(Icons.skip_next_rounded),
-        ),
+      IconButton(
+        tooltip: ttPrev,
+        iconSize: 22,
+        onPressed:
+            isBuffering
+                ? null
+                : () =>
+                    ref.read(playerInteractionsProvider.notifier).prevLine(),
+        icon: const Icon(Icons.skip_previous_rounded),
+      ),
+      IconButton(
+        tooltip: ttNext,
+        iconSize: 22,
+        onPressed:
+            isBuffering
+                ? null
+                : () =>
+                    ref.read(playerInteractionsProvider.notifier).nextLine(),
+        icon: const Icon(Icons.skip_next_rounded),
+      ),
       IconButton(
         tooltip: ttReplay,
         iconSize: 22,
@@ -218,41 +216,42 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final barWidth = constraints.maxWidth;
-        final inner = Theme(
-          data: Theme.of(context).copyWith(
-            iconButtonTheme: IconButtonThemeData(
-              style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
+    final inner = Theme(
+      data: Theme.of(context).copyWith(
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(t.space12, t.space8, t.space12, 0),
+            child: _TransportProgressStrip(
+              chrome: chrome,
+              hovered: _sliderHovered,
+              onHoverChanged: (v) => setState(() => _sliderHovered = v),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(t.space12, t.space8, t.space12, 0),
-                child: _TransportProgressStrip(
-                  chrome: chrome,
-                  hovered: _sliderHovered,
-                  onHoverChanged: (v) => setState(() => _sliderHovered = v),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space12,
-                  t.space4,
-                  t.space12,
-                  t.space12,
-                ),
-                child: SizedBox(
-                  height: 56,
-                  child:
-                      hideBottomMediaInfo
-                          ? SingleChildScrollView(
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              t.space12,
+              t.space4,
+              t.space12,
+              t.space12,
+            ),
+            child: SizedBox(
+              height: 56,
+              child:
+                  hideBottomMediaInfo
+                      ? LayoutBuilder(
+                        builder: (context, paddedConstraints) {
+                          return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: ConstrainedBox(
-                              constraints: BoxConstraints(minWidth: barWidth),
+                              constraints: BoxConstraints(
+                                minWidth: paddedConstraints.maxWidth,
+                              ),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -269,16 +268,22 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                 ],
                               ),
                             ),
-                          )
-                          : Row(
+                          );
+                        },
+                      )
+                      : Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: primaryTransport,
+                          ),
+                          SizedBox(width: t.space12),
                           Expanded(
                             flex: 2,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (!onPlayer) ...[
                                     _TransportArtwork(chrome: chrome),
@@ -319,10 +324,6 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                               ),
                             ),
                           ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: primaryTransport,
-                          ),
                           Expanded(
                             flex: 2,
                             child: Align(
@@ -336,19 +337,17 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                               ),
                             ),
                           ),
-                            ],
-                          ),
-                ),
-              ),
-            ],
+                        ],
+                      ),
+            ),
           ),
-        );
+        ],
+      ),
+    );
 
-        return GlassSurface(
-          padding: EdgeInsets.zero,
-          child: Material(color: Colors.transparent, child: inner),
-        );
-      },
+    return GlassSurface(
+      padding: EdgeInsets.zero,
+      child: Material(color: Colors.transparent, child: inner),
     );
   }
 }
