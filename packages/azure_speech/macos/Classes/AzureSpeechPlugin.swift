@@ -71,7 +71,8 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
       pronunciationConfig.enableProsodyAssessment()
     }
     pronunciationConfig.phonemeAlphabet = phonemeAlphabet
-    pronunciationConfig.nbestPhonemeCount = UInt(nbestPhonemeCount)
+    // Obj-C API is NSInteger → Swift `Int` (not UInt).
+    pronunciationConfig.nbestPhonemeCount = nbestPhonemeCount
 
     guard
       let speechRecognizer = try? SPXSpeechRecognizer(
@@ -88,21 +89,21 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     var jsonOut: String?
     var errOut: NSError?
 
-    speechRecognizer.recognizeOnceAsync { result in
-      defer { result.close() }
-      if result.reason == SPXResultReason.recognizedSpeech {
-        jsonOut = result.properties?.getPropertyBy(SPXPropertyId.speechServiceResponseJsonResult)
+    speechRecognizer.recognizeOnceAsync { recognitionResult in
+      defer { recognitionResult.close() }
+      if recognitionResult.reason == SPXResultReason.recognizedSpeech {
+        jsonOut = recognitionResult.properties?.getPropertyBy(SPXPropertyId.speechServiceResponseJsonResult)
         if jsonOut == nil || jsonOut!.isEmpty {
           errOut = NSError(
             domain: "AzureSpeech", code: 2,
             userInfo: [NSLocalizedDescriptionKey: "Empty JsonResult"])
         }
-      } else if result.reason == SPXResultReason.noMatch {
+      } else if recognitionResult.reason == SPXResultReason.noMatch {
         errOut = NSError(
           domain: "AzureSpeech", code: 1,
           userInfo: [NSLocalizedDescriptionKey: "No speech detected"])
-      } else if result.reason == SPXResultReason.canceled {
-        let cancellationDetails = try? SPXCancellationDetails(fromCanceledRecognitionResult: result)
+      } else if recognitionResult.reason == SPXResultReason.canceled {
+        let cancellationDetails = try? SPXCancellationDetails(fromCanceledRecognitionResult: recognitionResult)
         let msg = "\(String(describing: cancellationDetails?.reason)): \(cancellationDetails?.errorDetails ?? "")"
         errOut = NSError(
           domain: "AzureSpeech", code: 3,
