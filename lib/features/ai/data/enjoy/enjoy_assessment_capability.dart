@@ -39,37 +39,58 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
     final token = await _tokenCache.getToken(durationSeconds: durationSeconds);
 
     final (wavPath, deleteMaterialized) = await _materializeWav(request);
-    var pathForSdk = wavPath;
-    var deleteNormalized = false;
+    String? normalizedPath;
     try {
-      final normalized = await tryCreateNormalizedAzureAssessmentWav(wavPath);
-      if (normalized != null) {
-        pathForSdk = normalized;
-        deleteNormalized = true;
-      } else {
-        _log.fine(
-          'Azure assessment: using original WAV (FFmpeg normalize unavailable or failed)',
-        );
-      }
+      normalizedPath = await tryCreateNormalizedAzureAssessmentWav(wavPath);
+      _log.fine(
+        normalizedPath == null
+            ? 'Azure assessment: using original WAV (normalization unavailable / silent)'
+            : 'Azure assessment: using normalized WAV $normalizedPath',
+      );
 
       final azureLanguage = mapTranscriptLanguageToAzure(request.language);
-      final params = AzurePronunciationAssessmentParams(
-        audioPath: pathForSdk,
-        referenceText: _cleanReferenceText(request.referenceText),
+      final referenceText = _cleanReferenceText(request.referenceText);
+
+      AzureSpeechAssessmentOutcome outcome = await _assessPath(
+        audioPath: normalizedPath ?? wavPath,
+        referenceText: referenceText,
         language: azureLanguage,
         token: token.token,
         region: token.region,
+        usedNormalizedWav: normalizedPath != null,
+        attempt: normalizedPath != null ? 'normalized' : 'original',
       );
-      final audioBytes = await File(pathForSdk).length();
-      final outcome = await _sdk.assess(params);
-      _logAssessmentOutcome(
-        outcome: outcome,
-        audioBasename: p.basename(pathForSdk),
-        audioBytes: audioBytes,
-        usedNormalizedWav: deleteNormalized,
-        language: azureLanguage,
-        referenceChars: params.referenceText.length,
-      );
+
+      // Defense in depth: if the normalized take came back blank (all zero
+      // scores / all omissions / displayText="."), retry against the original
+      // file to rule out a bad FFmpeg decode masking real audio.
+      if (normalizedPath != null && _looksLikeEmptyAssessment(outcome)) {
+        _log.warning(
+          'Azure assessment normalized run came back blank; retrying with the '
+          'original recording to rule out a bad FFmpeg decode.',
+        );
+        try {
+          final originalOutcome = await _assessPath(
+            audioPath: wavPath,
+            referenceText: referenceText,
+            language: azureLanguage,
+            token: token.token,
+            region: token.region,
+            usedNormalizedWav: false,
+            attempt: 'original-fallback',
+          );
+          if (!_looksLikeEmptyAssessment(originalOutcome)) {
+            outcome = originalOutcome;
+          }
+        } on AzureSpeechException catch (e, st) {
+          _log.warning(
+            'Azure assessment original fallback failed; keeping normalized result',
+            e,
+            st,
+          );
+        }
+      }
+
       return AssessmentResult(
         detail: outcome.detail,
         rawJson: Map<String, dynamic>.from(outcome.rawJson),
@@ -78,11 +99,11 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
       _log.warning('Azure assessment failed', e, st);
       rethrow;
     } finally {
-      if (deleteNormalized) {
+      if (normalizedPath != null) {
         try {
-          await File(pathForSdk).delete();
+          await File(normalizedPath).delete();
         } catch (e, st) {
-          _log.fine('normalized wav cleanup failed: $pathForSdk', e, st);
+          _log.fine('normalized wav cleanup failed: $normalizedPath', e, st);
         }
       }
       if (deleteMaterialized) {
@@ -95,13 +116,44 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
     }
   }
 
+  Future<AzureSpeechAssessmentOutcome> _assessPath({
+    required String audioPath,
+    required String referenceText,
+    required String language,
+    required String token,
+    required String region,
+    required bool usedNormalizedWav,
+    required String attempt,
+  }) async {
+    final params = AzurePronunciationAssessmentParams(
+      audioPath: audioPath,
+      referenceText: referenceText,
+      language: language,
+      token: token,
+      region: region,
+    );
+    final audioBytes = await File(audioPath).length();
+    final outcome = await _sdk.assess(params);
+    _logAssessmentOutcome(
+      outcome: outcome,
+      audioPath: audioPath,
+      audioBytes: audioBytes,
+      usedNormalizedWav: usedNormalizedWav,
+      language: language,
+      referenceChars: referenceText.length,
+      attempt: attempt,
+    );
+    return outcome;
+  }
+
   static void _logAssessmentOutcome({
     required AzureSpeechAssessmentOutcome outcome,
-    required String audioBasename,
+    required String audioPath,
     required int audioBytes,
     required bool usedNormalizedWav,
     required String language,
     required int referenceChars,
+    required String attempt,
   }) {
     final d = outcome.detail;
     final nb = d.nBest.isEmpty ? null : d.nBest.first;
@@ -112,8 +164,9 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
       if (w.pronunciationAssessment.errorType == 'Omission') omissions++;
     }
     _log.fine(
-      'Azure assessment audio=$audioBasename bytes=$audioBytes '
-      'normalized=$usedNormalizedWav language=$language refChars=$referenceChars',
+      'Azure assessment attempt=$attempt audio=${p.basename(audioPath)} '
+      'path=$audioPath bytes=$audioBytes normalized=$usedNormalizedWav '
+      'language=$language refChars=$referenceChars',
     );
     _log.fine(
       'Azure assessment result status=${d.recognitionStatus} '
@@ -134,6 +187,23 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
         'and check FFmpeg normalization and transcript language.',
       );
     }
+  }
+
+  static bool _looksLikeEmptyAssessment(AzureSpeechAssessmentOutcome outcome) {
+    final nb = outcome.detail.nBest.isEmpty ? null : outcome.detail.nBest.first;
+    final sc = nb?.pronunciationAssessment;
+    if (sc == null) return true;
+    final words = nb?.words ?? const <AzureWordAssessment>[];
+    final allScoresZero =
+        sc.pronScore == 0 &&
+        sc.accuracyScore == 0 &&
+        sc.fluencyScore == 0 &&
+        sc.completenessScore == 0;
+    final allWordsOmitted =
+        words.isNotEmpty &&
+        words.every((w) => w.pronunciationAssessment.errorType == 'Omission');
+    final displayLooksEmpty = outcome.detail.displayText.trim() == '.';
+    return allScoresZero && (allWordsOmitted || displayLooksEmpty);
   }
 
   static int _estimateDurationSeconds(AssessmentRequest request) {

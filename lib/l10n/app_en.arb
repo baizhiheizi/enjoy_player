@@ -155,6 +155,48 @@
       }
     }
   },
+  "settingsSectionRecording": "Recording",
+  "@settingsSectionRecording": {
+    "description": "Header for the recording settings section."
+  },
+  "settingsSectionRecordingHint": "Microphone used for shadow-reading takes.",
+  "@settingsSectionRecordingHint": {
+    "description": "Subtitle under the recording section header."
+  },
+  "settingsRecordingMicTitle": "Microphone",
+  "@settingsRecordingMicTitle": {
+    "description": "Title of the microphone picker tile in settings."
+  },
+  "settingsRecordingMicAuto": "Auto · {label}",
+  "@settingsRecordingMicAuto": {
+    "description": "Subtitle of the mic tile when auto-picking. The label is the resolved device.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Realtek Microphone Array"
+      }
+    }
+  },
+  "settingsRecordingMicAutoNoDevice": "Auto · system default",
+  "@settingsRecordingMicAutoNoDevice": {
+    "description": "Subtitle of the mic tile when auto-picking and no devices were enumerated yet."
+  },
+  "settingsRecordingMicEmpty": "No microphones detected",
+  "@settingsRecordingMicEmpty": {
+    "description": "Subtitle / empty state when the OS reports no input devices."
+  },
+  "settingsRecordingMicAutoOption": "Auto (skip virtual mics)",
+  "@settingsRecordingMicAutoOption": {
+    "description": "Menu/dialog option that lets the heuristic pick the first non-virtual device."
+  },
+  "settingsRecordingMicDialogTitle": "Choose microphone",
+  "@settingsRecordingMicDialogTitle": {
+    "description": "Title of the modal dialog used to pick a recording input device."
+  },
+  "shadowRecordingSilentWarning": "No microphone signal detected. Open Settings → Recording to pick a different microphone.",
+  "@shadowRecordingSilentWarning": {
+    "description": "Warning shown right after a take when the captured WAV has no signal energy (e.g. Windows captured a virtual loopback device)."
+  },
   "shadowRecordingPlaybackFailed": "Couldn't play this take.",
   "shadowRecordingOverTarget": "+{seconds}s over target",
   "@shadowRecordingOverTarget": {

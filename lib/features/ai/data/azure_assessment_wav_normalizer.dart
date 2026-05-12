@@ -82,10 +82,16 @@ Future<void> _deleteIfExists(String path) async {
   } on Object catch (_) {}
 }
 
+bool _looksSilent(WavPeakScan scan) {
+  return scan.rmsNormalized < 0.001 ||
+      scan.nonZeroRatio < 0.01 ||
+      scan.peakNormalized < kWavSilencePeakNorm;
+}
+
 /// Runs FFmpeg to write **16 kHz, mono, signed 16-bit PCM** Microsoft WAV.
 ///
 /// Returns `true` when [outputWavPath] exists, has at least 100 bytes, and
-/// passes a **non-silent** peak check (guards against empty FFmpeg decode).
+/// passes a non-silent peak/RMS check (guards against empty FFmpeg decode).
 Future<bool> normalizeWavForAzureAssessment({
   required String inputPath,
   required String outputWavPath,
@@ -97,127 +103,72 @@ Future<bool> normalizeWavForAzureAssessment({
     _log.fine(
       'normalizeWav: input fmt=${inScan.fmt.audioFormat} ch=${inScan.fmt.numChannels} '
       '${inScan.fmt.sampleRate}Hz ${inScan.fmt.bitsPerSample}bit '
-      'peak≈${inScan.peakNormalized.toStringAsFixed(5)}',
+      'peak≈${inScan.peakNormalized.toStringAsFixed(5)} '
+      'rms≈${inScan.rmsNormalized.toStringAsFixed(6)} '
+      'nonZero=${(inScan.nonZeroRatio * 100).toStringAsFixed(2)}%',
     );
   }
 
-  const filterPrimary =
+  // Filter graph: resample to 16 kHz with libswr (more reliable on Windows
+  // than `-ac/-ar` flags), then force the output PCM layout Azure accepts.
+  const filter =
       'aresample=16000:resampler=swr,aformat=sample_fmts=s16:channel_layouts=mono';
-  const filterLegacy = 'aresample=16000,aformat=sample_fmts=s16:channel_layouts=mono';
-
-  Future<bool> encode(String filter) async {
-    await _deleteIfExists(outputWavPath);
-    if (Platform.isWindows) {
-      final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-      if (exe == null) {
-        _log.fine('normalizeWav: no ffmpeg on Windows, skipping');
-        return false;
-      }
-      final ok = await _runFfmpegWindows(
-        exe: exe,
-        inputPath: inputPath,
-        outputWavPath: outputWavPath,
-        audioFilter: filter,
-      );
-      if (!ok) return false;
-    } else {
-      final ok = await _runFfmpegKit(
-        inputPath: inputPath,
-        outputWavPath: outputWavPath,
-        audioFilter: filter,
-      );
-      if (!ok) return false;
-    }
-
-    final out = File(outputWavPath);
-    if (!out.existsSync()) return false;
-    if (out.lengthSync() < 100) {
-      _log.fine('normalizeWav: output too small (${out.lengthSync()} bytes)');
-      await _deleteIfExists(outputWavPath);
-      return false;
-    }
-
-    final outScan = await scanWavDataPeakFromFile(outputWavPath);
-    if (outScan == null) {
-      _log.fine('normalizeWav: could not parse output WAV for peak check');
-      return true;
-    }
-    if (outScan.peakNormalized < kWavSilencePeakNorm) {
-      _log.warning(
-        'normalizeWav: FFmpeg output appears silent '
-        '(peak≈${outScan.peakNormalized.toStringAsFixed(6)} filter="$filter")',
-      );
-      await _deleteIfExists(outputWavPath);
-      return false;
-    }
-    _log.fine(
-      'normalizeWav: output ok peak≈${outScan.peakNormalized.toStringAsFixed(5)} '
-      'bytes=${out.lengthSync()}',
-    );
-    return true;
-  }
-
-  if (await encode(filterPrimary)) return true;
-  if (await encode(filterLegacy)) return true;
 
   await _deleteIfExists(outputWavPath);
+  final bool encoded;
   if (Platform.isWindows) {
     final exe = await FfmpegMediaProbe.resolveFfmpegExecutable();
-    if (exe == null) return false;
-    final r = await Process.run(exe, [
-      '-nostdin',
-      '-hide_banner',
-      '-loglevel',
-      'error',
-      '-y',
-      '-i',
-      inputPath,
-      '-vn',
-      '-ac',
-      '1',
-      '-ar',
-      '16000',
-      '-sample_fmt',
-      's16',
-      '-c:a',
-      'pcm_s16le',
-      outputWavPath,
-    ]);
-    if (r.exitCode != 0) {
-      _log.fine(
-        'normalizeWav: legacy ffmpeg failed (exit ${r.exitCode}): ${r.stderr}',
-      );
+    if (exe == null) {
+      _log.fine('normalizeWav: no ffmpeg on Windows, skipping');
       return false;
     }
+    encoded = await _runFfmpegWindows(
+      exe: exe,
+      inputPath: inputPath,
+      outputWavPath: outputWavPath,
+      audioFilter: filter,
+    );
   } else {
-    final cmd =
-        '-nostdin -hide_banner -loglevel error -y -i ${_shellEscape(inputPath)} '
-        '-vn -ac 1 -ar 16000 -sample_fmt s16 -c:a pcm_s16le '
-        '${_shellEscape(outputWavPath)}';
-    final session = await FFmpegKit.execute(cmd);
-    final code = await session.getReturnCode();
-    if (!ReturnCode.isSuccess(code)) {
-      _log.fine(
-        'normalizeWav: legacy FFmpegKit failed: ${await session.getOutput()}',
-      );
-      return false;
-    }
+    encoded = await _runFfmpegKit(
+      inputPath: inputPath,
+      outputWavPath: outputWavPath,
+      audioFilter: filter,
+    );
   }
+  if (!encoded) return false;
 
   final out = File(outputWavPath);
   if (!out.existsSync() || out.lengthSync() < 100) {
-    await _deleteIfExists(outputWavPath);
-    return false;
-  }
-  final outScan = await scanWavDataPeakFromFile(outputWavPath);
-  if (outScan != null && outScan.peakNormalized < kWavSilencePeakNorm) {
-    _log.warning(
-      'normalizeWav: legacy FFmpeg output still silent '
-      '(peak≈${outScan.peakNormalized.toStringAsFixed(6)})',
+    _log.fine(
+      'normalizeWav: output too small '
+      '(${out.existsSync() ? out.lengthSync() : 0} bytes)',
     );
     await _deleteIfExists(outputWavPath);
     return false;
   }
+
+  final outScan = await scanWavDataPeakFromFile(outputWavPath);
+  if (outScan == null) {
+    _log.fine('normalizeWav: could not parse output WAV for peak check');
+    return true;
+  }
+  if (_looksSilent(outScan)) {
+    _log.warning(
+      'normalizeWav: FFmpeg output looks silent '
+      '(peak≈${outScan.peakNormalized.toStringAsFixed(6)} '
+      'rms≈${outScan.rmsNormalized.toStringAsFixed(6)} '
+      'nonZero=${(outScan.nonZeroRatio * 100).toStringAsFixed(2)}%)',
+    );
+    await _deleteIfExists(outputWavPath);
+    return false;
+  }
+  _log.fine(
+    'normalizeWav: output ok '
+    'peak≈${outScan.peakNormalized.toStringAsFixed(5)} '
+    'rms≈${outScan.rmsNormalized.toStringAsFixed(6)} '
+    'nonZero=${(outScan.nonZeroRatio * 100).toStringAsFixed(2)}% '
+    'bytes=${out.lengthSync()}',
+  );
   return true;
 }
 
@@ -233,10 +184,7 @@ Future<String?> tryCreateNormalizedAzureAssessmentWav(String inputPath) async {
     outputWavPath: out,
   );
   if (!ok) {
-    try {
-      final f = File(out);
-      if (f.existsSync()) await f.delete();
-    } catch (_) {}
+    await _deleteIfExists(out);
     return null;
   }
   return File(out).absolute.path;

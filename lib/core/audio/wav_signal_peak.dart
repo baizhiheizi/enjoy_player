@@ -2,6 +2,7 @@
 library;
 
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 /// Parsed `fmt ` chunk fields we need for scanning.
@@ -28,6 +29,9 @@ final class WavPeakScan {
     required this.fmt,
     required this.dataBytes,
     required this.peakNormalized,
+    required this.rmsNormalized,
+    required this.nonZeroRatio,
+    required this.totalSamples,
   });
 
   final WavFmtLayout fmt;
@@ -35,6 +39,21 @@ final class WavPeakScan {
 
   /// Max absolute sample as a fraction of full scale (PCM16: /32768, float: 0–1).
   final double peakNormalized;
+
+  /// Root-mean-square energy of the signal as a fraction of full scale.
+  ///
+  /// Unlike [peakNormalized], a single click or DC spike cannot inflate this
+  /// to a misleading value; real speech typically gives `rmsNormalized` of
+  /// roughly 0.02–0.3 even at moderate volume.
+  final double rmsNormalized;
+
+  /// Fraction of samples whose absolute value is above ~16-bit LSB
+  /// ([kWavSilencePeakNorm] full-scale). Useful to detect "all-zero with a
+  /// few stray spikes" output where [peakNormalized] looks healthy.
+  final double nonZeroRatio;
+
+  /// Total decoded samples (across all channels) considered.
+  final int totalSamples;
 }
 
 bool _fourCc(Uint8List bytes, int offset, String ascii) {
@@ -113,62 +132,85 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
   switch (f.audioFormat) {
     case 1: // PCM integer
       if (f.bitsPerSample == 16 && f.blockAlign == 2 * f.numChannels) {
-        var peak = 0.0;
-        final frames = data.length ~/ f.blockAlign;
-        for (var i = 0; i < frames; i++) {
-          final off = i * f.blockAlign;
-          for (var ch = 0; ch < f.numChannels; ch++) {
-            final s = data[off + 2 * ch] | (data[off + 2 * ch + 1] << 8);
-            final v = (s > 32767 ? s - 65536 : s).toDouble().abs();
-            if (v > peak) peak = v;
-          }
-        }
-        return WavPeakScan(
+        return _scanInt(
+          data: data,
           fmt: f,
-          dataBytes: dz,
-          peakNormalized: peak / 32768.0,
+          dz: dz,
+          fullScale: 32768.0,
+          readSampleAtByteOffset: (data, off) {
+            final s = data[off] | (data[off + 1] << 8);
+            return (s > 32767 ? s - 65536 : s).toDouble();
+          },
+          sampleStride: 2,
         );
       }
       if (f.bitsPerSample == 32 && f.blockAlign == 4 * f.numChannels) {
         final bd = ByteData.sublistView(data);
-        var peak = 0.0;
-        final frames = data.length ~/ f.blockAlign;
-        for (var i = 0; i < frames; i++) {
-          final off = i * f.blockAlign;
-          for (var ch = 0; ch < f.numChannels; ch++) {
-            final v = bd.getInt32(off + 4 * ch, Endian.little).toDouble().abs();
-            if (v > peak) peak = v;
-          }
-        }
-        return WavPeakScan(
+        return _scanInt(
+          data: data,
           fmt: f,
-          dataBytes: dz,
-          peakNormalized: peak / 2147483648.0,
+          dz: dz,
+          fullScale: 2147483648.0,
+          readSampleAtByteOffset: (data, off) =>
+              bd.getInt32(off, Endian.little).toDouble(),
+          sampleStride: 4,
         );
       }
       return null;
     case 3: // IEEE float
       if (f.bitsPerSample == 32 && f.blockAlign == 4 * f.numChannels) {
         final bd = ByteData.sublistView(data);
-        var peak = 0.0;
-        final frames = data.length ~/ f.blockAlign;
-        for (var i = 0; i < frames; i++) {
-          final off = i * f.blockAlign;
-          for (var ch = 0; ch < f.numChannels; ch++) {
-            final v = bd.getFloat32(off + 4 * ch, Endian.little).abs();
-            if (v > peak) peak = v;
-          }
-        }
-        return WavPeakScan(
+        return _scanInt(
+          data: data,
           fmt: f,
-          dataBytes: dz,
-          peakNormalized: peak.clamp(0.0, 1.0),
+          dz: dz,
+          fullScale: 1.0,
+          readSampleAtByteOffset: (data, off) =>
+              bd.getFloat32(off, Endian.little),
+          sampleStride: 4,
         );
       }
       return null;
     default:
       return null;
   }
+}
+
+WavPeakScan _scanInt({
+  required Uint8List data,
+  required WavFmtLayout fmt,
+  required int dz,
+  required double fullScale,
+  required double Function(Uint8List data, int byteOffset)
+      readSampleAtByteOffset,
+  required int sampleStride,
+}) {
+  var peak = 0.0;
+  var sumSquares = 0.0;
+  var nonZero = 0;
+  final frames = data.length ~/ fmt.blockAlign;
+  final totalSamples = frames * fmt.numChannels;
+  final silenceThreshold = kWavSilencePeakNorm * fullScale;
+  for (var i = 0; i < frames; i++) {
+    final frameOff = i * fmt.blockAlign;
+    for (var ch = 0; ch < fmt.numChannels; ch++) {
+      final off = frameOff + sampleStride * ch;
+      final v = readSampleAtByteOffset(data, off);
+      final av = v.abs();
+      if (av > peak) peak = av;
+      if (av > silenceThreshold) nonZero++;
+      sumSquares += v * v;
+    }
+  }
+  final rms = totalSamples == 0 ? 0.0 : math.sqrt(sumSquares / totalSamples);
+  return WavPeakScan(
+    fmt: fmt,
+    dataBytes: dz,
+    peakNormalized: (peak / fullScale).clamp(0.0, 1.0),
+    rmsNormalized: (rms / fullScale).clamp(0.0, 1.0),
+    nonZeroRatio: totalSamples == 0 ? 0.0 : nonZero / totalSamples,
+    totalSamples: totalSamples,
+  );
 }
 
 /// ~16-bit LSB — below this after normalization we treat FFmpeg output as silent.

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -21,6 +22,7 @@ import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_settings_section.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -419,6 +421,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   );
                 },
               ),
+            ),
+          ),
+
+          SliverToBoxAdapter(child: SizedBox(height: t.space8)),
+
+          // ── Recording (microphone) ─────────────────────────────────────
+          SliverToBoxAdapter(
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionRecording,
+              hint: l10n.settingsSectionRecordingHint,
+              icon: Icons.mic_none_rounded,
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: _SettingsCard(
+              padding: EdgeInsets.zero,
+              child: _RecordingMicTile(),
             ),
           ),
 
@@ -1023,4 +1042,98 @@ class _AiApiBaseUrlEditorState extends ConsumerState<_AiApiBaseUrlEditor> {
       ],
     );
   }
+}
+
+// ── Recording microphone tile ──────────────────────────────────────────────
+
+class _RecordingMicTile extends ConsumerWidget {
+  const _RecordingMicTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final state = ref.watch(recordingInputDeviceCtrlProvider).valueOrNull;
+    final selected = state?.selectedDevice;
+    final autoPicked = state?.autoPicked ?? true;
+
+    final String subtitle;
+    if (state == null || state.devices.isEmpty) {
+      subtitle = l10n.settingsRecordingMicEmpty;
+    } else if (autoPicked) {
+      subtitle = selected != null
+          ? l10n.settingsRecordingMicAuto(selected.label)
+          : l10n.settingsRecordingMicAutoNoDevice;
+    } else {
+      subtitle = selected?.label ?? l10n.settingsRecordingMicEmpty;
+    }
+
+    return _SettingsTile(
+      leadingIcon: Icons.mic_none_rounded,
+      title: l10n.settingsRecordingMicTitle,
+      subtitle: subtitle,
+      onTap: () async {
+        await ref
+            .read(recordingInputDeviceCtrlProvider.notifier)
+            .refresh();
+        if (!context.mounted) return;
+        await _showRecordingMicPicker(context, ref);
+      },
+    );
+  }
+}
+
+Future<void> _showRecordingMicPicker(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final state = ref.read(recordingInputDeviceCtrlProvider).valueOrNull;
+  final devices = state?.devices ?? const [];
+  final selectedId = state?.selectedId;
+  final autoPicked = state?.autoPicked ?? true;
+
+  // The dialog applies the choice itself (via the controller) and then pops.
+  // Barrier-dismiss is a no-op, no need to disambiguate the result.
+  final groupValue = autoPicked ? null : selectedId;
+  await showDialog<void>(
+    context: context,
+    builder: (dialogCtx) {
+      Future<void> apply(String? deviceId) async {
+        await ref
+            .read(recordingInputDeviceCtrlProvider.notifier)
+            .selectDeviceId(deviceId);
+        if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
+      }
+
+      return SimpleDialog(
+        title: Text(l10n.settingsRecordingMicDialogTitle),
+        children: [
+          RadioGroup<String?>(
+            groupValue: groupValue,
+            onChanged: apply,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String?>(
+                  value: null,
+                  title: Text(l10n.settingsRecordingMicAutoOption),
+                ),
+                if (devices.isEmpty)
+                  ListTile(
+                    enabled: false,
+                    title: Text(l10n.settingsRecordingMicEmpty),
+                  )
+                else
+                  for (final d in devices)
+                    RadioListTile<String?>(
+                      value: d.id,
+                      title: Text(d.label, overflow: TextOverflow.ellipsis),
+                    ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }

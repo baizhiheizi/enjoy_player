@@ -39,6 +39,9 @@ void main() {
     final r = scanWavDataPeakFromBytes(bytes);
     expect(r, isNotNull);
     expect(r!.peakNormalized, 0);
+    expect(r.rmsNormalized, 0);
+    expect(r.nonZeroRatio, 0);
+    expect(r.totalSamples, 200);
   });
 
   test('scanWavDataPeakFromBytes detects non-zero PCM16', () {
@@ -46,5 +49,23 @@ void main() {
     final r = scanWavDataPeakFromBytes(bytes);
     expect(r, isNotNull);
     expect(r!.peakNormalized, closeTo(3000 / 32768.0, 1e-6));
+    expect(r.totalSamples, 4);
+    expect(r.nonZeroRatio, 0.5);
+    expect(r.rmsNormalized, greaterThan(0));
+    expect(r.rmsNormalized, lessThan(r.peakNormalized));
   });
+
+  test(
+    'scanWavDataPeakFromBytes flags single-spike-mostly-zero as silent by RMS',
+    () {
+      final samples = List<int>.filled(16000, 0);
+      samples[100] = 32000;
+      final bytes = _pcm16MonoWav(16000, samples);
+      final r = scanWavDataPeakFromBytes(bytes);
+      expect(r, isNotNull);
+      expect(r!.peakNormalized, closeTo(32000 / 32768.0, 1e-6));
+      expect(r.nonZeroRatio, lessThan(0.001));
+      expect(r.rmsNormalized, lessThan(0.01));
+    },
+  );
 }

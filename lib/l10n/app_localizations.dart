@@ -838,6 +838,60 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save recording: {reason}'**
   String shadowRecordingSaveFailed(String reason);
 
+  /// Header for the recording settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get settingsSectionRecording;
+
+  /// Subtitle under the recording section header.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone used for shadow-reading takes.'**
+  String get settingsSectionRecordingHint;
+
+  /// Title of the microphone picker tile in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone'**
+  String get settingsRecordingMicTitle;
+
+  /// Subtitle of the mic tile when auto-picking. The label is the resolved device.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto · {label}'**
+  String settingsRecordingMicAuto(String label);
+
+  /// Subtitle of the mic tile when auto-picking and no devices were enumerated yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto · system default'**
+  String get settingsRecordingMicAutoNoDevice;
+
+  /// Subtitle / empty state when the OS reports no input devices.
+  ///
+  /// In en, this message translates to:
+  /// **'No microphones detected'**
+  String get settingsRecordingMicEmpty;
+
+  /// Menu/dialog option that lets the heuristic pick the first non-virtual device.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto (skip virtual mics)'**
+  String get settingsRecordingMicAutoOption;
+
+  /// Title of the modal dialog used to pick a recording input device.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose microphone'**
+  String get settingsRecordingMicDialogTitle;
+
+  /// Warning shown right after a take when the captured WAV has no signal energy (e.g. Windows captured a virtual loopback device).
+  ///
+  /// In en, this message translates to:
+  /// **'No microphone signal detected. Open Settings → Recording to pick a different microphone.'**
+  String get shadowRecordingSilentWarning;
+
   /// No description provided for @shadowRecordingPlaybackFailed.
   ///
   /// In en, this message translates to:

@@ -10,6 +10,11 @@ abstract final class SettingsKeys {
   static const String prefsLearningLanguage = 'prefs.learning_language';
   static const String prefsNativeLanguage = 'prefs.native_language';
 
+  /// Capture device id (`record` package `InputDevice.id`) for shadow-reading
+  /// recordings. Empty / missing means "auto-pick the first non-virtual mic".
+  static const String prefsRecordingInputDeviceId =
+      'prefs.recording_input_device_id';
+
   /// ISO-8601 cursor for incremental `updatedAfter` downloads.
   static const String syncCursorAudio = 'sync.cursor.audio';
   static const String syncCursorVideo = 'sync.cursor.video';

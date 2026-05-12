@@ -400,6 +400,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settingsSectionRecording => 'Recording';
+
+  @override
+  String get settingsSectionRecordingHint =>
+      'Microphone used for shadow-reading takes.';
+
+  @override
+  String get settingsRecordingMicTitle => 'Microphone';
+
+  @override
+  String settingsRecordingMicAuto(String label) {
+    return 'Auto · $label';
+  }
+
+  @override
+  String get settingsRecordingMicAutoNoDevice => 'Auto · system default';
+
+  @override
+  String get settingsRecordingMicEmpty => 'No microphones detected';
+
+  @override
+  String get settingsRecordingMicAutoOption => 'Auto (skip virtual mics)';
+
+  @override
+  String get settingsRecordingMicDialogTitle => 'Choose microphone';
+
+  @override
+  String get shadowRecordingSilentWarning =>
+      'No microphone signal detected. Open Settings → Recording to pick a different microphone.';
+
+  @override
   String get shadowRecordingPlaybackFailed => 'Couldn\'t play this take.';
 
   @override

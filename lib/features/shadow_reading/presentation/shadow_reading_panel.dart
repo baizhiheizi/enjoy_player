@@ -17,12 +17,15 @@ import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/audio/wav_duration_ms.dart';
+import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
+import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_button.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
@@ -81,9 +84,29 @@ class ShadowReadingPanel extends ConsumerStatefulWidget {
   ConsumerState<ShadowReadingPanel> createState() => _ShadowReadingPanelState();
 }
 
+/// Capture config aligned with the web client and Azure Speech expectations.
+///
+/// 16 kHz mono PCM16 WAV avoids stereo downmix loss (one mic channel + one
+/// silent / out-of-phase channel cancelling each other to zero) and matches
+/// what the Azure Speech SDK accepts directly without downstream re-encoding.
+///
+/// `device` is filled in at call site from
+/// [recordingInputDeviceCtrlProvider] so we capture from the user's chosen
+/// (or auto-picked, non-virtual) microphone — this is what stops Windows from
+/// silently picking GlideX / VoiceMeeter / Stereo-Mix loopback devices.
+RecordConfig _buildShadowRecordConfig(InputDevice? device) => RecordConfig(
+      encoder: AudioEncoder.wav,
+      sampleRate: 16000,
+      numChannels: 1,
+      device: device,
+    );
+
 class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
-    with SingleTickerProviderStateMixin {
-  final AudioRecorder _recorder = AudioRecorder();
+    with TickerProviderStateMixin {
+  /// Recreated after every `stop()` — `record` on Windows can keep stale Media
+  /// Foundation state on the same instance, so a second `start()` quietly
+  /// produces a zero-sample WAV ("second take won't record").
+  AudioRecorder _recorder = AudioRecorder();
   bool _recording = false;
   String? _selectedRecordingId;
   String? _mediaPath;
@@ -187,6 +210,16 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     return (t - widget.startSec).clamp(0.0, widget.endSec - widget.startSec);
   }
 
+  Future<void> _resetRecorderInstance() async {
+    final old = _recorder;
+    _recorder = AudioRecorder();
+    try {
+      await old.dispose();
+    } catch (e, st) {
+      _log.fine('audio recorder dispose after stop failed', e, st);
+    }
+  }
+
   Future<void> _toggleRecord(AppLocalizations l10n) async {
     if (!widget.echoActive) return;
     if (_recording) {
@@ -197,6 +230,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
         _log.warning('microphone stop failed', e, st);
         _recording = false;
         _clearRecordingTiming();
+        await _resetRecorderInstance();
         if (mounted) setState(() {});
         if (mounted) {
           AppNotice.error(
@@ -208,11 +242,13 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
       }
       _recording = false;
       _clearRecordingTiming();
+      await _resetRecorderInstance();
       setState(() {});
       if (path == null || path.isEmpty) {
         _log.warning('recorder.stop returned no path');
         return;
       }
+      _log.fine('recorder.stop wrote $path');
       await _persistRecording(path, l10n);
       return;
     }
@@ -225,16 +261,54 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     final id = const Uuid().v4();
     final outPath = p.join(dir.path, '$id.wav');
 
-    if (!await _recorder.hasPermission()) {
+    bool granted;
+    try {
+      granted = await _recorder.hasPermission();
+    } catch (e, st) {
+      _log.warning('recorder.hasPermission failed', e, st);
+      if (mounted) {
+        AppNotice.error(
+          context,
+          l10n.shadowRecordingSaveFailed(_shortSaveError(e)),
+        );
+      }
+      return;
+    }
+    if (!granted) {
       if (mounted) {
         AppNotice.warning(context, l10n.shadowRecordingMicDenied);
       }
       return;
     }
 
-    await _recorder.start(
-      const RecordConfig(encoder: AudioEncoder.wav),
-      path: outPath,
+    // Refresh so a USB mic plugged in since app start is considered by the
+    // auto-pick heuristic (selection is then read from the provider state).
+    await ref.read(recordingInputDeviceCtrlProvider.notifier).refresh();
+    final deviceState = ref.read(recordingInputDeviceCtrlProvider).valueOrNull;
+    final selectedDevice = deviceState?.selectedDevice;
+    final config = _buildShadowRecordConfig(selectedDevice);
+
+    try {
+      await _recorder.start(config, path: outPath);
+    } catch (e, st) {
+      _log.warning('recorder.start failed at $outPath', e, st);
+      _recording = false;
+      _clearRecordingTiming();
+      await _resetRecorderInstance();
+      if (mounted) setState(() {});
+      if (mounted) {
+        AppNotice.error(
+          context,
+          l10n.shadowRecordingSaveFailed(_shortSaveError(e)),
+        );
+      }
+      return;
+    }
+    _log.fine(
+      'recorder.start ok path=$outPath '
+      'sampleRate=${config.sampleRate} numChannels=${config.numChannels} '
+      'device="${selectedDevice?.label ?? "<os-default>"}"'
+      '${deviceState?.autoPicked == false ? " (user)" : " (auto)"}',
     );
     _recording = true;
     _pitchExpanded = false;
@@ -266,6 +340,40 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
         _log.warning(
           'could not parse WAV duration ($wavPath, ${bytes.length} bytes)',
         );
+      }
+
+      final peak = scanWavDataPeakFromBytes(bytes);
+      if (peak != null) {
+        _log.fine(
+          'recording wav fmt=${peak.fmt.audioFormat} '
+          'ch=${peak.fmt.numChannels} ${peak.fmt.sampleRate}Hz '
+          '${peak.fmt.bitsPerSample}bit '
+          'peak≈${peak.peakNormalized.toStringAsFixed(5)} '
+          'rms≈${peak.rmsNormalized.toStringAsFixed(6)} '
+          'nonZero=${(peak.nonZeroRatio * 100).toStringAsFixed(2)}% '
+          'samples=${peak.totalSamples} '
+          'bytes=${bytes.length} durMs=$durationMs',
+        );
+        // Real speech captured at moderate volume gives RMS in the rough
+        // 0.02-0.3 range. RMS below ~0.001 with non-zero ratio under ~1% means
+        // the WAV is essentially silent even when peak looks healthy.
+        const minRms = 0.001;
+        const minNonZeroRatio = 0.01;
+        final looksSilent =
+            peak.rmsNormalized < minRms ||
+            peak.nonZeroRatio < minNonZeroRatio;
+        if (looksSilent) {
+          _log.warning(
+            'recording wav appears silent '
+            '(peak≈${peak.peakNormalized.toStringAsFixed(6)} '
+            'rms≈${peak.rmsNormalized.toStringAsFixed(6)} '
+            'nonZero=${(peak.nonZeroRatio * 100).toStringAsFixed(2)}%). '
+            'Check Windows microphone privacy / default input device.',
+          );
+          if (mounted) {
+            AppNotice.warning(context, l10n.shadowRecordingSilentWarning);
+          }
+        }
       }
 
       final db = ref.read(appDatabaseProvider);
