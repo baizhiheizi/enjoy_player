@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -50,10 +51,9 @@ class TranscriptPanel extends ConsumerWidget {
           language: trimmed,
         );
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.importSubtitleSuccess),
-        ),
+      AppNotice.success(
+        context,
+        AppLocalizations.of(context)!.importSubtitleSuccess,
       );
     }
   }

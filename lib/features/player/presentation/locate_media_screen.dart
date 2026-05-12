@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -53,9 +54,7 @@ class _LocateMediaScreenState extends ConsumerState<LocateMediaScreen> {
             );
       } on AppFailure {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.mediaLocateHashMismatch)),
-        );
+        AppNotice.error(context, l10n.mediaLocateHashMismatch);
       }
     } finally {
       if (mounted) {

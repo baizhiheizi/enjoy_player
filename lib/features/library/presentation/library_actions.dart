@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -71,16 +72,12 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
   } on AppFailure catch (e) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      AppNotice.error(context, e.message);
     }
   } catch (_) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.importMediaFailed)),
-      );
+      AppNotice.error(context, l10n.importMediaFailed);
     }
   }
 }
@@ -118,9 +115,7 @@ Future<void> confirmAndDeleteMedia(
       context.pop();
     }
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.libraryMediaDeleted)),
-    );
+    AppNotice.success(context, l10n.libraryMediaDeleted);
   } catch (_) {
     if (context.mounted) {
     }
@@ -263,16 +258,12 @@ Future<void> importYoutubeFromDialog(BuildContext context, WidgetRef ref) async 
   } on AppFailure catch (e) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      AppNotice.error(context, e.message);
     }
   } catch (_) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.youtubeImportInvalid)),
-      );
+      AppNotice.error(context, l10n.youtubeImportInvalid);
     }
   }
 }

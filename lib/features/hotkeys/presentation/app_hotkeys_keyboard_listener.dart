@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
@@ -124,9 +125,7 @@ class _AppHotkeysKeyboardListenerState
       if (navCtx != null) {
         final l10n = AppLocalizations.of(navCtx);
         if (l10n != null) {
-          ScaffoldMessenger.of(navCtx).showSnackBar(
-            SnackBar(content: Text(l10n.hotkeysStubSearch)),
-          );
+          AppNotice.info(navCtx, l10n.hotkeysStubSearch);
         }
       }
       _log.fine('global search hotkey (stub)');

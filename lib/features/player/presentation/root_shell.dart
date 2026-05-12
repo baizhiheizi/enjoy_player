@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
@@ -100,25 +101,35 @@ class _RootShellState extends ConsumerState<RootShell> {
             ],
           );
 
+          final bottomClearance =
+              (sessionActive ? kRootShellTransportSnackClearance : 0.0) +
+              (!useSidebar && !onPlayer ? kRootShellBottomNavSnackClearance : 0.0);
+
           if (useSidebar) {
-            return Scaffold(
-              body: SafeArea(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Semantics(
-                      container: true,
-                      label: l10n.navMainLabel,
-                      child: const AppSidebar(),
-                    ),
-                    Expanded(child: pageColumn),
-                  ],
+            return RootShellBottomInset(
+              bottomClearance: bottomClearance,
+              child: Scaffold(
+                body: SafeArea(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Semantics(
+                        container: true,
+                        label: l10n.navMainLabel,
+                        child: const AppSidebar(),
+                      ),
+                      Expanded(child: pageColumn),
+                    ],
+                  ),
                 ),
               ),
             );
           }
 
-          return Scaffold(body: SafeArea(child: pageColumn));
+          return RootShellBottomInset(
+            bottomClearance: bottomClearance,
+            child: Scaffold(body: SafeArea(child: pageColumn)),
+          );
         },
       ),
     );

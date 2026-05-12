@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -434,9 +435,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
               _inLibrary = true;
               _busy = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.cloudAddedToLibrary)),
-            );
+            AppNotice.success(context, l10n.cloudAddedToLibrary);
           } catch (_) {
             if (mounted) setState(() => _busy = false);
           }
@@ -645,9 +644,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
               _inLibrary = true;
               _busy = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.cloudAddedToLibrary)),
-            );
+            AppNotice.success(context, l10n.cloudAddedToLibrary);
           } catch (_) {
             if (mounted) setState(() => _busy = false);
           }

@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
@@ -66,9 +67,7 @@ class _HotkeysSettingsSectionState extends ConsumerState<HotkeysSettingsSection>
       final ok = await ctrl.setBinding(id, chord);
       if (!context.mounted) return;
       if (!ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.hotkeysConflictError)),
-        );
+        AppNotice.error(context, l10n.hotkeysConflictError);
       }
     }
 

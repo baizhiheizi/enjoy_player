@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/guest_migration_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -106,19 +107,15 @@ class GuestMigrationBanner extends ConsumerWidget {
                             final s = ref.read(guestMigrationCtrlProvider);
                             s.when(
                               data: (_) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.migrationSuccess),
-                                  ),
+                                AppNotice.success(
+                                  context,
+                                  l10n.migrationSuccess,
                                 );
                               },
                               error: (Object e, StackTrace st) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.migrationMigrationFailed,
-                                    ),
-                                  ),
+                                AppNotice.error(
+                                  context,
+                                  l10n.migrationMigrationFailed,
                                 );
                               },
                               loading: () {},

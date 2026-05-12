@@ -8,6 +8,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -248,10 +249,9 @@ class _SigningInWebPaneState extends ConsumerState<_SigningInWebPane> {
     final uri = Uri.parse(widget.verificationUrl);
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.playerOpenGenericError),
-        ),
+      AppNotice.error(
+        context,
+        AppLocalizations.of(context)!.playerOpenGenericError,
       );
     }
   }

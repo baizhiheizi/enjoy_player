@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
@@ -43,9 +44,7 @@ Future<void> triggerRecordingAssessment({
 }) async {
   if (kIsWeb) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.assessmentWebUnsupported)),
-      );
+      AppNotice.warning(context, l10n.assessmentWebUnsupported);
     }
     return;
   }
@@ -61,9 +60,7 @@ Future<void> triggerRecordingAssessment({
         await showAssessmentResultDialog(context: context, assessment: parsed);
       } on Object {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.assessmentInvalidStored)),
-        );
+        AppNotice.error(context, l10n.assessmentInvalidStored);
       }
       return;
     }
@@ -77,12 +74,9 @@ Future<void> triggerRecordingAssessment({
     case RecordingAssessmentSuccess(:final detail):
       await showAssessmentResultDialog(context: context, assessment: detail);
     case RecordingAssessmentFailure(:final kind, :final debugMessage):
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            recordingAssessmentFailureMessage(l10n, kind, debugMessage: debugMessage),
-          ),
-        ),
+      AppNotice.error(
+        context,
+        recordingAssessmentFailureMessage(l10n, kind, debugMessage: debugMessage),
       );
   }
 }

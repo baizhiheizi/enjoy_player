@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'import_subtitle_language_dialog.dart';
@@ -123,10 +124,9 @@ class _SubtitleTrackPickerSheetState
         language: trimmed,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.importSubtitleSuccess),
-          ),
+        AppNotice.success(
+          context,
+          AppLocalizations.of(context)!.importSubtitleSuccess,
         );
       }
     } finally {
@@ -155,9 +155,7 @@ class _SubtitleTrackPickerSheetState
           .read(transcriptRepositoryProvider)
           .fetchCloudTranscripts(widget.mediaId, force: true);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.subtitlesRefreshDone)),
-        );
+        AppNotice.success(context, l10n.subtitlesRefreshDone);
       }
     } finally {
       if (mounted) setState(() => _refreshingCloud = false);

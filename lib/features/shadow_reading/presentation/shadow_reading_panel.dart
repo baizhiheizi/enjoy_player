@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
 import 'package:enjoy_player/core/audio/wav_duration_ms.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -198,12 +199,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
         _clearRecordingTiming();
         if (mounted) setState(() {});
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n.shadowRecordingSaveFailed(_shortSaveError(e)),
-              ),
-            ),
+          AppNotice.error(
+            context,
+            l10n.shadowRecordingSaveFailed(_shortSaveError(e)),
           );
         }
         return;
@@ -229,9 +227,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
 
     if (!await _recorder.hasPermission()) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.shadowRecordingMicDenied)),
-        );
+        AppNotice.warning(context, l10n.shadowRecordingMicDenied);
       }
       return;
     }
@@ -254,12 +250,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
       if (!await file.exists()) {
         _log.warning('recording wav missing at path: $wavPath');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n.shadowRecordingSaveFailed('Recorded file was not found.'),
-              ),
-            ),
+          AppNotice.error(
+            context,
+            l10n.shadowRecordingSaveFailed('Recorded file was not found.'),
           );
         }
         return;
@@ -308,10 +301,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     } catch (e, st) {
       _log.warning('save recording failed', e, st);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.shadowRecordingSaveFailed(_shortSaveError(e))),
-          ),
+        AppNotice.error(
+          context,
+          l10n.shadowRecordingSaveFailed(_shortSaveError(e)),
         );
       }
     }
@@ -324,9 +316,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
       _log.warning('shadow take playback failed', e, st);
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.shadowRecordingPlaybackFailed)),
-      );
+      AppNotice.error(context, l10n.shadowRecordingPlaybackFailed);
     }
   }
 

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
@@ -24,9 +25,7 @@ Future<void> runEmbeddedSubtitleExtract({
   final uri = await resolvePlayableSourceUri(db, mediaId);
   if (uri == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.subtitlesNoPlayableUri)),
-      );
+      AppNotice.error(context, l10n.subtitlesNoPlayableUri);
     }
     return;
   }
@@ -53,12 +52,8 @@ Future<void> runEmbeddedSubtitleExtract({
 
   if (!context.mounted) return;
   if (count == 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.subtitlesExtractNoTracks)),
-    );
+    AppNotice.warning(context, l10n.subtitlesExtractNoTracks);
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.subtitlesExtractedCount(count))),
-    );
+    AppNotice.success(context, l10n.subtitlesExtractedCount(count));
   }
 }

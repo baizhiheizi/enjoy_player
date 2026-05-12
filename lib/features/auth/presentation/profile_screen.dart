@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -221,8 +222,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     _applyProfile(after.profile);
                                   }
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(l10n.profileSaveSuccess)),
+                                    AppNotice.success(
+                                      context,
+                                      l10n.profileSaveSuccess,
                                     );
                                   }
                                 } finally {

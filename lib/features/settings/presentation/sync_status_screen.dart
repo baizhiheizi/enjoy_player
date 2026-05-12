@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/sync/application/pending_rekey_provider.dart';
@@ -75,16 +76,12 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
       final result =
           await ref.read(syncCtrlProvider.notifier).triggerSync();
       if (!context.mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
       if (result.success) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.syncSnackSuccess)));
+        AppNotice.success(context, l10n.syncSnackSuccess);
       } else {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.syncSnackIssues(result.synced, result.failed),
-            ),
-          ),
+        AppNotice.warning(
+          context,
+          l10n.syncSnackIssues(result.synced, result.failed),
         );
       }
     } finally {
@@ -102,16 +99,12 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
           .read(syncCtrlProvider.notifier)
           .triggerSync(resetFailed: true);
       if (!context.mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
       if (result.success) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.syncSnackSuccess)));
+        AppNotice.success(context, l10n.syncSnackSuccess);
       } else {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.syncSnackIssues(result.synced, result.failed),
-            ),
-          ),
+        AppNotice.warning(
+          context,
+          l10n.syncSnackIssues(result.synced, result.failed),
         );
       }
     } finally {

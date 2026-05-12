@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/layout/constrained_app_viewport.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart';
@@ -29,6 +30,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
 
   MaterialApp _loadingMaterialApp(ThemeData theme) {
     return MaterialApp(
+      scaffoldMessengerKey: appScaffoldMessengerKey,
       theme: theme,
       home: const ConstrainedAppViewport(
         child: Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -38,6 +40,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
 
   MaterialApp _errorMaterialApp(ThemeData theme, Object error) {
     return MaterialApp(
+      scaffoldMessengerKey: appScaffoldMessengerKey,
       theme: theme,
       home: ConstrainedAppViewport(
         child: Scaffold(body: Center(child: Text('$error'))),
@@ -51,6 +54,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
     required AppPreferencesState prefs,
   }) {
     return MaterialApp.router(
+      scaffoldMessengerKey: appScaffoldMessengerKey,
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       theme: theme,
       locale: prefs.locale,

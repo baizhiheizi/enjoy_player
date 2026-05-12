@@ -104,6 +104,9 @@ ThemeData buildAppTheme() {
       color: colorScheme.onSurface,
     ),
     actionTextColor: colorScheme.primary,
+    showCloseIcon: false,
+    closeIconColor: colorScheme.onSurface,
+    dismissDirection: DismissDirection.horizontal,
   );
 
   final bottomSheetTheme = BottomSheetThemeData(

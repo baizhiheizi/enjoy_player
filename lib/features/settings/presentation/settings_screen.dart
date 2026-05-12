@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -218,25 +219,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     );
                                     s.when(
                                       data: (_) {
-                                        ScaffoldMessenger.of(
+                                        AppNotice.success(
                                           context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              l10n.migrationSuccess,
-                                            ),
-                                          ),
+                                          l10n.migrationSuccess,
                                         );
                                       },
                                       error: (Object e, StackTrace st) {
-                                        ScaffoldMessenger.of(
+                                        AppNotice.error(
                                           context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              l10n.migrationMigrationFailed,
-                                            ),
-                                          ),
+                                          l10n.migrationMigrationFailed,
                                         );
                                       },
                                       loading: () {},
@@ -887,8 +878,9 @@ class _ApiBaseUrlEditorState extends ConsumerState<_ApiBaseUrlEditor> {
                           .read(apiBaseUrlProvider.notifier)
                           .setBaseUrl(_controller.text);
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.settingsApiBaseUrlSave)),
+                        AppNotice.success(
+                          context,
+                          l10n.settingsApiBaseUrlSave,
                         );
                       }
                     } finally {
@@ -979,8 +971,9 @@ class _AiApiBaseUrlEditorState extends ConsumerState<_AiApiBaseUrlEditor> {
                           .read(aiApiBaseUrlProvider.notifier)
                           .setBaseUrl(_controller.text);
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.settingsAiApiBaseUrlSave)),
+                        AppNotice.success(
+                          context,
+                          l10n.settingsAiApiBaseUrlSave,
                         );
                       }
                     } finally {
