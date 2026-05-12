@@ -9,7 +9,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show HapticFeedback;
+
+import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 
 import '../enjoy_tokens.dart';
 import '../generative_media_cover.dart';
@@ -25,7 +27,7 @@ void _showMobileDeleteMenu(
   required VoidCallback onDelete,
   String? label,
 }) {
-  HapticFeedback.mediumImpact();
+  Haptics.impactMedium(context);
   final ml = MaterialLocalizations.of(context);
   final title =
       (label != null && label.isNotEmpty) ? label : ml.deleteButtonTooltip;
@@ -59,6 +61,14 @@ void _showMobileDeleteMenu(
   );
 }
 
+Widget _heroArtworkShell(String? mediaId, Widget child) {
+  if (mediaId == null || mediaId.isEmpty) return child;
+  return Hero(
+    tag: mediaArtworkHeroTag(mediaId),
+    child: Material(type: MaterialType.transparency, child: child),
+  );
+}
+
 // ── Tile (vertical, for grids) ──────────────────────────────────────────────
 
 class MediaCardTile extends StatefulWidget {
@@ -75,6 +85,7 @@ class MediaCardTile extends StatefulWidget {
     this.onDelete,
     this.deleteTooltip,
     this.providerBadge,
+    this.heroArtworkMediaId,
   });
 
   final String title;
@@ -97,6 +108,9 @@ class MediaCardTile extends StatefulWidget {
   /// Label for hover tooltip and mobile delete sheet when [onDelete] is non-null.
   final String? deleteTooltip;
 
+  /// When set, artwork participates in a [Hero] into the player transport tile.
+  final String? heroArtworkMediaId;
+
   /// e.g. "YouTube" — top-left on artwork.
   final String? providerBadge;
 
@@ -115,20 +129,33 @@ class _MediaCardTileState extends State<MediaCardTile> {
     final accent = widget.accentColor ?? cs.primary;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        onLongPress:
-            widget.onDelete != null && _deleteLongPressEnabledForPlatform()
-                ? () => _showMobileDeleteMenu(
-                    context,
-                    onDelete: widget.onDelete!,
-                    label: widget.deleteTooltip,
-                  )
-                : null,
-        child: AnimatedContainer(
+      child: Material(
+        color: Colors.transparent,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusXl),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(t.radiusXl),
+          onTap: () {
+            Haptics.selection(context);
+            widget.onTap();
+          },
+          onLongPress:
+              widget.onDelete != null && _deleteLongPressEnabledForPlatform()
+                  ? () => _showMobileDeleteMenu(
+                      context,
+                      onDelete: widget.onDelete!,
+                      label: widget.deleteTooltip,
+                    )
+                  : null,
+          hoverColor: cs.onSurface.withValues(alpha: 0.04),
+          splashColor: accent.withValues(alpha: 0.12),
+          highlightColor: accent.withValues(alpha: 0.06),
+          child: AnimatedContainer(
           duration: t.motionFast,
           curve: Curves.easeOutCubic,
           clipBehavior: Clip.antiAlias,
@@ -168,12 +195,15 @@ class _MediaCardTileState extends State<MediaCardTile> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _Thumbnail(
+                      _heroArtworkShell(
+                        widget.heroArtworkMediaId,
+                        _Thumbnail(
                         file: widget.thumbnailFile,
                         networkUrl: widget.thumbnailNetworkUrl,
                         coverSeed: widget.coverSeed,
                         isVideo: widget.isVideo,
                         cs: cs,
+                      ),
                       ),
                       if (widget.providerBadge != null &&
                           widget.providerBadge!.isNotEmpty)
@@ -238,8 +268,10 @@ class _MediaCardTileState extends State<MediaCardTile> {
                                 tooltip:
                                     (widget.deleteTooltip != null &&
                                             widget.deleteTooltip!.isNotEmpty)
-                                        ? widget.deleteTooltip
-                                        : null,
+                                        ? widget.deleteTooltip!
+                                        : MaterialLocalizations.of(
+                                          context,
+                                        ).deleteButtonTooltip,
                                 style: IconButton.styleFrom(
                                   backgroundColor: cs.surfaceContainerHighest
                                       .withValues(alpha: 0.92),
@@ -296,6 +328,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -319,6 +352,7 @@ class MediaCardRow extends StatefulWidget {
     this.trailing,
     this.onDelete,
     this.deleteTooltip,
+    this.heroArtworkMediaId,
   });
 
   final String title;
@@ -341,6 +375,9 @@ class MediaCardRow extends StatefulWidget {
 
   /// Label for hover tooltip and mobile delete sheet when [onDelete] is non-null.
   final String? deleteTooltip;
+
+  /// When set, artwork participates in a [Hero] into the player transport tile.
+  final String? heroArtworkMediaId;
 
   @override
   State<MediaCardRow> createState() => _MediaCardRowState();
@@ -367,8 +404,8 @@ class _MediaCardRowState extends State<MediaCardRow> {
                 tooltip:
                     (widget.deleteTooltip != null &&
                             widget.deleteTooltip!.isNotEmpty)
-                        ? widget.deleteTooltip
-                        : null,
+                        ? widget.deleteTooltip!
+                        : MaterialLocalizations.of(context).deleteButtonTooltip,
                 onPressed: widget.onDelete,
                 icon: Icon(
                   Icons.delete_outline_rounded,
@@ -392,22 +429,35 @@ class _MediaCardRowState extends State<MediaCardRow> {
     final accent = widget.accentColor ?? cs.primary;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        onLongPress:
-            widget.trailing == null &&
-                    widget.onDelete != null &&
-                    _deleteLongPressEnabledForPlatform()
-                ? () => _showMobileDeleteMenu(
-                    context,
-                    onDelete: widget.onDelete!,
-                    label: widget.deleteTooltip,
-                  )
-                : null,
-        child: AnimatedContainer(
+      child: Material(
+        color: Colors.transparent,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          onTap: () {
+            Haptics.selection(context);
+            widget.onTap();
+          },
+          onLongPress:
+              widget.trailing == null &&
+                      widget.onDelete != null &&
+                      _deleteLongPressEnabledForPlatform()
+                  ? () => _showMobileDeleteMenu(
+                      context,
+                      onDelete: widget.onDelete!,
+                      label: widget.deleteTooltip,
+                    )
+                  : null,
+          hoverColor: cs.onSurface.withValues(alpha: 0.04),
+          splashColor: accent.withValues(alpha: 0.10),
+          highlightColor: accent.withValues(alpha: 0.05),
+          child: AnimatedContainer(
           duration: t.motionFast,
           curve: Curves.easeOutCubic,
           clipBehavior: Clip.antiAlias,
@@ -441,12 +491,15 @@ class _MediaCardRowState extends State<MediaCardRow> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        _Thumbnail(
+                        _heroArtworkShell(
+                          widget.heroArtworkMediaId,
+                          _Thumbnail(
                           file: widget.thumbnailFile,
                           networkUrl: widget.thumbnailNetworkUrl,
                           coverSeed: widget.coverSeed,
                           isVideo: widget.isVideo,
                           cs: cs,
+                        ),
                         ),
                         if (widget.providerBadge != null &&
                             widget.providerBadge!.isNotEmpty)
@@ -505,6 +558,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/dynamic_color/dynamic_color_provider.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -101,6 +102,12 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       isPlaying ? l10n.pause : l10n.play,
     );
 
+    final ttExpand = hotkeyTooltipLabel(
+      ref,
+      'player.toggleExpand',
+      l10n.transportExpand,
+    );
+
     if (chrome == null) return const SizedBox.shrink();
 
     final primaryTransport = <Widget>[
@@ -112,8 +119,10 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         onPressed:
             isBuffering
                 ? null
-                : () =>
-                    ref.read(playerControllerProvider.notifier).togglePlay(),
+                : Haptics.wrapTap(
+                  context,
+                  () => ref.read(playerControllerProvider.notifier).togglePlay(),
+                ),
       ),
       IconButton(
         tooltip: ttPrev,
@@ -121,8 +130,10 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         onPressed:
             isBuffering || !hasTranscriptLines
                 ? null
-                : () =>
-                    ref.read(playerInteractionsProvider.notifier).prevLine(),
+                : Haptics.wrapTap(
+                  context,
+                  () => ref.read(playerInteractionsProvider.notifier).prevLine(),
+                ),
         icon: const Icon(Icons.skip_previous_rounded),
       ),
       IconButton(
@@ -131,8 +142,10 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         onPressed:
             isBuffering || !hasTranscriptLines
                 ? null
-                : () =>
-                    ref.read(playerInteractionsProvider.notifier).nextLine(),
+                : Haptics.wrapTap(
+                  context,
+                  () => ref.read(playerInteractionsProvider.notifier).nextLine(),
+                ),
         icon: const Icon(Icons.skip_next_rounded),
       ),
       IconButton(
@@ -141,8 +154,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         onPressed:
             isBuffering || !hasTranscriptLines
                 ? null
-                : () =>
-                    ref.read(playerInteractionsProvider.notifier).replayLine(),
+                : Haptics.wrapTap(
+                  context,
+                  () =>
+                      ref.read(playerInteractionsProvider.notifier).replayLine(),
+                ),
         icon: const Icon(Icons.replay_rounded),
       ),
     ];
@@ -159,9 +175,12 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                 : null,
         onPressed:
             echo.active || hasTranscriptLines
-                ? () => ref
-                    .read(playerInteractionsProvider.notifier)
-                    .toggleEcho()
+                ? Haptics.wrapTap(
+                  context,
+                  () => ref
+                      .read(playerInteractionsProvider.notifier)
+                      .toggleEcho(),
+                )
                 : null,
         icon: const Icon(Icons.mic_none_rounded),
       ),
@@ -216,13 +235,12 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       TransportFullscreenButton(isVideo: chrome.mediaType == 'video'),
       if (!onPlayer)
         IconButton(
-          tooltip: hotkeyTooltipLabel(
-            ref,
-            'player.toggleExpand',
-            l10n.transportExpand,
-          ),
+          tooltip: ttExpand,
           icon: const Icon(Icons.open_in_full_rounded),
-          onPressed: () => openPlayerRoute(context, chrome.mediaId),
+          onPressed: Haptics.wrapTap(
+            context,
+            () => openPlayerRoute(context, chrome.mediaId),
+          ),
         ),
     ];
 
@@ -252,8 +270,30 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
             ),
             child: SizedBox(
               height: 56,
-              child:
-                  hideBottomMediaInfo
+              child: AnimatedSwitcher(
+                duration: MediaQuery.of(context).disableAnimations
+                    ? Duration.zero
+                    : t.motionMedium,
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeOutCubic,
+                transitionBuilder: (child, anim) {
+                  return FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.03),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+                      ),
+                      child: child,
+                    ),
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<bool>(hideBottomMediaInfo),
+                  child:
+                      hideBottomMediaInfo
                       ? LayoutBuilder(
                         builder: (context, paddedConstraints) {
                           return SingleChildScrollView(
@@ -312,9 +352,12 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                         onTap:
                                             onPlayer
                                                 ? null
-                                                : () => openPlayerRoute(
+                                                : Haptics.wrapTap(
                                                   context,
-                                                  chrome.mediaId,
+                                                  () => openPlayerRoute(
+                                                    context,
+                                                    chrome.mediaId,
+                                                  ),
                                                 ),
                                         borderRadius: BorderRadius.circular(
                                           t.radiusSm,
@@ -350,6 +393,8 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                           ),
                         ],
                       ),
+                ),
+              ),
             ),
           ),
         ],

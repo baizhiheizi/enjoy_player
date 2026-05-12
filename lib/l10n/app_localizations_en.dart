@@ -698,7 +698,54 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileStatLibraryTitle => 'Library';
+
+  @override
+  String get profileStatLibrarySubtitle => 'Items saved on this device';
+
+  @override
+  String get profileStatEchoTitle => 'Echo sessions';
+
+  @override
+  String get profileStatEchoSubtitle => 'Practice rows tracked locally';
+
+  @override
+  String get profileStatRecordTitle => 'Recorded';
+
+  @override
+  String get profileStatRecordSubtitle => 'Shadow-reading minutes';
+
+  @override
   String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionAccountHint =>
+      'Profile, subscription, and sign out';
+
+  @override
+  String get settingsSectionDataMigrationHint =>
+      'Move guest data after you sign in';
+
+  @override
+  String get settingsSectionSyncHint =>
+      'Upload queue, offline state, and manual sync';
+
+  @override
+  String get settingsSectionAppearanceLanguageHint =>
+      'Theme density, transcript font, and locale';
+
+  @override
+  String get hotkeysSectionKeyboardHint => 'Reference and customize shortcuts';
+
+  @override
+  String get settingsSectionAdvancedHint =>
+      'API endpoints and experimental toggles';
+
+  @override
+  String get settingsSectionDeveloperHint => 'Diagnostics and internal tooling';
+
+  @override
+  String get settingsSectionAboutHint => 'Version, licenses, and links';
 
   @override
   String get settingsSectionSync => 'Cloud sync';

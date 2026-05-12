@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -155,7 +157,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonMediaList(),
         error:
             (e, _) => Center(
               child: Padding(
@@ -203,6 +205,7 @@ class _AudioLibraryBody extends StatelessWidget {
     if (items.isEmpty) {
       return EmptyState(
         icon: Icons.graphic_eq_rounded,
+        illustrationAsset: EnjoyIllustrations.emptyLibrary,
         title: l10n.libraryEmptyAudioTitle,
         subtitle: l10n.libraryEmptyAudioHint,
       );
@@ -228,6 +231,9 @@ class _AudioRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final playingId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
     final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
     final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
@@ -246,6 +252,7 @@ class _AudioRow extends ConsumerWidget {
       coverSeed: media.coverSeed,
       isVideo: false,
       accentColor: accent,
+      heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
       onTap: () => openPlayerRoute(context, media.id),
@@ -268,6 +275,7 @@ class _VideoLibraryBody extends StatelessWidget {
     if (items.isEmpty) {
       return EmptyState(
         icon: Icons.movie_outlined,
+        illustrationAsset: EnjoyIllustrations.emptyRecordings,
         title: l10n.libraryEmptyVideoTitle,
         subtitle: l10n.libraryEmptyVideoHint,
       );
@@ -295,6 +303,9 @@ class _VideoTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final playingId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
     final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
     final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
@@ -312,6 +323,7 @@ class _VideoTile extends ConsumerWidget {
       coverSeed: media.coverSeed,
       isVideo: true,
       accentColor: accent,
+      heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
       onTap: () => openPlayerRoute(context, media.id),

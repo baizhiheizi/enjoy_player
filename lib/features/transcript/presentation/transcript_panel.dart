@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/transcript/presentation/import_subtitle_la
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 
 class TranscriptPanel extends ConsumerWidget {
   const TranscriptPanel({required this.mediaId, super.key});
@@ -98,7 +99,7 @@ class TranscriptPanel extends ConsumerWidget {
               }
               return TranscriptScrollableList(mediaId: mediaId, lines: lines);
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const SkeletonTranscript(),
             error: (e, _) => Center(child: Text('${l10n.error}: $e')),
           ),
         ),

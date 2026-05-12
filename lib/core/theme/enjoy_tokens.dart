@@ -39,6 +39,8 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.motionStandard,
     required this.motionEnter,
     required this.motionExit,
+    /// Transport / layout morphs: 220ms (between [motionFast] and [motionStandard]).
+    required this.motionMedium,
     // ── Feature colors ─────────────────────────────────────────────
     required this.echoActive,
     required this.ccBadge,
@@ -106,6 +108,9 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Screen exit: 160ms (faster than enter for responsiveness).
   final Duration motionExit;
 
+  /// Transport compact/expanded and similar layout transitions.
+  final Duration motionMedium;
+
   // ── Feature colors ─────────────────────────────────────────────────────
   final Color echoActive;
   final Color ccBadge;
@@ -168,6 +173,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       motionStandard: const Duration(milliseconds: 260),
       motionEnter: const Duration(milliseconds: 240),
       motionExit: const Duration(milliseconds: 160),
+      motionMedium: const Duration(milliseconds: 220),
       echoActive: AppColors.echoActive,
       ccBadge: scheme.primary,
       transcriptLinePadding: const EdgeInsets.symmetric(
@@ -216,6 +222,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     Duration? motionStandard,
     Duration? motionEnter,
     Duration? motionExit,
+    Duration? motionMedium,
     Color? echoActive,
     Color? ccBadge,
     EdgeInsets? transcriptLinePadding,
@@ -258,6 +265,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       motionStandard: motionStandard ?? this.motionStandard,
       motionEnter: motionEnter ?? this.motionEnter,
       motionExit: motionExit ?? this.motionExit,
+      motionMedium: motionMedium ?? this.motionMedium,
       echoActive: echoActive ?? this.echoActive,
       ccBadge: ccBadge ?? this.ccBadge,
       transcriptLinePadding: transcriptLinePadding ?? this.transcriptLinePadding,
@@ -323,6 +331,8 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
           Duration(milliseconds: ms(motionEnter, other.motionEnter).round()),
       motionExit:
           Duration(milliseconds: ms(motionExit, other.motionExit).round()),
+      motionMedium:
+          Duration(milliseconds: ms(motionMedium, other.motionMedium).round()),
       echoActive: Color.lerp(echoActive, other.echoActive, t)!,
       ccBadge: Color.lerp(ccBadge, other.ccBadge, t)!,
       transcriptLinePadding:

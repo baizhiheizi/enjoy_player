@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -20,6 +21,7 @@ import 'package:enjoy_player/features/cloud/application/cloud_providers.dart';
 import 'package:enjoy_player/features/cloud/data/cloud_index_repository.dart';
 import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class CloudScreen extends ConsumerStatefulWidget {
@@ -252,7 +254,7 @@ class _CloudScreenState extends ConsumerState<CloudScreen>
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonMediaList(),
         error: (e, _) => Center(child: Text('$e')),
       ),
     );
@@ -317,7 +319,7 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
     final t = EnjoyThemeTokens.of(context);
 
     if (widget.items.isEmpty && widget.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SkeletonMediaList();
     }
 
     if (widget.items.isEmpty && widget.done) {
@@ -329,6 +331,7 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
               icon: Icons.graphic_eq_rounded,
+              illustrationAsset: EnjoyIllustrations.emptyCloud,
               title: l10n.cloudEmptyAudioTitle,
               subtitle: l10n.cloudEmptyAudioSubtitle,
             ),
@@ -355,7 +358,7 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
             if (widget.loading) {
               return Padding(
                 padding: EdgeInsets.all(t.space16),
-                child: const Center(child: CircularProgressIndicator()),
+                child: Center(child: Skeleton.circle(diameter: 28)),
               );
             }
             if (widget.done) {
@@ -396,6 +399,9 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
 
   @override
   Widget build(BuildContext context) {
+    final playingId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final add = ref.watch(cloudAddToLibraryProvider);
@@ -452,6 +458,8 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
       coverSeed: seed,
       isVideo: false,
       accentColor: accent,
+      heroArtworkMediaId:
+          _inLibrary == true && playingId != item.id ? item.id : null,
       trailing: trailing,
       providerBadge:
           item.provider == 'youtube' ? l10n.youtubeBadge : null,
@@ -516,7 +524,7 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
     final t = EnjoyThemeTokens.of(context);
 
     if (widget.items.isEmpty && widget.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SkeletonMediaGrid();
     }
 
     if (widget.items.isEmpty && widget.done) {
@@ -528,6 +536,7 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
               icon: Icons.movie_outlined,
+              illustrationAsset: EnjoyIllustrations.emptyCloud,
               title: l10n.cloudEmptyVideoTitle,
               subtitle: l10n.cloudEmptyVideoSubtitle,
             ),
@@ -551,7 +560,12 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
         itemCount: widget.items.length + (widget.loading && !widget.done ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= widget.items.length) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(t.space24),
+                child: Skeleton.circle(diameter: 32),
+              ),
+            );
           }
           return _CloudVideoTile(item: widget.items[index]);
         },
@@ -586,6 +600,9 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
 
   @override
   Widget build(BuildContext context) {
+    final playingId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final add = ref.watch(cloudAddToLibraryProvider);
@@ -663,6 +680,8 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
           coverSeed: seed,
           isVideo: true,
           accentColor: accent,
+          heroArtworkMediaId:
+              _inLibrary == true && playingId != item.id ? item.id : null,
           providerBadge:
               item.provider == 'youtube' ? l10n.youtubeBadge : null,
           onTap: () {

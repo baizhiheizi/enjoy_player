@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/guest_migration_banner.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
 import 'package:enjoy_player/features/library/presentation/todays_goal_card.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
@@ -58,6 +59,7 @@ class HomeScreen extends ConsumerWidget {
                 if (recent.isEmpty) {
                   return EmptyState(
                     icon: Icons.collections_bookmark_rounded,
+                    illustrationAsset: EnjoyIllustrations.emptyLibrary,
                     title: l10n.homeEmptyTitle,
                     subtitle: l10n.homeEmptyHint,
                     action: () => showImportChooser(context, ref),
@@ -320,6 +322,9 @@ class _HomeMediaTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final playingId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
     final isVideo = media.kind == MediaKind.video;
     final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
@@ -342,6 +347,7 @@ class _HomeMediaTile extends ConsumerWidget {
       coverSeed: media.coverSeed,
       isVideo: isVideo,
       accentColor: accent,
+      heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
       onTap: () => openPlayerRoute(context, media.id),

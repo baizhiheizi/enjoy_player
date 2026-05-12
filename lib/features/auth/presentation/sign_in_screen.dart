@@ -13,6 +13,8 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SignInScreen extends ConsumerWidget {
@@ -55,154 +57,172 @@ class SignInScreen extends ConsumerWidget {
                   },
                 ),
               ),
-      body: auth.when(
-        data: (state) {
-          // ── Signed in ───────────────────────────────────────────────────
-          if (state is AuthSignedIn) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(t.space32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 72,
-                      color: cs.primary,
-                    ),
-                    SizedBox(height: t.space24),
-                    Text(
-                      l10n.authSignedInSuccess,
-                      textAlign: TextAlign.center,
-                      style: tt.headlineSmall,
-                    ),
-                  ],
-                ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [t.gradientStart, t.gradientEnd],
               ),
-            );
-          }
-
-          // ── In-app WebView sign-in + polling ────────────────────────────
-          if (state is AuthSigningIn) {
-            return _SigningInWebPane(verificationUrl: state.verificationUrl);
-          }
-
-          // ── Default: sign in prompt ──────────────────────────────────────
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: t.space32,
-                  vertical: t.space40,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Brand icon
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: cs.primaryContainer,
-                        borderRadius: BorderRadius.circular(t.radiusXl),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: SvgPicture.asset(
-                          'assets/logo-light.svg',
-                          fit: BoxFit.contain,
+            ),
+          ),
+          auth.when(
+            data: (state) {
+              // ── Signed in ───────────────────────────────────────────────────
+              if (state is AuthSignedIn) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(t.space32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 72,
+                          color: cs.primary,
                         ),
-                      ),
+                        SizedBox(height: t.space24),
+                        Text(
+                          l10n.authSignedInSuccess,
+                          textAlign: TextAlign.center,
+                          style: tt.headlineSmall,
+                        ),
+                      ],
                     ),
-                    SizedBox(height: t.space32),
-                    Text(
-                      l10n.authSignInTitle,
-                      textAlign: TextAlign.center,
-                      style: tt.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  ),
+                );
+              }
+
+              // ── In-app WebView sign-in + polling ────────────────────────────
+              if (state is AuthSigningIn) {
+                return _SigningInWebPane(verificationUrl: state.verificationUrl);
+              }
+
+              // ── Default: sign in prompt ──────────────────────────────────────
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: t.space32,
+                      vertical: t.space40,
                     ),
-                    SizedBox(height: t.space12),
-                    Text(
-                      l10n.authSignInSubtitle,
-                      textAlign: TextAlign.center,
-                      style: tt.bodyLarge?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        height: 1.55,
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Brand icon
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: cs.primaryContainer,
+                            borderRadius: BorderRadius.circular(t.radiusXl),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: SvgPicture.asset(
+                              'assets/logo-light.svg',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: t.space32),
+                        Text(
+                          l10n.authSignInTitle,
+                          textAlign: TextAlign.center,
+                          style: tt.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: t.space12),
+                        Text(
+                          l10n.authSignInSubtitle,
+                          textAlign: TextAlign.center,
+                          style: tt.bodyLarge?.copyWith(
+                            color: cs.onSurfaceVariant,
+                            height: 1.55,
+                          ),
+                        ),
+                        SizedBox(height: t.space40),
+                        SizedBox(
+                          width: double.infinity,
+                          child: EnjoyButton.primary(
+                            icon: Icons.login_rounded,
+                            onPressed: () async {
+                              await ref
+                                  .read(authCtrlProvider.notifier)
+                                  .startSignIn();
+                            },
+                            child: Text(l10n.authSignInCta),
+                          ),
+                        ),
+                        SizedBox(height: t.space12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: EnjoyButton.ghost(
+                            onPressed: () {
+                              if (context.canPop()) {
+                                context.pop();
+                              } else {
+                                context.go('/');
+                              }
+                            },
+                            child: Text(l10n.authCancel),
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: t.space40),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          await ref
-                              .read(authCtrlProvider.notifier)
-                              .startSignIn();
-                        },
-                        icon: const Icon(Icons.login_rounded),
-                        label: Text(l10n.authSignInCta),
-                      ),
-                    ),
-                    SizedBox(height: t.space12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        onPressed: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go('/');
-                          }
-                        },
-                        child: Text(l10n.authCancel),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) {
-          final t2 = EnjoyThemeTokens.of(context);
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: EdgeInsets.all(t2.space32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.cloud_off_rounded, size: 56, color: cs.error),
-                    SizedBox(height: t2.space24),
-                    Text(
-                      l10n.errorNetwork,
-                      textAlign: TextAlign.center,
-                      style: tt.titleLarge,
+              );
+            },
+            loading: () => const Center(child: SkeletonAppBootstrap()),
+            error: (e, _) {
+              final t2 = EnjoyThemeTokens.of(context);
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Padding(
+                    padding: EdgeInsets.all(t2.space32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cloud_off_rounded, size: 56, color: cs.error),
+                        SizedBox(height: t2.space24),
+                        Text(
+                          l10n.errorNetwork,
+                          textAlign: TextAlign.center,
+                          style: tt.titleLarge,
+                        ),
+                        SizedBox(height: t2.space8),
+                        Text(
+                          '$e',
+                          textAlign: TextAlign.center,
+                          style: tt.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                        SizedBox(height: t2.space24),
+                        EnjoyButton.primary(
+                          onPressed: () async {
+                            await ref
+                                .read(authCtrlProvider.notifier)
+                                .startSignIn();
+                          },
+                          child: Text(l10n.retry),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: t2.space8),
-                    Text(
-                      '$e',
-                      textAlign: TextAlign.center,
-                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                    SizedBox(height: t2.space24),
-                    FilledButton(
-                      onPressed: () async {
-                        await ref.read(authCtrlProvider.notifier).startSignIn();
-                      },
-                      child: Text(l10n.retry),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

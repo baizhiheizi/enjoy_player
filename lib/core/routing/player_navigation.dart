@@ -13,3 +13,6 @@ void openPlayerRoute(BuildContext context, String mediaId) {
     context.push(location);
   }
 }
+
+/// [Hero] tag for library/transport artwork continuity into the player shell.
+String mediaArtworkHeroTag(String mediaId) => 'media-art-$mediaId';

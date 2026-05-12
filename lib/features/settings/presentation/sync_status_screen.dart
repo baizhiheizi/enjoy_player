@@ -12,6 +12,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/sync/application/pending_rekey_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SyncStatusScreen extends ConsumerStatefulWidget {
@@ -64,7 +65,7 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
             onSyncNow: () => _runSyncNow(context, l10n),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const SkeletonSettingsList(rowCount: 6),
         error: (Object e, StackTrace s) => Center(child: Text('$e')),
       ),
     );
@@ -285,7 +286,7 @@ class _SignedInBody extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SkeletonSettingsList(rowCount: 5),
           error: (e, _) => Text('$e'),
         ),
       ],

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities_provider.dart';
@@ -28,7 +29,7 @@ class ExpandedPlayerLoadingBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: const Center(child: CircularProgressIndicator()),
+      body: const Center(child: SkeletonAppBootstrap()),
     );
   }
 }

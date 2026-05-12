@@ -23,7 +23,8 @@
 - Elevation scale: `0 / 1 / 3 / 8` (cards / sheets / modals).
 - Radius scale: `8 / 12 / 16 / 20 / ∞`. `20` is the new default for cards and hero artwork.
 - Ambient backdrop: very-low-opacity (~7%) radial tint from artwork dominant color behind player content.
-- Motion: 180ms fast, 260ms standard, 240ms enter, 160ms exit. `prefers-reduced-motion` respected.
+- Motion: 180ms fast, **220ms medium** (transport layout morphs), 260ms standard, 240ms enter, 160ms exit. `prefers-reduced-motion` respected via `MediaQuery.disableAnimations`.
+- Shared interaction kit: `EnjoyTappable*`, `Haptics`, `EnjoyButton` — see [ADR-0018](../decisions/0018-shared-interactive-primitives.md).
 
 ## Theme mode
 

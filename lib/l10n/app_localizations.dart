@@ -1402,11 +1402,95 @@ abstract class AppLocalizations {
   /// **'Balance: {value}'**
   String profileBalance(String value);
 
+  /// No description provided for @profileStatLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get profileStatLibraryTitle;
+
+  /// No description provided for @profileStatLibrarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items saved on this device'**
+  String get profileStatLibrarySubtitle;
+
+  /// No description provided for @profileStatEchoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo sessions'**
+  String get profileStatEchoTitle;
+
+  /// No description provided for @profileStatEchoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice rows tracked locally'**
+  String get profileStatEchoSubtitle;
+
+  /// No description provided for @profileStatRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get profileStatRecordTitle;
+
+  /// No description provided for @profileStatRecordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadow-reading minutes'**
+  String get profileStatRecordSubtitle;
+
   /// No description provided for @settingsSectionAccount.
   ///
   /// In en, this message translates to:
   /// **'Account'**
   String get settingsSectionAccount;
+
+  /// No description provided for @settingsSectionAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, subscription, and sign out'**
+  String get settingsSectionAccountHint;
+
+  /// No description provided for @settingsSectionDataMigrationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Move guest data after you sign in'**
+  String get settingsSectionDataMigrationHint;
+
+  /// No description provided for @settingsSectionSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload queue, offline state, and manual sync'**
+  String get settingsSectionSyncHint;
+
+  /// No description provided for @settingsSectionAppearanceLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme density, transcript font, and locale'**
+  String get settingsSectionAppearanceLanguageHint;
+
+  /// No description provided for @hotkeysSectionKeyboardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference and customize shortcuts'**
+  String get hotkeysSectionKeyboardHint;
+
+  /// No description provided for @settingsSectionAdvancedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'API endpoints and experimental toggles'**
+  String get settingsSectionAdvancedHint;
+
+  /// No description provided for @settingsSectionDeveloperHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics and internal tooling'**
+  String get settingsSectionDeveloperHint;
+
+  /// No description provided for @settingsSectionAboutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Version, licenses, and links'**
+  String get settingsSectionAboutHint;
 
   /// No description provided for @settingsSectionSync.
   ///

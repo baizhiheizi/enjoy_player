@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
@@ -88,6 +89,15 @@ abstract final class AppNotice {
         icon = Icons.warning_rounded;
         duration = const Duration(seconds: 4);
         showCloseIcon = true;
+    }
+
+    switch (kind) {
+      case _AppNoticeKind.success:
+      case _AppNoticeKind.info:
+        Haptics.success(context);
+      case _AppNoticeKind.error:
+      case _AppNoticeKind.warning:
+        Haptics.warning(context);
     }
 
     if (kind == _AppNoticeKind.error || kind == _AppNoticeKind.warning) {

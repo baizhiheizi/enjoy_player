@@ -1,15 +1,59 @@
 /// Progress slider + elapsed / total times for the transport bar.
 library;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
-import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
+import 'package:enjoy_player/features/player/application/transport_slider_position_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 
-class TransportProgressStrip extends ConsumerWidget {
+/// Soft outer glow so the playhead reads clearly on glass backgrounds.
+class _TransportThumbShape extends RoundSliderThumbShape {
+  const _TransportThumbShape({required super.enabledThumbRadius});
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final canvas = context.canvas;
+    final color = sliderTheme.thumbColor ?? const Color(0xFF6750A4);
+    final glow = Paint()
+      ..color = color.withValues(alpha: 0.42)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
+    canvas.drawCircle(center, enabledThumbRadius + 4, glow);
+    super.paint(
+      context,
+      center,
+      activationAnimation: activationAnimation,
+      enableAnimation: enableAnimation,
+      isDiscrete: isDiscrete,
+      labelPainter: labelPainter,
+      parentBox: parentBox,
+      sliderTheme: sliderTheme,
+      textDirection: textDirection,
+      value: value,
+      textScaleFactor: textScaleFactor,
+      sizeWithOverflow: sizeWithOverflow,
+    );
+  }
+}
+
+class TransportProgressStrip extends ConsumerStatefulWidget {
   const TransportProgressStrip({
     super.key,
     required this.chrome,
@@ -22,13 +66,25 @@ class TransportProgressStrip extends ConsumerWidget {
   final ValueChanged<bool> onHoverChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransportProgressStrip> createState() =>
+      _TransportProgressStripState();
+}
+
+class _TransportProgressStripState extends ConsumerState<TransportProgressStrip> {
+  int? _scrubSecond;
+
+  bool get _hapticScrub =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android;
+
+  @override
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final durationSec =
-        chrome.durationSeconds > 0 ? chrome.durationSeconds : 1.0;
+        widget.chrome.durationSeconds > 0 ? widget.chrome.durationSeconds : 1.0;
 
-    final posAsync = ref.watch(displayPositionProvider);
+    final posAsync = ref.watch(transportSliderPositionProvider);
     final pos = switch (posAsync) {
       AsyncData(:final value) => value,
       _ => Duration.zero,
@@ -42,8 +98,8 @@ class TransportProgressStrip extends ConsumerWidget {
     );
 
     return MouseRegion(
-      onEnter: (_) => onHoverChanged(true),
-      onExit: (_) => onHoverChanged(false),
+      onEnter: (_) => widget.onHoverChanged(true),
+      onExit: (_) => widget.onHoverChanged(false),
       child: Row(
         children: [
           Text(formatDurationHms(pos), style: timeStyle),
@@ -53,8 +109,8 @@ class TransportProgressStrip extends ConsumerWidget {
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 3,
-                  thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: hovered ? 6 : 1,
+                  thumbShape: _TransportThumbShape(
+                    enabledThumbRadius: widget.hovered ? 6 : 4,
                   ),
                   overlayShape: SliderComponentShape.noOverlay,
                   activeTrackColor: cs.primary,
@@ -63,10 +119,20 @@ class TransportProgressStrip extends ConsumerWidget {
                 ),
                 child: Slider(
                   value: fraction.clamp(0, 1),
-                  onChanged:
-                      (v) => ref
-                          .read(playerInteractionsProvider.notifier)
-                          .seekToProgressFraction(v),
+                  onChangeStart: (_) {
+                    _scrubSecond = null;
+                  },
+                  onChanged: (v) {
+                    if (!_hapticScrub) return;
+                    final sec = (v * durationSec).floor();
+                    if (_scrubSecond != sec) {
+                      _scrubSecond = sec;
+                      Haptics.selection(context);
+                    }
+                    ref
+                        .read(playerInteractionsProvider.notifier)
+                        .seekToProgressFraction(v);
+                  },
                 ),
               ),
             ),

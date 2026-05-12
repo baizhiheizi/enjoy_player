@@ -41,3 +41,4 @@ Trade-offs, follow-up work, risks.
 | [0015](0015-youtube-playback.md) | YouTube playback via WebView + HTML5 video (dual engine with media_kit) |
 | [0016](0016-enjoy-account-webview-sign-in.md) | Enjoy account sign-in via in-app WebView (partial supersession of 0006) |
 | [0017](0017-azure-pronunciation-assessment.md) | Azure pronunciation assessment via native Flutter plugin (token-only) |
+| [0018](0018-shared-interactive-primitives.md) | Shared interactive primitives — EnjoyTappable, Haptics, EnjoyButton |

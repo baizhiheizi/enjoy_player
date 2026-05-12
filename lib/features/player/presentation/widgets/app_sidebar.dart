@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/sidebar_account_chip.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -208,7 +209,10 @@ class _SidebarNavItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(t.radiusFull),
         ),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            Haptics.selection(context);
+            onTap();
+          },
           borderRadius: BorderRadius.circular(t.radiusFull),
           hoverColor: cs.onSurface.withValues(alpha: 0.05),
           splashColor: cs.primary.withValues(alpha: 0.08),

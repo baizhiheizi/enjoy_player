@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'import_subtitle_language_dialog.dart';
 import 'transcript_embedded_extract.dart';
@@ -405,35 +406,10 @@ class _SubtitleTrackPickerSheetState
                         showExtractEmbedded: showExtractEmbedded,
                         showImportFile: !isYoutube,
                       ),
-                  loading:
-                      () => ListView(
-                        controller: scrollCtrl,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(
-                            height: 200,
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const CircularProgressIndicator(),
-                                  SizedBox(height: t.space12),
-                                  Text(
-                                    l10n.loading,
-                                    style: Theme.of(context).textTheme.bodyMedium
-                                        ?.copyWith(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  loading: () => SkeletonTranscript(
+                    lineCount: 12,
+                    controller: scrollCtrl,
+                  ),
                   error:
                       (error, _) => ListView(
                         controller: scrollCtrl,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
@@ -74,7 +75,10 @@ class _RootShellState extends ConsumerState<RootShell> {
               if (!useSidebar && !onPlayer)
                 NavigationBar(
                   selectedIndex: _navIndexForPath(path),
-                  onDestinationSelected: (i) => _goNavIndex(context, i),
+                  onDestinationSelected: (i) {
+                    Haptics.selection(context);
+                    _goNavIndex(context, i);
+                  },
                   destinations: [
                     NavigationDestination(
                       icon: const Icon(Icons.home_outlined),

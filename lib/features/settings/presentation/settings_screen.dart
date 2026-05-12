@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/guest_migration_providers.dart';
@@ -94,7 +97,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // ── Account section ────────────────────────────────────────────
               SliverToBoxAdapter(
-                child: _SectionLabel(text: l10n.settingsSectionAccount),
+                child: _SettingsSectionHeader(
+                  title: l10n.settingsSectionAccount,
+                  hint: l10n.settingsSectionAccountHint,
+                  icon: Icons.person_outline_rounded,
+                ),
               ),
               SliverToBoxAdapter(
                 child: _SettingsCard(
@@ -140,16 +147,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           );
                         },
                         loading: () => _SettingsTile(
-                          leading: SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ),
+                          leading: Skeleton.circle(diameter: 40),
                           title: l10n.loading,
                           showChevron: false,
                         ),
@@ -181,13 +179,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   if (!hasGuestData) {
                     return const SliverToBoxAdapter(child: SizedBox.shrink());
                   }
-                  final cs = Theme.of(context).colorScheme;
                   final migration = ref.watch(guestMigrationCtrlProvider);
                   return SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _SectionLabel(text: l10n.settingsSectionDataMigration),
+                        _SettingsSectionHeader(
+                          title: l10n.settingsSectionDataMigration,
+                          hint: l10n.settingsSectionDataMigrationHint,
+                          icon: Icons.folder_shared_outlined,
+                        ),
                         _SettingsCard(
                           padding: EdgeInsets.zero,
                           child: _SettingsTile(
@@ -196,14 +197,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             subtitle: l10n.settingsMigrationSubtitle,
                             showChevron: !migration.isLoading,
                             trailing: migration.isLoading
-                                ? SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: cs.primary,
-                                    ),
-                                  )
+                                ? Skeleton.circle(diameter: 24)
                                 : null,
                             onTap: migration.isLoading
                                 ? null
@@ -253,7 +247,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── Cloud sync ──────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _SectionLabel(text: l10n.settingsSectionSync),
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionSync,
+              hint: l10n.settingsSectionSyncHint,
+              icon: Icons.cloud_sync_outlined,
+            ),
           ),
           SliverToBoxAdapter(
             child: _SettingsCard(
@@ -304,16 +302,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       );
                     },
                     loading: () => _SettingsTile(
-                      leading: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
+                      leading: Skeleton.circle(diameter: 40),
                       title: l10n.syncSettingsTileTitle,
                       showChevron: false,
                     ),
@@ -328,7 +317,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── Appearance & Language ───────────────────────────────────────
           SliverToBoxAdapter(
-            child: _SectionLabel(text: l10n.settingsSectionAppearanceLanguage),
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionAppearanceLanguage,
+              hint: l10n.settingsSectionAppearanceLanguageHint,
+              icon: Icons.palette_outlined,
+            ),
           ),
           SliverToBoxAdapter(
             child: _SettingsCard(
@@ -409,9 +402,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       );
                     },
-                    loading: () => const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: CircularProgressIndicator()),
+                    loading: () => Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Skeleton.line(width: double.infinity, height: 18),
+                          const SizedBox(height: 16),
+                          Skeleton.line(width: 220, height: 14),
+                          const SizedBox(height: 12),
+                          Skeleton.line(width: 180, height: 14),
+                        ],
+                      ),
                     ),
                     error: (e, s) => const SizedBox.shrink(),
                   );
@@ -425,7 +427,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // ── Keyboard shortcuts (desktop only) ─────────────────────────
           if (isDesktop) ...[
             SliverToBoxAdapter(
-              child: _SectionLabel(text: l10n.hotkeysSectionKeyboard),
+              child: _SettingsSectionHeader(
+                title: l10n.hotkeysSectionKeyboard,
+                hint: l10n.hotkeysSectionKeyboardHint,
+                icon: Icons.keyboard_outlined,
+              ),
             ),
             SliverToBoxAdapter(
               child: _SettingsCard(
@@ -471,7 +477,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── Advanced ────────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _SectionLabel(text: l10n.settingsSectionAdvanced),
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionAdvanced,
+              hint: l10n.settingsSectionAdvancedHint,
+              icon: Icons.tune_rounded,
+            ),
           ),
           SliverToBoxAdapter(
             child: _SettingsCard(
@@ -562,7 +572,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── Developer ───────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _SectionLabel(text: l10n.settingsSectionDeveloper),
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionDeveloper,
+              hint: l10n.settingsSectionDeveloperHint,
+              icon: Icons.developer_mode_outlined,
+            ),
           ),
           SliverToBoxAdapter(
             child: _SettingsCard(
@@ -580,7 +594,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── About ───────────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _SectionLabel(text: l10n.settingsSectionAbout),
+            child: _SettingsSectionHeader(
+              title: l10n.settingsSectionAbout,
+              hint: l10n.settingsSectionAboutHint,
+              icon: Icons.info_outline_rounded,
+            ),
           ),
           SliverToBoxAdapter(
             child: _SettingsCard(
@@ -696,7 +714,7 @@ class _SettingsTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap == null ? null : Haptics.wrapTap(context, onTap!),
         borderRadius: BorderRadius.circular(t.radiusLg),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
@@ -753,25 +771,47 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.text});
+class _SettingsSectionHeader extends StatelessWidget {
+  const _SettingsSectionHeader({
+    required this.title,
+    required this.hint,
+    required this.icon,
+  });
 
-  final String text;
+  final String title;
+  final String hint;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, t.space8),
-      child: Text(
-        text.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          letterSpacing: 1.0,
-          fontWeight: FontWeight.w600,
-          color: cs.onSurfaceVariant,
-        ),
+      padding: EdgeInsets.fromLTRB(t.space24, t.space12, t.space24, t.space8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 22, color: cs.primary),
+          SizedBox(width: t.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                SizedBox(height: t.space4),
+                Text(
+                  hint,
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -787,28 +827,12 @@ class _SettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: t.space16),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: t.elevationCard * 3,
-              offset: Offset(0, t.elevationCard * 1.5),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: padding ?? EdgeInsets.all(t.space16),
-          child: child,
-        ),
+      child: EnjoyCard(
+        padding: padding ?? EdgeInsets.all(t.space16),
+        child: child,
       ),
     );
   }

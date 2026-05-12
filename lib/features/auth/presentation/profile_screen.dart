@@ -8,10 +8,14 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -83,24 +87,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           appBar: AppBar(
             title: Text(l10n.profileTitle),
             actions: [
-              TextButton(
-                onPressed: _saving
-                    ? null
-                    : () async {
-                        setState(() => _saving = true);
-                        try {
-                          await ref.read(authCtrlProvider.notifier).signOut();
-                          if (context.mounted) context.go('/');
-                        } finally {
-                          if (mounted) setState(() => _saving = false);
-                        }
-                      },
-                child: Text(l10n.authSignOut),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: t.space8),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: EnjoyButton.destructive(
+                    onPressed: _saving
+                        ? null
+                        : () async {
+                            setState(() => _saving = true);
+                            try {
+                              await ref.read(authCtrlProvider.notifier).signOut();
+                              if (context.mounted) context.go('/');
+                            } finally {
+                              if (mounted) setState(() => _saving = false);
+                            }
+                          },
+                    child: Text(l10n.authSignOut),
+                  ),
+                ),
               ),
             ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
+              ref.invalidate(profilePracticeStatsProvider);
               await ref.read(authCtrlProvider.notifier).refreshProfile();
               final v = ref.read(authCtrlProvider).valueOrNull;
               if (v is AuthSignedIn && mounted) {
@@ -111,39 +122,73 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: ListView(
               padding: EdgeInsets.all(t.space24),
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundImage:
-                          p.avatarUrl != null && p.avatarUrl!.isNotEmpty
-                              ? NetworkImage(p.avatarUrl!)
-                              : null,
-                      child: p.avatarUrl == null || p.avatarUrl!.isEmpty
-                          ? Icon(Icons.person_rounded, size: 40, color: cs.primary)
-                          : null,
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(t.space20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(t.radiusLg),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        cs.primary.withValues(alpha: 0.2),
+                        t.gradientEnd.withValues(alpha: 0.12),
+                      ],
                     ),
-                    SizedBox(width: t.space16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            p.name,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            p.email,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: cs.onSurfaceVariant,
-                                ),
-                          ),
-                          SizedBox(height: t.space8),
-                          _SubscriptionChip(tier: p.subscriptionTier),
-                        ],
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 36,
+                        backgroundImage:
+                            p.avatarUrl != null && p.avatarUrl!.isNotEmpty
+                                ? NetworkImage(p.avatarUrl!)
+                                : null,
+                        child: p.avatarUrl == null || p.avatarUrl!.isEmpty
+                            ? Icon(Icons.person_rounded, size: 40, color: cs.primary)
+                            : null,
                       ),
+                      SizedBox(width: t.space16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p.name,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              p.email,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                            ),
+                            SizedBox(height: t.space8),
+                            _SubscriptionChip(tier: p.subscriptionTier),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ref.watch(profilePracticeStatsProvider).when(
+                  data: (stats) => Padding(
+                    padding: EdgeInsets.only(top: t.space16),
+                    child: _ProfileStatsRow(stats: stats),
+                  ),
+                  loading: () => Padding(
+                    padding: EdgeInsets.only(top: t.space16),
+                    child: Row(
+                      children: [
+                        Expanded(child: Skeleton.line(width: double.infinity, height: 56)),
+                        SizedBox(width: t.space12),
+                        Expanded(child: Skeleton.line(width: double.infinity, height: 56)),
+                        SizedBox(width: t.space12),
+                        Expanded(child: Skeleton.line(width: double.infinity, height: 56)),
+                      ],
                     ),
-                  ],
+                  ),
+                  error: (_, _) => const SizedBox.shrink(),
                 ),
                 if (p.balance != null) ...[
                   SizedBox(height: t.space12),
@@ -153,11 +198,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ],
                 SizedBox(height: t.space24),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+                EnjoyCard(
+                  padding: EdgeInsets.all(t.space16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                       TextFormField(
                         controller: _name,
                         decoration: InputDecoration(
@@ -193,7 +240,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ),
                       SizedBox(height: t.space24),
-                      FilledButton(
+                      EnjoyButton.primary(
                         onPressed: _saving
                             ? null
                             : () async {
@@ -242,6 +289,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ],
                   ),
                 ),
+                ),
               ],
             ),
           ),
@@ -249,11 +297,108 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
       loading: () => Scaffold(
         appBar: AppBar(title: Text(l10n.profileTitle)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const SkeletonProfile(),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.profileTitle)),
         body: Center(child: Text('$e')),
+      ),
+    );
+  }
+}
+
+class _ProfileStatsRow extends StatelessWidget {
+  const _ProfileStatsRow({required this.stats});
+
+  final ProfilePracticeStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: _ProfileStatTile(
+            value: stats.libraryItemCount.toString(),
+            title: l10n.profileStatLibraryTitle,
+            subtitle: l10n.profileStatLibrarySubtitle,
+            textTheme: tt,
+            tokens: t,
+          ),
+        ),
+        SizedBox(width: t.space12),
+        Expanded(
+          child: _ProfileStatTile(
+            value: stats.echoSessionCount.toString(),
+            title: l10n.profileStatEchoTitle,
+            subtitle: l10n.profileStatEchoSubtitle,
+            textTheme: tt,
+            tokens: t,
+          ),
+        ),
+        SizedBox(width: t.space12),
+        Expanded(
+          child: _ProfileStatTile(
+            value: stats.recordedPracticeMinutes.toString(),
+            title: l10n.profileStatRecordTitle,
+            subtitle: l10n.profileStatRecordSubtitle,
+            textTheme: tt,
+            tokens: t,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileStatTile extends StatelessWidget {
+  const _ProfileStatTile({
+    required this.value,
+    required this.title,
+    required this.subtitle,
+    required this.textTheme,
+    required this.tokens,
+  });
+
+  final String value;
+  final String title;
+  final String subtitle;
+  final TextTheme textTheme;
+  final EnjoyThemeTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return EnjoyCard(
+      padding: EdgeInsets.all(tokens.space12),
+      child: Semantics(
+        container: true,
+        label: '$title, $value, $subtitle',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value,
+              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: tokens.space4),
+            Text(
+              title,
+              style: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
@@ -128,7 +129,10 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
       return Material(
         color: bg ?? Colors.transparent,
         child: InkWell(
-          onTap: widget.onTap,
+          onTap: () {
+            Haptics.selection(context);
+            widget.onTap();
+          },
           highlightColor: scheme.onSurface.withValues(alpha: 0.04),
           splashColor: scheme.primary.withValues(alpha: 0.06),
           child: content,
@@ -147,7 +151,10 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(tok.radiusSm),
-          onTap: widget.onTap,
+          onTap: () {
+            Haptics.selection(context);
+            widget.onTap();
+          },
           hoverColor: Colors.transparent,
           highlightColor: scheme.primary.withValues(alpha: 0.06),
           splashColor: scheme.primary.withValues(alpha: 0.10),

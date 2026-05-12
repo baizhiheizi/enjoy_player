@@ -23,6 +23,34 @@ import 'package:enjoy_player/features/settings/presentation/sync_status_screen.d
 
 part 'app_router.g.dart';
 
+CustomTransitionPage<void> _shellPage({
+  required LocalKey key,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: key,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.02),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 180),
+    reverseTransitionDuration: const Duration(milliseconds: 140),
+  );
+}
+
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
   final authTick = ref.watch(authRouterTickProvider);
@@ -50,15 +78,24 @@ GoRouter appRouter(Ref ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const HomeScreen(),
+            pageBuilder: (context, state) => _shellPage(
+              key: const ValueKey<String>('shell-home'),
+              child: const HomeScreen(),
+            ),
           ),
           GoRoute(
             path: '/library',
-            builder: (context, state) => const LibraryScreen(),
+            pageBuilder: (context, state) => _shellPage(
+              key: const ValueKey<String>('shell-library'),
+              child: const LibraryScreen(),
+            ),
           ),
           GoRoute(
             path: '/cloud',
-            builder: (context, state) => const CloudScreen(),
+            pageBuilder: (context, state) => _shellPage(
+              key: const ValueKey<String>('shell-cloud'),
+              child: const CloudScreen(),
+            ),
           ),
           GoRoute(
             path: '/player/:mediaId',
@@ -92,7 +129,10 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsScreen(),
+            pageBuilder: (context, state) => _shellPage(
+              key: const ValueKey<String>('shell-settings'),
+              child: const SettingsScreen(),
+            ),
           ),
           GoRoute(
             path: '/settings/sync',

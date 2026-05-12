@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
@@ -25,7 +26,7 @@ class TransportArtworkTile extends ConsumerWidget {
     // ADR-0003: single media_kit Player/VideoController — do not attach a second
     // [Video] here; the expanded player owns the texture. Mini bar uses art only.
     final thumb = localThumbnailFile(chrome.thumbnailUrl);
-    final Widget content =
+    final Widget rawArt =
         thumb != null
             ? Image.file(
               thumb,
@@ -35,6 +36,10 @@ class TransportArtworkTile extends ConsumerWidget {
               errorBuilder: (_, _, _) => transportArtworkFallback(cs, isVideo: isVideo),
             )
             : transportArtworkFallback(cs, isVideo: isVideo);
+    final Widget content = Hero(
+      tag: mediaArtworkHeroTag(chrome.mediaId),
+      child: Material(type: MaterialType.transparency, child: rawArt),
+    );
 
     return Semantics(
       label: isVideo ? l10n.miniPlayerMediaVideo : l10n.miniPlayerMediaAudio,
@@ -49,7 +54,10 @@ class TransportArtworkTile extends ConsumerWidget {
             side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
           ),
           child: InkWell(
-            onTap: () => openPlayerRoute(context, chrome.mediaId),
+            onTap: () {
+              Haptics.selection(context);
+              openPlayerRoute(context, chrome.mediaId);
+            },
             child: content,
           ),
         ),

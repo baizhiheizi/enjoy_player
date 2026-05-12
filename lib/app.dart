@@ -13,6 +13,7 @@ import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -33,7 +34,11 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
       scaffoldMessengerKey: appScaffoldMessengerKey,
       theme: theme,
       home: const ConstrainedAppViewport(
-        child: Scaffold(body: Center(child: CircularProgressIndicator())),
+        child: Scaffold(
+          body: Center(
+            child: SkeletonAppBootstrap(),
+          ),
+        ),
       ),
     );
   }

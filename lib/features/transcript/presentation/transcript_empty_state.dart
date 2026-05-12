@@ -2,8 +2,10 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class TranscriptEmptyState extends StatelessWidget {
@@ -47,10 +49,10 @@ class TranscriptEmptyState extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.subtitles_outlined,
-                      size: 40,
-                      color: scheme.primary.withValues(alpha: 0.85),
+                    SvgPicture.asset(
+                      EnjoyIllustrations.emptyTranscript,
+                      height: 88,
+                      fit: BoxFit.contain,
                     ),
                     SizedBox(height: t.space16),
                     Text(

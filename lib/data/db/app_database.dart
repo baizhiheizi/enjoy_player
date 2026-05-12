@@ -352,6 +352,22 @@ class EchoSessionDao extends DatabaseAccessor<AppDatabase>
       );
     }
   }
+
+  /// Local aggregates for profile stats (single round-trip).
+  Future<({int sessionCount, int recordingsDurationMs})> practiceTotals() {
+    return customSelect(
+      'SELECT COUNT(*) AS c, COALESCE(SUM(recordings_duration_ms), 0) AS d '
+      'FROM echo_sessions',
+      readsFrom: {echoSessions},
+    )
+        .map(
+          (row) => (
+            sessionCount: row.read<int>('c'),
+            recordingsDurationMs: row.read<int>('d'),
+          ),
+        )
+        .getSingle();
+  }
 }
 
 @DriftAccessor(tables: [Recordings])
