@@ -7,10 +7,57 @@ library;
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 
 import '../enjoy_tokens.dart';
 import '../generative_media_cover.dart';
+
+bool _deleteLongPressEnabledForPlatform() {
+  return defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+}
+
+/// Bottom sheet with a single destructive delete action (Android / iOS).
+void _showMobileDeleteMenu(
+  BuildContext context, {
+  required VoidCallback onDelete,
+  String? label,
+}) {
+  HapticFeedback.mediumImpact();
+  final ml = MaterialLocalizations.of(context);
+  final title =
+      (label != null && label.isNotEmpty) ? label : ml.deleteButtonTooltip;
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      final cs = Theme.of(sheetContext).colorScheme;
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.delete_outline_rounded, color: cs.error),
+              title: Text(
+                title,
+                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                  color: cs.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                onDelete();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 // ── Tile (vertical, for grids) ──────────────────────────────────────────────
 
@@ -43,10 +90,11 @@ class MediaCardTile extends StatefulWidget {
   final bool isVideo;
   final Color? accentColor;
 
-  /// When non-null, a corner delete control is shown on the thumbnail area on pointer hover.
+  /// When non-null: on pointer hover, a corner delete control on the thumbnail; on
+  /// Android / iOS, long-press opens a bottom sheet with delete (then the caller’s flow).
   final VoidCallback? onDelete;
 
-  /// Tooltip for [onDelete]; ignored when [onDelete] is null.
+  /// Label for hover tooltip and mobile delete sheet when [onDelete] is non-null.
   final String? deleteTooltip;
 
   /// e.g. "YouTube" — top-left on artwork.
@@ -72,6 +120,14 @@ class _MediaCardTileState extends State<MediaCardTile> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
+        onLongPress:
+            widget.onDelete != null && _deleteLongPressEnabledForPlatform()
+                ? () => _showMobileDeleteMenu(
+                    context,
+                    onDelete: widget.onDelete!,
+                    label: widget.deleteTooltip,
+                  )
+                : null,
         child: AnimatedContainer(
           duration: t.motionFast,
           curve: Curves.easeOutCubic,
@@ -279,10 +335,11 @@ class MediaCardRow extends StatefulWidget {
   final Color? accentColor;
   final Widget? trailing;
 
-  /// When non-null (and [trailing] is null), a delete control appears beside the chevron on hover.
+  /// When non-null (and [trailing] is null): delete beside the chevron on pointer hover;
+  /// on Android / iOS, long-press opens a bottom sheet with delete.
   final VoidCallback? onDelete;
 
-  /// Tooltip for [onDelete].
+  /// Label for hover tooltip and mobile delete sheet when [onDelete] is non-null.
   final String? deleteTooltip;
 
   @override
@@ -340,6 +397,16 @@ class _MediaCardRowState extends State<MediaCardRow> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
+        onLongPress:
+            widget.trailing == null &&
+                    widget.onDelete != null &&
+                    _deleteLongPressEnabledForPlatform()
+                ? () => _showMobileDeleteMenu(
+                    context,
+                    onDelete: widget.onDelete!,
+                    label: widget.deleteTooltip,
+                  )
+                : null,
         child: AnimatedContainer(
           duration: t.motionFast,
           curve: Curves.easeOutCubic,
