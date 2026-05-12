@@ -267,11 +267,13 @@ class _HomeInsightCards extends ConsumerWidget {
   const _HomeInsightCards();
 
   static const double _kWideBreakpoint = 720;
+  static const double _kStripSplitMinWidth = 420;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authAsync = ref.watch(authCtrlProvider);
     final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
 
     final isSignedIn = authAsync.maybeWhen(
       data: (s) => s is AuthSignedIn,
@@ -280,36 +282,106 @@ class _HomeInsightCards extends ConsumerWidget {
 
     if (!isSignedIn) return const SizedBox.shrink();
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(t.space24, t.space24, t.space24, t.space24),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= _kWideBreakpoint;
-          final gap = t.space12;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= _kWideBreakpoint;
+        final gap = t.space12;
+        final pad = wide
+            ? EdgeInsets.fromLTRB(
+                t.space24,
+                t.space24,
+                t.space24,
+                t.space24,
+              )
+            : EdgeInsets.fromLTRB(
+                t.space24,
+                t.space8,
+                t.space24,
+                t.space8,
+              );
 
-          if (wide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Expanded(child: TodaysGoalCard()),
-                SizedBox(width: gap),
-                const Expanded(
-                  child: CommunityActivityCard(outerPadding: EdgeInsets.zero),
-                ),
-              ],
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const TodaysGoalCard(),
-              SizedBox(height: gap),
-              const CommunityActivityCard(outerPadding: EdgeInsets.zero),
-            ],
+        if (wide) {
+          return Padding(
+            padding: pad,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Expanded(
+                    child: TodaysGoalCard(
+                      variant: TodaysGoalCardVariant.card,
+                    ),
+                  ),
+                  SizedBox(width: gap),
+                  const Expanded(
+                    child: CommunityActivityCard(
+                      outerPadding: EdgeInsets.zero,
+                      variant: CommunityActivityCardVariant.card,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
-        },
-      ),
+        }
+
+        final narrowSplit =
+            constraints.maxWidth >= _kStripSplitMinWidth;
+        final strip = Card(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: narrowSplit
+              ? IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Expanded(
+                        flex: 3,
+                        child: TodaysGoalCard(
+                          variant: TodaysGoalCardVariant.bar,
+                          containedInParentCard: true,
+                        ),
+                      ),
+                      VerticalDivider(
+                        width: 1,
+                        thickness: 1,
+                        color: cs.outlineVariant.withValues(alpha: 0.35),
+                      ),
+                      const Expanded(
+                        flex: 2,
+                        child: CommunityActivityCard(
+                          outerPadding: EdgeInsets.zero,
+                          variant: CommunityActivityCardVariant.summary,
+                          containedInParentCard: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const TodaysGoalCard(
+                      variant: TodaysGoalCardVariant.bar,
+                      containedInParentCard: true,
+                    ),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: cs.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                    const CommunityActivityCard(
+                      outerPadding: EdgeInsets.zero,
+                      variant: CommunityActivityCardVariant.summary,
+                      containedInParentCard: true,
+                    ),
+                  ],
+                ),
+        );
+
+        return Padding(padding: pad, child: strip);
+      },
     );
   }
 }
