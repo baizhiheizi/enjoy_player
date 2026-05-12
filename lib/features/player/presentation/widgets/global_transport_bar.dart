@@ -16,6 +16,7 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'transport/transport_artwork_tile.dart';
@@ -44,6 +45,16 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
   @override
   Widget build(BuildContext context) {
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final mediaId = ref.watch(
+      playerControllerProvider.select((s) => s?.mediaId),
+    );
+    final transcriptLinesAsync = ref.watch(
+      transcriptLinesForMediaProvider(mediaId ?? ''),
+    );
+    final hasTranscriptLines = transcriptLinesAsync.maybeWhen(
+      data: (lines) => lines.isNotEmpty,
+      orElse: () => false,
+    );
     final echo = ref.watch(echoModeProvider);
     final playingAsync = ref.watch(playerIsPlayingProvider);
     final bufferingAsync = ref.watch(playerIsBufferingProvider);
@@ -108,7 +119,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         tooltip: ttPrev,
         iconSize: 22,
         onPressed:
-            isBuffering
+            isBuffering || !hasTranscriptLines
                 ? null
                 : () =>
                     ref.read(playerInteractionsProvider.notifier).prevLine(),
@@ -118,7 +129,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         tooltip: ttNext,
         iconSize: 22,
         onPressed:
-            isBuffering
+            isBuffering || !hasTranscriptLines
                 ? null
                 : () =>
                     ref.read(playerInteractionsProvider.notifier).nextLine(),
@@ -128,7 +139,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         tooltip: ttReplay,
         iconSize: 22,
         onPressed:
-            isBuffering
+            isBuffering || !hasTranscriptLines
                 ? null
                 : () =>
                     ref.read(playerInteractionsProvider.notifier).replayLine(),
@@ -147,7 +158,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                 )
                 : null,
         onPressed:
-            () => ref.read(playerInteractionsProvider.notifier).toggleEcho(),
+            echo.active || hasTranscriptLines
+                ? () => ref
+                    .read(playerInteractionsProvider.notifier)
+                    .toggleEcho()
+                : null,
         icon: const Icon(Icons.mic_none_rounded),
       ),
       TransportCcButton(mediaId: chrome.mediaId),

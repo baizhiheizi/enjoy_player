@@ -20,6 +20,7 @@
 ## Presentation
 
 - **Global transport** — composed from [`presentation/widgets/transport/`](../../lib/features/player/presentation/widgets/transport/) (progress strip, volume popover, artwork/meta, CC, fullscreen, play ring). [`GlobalTransportBar`](../../lib/features/player/presentation/widgets/global_transport_bar.dart) wires Riverpod + routing only.
+- **Line-level transport** — previous line, next line, replay line, and echo mode are disabled when there is no primary transcript (empty or still loading); the echo button stays enabled while echo mode is active so the user can exit echo without transcript lines.
 - **Expanded player** — [`ExpandedPlayerChromeBody`](../../lib/features/player/presentation/expanded_player_widgets.dart) + loading/error bodies; YouTube account affordance uses [`playerYoutubeLoginChromeSupportedProvider`](../../lib/features/player/application/player_engine_capabilities_provider.dart) so UI does not depend on concrete engine types.
 
 ## Engine contract (ADR-0015)
