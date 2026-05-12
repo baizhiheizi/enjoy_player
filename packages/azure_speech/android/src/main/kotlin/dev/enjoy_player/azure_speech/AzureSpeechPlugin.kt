@@ -74,9 +74,11 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
           enableMiscue,
         )
         try {
-          pronunciationConfig.enableProsodyAssessment = enableProsody
-          pronunciationConfig.phonemeAlphabet = phonemeAlphabet
-          pronunciationConfig.nbestPhonemeCount = nbestPhonemeCount
+          if (enableProsody) {
+            pronunciationConfig.enableProsodyAssessment()
+          }
+          pronunciationConfig.setPhonemeAlphabet(phonemeAlphabet)
+          pronunciationConfig.setNBestPhonemeCount(nbestPhonemeCount)
 
           val recognizer = SpeechRecognizer(config, audioConfig)
           try {

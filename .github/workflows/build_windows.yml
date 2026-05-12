@@ -37,7 +37,9 @@ jobs:
             Write-Host "nuget not on PATH; install NuGet CLI for Windows builds per README."
             exit 1
           }
-          if ($sources -notmatch "nuget\.org") {
+          if ($sources -match "api\.nuget\.org") {
+            Write-Host "NuGet.org (v3) feed already configured."
+          } else {
             nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" -NonInteractive
           }
 
