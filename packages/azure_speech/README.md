@@ -20,7 +20,7 @@ The Dart API starts with **pronunciation assessment** (one-shot WAV file, author
 ```dart
 import 'package:azure_speech/azure_speech.dart';
 
-final result = await AzureSpeech.instance.assess(
+final outcome = await AzureSpeech.instance.assess(
   AzurePronunciationAssessmentParams(
     audioPath: '/path/to/file.wav',
     referenceText: 'Hello world',
@@ -30,7 +30,7 @@ final result = await AzureSpeech.instance.assess(
   ),
 );
 
-final scores = result.primaryScores;
+final scores = outcome.detail.primaryScores;
 ```
 
 Audio should be **16 kHz, 16-bit, mono WAV** (same convention as the web `azure-assessment-core` flow).

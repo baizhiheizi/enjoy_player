@@ -60,10 +60,19 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
         token: token.token,
         region: token.region,
       );
-      final detail = await _sdk.assess(params);
+      final audioBytes = await File(pathForSdk).length();
+      final outcome = await _sdk.assess(params);
+      _logAssessmentOutcome(
+        outcome: outcome,
+        audioBasename: p.basename(pathForSdk),
+        audioBytes: audioBytes,
+        usedNormalizedWav: deleteNormalized,
+        language: azureLanguage,
+        referenceChars: params.referenceText.length,
+      );
       return AssessmentResult(
-        detail: detail,
-        rawJson: Map<String, dynamic>.from(detail.toJson()),
+        detail: outcome.detail,
+        rawJson: Map<String, dynamic>.from(outcome.rawJson),
       );
     } on AzureSpeechException catch (e, st) {
       _log.warning('Azure assessment failed', e, st);
@@ -83,6 +92,47 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
           _log.fine('temp wav cleanup failed: $wavPath', e, st);
         }
       }
+    }
+  }
+
+  static void _logAssessmentOutcome({
+    required AzureSpeechAssessmentOutcome outcome,
+    required String audioBasename,
+    required int audioBytes,
+    required bool usedNormalizedWav,
+    required String language,
+    required int referenceChars,
+  }) {
+    final d = outcome.detail;
+    final nb = d.nBest.isEmpty ? null : d.nBest.first;
+    final sc = nb?.pronunciationAssessment;
+    final words = nb?.words ?? const <AzureWordAssessment>[];
+    var omissions = 0;
+    for (final w in words) {
+      if (w.pronunciationAssessment.errorType == 'Omission') omissions++;
+    }
+    _log.fine(
+      'Azure assessment audio=$audioBasename bytes=$audioBytes '
+      'normalized=$usedNormalizedWav language=$language refChars=$referenceChars',
+    );
+    _log.fine(
+      'Azure assessment result status=${d.recognitionStatus} '
+      'displayText="${d.displayText}" nBest=${d.nBest.length} '
+      'pronScore=${sc?.pronScore} accuracy=${sc?.accuracyScore} '
+      'fluency=${sc?.fluencyScore} completeness=${sc?.completenessScore} '
+      'words=${words.length} omissions=$omissions',
+    );
+    if (sc != null &&
+        sc.pronScore == 0 &&
+        sc.accuracyScore == 0 &&
+        sc.fluencyScore == 0 &&
+        sc.completenessScore == 0) {
+      _log.warning(
+        'Azure assessment returned all-zero segment scores — often means '
+        'no usable speech matched the reference (silent/wrong file, format, '
+        'or language). If playback of the take sounds fine, capture logs above '
+        'and check FFmpeg normalization and transcript language.',
+      );
     }
   }
 

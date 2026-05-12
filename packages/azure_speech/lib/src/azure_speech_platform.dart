@@ -1,8 +1,8 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'azure_speech_assessment_outcome.dart';
 import 'azure_speech_params.dart';
 import 'method_channel_azure_speech.dart';
-import 'models.dart';
 
 /// Platform abstraction for Azure Speech (native SDK).
 abstract class AzureSpeechPlatform extends PlatformInterface {
@@ -19,7 +19,7 @@ abstract class AzureSpeechPlatform extends PlatformInterface {
     _instance = impl;
   }
 
-  Future<AzurePronunciationAssessmentResult> assess(
+  Future<AzureSpeechAssessmentOutcome> assess(
     AzurePronunciationAssessmentParams params,
   );
 }

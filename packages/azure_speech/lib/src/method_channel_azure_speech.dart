@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'azure_speech_exception.dart';
 import 'azure_speech_params.dart';
+import 'azure_speech_assessment_outcome.dart';
 import 'azure_speech_platform.dart';
 import 'models.dart';
 
@@ -16,7 +17,7 @@ final class MethodChannelAzureSpeech extends AzureSpeechPlatform {
   final MethodChannel _channel;
 
   @override
-  Future<AzurePronunciationAssessmentResult> assess(
+  Future<AzureSpeechAssessmentOutcome> assess(
     AzurePronunciationAssessmentParams params,
   ) async {
     if (kIsWeb) {
@@ -34,14 +35,16 @@ final class MethodChannelAzureSpeech extends AzureSpeechPlatform {
         );
       }
       final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) {
+      if (decoded is! Map) {
         throw AzureSpeechException(
           code: 'parse_error',
           message: 'Assessment JSON root was not an object.',
           details: raw,
         );
       }
-      return AzurePronunciationAssessmentResult.fromJson(decoded);
+      final root = Map<String, dynamic>.from(decoded);
+      final detail = AzurePronunciationAssessmentResult.fromJson(root);
+      return AzureSpeechAssessmentOutcome(detail: detail, rawJson: root);
     } on PlatformException catch (e, st) {
       Error.throwWithStackTrace(
         AzureSpeechException(

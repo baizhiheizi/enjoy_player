@@ -124,7 +124,20 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
             ),
           );
 
-      final score = switch (result.detail.primaryScores) {
+      final ps = result.detail.primaryScores;
+      if (ps != null &&
+          ps.pronScore == 0 &&
+          ps.accuracyScore == 0 &&
+          ps.fluencyScore == 0 &&
+          ps.completenessScore == 0) {
+        _log.warning(
+          'RecordingAssessment: stored scores are all zero for recording=${row.id} '
+          '(status=${result.detail.recognitionStatus} display="${result.detail.displayText}"). '
+          'See ai.enjoy.assessment logs for audio path and Azure fields.',
+        );
+      }
+
+      final score = switch (ps) {
         null => null,
         final s => s.pronScore.round(),
       };

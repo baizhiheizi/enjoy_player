@@ -56,7 +56,7 @@ void main() {
       return json;
     });
 
-    final r = await AzureSpeech.instance.assess(
+    final r = (await AzureSpeech.instance.assess(
       const AzurePronunciationAssessmentParams(
         audioPath: '/tmp/x.wav',
         referenceText: 'Hello',
@@ -64,7 +64,8 @@ void main() {
         token: 't',
         region: 'eastus',
       ),
-    );
+    ))
+        .detail;
 
     expect(r.displayText, 'Hello.');
     expect(r.nBest, isNotEmpty);
