@@ -9,14 +9,22 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 class TranscriptEmptyState extends StatelessWidget {
   const TranscriptEmptyState({
     required this.onImport,
+    this.onExtract,
     this.showImportButton = true,
+    this.showExtractButton = false,
     super.key,
   });
 
   final VoidCallback onImport;
 
+  /// Embedded subtitle extract (local video only).
+  final VoidCallback? onExtract;
+
   /// When false, only cloud/hint copy (e.g. YouTube — no local file to import).
   final bool showImportButton;
+
+  /// When true with [onExtract], shows an Extract control next to import.
+  final bool showExtractButton;
 
   @override
   Widget build(BuildContext context) {
@@ -28,60 +36,62 @@ class TranscriptEmptyState extends StatelessWidget {
       builder: (context, viewport) {
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: t.space8,
+            horizontal: t.space16,
             vertical: t.space16,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: viewport.maxHeight),
             child: Center(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest.withValues(
-                    alpha: 0.55,
-                  ),
-                  borderRadius: BorderRadius.circular(t.radiusMd),
-                  border: Border.all(
-                    color: scheme.outlineVariant.withValues(
-                      alpha: 0.35,
+              child: Padding(
+                padding: EdgeInsets.all(t.space8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.subtitles_outlined,
+                      size: 40,
+                      color: scheme.primary.withValues(alpha: 0.85),
                     ),
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(t.space24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.subtitles_outlined,
-                        size: 40,
-                        color: scheme.primary.withValues(alpha: 0.85),
-                      ),
-                      SizedBox(height: t.space16),
-                      Text(
-                        l10n.noTranscript,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(height: t.space8),
-                      Text(
-                        l10n.noTranscriptHint,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                              height: 1.35,
-                            ),
-                      ),
+                    SizedBox(height: t.space16),
+                    Text(
+                      l10n.noTranscript,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: t.space8),
+                    Text(
+                      l10n.noTranscriptHint,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            height: 1.35,
+                          ),
+                    ),
+                    if (showExtractButton || showImportButton) ...[
                       SizedBox(height: t.space24),
-                      if (showImportButton) ...[
-                        FilledButton.icon(
-                          onPressed: onImport,
-                          icon: const Icon(Icons.upload_file_rounded),
-                          label: Text(l10n.importSubtitle),
-                        ),
-                      ],
+                      Wrap(
+                        spacing: t.space8,
+                        runSpacing: t.space8,
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (showExtractButton && onExtract != null)
+                            OutlinedButton.icon(
+                              onPressed: onExtract,
+                              icon: const Icon(Icons.subtitles_outlined),
+                              label: Text(l10n.transcriptEmptyExtract),
+                            ),
+                          if (showImportButton)
+                            FilledButton.icon(
+                              onPressed: onImport,
+                              icon: const Icon(Icons.upload_file_rounded),
+                              label: Text(l10n.transcriptEmptyAddSubtitle),
+                            ),
+                        ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),

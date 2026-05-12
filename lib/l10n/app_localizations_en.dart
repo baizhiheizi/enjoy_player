@@ -266,7 +266,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTranscriptHint =>
-      'Cloud transcripts load when you play media (once). For video, use Extract embedded or import an .srt/.vtt file.';
+      'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).';
+
+  @override
+  String get transcriptEmptyExtract => 'Extract';
+
+  @override
+  String get transcriptEmptyAddSubtitle => 'Add subtitle';
 
   @override
   String get subtitlesExtractEmbedded => 'Extract embedded subtitles';

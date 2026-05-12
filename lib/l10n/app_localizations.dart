@@ -595,8 +595,20 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscriptHint.
   ///
   /// In en, this message translates to:
-  /// **'Cloud transcripts load when you play media (once). For video, use Extract embedded or import an .srt/.vtt file.'**
+  /// **'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).'**
   String get noTranscriptHint;
+
+  /// No description provided for @transcriptEmptyExtract.
+  ///
+  /// In en, this message translates to:
+  /// **'Extract'**
+  String get transcriptEmptyExtract;
+
+  /// No description provided for @transcriptEmptyAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subtitle'**
+  String get transcriptEmptyAddSubtitle;
 
   /// No description provided for @subtitlesExtractEmbedded.
   ///

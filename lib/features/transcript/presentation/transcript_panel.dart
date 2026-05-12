@@ -1,6 +1,8 @@
 /// Scrollable transcript with tap-to-seek and echo-aware highlighting.
 library;
 
+import 'dart:async';
+
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
 
 class TranscriptPanel extends ConsumerWidget {
@@ -60,10 +64,15 @@ class TranscriptPanel extends ConsumerWidget {
     final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
 
     final videoRowAsync = ref.watch(videoRowForMediaProvider(mediaId));
-    final hideLocalImport = videoRowAsync.maybeWhen(
+    final isYoutube = videoRowAsync.maybeWhen(
       data: (row) => row?.provider == 'youtube',
       orElse: () => false,
     );
+    final showLocalActions = !isYoutube;
+    final session = ref.watch(playerControllerProvider);
+    final showExtractButton = session != null &&
+        session.dexieTargetType == 'Video' &&
+        showLocalActions;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -74,7 +83,17 @@ class TranscriptPanel extends ConsumerWidget {
               if (lines.isEmpty) {
                 return TranscriptEmptyState(
                   onImport: () => _import(context, ref),
-                  showImportButton: !hideLocalImport,
+                  onExtract: showExtractButton
+                      ? () => unawaited(
+                            runEmbeddedSubtitleExtract(
+                              context: context,
+                              ref: ref,
+                              mediaId: mediaId,
+                            ),
+                          )
+                      : null,
+                  showImportButton: showLocalActions,
+                  showExtractButton: showExtractButton,
                 );
               }
               return TranscriptScrollableList(mediaId: mediaId, lines: lines);

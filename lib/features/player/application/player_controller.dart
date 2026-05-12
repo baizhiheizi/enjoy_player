@@ -90,6 +90,12 @@ class PlayerController extends _$PlayerController {
     final title = resolved.title;
     final playable = resolved.playable;
 
+    schedulePlayerOpenSideEffects(
+      ref,
+      mediaId: mediaId,
+      dexieTargetType: dexie,
+    );
+
     await ensureEngineForPlayableSource(
       ref,
       playable: playable,
@@ -119,12 +125,6 @@ class PlayerController extends _$PlayerController {
 
     await _activeEngine.disableRenderedSubtitles();
     if (gen != _openGeneration) return;
-
-    schedulePlayerOpenSideEffects(
-      ref,
-      mediaId: mediaId,
-      dexieTargetType: dexie,
-    );
 
     await ref.read(playerPreferencesCtrlProvider.notifier).applyCurrentToEngine();
     if (gen != _openGeneration) return;

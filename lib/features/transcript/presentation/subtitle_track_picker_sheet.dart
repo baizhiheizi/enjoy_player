@@ -2,21 +2,16 @@
 // ignore_for_file: deprecated_member_use
 library;
 
-import 'dart:async';
-
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'import_subtitle_language_dialog.dart';
+import 'transcript_embedded_extract.dart';
 import '../../player/application/player_controller.dart';
-import '../../player/application/player_engine_provider.dart';
 import '../application/active_transcript_provider.dart';
 import '../application/all_transcripts_provider.dart';
 import '../application/transcript_repository_provider.dart';
@@ -140,50 +135,13 @@ class _SubtitleTrackPickerSheetState
   }
 
   Future<void> _extractEmbedded() async {
-    final l10n = AppLocalizations.of(context)!;
     setState(() => _extractingEmbedded = true);
     try {
-      final db = ref.read(appDatabaseProvider);
-      final uri = await resolvePlayableSourceUri(db, widget.mediaId);
-      if (uri == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.subtitlesNoPlayableUri)),
-          );
-        }
-        return;
-      }
-
-      final tracksStream = ref.read(playerEngineProvider).mkTracksStream;
-      var playerSubs = <mk.SubtitleTrack>[];
-      if (tracksStream != null) {
-        try {
-          final t = await tracksStream
-              .firstWhere((e) => e.subtitle.isNotEmpty)
-              .timeout(const Duration(seconds: 2));
-          playerSubs = t.subtitle;
-        } on TimeoutException {
-          // media_kit may not list subtitles until metadata is ready — ffmpeg probe
-          // in [TranscriptRepository.extractEmbeddedTracks] still runs.
-        }
-      }
-
-      final count = await ref.read(transcriptRepositoryProvider).extractEmbeddedTracks(
+      await runEmbeddedSubtitleExtract(
+        context: context,
+        ref: ref,
         mediaId: widget.mediaId,
-        sourceUri: uri,
-        playerSubtitleTracks: playerSubs,
       );
-
-      if (!mounted) return;
-      if (count == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.subtitlesExtractNoTracks)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.subtitlesExtractedCount(count))),
-        );
-      }
     } finally {
       if (mounted) setState(() => _extractingEmbedded = false);
     }
