@@ -52,8 +52,8 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
       },
     ),
   );
-  // Allow the dialog route to be scheduled before import work runs.
-  await Future<void>.delayed(Duration.zero);
+  // Let the modal route build and paint before starting import (Duration.zero is not enough).
+  await WidgetsBinding.instance.endOfFrame;
 
   try {
     final auth = ref.read(authCtrlProvider).valueOrNull;
@@ -244,7 +244,8 @@ Future<void> importYoutubeFromDialog(BuildContext context, WidgetRef ref) async 
       },
     ),
   );
-  await Future<void>.delayed(Duration.zero);
+  // Let the modal route build and paint before starting import.
+  await WidgetsBinding.instance.endOfFrame;
 
   try {
     final auth = ref.read(authCtrlProvider).valueOrNull;
