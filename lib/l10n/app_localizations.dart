@@ -742,6 +742,12 @@ abstract class AppLocalizations {
   /// **'Your pitch'**
   String get pitchContourUser;
 
+  /// No description provided for @pitchContourAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing pitch…'**
+  String get pitchContourAnalyzing;
+
   /// No description provided for @shadowRecordingExisting.
   ///
   /// In en, this message translates to:

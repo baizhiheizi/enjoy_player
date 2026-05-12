@@ -122,6 +122,7 @@
   "pitchContourWaveform": "Waveform",
   "pitchContourReference": "Reference pitch",
   "pitchContourUser": "Your pitch",
+  "pitchContourAnalyzing": "Analyzing pitch…",
   "shadowRecordingExisting": "Saved takes",
   "shadowRecordingEmpty": "No recordings for this segment yet.",
   "shadowRecordingTake": "Take",

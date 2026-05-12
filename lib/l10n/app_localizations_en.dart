@@ -347,6 +347,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pitchContourUser => 'Your pitch';
 
   @override
+  String get pitchContourAnalyzing => 'Analyzing pitch…';
+
+  @override
   String get shadowRecordingExisting => 'Saved takes';
 
   @override

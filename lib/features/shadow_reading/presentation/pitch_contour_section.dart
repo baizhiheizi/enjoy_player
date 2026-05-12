@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,6 +56,9 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   EchoRegionAnalysisResult? _user;
   Object? _error;
   bool _loading = false;
+  bool _loadingUser = false;
+  int _referenceRequestGen = 0;
+  int _userRequestGen = 0;
   PitchContourVisibility _vis = const PitchContourVisibility();
 
   bool get _effectiveExpanded => widget.expanded ?? _expanded;
@@ -76,12 +80,18 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     if (oldWidget.mediaPath != widget.mediaPath ||
         oldWidget.startSec != widget.startSec ||
         oldWidget.endSec != widget.endSec) {
+      _referenceRequestGen++;
+      _userRequestGen++;
       _reference = null;
       _user = null;
       _error = null;
+      if (_effectiveExpanded) {
+        unawaited(_loadReference());
+      }
     }
     if (oldWidget.selectedRecordingPath != widget.selectedRecordingPath ||
         oldWidget.selectedRecordingDurationMs != widget.selectedRecordingDurationMs) {
+      _userRequestGen++;
       _user = null;
       if (_effectiveExpanded && widget.selectedRecordingPath != null) {
         unawaited(_loadUser());
@@ -108,7 +118,8 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   }
 
   Future<void> _loadReference() async {
-    if (_loading) return;
+    final gen = ++_referenceRequestGen;
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -119,7 +130,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
         startSec: widget.startSec,
         endSec: widget.endSec,
       );
-      if (!mounted) return;
+      if (!mounted || gen != _referenceRequestGen) return;
       if (r == null) {
         setState(() {
           _reference = null;
@@ -132,8 +143,11 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
         _reference = r;
         _loading = false;
       });
+      if (widget.selectedRecordingPath != null) {
+        unawaited(_loadUser());
+      }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || gen != _referenceRequestGen) return;
       setState(() {
         _error = e;
         _loading = false;
@@ -144,16 +158,29 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   Future<void> _loadUser() async {
     final path = widget.selectedRecordingPath;
     if (path == null || path.isEmpty) {
-      setState(() => _user = null);
+      if (!mounted) return;
+      setState(() {
+        _user = null;
+        _loadingUser = false;
+      });
       return;
     }
+    final gen = ++_userRequestGen;
+    if (!mounted) return;
+    setState(() => _loadingUser = true);
     try {
       final u = await analyzeMediaFileFull(mediaPath: path);
-      if (!mounted) return;
-      setState(() => _user = u);
+      if (!mounted || gen != _userRequestGen) return;
+      setState(() {
+        _user = u;
+        _loadingUser = false;
+      });
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _user = null);
+      if (!mounted || gen != _userRequestGen) return;
+      setState(() {
+        _user = null;
+        _loadingUser = false;
+      });
     }
   }
 
@@ -218,12 +245,16 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
 
     final body = _effectiveExpanded
         ? [
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (_error != null)
+            if (_loading) ...[
+              const _PitchContourChartSkeleton(),
+              const SizedBox(height: 8),
+              Text(
+                l10n.pitchContourAnalyzing,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ] else if (_error != null)
               Text(
                 l10n.pitchContourError,
                 style: TextStyle(color: scheme.error),
@@ -236,6 +267,10 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
                 visibility: _vis,
                 progress: progress,
               ),
+              if (_loadingUser) ...[
+                const SizedBox(height: 6),
+                const LinearProgressIndicator(minHeight: 2),
+              ],
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -299,4 +334,70 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       ],
     );
   }
+}
+
+/// Placeholder footprint matching [PitchContourChart] height band.
+class _PitchContourChartSkeleton extends StatelessWidget {
+  const _PitchContourChartSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Theme.of(
+      context,
+    ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6);
+    return SizedBox(
+      height: 160,
+      width: double.infinity,
+      child: CustomPaint(painter: _PitchContourSkeletonPainter(baseColor: base)),
+    );
+  }
+}
+
+class _PitchContourSkeletonPainter extends CustomPainter {
+  _PitchContourSkeletonPainter({required this.baseColor});
+
+  final Color baseColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = baseColor;
+    const n = 44;
+    final barW = size.width / n;
+    final rnd = math.Random(42);
+    for (var i = 0; i < n; i++) {
+      final h = barW * (0.45 + rnd.nextDouble() * 1.1);
+      final x = i * barW + barW * 0.12;
+      final top = size.height * 0.52 + (size.height * 0.42 - h);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, top, barW * 0.76, h),
+          const Radius.circular(2),
+        ),
+        paint,
+      );
+    }
+    final linePaint =
+        Paint()
+          ..color = baseColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round;
+    final path = Path();
+    const steps = 48;
+    for (var i = 0; i <= steps; i++) {
+      final t = i / steps;
+      final x = t * size.width;
+      final y = size.height * 0.26 + math.sin(t * math.pi * 5) * size.height * 0.09;
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(path, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PitchContourSkeletonPainter oldDelegate) =>
+      oldDelegate.baseColor != baseColor;
 }
