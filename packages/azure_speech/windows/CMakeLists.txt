@@ -1,7 +1,7 @@
 # Azure Speech SDK is fetched from NuGet at configure time (requires network once).
 cmake_minimum_required(VERSION 3.18)
 
-set(PLUGIN_NAME "azure_pronunciation_assessment_plugin")
+set(PLUGIN_NAME "azure_speech_plugin")
 project(${PLUGIN_NAME} LANGUAGES CXX)
 
 cmake_policy(VERSION 3.18...3.25)
@@ -47,13 +47,13 @@ list(GET AZURE_LIB_RELEASE 0 AZURE_LIB_RELEASE_PATH)
 file(GLOB AZURE_DLLS "${AZURE_SDK_DIR}/extract/**/runtimes/win-x64/native/*.dll")
 
 list(APPEND PLUGIN_SOURCES
-  "azure_pronunciation_assessment_plugin.cpp"
-  "azure_pronunciation_assessment_plugin.h"
+  "azure_speech_plugin.cpp"
+  "azure_speech_plugin.h"
 )
 
 add_library(${PLUGIN_NAME} SHARED
-  "include/azure_pronunciation_assessment/azure_pronunciation_assessment_plugin_c_api.h"
-  "azure_pronunciation_assessment_plugin_c_api.cpp"
+  "include/azure_speech/azure_speech_plugin_c_api.h"
+  "azure_speech_plugin_c_api.cpp"
   ${PLUGIN_SOURCES}
 )
 
@@ -74,6 +74,6 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 target_link_libraries(${PLUGIN_NAME} PRIVATE
   "$<IF:$<CONFIG:Debug>,${AZURE_LIB_DEBUG_PATH},${AZURE_LIB_RELEASE_PATH}>")
 
-set(azure_pronunciation_assessment_bundled_libraries
+set(azure_speech_bundled_libraries
   ${AZURE_DLLS}
   PARENT_SCOPE)

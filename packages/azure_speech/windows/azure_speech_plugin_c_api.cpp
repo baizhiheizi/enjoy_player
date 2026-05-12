@@ -1,12 +1,12 @@
-#include "include/azure_pronunciation_assessment/azure_pronunciation_assessment_plugin_c_api.h"
+#include "include/azure_speech/azure_speech_plugin_c_api.h"
 
 #include <flutter/plugin_registrar_windows.h>
 
-#include "azure_pronunciation_assessment_plugin.h"
+#include "azure_speech_plugin.h"
 
-void AzurePronunciationAssessmentPluginCApiRegisterWithRegistrar(
+void AzureSpeechPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  azure_pronunciation_assessment::AzurePronunciationAssessmentPlugin::RegisterWithRegistrar(
+  azure_speech::AzureSpeechPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }

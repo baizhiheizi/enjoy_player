@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_cache.dart';
 import 'package:enjoy_player/features/ai/data/enjoy/enjoy_assessment_capability.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const channel = MethodChannel('azure_pronunciation_assessment');
+  const channel = MethodChannel('azure_speech');
 
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -69,7 +69,7 @@ void main() {
 
     final cap = EnjoyAssessmentCapability(
       tokenCache: cache,
-      sdk: AzurePronunciationAssessment.instance,
+      sdk: AzureSpeech.instance,
     );
 
     final result = await cap.assess(

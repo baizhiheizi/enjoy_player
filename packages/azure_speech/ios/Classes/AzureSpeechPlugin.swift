@@ -1,10 +1,10 @@
 import Flutter
 import MicrosoftCognitiveServicesSpeech
 
-public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
+public class AzureSpeechPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
-      name: "azure_pronunciation_assessment",
+      name: "azure_speech",
       binaryMessenger: registrar.messenger())
     channel.setMethodCallHandler { call, result in
       guard call.method == "assess" else {
@@ -19,7 +19,7 @@ public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
         do {
           let json = try Self.performAssessment(args: args)
           DispatchQueue.main.async { result(json) }
-        } catch let e as NSError where e.domain == "AzurePronunciationAssessment" {
+        } catch let e as NSError where e.domain == "AzureSpeech" {
           let code = e.code == 1 ? "no_speech" : "azure_speech_error"
           DispatchQueue.main.async {
             result(FlutterError(code: code, message: e.localizedDescription, details: nil))
@@ -57,7 +57,7 @@ public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
 
     guard let audioConfig = SPXAudioConfiguration(wavFileInput: audioPath) else {
       throw NSError(
-        domain: "AzurePronunciationAssessment", code: 4,
+        domain: "AzureSpeech", code: 4,
         userInfo: [NSLocalizedDescriptionKey: "Could not open audio file"])
     }
 
@@ -77,7 +77,7 @@ public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
         speechConfiguration: speechConfig, audioConfiguration: audioConfig)
     else {
       throw NSError(
-        domain: "AzurePronunciationAssessment", code: 5,
+        domain: "AzureSpeech", code: 5,
         userInfo: [NSLocalizedDescriptionKey: "Could not create speech recognizer"])
     }
 
@@ -93,22 +93,22 @@ public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
         jsonOut = result.properties?.getPropertyBy(SPXPropertyId.speechServiceResponseJsonResult)
         if jsonOut == nil || jsonOut!.isEmpty {
           errOut = NSError(
-            domain: "AzurePronunciationAssessment", code: 2,
+            domain: "AzureSpeech", code: 2,
             userInfo: [NSLocalizedDescriptionKey: "Empty JsonResult"])
         }
       } else if result.reason == SPXResultReason.noMatch {
         errOut = NSError(
-          domain: "AzurePronunciationAssessment", code: 1,
+          domain: "AzureSpeech", code: 1,
           userInfo: [NSLocalizedDescriptionKey: "No speech detected"])
       } else if result.reason == SPXResultReason.canceled {
         let cancellationDetails = try? SPXCancellationDetails(fromCanceledRecognitionResult: result)
         let msg = "\(String(describing: cancellationDetails?.reason)): \(cancellationDetails?.errorDetails ?? "")"
         errOut = NSError(
-          domain: "AzurePronunciationAssessment", code: 3,
+          domain: "AzureSpeech", code: 3,
           userInfo: [NSLocalizedDescriptionKey: msg])
       } else {
         errOut = NSError(
-          domain: "AzurePronunciationAssessment", code: 3,
+          domain: "AzureSpeech", code: 3,
           userInfo: [NSLocalizedDescriptionKey: "Unexpected result reason"])
       }
       semaphore.signal()
@@ -120,7 +120,7 @@ public class AzurePronunciationAssessmentPlugin: NSObject, FlutterPlugin {
     if let e = errOut { throw e }
     guard let json = jsonOut, !json.isEmpty else {
       throw NSError(
-        domain: "AzurePronunciationAssessment", code: 2,
+        domain: "AzureSpeech", code: 2,
         userInfo: [NSLocalizedDescriptionKey: "No assessment JSON"])
     }
     return json

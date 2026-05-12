@@ -1,6 +1,8 @@
-# azure_pronunciation_assessment
+# azure_speech
 
-Flutter plugin wrapping **Microsoft Azure Cognitive Services Speech SDK** for **pronunciation assessment** (one-shot, file-based WAV input, authorization-token auth).
+Flutter plugin wrapping the **Microsoft Azure Cognitive Services Speech SDK** on Android, iOS, macOS, and Windows.
+
+The Dart API starts with **pronunciation assessment** (one-shot WAV file, authorization-token auth); additional Speech scenarios can be added over time without renaming the package.
 
 ## Supported platforms
 
@@ -16,9 +18,9 @@ Flutter plugin wrapping **Microsoft Azure Cognitive Services Speech SDK** for **
 ## Usage
 
 ```dart
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 
-final result = await AzurePronunciationAssessment.instance.assess(
+final result = await AzureSpeech.instance.assess(
   AzurePronunciationAssessmentParams(
     audioPath: '/path/to/file.wav',
     referenceText: 'Hello world',
@@ -35,8 +37,8 @@ Audio should be **16 kHz, 16-bit, mono WAV** (same convention as the web `azure-
 
 ## Errors
 
-Failures surface as [`AzurePronunciationAssessmentException`](lib/src/azure_pronunciation_assessment_exception.dart) or `PlatformException` with codes such as `no_speech` and `azure_speech_error`.
+Failures surface as [`AzureSpeechException`](lib/src/azure_speech_exception.dart) or `PlatformException` with codes such as `no_speech` and `azure_speech_error`.
 
-## Extraction
+## Layout
 
-The package is a normal Flutter federated-style **plugin** (`flutter.plugin.platforms` in `pubspec.yaml`) under `packages/` so it can be moved to a standalone repo with minimal changes.
+The package is a Flutter **plugin** (`flutter.plugin.platforms` in `pubspec.yaml`) under `packages/` so it can be moved to a standalone repo with minimal changes.

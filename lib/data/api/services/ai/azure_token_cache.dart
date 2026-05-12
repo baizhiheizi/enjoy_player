@@ -36,7 +36,7 @@ final class AzureTokenCache {
     }
 
     final json = _debugOverrideFetch != null
-        ? await _debugOverrideFetch!()
+        ? await _debugOverrideFetch()
         : await _api!.generateToken(
       usage: <String, dynamic>{
         'purpose': 'assessment',

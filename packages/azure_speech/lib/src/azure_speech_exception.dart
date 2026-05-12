@@ -1,6 +1,6 @@
-/// Thrown when native Azure Speech assessment fails or returns no usable JSON.
-final class AzurePronunciationAssessmentException implements Exception {
-  const AzurePronunciationAssessmentException({
+/// Thrown when native Azure Speech operations fail or return no usable payload.
+final class AzureSpeechException implements Exception {
+  const AzureSpeechException({
     required this.code,
     required this.message,
     this.details,
@@ -12,6 +12,5 @@ final class AzurePronunciationAssessmentException implements Exception {
   final Object? details;
 
   @override
-  String toString() =>
-      'AzurePronunciationAssessmentException($code): $message';
+  String toString() => 'AzureSpeechException($code): $message';
 }

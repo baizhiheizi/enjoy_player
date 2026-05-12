@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -215,7 +215,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
         }
       }
       _append(buf.toString());
-    } on AzurePronunciationAssessmentException catch (e, st) {
+    } on AzureSpeechException catch (e, st) {
       _log.warning('Assessment failed', e, st);
       _append('Assessment ${e.code}: ${e.message}');
     } catch (e, st) {

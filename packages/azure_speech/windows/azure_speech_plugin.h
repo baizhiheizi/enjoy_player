@@ -1,20 +1,20 @@
-#ifndef FLUTTER_PLUGIN_AZURE_PRONUNCIATION_ASSESSMENT_PLUGIN_H_
-#define FLUTTER_PLUGIN_AZURE_PRONUNCIATION_ASSESSMENT_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_AZURE_SPEECH_PLUGIN_H_
+#define FLUTTER_PLUGIN_AZURE_SPEECH_PLUGIN_H_
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 
 #include <memory>
 
-namespace azure_pronunciation_assessment {
+namespace azure_speech {
 
-class AzurePronunciationAssessmentPlugin : public flutter::Plugin {
+class AzureSpeechPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar);
 
-  AzurePronunciationAssessmentPlugin();
+  AzureSpeechPlugin();
 
-  virtual ~AzurePronunciationAssessmentPlugin();
+  virtual ~AzureSpeechPlugin();
 
  private:
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
@@ -24,6 +24,6 @@ class AzurePronunciationAssessmentPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 };
 
-}  // namespace azure_pronunciation_assessment
+}  // namespace azure_speech
 
-#endif  // FLUTTER_PLUGIN_AZURE_PRONUNCIATION_ASSESSMENT_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_AZURE_SPEECH_PLUGIN_H_

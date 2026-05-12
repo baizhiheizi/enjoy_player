@@ -1,11 +1,11 @@
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const channel = MethodChannel('azure_pronunciation_assessment');
+  const channel = MethodChannel('azure_speech');
 
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -54,7 +54,7 @@ void main() {
       return json;
     });
 
-    final r = await AzurePronunciationAssessment.instance.assess(
+    final r = await AzureSpeech.instance.assess(
       const AzurePronunciationAssessmentParams(
         audioPath: '/tmp/x.wav',
         referenceText: 'Hello',

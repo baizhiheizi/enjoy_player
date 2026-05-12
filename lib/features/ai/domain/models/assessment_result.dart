@@ -1,4 +1,4 @@
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 
 /// Parsed Azure pronunciation assessment (JSON from Speech SDK).
 final class AssessmentResult {

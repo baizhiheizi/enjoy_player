@@ -1,9 +1,10 @@
 Pod::Spec.new do |s|
-  s.name             = 'azure_pronunciation_assessment'
+  s.name             = 'azure_speech'
   s.version          = '0.1.0'
-  s.summary          = 'Azure Speech pronunciation assessment'
+  s.summary          = 'Azure Cognitive Services Speech SDK for Flutter'
   s.description      = <<-DESC
-Wraps Microsoft Cognitive Services Speech SDK for pronunciation assessment.
+Wraps the Microsoft Cognitive Services Speech SDK on macOS. Pronunciation
+assessment is implemented first; additional APIs may follow.
                        DESC
   s.homepage         = 'https://github.com/enjoy'
   s.license          = { :type => 'MIT', :file => '../LICENSE' }

@@ -6,7 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <azure_pronunciation_assessment/azure_pronunciation_assessment_plugin_c_api.h>
+#include <azure_speech/azure_speech_plugin_c_api.h>
 #include <flutter_inappwebview_windows/flutter_inappwebview_windows_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h>
@@ -18,8 +18,8 @@
 #include <window_manager/window_manager_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  AzurePronunciationAssessmentPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("AzurePronunciationAssessmentPluginCApi"));
+  AzureSpeechPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("AzureSpeechPluginCApi"));
   FlutterInappwebviewWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterInappwebviewWindowsPluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(

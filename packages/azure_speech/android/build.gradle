@@ -1,4 +1,4 @@
-group = "dev.enjoy_player.azure_pronunciation_assessment"
+group = "dev.enjoy_player.azure_speech"
 version = "1.0-SNAPSHOT"
 
 buildscript {
@@ -24,7 +24,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
 android {
-    namespace = "dev.enjoy_player.azure_pronunciation_assessment"
+    namespace = "dev.enjoy_player.azure_speech"
     compileSdk = 35
 
     compileOptions {

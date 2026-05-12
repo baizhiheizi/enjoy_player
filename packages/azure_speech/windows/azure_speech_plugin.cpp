@@ -1,4 +1,4 @@
-#include "azure_pronunciation_assessment_plugin.h"
+#include "azure_speech_plugin.h"
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -20,7 +20,7 @@ using Microsoft::CognitiveServices::Speech::ResultReason;
 using Microsoft::CognitiveServices::Speech::SpeechConfig;
 using Microsoft::CognitiveServices::Speech::SpeechRecognizer;
 
-namespace azure_pronunciation_assessment {
+namespace azure_speech {
 
 namespace {
 
@@ -115,11 +115,11 @@ flutter::EncodableValue RunAssess(const flutter::EncodableMap& args) {
 
 }  // namespace
 
-void AzurePronunciationAssessmentPlugin::RegisterWithRegistrar(
+void AzureSpeechPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows* registrar) {
-  auto plugin = std::make_unique<AzurePronunciationAssessmentPlugin>();
+  auto plugin = std::make_unique<AzureSpeechPlugin>();
   plugin->channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), "azure_pronunciation_assessment",
+      registrar->messenger(), "azure_speech",
       &flutter::StandardMethodCodec::GetInstance());
 
   plugin->channel_->SetMethodCallHandler(
@@ -130,11 +130,11 @@ void AzurePronunciationAssessmentPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-AzurePronunciationAssessmentPlugin::AzurePronunciationAssessmentPlugin() = default;
+AzureSpeechPlugin::AzureSpeechPlugin() = default;
 
-AzurePronunciationAssessmentPlugin::~AzurePronunciationAssessmentPlugin() = default;
+AzureSpeechPlugin::~AzureSpeechPlugin() = default;
 
-void AzurePronunciationAssessmentPlugin::HandleMethodCall(
+void AzureSpeechPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name() != "assess") {
@@ -177,4 +177,4 @@ void AzurePronunciationAssessmentPlugin::HandleMethodCall(
   }
 }
 
-}  // namespace azure_pronunciation_assessment
+}  // namespace azure_speech

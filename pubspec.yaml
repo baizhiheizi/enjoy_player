@@ -17,8 +17,8 @@ dependencies:
   cached_network_image: ^3.4.1
   crypto: ^3.0.6
   async: ^2.13.0
-  azure_pronunciation_assessment:
-    path: packages/azure_pronunciation_assessment
+  azure_speech:
+    path: packages/azure_speech
   drift: ^2.26.0
   drift_flutter: ^0.2.4
   file_picker: ^12.0.0-beta.1

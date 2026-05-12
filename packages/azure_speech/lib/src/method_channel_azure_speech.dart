@@ -3,16 +3,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'azure_pronunciation_assessment_exception.dart';
-import 'azure_pronunciation_assessment_params.dart';
-import 'azure_pronunciation_assessment_platform.dart';
+import 'azure_speech_exception.dart';
+import 'azure_speech_params.dart';
+import 'azure_speech_platform.dart';
 import 'models.dart';
 
-/// Default [MethodChannel] implementation.
-final class MethodChannelAzurePronunciationAssessment
-    extends AzurePronunciationAssessmentPlatform {
-  MethodChannelAzurePronunciationAssessment({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel('azure_pronunciation_assessment');
+/// Default [MethodChannel] implementation (`azure_speech`).
+final class MethodChannelAzureSpeech extends AzureSpeechPlatform {
+  MethodChannelAzureSpeech({MethodChannel? channel})
+    : _channel = channel ?? const MethodChannel('azure_speech');
 
   final MethodChannel _channel;
 
@@ -21,22 +20,22 @@ final class MethodChannelAzurePronunciationAssessment
     AzurePronunciationAssessmentParams params,
   ) async {
     if (kIsWeb) {
-      throw const AzurePronunciationAssessmentException(
+      throw const AzureSpeechException(
         code: 'unsupported',
-        message: 'Azure pronunciation assessment is not supported on web.',
+        message: 'Azure Speech is not supported on web.',
       );
     }
     try {
       final raw = await _channel.invokeMethod<String>('assess', params.toMap());
       if (raw == null || raw.isEmpty) {
-        throw const AzurePronunciationAssessmentException(
+        throw const AzureSpeechException(
           code: 'empty_result',
           message: 'Native layer returned no JSON.',
         );
       }
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) {
-        throw AzurePronunciationAssessmentException(
+        throw AzureSpeechException(
           code: 'parse_error',
           message: 'Assessment JSON root was not an object.',
           details: raw,
@@ -45,7 +44,7 @@ final class MethodChannelAzurePronunciationAssessment
       return AzurePronunciationAssessmentResult.fromJson(decoded);
     } on PlatformException catch (e, st) {
       Error.throwWithStackTrace(
-        AzurePronunciationAssessmentException(
+        AzureSpeechException(
           code: e.code,
           message: e.message ?? e.code,
           details: e.details,
@@ -54,7 +53,7 @@ final class MethodChannelAzurePronunciationAssessment
       );
     } on FormatException catch (e, st) {
       Error.throwWithStackTrace(
-        AzurePronunciationAssessmentException(
+        AzureSpeechException(
           code: 'parse_error',
           message: e.message,
         ),

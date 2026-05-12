@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:azure_pronunciation_assessment/azure_pronunciation_assessment.dart';
+import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_cache.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
@@ -19,12 +19,12 @@ final Logger _log = logNamed('ai.enjoy.assessment');
 final class EnjoyAssessmentCapability implements AssessmentCapability {
   EnjoyAssessmentCapability({
     required AzureTokenCache tokenCache,
-    AzurePronunciationAssessment? sdk,
+    AzureSpeech? sdk,
   }) : _tokenCache = tokenCache,
-       _sdk = sdk ?? AzurePronunciationAssessment.instance;
+       _sdk = sdk ?? AzureSpeech.instance;
 
   final AzureTokenCache _tokenCache;
-  final AzurePronunciationAssessment _sdk;
+  final AzureSpeech _sdk;
 
   @override
   Future<AssessmentResult> assess(AssessmentRequest request) async {
@@ -52,7 +52,7 @@ final class EnjoyAssessmentCapability implements AssessmentCapability {
         detail: detail,
         rawJson: Map<String, dynamic>.from(detail.toJson()),
       );
-    } on AzurePronunciationAssessmentException catch (e, st) {
+    } on AzureSpeechException catch (e, st) {
       _log.warning('Azure assessment failed', e, st);
       rethrow;
     } finally {

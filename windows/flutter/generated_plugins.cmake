@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  azure_pronunciation_assessment
+  azure_speech
   flutter_inappwebview_windows
   flutter_secure_storage_windows
   media_kit_libs_windows_video

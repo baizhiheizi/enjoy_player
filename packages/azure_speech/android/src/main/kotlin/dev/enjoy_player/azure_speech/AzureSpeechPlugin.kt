@@ -1,4 +1,4 @@
-package dev.enjoy_player.azure_pronunciation_assessment
+package dev.enjoy_player.azure_speech
 
 import android.os.Handler
 import android.os.Looper
@@ -11,13 +11,13 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.Executors
 
-class AzurePronunciationAssessmentPlugin : FlutterPlugin, MethodCallHandler {
+class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var channel: MethodChannel
   private val executor = Executors.newSingleThreadExecutor()
   private val mainHandler = Handler(Looper.getMainLooper())
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(binding.binaryMessenger, "azure_pronunciation_assessment")
+    channel = MethodChannel(binding.binaryMessenger, "azure_speech")
     channel.setMethodCallHandler(this)
   }
 

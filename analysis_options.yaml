@@ -4,6 +4,7 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - "packages/azure_speech/test/**"
   plugins:
     - custom_lint
   errors:
