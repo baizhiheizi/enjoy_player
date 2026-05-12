@@ -1,6 +1,20 @@
 /// Learning statistics from `GET /api/v1/mine/stats` (camelCase JSON).
 library;
 
+/// Nested maps from [decodeJsonToCamel] are [Map<dynamic, dynamic>], not
+/// [Map<String, dynamic>], so strict `is Map<String, dynamic>` loses `today` /
+/// `week` / `month` and stats read as zero.
+Map<String, dynamic>? _jsonObjectAsStringMap(Object? value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return Map<String, dynamic>.from(
+      value.map((k, v) => MapEntry(k.toString(), v)),
+    );
+  }
+  return null;
+}
+
 class PeriodStats {
   const PeriodStats({
     required this.recordingDurationMs,
@@ -41,13 +55,10 @@ class LearningStatistics {
   );
 
   factory LearningStatistics.fromJson(Map<String, dynamic> json) {
-    final today = json['today'];
-    final week = json['week'];
-    final month = json['month'];
     return LearningStatistics(
-      today: PeriodStats.fromJson(today is Map<String, dynamic> ? today : null),
-      week: PeriodStats.fromJson(week is Map<String, dynamic> ? week : null),
-      month: PeriodStats.fromJson(month is Map<String, dynamic> ? month : null),
+      today: PeriodStats.fromJson(_jsonObjectAsStringMap(json['today'])),
+      week: PeriodStats.fromJson(_jsonObjectAsStringMap(json['week'])),
+      month: PeriodStats.fromJson(_jsonObjectAsStringMap(json['month'])),
     );
   }
 }
