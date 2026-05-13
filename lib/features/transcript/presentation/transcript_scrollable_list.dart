@@ -240,11 +240,11 @@ class _TranscriptScrollableListState
         selectable: selectable,
         onLookupRequested: selectable
             ? (t) => openTranscriptLookup(
-                  ref: ref,
-                  context: context,
-                  selectedText: t,
-                  lines: lines,
-                )
+                ref: ref,
+                context: context,
+                selectedText: t,
+                lines: lines,
+              )
             : null,
         onTap: () => ref
             .read(playerInteractionsProvider.notifier)

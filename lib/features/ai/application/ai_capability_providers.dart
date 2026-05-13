@@ -74,7 +74,9 @@ ContextualTranslationCapability resolveContextualTranslationCapability(
 ) {
   switch (config.provider) {
     case AIProvider.enjoy:
-      return EnjoyContextualTranslationCapability(ref.read(llmCapabilityProvider));
+      return EnjoyContextualTranslationCapability(
+        ref.read(llmCapabilityProvider),
+      );
     case AIProvider.byok:
     case AIProvider.local:
       return const UnimplementedContextualTranslationCapability();

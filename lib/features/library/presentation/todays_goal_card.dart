@@ -195,11 +195,7 @@ class TodaysGoalCard extends ConsumerWidget {
         context: context,
         containedInParentCard: containedInParentCard,
         t: t,
-        child: _TodaysGoalLoadingBody(
-          t: t,
-          cs: cs,
-          variant: variant,
-        ),
+        child: _TodaysGoalLoadingBody(t: t, cs: cs, variant: variant),
         semanticsLabel: l10n.homeTodaysGoal,
       ),
       error: (e, _) => _wrapCard(
@@ -232,10 +228,7 @@ class TodaysGoalCard extends ConsumerWidget {
       ),
       child: child,
     );
-    final semanticsChild = Semantics(
-      label: semanticsLabel,
-      child: padded,
-    );
+    final semanticsChild = Semantics(label: semanticsLabel, child: padded);
     if (containedInParentCard) {
       return semanticsChild;
     }
@@ -265,18 +258,14 @@ class TodaysGoalCard extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.track_changes_rounded,
-              size: 20,
-              color: cs.primary,
-            ),
+            Icon(Icons.track_changes_rounded, size: 20, color: cs.primary),
             SizedBox(width: t.space8),
             Expanded(
               child: Text(
                 l10n.homeTodaysGoal,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -300,9 +289,9 @@ class TodaysGoalCard extends ConsumerWidget {
                 ),
                 Text(
                   '$pct%',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -312,18 +301,17 @@ class TodaysGoalCard extends ConsumerWidget {
         Text(
           '$completedMin / $goalMinutes ${l10n.homeMinutes}',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         SizedBox(height: t.space4),
         Text(
           '${recordingDurationMs > 0 ? _formatDurationMs(recordingDurationMs) : '0m'} ${l10n.homeCompleted}',
           textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: cs.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
         ),
         SizedBox(height: t.space8),
         Text(
@@ -332,9 +320,9 @@ class TodaysGoalCard extends ConsumerWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: msgColor,
-                fontWeight: FontWeight.w500,
-              ),
+            color: msgColor,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -362,28 +350,24 @@ class TodaysGoalCard extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.track_changes_rounded,
-              size: 18,
-              color: cs.primary,
-            ),
+            Icon(Icons.track_changes_rounded, size: 18, color: cs.primary),
             SizedBox(width: t.space8),
             Expanded(
               child: Text(
                 l10n.homeTodaysGoal,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             Text(
               '$pct%',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: progressColor,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: progressColor,
+              ),
             ),
           ],
         ),
@@ -395,19 +379,18 @@ class TodaysGoalCard extends ConsumerWidget {
                 '$completedMin / $goalMinutes ${l10n.homeMinutes}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             Text(
               recordingDurationMs > 0
                   ? _formatDurationMs(recordingDurationMs)
                   : '0m',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ],
         ),
@@ -427,9 +410,9 @@ class TodaysGoalCard extends ConsumerWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: msgColor,
-                fontWeight: FontWeight.w500,
-              ),
+            color: msgColor,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

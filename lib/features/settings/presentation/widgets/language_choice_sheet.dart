@@ -8,10 +8,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 /// One row in [showLanguageChoiceSheet].
 class LanguageChoiceOption {
-  const LanguageChoiceOption({
-    required this.value,
-    required this.label,
-  });
+  const LanguageChoiceOption({required this.value, required this.label});
 
   final String value;
   final String label;
@@ -38,12 +35,17 @@ Future<String?> showLanguageChoiceSheet({
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(t.space20, t.space4, t.space20, t.space12),
+                padding: EdgeInsets.fromLTRB(
+                  t.space20,
+                  t.space4,
+                  t.space20,
+                  t.space12,
+                ),
                 child: Text(
                   title,
                   style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               ...options.map((opt) {
@@ -64,14 +66,20 @@ Future<String?> showLanguageChoiceSheet({
                           Expanded(
                             child: Text(
                               opt.label,
-                              style: Theme.of(ctx).textTheme.bodyLarge?.copyWith(
-                                    fontWeight:
-                                        selected ? FontWeight.w600 : FontWeight.w400,
+                              style: Theme.of(ctx).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: selected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
                                   ),
                             ),
                           ),
                           if (selected)
-                            Icon(Icons.check_rounded, color: cs.primary, size: 22),
+                            Icon(
+                              Icons.check_rounded,
+                              color: cs.primary,
+                              size: 22,
+                            ),
                         ],
                       ),
                     ),

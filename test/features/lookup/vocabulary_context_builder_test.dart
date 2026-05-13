@@ -33,9 +33,9 @@ void main() {
 
     test('single active line expands to sentence when possible', () {
       final lines = <TranscriptLine>[
-        TranscriptLine(text: 'Prev line. ', startMs: 0, durationMs: 900),
-        TranscriptLine(text: 'Hello world. ', startMs: 900, durationMs: 2000),
-        TranscriptLine(text: 'After line.', startMs: 2900, durationMs: 1000),
+        const TranscriptLine(text: 'Prev line. ', startMs: 0, durationMs: 900),
+        const TranscriptLine(text: 'Hello world. ', startMs: 900, durationMs: 2000),
+        const TranscriptLine(text: 'After line.', startMs: 2900, durationMs: 1000),
       ];
       const echo = EchoState.inactive;
       final ctx = buildVocabularyContext(

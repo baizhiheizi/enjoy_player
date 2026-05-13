@@ -104,21 +104,15 @@ class CommunityActivityCard extends ConsumerWidget {
         containedInParentCard: containedInParentCard,
         t: t,
         variant: variant,
-        semanticsLabel:
-            AppLocalizations.of(context)!.communityActivity,
-        child: _LoadingInner(
-          t: t,
-          cs: cs,
-          variant: variant,
-        ),
+        semanticsLabel: AppLocalizations.of(context)!.communityActivity,
+        child: _LoadingInner(t: t, cs: cs, variant: variant),
       ),
       error: (e, _) => _wrapChrome(
         outer: outer,
         containedInParentCard: containedInParentCard,
         t: t,
         variant: variant,
-        semanticsLabel:
-            AppLocalizations.of(context)!.communityActivity,
+        semanticsLabel: AppLocalizations.of(context)!.communityActivity,
         child: _ErrorInner(
           t: t,
           cs: cs,
@@ -131,14 +125,13 @@ class CommunityActivityCard extends ConsumerWidget {
 
   String _semanticsLabel(BuildContext context, ActiveUsersResponse data) {
     final l10n = AppLocalizations.of(context)!;
-    final hasToday = data.recordingsCountToday != null ||
+    final hasToday =
+        data.recordingsCountToday != null ||
         data.recordingsDurationToday != null;
     if (hasToday) {
       final parts = <String>[l10n.communityActivity];
       if (data.recordingsCountToday != null) {
-        parts.add(
-          '${data.recordingsCountToday} ${l10n.homeRecordingsToday}',
-        );
+        parts.add('${data.recordingsCountToday} ${l10n.homeRecordingsToday}');
       }
       if (data.recordingsDurationToday != null) {
         parts.add(
@@ -161,10 +154,15 @@ Widget _wrapChrome({
 }) {
   final pad = EdgeInsets.all(
     containedInParentCard
-        ? (variant == CommunityActivityCardVariant.summary ? t.space8 : t.space12)
+        ? (variant == CommunityActivityCardVariant.summary
+              ? t.space8
+              : t.space12)
         : t.space16,
   );
-  final body = Semantics(label: semanticsLabel, child: Padding(padding: pad, child: child));
+  final body = Semantics(
+    label: semanticsLabel,
+    child: Padding(padding: pad, child: child),
+  );
 
   if (containedInParentCard) {
     return Padding(padding: outer, child: body);
@@ -180,11 +178,7 @@ Widget _wrapChrome({
 }
 
 class _CardBody extends StatelessWidget {
-  const _CardBody({
-    required this.data,
-    required this.t,
-    required this.cs,
-  });
+  const _CardBody({required this.data, required this.t, required this.cs});
 
   final ActiveUsersResponse data;
   final EnjoyThemeTokens t;
@@ -195,7 +189,7 @@ class _CardBody extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final hasTodayStats =
         data.recordingsCountToday != null ||
-            data.recordingsDurationToday != null;
+        data.recordingsDurationToday != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,9 +201,9 @@ class _CardBody extends StatelessWidget {
             Expanded(
               child: Text(
                 l10n.communityActivity,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -230,11 +224,7 @@ class _CardBody extends StatelessWidget {
 }
 
 class _SummaryBody extends StatelessWidget {
-  const _SummaryBody({
-    required this.data,
-    required this.t,
-    required this.cs,
-  });
+  const _SummaryBody({required this.data, required this.t, required this.cs});
 
   final ActiveUsersResponse data;
   final EnjoyThemeTokens t;
@@ -243,16 +233,16 @@ class _SummaryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final hasToday = data.recordingsCountToday != null ||
+    final hasToday =
+        data.recordingsCountToday != null ||
         data.recordingsDurationToday != null;
 
-    final headlineStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-        );
-    final subStyle = Theme.of(context)
-        .textTheme
-        .labelSmall
-        ?.copyWith(color: cs.onSurfaceVariant);
+    final headlineStyle = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700);
+    final subStyle = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant);
 
     Widget headline;
     if (hasToday) {
@@ -277,10 +267,7 @@ class _SummaryBody extends StatelessWidget {
         style: subStyle,
       );
     } else {
-      headline = Text(
-        '${data.count}',
-        style: headlineStyle,
-      );
+      headline = Text('${data.count}', style: headlineStyle);
     }
 
     return Column(
@@ -296,9 +283,9 @@ class _SummaryBody extends StatelessWidget {
                 l10n.communityActivity,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -430,10 +417,7 @@ class _LoadingInner extends StatelessWidget {
             (_) => Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                color: base,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: base, shape: BoxShape.circle),
             ),
           ),
         ),
@@ -516,10 +500,10 @@ class _TodayStatsBody extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final small = Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: cs.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        );
+      color: cs.onSurfaceVariant,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.5,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -590,12 +574,12 @@ class _StatBlock extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final valueStyle = compactValue
-        ? Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            )
-        : Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            );
+        ? Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
+        : Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -616,10 +600,9 @@ class _StatBlock extends StatelessWidget {
         SizedBox(height: t.space4),
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: cs.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
         ),
       ],
     );
@@ -651,29 +634,28 @@ class _SimpleCountBody extends StatelessWidget {
         children: [
           Text(
             '0',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           SizedBox(height: t.space8),
           Text(
             l10n.homeNoActiveUsers,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
       );
     }
 
     final countStyle = compactHeadline
-        ? Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            )
-        : Theme.of(context).textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            );
+        ? Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
+        : Theme.of(
+            context,
+          ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,10 +664,9 @@ class _SimpleCountBody extends StatelessWidget {
         SizedBox(height: t.space4),
         Text(
           l10n.homePeopleLearning(data.count),
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: cs.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
         ),
         SizedBox(height: t.space12),
         _AvatarWrap(
@@ -725,17 +706,17 @@ class _ActiveLearnersRow extends StatelessWidget {
               child: Text(
                 l10n.homeActiveLearners,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             if (data.count > 0)
               Text(
                 '${data.count}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
           ],
         ),

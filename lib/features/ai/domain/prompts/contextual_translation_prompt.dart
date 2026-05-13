@@ -2,7 +2,8 @@
 /// `packages/ai/src/prompts/contextual-translation.ts`).
 library;
 
-const _promptEn = r'''You are an expert language learning assistant specializing in contextual translation. Your goal is to help language learners deeply understand words and phrases in their specific context, learn how to use them correctly, and build their vocabulary effectively.
+const _promptEn =
+    r'''You are an expert language learning assistant specializing in contextual translation. Your goal is to help language learners deeply understand words and phrases in their specific context, learn how to use them correctly, and build their vocabulary effectively.
 
 **Your approach:**
 - Focus on the most important learning points that help users understand and remember
@@ -42,7 +43,8 @@ Output your response in Markdown format with the following structure (include al
 - Use clear, learner-friendly language
 - Ensure all examples are grammatically correct and natural''';
 
-const _promptZh = r'''你是一位专业的语言学习助手，专注于语境翻译。你的目标是帮助语言学习者深入理解单词和短语在特定上下文中的含义，学习如何正确使用它们，并有效扩展词汇量。
+const _promptZh =
+    r'''你是一位专业的语言学习助手，专注于语境翻译。你的目标是帮助语言学习者深入理解单词和短语在特定上下文中的含义，学习如何正确使用它们，并有效扩展词汇量。
 
 **你的方法：**
 - 专注于最重要的学习要点，帮助用户理解和记忆

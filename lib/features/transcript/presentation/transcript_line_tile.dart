@@ -66,21 +66,18 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     }
   }
 
-  bool _shouldFinalizeLookup(SelectionChangedCause? cause) {
-    return cause == SelectionChangedCause.drag ||
-        cause == SelectionChangedCause.longPress;
-  }
-
   void _scheduleLookup({
     required String plain,
     required TextSelection selection,
-    required SelectionChangedCause? cause,
     required bool isSecondary,
   }) {
+    // Do not filter by [SelectionChangedCause]: double-tap / tap word selection
+    // uses [doubleTap] / [tap], not only [drag] / [longPress].
     if (!widget.selectable || widget.onLookupRequested == null) return;
-    if (!_shouldFinalizeLookup(cause)) return;
 
-    final debounce = isSecondary ? _secondaryLookupDebounce : _primaryLookupDebounce;
+    final debounce = isSecondary
+        ? _secondaryLookupDebounce
+        : _primaryLookupDebounce;
     debounce?.cancel();
 
     void run() {
@@ -111,11 +108,10 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     return SelectableText.rich(
       span,
       contextMenuBuilder: (context, _) => const SizedBox.shrink(),
-      onSelectionChanged: (sel, cause) {
+      onSelectionChanged: (sel, _) {
         _scheduleLookup(
           plain: plainForSelection,
           selection: sel,
-          cause: cause,
           isSecondary: isSecondary,
         );
       },
@@ -242,10 +238,7 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
         : textBody;
 
     if (widget.selectable) {
-      return Material(
-        color: bg ?? Colors.transparent,
-        child: content,
-      );
+      return Material(color: bg ?? Colors.transparent, child: content);
     }
 
     if (widget.groupedInEcho) {

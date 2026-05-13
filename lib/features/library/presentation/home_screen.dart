@@ -287,18 +287,8 @@ class _HomeInsightCards extends ConsumerWidget {
         final wide = constraints.maxWidth >= _kWideBreakpoint;
         final gap = t.space12;
         final pad = wide
-            ? EdgeInsets.fromLTRB(
-                t.space24,
-                t.space24,
-                t.space24,
-                t.space24,
-              )
-            : EdgeInsets.fromLTRB(
-                t.space24,
-                t.space8,
-                t.space24,
-                t.space8,
-              );
+            ? EdgeInsets.fromLTRB(t.space24, t.space24, t.space24, t.space24)
+            : EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, t.space8);
 
         if (wide) {
           return Padding(
@@ -308,9 +298,7 @@ class _HomeInsightCards extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Expanded(
-                    child: TodaysGoalCard(
-                      variant: TodaysGoalCardVariant.card,
-                    ),
+                    child: TodaysGoalCard(variant: TodaysGoalCardVariant.card),
                   ),
                   SizedBox(width: gap),
                   const Expanded(
@@ -325,8 +313,7 @@ class _HomeInsightCards extends ConsumerWidget {
           );
         }
 
-        final narrowSplit =
-            constraints.maxWidth >= _kStripSplitMinWidth;
+        final narrowSplit = constraints.maxWidth >= _kStripSplitMinWidth;
         final strip = Card(
           margin: EdgeInsets.zero,
           clipBehavior: Clip.antiAlias,

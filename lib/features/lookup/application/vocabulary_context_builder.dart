@@ -87,12 +87,13 @@ String? buildVocabularyContext({
   final expandedLines = lines.sublist(expStart, expEnd + 1);
   if (expandedLines.isEmpty) return null;
 
-  final expandedText = expandedLines
-      .map((l) => plainCueText(l.text))
-      .join(' ');
+  final expandedText = expandedLines.map((l) => plainCueText(l.text)).join(' ');
   if (expandedText.isEmpty) return null;
 
-  final sentenceBoundaries = getSentenceBoundaries(expandedText, primaryLanguage);
+  final sentenceBoundaries = getSentenceBoundaries(
+    expandedText,
+    primaryLanguage,
+  );
 
   var charIndex = 0;
   final lineCharPositions = <({int start, int end, int lineIndex})>[];
@@ -115,8 +116,7 @@ String? buildVocabularyContext({
   final baseStartLineIndex = contextStartArrayIndex - expStart;
   final baseEndLineIndex = contextEndArrayIndex - expStart;
 
-  if (baseStartLineIndex < 0 ||
-      baseEndLineIndex >= lineCharPositions.length) {
+  if (baseStartLineIndex < 0 || baseEndLineIndex >= lineCharPositions.length) {
     return _fallbackJoin(lines, contextStartArrayIndex, contextEndArrayIndex);
   }
 
@@ -170,7 +170,8 @@ String? buildVocabularyContext({
     final lineRangeEnd = i < lineCharPositions.length - 1
         ? lineCharPositions[i + 1].start
         : pos.end + 1;
-    if (pos.start < sentenceEndCharIndex && sentenceEndCharIndex <= lineRangeEnd) {
+    if (pos.start < sentenceEndCharIndex &&
+        sentenceEndCharIndex <= lineRangeEnd) {
       contextEndLineIndex = pos.lineIndex;
       break;
     }
@@ -201,11 +202,7 @@ String? buildVocabularyContext({
       : out;
 }
 
-String? _fallbackJoin(
-  List<TranscriptLine> lines,
-  int start,
-  int end,
-) {
+String? _fallbackJoin(List<TranscriptLine> lines, int start, int end) {
   if (start < 0 || end >= lines.length || start > end) return null;
   final buf = StringBuffer();
   for (var i = start; i <= end; i++) {

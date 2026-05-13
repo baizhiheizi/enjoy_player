@@ -43,10 +43,8 @@ class AppPreferencesState {
   String get effectiveLearningLanguage => kDefaultLearningLanguageTag;
 
   /// Native tag for UX and APIs; never equals [effectiveLearningLanguage].
-  String get effectiveNativeLanguage => coerceNativeIfEqualsLearning(
-        nativeLanguage,
-        effectiveLearningLanguage,
-      );
+  String get effectiveNativeLanguage =>
+      coerceNativeIfEqualsLearning(nativeLanguage, effectiveLearningLanguage);
 
   Locale get effectiveDisplayLocale => locale ?? kAppDefaultDisplayLocale;
 
@@ -91,7 +89,10 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       learnRaw = learnCanonical;
     }
 
-    final nativeCoerced = coerceNativeIfEqualsLearning(nativeRaw, learnCanonical);
+    final nativeCoerced = coerceNativeIfEqualsLearning(
+      nativeRaw,
+      learnCanonical,
+    );
     if (nativeRaw == null ||
         nativeRaw.isEmpty ||
         !tagsEqual(nativeRaw, nativeCoerced)) {
@@ -107,7 +108,10 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (localeRaw == null ||
         localeRaw.isEmpty ||
         !tagsEqual(canonicalLocaleTag, localeRaw)) {
-      await db.settingsDao.setValue(SettingsKeys.prefsLocale, canonicalLocaleTag);
+      await db.settingsDao.setValue(
+        SettingsKeys.prefsLocale,
+        canonicalLocaleTag,
+      );
       localeRaw = canonicalLocaleTag;
     }
 
@@ -162,16 +166,18 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       _prefsLog.warning('prefs: rejected native language tag: $tag');
       return;
     }
-    final canonical =
-        allowed.firstWhere((t) => tagsEqual(t, tag), orElse: () => tag);
+    final canonical = allowed.firstWhere(
+      (t) => tagsEqual(t, tag),
+      orElse: () => tag,
+    );
     if (tagsEqual(canonical, learn)) return;
 
     final next = (await future).copyWith(nativeLanguage: canonical);
     state = AsyncData(next);
-    await ref.read(appDatabaseProvider).settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
-          canonical,
-        );
+    await ref
+        .read(appDatabaseProvider)
+        .settingsDao
+        .setValue(SettingsKeys.prefsNativeLanguage, canonical);
     await _syncLanguageFieldsToServerIfSignedIn(
       learningLanguage: learn,
       nativeLanguage: canonical,
@@ -214,10 +220,10 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
 
     final serverLearn = profile.learningLanguage;
     final serverNative = profile.nativeLanguage;
-    final needsPatchLearn = serverLearn != null &&
-        !tagsEqual(serverLearn, learnCanonical);
-    final needsPatchNative = serverNative != null &&
-        !tagsEqual(serverNative, nativeCoerced);
+    final needsPatchLearn =
+        serverLearn != null && !tagsEqual(serverLearn, learnCanonical);
+    final needsPatchNative =
+        serverNative != null && !tagsEqual(serverNative, nativeCoerced);
     if (needsPatchLearn || needsPatchNative) {
       await _syncLanguageFieldsToServerIfSignedIn(
         learningLanguage: learnCanonical,
@@ -232,7 +238,9 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
   }) async {
     final cur = ref.read(authCtrlProvider).valueOrNull;
     if (cur is! AuthSignedIn) return;
-    await ref.read(authCtrlProvider.notifier).updateProfile(
+    await ref
+        .read(authCtrlProvider.notifier)
+        .updateProfile(
           UpdateProfileRequest(
             learningLanguage: learningLanguage,
             nativeLanguage: nativeLanguage,
