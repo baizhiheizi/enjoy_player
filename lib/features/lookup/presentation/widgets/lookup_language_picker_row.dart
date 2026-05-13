@@ -104,13 +104,10 @@ class LookupLanguagePickerRow extends StatelessWidget {
         borderRadius: borderRadius,
         onTap: onTap,
         semanticsLabel: semanticsLabel,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
+        child: SizedBox(
+          height: 44,
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: t.space12,
-              vertical: t.space8,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: t.space12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -120,14 +117,14 @@ class LookupLanguagePickerRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
                 SizedBox(width: t.space4),
                 Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  size: 22,
-                  color: scheme.onSurfaceVariant.withValues(alpha: 0.85),
+                  size: 18,
+                  color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ],
             ),
@@ -138,16 +135,16 @@ class LookupLanguagePickerRow extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.42),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: outerRadius,
         border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.32),
+          color: scheme.outlineVariant.withValues(alpha: 0.25),
         ),
       ),
       child: ClipRRect(
         borderRadius: outerRadius,
         child: SizedBox(
-          height: 52,
+          height: 44,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -165,24 +162,19 @@ class LookupLanguagePickerRow extends StatelessWidget {
               verticalRule(),
               Tooltip(
                 message: l10n.lookupSwapLanguages,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHigh.withValues(alpha: 0.35),
-                  ),
-                  child: EnjoyTappableSurface(
-                    borderRadius: BorderRadius.circular(t.radiusSm),
-                    onTap: canSwap ? onSwap : null,
-                    semanticsLabel: l10n.lookupSwapLanguages,
-                    child: SizedBox(
-                      width: 52,
-                      child: Center(
-                        child: Icon(
-                          Icons.swap_horiz_rounded,
-                          size: 26,
-                          color: canSwap
-                              ? scheme.primary
-                              : scheme.onSurfaceVariant.withValues(alpha: 0.38),
-                        ),
+                child: EnjoyTappableSurface(
+                  borderRadius: BorderRadius.zero,
+                  onTap: canSwap ? onSwap : null,
+                  semanticsLabel: l10n.lookupSwapLanguages,
+                  child: SizedBox(
+                    width: 44,
+                    child: Center(
+                      child: Icon(
+                        Icons.swap_horiz_rounded,
+                        size: 22,
+                        color: canSwap
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant.withValues(alpha: 0.35),
                       ),
                     ),
                   ),

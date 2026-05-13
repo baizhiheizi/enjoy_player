@@ -38,7 +38,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
     _targetLanguage = widget.request.targetLanguage;
   }
 
-  double _sheetHorizontalPadding(EnjoyThemeTokens t) => t.space16 + t.space4;
+  static const double _hPad = 20;
 
   LookupRequest get _effectiveRequest => LookupRequest(
     selectedText: widget.request.selectedText,
@@ -60,7 +60,6 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
     final t = EnjoyThemeTokens.of(context);
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final hPad = _sheetHorizontalPadding(t);
 
     return SafeArea(
       child: DraggableScrollableSheet(
@@ -71,39 +70,37 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
         builder: (ctx, scrollCtrl) {
           return LayoutBuilder(
             builder: (context, constraints) {
-              final maxBodyWidth = math.min(
+              final maxWidth = math.min(
                 constraints.maxWidth,
-                t.contentMaxWidth + 2 * hPad,
+                t.contentMaxWidth + 2 * _hPad,
               );
-              final bodyWidth = math.min(constraints.maxWidth, maxBodyWidth);
 
-              Widget constrainBody(Widget child) {
-                return Align(
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(width: bodyWidth, child: child),
-                );
-              }
+              Widget constrain(Widget child) => Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(width: maxWidth, child: child),
+              );
 
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const PaddedSheetDragHandle(),
-                  constrainBody(
+                  // ── Title row ──────────────────────────────────────────
+                  constrain(
                     Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        hPad,
-                        t.space4,
-                        hPad,
-                        t.space8,
+                      padding: const EdgeInsets.only(
+                        left: _hPad,
+                        right: 4,
+                        bottom: 6,
                       ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
                               l10n.lookupSheetTitle,
-                              style: tt.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.2,
+                              style: tt.labelLarge?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -115,119 +112,82 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                             ),
                             tooltip: l10n.lookupClose,
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close_rounded),
+                            icon: const Icon(Icons.close_rounded, size: 22),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Divider(
-                    height: 1,
-                    color: scheme.outlineVariant.withValues(alpha: 0.18),
-                  ),
-                  constrainBody(
+                  // ── Selected word ──────────────────────────────────────
+                  constrain(
                     Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        hPad,
-                        t.space12,
-                        hPad,
-                        t.space12,
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        _hPad,
+                        0,
+                        4,
+                        0,
                       ),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(t.radiusLg),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              scheme.surfaceContainerHigh.withValues(
-                                alpha: 0.55,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: SelectableText(
+                              widget.request.selectedText,
+                              style: tt.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                height: 1.1,
+                                letterSpacing: -0.5,
                               ),
-                              scheme.surfaceContainerLow.withValues(
-                                alpha: 0.98,
-                              ),
-                            ],
-                          ),
-                          border: Border.all(
-                            color: scheme.outlineVariant.withValues(
-                              alpha: 0.22,
+                              maxLines: 4,
                             ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.28),
-                              blurRadius: 14,
-                              offset: const Offset(0, 6),
+                          IconButton(
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                              fixedSize: const Size(48, 48),
+                              foregroundColor: scheme.onSurfaceVariant,
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(t.space16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: SelectableText(
-                                      widget.request.selectedText,
-                                      style: tt.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        height: 1.15,
-                                        letterSpacing: -0.35,
-                                      ),
-                                      maxLines: 4,
-                                    ),
-                                  ),
-                                  SizedBox(width: t.space4),
-                                  IconButton.filledTonal(
-                                    style: IconButton.styleFrom(
-                                      minimumSize: const Size(48, 48),
-                                      fixedSize: const Size(48, 48),
-                                    ),
-                                    tooltip: l10n.lookupCopy,
-                                    onPressed: () => _copySelection(context),
-                                    icon: const Icon(
-                                      Icons.copy_rounded,
-                                      size: 22,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: t.space16),
-                              LookupLanguagePickerRow(
-                                sourceLanguage: _sourceLanguage,
-                                targetLanguage: _targetLanguage,
-                                onSourceChanged: (v) =>
-                                    setState(() => _sourceLanguage = v),
-                                onTargetChanged: (v) =>
-                                    setState(() => _targetLanguage = v),
-                                onSwap: () {
-                                  setState(() {
-                                    final s = _sourceLanguage;
-                                    _sourceLanguage = _targetLanguage;
-                                    _targetLanguage = s;
-                                  });
-                                },
-                              ),
-                            ],
+                            tooltip: l10n.lookupCopy,
+                            onPressed: () => _copySelection(context),
+                            icon: const Icon(Icons.copy_all_rounded, size: 20),
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // ── Language picker ────────────────────────────────────
+                  constrain(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(_hPad, 10, _hPad, 10),
+                      child: LookupLanguagePickerRow(
+                        sourceLanguage: _sourceLanguage,
+                        targetLanguage: _targetLanguage,
+                        onSourceChanged: (v) =>
+                            setState(() => _sourceLanguage = v),
+                        onTargetChanged: (v) =>
+                            setState(() => _targetLanguage = v),
+                        onSwap: () {
+                          setState(() {
+                            final s = _sourceLanguage;
+                            _sourceLanguage = _targetLanguage;
+                            _targetLanguage = s;
+                          });
+                        },
                       ),
                     ),
                   ),
                   Divider(
                     height: 1,
-                    color: scheme.outlineVariant.withValues(alpha: 0.18),
+                    color: scheme.outlineVariant.withValues(alpha: 0.2),
                   ),
+                  // ── Scrollable sections ────────────────────────────────
                   Expanded(
                     child: ListView(
                       controller: scrollCtrl,
                       padding: EdgeInsets.fromLTRB(
-                        hPad,
+                        _hPad,
                         t.space12,
-                        hPad,
+                        _hPad,
                         t.space24,
                       ),
                       children: [
@@ -242,11 +202,11 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                                 TranslationLookupSection(
                                   request: _effectiveRequest,
                                 ),
-                                SizedBox(height: t.space12),
+                                SizedBox(height: t.space8),
                                 ContextualTranslationLookupSection(
                                   request: _effectiveRequest,
                                 ),
-                                SizedBox(height: t.space12),
+                                SizedBox(height: t.space8),
                                 DictionaryLookupSection(
                                   request: _effectiveRequest,
                                 ),
