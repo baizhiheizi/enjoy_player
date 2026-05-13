@@ -584,5 +584,6 @@
   "lookupTargetLanguage": "目标语言",
   "lookupSwapLanguages": "交换语言",
   "lookupPickSourceTitle": "选择原文语言",
-  "lookupPickTargetTitle": "选择目标语言"
+  "lookupPickTargetTitle": "选择目标语言",
+  "lookupRefresh": "刷新"
 }

@@ -1415,4 +1415,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lookupPickTargetTitle => 'Choose target language';
+
+  @override
+  String get lookupRefresh => 'Refresh';
 }

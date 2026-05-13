@@ -1362,6 +1362,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get lookupPickTargetTitle => '选择目标语言';
+
+  @override
+  String get lookupRefresh => '刷新';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -2722,4 +2725,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get lookupPickTargetTitle => '选择目标语言';
+
+  @override
+  String get lookupRefresh => '刷新';
 }

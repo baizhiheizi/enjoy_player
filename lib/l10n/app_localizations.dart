@@ -2720,6 +2720,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose target language'**
   String get lookupPickTargetTitle;
+
+  /// No description provided for @lookupRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get lookupRefresh;
 }
 
 class _AppLocalizationsDelegate

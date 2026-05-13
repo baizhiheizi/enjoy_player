@@ -8,30 +8,53 @@ final class EnjoyLlmCapability implements LlmCapability {
 
   final ChatApi _api;
 
+  /// JSON from [convertKeysToCamel] uses [Map] values that are often
+  /// `Map<dynamic, dynamic>`, not `Map<String, dynamic>`, so avoid `is`
+  /// checks on the latter for nested objects.
+  Map<String, dynamic>? _stringKeyMap(Object? value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return Map<String, dynamic>.from(
+        value.map((k, v) => MapEntry(k.toString(), v)),
+      );
+    }
+    return null;
+  }
+
   String _contentFromResponse(Map<String, dynamic> map) {
-    final choices = map['choices'] as List<dynamic>?;
-    final first = choices?.isNotEmpty == true ? choices!.first : null;
-    if (first is! Map<String, dynamic>) {
+    final choicesRaw = map['choices'];
+    if (choicesRaw is! List || choicesRaw.isEmpty) {
       throw const ApiException(
         message: 'No choices in chat completion',
         statusCode: 502,
       );
     }
-    final message = first['message'];
-    if (message is! Map<String, dynamic>) {
+    final first = _stringKeyMap(choicesRaw.first);
+    if (first == null) {
+      throw const ApiException(
+        message: 'No choices in chat completion',
+        statusCode: 502,
+      );
+    }
+    final message = _stringKeyMap(first['message']);
+    if (message == null) {
       throw const ApiException(
         message: 'No message in completion choice',
         statusCode: 502,
       );
     }
-    final content = message['content'] as String?;
-    if (content == null || content.isEmpty) {
+    final content = message['content'];
+    final String? text = switch (content) {
+      final String s => s.trim().isEmpty ? null : s.trim(),
+      _ => null,
+    };
+    if (text == null || text.isEmpty) {
       throw const ApiException(
         message: 'Empty completion content',
         statusCode: 502,
       );
     }
-    return content;
+    return text;
   }
 
   @override

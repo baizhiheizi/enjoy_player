@@ -8,9 +8,11 @@ import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -34,13 +36,23 @@ class DictionaryLookupSection extends ConsumerWidget {
       leading: const Icon(Icons.menu_book_outlined),
       bodyBuilder: (ctx) {
         final async = ref.watch(lookupSheetDictionaryProvider(params));
+        void forceRefresh() {
+          ref.read(lookupSheetResultCacheProvider).evictDictionary(params);
+          ref.invalidate(lookupSheetDictionaryProvider(params));
+        }
+
         return async.when(
-          data: (DictionaryResult d) => _DictionaryBody(d: d, l10n: l10n),
+          data: (DictionaryResult d) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LookupRefreshIconButton(l10n: l10n, onPressed: forceRefresh),
+              _DictionaryBody(d: d, l10n: l10n),
+            ],
+          ),
           loading: () => const LookupSectionShimmer(),
           error: (e, _) => LookupErrorRow(
             message: e is AppFailure ? e.message : e.toString(),
-            onRetry: () =>
-                ref.invalidate(lookupSheetDictionaryProvider(params)),
+            onRetry: forceRefresh,
           ),
         );
       },

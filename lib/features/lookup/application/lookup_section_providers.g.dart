@@ -92,88 +92,6 @@ final class LookupSheetTranslationFamily extends $Family
   String toString() => r'lookupSheetTranslationProvider';
 }
 
-@ProviderFor(lookupSheetContextual)
-final lookupSheetContextualProvider = LookupSheetContextualFamily._();
-
-final class LookupSheetContextualProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<ContextualTranslationResult>,
-          ContextualTranslationResult,
-          FutureOr<ContextualTranslationResult>
-        >
-    with
-        $FutureModifier<ContextualTranslationResult>,
-        $FutureProvider<ContextualTranslationResult> {
-  LookupSheetContextualProvider._({
-    required LookupSheetContextualFamily super.from,
-    required LookupContextualParams super.argument,
-  }) : super(
-         retry: null,
-         name: r'lookupSheetContextualProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$lookupSheetContextualHash();
-
-  @override
-  String toString() {
-    return r'lookupSheetContextualProvider'
-        ''
-        '($argument)';
-  }
-
-  @$internal
-  @override
-  $FutureProviderElement<ContextualTranslationResult> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<ContextualTranslationResult> create(Ref ref) {
-    final argument = this.argument as LookupContextualParams;
-    return lookupSheetContextual(ref, argument);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is LookupSheetContextualProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$lookupSheetContextualHash() =>
-    r'd71db9f753c1d36df33806e93cc3b9cb31b85069';
-
-final class LookupSheetContextualFamily extends $Family
-    with
-        $FunctionalFamilyOverride<
-          FutureOr<ContextualTranslationResult>,
-          LookupContextualParams
-        > {
-  LookupSheetContextualFamily._()
-    : super(
-        retry: null,
-        name: r'lookupSheetContextualProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
-
-  LookupSheetContextualProvider call(LookupContextualParams params) =>
-      LookupSheetContextualProvider._(argument: params, from: this);
-
-  @override
-  String toString() => r'lookupSheetContextualProvider';
-}
-
 @ProviderFor(lookupSheetDictionary)
 final lookupSheetDictionaryProvider = LookupSheetDictionaryFamily._();
 
@@ -230,7 +148,7 @@ final class LookupSheetDictionaryProvider
 }
 
 String _$lookupSheetDictionaryHash() =>
-    r'a154874e74c68f877d87f9e0308246c406b51b5c';
+    r'67ec9c761fa44e4eba4eb8d15e93e19f06747b3a';
 
 final class LookupSheetDictionaryFamily extends $Family
     with

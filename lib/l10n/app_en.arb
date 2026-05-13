@@ -584,5 +584,6 @@
   "lookupTargetLanguage": "Target language",
   "lookupSwapLanguages": "Swap languages",
   "lookupPickSourceTitle": "Choose source language",
-  "lookupPickTargetTitle": "Choose target language"
+  "lookupPickTargetTitle": "Choose target language",
+  "lookupRefresh": "Refresh"
 }
