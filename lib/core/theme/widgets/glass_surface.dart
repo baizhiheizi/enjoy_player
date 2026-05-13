@@ -3,6 +3,8 @@ library;
 
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../enjoy_tokens.dart';
@@ -23,7 +25,8 @@ class GlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final blur = sigma ?? t.miniBarBlurSigma;
+    final blurRaw = sigma ?? t.miniBarBlurSigma;
+    final blur = _effectiveTransportBlur(blurRaw);
 
     Widget inner = Material(color: Colors.transparent, child: child);
 
@@ -54,4 +57,13 @@ class GlassSurface extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Softer blur on Android to reduce GPU overdraw from [BackdropFilter] on transport.
+double _effectiveTransportBlur(double sigma) {
+  if (kIsWeb || sigma <= 0) return sigma;
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    return sigma > 10 ? 10 : sigma;
+  }
+  return sigma;
 }

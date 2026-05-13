@@ -18,7 +18,6 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
 import '../domain/media.dart';
-import '../application/library_search_provider.dart';
 import 'library_actions.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
@@ -44,31 +43,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     super.dispose();
   }
 
-  List<Media> _filter(List<Media> items, String query) {
-    if (query.isEmpty) return items;
-    final lower = query.toLowerCase();
-    return items.where((m) => m.title.toLowerCase().contains(lower)).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final mediaAsync = ref.watch(libraryMediaProvider);
-    final query = ref.watch(librarySearchProvider);
+    final listsAsync = ref.watch(libraryFilteredListsProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: mediaAsync.when(
-        data: (items) {
-          final filtered = _filter(items, query);
-          final audioItems =
-              filtered.where((m) => m.kind == MediaKind.audio).toList()
-                ..sort((a, b) => a.title.compareTo(b.title));
-          final videoItems =
-              filtered.where((m) => m.kind == MediaKind.video).toList()
-                ..sort((a, b) => a.title.compareTo(b.title));
+      body: listsAsync.when(
+        data: (lists) {
+          final audioItems = lists.audio;
+          final videoItems = lists.video;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -173,7 +160,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 ),
                 SizedBox(height: t.space16),
                 FilledButton.tonal(
-                  onPressed: () => ref.invalidate(libraryMediaProvider),
+                  onPressed: () => ref.invalidate(libraryFilteredListsProvider),
                   child: Text(l10n.retry),
                 ),
               ],

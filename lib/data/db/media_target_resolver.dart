@@ -14,10 +14,10 @@ Future<String?> dexieTargetTypeForId(AppDatabase db, String id) async {
   return null;
 }
 
-bool _localUriPlayable(String? uri) {
+Future<bool> _localUriPlayable(String? uri) async {
   if (uri == null || uri.isEmpty) return false;
   try {
-    return File.fromUri(Uri.parse(uri)).existsSync();
+    return File.fromUri(Uri.parse(uri)).exists();
   } on Object {
     return false;
   }
@@ -49,7 +49,7 @@ Future<PlayableSource?> resolvePlayableSource(
     return RemoteUrlPlayableSource(netUri);
   }
   final local = video?.localUri ?? audio?.localUri;
-  if (_localUriPlayable(local)) {
+  if (await _localUriPlayable(local)) {
     return LocalFilePlayableSource(local!);
   }
   return null;
@@ -78,7 +78,7 @@ Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
     return netUri;
   }
   final local = video?.localUri ?? audio?.localUri;
-  if (_localUriPlayable(local)) {
+  if (await _localUriPlayable(local)) {
     return local;
   }
   return null;

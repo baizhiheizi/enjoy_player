@@ -49,11 +49,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     final mediaId = ref.watch(
       playerControllerProvider.select((s) => s?.mediaId),
     );
-    final transcriptLinesAsync = ref.watch(
-      transcriptLinesForMediaProvider(mediaId ?? ''),
+    final hasTranscriptLinesAsync = ref.watch(
+      transcriptHasLinesForMediaProvider(mediaId ?? ''),
     );
-    final hasTranscriptLines = transcriptLinesAsync.maybeWhen(
-      data: (lines) => lines.isNotEmpty,
+    final hasTranscriptLines = hasTranscriptLinesAsync.maybeWhen(
+      data: (v) => v,
       orElse: () => false,
     );
     final echo = ref.watch(echoModeProvider);
@@ -244,10 +244,12 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(t.space12, t.space8, t.space12, 0),
-            child: TransportProgressStrip(
-              chrome: chrome,
-              hovered: _sliderHovered,
-              onHoverChanged: (v) => setState(() => _sliderHovered = v),
+            child: RepaintBoundary(
+              child: TransportProgressStrip(
+                chrome: chrome,
+                hovered: _sliderHovered,
+                onHoverChanged: (v) => setState(() => _sliderHovered = v),
+              ),
             ),
           ),
           Padding(

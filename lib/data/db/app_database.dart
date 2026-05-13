@@ -165,6 +165,18 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
             ]))
           .watch();
 
+  /// Existence-only stream (no `timeline_json` reads) for UI like transport buttons.
+  Stream<bool> watchExistsForTarget(String targetType, String targetId) {
+    return customSelect(
+      'SELECT EXISTS (SELECT 1 FROM transcripts WHERE target_type = ? AND target_id = ?) AS e',
+      variables: [
+        Variable.withString(targetType),
+        Variable.withString(targetId),
+      ],
+      readsFrom: {transcripts},
+    ).watch().map((rows) => rows.first.read<int>('e') != 0);
+  }
+
   Future<TranscriptRow?> getById(String id) =>
       (select(transcripts)..where((t) => t.id.equals(id))).getSingleOrNull();
 
@@ -395,20 +407,18 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
   }) =>
       (select(recordings)
             ..where(
-              (t) =>
-                  t.targetType.equals(targetType) &
-                  t.targetId.equals(targetId) &
-                  t.language.equals(language),
+              (t) {
+                final recordingEnd =
+                    t.referenceStart + t.referenceDuration;
+                return t.targetType.equals(targetType) &
+                    t.targetId.equals(targetId) &
+                    t.language.equals(language) &
+                    t.referenceStart.isSmallerThanValue(echoEndMs) &
+                    recordingEnd.isBiggerThanValue(echoStartMs);
+              },
             )
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-          .watch()
-          .map(
-            (rows) => rows
-                .where(
-                  (r) => recordingOverlapsEchoRegion(r, echoStartMs, echoEndMs),
-                )
-                .toList(),
-          );
+          .watch();
 
   Future<List<RecordingRow>> listByEchoRegion({
     required String targetType,
@@ -417,19 +427,19 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
     required int echoStartMs,
     required int echoEndMs,
   }) async {
-    final rows =
-        await (select(recordings)
-              ..where(
-                (t) =>
-                    t.targetType.equals(targetType) &
-                    t.targetId.equals(targetId) &
-                    t.language.equals(language),
-              )
-              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-            .get();
-    return rows
-        .where((r) => recordingOverlapsEchoRegion(r, echoStartMs, echoEndMs))
-        .toList();
+    return (select(recordings)
+          ..where(
+            (t) {
+              final recordingEnd = t.referenceStart + t.referenceDuration;
+              return t.targetType.equals(targetType) &
+                  t.targetId.equals(targetId) &
+                  t.language.equals(language) &
+                  t.referenceStart.isSmallerThanValue(echoEndMs) &
+                  recordingEnd.isBiggerThanValue(echoStartMs);
+            },
+          )
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
   }
 
   Future<RecordingRow?> getById(String id) =>

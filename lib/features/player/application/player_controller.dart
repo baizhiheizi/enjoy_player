@@ -45,6 +45,9 @@ class PlayerController extends _$PlayerController {
   /// Last emitted UI bucket for raw [engine.position] ticks (see [_subscribeStreams]).
   int? _lastPositionEmitBucket;
 
+  /// Last bucket used for echo clamping (see [_subscribeStreams]).
+  int? _lastEchoApplyBucket;
+
   /// Incremented on each [openMedia] call; stale async work bails out.
   int _openGeneration = 0;
 
@@ -211,6 +214,7 @@ class PlayerController extends _$PlayerController {
     required int gen,
   }) {
     _lastPositionEmitBucket = null;
+    _lastEchoApplyBucket = null;
     // Raw mpv position can arrive very often (notably streaming). Updating
     // [PlaybackSession] on every tick rebuilds all [playerControllerProvider]
     // listeners and can overwhelm the Windows semantics bridge — same motivation
@@ -219,11 +223,15 @@ class PlayerController extends _$PlayerController {
     _positionSub = _activeEngine.position.listen((pos) {
       if (gen != _openGeneration) return;
       final seconds = pos.inMilliseconds / 1000.0;
-      unawaited(_applyEcho(seconds));
 
       final bucket = pos.inMilliseconds ~/ positionBucketMs;
       final prevSec = state?.currentTimeSeconds;
       final likelySeek = prevSec != null && (seconds - prevSec).abs() > 0.35;
+      if (likelySeek || bucket != _lastEchoApplyBucket) {
+        _lastEchoApplyBucket = bucket;
+        unawaited(_applyEcho(seconds));
+      }
+
       if (!likelySeek && bucket == _lastPositionEmitBucket) {
         return;
       }
@@ -351,6 +359,7 @@ class PlayerController extends _$PlayerController {
     _positionSub = null;
     _durationSub = null;
     _lastPositionEmitBucket = null;
+    _lastEchoApplyBucket = null;
     await _activeEngine.stop();
     ref.read(echoModeProvider.notifier).deactivate();
     state = null;

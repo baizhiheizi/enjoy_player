@@ -78,6 +78,8 @@ class GuestMigrationCtrl extends _$GuestMigrationCtrl {
       ref.invalidate(guestDatabaseHasDataProvider);
       ref.invalidate(showGuestMigrationBannerProvider);
       ref.invalidate(libraryMediaProvider);
+      ref.invalidate(libraryHomeRecentsProvider);
+      ref.invalidate(libraryFilteredListsProvider);
       ref.invalidate(syncQueueSnapshotProvider);
     });
     if (state.hasError) return;

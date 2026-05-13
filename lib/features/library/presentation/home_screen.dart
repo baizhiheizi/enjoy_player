@@ -36,11 +36,9 @@ const SliverGridDelegateWithMaxCrossAxisExtent _kHomeRecentGridDelegate =
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  static const int _kRecentLimit = 12;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mediaAsync = ref.watch(libraryMediaProvider);
+    final mediaAsync = ref.watch(libraryHomeRecentsProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
@@ -51,11 +49,7 @@ class HomeScreen extends ConsumerWidget {
           const GuestMigrationBanner(),
           Expanded(
             child: mediaAsync.when(
-              data: (items) {
-                final sorted = [...items]
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-                final recent = sorted.take(_kRecentLimit).toList();
-
+              data: (recent) {
                 if (recent.isEmpty) {
                   return EmptyState(
                     icon: Icons.collections_bookmark_rounded,
@@ -144,7 +138,8 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: t.space16),
                         FilledButton.tonal(
-                          onPressed: () => ref.invalidate(libraryMediaProvider),
+                          onPressed: () =>
+                              ref.invalidate(libraryHomeRecentsProvider),
                           child: Text(l10n.retry),
                         ),
                       ],
@@ -160,7 +155,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Home layout while [libraryMediaProvider] has not emitted yet — mirrors the
+/// Home layout while [libraryHomeRecentsProvider] has not emitted yet — mirrors the
 /// loaded scroll view except insight cards (Today's Goal / community), which
 /// mount only after the first media emission to avoid competing with the
 /// initial DB query.

@@ -83,3 +83,16 @@ final secondaryTranscriptLinesForMediaProvider =
       final repo = ref.watch(transcriptRepositoryProvider);
       return _linesForMedia(db, repo, mediaId, primary: false);
     });
+
+/// Whether the media has any transcript row (cheap; no cue JSON decode).
+final transcriptHasLinesForMediaProvider =
+    StreamProvider.family<bool, String>((ref, mediaId) {
+      if (mediaId.isEmpty) return Stream.value(false);
+      final db = ref.watch(appDatabaseProvider);
+      return Stream.fromFuture(dexieTargetTypeForId(db, mediaId)).asyncExpand((
+        tt,
+      ) {
+        if (tt == null) return Stream.value(false);
+        return db.transcriptDao.watchExistsForTarget(tt, mediaId);
+      });
+    });

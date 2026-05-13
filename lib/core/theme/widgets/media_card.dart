@@ -584,26 +584,42 @@ class _Thumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (file != null) {
-      return Image.file(
-        file!,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, _, _) => _fallback(),
-      );
-    }
-    final url = networkUrl;
-    if (url != null && url.isNotEmpty) {
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, _, _) => _fallback(),
-      );
-    }
-    return _fallback();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dpr = MediaQuery.devicePixelRatioOf(context);
+        int? cacheW;
+        int? cacheH;
+        if (constraints.maxWidth.isFinite && constraints.maxHeight.isFinite) {
+          cacheW = (constraints.maxWidth * dpr).round().clamp(1, 4096);
+          cacheH = (constraints.maxHeight * dpr).round().clamp(1, 4096);
+        }
+
+        if (file != null) {
+          return Image.file(
+            file!,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            cacheWidth: cacheW,
+            cacheHeight: cacheH,
+            errorBuilder: (_, _, _) => _fallback(),
+          );
+        }
+        final url = networkUrl;
+        if (url != null && url.isNotEmpty) {
+          return Image.network(
+            url,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            cacheWidth: cacheW,
+            cacheHeight: cacheH,
+            errorBuilder: (_, _, _) => _fallback(),
+          );
+        }
+        return _fallback();
+      },
+    );
   }
 
   Widget _fallback() {

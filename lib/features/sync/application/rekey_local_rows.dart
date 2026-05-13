@@ -270,11 +270,21 @@ Future<void> _retargetMediaForeignKeys(
 }
 
 Future<int> countPendingRekeyRows(AppDatabase db) async {
-  final v = await (db.select(
-    db.videos,
-  )..where((t) => t.syncStatus.equals('local-pending-rekey'))).get();
-  final a = await (db.select(
-    db.audios,
-  )..where((t) => t.syncStatus.equals('local-pending-rekey'))).get();
-  return v.length + a.length;
+  final v = await db
+      .customSelect(
+        "SELECT COUNT(*) AS c FROM videos WHERE sync_status = ?",
+        variables: [Variable.withString('local-pending-rekey')],
+        readsFrom: {db.videos},
+      )
+      .map((row) => row.read<int>('c'))
+      .getSingle();
+  final a = await db
+      .customSelect(
+        "SELECT COUNT(*) AS c FROM audios WHERE sync_status = ?",
+        variables: [Variable.withString('local-pending-rekey')],
+        readsFrom: {db.audios},
+      )
+      .map((row) => row.read<int>('c'))
+      .getSingle();
+  return v + a;
 }

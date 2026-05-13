@@ -24,6 +24,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
     required this.echo,
     required this.activeCueIndex,
     required this.secondaryLines,
+    this.secondaryMatcher,
     super.key,
   });
 
@@ -33,16 +34,16 @@ class EchoRegionMergedCard extends ConsumerWidget {
   final int activeCueIndex;
   final List<TranscriptLine> secondaryLines;
 
+  /// When null, a matcher is built from [secondaryLines].
+  final TranscriptSecondaryMatcher? secondaryMatcher;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final tok = EnjoyThemeTokens.of(context);
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
-    final posAsync = ref.watch(displayPositionProvider);
-    final currentTimeSec = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds / 1000.0,
-      _ => 0.0,
-    };
+    final matcher =
+        secondaryMatcher ?? TranscriptSecondaryMatcher.from(secondaryLines);
 
     // Neutral surface — no colored background; left rail carries the echo accent.
     final shell = scheme.surfaceContainerLow;
@@ -65,10 +66,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       final line = lines[i];
       final isActive = i == activeCueIndex;
-      final secondaryText = transcriptMatchSecondary(
-        line,
-        secondaryLines,
-      )?.text;
+      final secondaryText = matcher.match(line)?.text;
 
       final tile = TranscriptLineTile(
         line: line,
@@ -108,45 +106,43 @@ class EchoRegionMergedCard extends ConsumerWidget {
         // Neutral card with 8px warm orange left rail
         ClipRRect(
           borderRadius: BorderRadius.circular(tok.radiusMd),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Orange rail
-                Container(
-                  width: 8,
-                  decoration: BoxDecoration(color: tok.echoActive),
-                ),
-                // Content
-                Expanded(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: shell,
-                      border: Border(
-                        top: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
-                        right: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
-                        bottom: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.18),
-                        ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Orange rail
+              Container(
+                width: 8,
+                decoration: BoxDecoration(color: tok.echoActive),
+              ),
+              // Content
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: shell,
+                    border: Border(
+                      top: BorderSide(
+                        color: scheme.outlineVariant.withValues(alpha: 0.18),
                       ),
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
+                      right: BorderSide(
+                        color: scheme.outlineVariant.withValues(alpha: 0.18),
+                      ),
+                      bottom: BorderSide(
+                        color: scheme.outlineVariant.withValues(alpha: 0.18),
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: lineWidgets,
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
                     ),
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: lineWidgets,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         SizedBox(height: tok.space8),
@@ -162,7 +158,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
         ),
         if (showShadow) ...[
           SizedBox(height: tok.space16),
-          ShadowReadingPanel(
+          _EchoShadowReadingPanel(
             mediaId: mediaId,
             targetType: chrome?.dexieTargetType ?? 'Audio',
             language: chrome?.language ?? 'en',
@@ -170,10 +166,49 @@ class EchoRegionMergedCard extends ConsumerWidget {
             endSec: echo.endTimeSeconds,
             referenceText: echoReferencePlainText(lines, echo),
             echoActive: echo.active,
-            currentTimeSec: currentTimeSec,
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Isolates [displayPositionProvider] so echo cue tiles do not rebuild every tick.
+class _EchoShadowReadingPanel extends ConsumerWidget {
+  const _EchoShadowReadingPanel({
+    required this.mediaId,
+    required this.targetType,
+    required this.language,
+    required this.startSec,
+    required this.endSec,
+    required this.referenceText,
+    required this.echoActive,
+  });
+
+  final String mediaId;
+  final String targetType;
+  final String language;
+  final double startSec;
+  final double endSec;
+  final String referenceText;
+  final bool echoActive;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final posAsync = ref.watch(displayPositionProvider);
+    final currentTimeSec = switch (posAsync) {
+      AsyncData(:final value) => value.inMilliseconds / 1000.0,
+      _ => 0.0,
+    };
+    return ShadowReadingPanel(
+      mediaId: mediaId,
+      targetType: targetType,
+      language: language,
+      startSec: startSec,
+      endSec: endSec,
+      referenceText: referenceText,
+      echoActive: echoActive,
+      currentTimeSec: currentTimeSec,
     );
   }
 }

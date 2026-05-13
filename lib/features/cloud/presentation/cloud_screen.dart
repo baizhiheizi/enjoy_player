@@ -429,6 +429,8 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
           try {
             await add.add(item);
             ref.invalidate(libraryMediaProvider);
+            ref.invalidate(libraryHomeRecentsProvider);
+            ref.invalidate(libraryFilteredListsProvider);
             if (!context.mounted) return;
             setState(() {
               _inLibrary = true;
@@ -652,6 +654,8 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
           try {
             await add.add(item);
             ref.invalidate(libraryMediaProvider);
+            ref.invalidate(libraryHomeRecentsProvider);
+            ref.invalidate(libraryFilteredListsProvider);
             if (!context.mounted) return;
             setState(() {
               _inLibrary = true;
