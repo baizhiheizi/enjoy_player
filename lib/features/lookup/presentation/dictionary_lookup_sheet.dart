@@ -84,14 +84,10 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const PaddedSheetDragHandle(),
-                  // ── Title row ──────────────────────────────────────────
+                  // ── Title row (label + copy + close) ──────────────────
                   constrain(
                     Padding(
-                      padding: const EdgeInsets.only(
-                        left: _hPad,
-                        right: 4,
-                        bottom: 6,
-                      ),
+                      padding: const EdgeInsets.only(left: _hPad, right: 4),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -106,13 +102,23 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                           ),
                           IconButton(
                             style: IconButton.styleFrom(
-                              minimumSize: const Size(48, 48),
-                              fixedSize: const Size(48, 48),
+                              minimumSize: const Size(44, 44),
+                              fixedSize: const Size(44, 44),
+                              foregroundColor: scheme.onSurfaceVariant,
+                            ),
+                            tooltip: l10n.lookupCopy,
+                            onPressed: () => _copySelection(context),
+                            icon: const Icon(Icons.copy_all_rounded, size: 18),
+                          ),
+                          IconButton(
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(44, 44),
+                              fixedSize: const Size(44, 44),
                               foregroundColor: scheme.onSurfaceVariant,
                             ),
                             tooltip: l10n.lookupClose,
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close_rounded, size: 22),
+                            icon: const Icon(Icons.close_rounded, size: 20),
                           ),
                         ],
                       ),
@@ -121,44 +127,21 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                   // ── Selected word ──────────────────────────────────────
                   constrain(
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        _hPad,
-                        0,
-                        4,
-                        0,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: SelectableText(
-                              widget.request.selectedText,
-                              style: tt.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                height: 1.1,
-                                letterSpacing: -0.5,
-                              ),
-                              maxLines: 4,
-                            ),
-                          ),
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              minimumSize: const Size(48, 48),
-                              fixedSize: const Size(48, 48),
-                              foregroundColor: scheme.onSurfaceVariant,
-                            ),
-                            tooltip: l10n.lookupCopy,
-                            onPressed: () => _copySelection(context),
-                            icon: const Icon(Icons.copy_all_rounded, size: 20),
-                          ),
-                        ],
+                      padding: const EdgeInsets.fromLTRB(_hPad, 2, _hPad, 8),
+                      child: SelectableText(
+                        widget.request.selectedText,
+                        style: tt.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                     ),
                   ),
                   // ── Language picker ────────────────────────────────────
                   constrain(
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(_hPad, 10, _hPad, 10),
+                      padding: const EdgeInsets.fromLTRB(_hPad, 6, _hPad, 8),
                       child: LookupLanguagePickerRow(
                         sourceLanguage: _sourceLanguage,
                         targetLanguage: _targetLanguage,

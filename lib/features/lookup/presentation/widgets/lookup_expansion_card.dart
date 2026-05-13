@@ -125,6 +125,10 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
                         ),
                         child: AnimatedSwitcher(
                           duration: t.motionFast,
+                          layoutBuilder: (current, previous) => Stack(
+                            alignment: AlignmentDirectional.topStart,
+                            children: [...previous, ?current],
+                          ),
                           child: _shouldLoad
                               ? KeyedSubtree(
                                   key: const ValueKey<String>('body'),
