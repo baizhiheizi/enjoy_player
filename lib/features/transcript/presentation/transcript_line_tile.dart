@@ -49,6 +49,48 @@ class TranscriptLineTile extends StatefulWidget {
 class _TranscriptLineTileState extends State<TranscriptLineTile> {
   bool _hover = false;
 
+  /// [SelectableText]'s [EditableText] is internal; locate it to open the
+  /// selection toolbar on desktop mouse drag (Flutter otherwise only auto-shows
+  /// the toolbar for touch/stylus or double-tap+drag).
+  static EditableTextState? _findEditableTextState(BuildContext context) {
+    EditableTextState? found;
+    void visit(Element element) {
+      if (found != null) return;
+      if (element is StatefulElement && element.state is EditableTextState) {
+        found = element.state as EditableTextState;
+        return;
+      }
+      element.visitChildren(visit);
+    }
+
+    final element = context as Element?;
+    if (element == null) return null;
+    visit(element);
+    return found;
+  }
+
+  void _onSelectableSelectionChanged(
+    BuildContext selectableSubtreeContext,
+    TextSelection selection,
+    SelectionChangedCause? cause,
+  ) {
+    if (!widget.selectable) return;
+    // Match [SelectableText] handle visibility: keyboard-driven selection does
+    // not surface the floating toolbar by default.
+    if (cause == SelectionChangedCause.keyboard) return;
+    if (!selection.isValid || selection.isCollapsed) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!selectableSubtreeContext.mounted) return;
+      final editable = _findEditableTextState(selectableSubtreeContext);
+      if (editable == null || !editable.mounted) return;
+      final sel = editable.textEditingValue.selection;
+      if (!sel.isValid || sel.isCollapsed) return;
+      editable.showToolbar();
+    });
+  }
+
   /// Raw substring for the current [selection] (no trim), or `null` if invalid.
   static String? _rawSelectedSlice(String plain, TextSelection selection) {
     if (!selection.isValid || selection.isCollapsed) return null;
@@ -71,15 +113,16 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
   List<ContextMenuButtonItem> _selectionToolbarItems({
     required BuildContext menuContext,
     required EditableTextState editableTextState,
-    required String plainForSelection,
     required AppLocalizations l10n,
   }) {
-    final selection = editableTextState.textEditingValue.selection;
+    final value = editableTextState.textEditingValue;
+    final plain = value.text;
+    final selection = value.selection;
     final items = <ContextMenuButtonItem>[];
 
     final lookupText = widget.onLookupRequested == null
         ? null
-        : _lookupSlice(plainForSelection, selection);
+        : _lookupSlice(plain, selection);
     if (lookupText != null) {
       items.add(
         ContextMenuButtonItem(
@@ -100,10 +143,7 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
           label: l10n.lookupCopy,
           onPressed: () async {
             Haptics.selection(menuContext);
-            final raw = _rawSelectedSlice(
-              plainForSelection,
-              editableTextState.textEditingValue.selection,
-            );
+            final raw = _rawSelectedSlice(plain, editableTextState.textEditingValue.selection);
             if (raw != null && raw.isNotEmpty) {
               await Clipboard.setData(ClipboardData(text: raw));
             } else {
@@ -135,9 +175,8 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
 
   Widget _selectionToolbar(
     BuildContext menuContext,
-    EditableTextState editableTextState, {
-    required String plainForSelection,
-  }) {
+    EditableTextState editableTextState,
+  ) {
     final l10n = AppLocalizations.of(menuContext);
     if (l10n == null) {
       return AdaptiveTextSelectionToolbar.editableText(
@@ -147,7 +186,6 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     final items = _selectionToolbarItems(
       menuContext: menuContext,
       editableTextState: editableTextState,
-      plainForSelection: plainForSelection,
       l10n: l10n,
     );
     if (items.isEmpty) {
@@ -161,17 +199,21 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     );
   }
 
-  Widget _richSelectable({
-    required TextSpan span,
-    required String plainForSelection,
-  }) {
-    return SelectableText.rich(
-      span,
-      contextMenuBuilder: (menuContext, editableTextState) {
-        return _selectionToolbar(
-          menuContext,
-          editableTextState,
-          plainForSelection: plainForSelection,
+  Widget _richSelectable({required TextSpan span}) {
+    return Builder(
+      builder: (selectableSubtreeContext) {
+        return SelectableText.rich(
+          span,
+          contextMenuBuilder: (menuContext, editableTextState) {
+            return _selectionToolbar(menuContext, editableTextState);
+          },
+          onSelectionChanged: (selection, cause) {
+            _onSelectableSelectionChanged(
+              selectableSubtreeContext,
+              selection,
+              cause,
+            );
+          },
         );
       },
     );
@@ -218,9 +260,6 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     final timestampStyle = typography.timestampStyle;
 
     final primaryPlain = transcriptPlainForSelection(widget.line.text);
-    final secondaryPlain = widget.secondaryText == null
-        ? ''
-        : transcriptPlainForSelection(widget.secondaryText!);
 
     String statePrefix = '';
     if (l10n != null) {
@@ -250,7 +289,6 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
               defaultColor: defaultFg,
               emphasize: widget.isActive,
             ),
-            plainForSelection: primaryPlain,
           )
         : Text.rich(
             transcriptMarkupToTextSpan(
@@ -271,7 +309,6 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
                 defaultColor: scheme.onSurfaceVariant,
                 emphasize: false,
               ),
-              plainForSelection: secondaryPlain,
             )
           : Text.rich(
               transcriptMarkupToTextSpan(
