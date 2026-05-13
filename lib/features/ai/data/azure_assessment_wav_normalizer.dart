@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -63,16 +64,27 @@ Future<bool> _runFfmpegKit({
   final cmd =
       '-nostdin -hide_banner -loglevel error -y -i ${_shellEscape(inputPath)} '
       '-vn -af $audioFilter -c:a pcm_s16le ${_shellEscape(outputWavPath)}';
-  final session = await FFmpegKit.execute(cmd);
-  final code = await session.getReturnCode();
-  if (!ReturnCode.isSuccess(code)) {
+  try {
+    final session = await FFmpegKit.execute(cmd);
+    final code = await session.getReturnCode();
+    if (!ReturnCode.isSuccess(code)) {
+      _log.fine(
+        'normalizeWav: FFmpegKit failed filter="$audioFilter": '
+        '${await session.getOutput()}',
+      );
+      return false;
+    }
+    return true;
+  } on MissingPluginException catch (e, st) {
+    // `flutter test` and some desktop/embedder builds have no FFmpegKit
+    // platform implementation; treat like an unavailable encoder.
     _log.fine(
-      'normalizeWav: FFmpegKit failed filter="$audioFilter": '
-      '${await session.getOutput()}',
+      'normalizeWav: FFmpegKit not registered in this environment',
+      e,
+      st,
     );
     return false;
   }
-  return true;
 }
 
 Future<void> _deleteIfExists(String path) async {
