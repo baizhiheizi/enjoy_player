@@ -89,7 +89,8 @@ class _ContextualFetchBody extends ConsumerStatefulWidget {
   final AppLocalizations l10n;
 
   @override
-  ConsumerState<_ContextualFetchBody> createState() => _ContextualFetchBodyState();
+  ConsumerState<_ContextualFetchBody> createState() =>
+      _ContextualFetchBodyState();
 }
 
 class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {

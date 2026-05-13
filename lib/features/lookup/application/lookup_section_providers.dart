@@ -36,11 +36,13 @@ Future<DictionaryResult> lookupSheetDictionary(
   final cached = cache.peekDictionary(params);
   if (cached != null) return cached;
 
-  final result = await ref.read(dictionaryServiceProvider).lookup(
-    word: params.word,
-    sourceLanguage: params.sourceLanguage,
-    targetLanguage: params.targetLanguage,
-  );
+  final result = await ref
+      .read(dictionaryServiceProvider)
+      .lookup(
+        word: params.word,
+        sourceLanguage: params.sourceLanguage,
+        targetLanguage: params.targetLanguage,
+      );
   cache.rememberDictionary(params, result);
   return result;
 }

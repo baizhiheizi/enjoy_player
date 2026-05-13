@@ -10,11 +10,7 @@ TranscriptLine _line(String text) =>
 void main() {
   group('buildVocabularyContext', () {
     test('echo with two or more lines joins primary text', () {
-      final lines = <TranscriptLine>[
-        _line('A'),
-        _line('B'),
-        _line('C'),
-      ];
+      final lines = <TranscriptLine>[_line('A'), _line('B'), _line('C')];
       const echo = EchoState(
         active: true,
         startLineIndex: 0,
@@ -34,8 +30,16 @@ void main() {
     test('single active line expands to sentence when possible', () {
       final lines = <TranscriptLine>[
         const TranscriptLine(text: 'Prev line. ', startMs: 0, durationMs: 900),
-        const TranscriptLine(text: 'Hello world. ', startMs: 900, durationMs: 2000),
-        const TranscriptLine(text: 'After line.', startMs: 2900, durationMs: 1000),
+        const TranscriptLine(
+          text: 'Hello world. ',
+          startMs: 900,
+          durationMs: 2000,
+        ),
+        const TranscriptLine(
+          text: 'After line.',
+          startMs: 2900,
+          durationMs: 1000,
+        ),
       ];
       const echo = EchoState.inactive;
       final ctx = buildVocabularyContext(

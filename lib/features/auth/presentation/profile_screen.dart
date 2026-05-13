@@ -225,9 +225,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   title: Text(l10n.profileCreditsUsageTile),
                   subtitle: Text(
                     l10n.profileCreditsUsageSubtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                   trailing: Icon(
                     Icons.chevron_right_rounded,
@@ -263,21 +263,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                         SizedBox(height: t.space16),
-                        ref.watch(appPreferencesCtrlProvider).when(
+                        ref
+                            .watch(appPreferencesCtrlProvider)
+                            .when(
                               data: (pref) {
-                                final displayTag =
-                                    localeToBcp47(pref.effectiveDisplayLocale);
+                                final displayTag = localeToBcp47(
+                                  pref.effectiveDisplayLocale,
+                                );
                                 final learnTag = pref.effectiveLearningLanguage;
                                 final nativeTag = pref.effectiveNativeLanguage;
-                                final nativeAllowed = allowedNativeTags(learnTag);
+                                final nativeAllowed = allowedNativeTags(
+                                  learnTag,
+                                );
                                 return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      key: ValueKey<String>('profile-locale-$displayTag'),
+                                      key: ValueKey<String>(
+                                        'profile-locale-$displayTag',
+                                      ),
                                       initialValue: displayTag,
                                       decoration: InputDecoration(
-                                        labelText: l10n.profileFieldDisplayLanguage,
+                                        labelText:
+                                            l10n.profileFieldDisplayLanguage,
                                         border: const OutlineInputBorder(),
                                       ),
                                       items: [
@@ -339,9 +348,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       key: ValueKey<String>(
                                         'profile-native-$nativeTag',
                                       ),
-                                      initialValue: nativeAllowed.any(
-                                              (t) => tagsEqual(t, nativeTag),
-                                            )
+                                      initialValue:
+                                          nativeAllowed.any(
+                                            (t) => tagsEqual(t, nativeTag),
+                                          )
                                           ? nativeTag
                                           : nativeAllowed.first,
                                       decoration: InputDecoration(
@@ -356,14 +366,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           DropdownMenuItem(
                                             value: tag,
                                             child: Text(
-                                              _languageOptionLabel(
-                                                l10n,
-                                                tag,
-                                              ),
+                                              _languageOptionLabel(l10n, tag),
                                             ),
                                           ),
                                       ],
-                                      onChanged: _saving || nativeAllowed.length <= 1
+                                      onChanged:
+                                          _saving || nativeAllowed.length <= 1
                                           ? null
                                           : (v) async {
                                               if (v == null) return;

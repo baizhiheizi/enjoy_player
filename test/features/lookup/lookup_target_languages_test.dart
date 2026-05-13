@@ -37,17 +37,11 @@ void main() {
     });
 
     test('allows en-US target when learning is zh-CN', () {
-      expect(
-        resolveLookupTarget('en-US', learningTag: 'zh-CN'),
-        'en-US',
-      );
+      expect(resolveLookupTarget('en-US', learningTag: 'zh-CN'), 'en-US');
     });
 
     test('normalizes learning tag in fallback path', () {
-      expect(
-        resolveLookupSource('und', learningTag: 'zh-cn'),
-        'zh-CN',
-      );
+      expect(resolveLookupSource('und', learningTag: 'zh-cn'), 'zh-CN');
     });
   });
 }

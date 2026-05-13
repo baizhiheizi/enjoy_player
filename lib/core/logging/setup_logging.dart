@@ -18,7 +18,8 @@ void setupAppLogging() {
     // Many terminals only show stdout; [developer.log] is easy to miss there.
     // Always mirror INFO+ (and anything already flagged with an error) to
     // [debugPrint] so `flutter run` / CI consoles match DevTools logging.
-    final mirrorToStdout = record.level >= Level.INFO ||
+    final mirrorToStdout =
+        record.level >= Level.INFO ||
         record.error != null ||
         record.stackTrace != null;
     if (mirrorToStdout) {

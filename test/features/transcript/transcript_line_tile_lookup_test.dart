@@ -30,7 +30,9 @@ void main() {
     expect(find.byType(SelectableText), findsOneWidget);
   });
 
-  testWidgets('non-selectable transcript line uses plain Text.rich', (tester) async {
+  testWidgets('non-selectable transcript line uses plain Text.rich', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

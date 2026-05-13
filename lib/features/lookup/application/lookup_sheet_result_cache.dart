@@ -33,7 +33,10 @@ final class LookupSheetResultCache {
   DictionaryResult? peekDictionary(LookupDictionaryParams params) =>
       _dictionary[params];
 
-  void rememberDictionary(LookupDictionaryParams params, DictionaryResult result) {
+  void rememberDictionary(
+    LookupDictionaryParams params,
+    DictionaryResult result,
+  ) {
     _dictionary[params] = result;
   }
 
@@ -43,4 +46,5 @@ final class LookupSheetResultCache {
 }
 
 @Riverpod(keepAlive: true)
-LookupSheetResultCache lookupSheetResultCache(Ref ref) => LookupSheetResultCache();
+LookupSheetResultCache lookupSheetResultCache(Ref ref) =>
+    LookupSheetResultCache();
