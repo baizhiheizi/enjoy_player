@@ -449,47 +449,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 message:
                                     l10n.settingsAppearanceSyncedFromProfile,
                                 child: _SettingsTile(
-                                  leading: Container(
-                                    width: 44,
-                                    height: 44,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(
-                                        t.radiusLg,
-                                      ),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          t.gradientStart.withValues(
-                                            alpha: 0.82,
-                                          ),
-                                          t.gradientEnd.withValues(alpha: 0.74),
-                                        ],
-                                      ),
-                                      border: Border.all(
-                                        color: cs.primary.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: t.gradientEnd.withValues(
-                                            alpha: 0.22,
-                                          ),
-                                          blurRadius: 18,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      Icons.palette_outlined,
-                                      color: cs.onSurface.withValues(
-                                        alpha: 0.9,
-                                      ),
-                                      size: 22,
-                                    ),
-                                  ),
+                                  leadingIcon: Icons.palette_outlined,
                                   title: l10n.settingsAppearanceTheme,
                                   subtitle:
                                       l10n.settingsAppearanceSyncedFromProfile,
@@ -817,20 +777,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: cs.primaryContainer,
-                                    borderRadius: BorderRadius.circular(
-                                      t.radiusMd,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    Icons.play_arrow_rounded,
-                                    color: cs.onPrimaryContainer,
-                                    size: 30,
-                                  ),
+                                Icon(
+                                  Icons.play_arrow_rounded,
+                                  color: cs.primary,
+                                  size: 36,
                                 ),
                                 SizedBox(width: t.space16),
                                 Expanded(
@@ -926,37 +876,15 @@ class _SettingsTile extends StatelessWidget {
         child: Center(child: leading!),
       );
     } else if (leadingIcon != null) {
-      leadWidget = Container(
+      leadWidget = SizedBox(
         width: 44,
         height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              iconTint.withValues(alpha: interactive ? 0.20 : 0.11),
-              cs.surfaceContainerHighest.withValues(
-                alpha: interactive ? 0.58 : 0.38,
-              ),
-            ],
+        child: Center(
+          child: Icon(
+            leadingIcon,
+            color: iconTint.withValues(alpha: interactive ? 0.92 : 0.6),
+            size: 24,
           ),
-          border: Border.all(
-            color: iconTint.withValues(alpha: interactive ? 0.17 : 0.10),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Icon(
-          leadingIcon,
-          color: iconTint.withValues(alpha: interactive ? 0.96 : 0.66),
-          size: 21,
         ),
       );
     } else {
@@ -964,19 +892,10 @@ class _SettingsTile extends StatelessWidget {
     }
 
     Widget disclosure() {
-      return Container(
-        width: 24,
-        height: 24,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest.withValues(alpha: 0.42),
-          borderRadius: BorderRadius.circular(t.radiusFull),
-        ),
-        child: Icon(
-          Icons.chevron_right_rounded,
-          color: cs.onSurfaceVariant.withValues(alpha: 0.8),
-          size: 18,
-        ),
+      return Icon(
+        Icons.chevron_right_rounded,
+        color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+        size: 20,
       );
     }
 
@@ -1157,9 +1076,6 @@ class _SettingsSectionHeader extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final iconBg = subdued
-        ? cs.surfaceContainerHigh.withValues(alpha: 0.45)
-        : cs.primaryContainer.withValues(alpha: 0.5);
     final iconFg = subdued ? cs.onSurfaceVariant : cs.primary;
 
     return Padding(
@@ -1167,15 +1083,13 @@ class _SettingsSectionHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: 36,
             height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(t.radiusSm),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Icon(icon, size: 20, color: iconFg),
             ),
-            child: Icon(icon, size: 20, color: iconFg),
           ),
           SizedBox(width: t.space12),
           Expanded(
@@ -1294,17 +1208,17 @@ class _SettingsExpansionLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    return Container(
+    return SizedBox(
       width: 44,
       height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: cs.primaryContainer.withValues(alpha: 0.32),
-        borderRadius: BorderRadius.circular(t.radiusMd),
+      child: Center(
+        child: Icon(
+          icon,
+          color: cs.onSurfaceVariant,
+          size: 22,
+        ),
       ),
-      child: Icon(icon, color: cs.primary.withValues(alpha: 0.92), size: 22),
     );
   }
 }
@@ -1324,39 +1238,46 @@ class _SettingsValuePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final fg = foregroundColor ?? cs.onSurface;
+    final tt = Theme.of(context).textTheme;
+    final fg = foregroundColor ?? cs.onSurfaceVariant;
+
+    Widget? leading;
+    if (icon != null) {
+      leading = Icon(icon, size: 16, color: fg);
+    } else if (foregroundColor != null) {
+      leading = Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          color: foregroundColor,
+          shape: BoxShape.circle,
+        ),
+      );
+    }
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 148, minHeight: 30),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: t.space12, vertical: 6),
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest.withValues(alpha: 0.58),
-          borderRadius: BorderRadius.circular(t.radiusFull),
-          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.24)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16, color: fg),
-              SizedBox(width: t.space4),
-            ],
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: icon != null ? TextAlign.start : TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: fg,
-                  letterSpacing: 0.04,
-                ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (leading != null) ...[
+            leading,
+            SizedBox(width: t.space4),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: leading != null ? TextAlign.start : TextAlign.end,
+              style: tt.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: fg,
+                letterSpacing: 0.04,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
