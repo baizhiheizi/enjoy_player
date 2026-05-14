@@ -24,6 +24,11 @@ bool _deleteLongPressEnabledForPlatform() {
       defaultTargetPlatform == TargetPlatform.iOS;
 }
 
+/// Inline trash on the card is for pointer UIs; phones use long-press → sheet.
+bool _showPointerDeleteButton() {
+  return !_deleteLongPressEnabledForPlatform();
+}
+
 /// Bottom sheet with a single destructive delete action (Android / iOS).
 void _showMobileDeleteMenu(
   BuildContext context, {
@@ -105,7 +110,7 @@ class MediaCardTile extends StatefulWidget {
   final bool isVideo;
   final Color? accentColor;
 
-  /// When non-null: on pointer hover, a corner delete control on the thumbnail; on
+  /// When non-null: on desktop / web, a corner delete control on the thumbnail; on
   /// Android / iOS, long-press opens a bottom sheet with delete (then the caller’s flow).
   final VoidCallback? onDelete;
 
@@ -216,40 +221,35 @@ class _MediaCardTileState extends State<MediaCardTile> {
                               label: widget.providerBadge!,
                             ),
                           ),
-                        // Cinematic bottom scrim + play affordance for video
-                        if (widget.isVideo)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            height: 56,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withValues(alpha: 0.55),
-                                  ],
+                        // Media kind (video vs audio) — not a play affordance; tap opens player.
+                        Positioned(
+                          right: t.space8,
+                          bottom: t.space8,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.42),
+                              boxShadow: const [
+                                BoxShadow(
+                                  blurRadius: 10,
+                                  offset: Offset(0, 2),
+                                  color: Colors.black38,
                                 ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(9),
+                              child: Icon(
+                                widget.isVideo
+                                    ? Icons.videocam_rounded
+                                    : Icons.audiotrack_rounded,
+                                size: 22,
+                                color: Colors.white.withValues(alpha: 0.95),
                               ),
                             ),
                           ),
-                        if (widget.isVideo)
-                          Positioned(
-                            right: t.space8,
-                            bottom: t.space8,
-                            child: Icon(
-                              Icons.play_circle_rounded,
-                              size: 36,
-                              color: Colors.white.withValues(alpha: 0.92),
-                              shadows: const [
-                                Shadow(blurRadius: 8, color: Colors.black54),
-                              ],
-                            ),
-                          ),
-                        if (widget.onDelete != null)
+                        ),
+                        if (widget.onDelete != null && _showPointerDeleteButton())
                           Positioned(
                             top: t.space8,
                             right: t.space8,
@@ -380,7 +380,7 @@ class MediaCardRow extends StatefulWidget {
   final Color? accentColor;
   final Widget? trailing;
 
-  /// When non-null (and [trailing] is null): delete beside the chevron on pointer hover;
+  /// When non-null (and [trailing] is null): delete beside the chevron on pointer platforms;
   /// on Android / iOS, long-press opens a bottom sheet with delete.
   final VoidCallback? onDelete;
 
@@ -400,7 +400,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
 
   Widget _buildTrailing(ColorScheme cs, EnjoyThemeTokens t) {
     if (widget.trailing != null) return widget.trailing!;
-    if (widget.onDelete != null) {
+    if (widget.onDelete != null && _showPointerDeleteButton()) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
