@@ -2816,6 +2816,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in under Settings to use cloud dictionary, translation, and contextual translation.'**
   String get lookupCloudRequiresSignIn;
+
+  /// No description provided for @authRequiredCloudFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account required'**
+  String get authRequiredCloudFeaturesTitle;
 }
 
 class _AppLocalizationsDelegate

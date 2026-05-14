@@ -3,7 +3,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -12,6 +11,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/credits/application/credits_usage_provider.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_filters.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
@@ -40,23 +40,10 @@ class CreditsUsageScreen extends ConsumerWidget {
       body: auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.syncScreenSignedOutBody,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: () => context.push('/sign-in'),
-                    child: Text(l10n.syncScreenGoSignIn),
-                  ),
-                ],
+            return const Center(
+              child: AuthRequiredCallout(
+                surface: AuthRequiredSurface.credits,
+                compact: false,
               ),
             );
           }

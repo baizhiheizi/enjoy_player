@@ -606,5 +606,6 @@
   "lookupPickSourceTitle": "Choose source language",
   "lookupPickTargetTitle": "Choose target language",
   "lookupRefresh": "Refresh",
-  "lookupCloudRequiresSignIn": "Sign in under Settings to use cloud dictionary, translation, and contextual translation."
+  "lookupCloudRequiresSignIn": "Sign in under Settings to use cloud dictionary, translation, and contextual translation.",
+  "authRequiredCloudFeaturesTitle": "Account required"
 }

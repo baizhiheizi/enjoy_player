@@ -17,6 +17,7 @@ import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/cloud/application/cloud_providers.dart';
 import 'package:enjoy_player/features/cloud/data/cloud_index_repository.dart';
 import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
@@ -149,14 +150,10 @@ class _CloudScreenState extends ConsumerState<CloudScreen>
       body: auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(t.space24),
-                child: Text(
-                  l10n.cloudSignedOutBody,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
+            return const Center(
+              child: AuthRequiredCallout(
+                surface: AuthRequiredSurface.cloud,
+                compact: false,
               ),
             );
           }

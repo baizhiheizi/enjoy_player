@@ -3,9 +3,13 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
@@ -34,25 +38,53 @@ class DictionaryLookupSection extends ConsumerWidget {
       initiallyExpanded: false,
       leading: const Icon(Icons.menu_book_outlined),
       bodyBuilder: (ctx) {
-        final async = ref.watch(lookupSheetDictionaryProvider(params));
-        void forceRefresh() {
-          ref.read(lookupSheetResultCacheProvider).evictDictionary(params);
-          ref.invalidate(lookupSheetDictionaryProvider(params));
-        }
+        final auth = ref.watch(authCtrlProvider);
+        return auth.when(
+          data: (state) {
+            if (state is! AuthSignedIn) {
+              return const AuthRequiredCallout(
+                surface: AuthRequiredSurface.lookupDictionary,
+                compact: true,
+              );
+            }
+            void forceRefresh() {
+              ref.read(lookupSheetResultCacheProvider).evictDictionary(params);
+              ref.invalidate(lookupSheetDictionaryProvider(params));
+            }
 
-        return async.when(
-          data: (DictionaryResult d) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              LookupRefreshIconButton(l10n: l10n, onPressed: forceRefresh),
-              _DictionaryBody(d: d, l10n: l10n),
-            ],
-          ),
+            final async = ref.watch(lookupSheetDictionaryProvider(params));
+            return async.when(
+              data: (DictionaryResult d) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LookupRefreshIconButton(l10n: l10n, onPressed: forceRefresh),
+                  _DictionaryBody(d: d, l10n: l10n),
+                ],
+              ),
+              loading: () => const LookupSectionShimmer(),
+              error: (Object e, StackTrace st) {
+                Object.hash(e.hashCode, st.hashCode);
+                if (e is AuthFailure) {
+                  return const AuthRequiredCallout(
+                    surface: AuthRequiredSurface.lookupDictionary,
+                    compact: true,
+                  );
+                }
+                return LookupErrorRow(
+                  message: lookupErrorUserMessage(e, l10n),
+                  onRetry: forceRefresh,
+                );
+              },
+            );
+          },
           loading: () => const LookupSectionShimmer(),
-          error: (e, _) => LookupErrorRow(
-            message: lookupErrorUserMessage(e, l10n),
-            onRetry: forceRefresh,
-          ),
+          error: (Object e, StackTrace st) {
+            Object.hash(e.hashCode, st.hashCode);
+            return const AuthRequiredCallout(
+              surface: AuthRequiredSurface.lookupDictionary,
+              compact: true,
+            );
+          },
         );
       },
     );

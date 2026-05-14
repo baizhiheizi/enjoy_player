@@ -1470,4 +1470,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lookupCloudRequiresSignIn =>
       'Sign in under Settings to use cloud dictionary, translation, and contextual translation.';
+
+  @override
+  String get authRequiredCloudFeaturesTitle => 'Account required';
 }

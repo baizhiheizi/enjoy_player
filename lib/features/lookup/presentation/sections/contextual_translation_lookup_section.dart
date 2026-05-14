@@ -9,10 +9,10 @@ import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
@@ -62,12 +62,33 @@ class ContextualTranslationLookupSection extends ConsumerWidget {
       title: l10n.lookupSectionContextualTranslation,
       initiallyExpanded: false,
       leading: const Icon(Icons.article_outlined),
-      bodyBuilder: (ctx) => _ContextualFetchBody(
-        params: params,
-        theme: theme,
-        mdStyle: mdStyle,
-        l10n: l10n,
-      ),
+      bodyBuilder: (ctx) {
+        final auth = ref.watch(authCtrlProvider);
+        return auth.when(
+          data: (state) {
+            if (state is! AuthSignedIn) {
+              return const AuthRequiredCallout(
+                surface: AuthRequiredSurface.lookupContextual,
+                compact: true,
+              );
+            }
+            return _ContextualFetchBody(
+              params: params,
+              theme: theme,
+              mdStyle: mdStyle,
+              l10n: l10n,
+            );
+          },
+          loading: () => const LookupSectionShimmer(),
+          error: (Object e, StackTrace st) {
+            Object.hash(e.hashCode, st.hashCode);
+            return const AuthRequiredCallout(
+              surface: AuthRequiredSurface.lookupContextual,
+              compact: true,
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -157,16 +178,6 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
       }
     }
 
-    final auth = ref.read(authCtrlProvider).valueOrNull;
-    if (auth is! AuthSignedIn) {
-      _log.fine('contextual translation skipped (not signed in)');
-      _future = Future.error(
-        AuthFailure(widget.l10n.lookupCloudRequiresSignIn),
-      );
-      _deferSetState();
-      return;
-    }
-
     _log.info(
       'contextual translation request '
       'src=${p.sourceLanguage} tgt=${p.targetLanguage} '
@@ -228,6 +239,12 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
         }
         if (snapshot.hasError) {
           final e = snapshot.error!;
+          if (e is AuthFailure) {
+            return const AuthRequiredCallout(
+              surface: AuthRequiredSurface.lookupContextual,
+              compact: true,
+            );
+          }
           return LookupErrorRow(
             message: lookupErrorUserMessage(e, widget.l10n),
             onRetry: _retryAfterError,

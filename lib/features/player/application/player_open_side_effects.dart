@@ -16,12 +16,11 @@ void schedulePlayerOpenSideEffects(
   required String mediaId,
   required String dexieTargetType,
 }) {
-  unawaited(
-    ref.read(transcriptRepositoryProvider).fetchCloudTranscripts(mediaId),
-  );
-
   final auth = ref.read(authCtrlProvider).valueOrNull;
   if (auth is AuthSignedIn) {
+    unawaited(
+      ref.read(transcriptRepositoryProvider).fetchCloudTranscripts(mediaId),
+    );
     unawaited(
       ref
           .read(recordingTargetSyncServiceProvider)

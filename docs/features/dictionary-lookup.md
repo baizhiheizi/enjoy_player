@@ -21,7 +21,8 @@ Sections appear in the sheet in that order: translation, then definition/diction
 
 - **Tap-to-seek** is **disabled** on selectable rows (active + echo cues); other rows behave as before.
 - **Selection toolbar** is suppressed on transcript selections; the sheet is the primary affordance.
-- **Translation** section is expanded on first open and fetches immediately. **Definition (dictionary)** and **contextual translation** start **collapsed** — expand once to fetch (saves credits vs eager triple fetch).
+- **Signed out** — Translation, dictionary, and contextual sections **do not** call the Worker while the user is not `AuthSignedIn`. Each section shows a compact **Account required** callout with a **Sign in** button (`AuthRequiredCallout`) that navigates to `/sign-in?from=…`. After **AuthFailure** (e.g. expired session), the same callout is shown instead of a retry-only error row.
+- **Translation** section is expanded on first open and fetches immediately when signed in. **Definition (dictionary)** and **contextual translation** start **collapsed** — expand once to fetch when signed in (saves credits vs eager triple fetch).
 - **Sheet chrome** — Header, selected term (hero panel with gradient + border), and language row are grouped at the top; scrollable sections use elevated cards (`LookupExpansionCard`) with a nested content well. **Copy** uses a tonal icon button and shows a short **success notice** (`AppNotice` / `lookupCopySuccess`).
 - **Language row** — Single segmented control with chevrons on source/target and a centered swap control.
 
@@ -36,6 +37,7 @@ Sections appear in the sheet in that order: translation, then definition/diction
 | Sheet UI | [`lib/features/lookup/presentation/dictionary_lookup_sheet.dart`](../../lib/features/lookup/presentation/dictionary_lookup_sheet.dart) |
 | Language picker row | [`lib/features/lookup/presentation/widgets/lookup_language_picker_row.dart`](../../lib/features/lookup/presentation/widgets/lookup_language_picker_row.dart) |
 | Section async providers | [`lib/features/lookup/application/lookup_section_providers.dart`](../../lib/features/lookup/application/lookup_section_providers.dart) |
+| Auth-required callout (sign-in CTA) | [`lib/features/auth/presentation/widgets/auth_required_callout.dart`](../../lib/features/auth/presentation/widgets/auth_required_callout.dart) |
 | Selectable cue row | [`lib/features/transcript/presentation/transcript_line_tile.dart`](../../lib/features/transcript/presentation/transcript_line_tile.dart) |
 
 ## Related

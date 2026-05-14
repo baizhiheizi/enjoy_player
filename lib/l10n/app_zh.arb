@@ -606,5 +606,6 @@
   "lookupPickSourceTitle": "选择原文语言",
   "lookupPickTargetTitle": "选择目标语言",
   "lookupRefresh": "刷新",
-  "lookupCloudRequiresSignIn": "请在「设置」中登录后使用云端词典、翻译与语境翻译。"
+  "lookupCloudRequiresSignIn": "请在「设置」中登录后使用云端词典、翻译与语境翻译。",
+  "authRequiredCloudFeaturesTitle": "需要登录账户"
 }

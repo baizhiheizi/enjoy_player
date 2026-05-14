@@ -3,12 +3,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/sync/application/pending_rekey_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -36,23 +36,10 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
       body: auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.syncScreenSignedOutBody,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: () => context.push('/sign-in'),
-                    child: Text(l10n.syncScreenGoSignIn),
-                  ),
-                ],
+            return const Center(
+              child: AuthRequiredCallout(
+                surface: AuthRequiredSurface.sync,
+                compact: false,
               ),
             );
           }
