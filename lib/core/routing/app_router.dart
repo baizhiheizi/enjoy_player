@@ -1,6 +1,7 @@
 /// go_router configuration with persistent shell (mini player).
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -75,6 +76,9 @@ GoRouter appRouter(Ref ref) {
       }
       if (loc.startsWith('/sign-in')) {
         if (v is AuthSignedIn) return '/';
+      }
+      if (kReleaseMode && loc.startsWith('/settings/ai-playground')) {
+        return '/settings';
       }
       return null;
     },

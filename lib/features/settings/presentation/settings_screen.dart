@@ -1,6 +1,7 @@
 /// Settings — editorial grouped iOS-style cards.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -445,21 +446,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Tooltip(
-                                message:
-                                    l10n.settingsAppearanceSyncedFromProfile,
-                                child: _SettingsTile(
-                                  leadingIcon: Icons.palette_outlined,
-                                  title: l10n.settingsAppearanceTheme,
-                                  subtitle:
-                                      l10n.settingsAppearanceSyncedFromProfile,
-                                  valueBadge: _SettingsValuePill(
-                                    label: l10n.settingsAppearanceThemeValue,
-                                  ),
-                                  showChevron: false,
-                                ),
-                              ),
-                              const _SettingsDivider(),
                               _SettingsTile(
                                 leadingIcon: Icons.language_rounded,
                                 title: l10n.settingsAppearanceDisplayLanguage,
@@ -631,117 +617,103 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 SliverToBoxAdapter(child: SizedBox(height: t.space8)),
               ],
 
-              // ── Advanced ────────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: _SettingsSectionHeader(
-                  title: l10n.settingsSectionAdvanced,
-                  hint: l10n.settingsSectionAdvancedHint,
-                  icon: Icons.tune_rounded,
-                  subdued: true,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _SettingsSubduedCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Theme(
-                        data: Theme.of(
-                          context,
-                        ).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          tilePadding: EdgeInsets.symmetric(
-                            horizontal: t.space16,
-                            vertical: t.space8,
-                          ),
-                          childrenPadding: EdgeInsets.fromLTRB(
-                            t.space16,
-                            t.space16,
-                            t.space16,
-                            t.space16,
-                          ),
-                          leading: const _SettingsExpansionLeading(
-                            icon: Icons.dns_outlined,
-                          ),
-                          title: Text(
-                            l10n.settingsApiBaseUrl,
-                            style: tt.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            l10n.settingsApiBaseUrlHint,
-                            style: tt.bodySmall?.copyWith(
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                          children: const [_ApiBaseUrlEditor()],
-                        ),
-                      ),
-                      const _SettingsDivider(insetForLeading: false),
-                      Theme(
-                        data: Theme.of(
-                          context,
-                        ).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          tilePadding: EdgeInsets.symmetric(
-                            horizontal: t.space16,
-                            vertical: t.space8,
-                          ),
-                          childrenPadding: EdgeInsets.fromLTRB(
-                            t.space16,
-                            t.space16,
-                            t.space16,
-                            t.space16,
-                          ),
-                          leading: const _SettingsExpansionLeading(
-                            icon: Icons.smart_toy_outlined,
-                          ),
-                          title: Text(
-                            l10n.settingsAiApiBaseUrl,
-                            style: tt.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            l10n.settingsAiApiBaseUrlHint,
-                            style: tt.bodySmall?.copyWith(
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                          children: const [_AiApiBaseUrlEditor()],
-                        ),
-                      ),
-                    ],
+              // ── Developer (debug / profile only) ───────────────────────────
+              if (!kReleaseMode) ...[
+                SliverToBoxAdapter(
+                  child: _SettingsSectionHeader(
+                    title: l10n.settingsSectionDeveloper,
+                    hint: l10n.settingsSectionDeveloperHint,
+                    icon: Icons.developer_mode_outlined,
+                    subdued: true,
                   ),
                 ),
-              ),
-
-              SliverToBoxAdapter(child: SizedBox(height: t.space8)),
-
-              // ── Developer ───────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: _SettingsSectionHeader(
-                  title: l10n.settingsSectionDeveloper,
-                  hint: l10n.settingsSectionDeveloperHint,
-                  icon: Icons.developer_mode_outlined,
-                  subdued: true,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _SettingsSubduedCard(
-                  padding: EdgeInsets.zero,
-                  child: _SettingsTile(
-                    leadingIcon: Icons.science_outlined,
-                    title: l10n.settingsAiPlaygroundTileTitle,
-                    subtitle: l10n.settingsAiPlaygroundTileSubtitle,
-                    onTap: () => context.push('/settings/ai-playground'),
+                SliverToBoxAdapter(
+                  child: _SettingsSubduedCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            tilePadding: EdgeInsets.symmetric(
+                              horizontal: t.space16,
+                              vertical: t.space8,
+                            ),
+                            childrenPadding: EdgeInsets.fromLTRB(
+                              t.space16,
+                              t.space16,
+                              t.space16,
+                              t.space16,
+                            ),
+                            leading: const _SettingsExpansionLeading(
+                              icon: Icons.dns_outlined,
+                            ),
+                            title: Text(
+                              l10n.settingsApiBaseUrl,
+                              style: tt.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              l10n.settingsApiBaseUrlHint,
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                            children: const [_ApiBaseUrlEditor()],
+                          ),
+                        ),
+                        const _SettingsDivider(insetForLeading: false),
+                        Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            tilePadding: EdgeInsets.symmetric(
+                              horizontal: t.space16,
+                              vertical: t.space8,
+                            ),
+                            childrenPadding: EdgeInsets.fromLTRB(
+                              t.space16,
+                              t.space16,
+                              t.space16,
+                              t.space16,
+                            ),
+                            leading: const _SettingsExpansionLeading(
+                              icon: Icons.smart_toy_outlined,
+                            ),
+                            title: Text(
+                              l10n.settingsAiApiBaseUrl,
+                              style: tt.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              l10n.settingsAiApiBaseUrlHint,
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                            children: const [_AiApiBaseUrlEditor()],
+                          ),
+                        ),
+                        const _SettingsDivider(insetForLeading: false),
+                        _SettingsTile(
+                          leadingIcon: Icons.science_outlined,
+                          title: l10n.settingsAiPlaygroundTileTitle,
+                          subtitle: l10n.settingsAiPlaygroundTileSubtitle,
+                          onTap: () =>
+                              context.push('/settings/ai-playground'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-
-              SliverToBoxAdapter(child: SizedBox(height: t.space8)),
+                SliverToBoxAdapter(child: SizedBox(height: t.space8)),
+              ],
 
               // ── About ───────────────────────────────────────────────────────
               SliverToBoxAdapter(
