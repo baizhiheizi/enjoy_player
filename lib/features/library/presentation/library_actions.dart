@@ -22,6 +22,26 @@ import 'package:enjoy_player/features/library/application/library_repository_pro
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+/// After native pickers / activity resume, the navigator can still be locked.
+/// Dismiss the blocking dialog on the next frame, then run [then] one frame later
+/// so [Navigator.pop] and follow-up navigation (e.g. [openPlayerRoute]) do not hit
+/// `!_debugLocked` or pop the wrong route when the dialog was not shown on the same
+/// navigator as the dismiss call.
+void _dismissBlockingImportDialogThen(BuildContext context, VoidCallback then) {
+  if (!context.mounted) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+    final nav = Navigator.of(context, rootNavigator: true);
+    if (nav.canPop()) {
+      nav.pop();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      then();
+    });
+  });
+}
+
 Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
   final pick = await FilePicker.pickFiles(type: FileType.media);
   if (pick == null || pick.files.isEmpty) return;
@@ -33,6 +53,7 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
   unawaited(
     showEnjoyDialog<void>(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false,
       builder: (dialogContext) {
         final d = AppLocalizations.of(dialogContext)!;
@@ -64,22 +85,23 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
     final id = await ref
         .read(mediaLibraryRepositoryProvider)
         .importMedia(XFile(path), signedInUserId: userId);
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    if (context.mounted) {
-      openPlayerRoute(context, id);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => openPlayerRoute(context, id),
+    );
   } on AppFailure catch (e) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      AppNotice.error(context, e.message);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => AppNotice.error(context, e.message),
+    );
   } catch (_) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      AppNotice.error(context, l10n.importMediaFailed);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => AppNotice.error(context, l10n.importMediaFailed),
+    );
   }
 }
 
@@ -212,6 +234,7 @@ Future<void> importYoutubeFromDialog(
   unawaited(
     showEnjoyDialog<void>(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false,
       builder: (dialogContext) {
         final d = AppLocalizations.of(dialogContext)!;
@@ -243,21 +266,22 @@ Future<void> importYoutubeFromDialog(
     final id = await ref
         .read(mediaLibraryRepositoryProvider)
         .importYoutubeVideo(submitted, signedInUserId: userId);
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    if (context.mounted) {
-      openPlayerRoute(context, id);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => openPlayerRoute(context, id),
+    );
   } on AppFailure catch (e) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      AppNotice.error(context, e.message);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => AppNotice.error(context, e.message),
+    );
   } catch (_) {
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      AppNotice.error(context, l10n.youtubeImportInvalid);
-    }
+    if (!context.mounted) return;
+    _dismissBlockingImportDialogThen(
+      context,
+      () => AppNotice.error(context, l10n.youtubeImportInvalid),
+    );
   }
 }
