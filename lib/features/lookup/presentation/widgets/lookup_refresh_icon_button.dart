@@ -51,23 +51,26 @@ class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton> {
     final busy = widget.isRefreshing || _tapLatched;
     final scheme = Theme.of(context).colorScheme;
 
-    return Align(
-      alignment: AlignmentDirectional.centerEnd,
-      child: IconButton(
-        style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
-        tooltip: busy ? null : widget.l10n.lookupRefresh,
-        onPressed: busy ? null : _handlePressed,
-        icon: busy
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: scheme.primary,
-                ),
-              )
-            : const Icon(Icons.refresh_rounded, size: 20),
+    return IconButton(
+      style: IconButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        iconSize: 20,
       ),
+      tooltip: busy ? null : widget.l10n.lookupRefresh,
+      onPressed: busy ? null : _handlePressed,
+      icon: busy
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: scheme.primary,
+              ),
+            )
+          : const Icon(Icons.refresh_rounded, size: 20),
     );
   }
 }

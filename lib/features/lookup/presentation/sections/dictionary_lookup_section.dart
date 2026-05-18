@@ -37,7 +37,7 @@ class DictionaryLookupSection extends ConsumerWidget {
       title: l10n.lookupSectionDictionary,
       initiallyExpanded: false,
       leading: const Icon(Icons.menu_book_outlined),
-      bodyBuilder: (ctx) {
+      bodyBuilder: (_) {
         final auth = ref.watch(authCtrlProvider);
         return auth.when(
           data: (state) {
@@ -55,16 +55,14 @@ class DictionaryLookupSection extends ConsumerWidget {
             final async = ref.watch(lookupSheetDictionaryProvider(params));
             return async.when(
               skipLoadingOnReload: true,
-              data: (DictionaryResult d) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  LookupRefreshIconButton(
-                    l10n: l10n,
-                    isRefreshing: async.isRefreshing,
-                    onPressed: forceRefresh,
-                  ),
-                  _DictionaryBody(d: d, l10n: l10n),
-                ],
+              data: (DictionaryResult d) => _DictionaryBody(
+                d: d,
+                l10n: l10n,
+                refreshControl: LookupRefreshIconButton(
+                  l10n: l10n,
+                  isRefreshing: async.isRefreshing,
+                  onPressed: forceRefresh,
+                ),
               ),
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
@@ -98,10 +96,15 @@ class DictionaryLookupSection extends ConsumerWidget {
 }
 
 class _DictionaryBody extends StatelessWidget {
-  const _DictionaryBody({required this.d, required this.l10n});
+  const _DictionaryBody({
+    required this.d,
+    required this.l10n,
+    required this.refreshControl,
+  });
 
   final DictionaryResult d;
   final AppLocalizations l10n;
+  final Widget refreshControl;
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +120,28 @@ class _DictionaryBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Headword + IPA/lemma ─────────────────────────────────────
-        SelectableText(
-          d.word,
-          style: tt.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
+        // ── Headword: full-width row so refresh sits at panel end (like contextual) ──
+        SizedBox(
+          width: double.infinity,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.only(end: t.space40),
+                child: SelectableText(
+                  d.word,
+                  style: tt.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              PositionedDirectional(
+                top: 0,
+                end: 0,
+                child: refreshControl,
+              ),
+            ],
           ),
         ),
         if (hasIpa || showLemma) ...[

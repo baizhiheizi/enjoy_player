@@ -250,6 +250,32 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
     _beginFetch(forceRefresh: true, notifyPostFrameOnly: false);
   }
 
+  Widget _resultStack({
+    required bool isRefreshing,
+    required VoidCallback onRefresh,
+    required Widget body,
+  }) {
+    final t = EnjoyThemeTokens.of(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(end: t.space40),
+          child: body,
+        ),
+        PositionedDirectional(
+          top: 0,
+          end: 0,
+          child: LookupRefreshIconButton(
+            l10n: widget.l10n,
+            isRefreshing: isRefreshing,
+            onPressed: onRefresh,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final future = _future;
@@ -262,26 +288,19 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
         if (snapshot.connectionState != ConnectionState.done) {
           if (_staleSuccess != null) {
             final d = _staleSuccess!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LookupRefreshIconButton(
-                  l10n: widget.l10n,
-                  isRefreshing: true,
-                  onPressed: () => _beginFetch(forceRefresh: true),
-                ),
-                if (d.translatedText.trim().isEmpty)
-                  Text(
-                    widget.l10n.lookupEmpty,
-                    style: widget.theme.textTheme.bodyMedium,
-                  )
-                else
-                  MarkdownBody(
-                    data: d.translatedText,
-                    selectable: true,
-                    styleSheet: widget.mdStyle,
-                  ),
-              ],
+            return _resultStack(
+              isRefreshing: true,
+              onRefresh: () => _beginFetch(forceRefresh: true),
+              body: d.translatedText.trim().isEmpty
+                  ? Text(
+                      widget.l10n.lookupEmpty,
+                      style: widget.theme.textTheme.bodyMedium,
+                    )
+                  : MarkdownBody(
+                      data: d.translatedText,
+                      selectable: true,
+                      styleSheet: widget.mdStyle,
+                    ),
             );
           }
           if (_retryInFlight &&
@@ -314,26 +333,20 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
         final d = snapshot.data!;
         _staleSuccess = d;
         _retryInFlight = false;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LookupRefreshIconButton(
-              l10n: widget.l10n,
-              onPressed: () =>
-                  _beginFetch(forceRefresh: true, notifyPostFrameOnly: false),
-            ),
-            if (d.translatedText.trim().isEmpty)
-              Text(
-                widget.l10n.lookupEmpty,
-                style: widget.theme.textTheme.bodyMedium,
-              )
-            else
-              MarkdownBody(
-                data: d.translatedText,
-                selectable: true,
-                styleSheet: widget.mdStyle,
-              ),
-          ],
+        return _resultStack(
+          isRefreshing: false,
+          onRefresh: () =>
+              _beginFetch(forceRefresh: true, notifyPostFrameOnly: false),
+          body: d.translatedText.trim().isEmpty
+              ? Text(
+                  widget.l10n.lookupEmpty,
+                  style: widget.theme.textTheme.bodyMedium,
+                )
+              : MarkdownBody(
+                  data: d.translatedText,
+                  selectable: true,
+                  styleSheet: widget.mdStyle,
+                ),
         );
       },
     );
