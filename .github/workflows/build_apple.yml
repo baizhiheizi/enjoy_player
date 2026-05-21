@@ -104,13 +104,23 @@ jobs:
         run: cd macos && pod install
 
       - name: Flutter build macos (debug)
-        run: flutter build macos --debug
+        run: >-
+          flutter build macos --debug
+          --
+          "CODE_SIGN_IDENTITY[sdk=macosx*]"=-
+          CODE_SIGN_STYLE=Manual
+          PROVISIONING_PROFILE_SPECIFIER=""
         env:
           CODE_SIGN_IDENTITY: "-"
           EXPANDED_CODE_SIGN_IDENTITY: "-"
 
       - name: Flutter build macos (release, compile-only)
-        run: flutter build macos --release
+        run: >-
+          flutter build macos --release
+          --
+          "CODE_SIGN_IDENTITY[sdk=macosx*]"=-
+          CODE_SIGN_STYLE=Manual
+          PROVISIONING_PROFILE_SPECIFIER=""
         env:
           CODE_SIGN_IDENTITY: "-"
           EXPANDED_CODE_SIGN_IDENTITY: "-"
