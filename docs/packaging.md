@@ -166,6 +166,18 @@ Same CocoaPods pattern as iOS (`use_frameworks!`). [`macos/Podfile.lock`](../mac
 flutter run -d macos
 ```
 
+Run from the **repository root** (not only `macos/`) so paths match `build/macos`.
+
+**Xcode “Stale file … outside of the allowed root paths” warnings:** Flutter builds into `build/macos`, but opening **`macos/Runner.xcworkspace`** in Xcode can leave artifacts under `~/Library/Developer/Xcode/DerivedData/Runner-*`. The workspace uses **project-relative Derived Data** at `build/macos` (see `macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings`). If warnings persist after pulling that change, run once:
+
+```bash
+chmod +x macos/scripts/clean_xcode_derived_data.sh
+./macos/scripts/clean_xcode_derived_data.sh
+flutter run -d macos
+```
+
+**`Failed to foreground app; open returned 1`:** harmless when the app is already running or macOS blocks auto-focus from the terminal; the build still succeeds.
+
 If launch fails with **DYLD, Library missing** (`libz.1.dylib` etc.), run `brew bundle install --file=macos/Brewfile` and rebuild. The Xcode **Bundle FFmpeg Homebrew deps** phase copies required dylibs into the app bundle.
 
 ### Direct release (Developer ID + notarization)
