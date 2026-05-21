@@ -33,6 +33,9 @@ jobs:
       NOTARY_PROFILE: enjoy-notary
       MACOS_APP_PATH: build/macos/Build/Products/Release/Enjoy Player.app
     steps:
+      - name: Add Homebrew to PATH
+        run: echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+
       - uses: actions/checkout@v6
 
       - name: Read Flutter version

@@ -18,6 +18,9 @@ jobs:
     name: iOS smoke
     runs-on: [self-hosted, macos]
     steps:
+      - name: Add Homebrew to PATH
+        run: echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+
       - uses: actions/checkout@v6
 
       - name: Read Flutter version
@@ -59,6 +62,9 @@ jobs:
     name: macOS smoke
     runs-on: [self-hosted, macos]
     steps:
+      - name: Add Homebrew to PATH
+        run: echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+
       - uses: actions/checkout@v6
 
       - name: Read Flutter version
