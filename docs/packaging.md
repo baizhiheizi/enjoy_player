@@ -59,7 +59,7 @@ The macOS **ffmpeg_kit** prebuilt frameworks are linked against libraries under 
 brew bundle install --file=macos/Brewfile
 ```
 
-The Xcode target runs [`macos/scripts/bundle_ffmpeg_homebrew_deps.sh`](../macos/scripts/bundle_ffmpeg_homebrew_deps.sh) after CocoaPods embeds frameworks. It copies the required Homebrew dylibs into `Contents/Frameworks/` and rewrites load paths to `@rpath`, so debug/release builds run without relying on a global Homebrew install path at runtime.
+The Xcode target runs [`macos/scripts/bundle_ffmpeg_homebrew_deps.sh`](../macos/scripts/bundle_ffmpeg_homebrew_deps.sh) after CocoaPods embeds frameworks. It copies the required Homebrew dylibs into `Contents/Frameworks/`, rewrites load paths to `@rpath`, and **re-signs** the touched binaries (required on recent macOS — otherwise dyld fails with `CODESIGNING` / “Invalid Page”).
 
 ## Windows
 

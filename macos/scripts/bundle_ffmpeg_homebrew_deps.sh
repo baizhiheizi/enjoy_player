@@ -110,5 +110,51 @@ while read -r bin; do
   done <"${BUNDLED}"
 done <"${MACHO_LIST}"
 
+# install_name_tool invalidates existing signatures; re-sign so dyld accepts the binaries.
+SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd)"
+MACOS_DIR="$(dirname "${SCRIPT_DIR}")"
+if [ "${CONFIGURATION:-Debug}" = "Release" ]; then
+  ENTITLEMENTS="${MACOS_DIR}/Runner/Release.entitlements"
+else
+  ENTITLEMENTS="${MACOS_DIR}/Runner/DebugProfile.entitlements"
+fi
+SIGN_IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:--}"
+
+while read -r src; do
+  [ -n "${src}" ] || continue
+  dest="${FRAMEWORKS_DIR}/$(basename "${src}")"
+  codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "${dest}"
+done <"${BUNDLED}"
+
+while read -r bin; do
+  [ -n "${bin}" ] || continue
+  codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "${bin}"
+done <"${MACHO_LIST}"
+
+find "${FRAMEWORKS_DIR}" -maxdepth 1 -name '*.framework' -type d | while read -r fw; do
+  codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "${fw}"
+done
+
+MACOS_BIN_DIR="${APP_BUNDLE}/Contents/MacOS"
+EXECUTABLE=""
+if [ -d "${MACOS_BIN_DIR}" ]; then
+  find "${MACOS_BIN_DIR}" -type f 2>/dev/null | while read -r bin; do
+    if is_macho "${bin}"; then
+      codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "${bin}"
+    fi
+  done
+  EXECUTABLE="${MACOS_BIN_DIR}/$(basename "${APP_BUNDLE}" .app)"
+fi
+
+if [ -f "${EXECUTABLE}" ]; then
+  codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none \
+    --entitlements "${ENTITLEMENTS}" \
+    "${EXECUTABLE}"
+fi
+
+codesign --force --deep --sign "${SIGN_IDENTITY}" --timestamp=none \
+  --entitlements "${ENTITLEMENTS}" \
+  "${APP_BUNDLE}"
+
 echo "bundle_ffmpeg_homebrew_deps: bundled ${BUNDLED_COUNT} Homebrew dylib(s) into ${FRAMEWORKS_DIR}"
 rm -f "${MACHO_LIST}" "${DEPS}" "${BUNDLED}"
