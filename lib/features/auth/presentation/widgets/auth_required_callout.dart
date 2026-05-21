@@ -181,11 +181,7 @@ class _CompactCallout extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.lock_person_outlined,
-                  color: cs.primary,
-                  size: 22,
-                ),
+                Icon(Icons.lock_person_outlined, color: cs.primary, size: 22),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Column(

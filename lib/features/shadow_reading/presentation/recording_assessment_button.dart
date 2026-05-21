@@ -87,50 +87,50 @@ class RecordingAssessmentButton extends ConsumerWidget {
           width: 44,
           height: 44,
           child: Material(
-          color: bg ?? Colors.transparent,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: !canInteract || isAssessing
-                ? null
-                : () => unawaited(
-                    triggerRecordingAssessment(
-                      context: context,
-                      ref: ref,
-                      l10n: l10n,
-                      row: row,
-                    ),
-                  ),
-            child: Center(
-              child: isAssessing
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: scheme.primary,
+            color: bg ?? Colors.transparent,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: !canInteract || isAssessing
+                  ? null
+                  : () => unawaited(
+                      triggerRecordingAssessment(
+                        context: context,
+                        ref: ref,
+                        l10n: l10n,
+                        row: row,
                       ),
-                    )
-                  : score != null
-                  ? Text(
-                      '$score',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: fg,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    )
-                  : Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 20,
-                      color: canInteract
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
                     ),
+              child: Center(
+                child: isAssessing
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: scheme.primary,
+                        ),
+                      )
+                    : score != null
+                    ? Text(
+                        '$score',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: fg,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      )
+                    : Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 20,
+                        color: canInteract
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant,
+                      ),
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }

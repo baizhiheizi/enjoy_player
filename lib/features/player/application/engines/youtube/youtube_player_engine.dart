@@ -326,7 +326,9 @@ class YoutubePlayerEngine implements PlayerEngine {
     }
   }
 
-  Future<void> _onNativeFullscreenExit(InAppWebViewController controller) async {
+  Future<void> _onNativeFullscreenExit(
+    InAppWebViewController controller,
+  ) async {
     await YoutubeWebViewBridge.forceInlinePlayback(controller);
     if (_playing && !_playbackCompleted) {
       await YoutubeWebViewBridge.play(controller);

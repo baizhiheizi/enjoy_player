@@ -2,10 +2,14 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val isCi = System.getenv("GITHUB_ACTIONS") == "true"
+
 allprojects {
     repositories {
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
-        maven { url = uri("https://maven.aliyun.com/repository/central") }
+        if (!isCi) {
+            maven { url = uri("https://maven.aliyun.com/repository/google") }
+            maven { url = uri("https://maven.aliyun.com/repository/central") }
+        }
         google()
         mavenCentral()
     }
@@ -16,8 +20,10 @@ allprojects {
 subprojects {
     buildscript {
         repositories {
-            maven { url = uri("https://maven.aliyun.com/repository/google") }
-            maven { url = uri("https://maven.aliyun.com/repository/central") }
+            if (!isCi) {
+                maven { url = uri("https://maven.aliyun.com/repository/google") }
+                maven { url = uri("https://maven.aliyun.com/repository/central") }
+            }
             google()
             mavenCentral()
         }

@@ -78,7 +78,9 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
     final isVideo = chrome.mediaType == 'video';
     final engine = ref.read(playerEngineProvider);
     final splitPx = ref.watch(
-      playerPreferencesCtrlProvider.select((p) => p.videoTranscriptSplitWidthPx),
+      playerPreferencesCtrlProvider.select(
+        (p) => p.videoTranscriptSplitWidthPx,
+      ),
     );
 
     final mediaBody = isVideo
@@ -107,7 +109,9 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
                     scrolledUnderElevation: 0,
                     surfaceTintColor: Colors.transparent,
                     leading: IconButton(
-                      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).backButtonTooltip,
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         color: cs.onSurface,
@@ -136,7 +140,9 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
                 children: [
                   mediaBody,
                   if (!isPlaying)
-                    _VideoPausedTitleChromeOverlay(mediaTitle: chrome.mediaTitle),
+                    _VideoPausedTitleChromeOverlay(
+                      mediaTitle: chrome.mediaTitle,
+                    ),
                 ],
               )
             : mediaBody,

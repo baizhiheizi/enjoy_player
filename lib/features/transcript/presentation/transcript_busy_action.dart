@@ -111,11 +111,7 @@ class _TranscriptBusyListTileState extends State<TranscriptBusyListTile> {
                 color: cs.primary,
               ),
             )
-          : Icon(
-              widget.icon,
-              size: 24,
-              color: cs.onSurfaceVariant,
-            ),
+          : Icon(widget.icon, size: 24, color: cs.onSurfaceVariant),
       title: Text(widget.title),
       enabled: !_busy,
       onTap: _busy ? null : _run,

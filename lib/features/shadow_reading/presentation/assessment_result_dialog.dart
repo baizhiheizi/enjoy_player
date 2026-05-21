@@ -88,10 +88,7 @@ class _AssessmentResultDialogState extends State<AssessmentResultDialog> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 560,
-          maxHeight: math.min(
-            640,
-            MediaQuery.sizeOf(context).height * 0.88,
-          ),
+          maxHeight: math.min(640, MediaQuery.sizeOf(context).height * 0.88),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -167,7 +167,8 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
               left: false,
               right: false,
               child: AspectRatio(
-                aspectRatio: _kMobileVideoAspectWidth / _kMobileVideoAspectHeight,
+                aspectRatio:
+                    _kMobileVideoAspectWidth / _kMobileVideoAspectHeight,
                 child: ColoredBox(
                   color: Colors.black,
                   child: LayoutBuilder(

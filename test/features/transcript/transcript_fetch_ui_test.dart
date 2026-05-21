@@ -11,10 +11,7 @@ import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-Widget _harness({
-  required Widget child,
-  required List<Override> overrides,
-}) {
+Widget _harness({required Widget child, required List<Override> overrides}) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
   return ProviderScope(
     overrides: overrides,
@@ -39,13 +36,11 @@ void main() {
     await tester.pumpWidget(
       _harness(
         overrides: [
-          allTranscriptsForMediaProvider(mediaId).overrideWith(
-            (ref) => Stream.value(const <TranscriptTrack>[]),
-          ),
+          allTranscriptsForMediaProvider(
+            mediaId,
+          ).overrideWith((ref) => Stream.value(const <TranscriptTrack>[])),
           transcriptFetchCtrlProvider(mediaId).overrideWithValue(
-            const TranscriptFetchUiState(
-              status: TranscriptFetchStatus.loading,
-            ),
+            const TranscriptFetchUiState(status: TranscriptFetchStatus.loading),
           ),
         ],
         child: const TransportCcButton(mediaId: mediaId),
@@ -55,37 +50,38 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('TransportCcButton keeps CC icon when tracks exist while loading', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _harness(
-        overrides: [
-          allTranscriptsForMediaProvider(mediaId).overrideWith(
-            (ref) => Stream.value([
-              const TranscriptTrack(
-                id: 't1',
-                targetType: 'Video',
-                targetId: mediaId,
-                language: 'en',
-                source: 'user',
-                label: 'en',
-                trackIndex: null,
-              ),
-            ]),
-          ),
-          transcriptFetchCtrlProvider(mediaId).overrideWithValue(
-            const TranscriptFetchUiState(
-              status: TranscriptFetchStatus.loading,
+  testWidgets(
+    'TransportCcButton keeps CC icon when tracks exist while loading',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          overrides: [
+            allTranscriptsForMediaProvider(mediaId).overrideWith(
+              (ref) => Stream.value([
+                const TranscriptTrack(
+                  id: 't1',
+                  targetType: 'Video',
+                  targetId: mediaId,
+                  language: 'en',
+                  source: 'user',
+                  label: 'en',
+                  trackIndex: null,
+                ),
+              ]),
             ),
-          ),
-        ],
-        child: const TransportCcButton(mediaId: mediaId),
-      ),
-    );
-    await tester.pump();
+            transcriptFetchCtrlProvider(mediaId).overrideWithValue(
+              const TranscriptFetchUiState(
+                status: TranscriptFetchStatus.loading,
+              ),
+            ),
+          ],
+          child: const TransportCcButton(mediaId: mediaId),
+        ),
+      );
+      await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.byIcon(Icons.closed_caption_outlined), findsOneWidget);
-  });
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byIcon(Icons.closed_caption_outlined), findsOneWidget);
+    },
+  );
 }

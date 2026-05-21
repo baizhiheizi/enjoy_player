@@ -705,8 +705,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           leadingIcon: Icons.science_outlined,
                           title: l10n.settingsAiPlaygroundTileTitle,
                           subtitle: l10n.settingsAiPlaygroundTileSubtitle,
-                          onTap: () =>
-                              context.push('/settings/ai-playground'),
+                          onTap: () => context.push('/settings/ai-playground'),
                         ),
                       ],
                     ),
@@ -1184,13 +1183,7 @@ class _SettingsExpansionLeading extends StatelessWidget {
     return SizedBox(
       width: 44,
       height: 44,
-      child: Center(
-        child: Icon(
-          icon,
-          color: cs.onSurfaceVariant,
-          size: 22,
-        ),
-      ),
+      child: Center(child: Icon(icon, color: cs.onSurfaceVariant, size: 22)),
     );
   }
 }
@@ -1232,10 +1225,7 @@ class _SettingsValuePill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (leading != null) ...[
-            leading,
-            SizedBox(width: t.space4),
-          ],
+          if (leading != null) ...[leading, SizedBox(width: t.space4)],
           Flexible(
             child: Text(
               label,

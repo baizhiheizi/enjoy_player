@@ -168,7 +168,10 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
           label: l10n.lookupCopy,
           onPressed: () async {
             Haptics.selection(menuContext);
-            final raw = _rawSelectedSlice(plain, editableTextState.textEditingValue.selection);
+            final raw = _rawSelectedSlice(
+              plain,
+              editableTextState.textEditingValue.selection,
+            );
             if (raw != null && raw.isNotEmpty) {
               await Clipboard.setData(ClipboardData(text: raw));
             } else {

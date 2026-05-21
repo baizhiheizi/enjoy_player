@@ -22,12 +22,8 @@ class _AuthSignedOutCtrl extends AuthCtrl {
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
-        profile: UserProfile(
-          id: 'test-user',
-          email: 't@example.com',
-          name: 'Test',
-        ),
-      );
+    profile: UserProfile(id: 'test-user', email: 't@example.com', name: 'Test'),
+  );
 }
 
 Widget _appWithRouter({
@@ -67,9 +63,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _appWithRouter(
-        overrides: [
-          authCtrlProvider.overrideWith(_AuthSignedOutCtrl.new),
-        ],
+        overrides: [authCtrlProvider.overrideWith(_AuthSignedOutCtrl.new)],
         child: const Center(
           child: AuthRequiredCallout(
             surface: AuthRequiredSurface.lookupTranslation,
@@ -86,38 +80,37 @@ void main() {
     expect(find.text(loc.authRequiredCloudFeaturesTitle), findsOneWidget);
   });
 
-  testWidgets('TranslationLookupSection does not load translation when signed out', (
-    tester,
-  ) async {
-    var translationCalled = false;
-    await tester.pumpWidget(
-      _appWithRouter(
-        overrides: [
-          authCtrlProvider.overrideWith(_AuthSignedOutCtrl.new),
-          lookupSheetTranslationProvider.overrideWith(
-            (ref, params) async {
+  testWidgets(
+    'TranslationLookupSection does not load translation when signed out',
+    (tester) async {
+      var translationCalled = false;
+      await tester.pumpWidget(
+        _appWithRouter(
+          overrides: [
+            authCtrlProvider.overrideWith(_AuthSignedOutCtrl.new),
+            lookupSheetTranslationProvider.overrideWith((ref, params) async {
               translationCalled = true;
               return const TranslationResult(
                 translatedText: 'should-not-appear',
                 targetLanguage: 'en',
               );
-            },
-          ),
-        ],
-        child: const TranslationLookupSection(
-          request: LookupRequest(
-            selectedText: 'hello',
-            sourceLanguage: 'en',
-            targetLanguage: 'zh',
+            }),
+          ],
+          child: const TranslationLookupSection(
+            request: LookupRequest(
+              selectedText: 'hello',
+              sourceLanguage: 'en',
+              targetLanguage: 'zh',
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(translationCalled, isFalse);
-    expect(find.text('should-not-appear'), findsNothing);
-  });
+      expect(translationCalled, isFalse);
+      expect(find.text('should-not-appear'), findsNothing);
+    },
+  );
 
   testWidgets('TranslationLookupSection shows translation when signed in', (
     tester,

@@ -70,8 +70,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isDesktop &&
-                  defaultTargetPlatform == TargetPlatform.macOS)
+              if (isDesktop && defaultTargetPlatform == TargetPlatform.macOS)
                 SizedBox(height: t.space8),
               // Brand row
               SizedBox(
@@ -111,81 +110,86 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 ),
               ),
 
-            // Search
-            Padding(
-              padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
-              child: Tooltip(
-                message: searchTooltip,
-                child: TextField(
-                  focusNode: ref.watch(librarySearchFocusNodeProvider),
-                  controller: _searchController,
-                  onChanged: (v) =>
-                      ref.read(librarySearchProvider.notifier).setQuery(v),
-                  style: tt.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: l10n.searchHint,
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: cs.onSurfaceVariant,
-                      size: 20,
+              // Search
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  t.space12,
+                  0,
+                  t.space12,
+                  t.space12,
+                ),
+                child: Tooltip(
+                  message: searchTooltip,
+                  child: TextField(
+                    focusNode: ref.watch(librarySearchFocusNodeProvider),
+                    controller: _searchController,
+                    onChanged: (v) =>
+                        ref.read(librarySearchProvider.notifier).setQuery(v),
+                    style: tt.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchHint,
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: cs.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      filled: true,
+                      fillColor: cs.surfaceContainerHighest.withValues(
+                        alpha: 0.6,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(t.radiusSm),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: t.space12,
+                        vertical: t.space8,
+                      ),
+                      isDense: true,
                     ),
-                    filled: true,
-                    fillColor: cs.surfaceContainerHighest.withValues(
-                      alpha: 0.6,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(t.radiusSm),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.space12,
-                      vertical: t.space8,
-                    ),
-                    isDense: true,
                   ),
                 ),
               ),
-            ),
 
-            // Nav items
-            _SidebarNavItem(
-              icon: Icons.home_outlined,
-              selectedIcon: Icons.home_rounded,
-              label: l10n.homeTitle,
-              selected: path == '/',
-              onTap: () => context.go('/'),
-            ),
-            _SidebarNavItem(
-              icon: Icons.collections_bookmark_outlined,
-              selectedIcon: Icons.collections_bookmark_rounded,
-              label: l10n.libraryTitle,
-              selected: path.startsWith('/library'),
-              onTap: () => context.go('/library'),
-            ),
-            _SidebarNavItem(
-              icon: Icons.cloud_outlined,
-              selectedIcon: Icons.cloud_rounded,
-              label: l10n.cloudScreenTitle,
-              selected: path.startsWith('/cloud'),
-              onTap: () => context.go('/cloud'),
-            ),
-
-            const Spacer(),
-
-            // Account + Settings at bottom
-            const SidebarAccountChip(),
-            Padding(
-              padding: EdgeInsets.only(bottom: t.space8),
-              child: _SidebarNavItem(
-                icon: Icons.settings_outlined,
-                selectedIcon: Icons.settings_rounded,
-                label: l10n.settingsTitle,
-                selected: path.startsWith('/settings'),
-                onTap: () => context.go('/settings'),
+              // Nav items
+              _SidebarNavItem(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home_rounded,
+                label: l10n.homeTitle,
+                selected: path == '/',
+                onTap: () => context.go('/'),
               ),
-            ),
-          ],
-        ),
+              _SidebarNavItem(
+                icon: Icons.collections_bookmark_outlined,
+                selectedIcon: Icons.collections_bookmark_rounded,
+                label: l10n.libraryTitle,
+                selected: path.startsWith('/library'),
+                onTap: () => context.go('/library'),
+              ),
+              _SidebarNavItem(
+                icon: Icons.cloud_outlined,
+                selectedIcon: Icons.cloud_rounded,
+                label: l10n.cloudScreenTitle,
+                selected: path.startsWith('/cloud'),
+                onTap: () => context.go('/cloud'),
+              ),
+
+              const Spacer(),
+
+              // Account + Settings at bottom
+              const SidebarAccountChip(),
+              Padding(
+                padding: EdgeInsets.only(bottom: t.space8),
+                child: _SidebarNavItem(
+                  icon: Icons.settings_outlined,
+                  selectedIcon: Icons.settings_rounded,
+                  label: l10n.settingsTitle,
+                  selected: path.startsWith('/settings'),
+                  onTap: () => context.go('/settings'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

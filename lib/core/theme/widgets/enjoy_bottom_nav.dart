@@ -44,9 +44,7 @@ class EnjoyBottomNav extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(
-              color: cs.outlineVariant.withValues(alpha: 0.35),
-            ),
+            top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35)),
           ),
         ),
         child: SafeArea(

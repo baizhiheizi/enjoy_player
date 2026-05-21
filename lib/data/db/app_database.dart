@@ -424,17 +424,14 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
     required int echoEndMs,
   }) =>
       (select(recordings)
-            ..where(
-              (t) {
-                final recordingEnd =
-                    t.referenceStart + t.referenceDuration;
-                return t.targetType.equals(targetType) &
-                    t.targetId.equals(targetId) &
-                    t.language.equals(language) &
-                    t.referenceStart.isSmallerThanValue(echoEndMs) &
-                    recordingEnd.isBiggerThanValue(echoStartMs);
-              },
-            )
+            ..where((t) {
+              final recordingEnd = t.referenceStart + t.referenceDuration;
+              return t.targetType.equals(targetType) &
+                  t.targetId.equals(targetId) &
+                  t.language.equals(language) &
+                  t.referenceStart.isSmallerThanValue(echoEndMs) &
+                  recordingEnd.isBiggerThanValue(echoStartMs);
+            })
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .watch();
 
@@ -446,16 +443,14 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
     required int echoEndMs,
   }) async {
     return (select(recordings)
-          ..where(
-            (t) {
-              final recordingEnd = t.referenceStart + t.referenceDuration;
-              return t.targetType.equals(targetType) &
-                  t.targetId.equals(targetId) &
-                  t.language.equals(language) &
-                  t.referenceStart.isSmallerThanValue(echoEndMs) &
-                  recordingEnd.isBiggerThanValue(echoStartMs);
-            },
-          )
+          ..where((t) {
+            final recordingEnd = t.referenceStart + t.referenceDuration;
+            return t.targetType.equals(targetType) &
+                t.targetId.equals(targetId) &
+                t.language.equals(language) &
+                t.referenceStart.isSmallerThanValue(echoEndMs) &
+                recordingEnd.isBiggerThanValue(echoStartMs);
+          })
           ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
         .get();
   }

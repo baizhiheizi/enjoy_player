@@ -16,14 +16,16 @@ final pendingRekeyRowCountProvider = StreamProvider<int>((ref) {
     controller.add(await countPendingRekeyRows(db));
   }
 
-  final subA = (db.select(db.audios)
-        ..where((t) => t.syncStatus.equals('local-pending-rekey')))
-      .watch()
-      .listen((_) => emit());
-  final subV = (db.select(db.videos)
-        ..where((t) => t.syncStatus.equals('local-pending-rekey')))
-      .watch()
-      .listen((_) => emit());
+  final subA =
+      (db.select(db.audios)
+            ..where((t) => t.syncStatus.equals('local-pending-rekey')))
+          .watch()
+          .listen((_) => emit());
+  final subV =
+      (db.select(db.videos)
+            ..where((t) => t.syncStatus.equals('local-pending-rekey')))
+          .watch()
+          .listen((_) => emit());
 
   ref.onDispose(() {
     subA.cancel();

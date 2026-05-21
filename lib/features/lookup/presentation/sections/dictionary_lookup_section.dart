@@ -136,11 +136,7 @@ class _DictionaryBody extends StatelessWidget {
                   ),
                 ),
               ),
-              PositionedDirectional(
-                top: 0,
-                end: 0,
-                child: refreshControl,
-              ),
+              PositionedDirectional(top: 0, end: 0, child: refreshControl),
             ],
           ),
         ),

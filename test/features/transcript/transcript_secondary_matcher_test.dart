@@ -9,11 +9,7 @@ TranscriptLine cue(int startMs, int durationMs, [String text = 'x']) {
 void main() {
   test('midpoint inside primary range wins', () {
     final primary = cue(1000, 2000);
-    final secondary = [
-      cue(0, 500),
-      cue(1500, 500),
-      cue(4000, 500),
-    ];
+    final secondary = [cue(0, 500), cue(1500, 500), cue(4000, 500)];
     final m = TranscriptSecondaryMatcher.from(secondary);
     expect(m.match(primary)?.startMs, 1500);
   });

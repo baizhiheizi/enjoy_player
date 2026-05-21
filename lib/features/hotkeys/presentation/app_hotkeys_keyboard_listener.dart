@@ -98,8 +98,9 @@ class _AppHotkeysKeyboardListenerState
         EscapeDismissalContext(
           cheatsheetOpen: hotkeysCheatsheetOpen.value,
           windowFullscreen: ref.read(windowFullscreenProvider),
-          isRecordingActive:
-              ref.read(shadowReadingHotkeyBusProvider).isRecordingActive,
+          isRecordingActive: ref
+              .read(shadowReadingHotkeyBusProvider)
+              .isRecordingActive,
           leafNavigatorCanPop: leafNav?.canPop() ?? false,
           rootNavigatorCanPop: rootNav?.canPop() ?? false,
           leafAndRootNavIdentical: identical(leafNav, rootNav),

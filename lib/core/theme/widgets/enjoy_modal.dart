@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
-Color enjoyModalBarrierColor() =>
-    Colors.black.withValues(alpha: 0.52);
+Color enjoyModalBarrierColor() => Colors.black.withValues(alpha: 0.52);
 
 /// Standard Enjoy modal bottom sheet (drag handle left to sheet content).
 Future<T?> showEnjoySheet<T>({

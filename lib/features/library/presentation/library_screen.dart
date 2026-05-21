@@ -55,15 +55,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final query = ref.watch(librarySearchProvider);
 
     final allItems = allMediaAsync.asData?.value ?? const <Media>[];
-    final totalAudio =
-        allItems.where((m) => m.kind == MediaKind.audio).length;
-    final totalVideo =
-        allItems.where((m) => m.kind == MediaKind.video).length;
+    final totalAudio = allItems.where((m) => m.kind == MediaKind.audio).length;
+    final totalVideo = allItems.where((m) => m.kind == MediaKind.video).length;
 
-    Widget shell({
-      required bool showCompactSearch,
-      required Widget tabBody,
-    }) {
+    Widget shell({required bool showCompactSearch, required Widget tabBody}) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -77,12 +72,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           ),
           if (showCompactSearch) const _CompactLibrarySearchBar(),
           Padding(
-            padding: EdgeInsets.fromLTRB(
-              t.space24,
-              0,
-              t.space24,
-              t.space12,
-            ),
+            padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space12),
             child: AnimatedBuilder(
               animation: _tabController,
               builder: (context, _) {
@@ -143,8 +133,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final showCompactSearch =
-              constraints.maxWidth < t.breakpointRail;
+          final showCompactSearch = constraints.maxWidth < t.breakpointRail;
 
           return listsAsync.when(
             data: (lists) {
@@ -171,10 +160,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               showCompactSearch: showCompactSearch,
               tabBody: TabBarView(
                 controller: _tabController,
-                children: const [
-                  SkeletonMediaList(),
-                  SkeletonMediaGrid(),
-                ],
+                children: const [SkeletonMediaList(), SkeletonMediaGrid()],
               ),
             ),
             error: (e, _) => shell(
@@ -259,8 +245,7 @@ class _CompactLibrarySearchBarState
       padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space8),
       child: TextField(
         controller: _controller,
-        onChanged: (v) =>
-            ref.read(librarySearchProvider.notifier).setQuery(v),
+        onChanged: (v) => ref.read(librarySearchProvider.notifier).setQuery(v),
         style: tt.bodyMedium,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
@@ -314,9 +299,9 @@ class _AudioLibraryBody extends StatelessWidget {
           illustrationAsset: EnjoyIllustrations.emptyLibrary,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(context)
-              .read(librarySearchProvider.notifier)
-              .setQuery(''),
+          action: () => ProviderScope.containerOf(
+            context,
+          ).read(librarySearchProvider.notifier).setQuery(''),
           actionLabel: l10n.librarySearchClear,
         );
       }
@@ -403,9 +388,9 @@ class _VideoLibraryBody extends StatelessWidget {
           illustrationAsset: EnjoyIllustrations.emptyRecordings,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(context)
-              .read(librarySearchProvider.notifier)
-              .setQuery(''),
+          action: () => ProviderScope.containerOf(
+            context,
+          ).read(librarySearchProvider.notifier).setQuery(''),
           actionLabel: l10n.librarySearchClear,
         );
       }

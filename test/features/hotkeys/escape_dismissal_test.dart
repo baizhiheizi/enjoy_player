@@ -46,10 +46,7 @@ void main() {
     });
 
     test('idle player route is a no-op', () {
-      expect(
-        resolveEscapeDismissal(base),
-        EscapeDismissalAction.noopOnPlayer,
-      );
+      expect(resolveEscapeDismissal(base), EscapeDismissalAction.noopOnPlayer);
     });
 
     test('non-player route pops GoRouter when no overlay', () {

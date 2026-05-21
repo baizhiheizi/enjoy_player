@@ -30,10 +30,12 @@ final libraryFilteredListsProvider =
       final query = ref.watch(librarySearchProvider);
       return repo.watchAll().map((items) {
         final filtered = _filterMediaByQuery(items, query);
-        final audioItems = filtered.where((m) => m.kind == MediaKind.audio).toList()
-          ..sort((a, b) => a.title.compareTo(b.title));
-        final videoItems = filtered.where((m) => m.kind == MediaKind.video).toList()
-          ..sort((a, b) => a.title.compareTo(b.title));
+        final audioItems =
+            filtered.where((m) => m.kind == MediaKind.audio).toList()
+              ..sort((a, b) => a.title.compareTo(b.title));
+        final videoItems =
+            filtered.where((m) => m.kind == MediaKind.video).toList()
+              ..sort((a, b) => a.title.compareTo(b.title));
         return (audio: audioItems, video: videoItems);
       });
     });

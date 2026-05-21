@@ -465,22 +465,28 @@ void main() {
       expect(st!.lastStatus, 'success');
     });
 
-    test('YouTube worker failure returns error without fetch state row', () async {
-      const vid = 'abcdefghijk';
-      final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
-      await insertYoutubeVideo(mediaId: mediaId, vid: vid);
+    test(
+      'YouTube worker failure returns error without fetch state row',
+      () async {
+        const vid = 'abcdefghijk';
+        final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
+        await insertYoutubeVideo(mediaId: mediaId, vid: vid);
 
-      final client = _CapturingYoutubeClient(
-        response: {'status': 'failed', 'error': 'no captions'},
-      );
-      final repo = TranscriptRepository(db, null, client);
-      final result = await repo.resolveOnOpen(mediaId, fetchCloud: true);
+        final client = _CapturingYoutubeClient(
+          response: {'status': 'failed', 'error': 'no captions'},
+        );
+        final repo = TranscriptRepository(db, null, client);
+        final result = await repo.resolveOnOpen(mediaId, fetchCloud: true);
 
-      expect(result.cloud.status, TranscriptCloudFetchStatus.error);
-      final st = await db.transcriptFetchStateDao.getForTarget('Video', mediaId);
-      expect(st?.lastStatus, 'error');
-      expect(st?.lastError, 'no captions');
-    });
+        expect(result.cloud.status, TranscriptCloudFetchStatus.error);
+        final st = await db.transcriptFetchStateDao.getForTarget(
+          'Video',
+          mediaId,
+        );
+        expect(st?.lastStatus, 'error');
+        expect(st?.lastError, 'no captions');
+      },
+    );
 
     test(
       'YouTube generating responses do not record transcript_fetch_states',
@@ -643,54 +649,62 @@ void main() {
       expect(session?.transcriptId, 'tr-official');
     });
 
-    test('importSidecarSubtitles imports adjacent srt for local media', () async {
-      final tempDir = await Directory.systemTemp.createTemp('enjoy_repo_sidecar_');
-      try {
-        final mediaFile = File(p.join(tempDir.path, 'clip.mp3'));
-        await mediaFile.writeAsString('audio');
-        await File(p.join(tempDir.path, 'clip.en.srt')).writeAsString(
-          '1\n00:00:00,000 --> 00:00:01,000\nHello',
+    test(
+      'importSidecarSubtitles imports adjacent srt for local media',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp(
+          'enjoy_repo_sidecar_',
         );
+        try {
+          final mediaFile = File(p.join(tempDir.path, 'clip.mp3'));
+          await mediaFile.writeAsString('audio');
+          await File(
+            p.join(tempDir.path, 'clip.en.srt'),
+          ).writeAsString('1\n00:00:00,000 --> 00:00:01,000\nHello');
 
-        final now = DateTime.now();
-        await db.audioDao.insertRow(
-          AudioRow(
-            id: 'm-sidecar',
-            aid: 'f',
-            provider: 'user',
-            title: 't',
-            description: null,
-            thumbnailUrl: null,
-            durationSeconds: 0,
-            language: 'und',
-            translationKey: null,
-            sourceText: null,
-            voice: null,
-            source: null,
-            localUri: mediaFile.uri.toString(),
-            md5: null,
-            size: 1,
-            mediaUrl: null,
-            syncStatus: null,
-            serverUpdatedAt: null,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+          final now = DateTime.now();
+          await db.audioDao.insertRow(
+            AudioRow(
+              id: 'm-sidecar',
+              aid: 'f',
+              provider: 'user',
+              title: 't',
+              description: null,
+              thumbnailUrl: null,
+              durationSeconds: 0,
+              language: 'und',
+              translationKey: null,
+              sourceText: null,
+              voice: null,
+              source: null,
+              localUri: mediaFile.uri.toString(),
+              md5: null,
+              size: 1,
+              mediaUrl: null,
+              syncStatus: null,
+              serverUpdatedAt: null,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
 
-        final repo = TranscriptRepository(db);
-        final imported = await repo.importSidecarSubtitles('m-sidecar');
-        expect(imported, 1);
+          final repo = TranscriptRepository(db);
+          final imported = await repo.importSidecarSubtitles('m-sidecar');
+          expect(imported, 1);
 
-        final rows = await db.transcriptDao.listForTarget('Audio', 'm-sidecar');
-        expect(rows, hasLength(1));
-        expect(rows.single.language, 'en');
-      } finally {
-        if (tempDir.existsSync()) {
-          await tempDir.delete(recursive: true);
+          final rows = await db.transcriptDao.listForTarget(
+            'Audio',
+            'm-sidecar',
+          );
+          expect(rows, hasLength(1));
+          expect(rows.single.language, 'en');
+        } finally {
+          if (tempDir.existsSync()) {
+            await tempDir.delete(recursive: true);
+          }
         }
-      }
-    });
+      },
+    );
   });
 }
 

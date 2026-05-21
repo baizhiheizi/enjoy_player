@@ -10,12 +10,18 @@ pluginManagement {
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
+    val isCi = System.getenv("GITHUB_ACTIONS") == "true"
+
     repositories {
-        // Mirrors first: avoids TLS/handshake failures to dl.google.com on some
-        // networks (WSL2, corporate proxies, regions with restricted Google Maven).
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
-        maven { url = uri("https://maven.aliyun.com/repository/central") }
-        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
+        if (!isCi) {
+            // Mirrors first for local dev: avoids TLS/handshake failures to
+            // dl.google.com on some networks (WSL2, corporate proxies, regions
+            // with restricted Google Maven). Skip on CI — Aliyun 502s disable
+            // the repo and block fallback resolution on GitHub-hosted runners.
+            maven { url = uri("https://maven.aliyun.com/repository/google") }
+            maven { url = uri("https://maven.aliyun.com/repository/central") }
+            maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
+        }
         google()
         mavenCentral()
         gradlePluginPortal()

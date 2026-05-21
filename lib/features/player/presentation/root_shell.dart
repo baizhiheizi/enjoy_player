@@ -108,7 +108,8 @@ class _RootShellState extends ConsumerState<RootShell> {
           final pageColumn = Column(
             children: [
               Expanded(child: widget.child),
-              if (sessionActive && !playerWithTransport) const GlobalTransportBar(),
+              if (sessionActive && !playerWithTransport)
+                const GlobalTransportBar(),
               ?bottomNav,
             ],
           );

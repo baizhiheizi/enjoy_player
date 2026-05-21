@@ -249,7 +249,8 @@ class _MediaCardTileState extends State<MediaCardTile> {
                             ),
                           ),
                         ),
-                        if (widget.onDelete != null && _showPointerDeleteButton())
+                        if (widget.onDelete != null &&
+                            _showPointerDeleteButton())
                           Positioned(
                             top: t.space8,
                             right: t.space8,

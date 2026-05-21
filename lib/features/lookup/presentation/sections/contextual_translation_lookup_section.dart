@@ -325,10 +325,7 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
           }
           final msg = lookupErrorUserMessage(e, widget.l10n);
           _lastErrorUserMessage = msg;
-          return LookupErrorRow(
-            message: msg,
-            onRetry: _retryAfterError,
-          );
+          return LookupErrorRow(message: msg, onRetry: _retryAfterError);
         }
         final d = snapshot.data!;
         _staleSuccess = d;

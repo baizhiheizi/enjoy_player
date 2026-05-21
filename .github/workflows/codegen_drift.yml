@@ -33,7 +33,7 @@ jobs:
         run: flutter pub get
 
       - name: Codegen (root)
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       - name: Codegen (path packages)
         run: |
@@ -41,7 +41,7 @@ jobs:
           for pkg in packages/*/; do
             [ -f "${pkg}pubspec.yaml" ] || continue
             if grep -qE '^[[:space:]]*build_runner:' "${pkg}pubspec.yaml"; then
-              (cd "$pkg" && flutter pub get && dart run build_runner build --delete-conflicting-outputs)
+              (cd "$pkg" && flutter pub get && dart run build_runner build)
             fi
           done
 

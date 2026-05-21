@@ -177,7 +177,10 @@ class TranscriptRepository {
       await ensurePrimaryTranscript(mediaId);
     }
 
-    final hasTracks = (await _db.transcriptDao.listForTarget(tt, mediaId)).isNotEmpty;
+    final hasTracks = (await _db.transcriptDao.listForTarget(
+      tt,
+      mediaId,
+    )).isNotEmpty;
     final result = TranscriptResolveResult(
       hasTracks: hasTracks,
       cloud: cloud,
@@ -437,9 +440,7 @@ class TranscriptRepository {
 
       if (status == 'failed') {
         final err = map['error']?.toString() ?? 'YouTube transcript failed';
-        _log.warning(
-          'YouTube worker transcript failed for $mediaId: $err',
-        );
+        _log.warning('YouTube worker transcript failed for $mediaId: $err');
         return TranscriptCloudFetchResult(
           status: TranscriptCloudFetchStatus.error,
           errorMessage: err,

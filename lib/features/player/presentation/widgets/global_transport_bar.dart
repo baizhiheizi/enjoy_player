@@ -287,8 +287,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         ),
     ];
 
-    final showFullscreenTransport =
-        isDesktop && chrome.mediaType == 'video';
+    final showFullscreenTransport = isDesktop && chrome.mediaType == 'video';
 
     final inner = Theme(
       data: Theme.of(context).copyWith(

@@ -398,9 +398,9 @@ class _SubtitleTrackPickerSheetState
               children: [
                 Text(
                   l10n.subtitles,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 IconButton(
@@ -409,9 +409,7 @@ class _SubtitleTrackPickerSheetState
                     fixedSize: const Size(48, 48),
                   ),
                   icon: const Icon(Icons.close_rounded),
-                  tooltip: MaterialLocalizations.of(
-                    context,
-                  ).closeButtonLabel,
+                  tooltip: MaterialLocalizations.of(context).closeButtonLabel,
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -432,8 +430,7 @@ class _SubtitleTrackPickerSheetState
                 showImportFile: !isYoutube,
                 isFetching: isFetching,
               ),
-              loading: () =>
-                  SkeletonTranscript(lineCount: 12, controller: sc),
+              loading: () => SkeletonTranscript(lineCount: 12, controller: sc),
               error: (error, _) => ListView(
                 controller: sc,
                 physics: const AlwaysScrollableScrollPhysics(),
