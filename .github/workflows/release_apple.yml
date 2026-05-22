@@ -33,9 +33,9 @@ jobs:
       NOTARY_PROFILE: enjoy-notary
       MACOS_APP_PATH: build/macos/Build/Products/Release/Enjoy Player.app
     steps:
-      - uses: ./.github/actions/setup-macos-runner-env
-
       - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-macos-runner-env
 
       - uses: ./.github/actions/setup-flutter
 

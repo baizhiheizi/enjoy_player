@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify the runner Flutter SDK matches .github/flutter-version.
+# Optional manual check: verify the runner Flutter SDK matches .github/flutter-version.
 set -euo pipefail
 
 expected="$(tr -d ' \n\r' < .github/flutter-version)"

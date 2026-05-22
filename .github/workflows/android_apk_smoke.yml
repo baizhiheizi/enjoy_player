@@ -22,10 +22,25 @@ jobs:
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - uses: ./.github/actions/setup-flutter
 
-      - name: Ensure Android SDK
-        run: bash .github/scripts/ensure_android_env.sh
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platforms;android-35
+            build-tools;35.0.0
+          cache: false
+
+      - name: Point Flutter at Android SDK
+        run: |
+          sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$sdk" ]; then echo "::error::ANDROID_SDK_ROOT / ANDROID_HOME not set"; exit 1; fi
+          flutter config --android-sdk "$sdk"
 
       - name: Flutter pub get
         run: flutter pub get

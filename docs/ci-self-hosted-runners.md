@@ -1,18 +1,17 @@
 # Self-hosted CI runners
 
-All GitHub Actions workflows in this repo run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions). Dependencies stay on local disk between jobs.
+All GitHub Actions workflows in this repo (except **Build Windows**, which still uses GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready) run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions). Dependencies stay on local disk between jobs.
 
 Shared workflow pieces:
 
 | Path | Purpose |
 |------|---------|
-| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Verify Flutter matches [`.github/flutter-version`](../.github/flutter-version) |
+| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from [`.github/flutter-version`](../.github/flutter-version) (`cache: false`) |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1 |
 | [`.github/scripts/ensure_linux_tooling.sh`](../.github/scripts/ensure_linux_tooling.sh) | Install apt packages only when missing |
-| [`.github/scripts/ensure_android_env.sh`](../.github/scripts/ensure_android_env.sh) | Verify Java + Android SDK paths |
 | [`.github/scripts/ensure_nuget_feed.ps1`](../.github/scripts/ensure_nuget_feed.ps1) | Ensure NuGet.org feed on Windows |
 
-When you bump Flutter in `.github/flutter-version`, update the SDK on each runner to match.
+When you bump Flutter in `.github/flutter-version`, the next workflow run installs/switches to that version on the runner via `flutter-action` (local disk, no GitHub cache API).
 
 ---
 
@@ -26,7 +25,7 @@ Use labels that match workflow `runs-on`:
 |----------|--------|
 | CI, Codegen drift, Android APK smoke | `self-hosted`, `Linux` |
 | Build Apple, Release Apple | `self-hosted`, `macos` |
-| Build Windows | `self-hosted`, `Windows` |
+| Build Windows | `self-hosted`, `Windows` (planned; currently `windows-latest`) |
 
 ---
 
@@ -90,6 +89,6 @@ Optional: place `ffmpeg.exe` under `windows/ffmpeg/` before release builds (see 
 | [ci.yml](../.github/workflows/ci.yml) | Linux | analyze, format, test |
 | [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | build_runner drift check |
 | [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | APK + AAB compile smoke |
-| [build_windows.yml](../.github/workflows/build_windows.yml) | Windows | debug + release smoke |
+| [build_windows.yml](../.github/workflows/build_windows.yml) | GitHub-hosted `windows-latest` | debug + release smoke (until self-hosted Windows runner is ready) |
 | [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | iOS + macOS compile smoke |
 | [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | signed IPA, TestFlight, notarized macOS |

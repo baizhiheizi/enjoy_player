@@ -1,9 +1,17 @@
-name: Setup Flutter (self-hosted)
-description: Verify Flutter on PATH matches .github/flutter-version (no GitHub cache or download).
+name: Setup Flutter
+description: Pin Flutter from .github/flutter-version without GitHub Actions cache.
 
 runs:
   using: composite
   steps:
-    - name: Ensure Flutter
+    - name: Read Flutter version
+      id: flutter_version
       shell: bash
-      run: bash .github/scripts/ensure_flutter.sh
+      run: echo "version=$(tr -d ' \n\r' < .github/flutter-version)" >> "$GITHUB_OUTPUT"
+
+    - name: Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ steps.flutter_version.outputs.version }}
+        cache: false
