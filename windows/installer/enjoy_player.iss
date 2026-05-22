@@ -12,7 +12,7 @@
 [Setup]
 AppId={{8F3C2B1A-9D8E-4F7C-A6B5-4D3C2B1A0F9E}}
 AppName={#MyAppName}
-AppVersion=1.0.0
+AppVersion=0.1.0
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
