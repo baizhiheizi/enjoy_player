@@ -16,8 +16,16 @@ Production **`applicationId`** / **`namespace`**: `ai.enjoy.player` (see [ADR-00
 1. Create an upload keystore (once) and keep it **out of git**.
 2. Copy [`android/key.properties.example`](../android/key.properties.example) to **`android/key.properties`** (gitignored) and fill `storePassword`, `keyPassword`, `keyAlias`, `storeFile` (`storeFile` is relative to the **`android/`** directory).
 3. Build:
-   - **Google Play (AAB):** `flutter build appbundle --release`
-   - **Direct APK:** `flutter build apk --release`
+   - **Google Play (AAB):** `flutter build appbundle --release` — Play serves optimized per-device splits automatically.
+   - **Direct APK (sideload):** `flutter build apk --release --split-per-abi` — one APK per CPU architecture (much smaller than a universal/fat APK).
+
+   | Output APK | Typical use |
+   |------------|-------------|
+   | `app-arm64-v8a-release.apk` | Most phones and tablets (2019+) |
+   | `app-armeabi-v7a-release.apk` | Older 32-bit ARM devices |
+   | `app-x86_64-release.apk` | x86_64 emulators / rare x86 devices |
+
+   Files land under `build/app/outputs/flutter-apk/`. For sideload, pick **one** APK matching the device — do not install multiple ABIs.
 
 If **`android/key.properties` is missing**, release builds still compile but use the **debug keystore** — **do not upload** those artifacts to Play.
 

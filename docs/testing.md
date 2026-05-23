@@ -26,7 +26,7 @@ CI runs debug smoke builds plus **release compile** for Android (`apk` + `appbun
 
 ```bash
 flutter build appbundle --release   # with android/key.properties for real signing
-flutter build apk --release
+flutter build apk --release --split-per-abi
 flutter build windows --release
 flutter build ios --release --no-codesign   # compile-only smoke
 flutter build macos --release

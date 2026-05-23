@@ -9,8 +9,8 @@ The workflow runs on your **self-hosted Linux runner** (`runs-on: [self-hosted, 
 1. `flutter analyze` + `flutter test`
 2. Loads **upload keystore** from GitHub Secrets (or uses files already on the runner)
 3. Builds signed **App Bundle** (`flutter build appbundle --release`) for Google Play
-4. Optionally builds signed **APK** for sideload
-5. Uploads **artifacts** (`.aab` and optional `.apk`) to the GitHub Actions run
+4. Optionally builds signed **per-ABI APKs** for sideload (`--split-per-abi`)
+5. Uploads **artifacts** (`.aab` and optional per-architecture `.apk` files) to the GitHub Actions run
 
 **Triggers**
 
@@ -98,7 +98,9 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Tag pushes build both **AAB** and **APK** and upload both artifact types.
+Tag pushes build both **AAB** and **per-ABI APKs** (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and upload all artifact types.
+
+Most sideload users want **`app-arm64-v8a-release.apk`** only.
 
 ---
 
@@ -130,5 +132,5 @@ Same commands, documented in [packaging.md](packaging.md):
 
 ```bash
 flutter build appbundle --release
-flutter build apk --release
+flutter build apk --release --split-per-abi
 ```
