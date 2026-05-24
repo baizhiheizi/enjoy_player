@@ -15,21 +15,11 @@ permissions:
 
 jobs:
   build-windows:
-    # Self-hosted Windows runner not ready yet — keep on GitHub-hosted until registered.
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read Flutter version
-        id: flutter_version
-        shell: bash
-        run: echo "version=$(tr -d ' \n\r' < .github/flutter-version)" >> "$GITHUB_OUTPUT"
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: ${{ steps.flutter_version.outputs.version }}
-          cache: true
+      - uses: ./.github/actions/setup-flutter
 
       - name: Ensure NuGet feed (WebView2 / flutter_inappwebview)
         shell: pwsh

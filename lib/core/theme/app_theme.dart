@@ -1,7 +1,6 @@
 /// Material 3 theme — dark-only cinematic editorial (logo-aligned blue / purple).
 library;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'colors.dart';
