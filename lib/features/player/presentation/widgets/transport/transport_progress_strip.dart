@@ -127,11 +127,12 @@ class _TransportProgressStripState
                     _scrubSecond = null;
                   },
                   onChanged: (v) {
-                    if (!_hapticScrub) return;
-                    final sec = (v * durationSec).floor();
-                    if (_scrubSecond != sec) {
-                      _scrubSecond = sec;
-                      Haptics.selection(context);
+                    if (_hapticScrub) {
+                      final sec = (v * durationSec).floor();
+                      if (_scrubSecond != sec) {
+                        _scrubSecond = sec;
+                        Haptics.selection(context);
+                      }
                     }
                     ref
                         .read(playerInteractionsProvider.notifier)
