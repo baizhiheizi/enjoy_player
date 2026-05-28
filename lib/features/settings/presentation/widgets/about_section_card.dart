@@ -1,0 +1,279 @@
+/// About card — app identity, version, and open-source link.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:enjoy_player/core/application/app_links.dart';
+import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
+
+class AboutSectionCard extends StatefulWidget {
+  const AboutSectionCard({super.key});
+
+  @override
+  State<AboutSectionCard> createState() => _AboutSectionCardState();
+}
+
+class _AboutSectionCardState extends State<AboutSectionCard> {
+  late final Future<PackageInfo> _packageInfoFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _packageInfoFuture = PackageInfo.fromPlatform();
+  }
+
+  Future<void> _openGitHub(BuildContext context) async {
+    final uri = Uri.parse(kEnjoyPlayerGitHubUrl);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && context.mounted) {
+      AppNotice.error(
+        context,
+        AppLocalizations.of(context)!.playerOpenGenericError,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: t.space16),
+      child: Material(
+        color: cs.surfaceContainerLow.withValues(alpha: 0.88),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusXl),
+          side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.18)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                cs.surfaceContainerHigh.withValues(alpha: 0.38),
+                cs.surfaceContainerLow.withValues(alpha: 0.08),
+              ],
+            ),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.horizontal(
+                      left: Radius.circular(t.radiusXl),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [t.gradientStart, t.gradientEnd],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(t.space16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: cs.primaryContainer,
+                                borderRadius: BorderRadius.circular(t.radiusLg),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: SvgPicture.asset(
+                                  'assets/logo-light.svg',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: t.space16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          l10n.appTitle,
+                                          style: tt.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -0.2,
+                                          ),
+                                        ),
+                                      ),
+                                      FutureBuilder<PackageInfo>(
+                                        future: _packageInfoFuture,
+                                        builder: (context, snapshot) {
+                                          final version =
+                                              snapshot.data?.version;
+                                          if (version == null ||
+                                              version.isEmpty) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return _AboutVersionPill(
+                                            label: l10n.settingsAboutVersion(
+                                              version,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: t.space8),
+                                  Text(
+                                    l10n.settingsAboutSubtitle,
+                                    style: tt.bodySmall?.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                      height: 1.45,
+                                    ),
+                                  ),
+                                  SizedBox(height: t.space12),
+                                  Text(
+                                    l10n.settingsAboutMadeWithCare,
+                                    style: tt.labelMedium?.copyWith(
+                                      color: cs.onSurfaceVariant.withValues(
+                                        alpha: 0.88,
+                                      ),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: t.space16,
+                        endIndent: t.space16,
+                        color: cs.outlineVariant.withValues(alpha: 0.18),
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: Haptics.wrapTap(
+                            context,
+                            () => _openGitHub(context),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: t.space16,
+                              vertical: t.space12,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.code_rounded,
+                                  size: 22,
+                                  color: cs.primary.withValues(alpha: 0.92),
+                                ),
+                                SizedBox(width: t.space12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.settingsAboutOpenSourceTitle,
+                                        style: tt.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: -0.2,
+                                        ),
+                                      ),
+                                      SizedBox(height: t.space4),
+                                      Text(
+                                        l10n.settingsAboutOpenSourceSubtitle,
+                                        style: tt.bodySmall?.copyWith(
+                                          color: cs.onSurfaceVariant.withValues(
+                                            alpha: 0.86,
+                                          ),
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  size: 18,
+                                  color: cs.onSurfaceVariant.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AboutVersionPill extends StatelessWidget {
+  const _AboutVersionPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: t.space8,
+        vertical: t.space4,
+      ),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(t.radiusFull),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        label,
+        style: tt.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: cs.onPrimaryContainer,
+          letterSpacing: 0.02,
+        ),
+      ),
+    );
+  }
+}

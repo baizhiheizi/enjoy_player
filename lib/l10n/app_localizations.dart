@@ -2703,6 +2703,24 @@ abstract class AppLocalizations {
   /// **'Made with care for language learners.'**
   String get settingsAboutMadeWithCare;
 
+  /// No description provided for @settingsAboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'v{version}'**
+  String settingsAboutVersion(String version);
+
+  /// No description provided for @settingsAboutOpenSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source'**
+  String get settingsAboutOpenSourceTitle;
+
+  /// No description provided for @settingsAboutOpenSourceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View source code on GitHub'**
+  String get settingsAboutOpenSourceSubtitle;
+
   /// No description provided for @lookupSheetTitle.
   ///
   /// In en, this message translates to:

@@ -25,6 +25,7 @@ import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_settings_section.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/about_section_card.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/language_choice_sheet.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -722,80 +723,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.info_outline_rounded,
                 ),
               ),
-              SliverToBoxAdapter(
-                child: _SettingsCard(
-                  padding: EdgeInsets.zero,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          width: 5,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(t.radiusLg),
-                            ),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [t.gradientStart, t.gradientEnd],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.all(t.space16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.play_arrow_rounded,
-                                  color: cs.primary,
-                                  size: 36,
-                                ),
-                                SizedBox(width: t.space16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.appTitle,
-                                        style: tt.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space8),
-                                      Text(
-                                        l10n.settingsAboutSubtitle,
-                                        style: tt.bodySmall?.copyWith(
-                                          color: cs.onSurfaceVariant,
-                                          height: 1.45,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space12),
-                                      Text(
-                                        l10n.settingsAboutMadeWithCare,
-                                        style: tt.labelMedium?.copyWith(
-                                          color: cs.onSurfaceVariant.withValues(
-                                            alpha: 0.88,
-                                          ),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              const SliverToBoxAdapter(child: AboutSectionCard()),
 
               SliverToBoxAdapter(child: SizedBox(height: t.space32)),
             ],

@@ -588,6 +588,14 @@
   "hotkeysResetTooltip": "重置此快捷键",
   "hotkeysEditTooltip": "更改快捷键",
   "settingsAboutMadeWithCare": "为语言学习者用心打造。",
+  "settingsAboutVersion": "v{version}",
+  "@settingsAboutVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "settingsAboutOpenSourceTitle": "开源项目",
+  "settingsAboutOpenSourceSubtitle": "在 GitHub 查看源代码",
   "lookupSheetTitle": "查词",
   "lookupSectionTranslation": "翻译",
   "lookupSectionContextualTranslation": "语境翻译",

@@ -588,6 +588,14 @@
   "hotkeysResetTooltip": "Reset this shortcut",
   "hotkeysEditTooltip": "Change shortcut",
   "settingsAboutMadeWithCare": "Made with care for language learners.",
+  "settingsAboutVersion": "v{version}",
+  "@settingsAboutVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "settingsAboutOpenSourceTitle": "Open source",
+  "settingsAboutOpenSourceSubtitle": "View source code on GitHub",
   "lookupSheetTitle": "Look up",
   "lookupSectionTranslation": "Translation",
   "lookupSectionContextualTranslation": "Contextual translation",

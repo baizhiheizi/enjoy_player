@@ -38,6 +38,7 @@ dependencies:
   ffmpeg_kit_flutter_new: 4.1.0
   path: ^1.9.1
   path_provider: ^2.1.5
+  package_info_plus: ^10.1.0
   record: ^6.2.0
   riverpod_annotation: ^4.0.2
   sqlite3_flutter_libs: ^0.5.28

@@ -1357,6 +1357,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAboutMadeWithCare => '为语言学习者用心打造。';
 
   @override
+  String settingsAboutVersion(String version) {
+    return 'v$version';
+  }
+
+  @override
+  String get settingsAboutOpenSourceTitle => '开源项目';
+
+  @override
+  String get settingsAboutOpenSourceSubtitle => '在 GitHub 查看源代码';
+
+  @override
   String get lookupSheetTitle => '查词';
 
   @override
@@ -2774,6 +2785,17 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsAboutMadeWithCare => '为语言学习者用心打造。';
+
+  @override
+  String settingsAboutVersion(String version) {
+    return 'v$version';
+  }
+
+  @override
+  String get settingsAboutOpenSourceTitle => '开源项目';
+
+  @override
+  String get settingsAboutOpenSourceSubtitle => '在 GitHub 查看源代码';
 
   @override
   String get lookupSheetTitle => '查词';

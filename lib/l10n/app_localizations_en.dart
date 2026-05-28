@@ -1415,6 +1415,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Made with care for language learners.';
 
   @override
+  String settingsAboutVersion(String version) {
+    return 'v$version';
+  }
+
+  @override
+  String get settingsAboutOpenSourceTitle => 'Open source';
+
+  @override
+  String get settingsAboutOpenSourceSubtitle => 'View source code on GitHub';
+
+  @override
   String get lookupSheetTitle => 'Look up';
 
   @override
