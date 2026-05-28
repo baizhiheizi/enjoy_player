@@ -708,6 +708,46 @@ class _Thumbnail extends StatelessWidget {
 
   static const _coverFit = BoxFit.cover;
 
+  Widget _networkImage(String url) {
+    return Image.network(
+      url,
+      fit: _coverFit,
+      width: double.infinity,
+      height: double.infinity,
+      gaplessPlayback: true,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return _loading();
+      },
+      errorBuilder: (_, _, _) {
+        final mqFallback = youtubeMqFallbackForCardUrl(url);
+        if (mqFallback != null && mqFallback != url) {
+          return _networkImage(mqFallback);
+        }
+        return _fallback();
+      },
+    );
+  }
+
+  Widget _loading() {
+    if (coverSeed != null && coverSeed!.isNotEmpty) {
+      return GenerativeMediaCover(seed: coverSeed!, isVideo: isVideo);
+    }
+    return ColoredBox(
+      color: cs.surfaceContainerHighest,
+      child: Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (file != null) {
@@ -717,32 +757,16 @@ class _Thumbnail extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         gaplessPlayback: true,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) return child;
+          return _loading();
+        },
         errorBuilder: (_, _, _) => _fallback(),
       );
     }
     final url = networkUrl;
     if (url != null && url.isNotEmpty) {
-      final mqFallback = youtubeMqFallbackForCardUrl(url);
-      return Image.network(
-        url,
-        fit: _coverFit,
-        width: double.infinity,
-        height: double.infinity,
-        gaplessPlayback: true,
-        errorBuilder: (_, _, _) {
-          if (mqFallback != null && mqFallback != url) {
-            return Image.network(
-              mqFallback,
-              fit: _coverFit,
-              width: double.infinity,
-              height: double.infinity,
-              gaplessPlayback: true,
-              errorBuilder: (_, _, _) => _fallback(),
-            );
-          }
-          return _fallback();
-        },
-      );
+      return _networkImage(url);
     }
     return _fallback();
   }
