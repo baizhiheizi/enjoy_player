@@ -75,11 +75,14 @@ jobs:
           (github.event_name == 'workflow_dispatch' && inputs.build_apk)
         run: flutter build apk --release --split-per-abi
 
+      - name: Version release artifact filenames
+        run: bash .github/scripts/rename_release_artifacts.sh android
+
       - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-${{ github.ref_name }}
-          path: build/app/outputs/bundle/release/*.aab
+          path: build/app/outputs/bundle/release/EnjoyPlayer-v*.aab
           if-no-files-found: error
           retention-days: 30
 
@@ -91,9 +94,9 @@ jobs:
         with:
           name: android-apk-${{ github.ref_name }}
           path: |
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
+            build/app/outputs/flutter-apk/EnjoyPlayer-v*-armeabi-v7a.apk
+            build/app/outputs/flutter-apk/EnjoyPlayer-v*-arm64-v8a.apk
+            build/app/outputs/flutter-apk/EnjoyPlayer-v*-x86_64.apk
           if-no-files-found: error
           retention-days: 30
 

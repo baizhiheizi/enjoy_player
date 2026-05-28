@@ -11,7 +11,7 @@ The workflow runs on your **self-hosted macOS runner** (`runs-on: [self-hosted, 
 3. Optionally uploads to **TestFlight**
 4. Builds **macOS release** `.app`
 5. Optionally **notarizes** macOS for direct download
-6. Uploads **artifacts** (`.ipa` + `Enjoy-Player-macOS.zip`) to the GitHub Actions run
+6. Uploads **artifacts** (`EnjoyPlayer-vX.Y.Z.ipa` + `EnjoyPlayer-macOS-vX.Y.Z.zip`) to the GitHub Actions run
 
 **Triggers**
 

@@ -3,21 +3,23 @@
 ;   iscc enjoy_player.iss
 ;
 ; Install Inno Setup from https://jrsoftware.org/isinfo.php
-; Sync AppVersion below with pubspec.yaml version when releasing.
+; Sync #define MyAppVersion from pubspec.yaml before release:
+;   pwsh .github/scripts/sync_windows_installer_version.ps1
 
 #define MyAppName "Enjoy Player"
 #define MyAppPublisher "Enjoy"
 #define MyAppExeName "enjoy_player.exe"
+#define MyAppVersion "0.1.0"
 
 [Setup]
 AppId={{8F3C2B1A-9D8E-4F7C-A6B5-4D3C2B1A0F9E}}
 AppName={#MyAppName}
-AppVersion=0.1.0
+AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\..\build\windows\installer
-OutputBaseFilename=EnjoyPlayerSetup
+OutputBaseFilename=EnjoyPlayerSetup-v{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

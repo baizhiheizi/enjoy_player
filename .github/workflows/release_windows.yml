@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       build_installer:
-        description: Build Inno Setup installer (EnjoyPlayerSetup.exe)
+        description: Build Inno Setup installer (EnjoyPlayerSetup-vX.Y.Z.exe)
         type: boolean
         default: true
   push:
@@ -80,6 +80,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer-${{ github.ref_name }}
-          path: build/windows/installer/EnjoyPlayerSetup.exe
+          path: build/windows/installer/EnjoyPlayerSetup-v*.exe
           if-no-files-found: error
           retention-days: 30

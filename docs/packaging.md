@@ -21,11 +21,11 @@ Production **`applicationId`** / **`namespace`**: `ai.enjoy.player` (see [ADR-00
 
    | Output APK | Typical use |
    |------------|-------------|
-   | `app-arm64-v8a-release.apk` | Most phones and tablets (2019+) |
-   | `app-armeabi-v7a-release.apk` | Older 32-bit ARM devices |
-   | `app-x86_64-release.apk` | x86_64 emulators / rare x86 devices |
+   | `EnjoyPlayer-vX.Y.Z-arm64-v8a.apk` | Most phones and tablets (2019+) |
+   | `EnjoyPlayer-vX.Y.Z-armeabi-v7a.apk` | Older 32-bit ARM devices |
+   | `EnjoyPlayer-vX.Y.Z-x86_64.apk` | x86_64 emulators / rare x86 devices |
 
-   Files land under `build/app/outputs/flutter-apk/`. For sideload, pick **one** APK matching the device — do not install multiple ABIs.
+   After `flutter build`, run `bash .github/scripts/rename_release_artifacts.sh android` to apply versioned names. Play upload uses **`EnjoyPlayer-vX.Y.Z.aab`** under `build/app/outputs/bundle/release/`. For sideload, pick **one** APK matching the device — do not install multiple ABIs.
 
 If **`android/key.properties` is missing**, release builds still compile but use the **debug keystore** — **do not upload** those artifacts to Play.
 
@@ -111,7 +111,7 @@ flutter build ipa --release \
   --export-options-plist=ios/ExportOptions.export.plist
 ```
 
-Output: `build/ios/ipa/enjoy_player.ipa`.
+Output: `build/ios/ipa/enjoy_player.ipa` (rename to `EnjoyPlayer-vX.Y.Z.ipa` via `bash .github/scripts/rename_release_artifacts.sh apple`).
 
 4. Upload via **Xcode Organizer** (Window → Organizer → Archives) or **Transporter** / `xcrun altool --upload-app`.
 5. In App Store Connect: attach build to a version, submit for TestFlight or App Review.
@@ -233,7 +233,15 @@ xcrun notarytool store-credentials "enjoy-notary" \
 
 Override profile if needed: `NOTARY_PROFILE=my-profile ./macos/scripts/notarize_release.sh …`
 
-6. Ship the stapled `.app` (zip or DMG). Gatekeeper should pass: `spctl --assess --type execute --verbose=4 "…/Enjoy Player.app"`.
+6. Ship the stapled `.app` (zip or DMG). For a versioned zip at repo root:
+
+```bash
+version="$(bash .github/scripts/read_pubspec_version.sh)"
+ditto -c -k --keepParent "build/macos/Build/Products/Release/Enjoy Player.app" \
+  "EnjoyPlayer-macOS-v${version}.zip"
+```
+
+Gatekeeper should pass: `spctl --assess --type execute --verbose=4 "…/Enjoy Player.app"`.
 
 **GPL note:** macOS/iOS use `ffmpeg_kit_flutter_new/full-gpl` (bundled FFmpeg). Confirm licensing/compliance before public distribution.
 
@@ -279,18 +287,38 @@ CMake copies **`windows/ffmpeg/ffmpeg.exe`** next to the executable when present
 
 Use the script under [`windows/installer/`](../windows/installer/README.md):
 
-```bash
+```powershell
 flutter build windows --release
+pwsh .github/scripts/sync_windows_installer_version.ps1
 iscc windows\installer\enjoy_player.iss
 ```
 
-Installer output: `build/windows/installer/EnjoyPlayerSetup.exe`. **Code signing** (Authenticode) is configured outside this repo.
+Installer output: `build/windows/installer/EnjoyPlayerSetup-vX.Y.Z.exe`. **Code signing** (Authenticode) is configured outside this repo.
 
 **CI:** see [windows-release-ci.md](windows-release-ci.md) for GitHub Actions setup and [`.github/workflows/release_windows.yml`](../.github/workflows/release_windows.yml).
 
 ### Version / legal strings
 
 File/product version comes from **`pubspec.yaml`** via Flutter’s `Runner.rc` injection. **Company / copyright** strings are in [`windows/runner/Runner.rc`](../windows/runner/Runner.rc); align with your legal entity before public release.
+
+---
+
+## Versioned release filenames
+
+Semver comes from `pubspec.yaml` (`version: 0.1.0+1` → `0.1.0` in filenames). CI applies these automatically; locally run the sync/rename scripts after building.
+
+| Platform | Output (example at `0.1.0`) |
+|----------|-----------------------------|
+| Windows installer | `build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe` — `pwsh .github/scripts/sync_windows_installer_version.ps1` before `iscc` |
+| Android (Play) | `build/app/outputs/bundle/release/EnjoyPlayer-v0.1.0.aab` |
+| Android (sideload) | `EnjoyPlayer-v0.1.0-arm64-v8a.apk` (and `-armeabi-v7a`, `-x86_64`) |
+| iOS | `build/ios/ipa/EnjoyPlayer-v0.1.0.ipa` |
+| macOS (zip) | `EnjoyPlayer-macOS-v0.1.0.zip` at repo root |
+
+```bash
+bash .github/scripts/rename_release_artifacts.sh android   # after flutter build appbundle/apk
+bash .github/scripts/rename_release_artifacts.sh apple     # after flutter build ipa
+```
 
 ---
 

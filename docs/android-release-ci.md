@@ -100,7 +100,7 @@ git push origin v1.0.0
 
 Tag pushes build both **AAB** and **per-ABI APKs** (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and upload all artifact types.
 
-Most sideload users want **`app-arm64-v8a-release.apk`** only.
+Most sideload users want **`EnjoyPlayer-vX.Y.Z-arm64-v8a.apk`** only.
 
 ---
 

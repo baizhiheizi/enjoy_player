@@ -9,7 +9,7 @@ The workflow currently runs on **GitHub-hosted** `windows-latest` (same as [Buil
 1. `flutter analyze` + `flutter test`
 2. Builds **Windows release** (`flutter build windows --release`)
 3. Syncs **Inno Setup** `AppVersion` from `pubspec.yaml`
-4. Builds **EnjoyPlayerSetup.exe** installer (optional on manual runs)
+4. Builds **EnjoyPlayerSetup-vX.Y.Z.exe** installer (optional on manual runs)
 5. Uploads **artifacts** (release folder zip + optional installer) to the GitHub Actions run
 
 **Triggers**
@@ -35,7 +35,7 @@ The release workflow runs [`windows/scripts/fetch_ffmpeg.ps1`](../windows/script
 
 ## Step 2 — GitHub Secrets
 
-No secrets are required for unsigned release builds. **Authenticode signing** stays outside this repo — sign `EnjoyPlayerSetup.exe` locally with `signtool` or Inno Sign Tools after downloading the artifact.
+No secrets are required for unsigned release builds. **Authenticode signing** stays outside this repo — sign `EnjoyPlayerSetup-vX.Y.Z.exe` locally with `signtool` or Inno Sign Tools after downloading the artifact.
 
 ---
 
@@ -58,7 +58,7 @@ When migrating off `windows-latest`:
 3. Toggle **Build Inno Setup installer** as needed.
 4. Download artifacts:
    - `windows-release-vX.Y.Z` — `Release/` folder (portable zip contents)
-   - `windows-installer-vX.Y.Z` — `EnjoyPlayerSetup.exe` (when installer step ran)
+   - `windows-installer-vX.Y.Z` — `EnjoyPlayerSetup-vX.Y.Z.exe` (when installer step ran)
 
 ### Tag release
 
@@ -73,10 +73,10 @@ Tag pushes always build the **installer** and upload both artifact types.
 
 ## Code signing (manual, post-CI)
 
-After downloading `EnjoyPlayerSetup.exe`:
+After downloading `EnjoyPlayerSetup-vX.Y.Z.exe`:
 
 ```powershell
-signtool sign /fd SHA256 /a "EnjoyPlayerSetup.exe"
+signtool sign /fd SHA256 /a "EnjoyPlayerSetup-v0.1.0.exe"
 ```
 
 Configure certificate thumbprint or HSM details per your vendor. See [windows/installer/README.md](../windows/installer/README.md).
@@ -98,7 +98,8 @@ Configure certificate thumbprint or HSM details per your vendor. See [windows/in
 
 Same commands, documented in [packaging.md](packaging.md):
 
-```bash
+```powershell
 flutter build windows --release
+pwsh .github/scripts/sync_windows_installer_version.ps1
 iscc windows\installer\enjoy_player.iss
 ```

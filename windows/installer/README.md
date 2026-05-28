@@ -9,14 +9,13 @@
    ```bash
    flutter build windows --release
    ```
-3. Compile the installer:
-   ```bash
+3. Sync installer version from `pubspec.yaml`, then compile:
+   ```powershell
+   pwsh .github/scripts/sync_windows_installer_version.ps1
    iscc windows\installer\enjoy_player.iss
    ```
-4. Output: `build/windows/installer/EnjoyPlayerSetup.exe` (unsigned unless you add signing).
-
-Before shipping, update `AppVersion` in `enjoy_player.iss` to match `pubspec.yaml`.
+4. Output: `build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe` (version matches `pubspec.yaml`; unsigned unless you add signing).
 
 ## Code signing
 
-Configure Inno’s **Sign Tools** or run `signtool` on `EnjoyPlayerSetup.exe` per your certificate vendor. Secrets and thumbprints stay outside this repo.
+Configure Inno’s **Sign Tools** or run `signtool` on `EnjoyPlayerSetup-vX.Y.Z.exe` per your certificate vendor. Secrets and thumbprints stay outside this repo.

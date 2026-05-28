@@ -114,14 +114,18 @@ jobs:
 
       - name: Package macOS artifact
         run: |
-          ditto -c -k --keepParent "${MACOS_APP_PATH}" "Enjoy-Player-macOS.zip"
+          version="$(bash .github/scripts/read_pubspec_version.sh)"
+          ditto -c -k --keepParent "${MACOS_APP_PATH}" "EnjoyPlayer-macOS-v${version}.zip"
+
+      - name: Version iOS IPA filename
+        run: bash .github/scripts/rename_release_artifacts.sh apple
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: apple-release-${{ github.ref_name }}
           path: |
-            build/ios/ipa/*.ipa
-            Enjoy-Player-macOS.zip
+            build/ios/ipa/EnjoyPlayer-v*.ipa
+            EnjoyPlayer-macOS-v*.zip
           if-no-files-found: error
           retention-days: 30
