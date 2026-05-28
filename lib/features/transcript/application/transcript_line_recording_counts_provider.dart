@@ -4,7 +4,9 @@ library;
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/dexie_target_type_provider.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/sync/application/recordings_for_target_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_recording_counts.dart';
@@ -13,20 +15,22 @@ part 'transcript_line_recording_counts_provider.g.dart';
 
 final _log = Logger('TranscriptLineRecordingCounts');
 
-/// Map of transcript line index → overlapping recording count for [mediaId].
+/// Combines async transcript/recording inputs into per-line counts.
 ///
-/// Returns `null` while transcript lines, target type, or recordings are still
-/// loading so the UI can hide badges instead of implying zero takes.
-/// Returns an empty map when loaded but nothing overlaps, or when recordings
-/// fail to load (logged at warning level).
-@riverpod
-Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
-  if (mediaId.isEmpty) return const {};
+/// Returns `null` while any dependency is still loading.
+/// Returns `{}` when loaded but nothing overlaps or when a dependency fails.
+Map<int, int>? resolveTranscriptLineRecordingCounts({
+  required AsyncValue<List<TranscriptLine>> linesAsync,
+  required AsyncValue<String?> targetTypeAsync,
+  required AsyncValue<List<RecordingRow>> recordingsAsync,
+  required String mediaId,
+  Logger? log,
+}) {
+  final logger = log ?? _log;
 
-  final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
   if (linesAsync.isLoading) return null;
   if (linesAsync.hasError) {
-    _log.warning(
+    logger.warning(
       'Transcript lines unavailable for recording counts ($mediaId)',
       linesAsync.error,
       linesAsync.stackTrace,
@@ -37,26 +41,22 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
   final lines = linesAsync.requireValue;
   if (lines.isEmpty) return const {};
 
-  final ttAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
-  if (ttAsync.isLoading) return null;
-  if (ttAsync.hasError) {
-    _log.warning(
+  if (targetTypeAsync.isLoading) return null;
+  if (targetTypeAsync.hasError) {
+    logger.warning(
       'Target type unavailable for recording counts ($mediaId)',
-      ttAsync.error,
-      ttAsync.stackTrace,
+      targetTypeAsync.error,
+      targetTypeAsync.stackTrace,
     );
     return const {};
   }
 
-  final tt = ttAsync.requireValue;
+  final tt = targetTypeAsync.requireValue;
   if (tt == null) return const {};
 
-  final recordingsAsync = ref.watch(
-    recordingsForTargetProvider((targetType: tt, targetId: mediaId)),
-  );
   if (recordingsAsync.isLoading) return null;
   if (recordingsAsync.hasError) {
-    _log.warning(
+    logger.warning(
       'Recordings unavailable for transcript line counts ($mediaId)',
       recordingsAsync.error,
       recordingsAsync.stackTrace,
@@ -65,4 +65,32 @@ Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
   }
 
   return countRecordingsPerLineIndex(lines, recordingsAsync.requireValue);
+}
+
+/// Map of transcript line index → overlapping recording count for [mediaId].
+@riverpod
+Map<int, int>? transcriptLineRecordingCounts(Ref ref, String mediaId) {
+  if (mediaId.isEmpty) return const {};
+
+  final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
+  final targetTypeAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
+
+  final AsyncValue<List<RecordingRow>> recordingsAsync;
+  final tt = targetTypeAsync.value;
+  if (tt != null) {
+    recordingsAsync = ref.watch(
+      recordingsForTargetProvider((targetType: tt, targetId: mediaId)),
+    );
+  } else if (targetTypeAsync.isLoading) {
+    recordingsAsync = const AsyncLoading();
+  } else {
+    recordingsAsync = const AsyncData([]);
+  }
+
+  return resolveTranscriptLineRecordingCounts(
+    linesAsync: linesAsync,
+    targetTypeAsync: targetTypeAsync,
+    recordingsAsync: recordingsAsync,
+    mediaId: mediaId,
+  );
 }
