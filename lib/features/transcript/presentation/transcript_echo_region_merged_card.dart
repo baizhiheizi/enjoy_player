@@ -73,6 +73,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
       final secondaryText = matcher.match(line)?.text;
 
       final tile = TranscriptLineTile(
+        key: ValueKey<String>('echo-line-$i'),
         line: line,
         secondaryText: secondaryText,
         isActive: isActive,

@@ -1,0 +1,197 @@
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/player_state_providers.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
+
+const _mediaId = 'media-scroll-test';
+
+List<TranscriptLine> _sampleLines(int count) => List.generate(
+  count,
+  (i) => TranscriptLine(
+    text: 'Transcript line $i',
+    startMs: i * 1000,
+    durationMs: 1000,
+  ),
+);
+
+List<Override> _scrollTestOverrides({
+  int highlightIndex = 0,
+  Map<int, int>? recordingCounts,
+  bool echoLinkedRecordingCounts = false,
+}) {
+  return [
+    playerIsPlayingProvider.overrideWith((ref) => Stream.value(true)),
+    secondaryTranscriptLinesForMediaProvider(
+      _mediaId,
+    ).overrideWith((ref) => Stream.value(const <TranscriptLine>[])),
+    if (echoLinkedRecordingCounts)
+      transcriptLineRecordingCountsProvider(_mediaId).overrideWith((ref) {
+        final idx = ref.watch(
+          echoModeProvider.select((e) => e.startLineIndex),
+        );
+        if (idx < 0) return const {};
+        return {idx: idx + 1};
+      })
+    else
+      transcriptLineRecordingCountsProvider(_mediaId).overrideWithValue(
+        recordingCounts ?? const {},
+      ),
+    transcriptPlaybackHighlightProvider(
+      _mediaId,
+    ).overrideWith((ref) => highlightIndex),
+  ];
+}
+
+Widget _harness({
+  required Widget child,
+  required List<Override> overrides,
+}) {
+  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp(
+      theme: ThemeData(
+        colorScheme: scheme,
+        extensions: [EnjoyThemeTokens.build(scheme)],
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
+  );
+}
+
+/// Rapidly advances echo one line at a time to exercise list rebuild + scroll.
+class _EchoLineAdvanceHarness extends ConsumerStatefulWidget {
+  const _EchoLineAdvanceHarness({required this.lines});
+
+  final List<TranscriptLine> lines;
+
+  @override
+  ConsumerState<_EchoLineAdvanceHarness> createState() =>
+      _EchoLineAdvanceHarnessState();
+}
+
+class _EchoLineAdvanceHarnessState extends ConsumerState<_EchoLineAdvanceHarness> {
+  var _step = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(_advanceEchoLine);
+  }
+
+  void _advanceEchoLine(_) {
+    if (!mounted || _step >= widget.lines.length) return;
+
+    final i = _step++;
+    final line = widget.lines[i];
+    ref
+        .read(echoModeProvider.notifier)
+        .activate(
+          startLineIndex: i,
+          endLineIndex: i,
+          startTimeSeconds: line.startSeconds,
+          endTimeSeconds: line.endSeconds,
+        );
+
+    WidgetsBinding.instance.addPostFrameCallback(_advanceEchoLine);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 400,
+      child: TranscriptScrollableList(
+        mediaId: _mediaId,
+        lines: widget.lines,
+      ),
+    );
+  }
+}
+
+void main() {
+  testWidgets('rapid echo line changes do not throw framework assertions', (
+    tester,
+  ) async {
+    final lines = _sampleLines(6);
+
+    await tester.pumpWidget(
+      _harness(
+        overrides: _scrollTestOverrides(),
+        child: _EchoLineAdvanceHarness(lines: lines),
+      ),
+    );
+
+    await tester.pump();
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.takeException(), isNull);
+    }
+
+    expect(find.text('Transcript line 5'), findsOneWidget);
+  });
+
+  testWidgets('recording count updates during echo navigation stay stable', (
+    tester,
+  ) async {
+    final lines = _sampleLines(4);
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _scrollTestOverrides(echoLinkedRecordingCounts: true),
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            final scheme = ColorScheme.fromSeed(
+              seedColor: const Color(0xFF003366),
+            );
+            return MaterialApp(
+              theme: ThemeData(
+                colorScheme: scheme,
+                extensions: [EnjoyThemeTokens.build(scheme)],
+              ),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SizedBox(
+                  height: 400,
+                  child: TranscriptScrollableList(
+                    mediaId: _mediaId,
+                    lines: lines,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    for (var i = 0; i < lines.length; i++) {
+      container.read(echoModeProvider.notifier).activate(
+        startLineIndex: i,
+        endLineIndex: i,
+        startTimeSeconds: lines[i].startSeconds,
+        endTimeSeconds: lines[i].endSeconds,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.takeException(), isNull);
+    }
+
+    expect(find.text('4'), findsOneWidget);
+  });
+}

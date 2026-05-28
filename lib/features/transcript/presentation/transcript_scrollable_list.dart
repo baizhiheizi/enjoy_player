@@ -58,6 +58,24 @@ bool _echoLayoutEqual(EchoState a, EchoState b) {
       a.endLineIndex == b.endLineIndex;
 }
 
+int _virtualIndexForEcho(
+  EchoState echo,
+  List<_TranscriptVirtualItem> items,
+) {
+  return items.indexWhere(
+    (e) => e is _VirtualEcho && e.startLineIndex == echo.startLineIndex,
+  );
+}
+
+int _virtualIndexForLine(
+  int lineIndex,
+  List<_TranscriptVirtualItem> items,
+) {
+  return items.indexWhere(
+    (e) => e is _VirtualLine && e.lineIndex == lineIndex,
+  );
+}
+
 class TranscriptScrollableList extends ConsumerStatefulWidget {
   const TranscriptScrollableList({
     required this.mediaId,
@@ -76,11 +94,10 @@ class TranscriptScrollableList extends ConsumerStatefulWidget {
 class _TranscriptScrollableListState
     extends ConsumerState<TranscriptScrollableList> {
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _activeLineKey = GlobalKey();
-  final GlobalKey _echoRegionKey = GlobalKey();
   int _lastScrolledIndex = -1;
   int _lastEchoScrollStart = -999;
   int _lastEchoScrollEnd = -999;
+  bool _scrollCallbackPending = false;
 
   List<_TranscriptVirtualItem> _cachedVirtualItems = const [];
   List<TranscriptLine>? _cachedLinesRef;
@@ -102,6 +119,7 @@ class _TranscriptScrollableListState
       _lastScrolledIndex = -1;
       _lastEchoScrollStart = -999;
       _lastEchoScrollEnd = -999;
+      _scrollCallbackPending = false;
       _cachedVirtualItems = const [];
       _cachedLinesRef = null;
       _cachedEchoForItems = null;
@@ -128,6 +146,76 @@ class _TranscriptScrollableListState
       _secondaryMatcher = TranscriptSecondaryMatcher.from(secondary);
     }
     return _secondaryMatcher!;
+  }
+
+  void _scrollToVirtualIndex(
+    int index, {
+    required int itemCount,
+    required double alignment,
+    required Duration duration,
+    required Curve curve,
+  }) {
+    if (!_scrollController.hasClients || index < 0 || itemCount <= 0) return;
+
+    final pos = _scrollController.position;
+    final ratio = index / itemCount;
+    var target = ratio * pos.maxScrollExtent;
+
+    if (alignment > 0 && pos.viewportDimension > 0) {
+      target = (target - alignment * pos.viewportDimension * 0.5).clamp(
+        0.0,
+        pos.maxScrollExtent,
+      );
+    }
+
+    final clamped = target.clamp(0.0, pos.maxScrollExtent);
+    if ((pos.pixels - clamped).abs() < 1.0) return;
+
+    _scrollController.animateTo(
+      clamped,
+      duration: duration,
+      curve: curve,
+    );
+  }
+
+  void _performTranscriptScroll() {
+    if (!mounted) return;
+
+    final echo =
+        activeEchoForTranscript(
+          ref.read(echoModeProvider),
+          widget.lines.length,
+        ) ??
+        EchoState.inactive;
+    final tok = EnjoyThemeTokens.of(context);
+    final items = _virtualItems(echo);
+    final itemCount = items.length;
+
+    if (echo.active) {
+      final echoItemIndex = _virtualIndexForEcho(echo, items);
+      _scrollToVirtualIndex(
+        echoItemIndex,
+        itemCount: itemCount,
+        alignment: 0.0,
+        duration: tok.motionStandard,
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+
+    final active = ref.read(
+      transcriptPlaybackHighlightProvider(widget.mediaId),
+    );
+    if (active < 0) return;
+
+    final lineItemIndex = _virtualIndexForLine(active, items);
+    _scrollToVirtualIndex(
+      lineItemIndex,
+      itemCount: itemCount,
+      alignment: 0.42,
+      duration: tok.motionStandard,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _scheduleTranscriptScrollIntoView({bool force = false}) {
@@ -162,92 +250,13 @@ class _TranscriptScrollableListState
       _lastScrolledIndex = activeForUi;
     }
 
+    if (_scrollCallbackPending) return;
+    _scrollCallbackPending = true;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollCallbackPending = false;
       if (!mounted) return;
-      final echoNow =
-          activeEchoForTranscript(
-            ref.read(echoModeProvider),
-            widget.lines.length,
-          ) ??
-          EchoState.inactive;
-      final tok = EnjoyThemeTokens.of(context);
-
-      if (echoNow.active) {
-        final ctx = _echoRegionKey.currentContext;
-        if (ctx != null) {
-          Scrollable.ensureVisible(
-            ctx,
-            alignment: 0.0,
-            duration: tok.motionStandard,
-            curve: Curves.easeOutCubic,
-          );
-          return;
-        }
-
-        if (!_scrollController.hasClients) return;
-        final pos = _scrollController.position;
-        final items = _virtualItems(echoNow);
-        final len = items.length;
-        final echoItemIndex = items.indexWhere(
-          (e) =>
-              e is _VirtualEcho && e.startLineIndex == echoNow.startLineIndex,
-        );
-        final ratio = len > 0 && echoItemIndex >= 0 ? echoItemIndex / len : 0.0;
-        final estimated = ratio * pos.maxScrollExtent;
-        _scrollController.jumpTo(estimated.clamp(0.0, pos.maxScrollExtent));
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          final ctx2 = _echoRegionKey.currentContext;
-          if (ctx2 == null) return;
-          Scrollable.ensureVisible(
-            ctx2,
-            alignment: 0.0,
-            duration: tok.motionStandard,
-            curve: Curves.easeOutCubic,
-          );
-        });
-        return;
-      }
-
-      final active = ref.read(
-        transcriptPlaybackHighlightProvider(widget.mediaId),
-      );
-      if (active < 0) return;
-
-      final ctx = _activeLineKey.currentContext;
-      if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          alignment: 0.42,
-          duration: tok.motionStandard,
-          curve: Curves.easeOutCubic,
-        );
-        return;
-      }
-
-      if (!_scrollController.hasClients) return;
-      final pos = _scrollController.position;
-      final items = _virtualItems(echoNow);
-      final len = items.length;
-      final lineItemIndex = items.indexWhere(
-        (e) => e is _VirtualLine && e.lineIndex == active,
-      );
-      final ratio = len > 0 && lineItemIndex >= 0 ? lineItemIndex / len : 0.0;
-      final estimated = ratio * pos.maxScrollExtent;
-      _scrollController.jumpTo(estimated.clamp(0.0, pos.maxScrollExtent));
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final ctx2 = _activeLineKey.currentContext;
-        if (ctx2 == null) return;
-        Scrollable.ensureVisible(
-          ctx2,
-          alignment: 0.42,
-          duration: tok.motionStandard,
-          curve: Curves.easeOutCubic,
-        );
-      });
+      _performTranscriptScroll();
     });
   }
 
@@ -277,6 +286,11 @@ class _TranscriptScrollableListState
       next,
     ) {
       if (prev == next) return;
+      final echoNow = ref.read(echoModeProvider);
+      if (echoNow.active &&
+          (next < echoNow.startLineIndex || next > echoNow.endLineIndex)) {
+        return;
+      }
       _scheduleTranscriptScrollIntoView(force: true);
     });
     ref.listen(playerIsPlayingProvider, (_, _) {
@@ -303,8 +317,6 @@ class _TranscriptScrollableListState
           horizontal: tok.space12,
           vertical: tok.space8,
         ),
-        // Keep active cue / echo card buildable for [GlobalKey] + ensureVisible.
-        cacheExtent: 1400,
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
@@ -315,16 +327,13 @@ class _TranscriptScrollableListState
                   'echo-${e.startLineIndex}-${e.endLineIndex}',
                 ),
                 padding: EdgeInsets.only(bottom: tok.space8),
-                child: KeyedSubtree(
-                  key: _echoRegionKey,
-                  child: EchoRegionMergedCard(
-                    mediaId: widget.mediaId,
-                    lines: widget.lines,
-                    echo: echo,
-                    activeCueIndex: activeForUi,
-                    secondaryLines: secondaryLines,
-                    secondaryMatcher: secondaryMatcher,
-                  ),
+                child: EchoRegionMergedCard(
+                  mediaId: widget.mediaId,
+                  lines: widget.lines,
+                  echo: echo,
+                  activeCueIndex: activeForUi,
+                  secondaryLines: secondaryLines,
+                  secondaryMatcher: secondaryMatcher,
                 ),
               );
             case _VirtualLine vl:
@@ -338,7 +347,7 @@ class _TranscriptScrollableListState
               final secondaryText = secondaryMatcher.match(line)?.text;
 
               final selectable = isActive;
-              Widget tile = TranscriptLineTile(
+              final tile = TranscriptLineTile(
                 line: line,
                 secondaryText: secondaryText,
                 isActive: isActive,
@@ -358,10 +367,6 @@ class _TranscriptScrollableListState
                     .read(playerInteractionsProvider.notifier)
                     .seekToLine(line, lineIndex),
               );
-
-              if (isActive) {
-                tile = KeyedSubtree(key: _activeLineKey, child: tile);
-              }
 
               return Padding(
                 key: ValueKey<String>('line-$lineIndex'),
