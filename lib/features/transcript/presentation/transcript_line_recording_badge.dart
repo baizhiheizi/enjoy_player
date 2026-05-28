@@ -7,21 +7,24 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class TranscriptLineRecordingBadge extends StatelessWidget {
-  const TranscriptLineRecordingBadge({required this.count, super.key});
+  const TranscriptLineRecordingBadge({this.count, super.key});
 
-  final int count;
+  /// When `null`, counts are still loading — hide the badge.
+  final int? count;
 
   @override
   Widget build(BuildContext context) {
-    if (count <= 0) return const SizedBox.shrink();
+    final resolved = count;
+    if (resolved == null || resolved <= 0) return const SizedBox.shrink();
 
     final tok = EnjoyThemeTokens.of(context);
     final color = tok.echoActive;
     final l10n = AppLocalizations.of(context);
-    final label = l10n?.transcriptLineRecordingCount(count) ?? '$count recordings';
+    final label =
+        l10n?.transcriptLineRecordingCount(resolved) ?? '$resolved recordings';
 
-    return Semantics(
-      label: label,
+    // Tile-level semantics already announce the count; exclude nested label.
+    return ExcludeSemantics(
       child: Tooltip(
         message: label,
         child: Row(
@@ -30,7 +33,7 @@ class TranscriptLineRecordingBadge extends StatelessWidget {
             Icon(Icons.mic_rounded, size: 16, color: color),
             SizedBox(width: tok.space4),
             Text(
-              '$count',
+              '$resolved',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,

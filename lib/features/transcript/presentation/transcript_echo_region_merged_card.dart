@@ -79,7 +79,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
         inEcho: true,
         groupedInEcho: true,
         selectable: true,
-        recordingCount: lineRecordingCounts[i] ?? 0,
+        recordingCount: lineRecordingCounts?[i],
         onLookupRequested: (t) => openTranscriptLookup(
           ref: ref,
           context: context,

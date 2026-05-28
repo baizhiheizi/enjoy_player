@@ -269,9 +269,8 @@ class _TranscriptScrollableListState
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
     final secondaryMatcher = _matcherFor(secondaryLines);
     final items = _virtualItems(echo);
-    final lineRecordingCounts = ref.watch(
-      transcriptLineRecordingCountsProvider(widget.mediaId),
-    );
+    final lineRecordingCounts =
+        ref.watch(transcriptLineRecordingCountsProvider(widget.mediaId));
 
     ref.listen(transcriptPlaybackHighlightProvider(widget.mediaId), (
       prev,
@@ -346,7 +345,7 @@ class _TranscriptScrollableListState
                 inEcho: inEcho,
                 groupedInEcho: false,
                 selectable: selectable,
-                recordingCount: lineRecordingCounts[lineIndex] ?? 0,
+                recordingCount: lineRecordingCounts?[lineIndex],
                 onLookupRequested: selectable
                     ? (t) => openTranscriptLookup(
                         ref: ref,

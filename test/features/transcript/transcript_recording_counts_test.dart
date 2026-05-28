@@ -40,6 +40,17 @@ void main() {
       final r = _recording(start: 1500, duration: 1000);
       expect(recordingOverlapsLine(r, _lineA), isTrue);
     });
+
+    test('zero-duration line does not overlap', () {
+      const zeroLine = TranscriptLine(text: 'Z', startMs: 1000, durationMs: 0);
+      final r = _recording(start: 1000, duration: 500);
+      expect(recordingOverlapsLine(r, zeroLine), isFalse);
+    });
+
+    test('zero-duration recording does not overlap', () {
+      final r = _recording(start: 500, duration: 0);
+      expect(recordingOverlapsLine(r, _lineA), isFalse);
+    });
   });
 
   group('countRecordingsPerLineIndex', () {

@@ -26,7 +26,7 @@ class TranscriptLineTile extends StatefulWidget {
     required this.onTap,
     this.groupedInEcho = false,
     this.selectable = false,
-    this.recordingCount = 0,
+    this.recordingCount,
     this.onLookupRequested,
     super.key,
   });
@@ -42,8 +42,8 @@ class TranscriptLineTile extends StatefulWidget {
   /// When true, cue text is selectable and tap-to-seek is disabled (active / echo lines).
   final bool selectable;
 
-  /// Shadow-reading takes whose reference window overlaps this cue.
-  final int recordingCount;
+  /// Overlapping shadow-reading take count when known; `null` while loading.
+  final int? recordingCount;
 
   /// Invoked when the user chooses **Look up** in the text selection toolbar
   /// (1–100 characters after trim).
@@ -318,9 +318,10 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     var semanticsLabel = statePrefix.isEmpty
         ? cueLabel
         : '$statePrefix $cueLabel';
-    if (widget.recordingCount > 0 && l10n != null) {
+    final recordingCount = widget.recordingCount;
+    if (recordingCount != null && recordingCount > 0 && l10n != null) {
       semanticsLabel =
-          '$semanticsLabel. ${l10n.transcriptLineRecordingCount(widget.recordingCount)}';
+          '$semanticsLabel. ${l10n.transcriptLineRecordingCount(recordingCount)}';
     }
 
     final primaryWidget = widget.selectable
