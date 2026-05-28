@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
+import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_reset_all.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_settings_section.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -32,6 +33,8 @@ class HotkeysSettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () async {
+              if (!await confirmHotkeysResetAll(context)) return;
+              if (!context.mounted) return;
               await ctrl.resetAllBindings();
             },
             child: Text(l10n.hotkeysResetAll),
@@ -53,7 +56,7 @@ class HotkeysSettingsScreen extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: t.space16),
-              const HotkeysSettingsSection(showSectionHeader: false),
+              const HotkeysSettingsSection(),
             ],
           ),
         ),

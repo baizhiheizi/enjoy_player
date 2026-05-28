@@ -1035,6 +1035,18 @@ abstract class AppLocalizations {
   /// **'Reset all shortcuts'**
   String get hotkeysResetAll;
 
+  /// No description provided for @hotkeysResetAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all shortcuts?'**
+  String get hotkeysResetAllConfirmTitle;
+
+  /// No description provided for @hotkeysResetAllConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This restores every shortcut to its default binding. Custom bindings cannot be undone.'**
+  String get hotkeysResetAllConfirmMessage;
+
   /// No description provided for @hotkeysCaptureTitle.
   ///
   /// In en, this message translates to:

@@ -177,8 +177,9 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
+                      final router = GoRouter.of(context);
                       Navigator.of(context).pop();
-                      context.push('/settings/keyboard');
+                      router.push('/settings/keyboard');
                     },
                     child: Text(l10n.hotkeysHelpCustomize),
                   ),

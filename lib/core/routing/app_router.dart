@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/routing/auth_router_tick.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -80,6 +81,13 @@ GoRouter appRouter(Ref ref) {
       }
       if (kReleaseMode && loc.startsWith('/settings/ai-playground')) {
         return '/settings';
+      }
+      if (loc.startsWith('/settings/keyboard') && !isDesktop) {
+        return '/settings';
+      }
+      if (loc == '/settings' &&
+          state.uri.queryParameters['section'] == 'keyboard') {
+        return isDesktop ? '/settings/keyboard' : null;
       }
       return null;
     },

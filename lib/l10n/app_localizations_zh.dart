@@ -493,6 +493,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysResetAll => '重置全部快捷键';
 
   @override
+  String get hotkeysResetAllConfirmTitle => '重置全部快捷键？';
+
+  @override
+  String get hotkeysResetAllConfirmMessage => '所有快捷键将恢复为默认绑定，自定义设置无法撤销。';
+
+  @override
   String get hotkeysCaptureTitle => '按下新快捷键';
 
   @override
@@ -1924,6 +1930,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get hotkeysResetAll => '重置全部快捷键';
+
+  @override
+  String get hotkeysResetAllConfirmTitle => '重置全部快捷键？';
+
+  @override
+  String get hotkeysResetAllConfirmMessage => '所有快捷键将恢复为默认绑定，自定义设置无法撤销。';
 
   @override
   String get hotkeysCaptureTitle => '按下新快捷键';

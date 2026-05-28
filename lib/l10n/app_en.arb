@@ -235,6 +235,8 @@
   "hotkeysSectionKeyboard": "Keyboard shortcuts",
   "hotkeysResetBinding": "Reset",
   "hotkeysResetAll": "Reset all shortcuts",
+  "hotkeysResetAllConfirmTitle": "Reset all shortcuts?",
+  "hotkeysResetAllConfirmMessage": "This restores every shortcut to its default binding. Custom bindings cannot be undone.",
   "hotkeysCaptureTitle": "Press new shortcut",
   "hotkeysCaptureHint": "Press a key combination. Escape cancels.",
   "hotkeysConflictError": "That shortcut is already used.",

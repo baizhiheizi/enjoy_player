@@ -235,6 +235,8 @@
   "hotkeysSectionKeyboard": "键盘快捷键",
   "hotkeysResetBinding": "重置",
   "hotkeysResetAll": "重置全部快捷键",
+  "hotkeysResetAllConfirmTitle": "重置全部快捷键？",
+  "hotkeysResetAllConfirmMessage": "所有快捷键将恢复为默认绑定，自定义设置无法撤销。",
   "hotkeysCaptureTitle": "按下新快捷键",
   "hotkeysCaptureHint": "按下组合键。Esc 取消。",
   "hotkeysConflictError": "该快捷键已被使用。",

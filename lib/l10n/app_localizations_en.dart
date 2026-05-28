@@ -507,6 +507,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeysResetAll => 'Reset all shortcuts';
 
   @override
+  String get hotkeysResetAllConfirmTitle => 'Reset all shortcuts?';
+
+  @override
+  String get hotkeysResetAllConfirmMessage =>
+      'This restores every shortcut to its default binding. Custom bindings cannot be undone.';
+
+  @override
   String get hotkeysCaptureTitle => 'Press new shortcut';
 
   @override
