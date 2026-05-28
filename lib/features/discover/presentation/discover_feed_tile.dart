@@ -14,14 +14,15 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
-const double discoverFeedTileGridAspectRatio = 1.18;
+/// Width / height for [SliverGrid] cells (16:9 thumb + metadata only).
+const double discoverFeedTileGridAspectRatio = 1.22;
 
 class DiscoverFeedTile extends ConsumerStatefulWidget {
   const DiscoverFeedTile({required this.entry, super.key});
@@ -97,9 +98,14 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     return null;
   }
 
+  String? _durationLabel(FeedEntry entry) {
+    final seconds = entry.durationSeconds;
+    if (seconds == null || seconds <= 0) return null;
+    return formatDurationHms(Duration(seconds: seconds));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
@@ -111,6 +117,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final channelAvatar = remoteThumbnailForCard(sub?.thumbnailUrl);
     final inLibrary = _inLibrary ?? false;
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
+    final durationLabel = _durationLabel(entry);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -131,6 +138,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                 hover: _hover,
                 inLibrary: inLibrary,
                 adding: _adding,
+                durationLabel: durationLabel,
               ),
               SizedBox(height: t.space12),
               Padding(
@@ -171,52 +179,6 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                         ],
                       ),
                     ),
-                    SizedBox(width: t.space12),
-                    // Visible action or status in the exact same spot for every card
-                    // → perfectly uniform heights in the grid + no hidden menu
-                    if (inLibrary)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle_rounded,
-                            size: 16,
-                            color: cs.primary,
-                          ),
-                          SizedBox(width: t.space4),
-                          Text(
-                            l10n.discoverInLibrary,
-                            style: tt.labelSmall?.copyWith(
-                              color: cs.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      FilledButton.tonalIcon(
-                        onPressed: _adding ? null : () => unawaited(_addToLibrary()),
-                        style: FilledButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: t.space8,
-                            vertical: t.space4,
-                          ),
-                          textStyle: tt.labelSmall?.copyWith(fontWeight: FontWeight.w600),
-                          minimumSize: const Size(0, 32),
-                        ),
-                        icon: _adding
-                            ? SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.0,
-                                  color: cs.primary,
-                                ),
-                              )
-                            : const Icon(Icons.add_rounded, size: 16),
-                        label: Text(l10n.discoverAddToLibrary),
-                      ),
                   ],
                 ),
               ),
@@ -253,6 +215,7 @@ class _VideoThumbnail extends StatelessWidget {
     required this.inLibrary,
     required this.adding,
     this.thumbUrl,
+    this.durationLabel,
   });
 
   final String? thumbUrl;
@@ -260,6 +223,7 @@ class _VideoThumbnail extends StatelessWidget {
   final bool hover;
   final bool inLibrary;
   final bool adding;
+  final String? durationLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -335,15 +299,35 @@ class _VideoThumbnail extends StatelessWidget {
                       horizontal: t.space8,
                       vertical: t.space4,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 14,
-                          color: cs.primary.withValues(alpha: 0.95),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 14,
+                      color: cs.primary.withValues(alpha: 0.95),
+                    ),
+                  ),
+                ),
+              ),
+            if (durationLabel != null)
+              Positioned(
+                right: t.space8,
+                bottom: t.space8,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(t.radiusSm),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: t.space8,
+                      vertical: t.space4,
+                    ),
+                    child: Text(
+                      durationLabel!,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
                 ),

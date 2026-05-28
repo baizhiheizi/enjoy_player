@@ -16,6 +16,7 @@ import 'catalog_channel_ids.dart';
 import 'youtube_channel_resolver.dart';
 import 'youtube_fetch.dart';
 import 'youtube_rss_parser.dart';
+import 'youtube_video_duration.dart';
 
 final _log = logNamed('discover.repository');
 
@@ -262,17 +263,30 @@ class DiscoverRepository {
     );
 
     for (final entry in entries) {
+      final existing = await _db.youtubeFeedEntryDao.getEntry(
+        channelId: channelId,
+        videoId: entry.videoId,
+      );
+      final libraryVideo = await _db.videoDao.getYoutubeByVid(entry.videoId);
+      final durationSeconds =
+          libraryVideo != null && libraryVideo.durationSeconds > 0
+          ? libraryVideo.durationSeconds
+          : existing?.durationSeconds;
+
       await _db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
           videoId: entry.videoId,
           channelId: entry.channelId,
           title: entry.title,
           thumbnailUrl: entry.thumbnailUrl,
+          durationSeconds: durationSeconds,
           publishedAt: entry.publishedAt,
           fetchedAt: fetchedAt,
         ),
       );
     }
+
+    unawaited(_enrichMissingDurations(channelId, entries));
 
     final feedTitle = _rssParser.parseFeedTitle(body);
     if (feedTitle != null && feedTitle.isNotEmpty) {
@@ -288,6 +302,33 @@ class DiscoverRepository {
     );
 
     unawaited(_maybeUpdateChannelAvatar(channelId));
+  }
+
+  Future<void> _enrichMissingDurations(
+    String channelId,
+    List<FeedEntry> entries,
+  ) async {
+    for (final entry in entries) {
+      final cached = await _db.youtubeFeedEntryDao.getEntry(
+        channelId: channelId,
+        videoId: entry.videoId,
+      );
+      if (cached?.durationSeconds != null && cached!.durationSeconds! > 0) {
+        continue;
+      }
+
+      final seconds = await YoutubeVideoDuration.fetchSeconds(
+        _client,
+        entry.videoId,
+      );
+      if (seconds == null || seconds <= 0) continue;
+
+      await _db.youtubeFeedEntryDao.updateDurationSeconds(
+        channelId: channelId,
+        videoId: entry.videoId,
+        durationSeconds: seconds,
+      );
+    }
   }
 
   Future<void> _repairLegacyCatalogChannelIds() async {
@@ -355,6 +396,7 @@ class DiscoverRepository {
       channelId: row.channelId,
       title: row.title,
       thumbnailUrl: row.thumbnailUrl,
+      durationSeconds: row.durationSeconds,
       publishedAt: row.publishedAt,
     );
   }

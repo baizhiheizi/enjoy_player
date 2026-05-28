@@ -12,6 +12,7 @@ class YoutubeFeedEntries extends Table {
   TextColumn get channelId => text()();
   TextColumn get title => text()();
   TextColumn get thumbnailUrl => text().nullable()();
+  IntColumn get durationSeconds => integer().nullable()();
   DateTimeColumn get publishedAt => dateTime()();
   DateTimeColumn get fetchedAt => dateTime()();
 

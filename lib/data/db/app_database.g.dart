@@ -7860,6 +7860,17 @@ class $YoutubeFeedEntriesTable extends YoutubeFeedEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _publishedAtMeta = const VerificationMeta(
     'publishedAt',
   );
@@ -7888,6 +7899,7 @@ class $YoutubeFeedEntriesTable extends YoutubeFeedEntries
     channelId,
     title,
     thumbnailUrl,
+    durationSeconds,
     publishedAt,
     fetchedAt,
   ];
@@ -7936,6 +7948,15 @@ class $YoutubeFeedEntriesTable extends YoutubeFeedEntries
         ),
       );
     }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
     if (data.containsKey('published_at')) {
       context.handle(
         _publishedAtMeta,
@@ -7980,6 +8001,10 @@ class $YoutubeFeedEntriesTable extends YoutubeFeedEntries
         DriftSqlType.string,
         data['${effectivePrefix}thumbnail_url'],
       ),
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      ),
       publishedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}published_at'],
@@ -8003,6 +8028,7 @@ class YoutubeFeedEntryRow extends DataClass
   final String channelId;
   final String title;
   final String? thumbnailUrl;
+  final int? durationSeconds;
   final DateTime publishedAt;
   final DateTime fetchedAt;
   const YoutubeFeedEntryRow({
@@ -8010,6 +8036,7 @@ class YoutubeFeedEntryRow extends DataClass
     required this.channelId,
     required this.title,
     this.thumbnailUrl,
+    this.durationSeconds,
     required this.publishedAt,
     required this.fetchedAt,
   });
@@ -8021,6 +8048,9 @@ class YoutubeFeedEntryRow extends DataClass
     map['title'] = Variable<String>(title);
     if (!nullToAbsent || thumbnailUrl != null) {
       map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    if (!nullToAbsent || durationSeconds != null) {
+      map['duration_seconds'] = Variable<int>(durationSeconds);
     }
     map['published_at'] = Variable<DateTime>(publishedAt);
     map['fetched_at'] = Variable<DateTime>(fetchedAt);
@@ -8035,6 +8065,9 @@ class YoutubeFeedEntryRow extends DataClass
       thumbnailUrl: thumbnailUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(thumbnailUrl),
+      durationSeconds: durationSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationSeconds),
       publishedAt: Value(publishedAt),
       fetchedAt: Value(fetchedAt),
     );
@@ -8050,6 +8083,7 @@ class YoutubeFeedEntryRow extends DataClass
       channelId: serializer.fromJson<String>(json['channelId']),
       title: serializer.fromJson<String>(json['title']),
       thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       publishedAt: serializer.fromJson<DateTime>(json['publishedAt']),
       fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
     );
@@ -8062,6 +8096,7 @@ class YoutubeFeedEntryRow extends DataClass
       'channelId': serializer.toJson<String>(channelId),
       'title': serializer.toJson<String>(title),
       'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'publishedAt': serializer.toJson<DateTime>(publishedAt),
       'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
     };
@@ -8072,6 +8107,7 @@ class YoutubeFeedEntryRow extends DataClass
     String? channelId,
     String? title,
     Value<String?> thumbnailUrl = const Value.absent(),
+    Value<int?> durationSeconds = const Value.absent(),
     DateTime? publishedAt,
     DateTime? fetchedAt,
   }) => YoutubeFeedEntryRow(
@@ -8079,6 +8115,9 @@ class YoutubeFeedEntryRow extends DataClass
     channelId: channelId ?? this.channelId,
     title: title ?? this.title,
     thumbnailUrl: thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+    durationSeconds: durationSeconds.present
+        ? durationSeconds.value
+        : this.durationSeconds,
     publishedAt: publishedAt ?? this.publishedAt,
     fetchedAt: fetchedAt ?? this.fetchedAt,
   );
@@ -8090,6 +8129,9 @@ class YoutubeFeedEntryRow extends DataClass
       thumbnailUrl: data.thumbnailUrl.present
           ? data.thumbnailUrl.value
           : this.thumbnailUrl,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
       publishedAt: data.publishedAt.present
           ? data.publishedAt.value
           : this.publishedAt,
@@ -8104,6 +8146,7 @@ class YoutubeFeedEntryRow extends DataClass
           ..write('channelId: $channelId, ')
           ..write('title: $title, ')
           ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('publishedAt: $publishedAt, ')
           ..write('fetchedAt: $fetchedAt')
           ..write(')'))
@@ -8116,6 +8159,7 @@ class YoutubeFeedEntryRow extends DataClass
     channelId,
     title,
     thumbnailUrl,
+    durationSeconds,
     publishedAt,
     fetchedAt,
   );
@@ -8127,6 +8171,7 @@ class YoutubeFeedEntryRow extends DataClass
           other.channelId == this.channelId &&
           other.title == this.title &&
           other.thumbnailUrl == this.thumbnailUrl &&
+          other.durationSeconds == this.durationSeconds &&
           other.publishedAt == this.publishedAt &&
           other.fetchedAt == this.fetchedAt);
 }
@@ -8136,6 +8181,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
   final Value<String> channelId;
   final Value<String> title;
   final Value<String?> thumbnailUrl;
+  final Value<int?> durationSeconds;
   final Value<DateTime> publishedAt;
   final Value<DateTime> fetchedAt;
   final Value<int> rowid;
@@ -8144,6 +8190,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
     this.channelId = const Value.absent(),
     this.title = const Value.absent(),
     this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     this.publishedAt = const Value.absent(),
     this.fetchedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -8153,6 +8200,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
     required String channelId,
     required String title,
     this.thumbnailUrl = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
     required DateTime publishedAt,
     required DateTime fetchedAt,
     this.rowid = const Value.absent(),
@@ -8166,6 +8214,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
     Expression<String>? channelId,
     Expression<String>? title,
     Expression<String>? thumbnailUrl,
+    Expression<int>? durationSeconds,
     Expression<DateTime>? publishedAt,
     Expression<DateTime>? fetchedAt,
     Expression<int>? rowid,
@@ -8175,6 +8224,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
       if (channelId != null) 'channel_id': channelId,
       if (title != null) 'title': title,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (publishedAt != null) 'published_at': publishedAt,
       if (fetchedAt != null) 'fetched_at': fetchedAt,
       if (rowid != null) 'rowid': rowid,
@@ -8186,6 +8236,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
     Value<String>? channelId,
     Value<String>? title,
     Value<String?>? thumbnailUrl,
+    Value<int?>? durationSeconds,
     Value<DateTime>? publishedAt,
     Value<DateTime>? fetchedAt,
     Value<int>? rowid,
@@ -8195,6 +8246,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
       channelId: channelId ?? this.channelId,
       title: title ?? this.title,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       publishedAt: publishedAt ?? this.publishedAt,
       fetchedAt: fetchedAt ?? this.fetchedAt,
       rowid: rowid ?? this.rowid,
@@ -8216,6 +8268,9 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
     if (thumbnailUrl.present) {
       map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
     }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
     if (publishedAt.present) {
       map['published_at'] = Variable<DateTime>(publishedAt.value);
     }
@@ -8235,6 +8290,7 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
           ..write('channelId: $channelId, ')
           ..write('title: $title, ')
           ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('durationSeconds: $durationSeconds, ')
           ..write('publishedAt: $publishedAt, ')
           ..write('fetchedAt: $fetchedAt, ')
           ..write('rowid: $rowid')
@@ -11961,6 +12017,7 @@ typedef $$YoutubeFeedEntriesTableCreateCompanionBuilder =
       required String channelId,
       required String title,
       Value<String?> thumbnailUrl,
+      Value<int?> durationSeconds,
       required DateTime publishedAt,
       required DateTime fetchedAt,
       Value<int> rowid,
@@ -11971,6 +12028,7 @@ typedef $$YoutubeFeedEntriesTableUpdateCompanionBuilder =
       Value<String> channelId,
       Value<String> title,
       Value<String?> thumbnailUrl,
+      Value<int?> durationSeconds,
       Value<DateTime> publishedAt,
       Value<DateTime> fetchedAt,
       Value<int> rowid,
@@ -12002,6 +12060,11 @@ class $$YoutubeFeedEntriesTableFilterComposer
 
   ColumnFilters<String> get thumbnailUrl => $composableBuilder(
     column: $table.thumbnailUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12045,6 +12108,11 @@ class $$YoutubeFeedEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get publishedAt => $composableBuilder(
     column: $table.publishedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12076,6 +12144,11 @@ class $$YoutubeFeedEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
     column: $table.thumbnailUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
     builder: (column) => column,
   );
 
@@ -12132,6 +12205,7 @@ class $$YoutubeFeedEntriesTableTableManager
                 Value<String> channelId = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
                 Value<DateTime> publishedAt = const Value.absent(),
                 Value<DateTime> fetchedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -12140,6 +12214,7 @@ class $$YoutubeFeedEntriesTableTableManager
                 channelId: channelId,
                 title: title,
                 thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
                 publishedAt: publishedAt,
                 fetchedAt: fetchedAt,
                 rowid: rowid,
@@ -12150,6 +12225,7 @@ class $$YoutubeFeedEntriesTableTableManager
                 required String channelId,
                 required String title,
                 Value<String?> thumbnailUrl = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
                 required DateTime publishedAt,
                 required DateTime fetchedAt,
                 Value<int> rowid = const Value.absent(),
@@ -12158,6 +12234,7 @@ class $$YoutubeFeedEntriesTableTableManager
                 channelId: channelId,
                 title: title,
                 thumbnailUrl: thumbnailUrl,
+                durationSeconds: durationSeconds,
                 publishedAt: publishedAt,
                 fetchedAt: fetchedAt,
                 rowid: rowid,

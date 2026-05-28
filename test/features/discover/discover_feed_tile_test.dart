@@ -83,8 +83,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('In library'), findsOneWidget);
     expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+    expect(find.text('In library'), findsNothing);
   });
 
   testWidgets('DiscoverFeedTile does not open player when import fails on play', (

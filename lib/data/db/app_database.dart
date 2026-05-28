@@ -55,7 +55,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: name));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +63,11 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
+      if (from == 7 && to == 8) {
+        await m.addColumn(youtubeFeedEntries, youtubeFeedEntries.durationSeconds);
+        return;
+      }
+
       // v6 → v7 only adds Discover tables; preserve existing library data.
       if (from >= 6 && to == 7) {
         await m.createTable(youtubeChannelSubscriptions);
@@ -670,6 +675,29 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> upsertEntry(YoutubeFeedEntryRow row) =>
       into(youtubeFeedEntries).insert(row, mode: InsertMode.insertOrReplace);
+
+  Future<YoutubeFeedEntryRow?> getEntry({
+    required String channelId,
+    required String videoId,
+  }) =>
+      (select(youtubeFeedEntries)
+            ..where(
+              (t) =>
+                  t.channelId.equals(channelId) & t.videoId.equals(videoId),
+            ))
+          .getSingleOrNull();
+
+  Future<void> updateDurationSeconds({
+    required String channelId,
+    required String videoId,
+    required int durationSeconds,
+  }) async {
+    await (update(youtubeFeedEntries)..where(
+          (t) =>
+              t.channelId.equals(channelId) & t.videoId.equals(videoId),
+        ))
+        .write(YoutubeFeedEntriesCompanion(durationSeconds: Value(durationSeconds)));
+  }
 
   Future<void> deleteForChannel(String channelId) => (delete(
     youtubeFeedEntries,

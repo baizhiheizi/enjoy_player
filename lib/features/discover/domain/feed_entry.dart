@@ -7,6 +7,7 @@ class FeedEntry {
     required this.channelId,
     required this.title,
     this.thumbnailUrl,
+    this.durationSeconds,
     required this.publishedAt,
   });
 
@@ -14,5 +15,8 @@ class FeedEntry {
   final String channelId;
   final String title;
   final String? thumbnailUrl;
+
+  /// When known (RSS enrichment or library row); omitted from YouTube Atom feeds.
+  final int? durationSeconds;
   final DateTime publishedAt;
 }
