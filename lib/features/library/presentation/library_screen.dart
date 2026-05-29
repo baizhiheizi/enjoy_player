@@ -1,26 +1,20 @@
-/// Library: editorial header, audio list / video grid with MediaCard.
+/// Library: unified local + cloud source shell with editorial chrome.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:enjoy_player/core/routing/player_navigation.dart';
-import 'package:enjoy_player/features/player/application/player_controller.dart';
-import 'package:enjoy_player/core/theme/generative_media_cover.dart';
+import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
-import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
-import 'package:enjoy_player/core/theme/widgets/media_card.dart';
-import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
-import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
-import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
+import 'package:enjoy_player/features/cloud/presentation/cloud_library_body.dart';
+import 'package:enjoy_player/features/library/presentation/library_actions.dart';
+import 'package:enjoy_player/features/library/presentation/widgets/compact_library_search_bar.dart';
+import 'package:enjoy_player/features/library/presentation/widgets/library_source_toggle.dart';
+import 'package:enjoy_player/features/library/presentation/widgets/local_library_tab_view.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-import '../application/library_media_provider.dart';
-import '../application/library_search_focus_provider.dart';
-import '../application/library_search_provider.dart';
-import '../domain/media.dart';
-import 'library_actions.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -30,437 +24,184 @@ class LibraryScreen extends ConsumerStatefulWidget {
 }
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+    with TickerProviderStateMixin {
+  late final TabController _localKindController;
+  late final TabController _cloudKindController;
+  final _cloudBodyKey = GlobalKey<CloudLibraryBodyState>();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _localKindController = TabController(length: 2, vsync: this);
+    _cloudKindController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _localKindController.dispose();
+    _cloudKindController.dispose();
     super.dispose();
+  }
+
+  TabController _kindControllerFor(LibrarySource source) {
+    return source == LibrarySource.local
+        ? _localKindController
+        : _cloudKindController;
+  }
+
+  void _setKindIndex(int index) {
+    if (_localKindController.index != index) {
+      _localKindController.animateTo(index);
+    }
+    if (_cloudKindController.index != index) {
+      _cloudKindController.animateTo(index);
+    }
+  }
+
+  void _setSource(BuildContext context, LibrarySource next) {
+    final current = librarySourceFromUri(GoRouterState.of(context).uri);
+    if (current == next) return;
+    context.go(libraryRouteForSource(next));
+  }
+
+  void _toggleSource(BuildContext context, LibrarySource current) {
+    _setSource(
+      context,
+      current == LibrarySource.local ? LibrarySource.cloud : LibrarySource.local,
+    );
+  }
+
+  Widget _kindSegment(AppLocalizations l10n, LibrarySource source) {
+    final controller = _kindControllerFor(source);
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        return SegmentedButton<String>(
+          style: enjoySegmentedButtonStyle(context),
+          showSelectedIcon: false,
+          emptySelectionAllowed: false,
+          segments: [
+            ButtonSegment<String>(
+              value: 'audio',
+              icon: const Icon(Icons.graphic_eq_rounded, size: 16),
+              label: Text(l10n.libraryTabAudio),
+            ),
+            ButtonSegment<String>(
+              value: 'video',
+              icon: const Icon(Icons.movie_outlined, size: 16),
+              label: Text(l10n.libraryTabVideo),
+            ),
+          ],
+          selected: {controller.index == 0 ? 'audio' : 'video'},
+          onSelectionChanged: (next) {
+            final v = next.single;
+            final i = v == 'audio' ? 0 : 1;
+            if (controller.index != i) {
+              _setKindIndex(i);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _sourceBody({
+    required LibrarySource source,
+    required bool reduceMotion,
+  }) {
+    final duration = reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 220);
+
+    Widget fadeLayer({
+      required bool visible,
+      required Widget child,
+    }) {
+      return IgnorePointer(
+        ignoring: !visible,
+        child: AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: duration,
+          curve: Curves.easeOutCubic,
+          child: child,
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        fadeLayer(
+          visible: source == LibrarySource.local,
+          child: LocalLibraryTabView(tabController: _localKindController),
+        ),
+        fadeLayer(
+          visible: source == LibrarySource.cloud,
+          child: CloudLibraryBody(
+            key: _cloudBodyKey,
+            tabController: _cloudKindController,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final listsAsync = ref.watch(libraryFilteredListsProvider);
-    final allMediaAsync = ref.watch(libraryMediaProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final query = ref.watch(librarySearchProvider);
-
-    final allItems = allMediaAsync.asData?.value ?? const <Media>[];
-    final totalAudio = allItems.where((m) => m.kind == MediaKind.audio).length;
-    final totalVideo = allItems.where((m) => m.kind == MediaKind.video).length;
-
-    Widget shell({required bool showCompactSearch, required Widget tabBody}) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          EditorialHeader(
-            title: l10n.libraryTitle,
-            trailing: FilledButton.icon(
-              onPressed: () => showImportChooser(context, ref),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(l10n.actionImport),
-            ),
-          ),
-          if (showCompactSearch) const _CompactLibrarySearchBar(),
-          Padding(
-            padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space12),
-            child: AnimatedBuilder(
-              animation: _tabController,
-              builder: (context, _) {
-                return SegmentedButton<String>(
-                  style: SegmentedButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: cs.surfaceContainerHighest.withValues(
-                      alpha: 0.45,
-                    ),
-                    foregroundColor: cs.onSurfaceVariant,
-                    selectedForegroundColor: cs.onPrimaryContainer,
-                    selectedBackgroundColor: cs.primaryContainer.withValues(
-                      alpha: 0.65,
-                    ),
-                    side: BorderSide(
-                      color: cs.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                    splashFactory: NoSplash.splashFactory,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(t.radiusFull),
-                    ),
-                    textStyle: tt.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  showSelectedIcon: false,
-                  emptySelectionAllowed: false,
-                  segments: [
-                    ButtonSegment<String>(
-                      value: 'audio',
-                      icon: const Icon(Icons.graphic_eq_rounded, size: 16),
-                      label: Text(l10n.libraryTabAudio),
-                    ),
-                    ButtonSegment<String>(
-                      value: 'video',
-                      icon: const Icon(Icons.movie_outlined, size: 16),
-                      label: Text(l10n.libraryTabVideo),
-                    ),
-                  ],
-                  selected: {_tabController.index == 0 ? 'audio' : 'video'},
-                  onSelectionChanged: (next) {
-                    final v = next.single;
-                    final i = v == 'audio' ? 0 : 1;
-                    if (_tabController.index != i) {
-                      _tabController.animateTo(i);
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-          Expanded(child: tabBody),
-        ],
-      );
-    }
+    final source = librarySourceFromUri(GoRouterState.of(context).uri);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final isCloud = source == LibrarySource.cloud;
 
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final showCompactSearch = constraints.maxWidth < t.breakpointRail;
+          final showCompactSearch =
+              !isCloud && constraints.maxWidth < t.breakpointRail;
 
-          return listsAsync.when(
-            data: (lists) {
-              return shell(
-                showCompactSearch: showCompactSearch,
-                tabBody: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _AudioLibraryBody(
-                      items: lists.audio,
-                      searchQuery: query,
-                      totalInLibraryOfKind: totalAudio,
-                    ),
-                    _VideoLibraryBody(
-                      items: lists.video,
-                      searchQuery: query,
-                      totalInLibraryOfKind: totalVideo,
-                    ),
-                  ],
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              EditorialHeader(
+                title: l10n.libraryTitle,
+                titleAccessory: LibrarySourceToggle(
+                  source: source,
+                  onToggle: () => _toggleSource(context, source),
                 ),
-              );
-            },
-            loading: () => shell(
-              showCompactSearch: showCompactSearch,
-              tabBody: TabBarView(
-                controller: _tabController,
-                children: const [SkeletonMediaList(), SkeletonMediaGrid()],
-              ),
-            ),
-            error: (e, _) => shell(
-              showCompactSearch: showCompactSearch,
-              tabBody: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(t.space24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 48,
-                        color: cs.error,
-                      ),
-                      SizedBox(height: t.space16),
-                      Text(
-                        '${l10n.error}: $e',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      SizedBox(height: t.space16),
-                      FilledButton.tonal(
+                trailing: isCloud
+                    ? IconButton(
+                        icon: const Icon(Icons.refresh_rounded, size: 22),
+                        tooltip: l10n.cloudRefreshTooltip,
                         onPressed: () =>
-                            ref.invalidate(libraryFilteredListsProvider),
-                        child: Text(l10n.retry),
+                            _cloudBodyKey.currentState?.refreshActiveTab(),
+                      )
+                    : FilledButton.icon(
+                        onPressed: () => showImportChooser(context, ref),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: Text(l10n.actionImport),
                       ),
-                    ],
-                  ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  t.space24,
+                  0,
+                  t.space24,
+                  t.space12,
+                ),
+                child: _kindSegment(l10n, source),
+              ),
+              if (showCompactSearch) const CompactLibrarySearchBar(),
+              Expanded(
+                child: _sourceBody(
+                  source: source,
+                  reduceMotion: reduceMotion,
                 ),
               ),
-            ),
+            ],
           );
         },
       ),
-    );
-  }
-}
-
-/// Search field for narrow layouts (sidebar search is hidden below rail width).
-class _CompactLibrarySearchBar extends ConsumerStatefulWidget {
-  const _CompactLibrarySearchBar();
-
-  @override
-  ConsumerState<_CompactLibrarySearchBar> createState() =>
-      _CompactLibrarySearchBarState();
-}
-
-class _CompactLibrarySearchBarState
-    extends ConsumerState<_CompactLibrarySearchBar> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: ref.read(librarySearchProvider));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen(librarySearchProvider, (previous, next) {
-      if (_controller.text != next) {
-        _controller.value = TextEditingValue(
-          text: next,
-          selection: TextSelection.collapsed(offset: next.length),
-        );
-      }
-    });
-
-    ref.listen(librarySearchFocusRequestProvider, (previous, next) {
-      ref.read(libraryCompactSearchFocusNodeProvider).requestFocus();
-    });
-
-    final compactFocusNode = ref.watch(libraryCompactSearchFocusNodeProvider);
-
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space8),
-      child: TextField(
-        focusNode: compactFocusNode,
-        controller: _controller,
-        onChanged: (v) => ref.read(librarySearchProvider.notifier).setQuery(v),
-        style: tt.bodyMedium,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: l10n.searchHint,
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: cs.onSurfaceVariant,
-            size: 20,
-          ),
-          filled: true,
-          fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(t.radiusSm),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: t.space12,
-            vertical: t.space8,
-          ),
-          isDense: true,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Audio tab ───────────────────────────────────────────────────────────────
-
-class _AudioLibraryBody extends StatelessWidget {
-  const _AudioLibraryBody({
-    required this.items,
-    required this.searchQuery,
-    required this.totalInLibraryOfKind,
-  });
-
-  final List<Media> items;
-  final String searchQuery;
-  final int totalInLibraryOfKind;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-
-    if (items.isEmpty) {
-      final filteredBySearch =
-          searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
-      if (filteredBySearch) {
-        return EmptyState(
-          icon: Icons.search_off_rounded,
-          illustrationAsset: EnjoyIllustrations.emptyLibrary,
-          title: l10n.librarySearchNoMatchesTitle,
-          subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(
-            context,
-          ).read(librarySearchProvider.notifier).setQuery(''),
-          actionLabel: l10n.librarySearchClear,
-        );
-      }
-      return EmptyState(
-        icon: Icons.graphic_eq_rounded,
-        illustrationAsset: EnjoyIllustrations.emptyLibrary,
-        title: l10n.libraryEmptyAudioTitle,
-        subtitle: l10n.libraryEmptyAudioHint,
-      );
-    }
-
-    return ListView.separated(
-      padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, t.space24),
-      itemCount: items.length,
-      separatorBuilder: (context, _) => SizedBox(height: t.space8),
-      itemBuilder: (context, index) {
-        final m = items[index];
-        return _AudioRow(media: m);
-      },
-    );
-  }
-}
-
-class _AudioRow extends ConsumerWidget {
-  const _AudioRow({required this.media});
-
-  final Media media;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
-    );
-    final thumb = localThumbnailFileForCard(media.thumbnailPath);
-    final netThumb = remoteThumbnailForCard(media.thumbnailPath);
-    final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
-    // See `_HomeMediaTile` for rationale: per-tile palette extraction stalls
-    // the main isolate when many cards mount at once.
-    final accent = generativeAccentForSeed(media.coverSeed);
-
-    return MediaCardRow(
-      title: media.title,
-      subtitle: dur,
-      badge: media.language,
-      providerBadge: media.provider == 'youtube' ? l10n.youtubeBadge : null,
-      thumbnailFile: thumb,
-      thumbnailNetworkUrl: netThumb,
-      coverSeed: media.coverSeed,
-      isVideo: false,
-      accentColor: accent,
-      heroArtworkMediaId: playingId == media.id ? null : media.id,
-      deleteTooltip: l10n.libraryDeleteMediaTooltip,
-      onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => openPlayerRoute(context, media.id),
-    );
-  }
-}
-
-// ── Video tab ───────────────────────────────────────────────────────────────
-
-class _VideoLibraryBody extends StatelessWidget {
-  const _VideoLibraryBody({
-    required this.items,
-    required this.searchQuery,
-    required this.totalInLibraryOfKind,
-  });
-
-  final List<Media> items;
-  final String searchQuery;
-  final int totalInLibraryOfKind;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-
-    if (items.isEmpty) {
-      final filteredBySearch =
-          searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
-      if (filteredBySearch) {
-        return EmptyState(
-          icon: Icons.search_off_rounded,
-          illustrationAsset: EnjoyIllustrations.emptyRecordings,
-          title: l10n.librarySearchNoMatchesTitle,
-          subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(
-            context,
-          ).read(librarySearchProvider.notifier).setQuery(''),
-          actionLabel: l10n.librarySearchClear,
-        );
-      }
-      return EmptyState(
-        icon: Icons.movie_outlined,
-        illustrationAsset: EnjoyIllustrations.emptyRecordings,
-        title: l10n.libraryEmptyVideoTitle,
-        subtitle: l10n.libraryEmptyVideoHint,
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisExtent = constraints.maxWidth - t.space16 * 2;
-        return GridView.builder(
-          padding: EdgeInsets.all(t.space16),
-          gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
-            crossAxisExtent: crossAxisExtent,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) => Align(
-            alignment: Alignment.topCenter,
-            child: _VideoTile(media: items[index]),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _VideoTile extends ConsumerWidget {
-  const _VideoTile({required this.media});
-
-  final Media media;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final playingId = ref.watch(
-      playerControllerProvider.select((s) => s?.mediaId),
-    );
-    final thumb = localThumbnailFileForMedia(media);
-    final netThumb = networkThumbnailForMedia(media);
-    final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
-    // See `_HomeMediaTile` for rationale: per-tile palette extraction stalls
-    // the main isolate when many cards mount at once.
-    final accent = generativeAccentForSeed(media.coverSeed);
-
-    return MediaCardTile(
-      title: media.title,
-      subtitle: l10n.miniPlayerMediaVideo,
-      durationLabel: media.durationMs > 0 ? dur : null,
-      thumbnailFile: thumb,
-      providerBadge: media.provider == 'youtube' ? l10n.youtubeBadge : null,
-      thumbnailNetworkUrl: netThumb,
-      coverSeed: media.coverSeed,
-      isVideo: true,
-      accentColor: accent,
-      heroArtworkMediaId: playingId == media.id ? null : media.id,
-      deleteTooltip: l10n.libraryDeleteMediaTooltip,
-      onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => openPlayerRoute(context, media.id),
     );
   }
 }

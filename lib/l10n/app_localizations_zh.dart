@@ -15,6 +15,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryTitle => '资料库';
 
   @override
+  String get librarySourceLocal => '本地';
+
+  @override
+  String get librarySourceCloud => '云端';
+
+  @override
+  String get librarySourceCloudEyebrow => '云端';
+
+  @override
+  String get librarySourceSwitchSemantics => '资料库来源';
+
+  @override
+  String get librarySourceToggleToCloud => '切换到云端';
+
+  @override
+  String get librarySourceToggleToLocal => '切换到本地';
+
+  @override
   String get homeTitle => '首页';
 
   @override
@@ -1562,6 +1580,24 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get libraryTitle => '资料库';
+
+  @override
+  String get librarySourceLocal => '本地';
+
+  @override
+  String get librarySourceCloud => '云端';
+
+  @override
+  String get librarySourceCloudEyebrow => '云端';
+
+  @override
+  String get librarySourceSwitchSemantics => '资料库来源';
+
+  @override
+  String get librarySourceToggleToCloud => '切换到云端';
+
+  @override
+  String get librarySourceToggleToLocal => '切换到本地';
 
   @override
   String get homeTitle => '首页';

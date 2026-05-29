@@ -28,9 +28,8 @@ class RootShell extends ConsumerStatefulWidget {
 
 class _RootShellState extends ConsumerState<RootShell> {
   int _navIndexForPath(String path) {
-    if (path.startsWith('/settings')) return 4;
-    if (path.startsWith('/cloud')) return 3;
-    if (path.startsWith('/library')) return 2;
+    if (path.startsWith('/settings')) return 3;
+    if (path.startsWith('/library') || path.startsWith('/cloud')) return 2;
     if (path.startsWith('/discover')) return 1;
     return 0;
   }
@@ -47,9 +46,6 @@ class _RootShellState extends ConsumerState<RootShell> {
         context.go('/library');
         return;
       case 3:
-        context.go('/cloud');
-        return;
-      case 4:
         context.go('/settings');
         return;
       default:
@@ -94,11 +90,6 @@ class _RootShellState extends ConsumerState<RootShell> {
                       icon: Icons.collections_bookmark_outlined,
                       selectedIcon: Icons.collections_bookmark_rounded,
                       label: l10n.libraryTitle,
-                    ),
-                    EnjoyBottomNavDestination(
-                      icon: Icons.cloud_outlined,
-                      selectedIcon: Icons.cloud_rounded,
-                      label: l10n.cloudScreenTitle,
                     ),
                     EnjoyBottomNavDestination(
                       icon: Icons.settings_outlined,

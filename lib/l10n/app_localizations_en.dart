@@ -15,6 +15,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryTitle => 'Library';
 
   @override
+  String get librarySourceLocal => 'Local';
+
+  @override
+  String get librarySourceCloud => 'Cloud';
+
+  @override
+  String get librarySourceCloudEyebrow => 'Cloud';
+
+  @override
+  String get librarySourceSwitchSemantics => 'Library source';
+
+  @override
+  String get librarySourceToggleToCloud => 'Switch to cloud';
+
+  @override
+  String get librarySourceToggleToLocal => 'Switch to local';
+
+  @override
   String get homeTitle => 'Home';
 
   @override

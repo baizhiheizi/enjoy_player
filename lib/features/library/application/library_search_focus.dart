@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/routing/app_router.dart';
+import 'package:enjoy_player/core/routing/library_source.dart';
 import 'library_search_focus_provider.dart';
 
 /// Whether [library.search] (`/`) should be handled on [path].
@@ -20,9 +21,10 @@ bool librarySearchHotkeyEnabledForPath(String path) {
 
 /// Navigates to Library when search is activated from another shell route.
 void ensureLibraryRouteForSearch(GoRouter router) {
-  final path = router.state.uri.path;
-  if (!path.startsWith('/library')) {
-    router.go('/library');
+  final uri = router.state.uri;
+  if (!uri.path.startsWith('/library') ||
+      librarySourceFromUri(uri) == LibrarySource.cloud) {
+    router.go(libraryRouteForSource(LibrarySource.local));
   }
 }
 

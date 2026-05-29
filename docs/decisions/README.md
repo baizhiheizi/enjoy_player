@@ -45,3 +45,4 @@ Trade-offs, follow-up work, risks.
 | [0019](0019-transcript-dictionary-lookup.md) | Transcript dictionary lookup — selection scope, bottom sheet, worker APIs |
 | [0020](0020-android-windows-release-identity.md) | Android app ID `ai.enjoy.player`, release signing via `key.properties`, Windows release branding + Inno installer |
 | [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions |
+| [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |

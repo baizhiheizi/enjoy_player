@@ -15,7 +15,7 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/sign_in_screen.dart';
-import 'package:enjoy_player/features/cloud/presentation/cloud_screen.dart';
+import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/features/discover/presentation/channel_feed_screen.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
@@ -87,6 +87,9 @@ GoRouter appRouter(Ref ref) {
       if (loc.startsWith('/settings/keyboard') && !isDesktop) {
         return '/settings';
       }
+      if (loc == '/cloud' || loc.startsWith('/cloud/')) {
+        return libraryRouteForSource(LibrarySource.cloud);
+      }
       if (loc == '/settings' &&
           state.uri.queryParameters['section'] == 'keyboard') {
         return isDesktop ? '/settings/keyboard' : null;
@@ -125,13 +128,6 @@ GoRouter appRouter(Ref ref) {
             pageBuilder: (context, state) => _shellPage(
               key: const ValueKey<String>('shell-library'),
               child: const LibraryScreen(),
-            ),
-          ),
-          GoRoute(
-            path: '/cloud',
-            pageBuilder: (context, state) => _shellPage(
-              key: const ValueKey<String>('shell-cloud'),
-              child: const CloudScreen(),
             ),
           ),
           GoRoute(

@@ -111,6 +111,42 @@ abstract class AppLocalizations {
   /// **'Library'**
   String get libraryTitle;
 
+  /// No description provided for @librarySourceLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get librarySourceLocal;
+
+  /// No description provided for @librarySourceCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get librarySourceCloud;
+
+  /// No description provided for @librarySourceCloudEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get librarySourceCloudEyebrow;
+
+  /// No description provided for @librarySourceSwitchSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Library source'**
+  String get librarySourceSwitchSemantics;
+
+  /// No description provided for @librarySourceToggleToCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to cloud'**
+  String get librarySourceToggleToCloud;
+
+  /// No description provided for @librarySourceToggleToLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to local'**
+  String get librarySourceToggleToLocal;
+
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:

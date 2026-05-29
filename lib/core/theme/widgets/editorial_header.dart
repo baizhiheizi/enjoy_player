@@ -13,6 +13,7 @@ class EditorialHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.titleAccessory,
     this.trailing,
     this.padding,
     this.compact = false,
@@ -20,6 +21,9 @@ class EditorialHeader extends StatelessWidget {
 
   final String title;
   final String? subtitle;
+
+  /// Inline chip or control beside the title (same row).
+  final Widget? titleAccessory;
   final Widget? trailing;
   final EdgeInsetsGeometry? padding;
 
@@ -75,11 +79,22 @@ class EditorialHeader extends StatelessWidget {
                           ),
                           SizedBox(height: t.space4),
                         ],
-                        Text(
-                          title,
-                          style: titleStyle,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: titleStyle,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (titleAccessory != null) ...[
+                              SizedBox(width: t.space8),
+                              titleAccessory!,
+                            ],
+                          ],
                         ),
                       ],
                     ),
