@@ -5,6 +5,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "packages/azure_speech/test/**"
+    - "packages/ffmpeg_kit_flutter_new/**"
   errors:
     avoid_print: error
 

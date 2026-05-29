@@ -49,10 +49,9 @@ class DiscoverRepository {
     RecommendedChannelsLoader? recommendedLoader,
     YoutubeChannelResolver? channelResolver,
     YoutubeRssParser? rssParser,
-    MediaLibraryRepository? libraryRepository,
+    this._libraryRepository,
   }) : _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
-       _rssParser = rssParser ?? const YoutubeRssParser(),
-       _libraryRepository = libraryRepository {
+       _rssParser = rssParser ?? const YoutubeRssParser() {
     _client = httpClient ?? http.Client();
     _channelResolver =
         channelResolver ?? YoutubeChannelResolver(client: _client);

@@ -15,14 +15,11 @@ final _log = logNamed('sync.upload');
 
 class SyncUploadService {
   SyncUploadService({
-    required AppDatabase db,
-    required AudioApi audioApi,
-    required VideoApi videoApi,
-    required RecordingApi recordingApi,
-  }) : _db = db,
-       _audioApi = audioApi,
-       _videoApi = videoApi,
-       _recordingApi = recordingApi;
+    required this._db,
+    required this._audioApi,
+    required this._videoApi,
+    required this._recordingApi,
+  });
 
   final AppDatabase _db;
   final AudioApi _audioApi;

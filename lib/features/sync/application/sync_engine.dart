@@ -24,14 +24,11 @@ bool shouldRetryQueueItem(SyncQueueRow item) {
 
 class SyncEngine {
   SyncEngine({
-    required AppDatabase db,
-    required SyncQueueRepository queue,
-    required SyncUploadService upload,
-    required SyncDownloadService download,
-  }) : _db = db,
-       _queue = queue,
-       _upload = upload,
-       _download = download;
+    required this._db,
+    required this._queue,
+    required this._upload,
+    required this._download,
+  });
 
   final AppDatabase _db;
   final SyncQueueRepository _queue;

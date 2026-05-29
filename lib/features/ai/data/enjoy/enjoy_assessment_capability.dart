@@ -18,10 +18,9 @@ final Logger _log = logNamed('ai.enjoy.assessment');
 /// Enjoy pronunciation assessment: worker Azure token + native Speech SDK.
 final class EnjoyAssessmentCapability implements AssessmentCapability {
   EnjoyAssessmentCapability({
-    required AzureTokenCache tokenCache,
+    required this._tokenCache,
     AzureSpeech? sdk,
-  }) : _tokenCache = tokenCache,
-       _sdk = sdk ?? AzureSpeech.instance;
+  }) : _sdk = sdk ?? AzureSpeech.instance;
 
   final AzureTokenCache _tokenCache;
   final AzureSpeech _sdk;

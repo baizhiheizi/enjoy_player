@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -344,13 +345,12 @@ class _TranscriptScrollableListState
           AppLocalizations.of(context)?.transcriptAccessibilityTranscriptList ??
           'Transcript',
       child: ListView.builder(
+        scrollCacheExtent: const ScrollCacheExtent.pixels(1400),
         controller: _scrollController,
         padding: EdgeInsets.symmetric(
           horizontal: tok.space12,
           vertical: tok.space8,
         ),
-        // Keep active cue / echo card buildable for [GlobalKey] + ensureVisible.
-        cacheExtent: 1400,
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];

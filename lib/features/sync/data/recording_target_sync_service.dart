@@ -9,10 +9,9 @@ import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 class RecordingTargetSyncService {
   RecordingTargetSyncService({
-    required AppDatabase db,
-    required RecordingApi recordingApi,
-  }) : _db = db,
-       _recordingApi = recordingApi;
+    required this._db,
+    required this._recordingApi,
+  });
 
   final AppDatabase _db;
   final RecordingApi _recordingApi;

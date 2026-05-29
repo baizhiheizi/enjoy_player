@@ -7,9 +7,7 @@ import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 
 class CloudIndexRepository {
-  CloudIndexRepository({required AudioApi audioApi, required VideoApi videoApi})
-    : _audioApi = audioApi,
-      _videoApi = videoApi;
+  CloudIndexRepository({required this._audioApi, required this._videoApi});
 
   final AudioApi _audioApi;
   final VideoApi _videoApi;

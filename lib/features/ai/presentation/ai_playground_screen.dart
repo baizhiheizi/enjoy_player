@@ -76,12 +76,16 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     final r = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['wav', 'mp3', 'm4a', 'webm', 'ogg', 'flac'],
-      withData: true,
     );
     if (!mounted) return;
     if (r == null || r.files.isEmpty) return;
     final f = r.files.single;
-    var bytes = f.bytes;
+    Uint8List? bytes;
+    try {
+      bytes = await f.readAsBytes();
+    } on Object {
+      bytes = null;
+    }
     final path = f.path;
     if (bytes == null && path != null && path.isNotEmpty) {
       bytes = await File(path).readAsBytes();

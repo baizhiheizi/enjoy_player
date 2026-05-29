@@ -23,6 +23,8 @@ class _ThrowingLibraryRepository extends MediaLibraryRepository {
   Future<String> importYoutubeVideo(
     String rawInput, {
     String? signedInUserId,
+    String? prefetchedTitle,
+    String? prefetchedThumbnailUrl,
   }) async {
     throw Exception('import failed');
   }

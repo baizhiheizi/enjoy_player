@@ -7,11 +7,11 @@ void main() {
   group('primaryFocusBlocksGlobalHotkeys', () {
     testWidgets('blocks when a TextField is focused', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TextField(
               autofocus: true,
-              decoration: const InputDecoration(hintText: 'search'),
+              decoration: InputDecoration(hintText: 'search'),
             ),
           ),
         ),
@@ -23,11 +23,11 @@ void main() {
 
     testWidgets('does not block transcript selectable text', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TranscriptTextSelectionScope(
               child: SelectableText.rich(
-                const TextSpan(text: 'Hello world'),
+                TextSpan(text: 'Hello world'),
                 autofocus: true,
               ),
             ),
@@ -41,10 +41,10 @@ void main() {
 
     testWidgets('blocks SelectableText outside transcript scope', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SelectableText.rich(
-              const TextSpan(text: 'Other selectable'),
+              TextSpan(text: 'Other selectable'),
               autofocus: true,
             ),
           ),
@@ -60,11 +60,11 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: TextField(
             autofocus: true,
-            decoration: const InputDecoration(hintText: 'search'),
+            decoration: InputDecoration(hintText: 'search'),
           ),
         ),
       ),

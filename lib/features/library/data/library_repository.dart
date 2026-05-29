@@ -62,10 +62,9 @@ class MediaLibraryRepository {
   MediaLibraryRepository(
     this._db,
     this._storage, {
-    SyncEnqueueFn? enqueueSync,
-    http.Client? oembedClient,
-  }) : _enqueueSync = enqueueSync,
-       _oembedClient = oembedClient;
+    this._enqueueSync,
+    this._oembedClient,
+  });
 
   final AppDatabase _db;
   final FileStorage _storage;
