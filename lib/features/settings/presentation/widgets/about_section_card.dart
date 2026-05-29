@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,16 +11,17 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
+import 'package:enjoy_player/features/update/presentation/update_prompt_host.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class AboutSectionCard extends StatefulWidget {
+class AboutSectionCard extends ConsumerStatefulWidget {
   const AboutSectionCard({super.key});
 
   @override
-  State<AboutSectionCard> createState() => _AboutSectionCardState();
+  ConsumerState<AboutSectionCard> createState() => _AboutSectionCardState();
 }
 
-class _AboutSectionCardState extends State<AboutSectionCard> {
+class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
   late final Future<PackageInfo> _packageInfoFuture;
 
   @override
@@ -153,6 +155,69 @@ class _AboutSectionCardState extends State<AboutSectionCard> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: t.space16,
+                        endIndent: t.space16,
+                        color: cs.outlineVariant.withValues(alpha: 0.18),
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: Haptics.wrapTap(
+                            context,
+                            () => runManualUpdateCheck(context, ref),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: t.space16,
+                              vertical: t.space12,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.system_update_alt_rounded,
+                                  size: 22,
+                                  color: cs.primary.withValues(alpha: 0.92),
+                                ),
+                                SizedBox(width: t.space12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.settingsCheckForUpdatesTitle,
+                                        style: tt.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: -0.2,
+                                        ),
+                                      ),
+                                      SizedBox(height: t.space4),
+                                      Text(
+                                        l10n.settingsCheckForUpdatesSubtitle,
+                                        style: tt.bodySmall?.copyWith(
+                                          color: cs.onSurfaceVariant.withValues(
+                                            alpha: 0.86,
+                                          ),
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 22,
+                                  color: cs.onSurfaceVariant.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       Divider(

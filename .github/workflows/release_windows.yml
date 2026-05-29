@@ -43,7 +43,7 @@ jobs:
         run: windows/scripts/fetch_ffmpeg.ps1
 
       - name: Build Windows release
-        run: flutter build windows --release
+        run: flutter build windows --release --dart-define=DISTRIBUTION_CHANNEL=direct
 
       - name: Sync installer version from pubspec
         if: >-
@@ -83,3 +83,17 @@ jobs:
           path: build/windows/installer/EnjoyPlayerSetup-v*.exe
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish direct-download feeds (optional)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.ENJOY_DL_CLOUDFRONT_DISTRIBUTION_ID }}
+          SPARKLE_ED_SIGNATURE_WINDOWS: ${{ secrets.SPARKLE_ED_SIGNATURE_WINDOWS }}
+        run: |
+          installer="$(ls -1 build/windows/installer/EnjoyPlayerSetup-v*.exe | head -1)"
+          bash .github/scripts/publish_player_release_to_s3.sh \
+            --windows-installer "${installer}"

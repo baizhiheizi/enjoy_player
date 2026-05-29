@@ -29,6 +29,15 @@ abstract final class SettingsKeys {
 
   /// User dismissed the guest-data migration banner (`true` / absent).
   static const String migrationGuestDismissed = 'migration.guest_dismissed';
+
+  /// ISO-8601 UTC timestamp of the last successful update feed check.
+  static const String updateLastCheckAt = 'update.last_check_at';
+
+  /// ISO-8601 UTC — do not show optional update prompts until this instant.
+  static const String updateSnoozeUntil = 'update.snooze_until';
+
+  /// Version string the user snoozed (optional updates only).
+  static const String updateSnoozeVersion = 'update.snooze_version';
 }
 
 /// Default Enjoy API origin (no trailing slash).

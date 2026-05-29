@@ -102,7 +102,7 @@ jobs:
           rm -f "${KEY_PATH}"
 
       - name: Build macOS release
-        run: flutter build macos --release
+        run: flutter build macos --release --dart-define=DISTRIBUTION_CHANNEL=direct
 
       - name: Notarize macOS app
         if: >-
@@ -129,3 +129,20 @@ jobs:
             EnjoyPlayer-macOS-v*.zip
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish macOS direct-download feeds (optional)
+        if: >-
+          github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.ENJOY_DL_CLOUDFRONT_DISTRIBUTION_ID }}
+          SPARKLE_ED_SIGNATURE_MACOS: ${{ secrets.SPARKLE_ED_SIGNATURE_MACOS }}
+        run: |
+          version="$(bash .github/scripts/read_pubspec_version.sh)"
+          zip="EnjoyPlayer-macOS-v${version}.zip"
+          if [[ -f "${zip}" ]]; then
+            bash .github/scripts/publish_player_release_to_s3.sh --macos-zip "${zip}"
+          fi

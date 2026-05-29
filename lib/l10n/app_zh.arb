@@ -651,6 +651,23 @@
   },
   "settingsAboutOpenSourceTitle": "开源项目",
   "settingsAboutOpenSourceSubtitle": "在 GitHub 查看源代码",
+  "settingsCheckForUpdatesTitle": "检查更新",
+  "settingsCheckForUpdatesSubtitle": "查看是否有新的直接下载版本",
+  "updateAvailableTitle": "有可用更新",
+  "updateMandatoryTitle": "需要更新",
+  "updateVersionLine": "已安装 {current} → {latest}",
+  "@updateVersionLine": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "latest": {"type": "String"}
+    }
+  },
+  "updateNow": "立即更新",
+  "updateLater": "稍后",
+  "updateDismiss": "忽略",
+  "updateUpToDate": "已是最新版本。",
+  "updateCheckOffline": "无法检查更新，请检查网络连接。",
+  "updateStoreChannelHint": "此版本来自 TestFlight 或 Play 商店，更新由商店处理。",
   "lookupSheetTitle": "查词",
   "lookupSectionTranslation": "翻译",
   "lookupSectionContextualTranslation": "语境翻译",

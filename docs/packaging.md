@@ -21,8 +21,8 @@ Production **`applicationId`** / **`namespace`**: `ai.enjoy.player` (see [ADR-00
 1. Create an upload keystore (once) and keep it **out of git**.
 2. Copy [`android/key.properties.example`](../android/key.properties.example) to **`android/key.properties`** (gitignored) and fill `storePassword`, `keyPassword`, `keyAlias`, `storeFile` (`storeFile` is relative to the **`android/`** directory).
 3. Build:
-   - **Google Play (AAB):** `flutter build appbundle --release` — Play serves optimized per-device splits automatically.
-   - **Direct APK (sideload):** `flutter build apk --release --split-per-abi` — one APK per CPU architecture (much smaller than a universal/fat APK).
+   - **Google Play (AAB):** `flutter build appbundle --release --flavor store` — Play serves optimized per-device splits automatically.
+   - **Direct APK (sideload):** `flutter build apk --release --split-per-abi --flavor direct --dart-define=DISTRIBUTION_CHANNEL=direct` — one APK per CPU architecture (much smaller than a universal/fat APK).
 
    | Output APK | Typical use |
    |------------|-------------|
@@ -305,6 +305,31 @@ Installer output: `build/windows/installer/EnjoyPlayerSetup-vX.Y.Z.exe`. **Code 
 ### Version / legal strings
 
 File/product version comes from **`pubspec.yaml`** via Flutter’s `Runner.rc` injection. **Company / copyright** strings are in [`windows/runner/Runner.rc`](../windows/runner/Runner.rc); align with your legal entity before public release.
+
+---
+
+## Direct-download updates (`dl.enjoy.bot`)
+
+See [ADR-0023](decisions/0023-app-update-distribution.md). **Store** builds (TestFlight, Play test) do not run a custom updater. **Direct** builds (Windows installer, notarized macOS zip, Android sideload APK) check `https://dl.enjoy.bot/player/latest.json` and install via Sparkle/WinSparkle (`auto_updater`) or `ota_update`.
+
+### Build flavors / channel
+
+| Artifact | Flutter build | `DISTRIBUTION_CHANNEL` |
+|----------|---------------|------------------------|
+| Play AAB | `flutter build appbundle --release --flavor store` | `store` (default on mobile) |
+| Sideload APK | `flutter build apk --release --split-per-abi --flavor direct --dart-define=DISTRIBUTION_CHANNEL=direct` | `direct` |
+| Windows / macOS direct | `flutter build windows\|macos --release --dart-define=DISTRIBUTION_CHANNEL=direct` | `direct` (default on desktop when unset) |
+
+The **direct** Android flavor adds `REQUEST_INSTALL_PACKAGES` and the OTA `FileProvider` overlay under `android/app/src/direct/`.
+
+### Publishing feeds (CI)
+
+On tag push, release workflows may upload immutable `player/<version>/` artifacts and regenerate **`latest.json`** + **`appcast.xml`** when AWS secrets are set (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optional `ENJOY_DL_CLOUDFRONT_DISTRIBUTION_ID`, Sparkle `SPARKLE_ED_SIGNATURE_*`). Scripts:
+
+- `.github/scripts/generate_update_feeds.sh` — local dry-run
+- `.github/scripts/publish_player_release_to_s3.sh` — upload + feed overwrite
+
+**Before first public auto-update:** manually verify WinSparkle + Inno installer and Sparkle + notarized macOS zip (spikes in OpenSpec `app-update-system`).
 
 ---
 

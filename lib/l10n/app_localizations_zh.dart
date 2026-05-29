@@ -1520,6 +1520,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAboutOpenSourceSubtitle => '在 GitHub 查看源代码';
 
   @override
+  String get settingsCheckForUpdatesTitle => '检查更新';
+
+  @override
+  String get settingsCheckForUpdatesSubtitle => '查看是否有新的直接下载版本';
+
+  @override
+  String get updateAvailableTitle => '有可用更新';
+
+  @override
+  String get updateMandatoryTitle => '需要更新';
+
+  @override
+  String updateVersionLine(String current, String latest) {
+    return '已安装 $current → $latest';
+  }
+
+  @override
+  String get updateNow => '立即更新';
+
+  @override
+  String get updateLater => '稍后';
+
+  @override
+  String get updateDismiss => '忽略';
+
+  @override
+  String get updateUpToDate => '已是最新版本。';
+
+  @override
+  String get updateCheckOffline => '无法检查更新，请检查网络连接。';
+
+  @override
+  String get updateStoreChannelHint => '此版本来自 TestFlight 或 Play 商店，更新由商店处理。';
+
+  @override
   String get lookupSheetTitle => '查词';
 
   @override
@@ -3100,6 +3135,41 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsAboutOpenSourceSubtitle => '在 GitHub 查看源代码';
+
+  @override
+  String get settingsCheckForUpdatesTitle => '检查更新';
+
+  @override
+  String get settingsCheckForUpdatesSubtitle => '查看是否有新的直接下载版本';
+
+  @override
+  String get updateAvailableTitle => '有可用更新';
+
+  @override
+  String get updateMandatoryTitle => '需要更新';
+
+  @override
+  String updateVersionLine(String current, String latest) {
+    return '已安装 $current → $latest';
+  }
+
+  @override
+  String get updateNow => '立即更新';
+
+  @override
+  String get updateLater => '稍后';
+
+  @override
+  String get updateDismiss => '忽略';
+
+  @override
+  String get updateUpToDate => '已是最新版本。';
+
+  @override
+  String get updateCheckOffline => '无法检查更新，请检查网络连接。';
+
+  @override
+  String get updateStoreChannelHint => '此版本来自 TestFlight 或 Play 商店，更新由商店处理。';
 
   @override
   String get lookupSheetTitle => '查词';

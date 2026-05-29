@@ -34,6 +34,17 @@ android {
         }
     }
 
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("store") {
+            dimension = "distribution"
+            isDefault = true
+        }
+        create("direct") {
+            dimension = "distribution"
+        }
+    }
+
     defaultConfig {
         applicationId = "ai.enjoy.player"
         // media_kit + plugin baseline; Azure Speech SDK 1.49+ pulls com.azure:azure-core,

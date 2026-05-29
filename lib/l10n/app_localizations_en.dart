@@ -1587,6 +1587,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAboutOpenSourceSubtitle => 'View source code on GitHub';
 
   @override
+  String get settingsCheckForUpdatesTitle => 'Check for updates';
+
+  @override
+  String get settingsCheckForUpdatesSubtitle =>
+      'See if a newer direct-download build is available';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String get updateMandatoryTitle => 'Update required';
+
+  @override
+  String updateVersionLine(String current, String latest) {
+    return 'Installed $current → $latest';
+  }
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateDismiss => 'Dismiss';
+
+  @override
+  String get updateUpToDate => 'You\'re on the latest version.';
+
+  @override
+  String get updateCheckOffline =>
+      'Could not check for updates. Check your connection.';
+
+  @override
+  String get updateStoreChannelHint =>
+      'This build is from TestFlight or the Play Store — updates are handled by the store.';
+
+  @override
   String get lookupSheetTitle => 'Look up';
 
   @override

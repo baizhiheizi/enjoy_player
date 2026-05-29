@@ -46,3 +46,4 @@ Trade-offs, follow-up work, risks.
 | [0020](0020-android-windows-release-identity.md) | Android app ID `ai.enjoy.player`, release signing via `key.properties`, Windows release branding + Inno installer |
 | [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions |
 | [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |
+| [0023](0023-app-update-distribution.md) | App update distribution — store no-op, direct feeds on dl.enjoy.bot |

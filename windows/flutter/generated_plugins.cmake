@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  auto_updater_windows
   azure_speech
   flutter_inappwebview_windows
   flutter_secure_storage_windows

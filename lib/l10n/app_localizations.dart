@@ -3009,6 +3009,72 @@ abstract class AppLocalizations {
   /// **'View source code on GitHub'**
   String get settingsAboutOpenSourceSubtitle;
 
+  /// No description provided for @settingsCheckForUpdatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get settingsCheckForUpdatesTitle;
+
+  /// No description provided for @settingsCheckForUpdatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See if a newer direct-download build is available'**
+  String get settingsCheckForUpdatesSubtitle;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateMandatoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update required'**
+  String get updateMandatoryTitle;
+
+  /// No description provided for @updateVersionLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed {current} → {latest}'**
+  String updateVersionLine(String current, String latest);
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get updateNow;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get updateDismiss;
+
+  /// No description provided for @updateUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on the latest version.'**
+  String get updateUpToDate;
+
+  /// No description provided for @updateCheckOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check for updates. Check your connection.'**
+  String get updateCheckOffline;
+
+  /// No description provided for @updateStoreChannelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This build is from TestFlight or the Play Store — updates are handled by the store.'**
+  String get updateStoreChannelHint;
+
   /// No description provided for @lookupSheetTitle.
   ///
   /// In en, this message translates to:

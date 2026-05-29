@@ -40,6 +40,8 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   package_info_plus: ^10.1.0
+  auto_updater: ^0.2.1
+  ota_update: ^7.0.2
   record: ^7.0.0
   riverpod_annotation: ^4.0.2
   sqlite3_flutter_libs: ^0.5.28

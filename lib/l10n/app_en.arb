@@ -651,6 +651,23 @@
   },
   "settingsAboutOpenSourceTitle": "Open source",
   "settingsAboutOpenSourceSubtitle": "View source code on GitHub",
+  "settingsCheckForUpdatesTitle": "Check for updates",
+  "settingsCheckForUpdatesSubtitle": "See if a newer direct-download build is available",
+  "updateAvailableTitle": "Update available",
+  "updateMandatoryTitle": "Update required",
+  "updateVersionLine": "Installed {current} → {latest}",
+  "@updateVersionLine": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "latest": {"type": "String"}
+    }
+  },
+  "updateNow": "Update now",
+  "updateLater": "Later",
+  "updateDismiss": "Dismiss",
+  "updateUpToDate": "You're on the latest version.",
+  "updateCheckOffline": "Could not check for updates. Check your connection.",
+  "updateStoreChannelHint": "This build is from TestFlight or the Play Store — updates are handled by the store.",
   "lookupSheetTitle": "Look up",
   "lookupSectionTranslation": "Translation",
   "lookupSectionContextualTranslation": "Contextual translation",
