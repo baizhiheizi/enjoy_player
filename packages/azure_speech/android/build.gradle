@@ -2,7 +2,6 @@ group = "dev.enjoy_player.azure_speech"
 version = "1.0-SNAPSHOT"
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
 
 android {
     namespace = "dev.enjoy_player.azure_speech"
@@ -15,10 +14,6 @@ android {
 
     defaultConfig {
         minSdk = 26
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 }
 

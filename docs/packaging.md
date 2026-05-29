@@ -12,8 +12,8 @@ Production **`applicationId`** / **`namespace`**: `ai.enjoy.player` (see [ADR-00
 - **Java 17** for Gradle compile options.
 - **AGP / Gradle** (staged AGP 9 upgrade): **AGP 9.0.1**, **Gradle 9.1.0**, **KGP 2.3.20** — see [`android/settings.gradle.kts`](../android/settings.gradle.kts) and [`android/gradle/wrapper/gradle-wrapper.properties`](../android/gradle/wrapper/gradle-wrapper.properties).
 - **`android.newDsl=false`** in [`android/gradle.properties`](../android/gradle.properties) until Flutter and pub plugins finish the [AGP 9.0 variant API migration](https://developer.android.com/build/releases/agp-9-0-0-release-notes).
-- **`android.builtInKotlin=false`** (same file): many transitive plugins still apply `kotlin-android`; built-in Kotlin is deferred until they adopt the [file_picker pattern](https://pub.dev/packages/file_picker) or equivalent.
-- After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (Linux/macOS CI) or [`tool/patch_agp9_pub_plugins.ps1`](../tool/patch_agp9_pub_plugins.ps1) (Windows) to fix known pub-cache Gradle snippets (e.g. `flutter_inappwebview_android` ProGuard file name).
+- **`android.builtInKotlin=false`** (same file): avoids duplicate Kotlin with Flutter’s auto-injected `kotlin-android` on modules that omit it in `build.gradle`; remove explicit `kotlin-android` / `org.jetbrains.kotlin.android` from `:app` and patched plugins to silence KGP warnings.
+- After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (Linux/macOS CI) or [`tool/patch_agp9_pub_plugins.ps1`](../tool/patch_agp9_pub_plugins.ps1) (Windows) to patch pub-cache Gradle files (`flutter_inappwebview_android` ProGuard name; strip explicit KGP from `package_info_plus`, `url_launcher_android`, `wakelock_plus`).
 - **`ffmpeg_kit_flutter_new`** is vendored under [`packages/ffmpeg_kit_flutter_new`](../packages/ffmpeg_kit_flutter_new) (path dependency) with AGP 9–compatible `android/build.gradle` and dependencies moved outside the `android {}` block.
 
 ### Release signing (Play + sideload)
