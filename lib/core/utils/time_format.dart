@@ -12,3 +12,18 @@ String formatDurationHms(Duration d) {
 
 /// Alias for [formatDurationHms] (legacy name).
 String formatDuration(Duration d) => formatDurationHms(d);
+
+/// Compact human-readable practice duration (`15m 30s`, `2h 5m`, `45s`).
+String formatPracticeDurationMs(int ms) {
+  if (ms <= 0) return '0m';
+  final seconds = ms ~/ 1000;
+  final minutes = seconds ~/ 60;
+  final hours = minutes ~/ 60;
+  if (hours > 0) {
+    return '${hours}h ${minutes % 60}m';
+  }
+  if (minutes > 0) {
+    return '${minutes}m ${seconds % 60}s';
+  }
+  return '${seconds}s';
+}

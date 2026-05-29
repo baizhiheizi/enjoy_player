@@ -1803,41 +1803,35 @@ abstract class AppLocalizations {
   /// **'Balance: {value}'**
   String profileBalance(String value);
 
-  /// No description provided for @profileStatLibraryTitle.
+  /// No description provided for @profileStatTodayTitle.
   ///
   /// In en, this message translates to:
-  /// **'Library'**
-  String get profileStatLibraryTitle;
+  /// **'Today'**
+  String get profileStatTodayTitle;
 
-  /// No description provided for @profileStatLibrarySubtitle.
+  /// No description provided for @profileStatWeekTitle.
   ///
   /// In en, this message translates to:
-  /// **'Items saved on this device'**
-  String get profileStatLibrarySubtitle;
+  /// **'This week'**
+  String get profileStatWeekTitle;
 
-  /// No description provided for @profileStatEchoTitle.
+  /// No description provided for @profileStatMonthTitle.
   ///
   /// In en, this message translates to:
-  /// **'Echo sessions'**
-  String get profileStatEchoTitle;
+  /// **'This month'**
+  String get profileStatMonthTitle;
 
-  /// No description provided for @profileStatEchoSubtitle.
+  /// No description provided for @profileSectionPractice.
   ///
   /// In en, this message translates to:
-  /// **'Practice rows tracked locally'**
-  String get profileStatEchoSubtitle;
+  /// **'Practice'**
+  String get profileSectionPractice;
 
-  /// No description provided for @profileStatRecordTitle.
+  /// No description provided for @profileSectionPracticeHint.
   ///
   /// In en, this message translates to:
-  /// **'Recorded'**
-  String get profileStatRecordTitle;
-
-  /// No description provided for @profileStatRecordSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Shadow-reading minutes'**
-  String get profileStatRecordSubtitle;
+  /// **'Synced practice time from your account'**
+  String get profileSectionPracticeHint;
 
   /// No description provided for @profileCreditsUsageTile.
   ///
@@ -1850,6 +1844,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View AI credits consumption from your account'**
   String get profileCreditsUsageSubtitle;
+
+  /// No description provided for @profileSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileSectionAccount;
+
+  /// No description provided for @profileSectionAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits balance and usage history'**
+  String get profileSectionAccountHint;
+
+  /// No description provided for @profileSectionPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get profileSectionPreferences;
+
+  /// No description provided for @profileSectionPreferencesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, daily goal, and language settings'**
+  String get profileSectionPreferencesHint;
+
+  /// No description provided for @profileSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get profileSignOutConfirmTitle;
+
+  /// No description provided for @profileSignOutConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to sign in again to sync and use AI features.'**
+  String get profileSignOutConfirmMessage;
 
   /// No description provided for @creditsUsageTitle.
   ///

@@ -1,6 +1,7 @@
 /// Settings — editorial grouped iOS-style cards.
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,6 +66,9 @@ class SettingsScreen extends ConsumerWidget {
                       return auth.when(
                         data: (state) {
                           if (state is AuthSignedIn) {
+                            final avatarUrl = state.profile.avatarUrl;
+                            final hasAvatar =
+                                avatarUrl != null && avatarUrl.isNotEmpty;
                             return _AccountHeroCard(
                               sectionLabel: l10n.settingsSectionAccount,
                               sectionHint: l10n.settingsSectionAccountHint,
@@ -77,16 +81,21 @@ class SettingsScreen extends ConsumerWidget {
                               avatar: CircleAvatar(
                                 backgroundColor: cs.primaryContainer,
                                 radius: 28,
-                                child: Text(
-                                  (state.profile.name.isNotEmpty
-                                          ? state.profile.name[0]
-                                          : '?')
-                                      .toUpperCase(),
-                                  style: tt.titleLarge?.copyWith(
-                                    color: cs.onPrimaryContainer,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                                backgroundImage: hasAvatar
+                                    ? CachedNetworkImageProvider(avatarUrl)
+                                    : null,
+                                child: hasAvatar
+                                    ? null
+                                    : Text(
+                                        (state.profile.name.isNotEmpty
+                                                ? state.profile.name[0]
+                                                : '?')
+                                            .toUpperCase(),
+                                        style: tt.titleLarge?.copyWith(
+                                          color: cs.onPrimaryContainer,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                               ),
                             );
                           }

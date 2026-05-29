@@ -889,28 +889,43 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get profileStatLibraryTitle => '资料库';
+  String get profileStatTodayTitle => '今日';
 
   @override
-  String get profileStatLibrarySubtitle => '保存在本机的项目数';
+  String get profileStatWeekTitle => '本周';
 
   @override
-  String get profileStatEchoTitle => '回声练习次数';
+  String get profileStatMonthTitle => '本月';
 
   @override
-  String get profileStatEchoSubtitle => '本地记录的练习行数';
+  String get profileSectionPractice => '练习';
 
   @override
-  String get profileStatRecordTitle => '已录音';
-
-  @override
-  String get profileStatRecordSubtitle => '跟读练习分钟数';
+  String get profileSectionPracticeHint => '账户同步的练习时长';
 
   @override
   String get profileCreditsUsageTile => '积分使用记录';
 
   @override
   String get profileCreditsUsageSubtitle => '查看 Enjoy AI Worker 上的积分消耗';
+
+  @override
+  String get profileSectionAccount => '账户';
+
+  @override
+  String get profileSectionAccountHint => '积分余额与使用记录';
+
+  @override
+  String get profileSectionPreferences => '偏好设置';
+
+  @override
+  String get profileSectionPreferencesHint => '姓名、每日目标与语言';
+
+  @override
+  String get profileSignOutConfirmTitle => '退出登录？';
+
+  @override
+  String get profileSignOutConfirmMessage => '退出后需要重新登录才能同步和使用 AI 功能。';
 
   @override
   String get creditsUsageTitle => '积分使用';
@@ -2456,28 +2471,43 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   }
 
   @override
-  String get profileStatLibraryTitle => '资料库';
+  String get profileStatTodayTitle => '今日';
 
   @override
-  String get profileStatLibrarySubtitle => '保存在本机的项目数';
+  String get profileStatWeekTitle => '本周';
 
   @override
-  String get profileStatEchoTitle => '回声练习次数';
+  String get profileStatMonthTitle => '本月';
 
   @override
-  String get profileStatEchoSubtitle => '本地记录的练习行数';
+  String get profileSectionPractice => '练习';
 
   @override
-  String get profileStatRecordTitle => '已录音';
-
-  @override
-  String get profileStatRecordSubtitle => '跟读练习分钟数';
+  String get profileSectionPracticeHint => '账户同步的练习时长';
 
   @override
   String get profileCreditsUsageTile => '积分使用记录';
 
   @override
   String get profileCreditsUsageSubtitle => '查看 Enjoy AI Worker 上的积分消耗';
+
+  @override
+  String get profileSectionAccount => '账户';
+
+  @override
+  String get profileSectionAccountHint => '积分余额与使用记录';
+
+  @override
+  String get profileSectionPreferences => '偏好设置';
+
+  @override
+  String get profileSectionPreferencesHint => '姓名、每日目标与语言';
+
+  @override
+  String get profileSignOutConfirmTitle => '退出登录？';
+
+  @override
+  String get profileSignOutConfirmMessage => '退出后需要重新登录才能同步和使用 AI 功能。';
 
   @override
   String get creditsUsageTitle => '积分使用';

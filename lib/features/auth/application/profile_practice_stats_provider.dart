@@ -1,33 +1,24 @@
-/// Local-only aggregates for the signed-in profile stats row.
+/// Remote learning stats for the signed-in profile practice row.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/features/library/application/library_media_provider.dart';
-
-class ProfilePracticeStats {
-  const ProfilePracticeStats({
-    required this.libraryItemCount,
-    required this.echoSessionCount,
-    required this.recordedPracticeMinutes,
-  });
-
-  final int libraryItemCount;
-  final int echoSessionCount;
-  final int recordedPracticeMinutes;
-}
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/data/api/services/stats_api_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 
 final profilePracticeStatsProvider =
-    FutureProvider.autoDispose<ProfilePracticeStats>((ref) async {
-      final db = ref.watch(appDatabaseProvider);
-      final totals = await db.echoSessionDao.practiceTotals();
-      final libraryCount = ref
-          .watch(libraryMediaProvider)
-          .maybeWhen(data: (m) => m.length, orElse: () => 0);
-      return ProfilePracticeStats(
-        libraryItemCount: libraryCount,
-        echoSessionCount: totals.sessionCount,
-        recordedPracticeMinutes: (totals.recordingsDurationMs / 60000).floor(),
-      );
+    FutureProvider.autoDispose<LearningStatistics>((ref) async {
+      final auth = ref.watch(authCtrlProvider).valueOrNull;
+      if (auth is! AuthSignedIn) {
+        throw StateError('Profile stats require a signed-in session');
+      }
+
+      final api = ref.watch(statsApiProvider);
+      final json = await api
+          .learningStatistics(timezone: DateTime.now().timeZoneName)
+          .timeout(const Duration(seconds: 15));
+      return LearningStatistics.fromJson(json);
     });

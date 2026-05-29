@@ -920,22 +920,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profileStatLibraryTitle => 'Library';
+  String get profileStatTodayTitle => 'Today';
 
   @override
-  String get profileStatLibrarySubtitle => 'Items saved on this device';
+  String get profileStatWeekTitle => 'This week';
 
   @override
-  String get profileStatEchoTitle => 'Echo sessions';
+  String get profileStatMonthTitle => 'This month';
 
   @override
-  String get profileStatEchoSubtitle => 'Practice rows tracked locally';
+  String get profileSectionPractice => 'Practice';
 
   @override
-  String get profileStatRecordTitle => 'Recorded';
-
-  @override
-  String get profileStatRecordSubtitle => 'Shadow-reading minutes';
+  String get profileSectionPracticeHint =>
+      'Synced practice time from your account';
 
   @override
   String get profileCreditsUsageTile => 'Credits usage';
@@ -943,6 +941,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileCreditsUsageSubtitle =>
       'View AI credits consumption from your account';
+
+  @override
+  String get profileSectionAccount => 'Account';
+
+  @override
+  String get profileSectionAccountHint => 'Credits balance and usage history';
+
+  @override
+  String get profileSectionPreferences => 'Preferences';
+
+  @override
+  String get profileSectionPreferencesHint =>
+      'Name, daily goal, and language settings';
+
+  @override
+  String get profileSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get profileSignOutConfirmMessage =>
+      'You will need to sign in again to sync and use AI features.';
 
   @override
   String get creditsUsageTitle => 'Credits usage';
