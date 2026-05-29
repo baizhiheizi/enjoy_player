@@ -153,12 +153,7 @@ abstract final class AppNotice {
           closeIconColor: foregroundColor,
           duration: duration,
           action: action,
-          margin: EdgeInsets.fromLTRB(
-            sideMargin,
-            0,
-            sideMargin,
-            bottomPad,
-          ),
+          margin: EdgeInsets.fromLTRB(sideMargin, 0, sideMargin, bottomPad),
           content: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

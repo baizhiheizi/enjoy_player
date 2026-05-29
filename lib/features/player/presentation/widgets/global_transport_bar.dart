@@ -88,8 +88,7 @@ NarrowTransportBudget resolveNarrowTransportBudget(
   required bool onPlayer,
   required bool showFullscreenTransport,
 }) {
-  var remaining =
-      maxWidth - kNarrowPlayRingWidth - kNarrowLayoutSlack;
+  var remaining = maxWidth - kNarrowPlayRingWidth - kNarrowLayoutSlack;
   final showPrevNext = hasTranscriptLines;
   if (showPrevNext) {
     remaining -= 2 * kNarrowIconSlotWidth + 2 * kNarrowLineNavGap;
@@ -315,11 +314,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       icon: const Icon(Icons.replay_rounded),
     );
 
-    final transcriptControls = <Widget>[
-      prevButton,
-      nextButton,
-      replayButton,
-    ];
+    final transcriptControls = <Widget>[prevButton, nextButton, replayButton];
 
     final primaryTransport = <Widget>[playRing, ...transcriptControls];
 
@@ -461,8 +456,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                               paddedConstraints.maxWidth,
                               hasTranscriptLines: hasTranscriptLines,
                               onPlayer: onPlayer,
-                              showFullscreenTransport:
-                                  showFullscreenTransport,
+                              showFullscreenTransport: showFullscreenTransport,
                             );
 
                             final narrowSecondaries = <Widget>[
@@ -473,7 +467,8 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                               if (budget.showSpeed)
                                 SizedBox(
                                   width:
-                                      kNarrowIconSlotWidth + kNarrowSpeedSlotExtra,
+                                      kNarrowIconSlotWidth +
+                                      kNarrowSpeedSlotExtra,
                                   height: kNarrowIconSlotWidth,
                                   child: Center(child: speedButton),
                                 ),

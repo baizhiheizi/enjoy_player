@@ -2,18 +2,11 @@
 library;
 
 /// Whether the user must update before continuing.
-enum UpdateSeverity {
-  optional,
-  mandatory,
-}
+enum UpdateSeverity { optional, mandatory }
 
 /// One downloadable asset from [ReleaseManifest].
 class PlatformAsset {
-  const PlatformAsset({
-    required this.url,
-    this.sha256,
-    this.file,
-  });
+  const PlatformAsset({required this.url, this.sha256, this.file});
 
   final String url;
   final String? sha256;
@@ -51,11 +44,7 @@ class AppRelease {
 }
 
 /// Outcome of comparing the running app to the remote manifest.
-enum UpdateAvailability {
-  upToDate,
-  updateAvailable,
-  mandatoryUpdate,
-}
+enum UpdateAvailability { upToDate, updateAvailable, mandatoryUpdate }
 
 class UpdateCheckResult {
   const UpdateCheckResult({
@@ -65,9 +54,9 @@ class UpdateCheckResult {
   });
 
   const UpdateCheckResult.upToDate()
-      : availability = UpdateAvailability.upToDate,
-        release = null,
-        errorMessage = null;
+    : availability = UpdateAvailability.upToDate,
+      release = null,
+      errorMessage = null;
 
   final UpdateAvailability availability;
   final AppRelease? release;

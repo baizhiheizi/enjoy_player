@@ -7,31 +7,29 @@ void main() {
   group('YoutubeChannelResolver', () {
     test('returns raw channel id input', () async {
       const id = 'UCAuUUnT6oDeKwE6v1NGQxug';
-      final resolver = YoutubeChannelResolver(client: MockClient((_) async {
-        fail('should not fetch');
-      }));
+      final resolver = YoutubeChannelResolver(
+        client: MockClient((_) async {
+          fail('should not fetch');
+        }),
+      );
       expect(await resolver.resolve(id), id);
     });
 
     test('extracts channel id from /channel/ URL', () async {
       const id = 'UCAuUUnT6oDeKwE6v1NGQxug';
-      final resolver = YoutubeChannelResolver(client: MockClient((_) async {
-        fail('should not fetch');
-      }));
-      expect(
-        await resolver.resolve('https://www.youtube.com/channel/$id'),
-        id,
+      final resolver = YoutubeChannelResolver(
+        client: MockClient((_) async {
+          fail('should not fetch');
+        }),
       );
+      expect(await resolver.resolve('https://www.youtube.com/channel/$id'), id);
     });
 
     test('extracts channel id from HTML browse page', () async {
       const id = 'UCAuUUnT6oDeKwE6v1NGQxug';
       final resolver = YoutubeChannelResolver(
         client: MockClient((request) async {
-          return http.Response(
-            '<html>"channelId":"$id"</html>',
-            200,
-          );
+          return http.Response('<html>"channelId":"$id"</html>', 200);
         }),
       );
       expect(await resolver.resolve('@TEDEd'), id);
@@ -54,14 +52,10 @@ void main() {
     });
 
     test('parseAvatarUrlFromHtml extracts channel profile photo', () {
-      const avatar =
-          r'https://yt3.ggpht.com/abc=s88-c-k-c0x00ffffff-no-rj';
+      const avatar = r'https://yt3.ggpht.com/abc=s88-c-k-c0x00ffffff-no-rj';
       final html =
           '"avatar":{"thumbnails":[{"url":"$avatar"}],"accessibility":{}}';
-      expect(
-        YoutubeChannelResolver.parseAvatarUrlFromHtml(html),
-        avatar,
-      );
+      expect(YoutubeChannelResolver.parseAvatarUrlFromHtml(html), avatar);
     });
 
     test('fetchChannelAvatarUrl loads avatar from channel page', () async {
@@ -81,9 +75,11 @@ void main() {
     });
 
     test('rejects non-YouTube URLs', () async {
-      final resolver = YoutubeChannelResolver(client: MockClient((_) async {
-        fail('should not fetch');
-      }));
+      final resolver = YoutubeChannelResolver(
+        client: MockClient((_) async {
+          fail('should not fetch');
+        }),
+      );
       expect(
         () => resolver.resolve('https://example.com/channel/foo'),
         throwsA(isA<YoutubeChannelResolveException>()),

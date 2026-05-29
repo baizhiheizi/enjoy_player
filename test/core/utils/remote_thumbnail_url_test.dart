@@ -31,10 +31,7 @@ void main() {
         'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
       );
       expect(
-        remoteThumbnailForCard(
-          null,
-          youtubeVideoId: 'dQw4w9WgXcQ',
-        ),
+        remoteThumbnailForCard(null, youtubeVideoId: 'dQw4w9WgXcQ'),
         'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
       );
     });

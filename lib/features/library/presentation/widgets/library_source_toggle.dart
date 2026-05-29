@@ -70,7 +70,9 @@ class LibrarySourceToggle extends StatelessWidget {
                   Icon(
                     Icons.swap_horiz_rounded,
                     size: 16,
-                    color: isCloud ? cs.onPrimaryContainer : cs.onSurfaceVariant,
+                    color: isCloud
+                        ? cs.onPrimaryContainer
+                        : cs.onSurfaceVariant,
                   ),
                 ],
               ),

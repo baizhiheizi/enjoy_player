@@ -16,52 +16,55 @@ class _AuthSignedInCtrl extends AuthCtrl {
 }
 
 void main() {
-  test('guest migration copies discover subscriptions and feed cache', () async {
-    final guest = AppDatabase(executor: NativeDatabase.memory());
-    final user = AppDatabase(executor: NativeDatabase.memory());
-    addTearDown(guest.close);
-    addTearDown(user.close);
+  test(
+    'guest migration copies discover subscriptions and feed cache',
+    () async {
+      final guest = AppDatabase(executor: NativeDatabase.memory());
+      final user = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(guest.close);
+      addTearDown(user.close);
 
-    const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
-    final now = DateTime.utc(2024, 3, 1);
-    await guest.youtubeChannelSubscriptionDao.upsert(
-      YoutubeChannelSubscriptionRow(
-        channelId: channelId,
-        displayName: 'TED',
-        source: 'recommended',
-        subscribedAt: now,
-        lastFetchedAt: now,
-      ),
-    );
-    await guest.youtubeFeedEntryDao.upsertEntry(
-      YoutubeFeedEntryRow(
-        videoId: 'videoA123456',
-        channelId: channelId,
-        title: 'Talk',
-        publishedAt: now,
-        fetchedAt: now,
-      ),
-    );
+      const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
+      final now = DateTime.utc(2024, 3, 1);
+      await guest.youtubeChannelSubscriptionDao.upsert(
+        YoutubeChannelSubscriptionRow(
+          channelId: channelId,
+          displayName: 'TED',
+          source: 'recommended',
+          subscribedAt: now,
+          lastFetchedAt: now,
+        ),
+      );
+      await guest.youtubeFeedEntryDao.upsertEntry(
+        YoutubeFeedEntryRow(
+          videoId: 'videoA123456',
+          channelId: channelId,
+          title: 'Talk',
+          publishedAt: now,
+          fetchedAt: now,
+        ),
+      );
 
-    final container = ProviderContainer(
-      overrides: [
-        guestAppDatabaseProvider.overrideWithValue(guest),
-        appDatabaseProvider.overrideWithValue(user),
-        authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
-      ],
-    );
-    addTearDown(container.dispose);
+      final container = ProviderContainer(
+        overrides: [
+          guestAppDatabaseProvider.overrideWithValue(guest),
+          appDatabaseProvider.overrideWithValue(user),
+          authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await container.read(authCtrlProvider.future);
-    await container.read(guestMigrationCtrlProvider.notifier).migrate();
-    expect(container.read(guestMigrationCtrlProvider).hasError, isFalse);
+      await container.read(authCtrlProvider.future);
+      await container.read(guestMigrationCtrlProvider.notifier).migrate();
+      expect(container.read(guestMigrationCtrlProvider).hasError, isFalse);
 
-    final subs = await user.youtubeChannelSubscriptionDao.listAll();
-    final feeds = await user.select(user.youtubeFeedEntries).get();
-    expect(subs, hasLength(1));
-    expect(subs.single.channelId, channelId);
-    expect(feeds, hasLength(1));
-    expect(feeds.single.videoId, 'videoA123456');
-    expect(await guest.select(guest.youtubeFeedEntries).get(), isEmpty);
-  });
+      final subs = await user.youtubeChannelSubscriptionDao.listAll();
+      final feeds = await user.select(user.youtubeFeedEntries).get();
+      expect(subs, hasLength(1));
+      expect(subs.single.channelId, channelId);
+      expect(feeds, hasLength(1));
+      expect(feeds.single.videoId, 'videoA123456');
+      expect(await guest.select(guest.youtubeFeedEntries).get(), isEmpty);
+    },
+  );
 }

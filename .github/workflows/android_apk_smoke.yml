@@ -17,7 +17,7 @@ jobs:
   apk:
     runs-on: [self-hosted, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh
@@ -34,7 +34,6 @@ jobs:
           packages: >-
             platforms;android-36
             build-tools;36.0.0
-          cache: false
 
       - name: Point Flutter at Android SDK
         run: |
@@ -48,10 +47,10 @@ jobs:
           bash tool/patch_agp9_pub_plugins.sh
 
       - name: Flutter build apk (debug)
-        run: flutter build apk --debug
+        run: flutter build apk --debug --flavor store
 
       - name: Flutter build apk (release, compile-only, split per ABI)
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi --flavor direct --dart-define=DISTRIBUTION_CHANNEL=direct
 
       - name: Flutter build appbundle (release, compile-only)
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --flavor store

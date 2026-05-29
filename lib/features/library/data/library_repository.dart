@@ -334,7 +334,8 @@ class MediaLibraryRepository {
       prefetchedTitle: prefetchedTitle,
       oembed: oembed,
     );
-    final needsTitle = isYoutubeImportPlaceholderTitle(row.title, row.vid) &&
+    final needsTitle =
+        isYoutubeImportPlaceholderTitle(row.title, row.vid) &&
         !isYoutubeImportPlaceholderTitle(title, row.vid);
     final thumb = _resolveYoutubeThumbnail(
       prefetchedThumbnailUrl: prefetchedThumbnailUrl,

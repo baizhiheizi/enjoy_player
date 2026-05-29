@@ -222,10 +222,7 @@ class TodaysGoalCard extends ConsumerWidget {
     required Widget child,
     required String semanticsLabel,
   }) {
-    final padded = Padding(
-      padding: EdgeInsets.all(t.space16),
-      child: child,
-    );
+    final padded = Padding(padding: EdgeInsets.all(t.space16), child: child);
     final semanticsChild = Semantics(label: semanticsLabel, child: padded);
     if (containedInParentCard) {
       return semanticsChild;
@@ -407,7 +404,8 @@ class TodaysGoalCard extends ConsumerWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: '$completedMin / $goalMinutes ${l10n.homeMinutes}',
+                          text:
+                              '$completedMin / $goalMinutes ${l10n.homeMinutes}',
                           style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.w600,
@@ -479,10 +477,7 @@ class _TodaysGoalLoadingBody extends StatelessWidget {
               Container(
                 width: TodaysGoalCard._ringSizeBar,
                 height: TodaysGoalCard._ringSizeBar,
-                decoration: BoxDecoration(
-                  color: base,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: base, shape: BoxShape.circle),
               ),
               SizedBox(width: t.space12),
               Expanded(

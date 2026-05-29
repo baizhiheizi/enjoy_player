@@ -19,10 +19,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 enum DiscoverManageChannelsPresentation { sheet, dialog }
 
-Future<void> showDiscoverManageChannels(
-  BuildContext context,
-  WidgetRef ref,
-) {
+Future<void> showDiscoverManageChannels(BuildContext context, WidgetRef ref) {
   final w = MediaQuery.sizeOf(context).width;
   final tokens = EnjoyThemeTokens.of(context);
   if (w >= tokens.breakpointRail) {
@@ -66,10 +63,7 @@ Future<void> showDiscoverManageChannels(
 }
 
 class DiscoverManageChannelsView extends ConsumerWidget {
-  const DiscoverManageChannelsView({
-    required this.presentation,
-    super.key,
-  });
+  const DiscoverManageChannelsView({required this.presentation, super.key});
 
   final DiscoverManageChannelsPresentation presentation;
 
@@ -81,16 +75,10 @@ class DiscoverManageChannelsView extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final recommendedAsync = ref.watch(recommendedChannelsProvider);
     final subscriptionsAsync = ref.watch(discoverSubscriptionsProvider);
-    final isDialog =
-        presentation == DiscoverManageChannelsPresentation.dialog;
+    final isDialog = presentation == DiscoverManageChannelsPresentation.dialog;
 
     final scrollBody = SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        t.space24,
-        t.space8,
-        t.space24,
-        t.space24,
-      ),
+      padding: EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, t.space24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -122,9 +110,8 @@ class DiscoverManageChannelsView extends ConsumerWidget {
           ),
           SizedBox(height: t.space24),
           OutlinedButton.icon(
-            onPressed: () => unawaited(
-              showDiscoverSubscribeSheet(context, ref),
-            ),
+            onPressed: () =>
+                unawaited(showDiscoverSubscribeSheet(context, ref)),
             icon: const Icon(Icons.add_link_rounded, size: 18),
             label: Text(l10n.discoverSubscribeAction),
           ),
@@ -207,10 +194,7 @@ class DiscoverManageChannelsView extends ConsumerWidget {
             const PaddedSheetDragHandle(),
             Padding(
               padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space8),
-              child: Text(
-                l10n.discoverManageChannels,
-                style: tt.titleLarge,
-              ),
+              child: Text(l10n.discoverManageChannels, style: tt.titleLarge),
             ),
             Expanded(child: scrollBody),
           ],

@@ -44,10 +44,7 @@ class DiscoverSubscriptionRow extends ConsumerWidget {
     );
 
     final row = Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.space16,
-        vertical: t.space12,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: t.space16, vertical: t.space12),
       child: Row(
         children: [
           DiscoverChannelAvatar(
@@ -107,10 +104,7 @@ class DiscoverSubscriptionRow extends ConsumerWidget {
 
 /// Stacked subscription rows inside one elevated surface (manage modal).
 class DiscoverSubscriptionList extends StatelessWidget {
-  const DiscoverSubscriptionList({
-    required this.children,
-    super.key,
-  });
+  const DiscoverSubscriptionList({required this.children, super.key});
 
   final List<Widget> children;
 
@@ -131,7 +125,8 @@ class DiscoverSubscriptionList extends StatelessWidget {
               Divider(
                 height: 1,
                 thickness: 1,
-                indent: t.space16 + DiscoverSubscriptionRow.avatarSize + t.space12,
+                indent:
+                    t.space16 + DiscoverSubscriptionRow.avatarSize + t.space12,
                 endIndent: t.space16,
                 color: cs.outlineVariant.withValues(alpha: 0.25),
               ),

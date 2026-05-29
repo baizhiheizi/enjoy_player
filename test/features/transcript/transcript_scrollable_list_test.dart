@@ -46,16 +46,14 @@ List<Override> _scrollTestOverrides({
     ).overrideWith((ref) => Stream.value(const <TranscriptLine>[])),
     if (echoLinkedRecordingCounts)
       transcriptLineRecordingCountsProvider(_mediaId).overrideWith((ref) {
-        final idx = ref.watch(
-          echoModeProvider.select((e) => e.startLineIndex),
-        );
+        final idx = ref.watch(echoModeProvider.select((e) => e.startLineIndex));
         if (idx < 0) return const {};
         return {idx: idx + 1};
       })
     else
-      transcriptLineRecordingCountsProvider(_mediaId).overrideWithValue(
-        recordingCounts ?? const {},
-      ),
+      transcriptLineRecordingCountsProvider(
+        _mediaId,
+      ).overrideWithValue(recordingCounts ?? const {}),
     transcriptPlaybackHighlightProvider(
       _mediaId,
     ).overrideWith((ref) => highlightIndex),
@@ -68,19 +66,14 @@ List<Override> _scrollTestOverridesWithMutableHighlight() {
     secondaryTranscriptLinesForMediaProvider(
       _mediaId,
     ).overrideWith((ref) => Stream.value(const <TranscriptLine>[])),
-    transcriptLineRecordingCountsProvider(_mediaId).overrideWithValue(
-      const {},
-    ),
+    transcriptLineRecordingCountsProvider(_mediaId).overrideWithValue(const {}),
     transcriptPlaybackHighlightProvider(
       _mediaId,
     ).overrideWith((ref) => ref.watch(_testHighlightIndexProvider)),
   ];
 }
 
-Widget _harness({
-  required Widget child,
-  required List<Override> overrides,
-}) {
+Widget _harness({required Widget child, required List<Override> overrides}) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
   return ProviderScope(
     overrides: overrides,
@@ -107,7 +100,8 @@ class _EchoLineAdvanceHarness extends ConsumerStatefulWidget {
       _EchoLineAdvanceHarnessState();
 }
 
-class _EchoLineAdvanceHarnessState extends ConsumerState<_EchoLineAdvanceHarness> {
+class _EchoLineAdvanceHarnessState
+    extends ConsumerState<_EchoLineAdvanceHarness> {
   var _step = 0;
 
   @override
@@ -137,10 +131,7 @@ class _EchoLineAdvanceHarnessState extends ConsumerState<_EchoLineAdvanceHarness
   Widget build(BuildContext context) {
     return SizedBox(
       height: 400,
-      child: TranscriptScrollableList(
-        mediaId: _mediaId,
-        lines: widget.lines,
-      ),
+      child: TranscriptScrollableList(mediaId: _mediaId, lines: widget.lines),
     );
   }
 }
@@ -207,12 +198,14 @@ void main() {
     await tester.pump();
 
     for (var i = 0; i < lines.length; i++) {
-      container.read(echoModeProvider.notifier).activate(
-        startLineIndex: i,
-        endLineIndex: i,
-        startTimeSeconds: lines[i].startSeconds,
-        endTimeSeconds: lines[i].endSeconds,
-      );
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: i,
+            endLineIndex: i,
+            startTimeSeconds: lines[i].startSeconds,
+            endTimeSeconds: lines[i].endSeconds,
+          );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
       expect(tester.takeException(), isNull);
@@ -262,8 +255,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    container.read(_testHighlightIndexProvider.notifier).state =
-        activeIndex;
+    container.read(_testHighlightIndexProvider.notifier).state = activeIndex;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();

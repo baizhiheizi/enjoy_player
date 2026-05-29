@@ -55,7 +55,11 @@ class _DiscoverChannelFilterStripState
       loading: () => const SizedBox(
         height: DiscoverChannelFilterStrip.rowHeight,
         child: Center(
-          child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
       ),
       error: (_, _) => const SizedBox.shrink(),
@@ -79,7 +83,12 @@ class _DiscoverChannelFilterStripState
                 controller: _scrollController,
                 scrollDirection: Axis.horizontal,
                 primary: false,
-                padding: EdgeInsets.fromLTRB(t.space24, t.space4, t.space24, t.space8),
+                padding: EdgeInsets.fromLTRB(
+                  t.space24,
+                  t.space4,
+                  t.space24,
+                  t.space8,
+                ),
                 separatorBuilder: (_, _) => SizedBox(width: t.space8),
                 itemCount: 2 + subs.length,
                 itemBuilder: (context, index) {
@@ -259,10 +268,7 @@ class _ChannelFilterChip extends ConsumerWidget {
 }
 
 class _ManageFilterChip extends StatelessWidget {
-  const _ManageFilterChip({
-    required this.tooltip,
-    required this.onTap,
-  });
+  const _ManageFilterChip({required this.tooltip, required this.onTap});
 
   final String tooltip;
   final VoidCallback onTap;
@@ -275,11 +281,7 @@ class _ManageFilterChip extends StatelessWidget {
       selected: false,
       onTap: onTap,
       tooltip: tooltip,
-      child: Icon(
-        Icons.add_rounded,
-        size: 20,
-        color: cs.onSurfaceVariant,
-      ),
+      child: Icon(Icons.add_rounded, size: 20, color: cs.onSurfaceVariant),
     );
   }
 }

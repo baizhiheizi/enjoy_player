@@ -24,9 +24,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          transcriptLineRecordingCountsProvider('media-1').overrideWithValue(
-            const {},
-          ),
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue(const {}),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -71,9 +71,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          transcriptLineRecordingCountsProvider('media-1').overrideWithValue(
-            {0: 2},
-          ),
+          transcriptLineRecordingCountsProvider(
+            'media-1',
+          ).overrideWithValue({0: 2}),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

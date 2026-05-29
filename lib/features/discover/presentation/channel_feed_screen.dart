@@ -48,9 +48,7 @@ class ChannelFeedScreen extends ConsumerWidget {
           IconButton(
             tooltip: l10n.discoverUnsubscribeAction,
             icon: const Icon(Icons.notifications_off_outlined),
-            onPressed: () => unawaited(
-              _unsubscribe(context, ref, l10n),
-            ),
+            onPressed: () => unawaited(_unsubscribe(context, ref, l10n)),
           ),
         ],
       ),
@@ -75,8 +73,9 @@ class ChannelFeedScreen extends ConsumerWidget {
           return LayoutBuilder(
             builder: (context, constraints) {
               const minTileWidth = 320.0;
-              final crossAxisCount =
-                  (constraints.maxWidth / minTileWidth).floor().clamp(1, 4);
+              final crossAxisCount = (constraints.maxWidth / minTileWidth)
+                  .floor()
+                  .clamp(1, 4);
 
               if (crossAxisCount == 1) {
                 return ListView.separated(

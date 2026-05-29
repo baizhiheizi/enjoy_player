@@ -42,10 +42,7 @@ AuthRepository authRepository(Ref ref) {
 }
 
 class AuthRepository {
-  AuthRepository({
-    required this._authApi,
-    required this._tokenStore,
-  });
+  AuthRepository({required this._authApi, required this._tokenStore});
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;

@@ -307,10 +307,7 @@ class _AboutVersionPill extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.space8,
-        vertical: t.space4,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
       decoration: BoxDecoration(
         color: cs.primaryContainer.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(t.radiusFull),

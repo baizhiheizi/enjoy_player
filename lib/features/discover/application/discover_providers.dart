@@ -108,9 +108,9 @@ class DiscoverRefreshState extends _$DiscoverRefreshState {
   Future<DiscoverRefreshResult> refresh({bool force = false}) async {
     state = true;
     try {
-      return await ref.read(discoverRepositoryProvider).refreshFeeds(
-        force: force,
-      );
+      return await ref
+          .read(discoverRepositoryProvider)
+          .refreshFeeds(force: force);
     } finally {
       state = false;
     }
@@ -159,10 +159,9 @@ Future<String> addDiscoverFeedEntryToLibrary(
 ) async {
   final auth = ref.read(authCtrlProvider).valueOrNull;
   final userId = auth is AuthSignedIn ? auth.profile.id : null;
-  return ref.read(discoverRepositoryProvider).addFeedEntryToLibrary(
-    entry,
-    signedInUserId: userId,
-  );
+  return ref
+      .read(discoverRepositoryProvider)
+      .addFeedEntryToLibrary(entry, signedInUserId: userId);
 }
 
 Future<bool> discoverVideoInLibrary(WidgetRef ref, String videoId) {

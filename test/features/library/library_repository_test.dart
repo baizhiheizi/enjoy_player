@@ -329,10 +329,7 @@ void main() {
 
       final patch = await ytRepo.refreshYoutubeMetadataIfNeeded(mediaId);
       expect(patch?.title, 'Real Title');
-      expect(
-        patch?.thumbnailUrl,
-        'https://i.ytimg.com/vi/$vid/hqdefault.jpg',
-      );
+      expect(patch?.thumbnailUrl, 'https://i.ytimg.com/vi/$vid/hqdefault.jpg');
 
       final row = await db.videoDao.getById(mediaId);
       expect(row!.title, 'Real Title');

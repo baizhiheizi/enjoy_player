@@ -38,9 +38,7 @@ void main() {
         resolveTranscriptLineRecordingCounts(
           linesAsync: const AsyncData([_line]),
           targetTypeAsync: const AsyncData('Audio'),
-          recordingsAsync: AsyncData([
-            _recording(start: 0, duration: 1000),
-          ]),
+          recordingsAsync: AsyncData([_recording(start: 0, duration: 1000)]),
           mediaId: _mediaId,
         ),
         {0: 1},
@@ -73,8 +71,7 @@ void main() {
 
     test('returns empty map when recordings fail', () {
       final logs = <LogRecord>[];
-      final logger = Logger('test')
-        ..onRecord.listen(logs.add);
+      final logger = Logger('test')..onRecord.listen(logs.add);
 
       expect(
         resolveTranscriptLineRecordingCounts(

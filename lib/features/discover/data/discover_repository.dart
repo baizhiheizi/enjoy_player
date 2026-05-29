@@ -89,9 +89,9 @@ class DiscoverRepository {
   }
 
   Stream<List<FeedEntry>> watchChannelFeed(String channelId) {
-    return _db.youtubeFeedEntryDao.watchForChannel(channelId).map(
-      (rows) => rows.map(_mapFeedEntry).toList(growable: false),
-    );
+    return _db.youtubeFeedEntryDao
+        .watchForChannel(channelId)
+        .map((rows) => rows.map(_mapFeedEntry).toList(growable: false));
   }
 
   Future<DiscoverChannel?> getSubscription(String channelId) async {

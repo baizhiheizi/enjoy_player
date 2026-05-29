@@ -65,7 +65,8 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
           );
         },
         onDismiss: release.severity == UpdateSeverity.optional
-            ? () => ref.read(updateCtrlProvider.notifier).dismissOptionalPrompt()
+            ? () =>
+                  ref.read(updateCtrlProvider.notifier).dismissOptionalPrompt()
             : null,
       );
     } finally {
@@ -81,8 +82,9 @@ Future<void> runManualUpdateCheck(BuildContext context, WidgetRef ref) async {
     AppNotice.info(context, l10n.updateStoreChannelHint);
     return;
   }
-  final result =
-      await ref.read(updateCtrlProvider.notifier).checkForUpdatesManual();
+  final result = await ref
+      .read(updateCtrlProvider.notifier)
+      .checkForUpdatesManual();
   if (!context.mounted) return;
   if (result.errorMessage != null && result.errorMessage == 'offline') {
     AppNotice.error(context, l10n.updateCheckOffline);

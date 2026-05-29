@@ -84,9 +84,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
           ),
         );
         final hosted = UpdatePromptHost(child: viewport);
-        return isDesktop
-            ? AppHotkeysKeyboardListener(child: hosted)
-            : hosted;
+        return isDesktop ? AppHotkeysKeyboardListener(child: hosted) : hosted;
       },
     );
   }

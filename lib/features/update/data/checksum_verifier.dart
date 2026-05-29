@@ -25,5 +25,4 @@ String? normalizeSha256Hex(String? raw) {
 }
 
 /// Convenience for tests.
-String sha256HexOfBytes(List<int> bytes) =>
-    sha256.convert(bytes).toString();
+String sha256HexOfBytes(List<int> bytes) => sha256.convert(bytes).toString();

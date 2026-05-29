@@ -45,10 +45,7 @@ void main() {
         ),
         isFalse,
       );
-      expect(
-        YoutubeRssParser.isValidFeedDocument(_sampleRss),
-        isTrue,
-      );
+      expect(YoutubeRssParser.isValidFeedDocument(_sampleRss), isTrue);
     });
 
     test('parseFeedTitle reads channel title before entries', () {
@@ -84,9 +81,12 @@ void main() {
       final entries = parser.parse(xml, channelId: 'UCtest');
       expect(entries, hasLength(1));
       expect(entries.single.videoId, 'regularVideo1');
-      expect(YoutubeRssParser.isShortEntryBlock(
-        '<link rel="alternate" href="https://www.youtube.com/shorts/abc"/>',
-      ), isTrue);
+      expect(
+        YoutubeRssParser.isShortEntryBlock(
+          '<link rel="alternate" href="https://www.youtube.com/shorts/abc"/>',
+        ),
+        isTrue,
+      );
     });
   });
 }

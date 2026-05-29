@@ -17,7 +17,7 @@ jobs:
   analyze-test:
     runs-on: [self-hosted, Linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh

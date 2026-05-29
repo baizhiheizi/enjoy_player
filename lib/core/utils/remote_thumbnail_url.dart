@@ -89,8 +89,7 @@ String? networkThumbnailForMedia(Media media) {
 
 /// Local artwork file when not superseded by a better remote YouTube URL.
 File? localThumbnailFileForMedia(Media media) {
-  if (media.provider == 'youtube' &&
-      networkThumbnailForMedia(media) != null) {
+  if (media.provider == 'youtube' && networkThumbnailForMedia(media) != null) {
     return null;
   }
   return localThumbnailFileForCard(media.thumbnailPath);

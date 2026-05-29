@@ -18,9 +18,8 @@ import 'package:enjoy_player/features/update/domain/update_types.dart';
 final _log = logNamed('update.direct');
 
 class DirectUpdateStrategy implements UpdateStrategy {
-  DirectUpdateStrategy({
-    VersionManifestRepository? manifestRepository,
-  }) : _manifest = manifestRepository ?? VersionManifestRepository();
+  DirectUpdateStrategy({VersionManifestRepository? manifestRepository})
+    : _manifest = manifestRepository ?? VersionManifestRepository();
 
   final VersionManifestRepository _manifest;
   static bool _desktopUpdaterInitialized = false;
@@ -74,12 +73,10 @@ class DirectUpdateStrategy implements UpdateStrategy {
       return;
     }
     final expected = normalizeSha256Hex(asset.sha256);
-    await for (final event in OtaUpdate()
-        .execute(
-          asset.url,
-          destinationFilename: 'enjoy_player_update.apk',
-        )
-        .timeout(const Duration(minutes: 30))) {
+    await for (final event
+        in OtaUpdate()
+            .execute(asset.url, destinationFilename: 'enjoy_player_update.apk')
+            .timeout(const Duration(minutes: 30))) {
       switch (event.status) {
         case OtaStatus.DOWNLOADING:
           _log.fine('APK download ${event.value}%');
@@ -102,11 +99,7 @@ class DirectUpdateStrategy implements UpdateStrategy {
   }
 
   PlatformAsset? _pickAndroidApk(ReleaseManifest manifest) {
-    const preferred = [
-      'android_arm64',
-      'android_arm64_v8a',
-      'android',
-    ];
+    const preferred = ['android_arm64', 'android_arm64_v8a', 'android'];
     for (final key in preferred) {
       final asset = manifest.assets[key];
       if (asset != null) return asset;

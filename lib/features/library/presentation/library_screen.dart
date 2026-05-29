@@ -67,7 +67,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   void _toggleSource(BuildContext context, LibrarySource current) {
     _setSource(
       context,
-      current == LibrarySource.local ? LibrarySource.cloud : LibrarySource.local,
+      current == LibrarySource.local
+          ? LibrarySource.cloud
+          : LibrarySource.local,
     );
   }
 
@@ -113,10 +115,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         ? Duration.zero
         : const Duration(milliseconds: 220);
 
-    Widget fadeLayer({
-      required bool visible,
-      required Widget child,
-    }) {
+    Widget fadeLayer({required bool visible, required Widget child}) {
       return IgnorePointer(
         ignoring: !visible,
         child: AnimatedOpacity(
@@ -193,10 +192,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
               if (showCompactSearch) const CompactLibrarySearchBar(),
               Expanded(
-                child: _sourceBody(
-                  source: source,
-                  reduceMotion: reduceMotion,
-                ),
+                child: _sourceBody(source: source, reduceMotion: reduceMotion),
               ),
             ],
           );

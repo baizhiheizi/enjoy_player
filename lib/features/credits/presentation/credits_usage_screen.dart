@@ -252,9 +252,7 @@ class _CreditsUsageBody extends ConsumerWidget {
                       }
                       return Row(
                         children: [
-                          Expanded(
-                            child: Text(pageInfo, style: pageInfoStyle),
-                          ),
+                          Expanded(child: Text(pageInfo, style: pageInfoStyle)),
                           EnjoyButton.secondary(
                             onPressed: filters.offset == 0
                                 ? null
@@ -263,9 +261,7 @@ class _CreditsUsageBody extends ConsumerWidget {
                           ),
                           SizedBox(width: t.space8),
                           EnjoyButton.secondary(
-                            onPressed: !page.hasMore
-                                ? null
-                                : ctrl.goToNextPage,
+                            onPressed: !page.hasMore ? null : ctrl.goToNextPage,
                             child: Text(l10n.creditsUsageNext),
                           ),
                         ],
@@ -644,9 +640,7 @@ class _UsageLogCard extends StatelessWidget {
                     SizedBox(height: t.space4),
                     Text(
                       'UTC · ${log.date}',
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -664,10 +658,7 @@ class _UsageLogCard extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 label: Text(serviceTypeLabel(l10n, log.serviceType)),
               ),
-              Chip(
-                visualDensity: VisualDensity.compact,
-                label: Text(log.tier),
-              ),
+              Chip(visualDensity: VisualDensity.compact, label: Text(log.tier)),
             ],
           ),
           SizedBox(height: t.space12),
@@ -724,10 +715,7 @@ class _UsageStatusPill extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.space8,
-        vertical: t.space4,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
       decoration: BoxDecoration(
         color: allowed ? cs.primaryContainer : cs.errorContainer,
         borderRadius: BorderRadius.circular(t.radiusFull),

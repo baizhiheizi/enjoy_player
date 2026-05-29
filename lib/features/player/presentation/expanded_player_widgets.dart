@@ -152,9 +152,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
                 children: [
                   mediaBody,
                   if (showVideoTitleChrome)
-                    _VideoTitleChromeOverlay(
-                      mediaTitle: chrome.mediaTitle,
-                    ),
+                    _VideoTitleChromeOverlay(mediaTitle: chrome.mediaTitle),
                 ],
               )
             : mediaBody,

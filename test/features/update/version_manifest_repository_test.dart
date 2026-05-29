@@ -7,8 +7,7 @@ import 'package:enjoy_player/features/update/data/version_manifest_repository.da
 void main() {
   test('parses latest.json assets and minSupportedVersion', () async {
     final client = MockClient((request) async {
-      return http.Response(
-        '''
+      return http.Response('''
 {
   "version": "0.2.0",
   "build": 42,
@@ -21,9 +20,7 @@ void main() {
     }
   }
 }
-''',
-        200,
-      );
+''', 200);
     });
 
     final repo = VersionManifestRepository(

@@ -57,11 +57,18 @@ Future<void> showDiscoverSubscribeSheet(
                     onSubmitted: submitting
                         ? null
                         : (_) => unawaited(
-                            _submit(ctx, ref, controller.text, setState, () {
-                              submitting = true;
-                            }, () {
-                              submitting = false;
-                            }),
+                            _submit(
+                              ctx,
+                              ref,
+                              controller.text,
+                              setState,
+                              () {
+                                submitting = true;
+                              },
+                              () {
+                                submitting = false;
+                              },
+                            ),
                           ),
                   ),
                   const SizedBox(height: 16),
@@ -69,13 +76,20 @@ Future<void> showDiscoverSubscribeSheet(
                     onPressed: submitting
                         ? null
                         : () => unawaited(
-                            _submit(ctx, ref, controller.text, setState, () {
-                              submitting = true;
-                              setState(() {});
-                            }, () {
-                              submitting = false;
-                              setState(() {});
-                            }),
+                            _submit(
+                              ctx,
+                              ref,
+                              controller.text,
+                              setState,
+                              () {
+                                submitting = true;
+                                setState(() {});
+                              },
+                              () {
+                                submitting = false;
+                                setState(() {});
+                              },
+                            ),
                           ),
                     child: submitting
                         ? const SizedBox(

@@ -132,26 +132,32 @@ class UpdateCtrl extends _$UpdateCtrl {
   }
 
   Future<DateTime?> _readLastCheck() async {
-    final raw =
-        await ref.read(guestAppDatabaseProvider).settingsDao.getValue(
-              SettingsKeys.updateLastCheckAt,
-            );
+    final raw = await ref
+        .read(guestAppDatabaseProvider)
+        .settingsDao
+        .getValue(SettingsKeys.updateLastCheckAt);
     if (raw == null || raw.isEmpty) return null;
     return DateTime.tryParse(raw)?.toUtc();
   }
 
   Future<({String? version, DateTime? until})> _readSnooze() async {
     final db = ref.read(guestAppDatabaseProvider);
-    final version = await db.settingsDao.getValue(SettingsKeys.updateSnoozeVersion);
-    final untilRaw = await db.settingsDao.getValue(SettingsKeys.updateSnoozeUntil);
-    final until = untilRaw == null ? null : DateTime.tryParse(untilRaw)?.toUtc();
+    final version = await db.settingsDao.getValue(
+      SettingsKeys.updateSnoozeVersion,
+    );
+    final untilRaw = await db.settingsDao.getValue(
+      SettingsKeys.updateSnoozeUntil,
+    );
+    final until = untilRaw == null
+        ? null
+        : DateTime.tryParse(untilRaw)?.toUtc();
     return (version: version, until: until);
   }
 
   Future<void> _writeLastCheck(DateTime at) async {
-    await ref.read(guestAppDatabaseProvider).settingsDao.setValue(
-          SettingsKeys.updateLastCheckAt,
-          at.toIso8601String(),
-        );
+    await ref
+        .read(guestAppDatabaseProvider)
+        .settingsDao
+        .setValue(SettingsKeys.updateLastCheckAt, at.toIso8601String());
   }
 }

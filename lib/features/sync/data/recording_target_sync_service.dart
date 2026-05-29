@@ -8,10 +8,7 @@ import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 class RecordingTargetSyncService {
-  RecordingTargetSyncService({
-    required this._db,
-    required this._recordingApi,
-  });
+  RecordingTargetSyncService({required this._db, required this._recordingApi});
 
   final AppDatabase _db;
   final RecordingApi _recordingApi;

@@ -153,9 +153,10 @@ SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
   double crossAxisSpacing = 12,
   int maxCrossAxisCount = 6,
 }) {
-  final crossAxisCount = (crossAxisExtent / minTileWidth)
-      .floor()
-      .clamp(1, maxCrossAxisCount);
+  final crossAxisCount = (crossAxisExtent / minTileWidth).floor().clamp(
+    1,
+    maxCrossAxisCount,
+  );
   final tileWidth = _mediaCardTileWidth(
     crossAxisExtent: crossAxisExtent,
     crossAxisCount: crossAxisCount,
@@ -806,10 +807,7 @@ class _DurationBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(t.radiusSm),
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: t.space8,
-          vertical: t.space4,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(

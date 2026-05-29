@@ -56,10 +56,7 @@ void main() {
   group('countRecordingsPerLineIndex', () {
     test('empty inputs yield empty map', () {
       expect(countRecordingsPerLineIndex(const [], const []), isEmpty);
-      expect(
-        countRecordingsPerLineIndex(const [_lineA], const []),
-        isEmpty,
-      );
+      expect(countRecordingsPerLineIndex(const [_lineA], const []), isEmpty);
     });
 
     test('no overlap omits line from map', () {

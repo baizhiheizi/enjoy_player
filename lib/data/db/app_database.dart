@@ -64,7 +64,10 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       if (from == 7 && to == 8) {
-        await m.addColumn(youtubeFeedEntries, youtubeFeedEntries.durationSeconds);
+        await m.addColumn(
+          youtubeFeedEntries,
+          youtubeFeedEntries.durationSeconds,
+        );
         return;
       }
 
@@ -630,47 +633,39 @@ class YoutubeChannelSubscriptionDao extends DatabaseAccessor<AppDatabase>
       select(youtubeChannelSubscriptions).get();
 
   Future<YoutubeChannelSubscriptionRow?> getByChannelId(String channelId) =>
-      (select(youtubeChannelSubscriptions)
-            ..where((t) => t.channelId.equals(channelId)))
-          .getSingleOrNull();
+      (select(
+        youtubeChannelSubscriptions,
+      )..where((t) => t.channelId.equals(channelId))).getSingleOrNull();
 
-  Future<void> upsert(YoutubeChannelSubscriptionRow row) =>
-      into(youtubeChannelSubscriptions).insert(
-        row,
-        mode: InsertMode.insertOrReplace,
-      );
+  Future<void> upsert(YoutubeChannelSubscriptionRow row) => into(
+    youtubeChannelSubscriptions,
+  ).insert(row, mode: InsertMode.insertOrReplace);
 
   Future<void> deleteChannelId(String channelId) => (delete(
     youtubeChannelSubscriptions,
   )..where((t) => t.channelId.equals(channelId))).go();
 
   Future<void> touchLastFetched(String channelId, DateTime fetchedAt) async {
-    await (update(youtubeChannelSubscriptions)
-          ..where((t) => t.channelId.equals(channelId)))
-        .write(
-      YoutubeChannelSubscriptionsCompanion(
-        lastFetchedAt: Value(fetchedAt),
-      ),
+    await (update(
+      youtubeChannelSubscriptions,
+    )..where((t) => t.channelId.equals(channelId))).write(
+      YoutubeChannelSubscriptionsCompanion(lastFetchedAt: Value(fetchedAt)),
     );
   }
 
   Future<void> updateDisplayName(String channelId, String displayName) async {
-    await (update(youtubeChannelSubscriptions)
-          ..where((t) => t.channelId.equals(channelId)))
-        .write(
-      YoutubeChannelSubscriptionsCompanion(
-        displayName: Value(displayName),
-      ),
+    await (update(
+      youtubeChannelSubscriptions,
+    )..where((t) => t.channelId.equals(channelId))).write(
+      YoutubeChannelSubscriptionsCompanion(displayName: Value(displayName)),
     );
   }
 
   Future<void> updateThumbnail(String channelId, String? thumbnailUrl) async {
-    await (update(youtubeChannelSubscriptions)
-          ..where((t) => t.channelId.equals(channelId)))
-        .write(
-      YoutubeChannelSubscriptionsCompanion(
-        thumbnailUrl: Value(thumbnailUrl),
-      ),
+    await (update(
+      youtubeChannelSubscriptions,
+    )..where((t) => t.channelId.equals(channelId))).write(
+      YoutubeChannelSubscriptionsCompanion(thumbnailUrl: Value(thumbnailUrl)),
     );
   }
 }
@@ -697,11 +692,9 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
     required String channelId,
     required String videoId,
   }) =>
-      (select(youtubeFeedEntries)
-            ..where(
-              (t) =>
-                  t.channelId.equals(channelId) & t.videoId.equals(videoId),
-            ))
+      (select(youtubeFeedEntries)..where(
+            (t) => t.channelId.equals(channelId) & t.videoId.equals(videoId),
+          ))
           .getSingleOrNull();
 
   Future<void> updateDurationSeconds({
@@ -710,10 +703,11 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
     required int durationSeconds,
   }) async {
     await (update(youtubeFeedEntries)..where(
-          (t) =>
-              t.channelId.equals(channelId) & t.videoId.equals(videoId),
+          (t) => t.channelId.equals(channelId) & t.videoId.equals(videoId),
         ))
-        .write(YoutubeFeedEntriesCompanion(durationSeconds: Value(durationSeconds)));
+        .write(
+          YoutubeFeedEntriesCompanion(durationSeconds: Value(durationSeconds)),
+        );
   }
 
   Future<void> deleteForChannel(String channelId) => (delete(

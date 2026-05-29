@@ -39,7 +39,9 @@ void main() {
       expect(primaryFocusBlocksGlobalHotkeys(), isFalse);
     });
 
-    testWidgets('blocks SelectableText outside transcript scope', (tester) async {
+    testWidgets('blocks SelectableText outside transcript scope', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

@@ -13,8 +13,8 @@ final _log = logNamed('update.manifest');
 
 class VersionManifestRepository {
   VersionManifestRepository({http.Client? client, String? manifestUrl})
-      : _client = client ?? http.Client(),
-        _manifestUrl = manifestUrl ?? kEnjoyPlayerLatestJsonUrl;
+    : _client = client ?? http.Client(),
+      _manifestUrl = manifestUrl ?? kEnjoyPlayerLatestJsonUrl;
 
   final http.Client _client;
   final String _manifestUrl;
@@ -41,8 +41,7 @@ class VersionManifestRepository {
     final version = json['version'] as String?;
     if (version == null || version.isEmpty) return null;
     final build = json['build'];
-    final minSupported =
-        (json['minSupportedVersion'] as String?) ?? version;
+    final minSupported = (json['minSupportedVersion'] as String?) ?? version;
     final notes = (json['notes'] as String?) ?? '';
     final assetsRaw = json['assets'];
     if (assetsRaw is! Map<String, dynamic>) return null;

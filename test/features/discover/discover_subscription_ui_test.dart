@@ -30,9 +30,9 @@ void main() {
   Widget wrap(Widget child) {
     return ProviderScope(
       overrides: [
-        recommendedChannelAvatarProvider('UCtestchannel0001').overrideWith(
-          (ref) async => null,
-        ),
+        recommendedChannelAvatarProvider(
+          'UCtestchannel0001',
+        ).overrideWith((ref) async => null),
       ],
       child: MaterialApp(
         localizationsDelegates: const [
@@ -68,9 +68,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            recommendedChannelAvatarProvider('UCtestchannel0001').overrideWith(
-              (ref) async => null,
-            ),
+            recommendedChannelAvatarProvider(
+              'UCtestchannel0001',
+            ).overrideWith((ref) async => null),
           ],
           child: MaterialApp.router(
             routerConfig: router,

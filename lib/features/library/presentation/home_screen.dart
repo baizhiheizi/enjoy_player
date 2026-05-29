@@ -103,10 +103,10 @@ class HomeScreen extends ConsumerWidget {
                           return SliverGrid(
                             gridDelegate:
                                 mediaCardTileGridDelegateForMinTileWidth(
-                              crossAxisExtent: constraints.crossAxisExtent,
-                              mainAxisSpacing: t.space12,
-                              crossAxisSpacing: t.space12,
-                            ),
+                                  crossAxisExtent: constraints.crossAxisExtent,
+                                  mainAxisSpacing: t.space12,
+                                  crossAxisSpacing: t.space12,
+                                ),
                             delegate: SliverChildBuilderDelegate((
                               context,
                               index,

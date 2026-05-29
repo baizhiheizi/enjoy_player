@@ -111,10 +111,7 @@ class _DiscoverRecommendedAvatarStripState
 }
 
 class _RecommendedAvatarTile extends ConsumerWidget {
-  const _RecommendedAvatarTile({
-    required this.channel,
-    required this.onTap,
-  });
+  const _RecommendedAvatarTile({required this.channel, required this.onTap});
 
   final RecommendedChannel channel;
   final VoidCallback onTap;
@@ -158,7 +155,10 @@ class _RecommendedAvatarTile extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: cs.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(color: cs.surfaceContainerHigh, width: 1.5),
+                      border: Border.all(
+                        color: cs.surfaceContainerHigh,
+                        width: 1.5,
+                      ),
                     ),
                     child: Icon(
                       Icons.add_rounded,

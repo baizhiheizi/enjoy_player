@@ -17,8 +17,7 @@ abstract final class YoutubeFetch {
 
   static const _htmlHeaders = {
     'User-Agent': userAgent,
-    'Accept':
-        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.9',
   };
 

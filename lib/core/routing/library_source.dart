@@ -2,10 +2,7 @@
 library;
 
 /// Where the unified Library screen loads media from.
-enum LibrarySource {
-  local,
-  cloud,
-}
+enum LibrarySource { local, cloud }
 
 /// Parses `source` from a library route [uri]. Defaults to [LibrarySource.local].
 LibrarySource librarySourceFromUri(Uri uri) {

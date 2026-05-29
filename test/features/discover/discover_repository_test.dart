@@ -36,10 +36,7 @@ void main() {
         db,
         httpClient: MockClient((request) async {
           if (request.url.toString().contains('feeds/videos.xml')) {
-            expect(
-              request.headers['User-Agent'],
-              YoutubeFetch.userAgent,
-            );
+            expect(request.headers['User-Agent'], YoutubeFetch.userAgent);
             return http.Response(_rss, 200);
           }
           return http.Response('', 404);
@@ -68,33 +65,36 @@ void main() {
       expect(timeline.last.videoId, 'videoA123456');
     });
 
-    test('subscribe preserves lastFetchedAt and subscribedAt on re-subscribe', () async {
-      const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
-      final subscribedAt = DateTime.utc(2024, 1, 1);
-      final fetchedAt = DateTime.utc(2024, 2, 1);
-      await db.youtubeChannelSubscriptionDao.upsert(
-        YoutubeChannelSubscriptionRow(
+    test(
+      'subscribe preserves lastFetchedAt and subscribedAt on re-subscribe',
+      () async {
+        const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
+        final subscribedAt = DateTime.utc(2024, 1, 1);
+        final fetchedAt = DateTime.utc(2024, 2, 1);
+        await db.youtubeChannelSubscriptionDao.upsert(
+          YoutubeChannelSubscriptionRow(
+            channelId: channelId,
+            displayName: 'TED',
+            source: 'recommended',
+            subscribedAt: subscribedAt,
+            lastFetchedAt: fetchedAt,
+          ),
+        );
+
+        await repo.subscribeChannel(
           channelId: channelId,
-          displayName: 'TED',
-          source: 'recommended',
-          subscribedAt: subscribedAt,
-          lastFetchedAt: fetchedAt,
-        ),
-      );
+          displayName: 'TED Talks',
+          source: 'user',
+        );
 
-      await repo.subscribeChannel(
-        channelId: channelId,
-        displayName: 'TED Talks',
-        source: 'user',
-      );
-
-      final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
-        channelId,
-      );
-      expect(row!.displayName, 'TED Talks');
-      expect(row.subscribedAt.toUtc(), subscribedAt);
-      expect(row.lastFetchedAt!.toUtc(), fetchedAt);
-    });
+        final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
+          channelId,
+        );
+        expect(row!.displayName, 'TED Talks');
+        expect(row.subscribedAt.toUtc(), subscribedAt);
+        expect(row.lastFetchedAt!.toUtc(), fetchedAt);
+      },
+    );
 
     test('refresh prunes feed entries missing from RSS', () async {
       const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';

@@ -10,13 +10,13 @@ void main() {
     test('enabled on shell browse routes', () {
       expect(librarySearchHotkeyEnabledForPath('/'), isTrue);
       expect(librarySearchHotkeyEnabledForPath('/library'), isTrue);
-      expect(librarySearchHotkeyEnabledForPath('/library?source=cloud'), isTrue);
-      expect(librarySearchHotkeyEnabledForPath('/cloud'), isTrue);
-      expect(librarySearchHotkeyEnabledForPath('/settings'), isTrue);
       expect(
-        librarySearchHotkeyEnabledForPath('/settings/keyboard'),
+        librarySearchHotkeyEnabledForPath('/library?source=cloud'),
         isTrue,
       );
+      expect(librarySearchHotkeyEnabledForPath('/cloud'), isTrue);
+      expect(librarySearchHotkeyEnabledForPath('/settings'), isTrue);
+      expect(librarySearchHotkeyEnabledForPath('/settings/keyboard'), isTrue);
       expect(librarySearchHotkeyEnabledForPath('/profile'), isTrue);
     });
 

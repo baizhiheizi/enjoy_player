@@ -58,14 +58,14 @@ List<Override> _transportOverrides({
     playerControllerProvider.overrideWith(
       () => _SessionPlayerController(_testSession()),
     ),
-    transcriptHasLinesForMediaProvider(_kMediaId).overrideWith(
-      (ref) => Stream.value(true),
-    ),
+    transcriptHasLinesForMediaProvider(
+      _kMediaId,
+    ).overrideWith((ref) => Stream.value(true)),
     playerIsPlayingProvider.overrideWith((ref) => Stream.value(false)),
     playerIsBufferingProvider.overrideWith((ref) => Stream.value(false)),
-    allTranscriptsForMediaProvider(_kMediaId).overrideWith(
-      (ref) => Stream.value(const <TranscriptTrack>[]),
-    ),
+    allTranscriptsForMediaProvider(
+      _kMediaId,
+    ).overrideWith((ref) => Stream.value(const <TranscriptTrack>[])),
     transcriptFetchCtrlProvider(_kMediaId).overrideWithValue(
       const TranscriptFetchUiState(status: TranscriptFetchStatus.idle),
     ),
@@ -168,11 +168,7 @@ void main() {
       testWidgets('player at ${width.toInt()}px shows prev/next, not replay', (
         tester,
       ) async {
-        await pumpTransport(
-          tester,
-          router: _playerRouter(),
-          width: width,
-        );
+        await pumpTransport(tester, router: _playerRouter(), width: width);
 
         expect(find.byIcon(Icons.skip_previous_rounded), findsOneWidget);
         expect(find.byIcon(Icons.skip_next_rounded), findsOneWidget);
@@ -181,11 +177,7 @@ void main() {
     }
 
     testWidgets('mini at 320px shows prev/next, hides expand', (tester) async {
-      await pumpTransport(
-        tester,
-        router: _libraryRouter(),
-        width: 320,
-      );
+      await pumpTransport(tester, router: _libraryRouter(), width: 320);
 
       expect(find.byIcon(Icons.skip_previous_rounded), findsOneWidget);
       expect(find.byIcon(Icons.skip_next_rounded), findsOneWidget);

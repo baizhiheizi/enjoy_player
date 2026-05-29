@@ -55,9 +55,7 @@ void main() {
             path: '/library',
             builder: (_, state) {
               final source = librarySourceFromUri(state.uri);
-              return Scaffold(
-                body: Text('library-${source.name}'),
-              );
+              return Scaffold(body: Text('library-${source.name}'));
             },
           ),
         ],
@@ -78,10 +76,7 @@ void main() {
       final router = GoRouter(
         initialLocation: '/library?source=cloud',
         routes: [
-          GoRoute(
-            path: '/library',
-            builder: (_, _) => const LibraryScreen(),
-          ),
+          GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
         ],
       );
       addTearDown(router.dispose);
@@ -94,9 +89,7 @@ void main() {
             libraryFilteredListsProvider.overrideWith(
               (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
             ),
-            libraryMediaProvider.overrideWith(
-              (ref) => Stream.value(<Media>[]),
-            ),
+            libraryMediaProvider.overrideWith((ref) => Stream.value(<Media>[])),
           ],
         ),
       );
@@ -109,52 +102,48 @@ void main() {
       expect(find.byIcon(Icons.swap_horiz_rounded), findsOneWidget);
     });
 
-    testWidgets('local source shows import and compact search on narrow width',
-        (tester) async {
-      tester.view.physicalSize = const Size(400, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'local source shows import and compact search on narrow width',
+      (tester) async {
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      final router = GoRouter(
-        initialLocation: '/library',
-        routes: [
-          GoRoute(
-            path: '/library',
-            builder: (_, _) => const LibraryScreen(),
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
-
-      await tester.pumpWidget(
-        _themedRouter(
-          router: router,
-          overrides: [
-            authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
-            libraryFilteredListsProvider.overrideWith(
-              (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
-            ),
-            libraryMediaProvider.overrideWith(
-              (ref) => Stream.value(<Media>[]),
-            ),
+        final router = GoRouter(
+          initialLocation: '/library',
+          routes: [
+            GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
           ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        addTearDown(router.dispose);
 
-      expect(find.text('Import'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-    });
+        await tester.pumpWidget(
+          _themedRouter(
+            router: router,
+            overrides: [
+              authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new),
+              libraryFilteredListsProvider.overrideWith(
+                (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
+              ),
+              libraryMediaProvider.overrideWith(
+                (ref) => Stream.value(<Media>[]),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Import'), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
+      },
+    );
 
     testWidgets('source toggle navigates to cloud query', (tester) async {
       final router = GoRouter(
         initialLocation: '/library',
         routes: [
-          GoRoute(
-            path: '/library',
-            builder: (_, _) => const LibraryScreen(),
-          ),
+          GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
         ],
       );
       addTearDown(router.dispose);
@@ -167,9 +156,7 @@ void main() {
             libraryFilteredListsProvider.overrideWith(
               (ref) => Stream.value((audio: <Media>[], video: <Media>[])),
             ),
-            libraryMediaProvider.overrideWith(
-              (ref) => Stream.value(<Media>[]),
-            ),
+            libraryMediaProvider.overrideWith((ref) => Stream.value(<Media>[])),
           ],
         ),
       );

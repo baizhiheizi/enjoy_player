@@ -20,7 +20,9 @@ class _RecordingHotkeysCtrl extends HotkeysCtrl {
   var resetAllCalled = false;
 
   @override
-  Future<Map<String, String>> build() async => const {'global.search': 'ctrl+k'};
+  Future<Map<String, String>> build() async => const {
+    'global.search': 'ctrl+k',
+  };
 
   @override
   Future<void> resetAllBindings() async {
@@ -94,8 +96,7 @@ void main() {
           routes: [
             GoRoute(
               path: '/settings',
-              builder: (_, _) =>
-                  const Scaffold(body: Text('settings-root')),
+              builder: (_, _) => const Scaffold(body: Text('settings-root')),
             ),
             GoRoute(
               path: '/settings/keyboard',
@@ -122,8 +123,7 @@ void main() {
           routes: [
             GoRoute(
               path: '/settings',
-              builder: (_, _) =>
-                  const Scaffold(body: Text('settings-root')),
+              builder: (_, _) => const Scaffold(body: Text('settings-root')),
             ),
             GoRoute(
               path: '/settings/keyboard',

@@ -21,7 +21,9 @@ void main() {
     const e = ApiException(
       message: 'HTTP 422',
       statusCode: 422,
-      body: {'errors': ['title cannot be blank']},
+      body: {
+        'errors': ['title cannot be blank'],
+      },
     );
 
     expect(e.isDuplicateEntity, isFalse);

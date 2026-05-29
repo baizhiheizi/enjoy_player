@@ -87,7 +87,10 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     }
     if (!inLib || !mounted) return;
     if (mounted) setState(() => _inLibrary = true);
-    final mediaId = enjoyVideoId(provider: 'youtube', vid: widget.entry.videoId);
+    final mediaId = enjoyVideoId(
+      provider: 'youtube',
+      vid: widget.entry.videoId,
+    );
     openPlayerRoute(context, mediaId);
   }
 
@@ -111,7 +114,8 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final tt = Theme.of(context).textTheme;
     final entry = widget.entry;
     final thumb = remoteThumbnailForCard(entry.thumbnailUrl);
-    final subs = ref.watch(discoverSubscriptionsProvider).valueOrNull ?? const [];
+    final subs =
+        ref.watch(discoverSubscriptionsProvider).valueOrNull ?? const [];
     final sub = _subscriptionForEntry(subs);
     final channelName = sub?.displayName ?? 'YouTube';
     final channelAvatar = remoteThumbnailForCard(sub?.thumbnailUrl);
@@ -142,7 +146,12 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
               ),
               SizedBox(height: t.space12),
               Padding(
-                padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
+                padding: EdgeInsets.fromLTRB(
+                  t.space12,
+                  0,
+                  t.space12,
+                  t.space12,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -241,10 +250,8 @@ class _VideoThumbnail extends StatelessWidget {
               Image.network(
                 thumbUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => GenerativeMediaCover(
-                  seed: coverSeed,
-                  isVideo: true,
-                ),
+                errorBuilder: (_, _, _) =>
+                    GenerativeMediaCover(seed: coverSeed, isVideo: true),
               )
             else
               GenerativeMediaCover(seed: coverSeed, isVideo: true),
@@ -353,7 +360,9 @@ class _ChannelAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = generativeAccentForSeed(seed);
-    final initial = label.trim().isNotEmpty ? label.trim()[0].toUpperCase() : '?';
+    final initial = label.trim().isNotEmpty
+        ? label.trim()[0].toUpperCase()
+        : '?';
 
     Widget fallback() {
       return ColoredBox(

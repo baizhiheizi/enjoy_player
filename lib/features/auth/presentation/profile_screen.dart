@@ -149,7 +149,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   hint: l10n.profileSectionPracticeHint,
                   icon: Icons.insights_outlined,
                 ),
-                _ProfilePracticeSection(stats: ref.watch(profilePracticeStatsProvider)),
+                _ProfilePracticeSection(
+                  stats: ref.watch(profilePracticeStatsProvider),
+                ),
                 SizedBox(height: t.space8),
                 _ProfileSectionHeader(
                   title: l10n.profileSectionAccount,
@@ -480,9 +482,7 @@ class _ProfileHeroCard extends StatelessWidget {
               t.gradientEnd.withValues(alpha: 0.9),
             ],
           ),
-          border: Border.all(
-            color: cs.outlineVariant.withValues(alpha: 0.28),
-          ),
+          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
         ),
         child: Padding(
           padding: EdgeInsets.all(t.space20),
@@ -491,8 +491,7 @@ class _ProfileHeroCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 32,
-                backgroundImage:
-                    p.avatarUrl != null && p.avatarUrl!.isNotEmpty
+                backgroundImage: p.avatarUrl != null && p.avatarUrl!.isNotEmpty
                     ? NetworkImage(p.avatarUrl!)
                     : null,
                 child: p.avatarUrl == null || p.avatarUrl!.isEmpty
@@ -771,10 +770,7 @@ class _ProfileNavTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: cs.onSurfaceVariant,
-                ),
+                Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
               ],
             ),
           ),
@@ -785,10 +781,7 @@ class _ProfileNavTile extends StatelessWidget {
 }
 
 class _ProfileSignOutButton extends StatelessWidget {
-  const _ProfileSignOutButton({
-    required this.saving,
-    required this.onPressed,
-  });
+  const _ProfileSignOutButton({required this.saving, required this.onPressed});
 
   final bool saving;
   final VoidCallback onPressed;
@@ -835,7 +828,9 @@ class _ProfileStatsRow extends StatelessWidget {
     final tiles = [
       _ProfileStatTile(
         periodLabel: l10n.profileStatTodayTitle,
-        durationLabel: formatPracticeDurationMs(stats.today.recordingDurationMs),
+        durationLabel: formatPracticeDurationMs(
+          stats.today.recordingDurationMs,
+        ),
         recordingsLabel: l10n.transcriptLineRecordingCount(
           stats.today.recordingCount,
         ),
@@ -857,7 +852,9 @@ class _ProfileStatsRow extends StatelessWidget {
       ),
       _ProfileStatTile(
         periodLabel: l10n.profileStatMonthTitle,
-        durationLabel: formatPracticeDurationMs(stats.month.recordingDurationMs),
+        durationLabel: formatPracticeDurationMs(
+          stats.month.recordingDurationMs,
+        ),
         recordingsLabel: l10n.transcriptLineRecordingCount(
           stats.month.recordingCount,
         ),

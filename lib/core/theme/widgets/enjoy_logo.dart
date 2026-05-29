@@ -14,10 +14,7 @@ class EnjoyLogo extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: SvgPicture.asset(
-        'assets/logo-light.svg',
-        fit: BoxFit.contain,
-      ),
+      child: SvgPicture.asset('assets/logo-light.svg', fit: BoxFit.contain),
     );
   }
 }

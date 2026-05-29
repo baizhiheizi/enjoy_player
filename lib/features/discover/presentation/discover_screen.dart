@@ -78,9 +78,7 @@ class DiscoverScreen extends ConsumerWidget {
               const SliverToBoxAdapter(
                 child: LinearProgressIndicator(minHeight: 2),
               ),
-            const SliverToBoxAdapter(
-              child: DiscoverChannelFilterStrip(),
-            ),
+            const SliverToBoxAdapter(child: DiscoverChannelFilterStrip()),
             subscriptionsAsync.when(
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
@@ -102,9 +100,8 @@ class DiscoverScreen extends ConsumerWidget {
                       icon: Icons.rss_feed_rounded,
                       title: l10n.discoverFeedEmptyTitle,
                       subtitle: l10n.discoverNoSubscriptionsHint,
-                      action: () => unawaited(
-                        showDiscoverManageChannels(context, ref),
-                      ),
+                      action: () =>
+                          unawaited(showDiscoverManageChannels(context, ref)),
                       actionLabel: l10n.discoverManageChannels,
                     ),
                   );
@@ -123,10 +120,7 @@ class DiscoverScreen extends ConsumerWidget {
 }
 
 class _DiscoverFeedSliver extends StatelessWidget {
-  const _DiscoverFeedSliver({
-    required this.feedAsync,
-    required this.onRefresh,
-  });
+  const _DiscoverFeedSliver({required this.feedAsync, required this.onRefresh});
 
   final AsyncValue<List<FeedEntry>> feedAsync;
   final Future<void> Function() onRefresh;
@@ -165,7 +159,12 @@ class _DiscoverFeedSliver extends StatelessWidget {
           );
         }
         return SliverPadding(
-          padding: EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, t.space32),
+          padding: EdgeInsets.fromLTRB(
+            t.space24,
+            t.space8,
+            t.space24,
+            t.space32,
+          ),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               const minTileWidth = 320.0;

@@ -59,22 +59,14 @@ bool _echoLayoutEqual(EchoState a, EchoState b) {
       a.endLineIndex == b.endLineIndex;
 }
 
-int _virtualIndexForEcho(
-  EchoState echo,
-  List<_TranscriptVirtualItem> items,
-) {
+int _virtualIndexForEcho(EchoState echo, List<_TranscriptVirtualItem> items) {
   return items.indexWhere(
     (e) => e is _VirtualEcho && e.startLineIndex == echo.startLineIndex,
   );
 }
 
-int _virtualIndexForLine(
-  int lineIndex,
-  List<_TranscriptVirtualItem> items,
-) {
-  return items.indexWhere(
-    (e) => e is _VirtualLine && e.lineIndex == lineIndex,
-  );
+int _virtualIndexForLine(int lineIndex, List<_TranscriptVirtualItem> items) {
+  return items.indexWhere((e) => e is _VirtualLine && e.lineIndex == lineIndex);
 }
 
 class TranscriptScrollableList extends ConsumerStatefulWidget {
@@ -200,10 +192,7 @@ class _TranscriptScrollableListState
       }
 
       final echoItemIndex = _virtualIndexForEcho(echo, items);
-      _jumpToVirtualIndexEstimate(
-        echoItemIndex,
-        itemCount: items.length,
-      );
+      _jumpToVirtualIndexEstimate(echoItemIndex, itemCount: items.length);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -311,8 +300,9 @@ class _TranscriptScrollableListState
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
     final secondaryMatcher = _matcherFor(secondaryLines);
     final items = _virtualItems(echo);
-    final lineRecordingCounts =
-        ref.watch(transcriptLineRecordingCountsProvider(widget.mediaId));
+    final lineRecordingCounts = ref.watch(
+      transcriptLineRecordingCountsProvider(widget.mediaId),
+    );
 
     ref.listen(transcriptPlaybackHighlightProvider(widget.mediaId), (
       prev,
