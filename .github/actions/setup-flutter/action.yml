@@ -4,17 +4,23 @@ description: Pin Flutter from .github/flutter-version without GitHub Actions cac
 runs:
   using: composite
   steps:
-    - name: Read Flutter version
-      id: flutter_version
-      shell: node
+    - name: Read Flutter version (Unix)
+      if: runner.os != 'Windows'
+      id: flutter_version_unix
+      shell: bash
+      run: echo "version=$(tr -d ' \n\r' < .github/flutter-version)" >> "$GITHUB_OUTPUT"
+
+    - name: Read Flutter version (Windows)
+      if: runner.os == 'Windows'
+      id: flutter_version_windows
+      shell: pwsh
       run: |
-        const fs = require('fs');
-        const version = fs.readFileSync('.github/flutter-version', 'utf8').replace(/\s/g, '');
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+        $version = (Get-Content -Path '.github/flutter-version' -Raw).Trim() -replace '\s', ''
+        "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Install Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: stable
-        flutter-version: ${{ steps.flutter_version.outputs.version }}
+        flutter-version: ${{ runner.os == 'Windows' && steps.flutter_version_windows.outputs.version || steps.flutter_version_unix.outputs.version }}
         cache: false
