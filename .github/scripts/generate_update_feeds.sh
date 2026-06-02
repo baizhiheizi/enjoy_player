@@ -95,12 +95,16 @@ pub_date="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
 
   if [[ -n "${assets[macos]:-}" ]]; then
     IFS='|' read -r file url sha <<< "${assets[macos]}"
+    mac_len=0
+    if [[ -f "${file}" ]]; then
+      mac_len="$(wc -c < "${file}" | tr -d ' ')"
+    fi
     echo '    <item>'
     echo "      <title>Version ${version}</title>"
     echo "      <pubDate>${pub_date}</pubDate>"
     echo '      <sparkle:version>'"${build}"'</sparkle:version>'
     echo '      <sparkle:shortVersionString>'"${version}"'</sparkle:shortVersionString>'
-    echo '      <enclosure url="'"${url}"'" sparkle:os="macos" type="application/octet-stream" length="0"'
+    echo '      <enclosure url="'"${url}"'" sparkle:os="macos" type="application/octet-stream" length="'"${mac_len}"'"'
     if [[ -n "${sparkle_mac_sig}" ]]; then
       echo '        sparkle:edSignature="'"${sparkle_mac_sig}"'"'
     fi
@@ -110,12 +114,16 @@ pub_date="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
 
   if [[ -n "${assets[windows]:-}" ]]; then
     IFS='|' read -r file url sha <<< "${assets[windows]}"
+    win_len=0
+    if [[ -f "${file}" ]]; then
+      win_len="$(wc -c < "${file}" | tr -d ' ')"
+    fi
     echo '    <item>'
     echo "      <title>Version ${version}</title>"
     echo "      <pubDate>${pub_date}</pubDate>"
     echo '      <sparkle:version>'"${build}"'</sparkle:version>'
     echo '      <sparkle:shortVersionString>'"${version}"'</sparkle:shortVersionString>'
-    echo '      <enclosure url="'"${url}"'" sparkle:os="windows" type="application/octet-stream" length="0"'
+    echo '      <enclosure url="'"${url}"'" sparkle:os="windows" type="application/octet-stream" length="'"${win_len}"'"'
     if [[ -n "${sparkle_win_sig}" ]]; then
       echo '        sparkle:dsaSignature="'"${sparkle_win_sig}"'"'
     fi

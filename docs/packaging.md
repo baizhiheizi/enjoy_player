@@ -336,9 +336,78 @@ Hosting is **Cloudflare R2** (S3-compatible API) behind `https://dl.enjoy.bot/pl
 | `S3_ENDPOINT` | e.g. `https://<account-id>.r2.cloudflarestorage.com` |
 | `CLOUDFLARE_API_TOKEN` | Purge `latest.json` / `appcast.xml` after upload (Zone → Cache Purge) |
 | `CLOUDFLARE_ZONE_ID` | Zone ID for `enjoy.bot` (website zone, not R2) |
-| `SPARKLE_ED_SIGNATURE_WINDOWS` / `SPARKLE_ED_SIGNATURE_MACOS` | Desktop appcast signatures (when signing is set up) |
+| `SPARKLE_DSA_PRIV_PEM_BASE64` | WinSparkle **private** key (`dsa_priv.pem`, base64) for CI appcast signing |
 
 Optional env (defaults in script): `S3_PREFIX` (`player`), `S3_REGION` (`auto` for AWS CLI).
+
+### Sparkle / WinSparkle keys (desktop auto-update)
+
+Desktop `direct` builds verify update packages with **Sparkle (macOS)** and **WinSparkle (Windows)**. Each platform needs a one-time key pair; CI signs each release artifact at publish time (`.github/scripts/sign_sparkle_enclosure.sh`).
+
+#### macOS (EdDSA)
+
+On a **Mac** (once):
+
+```bash
+flutter pub get
+cd macos && pod install && cd ..
+dart run auto_updater:generate_keys
+```
+
+Copy the printed `SUPublicEDKey` into [`macos/Runner/Info.plist`](../macos/Runner/Info.plist). The private key stays in the **login keychain** on that Mac.
+
+For **CI** (self-hosted macOS runner): run `generate_keys` once on the same machine that publishes releases so `sign_update` can read the keychain.
+
+#### Windows (DSA)
+
+On **Windows** (once; requires [OpenSSL](https://slproweb.com/products/Win32OpenSSL.html) or `choco install openssl`):
+
+```powershell
+flutter pub get
+dart run auto_updater:generate_keys
+```
+
+This creates `dsa_priv.pem` (secret) and `dsa_pub.pem` (public). Add to [`windows/runner/Runner.rc`](../windows/runner/Runner.rc):
+
+```rc
+DSAPub      DSAPEM      "..\\dsa_pub.pem"
+```
+
+Commit **`windows/dsa_pub.pem`** only. Store the private key as a GitHub secret:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("dsa_priv.pem"))
+# → Settings → Secrets → SPARKLE_DSA_PRIV_PEM_BASE64
+```
+
+#### Verify wiring
+
+```bash
+bash .github/scripts/verify_sparkle_setup.sh
+# Before dl.enjoy.bot is live:
+SKIP_FEED_CHECK=1 bash .github/scripts/verify_sparkle_setup.sh
+```
+
+#### End-to-end spike (required before first public release)
+
+1. Publish **vA** (older) to `dl.enjoy.bot` — install locally.
+2. Bump `pubspec.yaml`, tag **vB**, let CI publish feeds.
+3. Launch vA → Settings → **Check for updates** → confirm prompt → install vB.
+4. Repeat for Windows installer, macOS zip, and Android sideload APK.
+
+Without valid signatures, desktop clients may refuse to install updates even when feeds are correct.
+
+### Cloudflare R2 + `dl.enjoy.bot` (one-time infra)
+
+Feeds and installers are **404 today** until this is done:
+
+1. **R2 bucket** — create a bucket (e.g. `enjoy-dl`), enable public access via **R2 custom domain** `dl.enjoy.bot` (or Workers route).
+2. **R2 API token** — Object Read & Write → `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`; bucket name → `S3_BUCKET`; endpoint → `S3_ENDPOINT`.
+3. **Cache purge** — `CLOUDFLARE_API_TOKEN` (Cache Purge) + `CLOUDFLARE_ZONE_ID` for the `enjoy.bot` zone.
+4. **Smoke test** — after a tagged release, confirm:
+   - `https://dl.enjoy.bot/player/latest.json` → 200
+   - `https://dl.enjoy.bot/player/appcast.xml` → 200
+   - `https://dl.enjoy.bot/player/<version>/EnjoyPlayerSetup-v<version>.exe` → 200
 
 **Local — Git Bash / WSL** (install [AWS CLI v2](https://aws.amazon.com/cli/)):
 
@@ -351,18 +420,19 @@ export CLOUDFLARE_API_TOKEN="<token with Cache Purge>"
 export CLOUDFLARE_ZONE_ID="<zone id for enjoy.bot>"
 ```
 
-**Local — Windows (PowerShell)** — publish still runs via **Git Bash** or **WSL** (bash script). Set env in PowerShell, then invoke bash from the same session:
+**Local publish** — prefer [`release.ps1`](../release.ps1) (loads `publish_env.local.ps1` automatically):
 
 ```powershell
-# One-time: copy and edit (gitignored)
 Copy-Item .github\scripts\publish_env.example.ps1 .github\scripts\publish_env.local.ps1
+# edit credentials, then:
+pwsh ./release.ps1 -Publish
+```
 
-# Each session (or dot-source the local file)
+Low-level publish (same script CI uses):
+
+```powershell
 . .\.github\scripts\publish_env.local.ps1
-
-# Publish (Git Bash — paths use forward slashes inside bash)
-bash .github/scripts/publish_player_release_to_s3.sh `
-  --windows-installer "build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe"
+bash .github/scripts/publish_player_release_to_s3.sh --windows-installer "build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe"
 ```
 
 **Persistent user env vars (Windows)** — System Properties → Environment Variables, or PowerShell (new terminals only):
@@ -376,14 +446,9 @@ bash .github/scripts/publish_player_release_to_s3.sh `
 
 Verify: `echo $env:S3_BUCKET` (PowerShell) or `echo $S3_BUCKET` (Git Bash).
 
-On tag push, release workflows upload immutable `player/<version>/` artifacts and overwrite **`latest.json`** + **`appcast.xml`**.
+On tag push, release workflows call the same **`release_*.sh`** scripts, upload artifacts, and overwrite **`latest.json`** + **`appcast.xml`**.
 
-Scripts:
-
-- `.github/scripts/generate_update_feeds.sh` — local dry-run
-- `.github/scripts/publish_player_release_to_s3.sh` — upload + feed overwrite (+ optional Cloudflare purge)
-
-**Before first public auto-update:** manually verify WinSparkle + Inno installer and Sparkle + notarized macOS zip (spikes in OpenSpec `app-update-system`).
+See [Release verification (local)](#local-release-same-logic-as-github-actions) for `release.ps1` / `release.sh`.
 
 ---
 
@@ -414,5 +479,56 @@ flutter analyze
 flutter test
 dart run build_runner build --delete-conflicting-outputs
 ```
+
+### Local release (same logic as GitHub Actions)
+
+Use **`release.ps1`** (Windows) or **`release.sh`** (Git Bash / macOS / Linux). These call the same scripts as `.github/workflows/release_*.yml`.
+
+**One-time:** copy publish credentials:
+
+```powershell
+Copy-Item .github\scripts\publish_env.example.ps1 .github\scripts\publish_env.local.ps1
+# edit S3 / Cloudflare values
+```
+
+**Windows — build installer:**
+
+```powershell
+pwsh ./release.ps1                      # analyze + test + build + Inno Setup .exe
+pwsh ./release.ps1 -SkipChecks          # faster iteration while debugging
+```
+
+**Publish to dl.enjoy.bot:**
+
+```powershell
+pwsh ./release.ps1 -Publish             # build + upload + feeds
+pwsh ./release.ps1 -PublishOnly -Publish  # re-upload existing artifacts
+```
+
+**Test auto-update locally (no S3):**
+
+```powershell
+pwsh ./release.ps1 -FeedsOnly           # writes build/release/serve/player/
+cd build/release/serve && python -m http.server 8787
+# feeds point at http://127.0.0.1:8787/player — use for update spike testing
+```
+
+**Git Bash / macOS:**
+
+```bash
+bash .github/scripts/release.sh --platform windows
+bash .github/scripts/release.sh --platform windows --publish
+bash .github/scripts/release.sh --platform android --publish
+bash .github/scripts/release.sh --platform apple --notarize --publish
+```
+
+Scripts (shared with CI):
+
+| Script | Role |
+|--------|------|
+| [`release.ps1`](../release.ps1) | Windows entry point |
+| [`.github/scripts/release.sh`](../.github/scripts/release.sh) | Platform dispatcher |
+| [`.github/scripts/release_windows.sh`](../.github/scripts/release_windows.sh) | Windows build + publish |
+| [`.github/scripts/publish_player_release_to_s3.sh`](../.github/scripts/publish_player_release_to_s3.sh) | Upload, sign, feeds |
 
 Then platform release builds as above. CI runs analyze/tests and platform smoke builds (Android, Windows, iOS compile-only, macOS compile-only with ad-hoc signing) — see [testing.md](testing.md). **Release** APK/AAB/Windows/IPA/notarized macOS builds are recommended before tagging a release.

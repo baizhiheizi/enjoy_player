@@ -11,6 +11,10 @@ on:
         description: Notarize macOS .app for direct download
         type: boolean
         default: true
+      publish:
+        description: Upload macOS zip + update feeds on dl.enjoy.bot
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
@@ -27,8 +31,6 @@ jobs:
     name: iOS + macOS release
     runs-on: [self-hosted, macos]
     env:
-      # Set repository variable APPLE_USE_RUNNER_KEYCHAIN=true on self-hosted Macs
-      # that already have Distribution + Developer ID certs in login keychain.
       APPLE_USE_RUNNER_KEYCHAIN: ${{ vars.APPLE_USE_RUNNER_KEYCHAIN || 'true' }}
       NOTARY_PROFILE: enjoy-notary
       MACOS_APP_PATH: build/macos/Build/Products/Release/Enjoy Player.app
@@ -39,86 +41,41 @@ jobs:
 
       - uses: ./.github/actions/setup-flutter
 
-      - name: Pre-release checks
-        run: |
-          flutter pub get
-          flutter analyze
-          flutter test
-
-      - name: Setup signing certificates
+      - name: Build Apple release
         env:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           IOS_DISTRIBUTION_CERT_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERT_BASE64 }}
           IOS_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
           MACOS_DEVELOPER_ID_CERT_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERT_BASE64 }}
           MACOS_DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERT_PASSWORD }}
-        run: bash .github/scripts/setup_apple_signing.sh
-
-      - name: Setup notary credentials
-        if: >-
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.notarize_macos)
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: bash .github/scripts/setup_notary_credentials.sh
-
-      - name: Install Homebrew deps (FFmpeg kit)
-        run: brew bundle install --file=macos/Brewfile
-
-      - name: CocoaPods install
-        run: |
-          cd ios && pod install
-          cd ../macos && pod install
-
-      - name: Build iOS IPA
-        run: |
-          flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.export.plist
-
-      - name: Upload IPA to TestFlight
-        if: >-
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.upload_testflight)
-        env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
-          if [ -z "${APP_STORE_CONNECT_API_KEY_ID:-}" ] || [ -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ] || [ -z "${APP_STORE_CONNECT_API_PRIVATE_KEY:-}" ]; then
-            echo "Skipping TestFlight upload: App Store Connect API secrets are not configured."
-            exit 0
+          args=()
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]] ||
+             [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.notarize_macos }}" == "true" ]]; then
+            args+=(--notarize)
           fi
-          KEY_PATH="${RUNNER_TEMP}/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-          printf '%s' "${APP_STORE_CONNECT_API_PRIVATE_KEY}" >"${KEY_PATH}"
-          chmod 600 "${KEY_PATH}"
-          IPA="$(ls -1 build/ios/ipa/*.ipa | head -1)"
-          xcrun altool --upload-app \
-            --type ios \
-            --file "${IPA}" \
-            --apiKey "${APP_STORE_CONNECT_API_KEY_ID}" \
-            --apiIssuer "${APP_STORE_CONNECT_ISSUER_ID}"
-          rm -f "${KEY_PATH}"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]] ||
+             [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.upload_testflight }}" == "true" ]]; then
+            args+=(--testflight)
+          fi
+          bash .github/scripts/release_apple.sh "${args[@]}"
 
-      - name: Build macOS release
-        run: flutter build macos --release --dart-define=DISTRIBUTION_CHANNEL=direct
-
-      - name: Notarize macOS app
+      - name: Publish macOS direct-download feeds
         if: >-
           (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.notarize_macos)
-        run: |
-          chmod +x macos/scripts/notarize_release.sh
-          ./macos/scripts/notarize_release.sh "${MACOS_APP_PATH}"
-
-      - name: Package macOS artifact
-        run: |
-          version="$(bash .github/scripts/read_pubspec_version.sh)"
-          ditto -c -k --keepParent "${MACOS_APP_PATH}" "EnjoyPlayer-macOS-v${version}.zip"
-
-      - name: Version iOS IPA filename
-        run: bash .github/scripts/rename_release_artifacts.sh apple
+          (github.event_name == 'workflow_dispatch' && inputs.publish)
+        env:
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          RELEASE_REQUIRE_S3: "1"
+        run: bash .github/scripts/release_apple.sh --publish-only --publish
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
@@ -129,22 +86,3 @@ jobs:
             EnjoyPlayer-macOS-v*.zip
           if-no-files-found: error
           retention-days: 30
-
-      - name: Publish macOS direct-download feeds (optional)
-        if: >-
-          github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        env:
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
-          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-          SPARKLE_ED_SIGNATURE_MACOS: ${{ secrets.SPARKLE_ED_SIGNATURE_MACOS }}
-        run: |
-          version="$(bash .github/scripts/read_pubspec_version.sh)"
-          zip="EnjoyPlayer-macOS-v${version}.zip"
-          if [[ -f "${zip}" ]]; then
-            bash .github/scripts/publish_player_release_to_s3.sh --macos-zip "${zip}"
-          fi

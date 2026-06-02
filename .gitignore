@@ -57,3 +57,7 @@ app.*.map.json
 
 # Local publish credentials (copy from .github/scripts/publish_env.example.ps1)
 .github/scripts/publish_env.local.ps1
+.github/scripts/publish_env.local.sh
+
+# WinSparkle update signing (generate with `dart run auto_updater:generate_keys`)
+dsa_priv.pem
