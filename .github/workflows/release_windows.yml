@@ -57,22 +57,3 @@ jobs:
           SPARKLE_DSA_PRIV_PEM_BASE64: ${{ secrets.SPARKLE_DSA_PRIV_PEM_BASE64 }}
           RELEASE_REQUIRE_S3: "1"
         run: bash .github/scripts/release_windows.sh --publish-only --publish
-
-      - name: Upload runner artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-release-${{ github.ref_name }}
-          path: build/windows/x64/runner/Release/**
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload installer artifact
-        if: >-
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.build_installer)
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-${{ github.ref_name }}
-          path: build/windows/installer/EnjoyPlayerSetup-v*.exe
-          if-no-files-found: error
-          retention-days: 30

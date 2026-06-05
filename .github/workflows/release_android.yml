@@ -82,28 +82,6 @@ jobs:
           RELEASE_REQUIRE_S3: "1"
         run: bash .github/scripts/release_android.sh --publish-only --publish
 
-      - name: Upload App Bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-${{ github.ref_name }}
-          path: build/app/outputs/bundle/release/EnjoyPlayer-v*.aab
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload APK artifacts (per ABI)
-        if: >-
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
-          (github.event_name == 'workflow_dispatch' && inputs.build_apk)
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-${{ github.ref_name }}
-          path: |
-            build/app/outputs/flutter-apk/EnjoyPlayer-v*-armeabi-v7a.apk
-            build/app/outputs/flutter-apk/EnjoyPlayer-v*-arm64-v8a.apk
-            build/app/outputs/flutter-apk/EnjoyPlayer-v*-x86_64.apk
-          if-no-files-found: error
-          retention-days: 30
-
       - name: Clean up signing files
         if: always() && env.ANDROID_USE_RUNNER_KEYSTORE != 'true'
         run: rm -f android/key.properties android/ci-release-keystore.jks

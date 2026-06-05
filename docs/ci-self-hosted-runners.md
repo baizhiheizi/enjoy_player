@@ -1,6 +1,6 @@
 # Self-hosted CI runners
 
-All GitHub Actions workflows in this repo (except **Build Windows** and **Release Windows**, which still use GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready) run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions). Dependencies stay on local disk between jobs.
+All GitHub Actions workflows in this repo (except **Release Windows**, which still uses GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready) run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
 
 Shared workflow pieces:
 
@@ -26,7 +26,8 @@ Use labels that match workflow `runs-on`:
 | CI, Codegen drift, Android APK smoke | `self-hosted`, `Linux` |
 | Build Apple, Release Apple | `self-hosted`, `macos` |
 | Release Android | `self-hosted`, `Linux` |
-| Build Windows, Release Windows | GitHub-hosted `windows-latest` (planned: `self-hosted`, `Windows`) |
+| Build Windows | `self-hosted`, `Windows` |
+| Release Windows | GitHub-hosted `windows-latest` (planned: `self-hosted`, `Windows`) |
 
 ---
 
@@ -98,7 +99,7 @@ Windows release/smoke workflows run `windows/scripts/fetch_ffmpeg.ps1` automatic
 | [ci.yml](../.github/workflows/ci.yml) | Linux | analyze, format, test |
 | [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | build_runner drift check |
 | [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | APK + AAB compile smoke |
-| [build_windows.yml](../.github/workflows/build_windows.yml) | GitHub-hosted `windows-latest` | debug + release smoke (until self-hosted Windows runner is ready) |
+| [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | debug + release smoke |
 | [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | iOS + macOS compile smoke |
 | [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | signed IPA, TestFlight, notarized macOS |
 | [release_android.yml](../.github/workflows/release_android.yml) | Linux | signed AAB/APK for Play / sideload |

@@ -78,13 +78,3 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           RELEASE_REQUIRE_S3: "1"
         run: bash .github/scripts/release_apple.sh --publish-only --publish
-
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: apple-release-${{ github.ref_name }}
-          path: |
-            build/ios/ipa/EnjoyPlayer-v*.ipa
-            EnjoyPlayer-macOS-v*.zip
-          if-no-files-found: error
-          retention-days: 30

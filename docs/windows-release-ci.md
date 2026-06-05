@@ -2,7 +2,7 @@
 
 Guide for configuring [`.github/workflows/release_windows.yml`](../.github/workflows/release_windows.yml) on GitHub.
 
-The workflow currently runs on **GitHub-hosted** `windows-latest` (same as [Build Windows smoke](../.github/workflows/build_windows.yml)). When your self-hosted Windows runner is ready, change `runs-on` to `[self-hosted, Windows]` in the workflow file.
+The workflow currently runs on **GitHub-hosted** `windows-latest`. [Build Windows smoke](../.github/workflows/build_windows.yml) already uses a self-hosted Windows runner. When your self-hosted Windows runner is ready for releases, change `runs-on` to `[self-hosted, Windows]` in the workflow file.
 
 ## What the release workflow does
 
@@ -10,7 +10,7 @@ The workflow currently runs on **GitHub-hosted** `windows-latest` (same as [Buil
 2. Builds **Windows release** (`flutter build windows --release`)
 3. Syncs **Inno Setup** `AppVersion` from `pubspec.yaml`
 4. Builds **EnjoyPlayerSetup-vX.Y.Z.exe** installer (optional on manual runs)
-5. Uploads **artifacts** (release folder zip + optional installer) to the GitHub Actions run
+5. Optionally **publishes** to dl.enjoy.bot (S3/R2) when the publish input or tag push triggers it — no GitHub artifact upload (avoids storage billing)
 
 **Triggers**
 
@@ -35,7 +35,7 @@ The release workflow runs [`windows/scripts/fetch_ffmpeg.ps1`](../windows/script
 
 ## Step 2 — GitHub Secrets
 
-No secrets are required for unsigned release builds. **Authenticode signing** stays outside this repo — sign `EnjoyPlayerSetup-vX.Y.Z.exe` locally with `signtool` or Inno Sign Tools after downloading the artifact.
+No secrets are required for unsigned release builds. **Authenticode signing** stays outside this repo — sign `EnjoyPlayerSetup-vX.Y.Z.exe` locally with `signtool` or Inno Sign Tools (copy from the runner workspace or from dl.enjoy.bot after publish).
 
 ---
 
@@ -56,9 +56,9 @@ When migrating off `windows-latest`:
 1. Bump `version:` in `pubspec.yaml` if needed.
 2. GitHub → **Actions** → **Release Windows** → **Run workflow**.
 3. Toggle **Build Inno Setup installer** as needed.
-4. Download artifacts:
-   - `windows-release-vX.Y.Z` — `Release/` folder (portable zip contents)
-   - `windows-installer-vX.Y.Z` — `EnjoyPlayerSetup-vX.Y.Z.exe` (when installer step ran)
+4. Collect outputs from the runner workspace (self-hosted) or enable **Publish** to upload to dl.enjoy.bot:
+   - `build/windows/x64/runner/Release/` — portable app folder
+   - `build/windows/installer/EnjoyPlayerSetup-vX.Y.Z.exe` — when the installer step ran
 
 ### Tag release
 
@@ -67,13 +67,13 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Tag pushes always build the **installer** and upload both artifact types.
+Tag pushes always build the **installer** and publish to dl.enjoy.bot when S3 secrets are configured.
 
 ---
 
 ## Code signing (manual, post-CI)
 
-After downloading `EnjoyPlayerSetup-vX.Y.Z.exe`:
+After obtaining `EnjoyPlayerSetup-vX.Y.Z.exe` (from the runner or dl.enjoy.bot):
 
 ```powershell
 signtool sign /fd SHA256 /a "EnjoyPlayerSetup-v0.1.0.exe"

@@ -10,7 +10,7 @@ The workflow runs on your **self-hosted Linux runner** (`runs-on: [self-hosted, 
 2. Loads **upload keystore** from GitHub Secrets (or uses files already on the runner)
 3. Builds signed **App Bundle** (`flutter build appbundle --release`) for Google Play
 4. Optionally builds signed **per-ABI APKs** for sideload (`--split-per-abi`)
-5. Uploads **artifacts** (`.aab` and optional per-architecture `.apk` files) to the GitHub Actions run
+5. Optionally **publishes** sideload APKs to dl.enjoy.bot — no GitHub artifact upload (avoids storage billing)
 
 **Triggers**
 
@@ -89,7 +89,9 @@ sdkmanager "platforms;android-35" "build-tools;35.0.0"
 1. Bump `version:` in `pubspec.yaml` if needed.
 2. GitHub → **Actions** → **Release Android** → **Run workflow**.
 3. Toggle **Also build release APK** as needed.
-4. Download artifacts from the completed run.
+4. Collect outputs from the runner workspace, or enable **Publish** to upload to dl.enjoy.bot:
+   - `build/app/outputs/bundle/release/EnjoyPlayer-vX.Y.Z.aab`
+   - `build/app/outputs/flutter-apk/EnjoyPlayer-vX.Y.Z-*.apk` (when APK step ran)
 
 ### Tag release
 
@@ -98,7 +100,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Tag pushes build both **AAB** and **per-ABI APKs** (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and upload all artifact types.
+Tag pushes build both **AAB** and **per-ABI APKs** (`arm64-v8a`, `armeabi-v7a`, `x86_64`).
 
 Most sideload users want **`EnjoyPlayer-vX.Y.Z-arm64-v8a.apk`** only.
 
