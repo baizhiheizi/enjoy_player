@@ -34,8 +34,17 @@ resolve_sign_identity() {
     printf '%s' "${id}"
     return
   fi
-  security find-identity -v -p codesigning 2>/dev/null \
-    | awk -F'"' '/Apple Development/ { print $2; exit }'
+  id="$(security find-identity -v -p codesigning 2>/dev/null \
+    | awk -F'"' '/Developer ID Application/ { print $2; exit }')"
+  if [ -n "${id}" ]; then
+    printf '%s' "${id}"
+    return
+  fi
+  id="$(security find-identity -v -p codesigning 2>/dev/null \
+    | awk -F'"' '/Apple Development/ { print $2; exit }')"
+  if [ -n "${id}" ]; then
+    printf '%s' "${id}"
+  fi
 }
 
 homebrew_deps_for() {
@@ -136,6 +145,16 @@ else
   ENTITLEMENTS="${MACOS_DIR}/Runner/DebugProfile.entitlements"
   CODESIGN_EXTRA="--timestamp=none"
   RESIGN_ALL_FRAMEWORKS=0
+fi
+
+if [ "${CODE_SIGNING_ALLOWED:-YES}" = "NO" ]; then
+  if [ "${BUNDLED_COUNT}" -gt 0 ]; then
+    echo "bundle_ffmpeg_homebrew_deps: bundled ${BUNDLED_COUNT} Homebrew dylib(s); skipping codesign (unsigned build)"
+  else
+    echo "bundle_ffmpeg_homebrew_deps: skipping codesign (unsigned build)"
+  fi
+  rm -f "${MACHO_LIST}" "${DEPS}" "${BUNDLED}"
+  exit 0
 fi
 
 SIGN_IDENTITY="$(resolve_sign_identity)"

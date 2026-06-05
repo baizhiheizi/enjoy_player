@@ -141,6 +141,72 @@ release_prune_stale_build_pubspecs() {
   fi
 }
 
+release_disk_free_mb() {
+  local path="$1"
+  local avail_kb
+  avail_kb="$(df -k "${path}" 2>/dev/null | awk 'NR==2 {print $4}')"
+  if [[ -z "${avail_kb}" || ! "${avail_kb}" =~ ^[0-9]+$ ]]; then
+    echo 0
+    return
+  fi
+  echo $((avail_kb / 1024))
+}
+
+# Fail fast when the disk is too full for flutter test / xcodebuild temp files.
+release_check_disk_space() {
+  local root="$1"
+  local min_mb="${2:-3072}"
+  local free_mb
+  free_mb="$(release_disk_free_mb "${root}")"
+  if [[ "${free_mb}" -lt "${min_mb}" ]]; then
+    echo "ERROR: Low disk space on $(df -h "${root}" | awk 'NR==2 {print $1}'): ${free_mb}MB free, need at least ${min_mb}MB." >&2
+    echo "Pre-release checks and macOS builds need several GB of temp space." >&2
+    echo "Safe cleanup in this repo (macOS-only release, when disk is below 4GB free):" >&2
+    echo "  rm -rf build/ios build/test_cache   # or let the release script prune automatically" >&2
+    echo "  flutter clean   # also removes build/macos; rebuilds on next release run" >&2
+    echo "Then retry, or use --skip-checks only after freeing enough space for the build." >&2
+    exit 1
+  fi
+}
+
+# Reclaim space from artifacts not needed for a macOS-only release (only when disk is low).
+release_prune_macos_only_build_artifacts() {
+  local root="$1"
+  local prune_below_mb="${2:-4096}"
+  local free_mb
+  free_mb="$(release_disk_free_mb "${root}")"
+  if [[ "${free_mb}" -ge "${prune_below_mb}" ]]; then
+    return 0
+  fi
+
+  local removed=0
+  for dir in "${root}/build/ios" "${root}/build/test_cache"; do
+    if [[ -d "${dir}" ]]; then
+      rm -rf "${dir}"
+      removed=1
+    fi
+  done
+  if [[ "${removed}" -eq 1 ]]; then
+    echo "Pruned iOS/test build artifacts (${free_mb}MB free, below ${prune_below_mb}MB threshold)."
+  fi
+}
+
+release_app_has_developer_id_signature() {
+  local app_path="$1"
+  codesign -dvv "${app_path}" 2>&1 | grep -q 'Authority=Developer ID Application'
+}
+
+release_pack_macos_zip() {
+  local root="$1"
+  local app_path="$2"
+  local version zip
+  version="$(release_version)"
+  zip="${root}/EnjoyPlayer-macOS-v${version}.zip"
+  rm -f "${zip}"
+  ditto -c -k --keepParent "${app_path}" "${zip}"
+  bash "${root}/.github/scripts/rename_release_artifacts.sh" apple
+}
+
 release_run_checks() {
   local root="$1"
   cd "${root}"

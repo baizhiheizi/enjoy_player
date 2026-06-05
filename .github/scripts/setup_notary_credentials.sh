@@ -6,8 +6,8 @@ PROFILE="${NOTARY_PROFILE:-enjoy-notary}"
 
 for var in APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_API_PRIVATE_KEY; do
   if [ -z "${!var:-}" ]; then
-    echo "Missing ${var} for notarytool setup." >&2
-    exit 1
+    echo "App Store Connect API env not set; using existing notary profile (${PROFILE})." >&2
+    exit 0
   fi
 done
 

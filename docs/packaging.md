@@ -45,6 +45,7 @@ flowchart TD
 | **Windows** | Android (AAB + APKs) | `pwsh ./release.ps1 -Platform android` |
 | **Linux** | Android (AAB + APKs) | `bash .github/scripts/release.sh --platform android` |
 | **macOS** | iOS + macOS | `bash .github/scripts/release.sh --platform apple --notarize` |
+| **macOS** | macOS zip only | `bash .github/scripts/release.sh --platform apple --macos-only --notarize` |
 
 ### Common flags
 
@@ -55,7 +56,7 @@ flowchart TD
 | `-Publish` | `--publish` | Build + upload to `dl.enjoy.bot` |
 | `-FeedsOnly` | `--feeds-only` | Build local update feeds only (no S3) |
 
-Apple-only flags: `--notarize` (macOS direct download), `--testflight` (upload IPA).
+Apple-only flags: `--notarize` (macOS direct download), `--testflight` (upload IPA), `--macos-only` (skip iOS build).
 
 ---
 
@@ -91,7 +92,19 @@ flutter test
 
 - **Xcode** + **CocoaPods** + Apple Developer team **`46X685R747`**
 - **Homebrew** + FFmpeg deps: `brew bundle install --file=macos/Brewfile`
-- **Notary credentials** (for `--notarize`): `xcrun notarytool store-credentials "enjoy-notary" …`
+- **App Store Connect app** for bundle ID `ai.enjoy.player` (required for full `--platform apple` runs that build iOS)
+- **Keychain certs**: Apple Distribution (iOS / TestFlight) and Developer ID Application (macOS direct download)
+- **Notary credentials** (for `--notarize`), either:
+  - **Local (Apple ID)**: store an app-specific password in Keychain as `AC_PASSWORD`, then:
+    ```bash
+    xcrun notarytool store-credentials "enjoy-notary" \
+      --apple-id "you@example.com" \
+      --team-id "46X685R747" \
+      --password "@keychain:AC_PASSWORD"
+    ```
+  - **API key** (CI / optional locally): set `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, and `APP_STORE_CONNECT_API_PRIVATE_KEY` — the release script registers profile `enjoy-notary` automatically when `--notarize` is set
+- **TestFlight upload** (for `--testflight`): same three `APP_STORE_CONNECT_*` env vars
+- **Sparkle auto-update** (before `--publish`): run once on Mac — `dart run auto_updater:generate_keys`, then `bash .github/scripts/verify_sparkle_setup.sh`
 
 ### Android signing
 
@@ -105,7 +118,7 @@ flutter test
 
 - **Bundle ID**: `ai.enjoy.player` (ADR-0020)
 - iOS: automatic signing in Xcode; export via [`ios/ExportOptions.export.plist`](../ios/ExportOptions.export.plist)
-- macOS direct download: Developer ID Application + notarization (not Mac App Store)
+- macOS direct download: compile unsigned, then **Developer ID Application** sign + notarization in post-steps (`build_macos_release.sh` + `notarize_release.sh`; Debug/Profile keep Apple Development for local runs)
 
 ### Publish credentials (optional)
 
@@ -126,7 +139,7 @@ aws s3 ls "s3://$env:PUBLISH_BUCKET/" --endpoint-url $env:AWS_ENDPOINT_URL_S3
 # macOS / Linux / Git Bash
 cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 # edit values, then:
-bash .github/scripts/release.sh --platform windows --publish
+bash .github/scripts/release.sh --platform apple --publish
 ```
 
 ---
@@ -161,11 +174,21 @@ Builds:
 
 ### iOS + macOS (macOS host only)
 
+**macOS direct download** (fastest first local test — skips iOS):
+
+```bash
+bash .github/scripts/verify_macos_release_env.sh          # certs, keychain, Homebrew
+bash .github/scripts/release.sh --platform apple --macos-only --notarize
+bash .github/scripts/release.sh --platform apple --macos-only --notarize --skip-checks  # iteration
+```
+
+**Full Apple release** (iOS IPA + TestFlight when API env is set + notarized macOS zip):
+
 ```bash
 bash .github/scripts/release.sh --platform apple --notarize --testflight
 ```
 
-Builds iOS IPA, uploads to TestFlight (if API credentials are set), builds macOS `.app`, notarizes, zips.
+The default `release_apple.sh` path always builds **both** iOS and macOS unless `--macos-only` is passed. macOS builds use `--dart-define=DISTRIBUTION_CHANNEL=direct` (Sparkle auto-update). Expect **15–30+ minutes** when notarization is enabled.
 
 ---
 
@@ -274,7 +297,17 @@ Platform CI setup (secrets, runners):
 
 - **macOS DYLD / missing `libz.1.dylib`**: run `brew bundle install --file=macos/Brewfile` and rebuild.
 - **Keychain / signing on new Mac**: open `macos/Runner.xcworkspace`, enable automatic signing, team `46X685R747`, build once in Xcode.
-- **Notarization fails**: check `NOTARY_PROFILE` (default `enjoy-notary`) and stored credentials.
+- **Notarization fails**: check `NOTARY_PROFILE` (default `enjoy-notary`) and stored credentials; unlock the login keychain if `notarytool` reports `keychainLocked` or `errSecInternalComponent`:
+  ```bash
+  security unlock-keychain login.keychain-db
+  bash .github/scripts/release.sh --platform apple --macos-only --notarize --skip-build --skip-checks
+  ```
+- **`deadlineExceeded` / `abortedUpload` during notary upload**: signing succeeded; Apple's notary upload timed out (large ~200MB+ bundle, slow/VPN network). Retry upload only:
+  ```bash
+  ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app" --skip-sign
+  ```
+  The script retries automatically (5 attempts). Disable VPN/proxy if uploads keep failing.
+- **No Developer ID identity**: install Developer ID Application cert or set `SIGN_IDENTITY` before running `notarize_release.sh`.
 - **TestFlight skipped**: set App Store Connect API env vars or upload IPA manually via Transporter.
 
 ### Publish (R2 / AWS CLI)
@@ -284,6 +317,7 @@ Platform CI setup (secrets, runners):
 
 ### General
 
+- **Low disk space / `No space left on device` during `flutter test`**: macOS releases need several GB free for tests and `xcodebuild` temp files. For `--macos-only`, the release script prunes `build/ios` and `build/test_cache` only when free space drops below 4GB; if still low, run `flutter clean` or free space system-wide. `--skip-build` notarize retries only require ~512MB free.
 - **Stale `build/release/pubspec.yaml`**: causes `flutter analyze` path errors — release scripts prune these automatically.
 - **Hot restart on macOS**: unreliable with native stack; use hot reload or full restart.
 

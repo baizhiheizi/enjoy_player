@@ -3,8 +3,8 @@
 # macOS only.
 #
 # Usage:
-#   bash .github/scripts/release_apple.sh
-#   bash .github/scripts/release_apple.sh --notarize --publish
+#   bash .github/scripts/release_apple.sh --macos-only --notarize
+#   bash .github/scripts/release_apple.sh --notarize --testflight --publish
 set -euo pipefail
 
 lib="$(dirname "$0")/release_lib.sh"
@@ -21,6 +21,7 @@ fi
 
 NOTARIZE=false
 UPLOAD_TESTFLIGHT=false
+MACOS_ONLY=false
 MACOS_APP_PATH="${MACOS_APP_PATH:-build/macos/Build/Products/Release/Enjoy Player.app}"
 
 release_parse_common_args "$@"
@@ -28,6 +29,7 @@ for arg in "${RELEASE_EXTRA_ARGS[@]}"; do
   case "${arg}" in
     --notarize) NOTARIZE=true ;;
     --testflight) UPLOAD_TESTFLIGHT=true ;;
+    --macos-only) MACOS_ONLY=true ;;
     -h | --help)
       sed -n '2,8p' "$0"
       exit 0
@@ -40,6 +42,15 @@ for arg in "${RELEASE_EXTRA_ARGS[@]}"; do
 done
 
 release_log_publish_only
+
+if [[ "${RELEASE_SKIP_BUILD}" == true ]]; then
+  release_check_disk_space "${root}" 512
+elif [[ "${MACOS_ONLY}" == true ]]; then
+  release_prune_macos_only_build_artifacts "${root}" 4096
+  release_check_disk_space "${root}" 2048
+else
+  release_check_disk_space "${root}" 4096
+fi
 
 if [[ "${RELEASE_SKIP_CHECKS}" != true ]]; then
   echo ">>> Pre-release checks"
@@ -55,39 +66,72 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
 
   echo ">>> Homebrew + CocoaPods"
   brew bundle install --file="${root}/macos/Brewfile"
-  (cd "${root}/ios" && pod install)
   (cd "${root}/macos" && pod install)
 
-  echo ">>> Build iOS IPA"
-  flutter build ipa --release --export-options-plist=ios/ExportOptions.export.plist
+  if [[ "${MACOS_ONLY}" != true ]]; then
+    (cd "${root}/ios" && pod install)
 
-  if [[ "${UPLOAD_TESTFLIGHT}" == true ]]; then
-    if [[ -n "${APP_STORE_CONNECT_API_KEY_ID:-}" && -n "${APP_STORE_CONNECT_ISSUER_ID:-}" && -n "${APP_STORE_CONNECT_API_PRIVATE_KEY:-}" ]]; then
-      KEY_PATH="${RUNNER_TEMP:-/tmp}/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-      printf '%s' "${APP_STORE_CONNECT_API_PRIVATE_KEY}" >"${KEY_PATH}"
-      chmod 600 "${KEY_PATH}"
-      IPA="$(ls -1 "${root}/build/ios/ipa/"*.ipa | head -1)"
-      xcrun altool --upload-app --type ios --file "${IPA}" \
-        --apiKey "${APP_STORE_CONNECT_API_KEY_ID}" \
-        --apiIssuer "${APP_STORE_CONNECT_ISSUER_ID}"
-      rm -f "${KEY_PATH}"
-    else
-      echo "Skipping TestFlight: App Store Connect API env not set."
+    echo ">>> Build iOS IPA"
+    flutter build ipa --release --export-options-plist=ios/ExportOptions.export.plist
+
+    if [[ "${UPLOAD_TESTFLIGHT}" == true ]]; then
+      if [[ -n "${APP_STORE_CONNECT_API_KEY_ID:-}" && -n "${APP_STORE_CONNECT_ISSUER_ID:-}" && -n "${APP_STORE_CONNECT_API_PRIVATE_KEY:-}" ]]; then
+        KEY_PATH="${RUNNER_TEMP:-/tmp}/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+        printf '%s' "${APP_STORE_CONNECT_API_PRIVATE_KEY}" >"${KEY_PATH}"
+        chmod 600 "${KEY_PATH}"
+        IPA="$(ls -1 "${root}/build/ios/ipa/"*.ipa | head -1)"
+        xcrun altool --upload-app --type ios --file "${IPA}" \
+          --apiKey "${APP_STORE_CONNECT_API_KEY_ID}" \
+          --apiIssuer "${APP_STORE_CONNECT_ISSUER_ID}"
+        rm -f "${KEY_PATH}"
+      else
+        echo "Skipping TestFlight: App Store Connect API env not set."
+      fi
     fi
+  elif [[ "${UPLOAD_TESTFLIGHT}" == true ]]; then
+    echo "Skipping TestFlight: --macos-only was set." >&2
   fi
 
   echo ">>> Build macOS release (direct channel)"
-  flutter build macos --release --dart-define=DISTRIBUTION_CHANNEL=direct
+  bash "${root}/.github/scripts/build_macos_release.sh"
 
+  chmod +x "${root}/macos/scripts/notarize_release.sh"
   if [[ "${NOTARIZE}" == true ]]; then
     echo ">>> Notarize macOS app"
-    chmod +x "${root}/macos/scripts/notarize_release.sh"
     "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}"
+  else
+    echo ">>> Sign macOS app (Developer ID; skip notarization)"
+    "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}" --sign-only
   fi
 
-  version="$(release_version)"
-  ditto -c -k --keepParent "${MACOS_APP_PATH}" "${root}/EnjoyPlayer-macOS-v${version}.zip"
-  bash "${root}/.github/scripts/rename_release_artifacts.sh" apple
+  release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
+elif [[ "${NOTARIZE}" == true || "${RELEASE_PUBLISH}" == true ]]; then
+  if [[ ! -d "${MACOS_APP_PATH}" ]]; then
+    echo "Missing macOS app bundle: ${MACOS_APP_PATH}" >&2
+    echo "Run a full build first, or set MACOS_APP_PATH." >&2
+    exit 1
+  fi
+
+  if [[ "${NOTARIZE}" == true ]]; then
+    bash "${root}/.github/scripts/setup_notary_credentials.sh" || true
+    echo ">>> Notarize macOS app (existing build)"
+    chmod +x "${root}/macos/scripts/notarize_release.sh"
+    notarize_args=()
+    if release_app_has_developer_id_signature "${MACOS_APP_PATH}"; then
+      notarize_args+=(--skip-sign)
+    fi
+    "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}" "${notarize_args[@]}"
+  fi
+
+  if [[ "${NOTARIZE}" == true ]]; then
+    release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
+  else
+    version="$(release_version)"
+    zip="${root}/EnjoyPlayer-macOS-v${version}.zip"
+    if [[ ! -f "${zip}" ]]; then
+      release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
+    fi
+  fi
 fi
 
 if [[ "${RELEASE_PUBLISH}" == true ]]; then

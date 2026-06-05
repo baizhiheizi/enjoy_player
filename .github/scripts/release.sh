@@ -39,6 +39,7 @@ Host matrix:
 
 Common options (forwarded to the platform script):
   --skip-checks       Skip flutter analyze / test
+  --skip-build        Skip compile; use existing .app (with --notarize to retry notarization)
   --publish-only      Skip build and checks; publish existing artifacts
   --publish           Upload to dl.enjoy.bot (needs S3 env / publish_env.local.*)
   --feeds-only        Build feeds locally (build/update-feeds/) without S3 upload
@@ -53,6 +54,7 @@ Android:
 Apple (macOS host):
   --notarize          Notarize macOS .app for direct download
   --testflight        Upload IPA to TestFlight
+  --macos-only        Skip iOS IPA build (macOS zip only)
 
 Env: copy .github/scripts/publish_env.example.ps1 → publish_env.local.ps1
      or publish_env.example.sh → publish_env.local.sh

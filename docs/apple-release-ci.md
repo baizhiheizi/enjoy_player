@@ -186,12 +186,26 @@ Tag pushes always attempt TestFlight upload and macOS notarization (when secrets
 
 ## Local release (without CI)
 
-Same commands, documented in [packaging.md](packaging.md):
+Prefer the shared release script (same as CI):
 
 ```bash
-flutter build ipa --release --export-options-plist=ios/ExportOptions.export.plist
-flutter build macos --release
+bash .github/scripts/verify_macos_release_env.sh
+# macOS direct download only
+bash .github/scripts/release.sh --platform apple --macos-only --notarize
+
+# Full Apple release
+bash .github/scripts/release.sh --platform apple --notarize --testflight
+```
+
+Manual steps (equivalent to what the script runs):
+
+```bash
+brew bundle install --file=macos/Brewfile
+(cd macos && pod install)
+bash .github/scripts/build_macos_release.sh
 ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app"
+ditto -c -k --keepParent "build/macos/Build/Products/Release/Enjoy Player.app" \
+  "EnjoyPlayer-macOS-v$(bash .github/scripts/read_pubspec_version.sh).zip"
 ```
 
 For local notarization with Apple ID instead of API key, see [packaging.md § One-time setup](packaging.md#one-time-setup).
