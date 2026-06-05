@@ -148,10 +148,14 @@ done
 for f in "${upload_files[@]}"; do
   case "$(basename "${f}")" in
     EnjoyPlayerSetup-v*.exe|*.exe)
-      bash "${root}/.github/scripts/sign_sparkle_enclosure.sh" "${f}" || true
+      sign_out="$(bash "${root}/.github/scripts/sign_sparkle_enclosure.sh" "${f}" 2>&1)" || true
+      echo "${sign_out}"
+      release_apply_sparkle_sign_output "${sign_out}"
       ;;
     EnjoyPlayer-macOS-v*.zip|*.zip)
-      bash "${root}/.github/scripts/sign_sparkle_enclosure.sh" "${f}" || true
+      sign_out="$(bash "${root}/.github/scripts/sign_sparkle_enclosure.sh" "${f}" 2>&1)" || true
+      echo "${sign_out}"
+      release_apply_sparkle_sign_output "${sign_out}"
       ;;
   esac
 done

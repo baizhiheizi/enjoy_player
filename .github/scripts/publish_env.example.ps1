@@ -15,4 +15,5 @@ $env:PUBLISH_PREFIX = "player"
 $env:CLOUDFLARE_API_TOKEN = "<token with Cache Purge>"
 $env:CLOUDFLARE_ZONE_ID = "<zone id for enjoy.bot>"
 # $env:ENJOY_PLAYER_DL_BASE = "https://dl.enjoy.bot/player"
+# WinSparkle signing (required for desktop auto-update appcast):
 # $env:SPARKLE_DSA_PRIV_PEM = "C:\path\to\dsa_priv.pem"

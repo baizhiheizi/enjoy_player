@@ -20,6 +20,18 @@ release_log_publish_only() {
   fi
 }
 
+release_apply_sparkle_sign_output() {
+  local output="$1"
+  local sig=""
+  if echo "${output}" | grep -q 'edSignature'; then
+    sig="$(echo "${output}" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')"
+    export SPARKLE_ED_SIGNATURE_MACOS="${sig}"
+  elif echo "${output}" | grep -q 'dsaSignature'; then
+    sig="$(echo "${output}" | sed -n 's/.*sparkle:dsaSignature="\([^"]*\)".*/\1/p')"
+    export SPARKLE_ED_SIGNATURE_WINDOWS="${sig}"
+  fi
+}
+
 release_load_publish_env() {
   local root="$1"
   local env_file="${root}/.github/scripts/publish_env.local.sh"
