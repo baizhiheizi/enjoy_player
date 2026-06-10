@@ -65,3 +65,5 @@ app.*.map.json
 
 # WinSparkle update signing (generate with `dart run auto_updater:generate_keys`)
 dsa_priv.pem
+
+EnjoyPlayer*.zip
