@@ -48,6 +48,11 @@ if [[ "${feeds_only}" != true ]]; then
     echo "Install on Windows: winget install Amazon.AWSCLI" >&2
     exit 1
   fi
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "Publish failed: jq is required to merge latest.json across platforms." >&2
+    echo "Install on macOS: brew install jq" >&2
+    exit 1
+  fi
 fi
 
 version="${VERSION:-$(release_version)}"
@@ -172,13 +177,21 @@ done
 merge_feed_dir=""
 if [[ "${feeds_only}" != true && "${has_s3}" == true ]]; then
   merge_feed_dir="$(mktemp -d)"
-  s3_cp "s3://${bucket}/${prefix}/latest.json" "${merge_feed_dir}/latest.json" 2>/dev/null || true
-  s3_cp "s3://${bucket}/${prefix}/appcast.xml" "${merge_feed_dir}/appcast.xml" 2>/dev/null || true
-  if [[ -f "${merge_feed_dir}/latest.json" ]]; then
+  if release_fetch_remote_feed_file \
+      "${merge_feed_dir}/latest.json" \
+      "${public_base}/latest.json" \
+      "s3://${bucket}/${prefix}/latest.json"; then
     export MERGE_LATEST_JSON="${merge_feed_dir}/latest.json"
+  else
+    echo "WARN: no remote latest.json to merge; feed will only list artifacts from this publish." >&2
   fi
-  if [[ -f "${merge_feed_dir}/appcast.xml" ]]; then
+  if release_fetch_remote_feed_file \
+      "${merge_feed_dir}/appcast.xml" \
+      "${public_base}/appcast.xml" \
+      "s3://${bucket}/${prefix}/appcast.xml"; then
     export MERGE_APPCAST_XML="${merge_feed_dir}/appcast.xml"
+  else
+    echo "WARN: no remote appcast.xml to merge; feed will only list artifacts from this publish." >&2
   fi
 fi
 

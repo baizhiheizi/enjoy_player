@@ -28,8 +28,18 @@ jq -s '
   else
     $new
     | .assets = (($remote.assets // {}) * (.assets // {}))
-    | .minSupportedVersion = (.minSupportedVersion // $remote.minSupportedVersion)
-    | .notes = (if (($new.notes // "") | length) > 0 then $new.notes else ($remote.notes // "") end)
-    | .build = (.build // $remote.build)
+    | .minSupportedVersion = (
+        if (($new.minSupportedVersion // "") | length) > 0
+        then $new.minSupportedVersion
+        else ($remote.minSupportedVersion // $new.minSupportedVersion)
+        end
+      )
+    | .notes = (
+        if (($new.notes // "") | length) > 0
+        then $new.notes
+        else ($remote.notes // "")
+        end
+      )
+    | .build = ($new.build // $remote.build)
   end
 ' "${new}" "${remote}" > "${out}"

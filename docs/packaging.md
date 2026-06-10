@@ -247,6 +247,14 @@ bash .github/scripts/release.sh --platform apple --publish-only --publish
 bash .github/scripts/release.sh --platform all --publish-only --publish
 ```
 
+When you publish **one platform at a time** for the same semver, the script **merges** into the existing `latest.json` / `appcast.xml` (downloads the public feed from `dl.enjoy.bot`, then overlays the new platform’s assets). Re-publish all platforms after a bad overwrite:
+
+```bash
+bash .github/scripts/release.sh --platform all --publish-only --publish
+```
+
+Requires **`jq`** on the publish host (`brew install jq` on macOS).
+
 **Test auto-update locally (no S3):**
 
 ```powershell

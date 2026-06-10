@@ -39,6 +39,38 @@ release_hint_publish() {
   fi
 }
 
+# Download latest.json / appcast.xml for merge before overwrite. Prefer the public CDN URL
+# (read-only R2 tokens often cannot s3 cp objects back down).
+release_fetch_remote_feed_file() {
+  local dest="$1"
+  local public_url="$2"
+  local s3_uri="${3:-}"
+
+  if [[ -n "${public_url}" ]]; then
+    if curl -fsS --connect-timeout 15 --max-time 120 "${public_url}" -o "${dest}" && [[ -s "${dest}" ]]; then
+      echo "Using remote feed for merge (HTTPS): ${public_url}"
+      return 0
+    fi
+    echo "WARN: could not fetch remote feed via HTTPS: ${public_url}" >&2
+  fi
+
+  if [[ -n "${s3_uri}" ]] && command -v aws >/dev/null 2>&1 \
+      && [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
+    local -a s3_args=()
+    if [[ -n "${AWS_ENDPOINT_URL_S3:-}" ]]; then
+      s3_args=(--endpoint-url "${AWS_ENDPOINT_URL_S3}")
+    fi
+    if aws s3 cp ${s3_args[@]+"${s3_args[@]}"} "${s3_uri}" "${dest}" >/dev/null 2>&1 \
+        && [[ -s "${dest}" ]]; then
+      echo "Using remote feed for merge (S3): ${s3_uri}"
+      return 0
+    fi
+    echo "WARN: could not fetch remote feed via S3: ${s3_uri}" >&2
+  fi
+
+  return 1
+}
+
 release_repo_root() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 }
