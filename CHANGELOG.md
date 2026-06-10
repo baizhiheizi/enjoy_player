@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-10
+
+### Added
+
+- **Discover** tab: browse recommended YouTube channels, subscribe locally, and import videos from a merged upload feed.
+- **Unified Library** navigation: Local and Cloud media in one shell tab (`/library?source=cloud`).
+- **OTA updates**: in-app update prompts with platform feeds on `dl.enjoy.bot` (Android, iOS, macOS Sparkle, Windows WinSparkle).
+- Transcript **recording counts** per line; hotkey **settings** screen and global focus policy.
+- **Mobile transport** line navigation for narrow player layouts.
+- Signed-in **Home**: today's practice goal and community activity cards.
+
+### Changed
+
+- Library search with `/` hotkey; improved media card thumbnails and YouTube artwork handling.
+- Release tooling: shared local/CI scripts, R2 publish pipeline, and local-first packaging docs.
+
 ## [0.1.0] - 2026-05-22
 
 First public beta.
