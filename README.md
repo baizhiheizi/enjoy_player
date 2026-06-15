@@ -36,6 +36,14 @@ dart run flutter_launcher_icons    # uses flutter_launcher_icons.yaml
 flutter run
 ```
 
+**Android** builds use `store` / `direct` [product flavors](docs/decisions/0023-app-update-distribution.md). Plain `flutter run` uses the default `store` flavor. To test sideload/OTA behavior locally:
+
+```bash
+flutter run --flavor direct --dart-define=DISTRIBUTION_CHANNEL=direct
+```
+
+If install fails with `INSTALL_FAILED_VERSION_DOWNGRADE`, uninstall the existing release build from the device first. On some OEMs (e.g. Xiaomi), enable **Install via USB** in Developer options when you see `INSTALL_FAILED_USER_RESTRICTED`.
+
 ## Test / analyze
 
 ```bash

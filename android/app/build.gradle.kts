@@ -81,3 +81,17 @@ dependencies {
     // Required by ota_update (direct sideload updates).
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
+
+// Flutter `run` without --flavor looks for app-debug.apk; copy the default store variant.
+tasks.configureEach {
+    if (name == "assembleStoreDebug" || name == "assembleDebug") {
+        doLast {
+            val flutterApkDir = layout.buildDirectory.dir("outputs/flutter-apk").get().asFile
+            val source = flutterApkDir.resolve("app-store-debug.apk")
+            val target = flutterApkDir.resolve("app-debug.apk")
+            if (source.exists()) {
+                source.copyTo(target, overwrite = true)
+            }
+        }
+    }
+}
