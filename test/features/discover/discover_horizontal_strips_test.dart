@@ -61,9 +61,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _localized(
-          DiscoverRecommendedAvatarStrip(
+          const DiscoverRecommendedAvatarStrip(
             recommended: _recommended,
-            subscribedChannelIds: const {},
+            subscribedChannelIds: {},
           ),
           overrides: [
             for (final channel in _recommended)
@@ -116,9 +116,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _localized(
-          DiscoverRecommendedAvatarStrip(
+          const DiscoverRecommendedAvatarStrip(
             recommended: _recommended,
-            subscribedChannelIds: const {},
+            subscribedChannelIds: {},
           ),
           overrides: [
             for (final channel in _recommended)
@@ -135,7 +135,7 @@ void main() {
 
       await tester.pumpWidget(
         _localized(
-          DiscoverRecommendedAvatarStrip(
+          const DiscoverRecommendedAvatarStrip(
             recommended: _recommended,
             subscribedChannelIds: {_channelId},
           ),

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-16
+
+### Added
+
+- Public download landing page at [get.enjoy.bot](https://get.enjoy.bot) with platform detection, i18n, and feature showcase.
+- Cloudflare Pages deploy workflow for the landing site.
+- Discover UI tests (horizontal drag scroll, subscription actions).
+
+### Changed
+
+- Discover subscribe sheet: keyboard handling, state management, and layout improvements.
+- Discover: horizontal drag scroll behavior; clearer subscription error handling.
+- Android: flavor handling docs and build config; JNI merge cache workaround.
+
+### Fixed
+
+- Release publish pipeline: pubspec-versioned artifacts, per-platform `latest.json` overwrites, and macOS release fixes.
+
 ## [0.2.0] - 2026-06-10
 
 ### Added

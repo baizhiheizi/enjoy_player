@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
