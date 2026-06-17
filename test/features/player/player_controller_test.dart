@@ -5,7 +5,9 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
@@ -374,6 +376,56 @@ void main() {
       await n.clear();
       expect(container.read(playerControllerProvider), isNull);
       expect(fake.stopCallCount, greaterThan(0));
+    });
+
+    test('clear retains YoutubePlayerEngine without rev bump', () async {
+      Future<String> insertYoutube({required String id}) async {
+        final now = DateTime.now();
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'dQw4w9WgXcQ',
+            provider: 'youtube',
+            title: 'YouTube test',
+            description: null,
+            thumbnailUrl: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+            durationSeconds: 212,
+            language: 'en',
+            source: 'youtube',
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        return id;
+      }
+
+      final ytContainer = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+        ],
+      );
+      addTearDown(ytContainer.dispose);
+
+      final id = await insertYoutube(id: 'yt-retain');
+      final n = ytContainer.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      final revAfterOpen = ytContainer.read(playerEngineRevProvider);
+
+      expect(n.engine, isA<YoutubePlayerEngine>());
+      await n.clear();
+
+      expect(ytContainer.read(playerControllerProvider), isNull);
+      expect(n.engine, isA<YoutubePlayerEngine>());
+      expect(ytContainer.read(playerEngineRevProvider), revAfterOpen);
     });
 
     test(

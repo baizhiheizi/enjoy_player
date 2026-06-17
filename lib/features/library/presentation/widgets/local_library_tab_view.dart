@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/library/application/library_search_provide
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/presentation/library_actions.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Tab bodies for local library media, driven by a shared [TabController].
@@ -166,7 +167,10 @@ class LocalAudioRow extends ConsumerWidget {
       heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => openPlayerRoute(context, media.id),
+      onTap: () {
+        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
+        openPlayerRoute(context, media.id);
+      },
     );
   }
 }
@@ -259,7 +263,10 @@ class LocalVideoTile extends ConsumerWidget {
       heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => openPlayerRoute(context, media.id),
+      onTap: () {
+        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
+        openPlayerRoute(context, media.id);
+      },
     );
   }
 }

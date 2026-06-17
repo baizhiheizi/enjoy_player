@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/auth/presentation/guest_migration_banner.d
 import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
 import 'package:enjoy_player/features/library/presentation/todays_goal_card.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/library_media_provider.dart';
@@ -407,7 +408,10 @@ class _HomeMediaTile extends ConsumerWidget {
       heroArtworkMediaId: playingId == media.id ? null : media.id,
       deleteTooltip: l10n.libraryDeleteMediaTooltip,
       onDelete: () => confirmAndDeleteMedia(context, ref, media),
-      onTap: () => openPlayerRoute(context, media.id),
+      onTap: () {
+        warmYoutubeSurfaceIfNeeded(ref, provider: media.provider);
+        openPlayerRoute(context, media.id);
+      },
     );
   }
 }

@@ -20,23 +20,43 @@ import 'package:enjoy_player/features/player/presentation/layouts/audio_player_l
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
+
 import 'package:enjoy_player/features/transcript/presentation/transcript_panel.dart';
 
 /// Centered loading indicator while [openMediaActionProvider] resolves.
 class ExpandedPlayerLoadingBody extends ConsumerWidget {
-  const ExpandedPlayerLoadingBody({super.key, required this.colorScheme});
+  const ExpandedPlayerLoadingBody({
+    super.key,
+    required this.colorScheme,
+    required this.mediaId,
+  });
 
   final ColorScheme colorScheme;
+  final String mediaId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final preview = ref.watch(youtubeOpenPreviewProvider(mediaId));
+    final isYoutube = preview.maybeWhen(
+      data: (p) => p != null,
+      orElse: () => false,
+    );
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: const Stack(
+      body: Stack(
         fit: StackFit.expand,
         children: [
-          Center(child: SkeletonAppBootstrap()),
-          Align(
+          if (isYoutube)
+            Align(
+              alignment: Alignment.topCenter,
+              child: YoutubeLoadingVideoStage(mediaId: mediaId),
+            )
+          else
+            const Center(child: SkeletonAppBootstrap()),
+          const Align(
             alignment: Alignment.topCenter,
             child: _VideoCollapseOnlyOverlay(),
           ),

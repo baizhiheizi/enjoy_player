@@ -41,6 +41,8 @@ class YoutubeWebViewSettings {
 class YoutubeWebViewBridge {
   YoutubeWebViewBridge._();
 
+  static WebUri get idleUri => WebUri('about:blank');
+
   static WebUri watchUri(String videoId) =>
       WebUri('https://m.youtube.com/watch?v=$videoId');
 
@@ -152,6 +154,10 @@ class YoutubeWebViewBridge {
     String videoId,
   ) async {
     await web?.loadUrl(urlRequest: URLRequest(url: watchUri(videoId)));
+  }
+
+  static Future<void> loadIdlePage(InAppWebViewController? web) async {
+    await web?.loadUrl(urlRequest: URLRequest(url: idleUri));
   }
 
   /// Re-applies `playsinline` on the active `<video>` (iOS WKWebView safety net).

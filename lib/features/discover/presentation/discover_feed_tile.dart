@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
@@ -91,6 +92,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       provider: 'youtube',
       vid: widget.entry.videoId,
     );
+    warmYoutubeSurfaceForVideoId(ref);
     openPlayerRoute(context, mediaId);
   }
 

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
@@ -118,6 +119,18 @@ class PlayerController extends _$PlayerController {
     final thumb = resolved.thumbnailUrl;
     final language = resolved.language;
     final durationSec = resolved.durationSeconds;
+
+    if (playable is YoutubePlayableSource && engine is YoutubePlayerEngine) {
+      engine.markOpenTimingStart();
+      engine.setPosterUrl(
+        _youtubePosterUrl(
+          thumbnailPath: thumb,
+          videoId: playable.videoId,
+          mediaUrl: video?.mediaUrl,
+        ),
+      );
+      engine.ensureWebViewAttached();
+    }
 
     // Bind video output before first decode on Windows/macOS (see media_kit_video notes).
     // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
@@ -388,7 +401,7 @@ class PlayerController extends _$PlayerController {
 
     final engine = _activeEngine;
     final ownedEngine = _ownedEngine;
-    final disposeYoutubeEngine =
+    final isYoutubeEngine =
         ref.read(playerEngineTestDoubleProvider) == null &&
         ownedEngine is YoutubePlayerEngine;
 
@@ -399,13 +412,40 @@ class PlayerController extends _$PlayerController {
 
     await positionSub?.cancel();
     await durationSub?.cancel();
-    await engine.stop();
 
-    if (disposeYoutubeEngine) {
-      await ownedEngine.dispose();
-      _ownedEngine = MediaKitPlayerEngine();
-      ref.read(playerEngineRevProvider.notifier).bump();
+    if (isYoutubeEngine) {
+      await ownedEngine.idleAfterClear();
+    } else {
+      await engine.stop();
     }
+  }
+
+  /// Pre-spawns the YouTube WebView process before navigating to the player.
+  void warmYoutubeSurface() {
+    if (ref.read(playerEngineTestDoubleProvider) != null) return;
+    final owned = _ownedEngine;
+    if (owned is YoutubePlayerEngine) {
+      owned.warmVideoSurface();
+      return;
+    }
+    if (owned != null) {
+      unawaited(owned.dispose());
+    }
+    _ownedEngine = YoutubePlayerEngine();
+    ref.read(playerEngineRevProvider.notifier).bump();
+    _ownedEngine!.warmVideoSurface();
+  }
+
+  String? _youtubePosterUrl({
+    required String? thumbnailPath,
+    required String videoId,
+    required String? mediaUrl,
+  }) {
+    return remoteThumbnailForCard(
+      thumbnailPath,
+      youtubeVideoId: videoId,
+      mediaUrl: mediaUrl,
+    );
   }
 
   /// Cancels an in-flight [openMedia] before [PlaybackSession] is published.

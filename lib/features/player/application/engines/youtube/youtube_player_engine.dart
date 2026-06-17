@@ -12,7 +12,9 @@ import 'package:media_kit/media_kit.dart' as mk;
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'youtube_page_inject.dart';
+import 'youtube_webview_host.dart';
 import 'youtube_state_poller.dart';
 import 'youtube_webview_bridge.dart';
 
@@ -33,10 +35,28 @@ class YoutubePlayerEngine implements PlayerEngine {
   final StreamController<bool> _bufferingCtrl =
       StreamController<bool>.broadcast();
 
-  String _videoId = '';
+  /// Preserves [InAppWebView] state when the host moves loading → video stage.
+  final GlobalKey webViewHostKey = GlobalKey();
 
-  /// Exposed for WebView initial URL (same library hosts [_YoutubeWebViewHost]).
+  /// Bumps when mount is requested so loading UI rebuilds.
+  final ValueNotifier<int> mountTick = ValueNotifier(0);
+
+  String _videoId = '';
+  String? _posterUrl;
+  bool _mountRequested = false;
+  bool _webViewMounted = false;
+  bool _loggedFirstPlaying = false;
+
+  Stopwatch? _initStopwatch;
+
+  /// Exposed for WebView initial URL (see [YoutubeWebViewHost]).
   String get currentVideoId => _videoId;
+
+  String? get posterUrl => _posterUrl;
+
+  bool get webViewMounted => _webViewMounted;
+
+  bool get shouldMountWebView => _mountRequested && !_disposed;
 
   bool _disposed = false;
   bool _playbackCompleted = false;
@@ -49,6 +69,9 @@ class YoutubePlayerEngine implements PlayerEngine {
   double _volumeNormalized = 1;
 
   bool _rejectingNativeFullscreen = false;
+
+  /// Bumped on each explicit watch/idle navigation so stale async loads can bail.
+  int _navGeneration = 0;
 
   /// Poll interval is 250ms; 3 ticks ≈ 750ms of stable `paused` before we trust
   /// the poller over transient DOM noise.
@@ -92,6 +115,29 @@ class YoutubePlayerEngine implements PlayerEngine {
   @override
   Stream<double> get videoAspectRatioStream => _aspectStream;
 
+  void setPosterUrl(String? url) {
+    _posterUrl = url;
+  }
+
+  void markOpenTimingStart() {
+    _initStopwatch = Stopwatch()..start();
+    _loggedFirstPlaying = false;
+    _logInitPhase('open_start');
+  }
+
+  /// Signals UI to mount the shared [YoutubeWebViewHost].
+  void ensureWebViewAttached() {
+    if (_disposed) return;
+    _mountRequested = true;
+    mountTick.value++;
+    _logInitPhase('mount_requested');
+  }
+
+  /// Single long-lived WebView widget (see [webViewHostKey]).
+  Widget buildWebViewHost() {
+    return YoutubeWebViewHost(key: webViewHostKey, engine: this);
+  }
+
   @override
   Future<void> open(PlayableSource source) async {
     if (source is! YoutubePlayableSource) {
@@ -105,6 +151,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     _emitPlaying(false);
     _emitPosition(Duration.zero);
     _emitDuration(Duration.zero);
+    ensureWebViewAttached();
     await _loadCurrentVideoIfAttached();
   }
 
@@ -117,10 +164,25 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (maxWidth <= 0 || maxHeight <= 0) {
       return const SizedBox.shrink();
     }
-    // Do not key by [_videoId]: changing the key disposes the old [InAppWebView]
-    // while [open] still holds its controller and calls [loadUrl] →
-    // MissingPluginException. One WebView instance; navigate via [loadWatchPage].
-    return _YoutubeWebViewHost(engine: this);
+
+    return StreamBuilder<bool>(
+      stream: buffering,
+      initialData: _buffering,
+      builder: (context, snapshot) {
+        final showPoster = snapshot.data ?? _buffering;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: Colors.black),
+            if (shouldMountWebView) buildWebViewHost(),
+            YoutubeVideoPoster(
+              primaryUrl: _posterUrl,
+              visible: showPoster,
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -177,18 +239,45 @@ class YoutubePlayerEngine implements PlayerEngine {
     _playbackCompleted = false;
   }
 
+  /// Stops playback and navigates to `about:blank` while keeping the WebView warm.
+  Future<void> idleAfterClear() async {
+    _stopPolling();
+    _videoId = '';
+    _mountRequested = false;
+    _playbackCompleted = false;
+    _emitPlaying(false);
+    _emitBuffering(false);
+    _emitPosition(Duration.zero);
+    mountTick.value++;
+    final navGen = ++_navGeneration;
+    final controller = _webController;
+    if (controller == null) return;
+    await YoutubeWebViewBridge.loadIdlePage(controller);
+    if (_navGeneration != navGen || _videoId.isNotEmpty) {
+      if (_videoId.isNotEmpty && identical(_webController, controller)) {
+        unawaited(_loadCurrentVideoIfAttached());
+      }
+    }
+  }
+
   @override
   Future<Uint8List?> screenshot({String? format}) async => null;
 
   @override
-  void warmVideoSurface() {}
+  void warmVideoSurface() {
+    ensureWebViewAttached();
+    // [YoutubeWebViewHost] uses `about:blank` as [initialUrlRequest] while idle;
+    // an extra [loadIdlePage] here can finish after [open] and stop playback.
+  }
 
   @override
   Future<void> dispose() async {
     _disposed = true;
+    _mountRequested = false;
     _pollKickTimer?.cancel();
     _pollKickTimer = null;
     _stopPolling();
+    mountTick.value++;
     await _positionCtrl.close();
     await _durationCtrl.close();
     await _playingCtrl.close();
@@ -214,6 +303,10 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (v == _playing) return;
     _playing = v;
     _playingCtrl.add(v);
+    if (v && !_loggedFirstPlaying) {
+      _loggedFirstPlaying = true;
+      _logInitPhase('first_playing');
+    }
   }
 
   void _emitBuffering(bool v) {
@@ -221,10 +314,25 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (v == _buffering) return;
     _buffering = v;
     _bufferingCtrl.add(v);
+    if (!v) {
+      mountTick.value++;
+    }
   }
 
-  void _onWebViewCreated(InAppWebViewController controller) {
+  void _logInitPhase(String phase) {
+    final ms = _initStopwatch?.elapsedMilliseconds;
+    _logYoutube.fine(
+      'youtube init $phase${ms != null ? ' +${ms}ms' : ''}',
+    );
+  }
+
+  void onWebViewCreated(
+    InAppWebViewController controller, {
+    bool initialWatchUrlRequested = false,
+  }) {
     _webController = controller;
+    _webViewMounted = true;
+    _logInitPhase('webview_created');
 
     controller.addJavaScriptHandler(
       handlerName: 'onAdReload',
@@ -291,33 +399,52 @@ class YoutubePlayerEngine implements PlayerEngine {
         return null;
       },
     );
+
+    if (_videoId.isNotEmpty && !initialWatchUrlRequested) {
+      unawaited(_loadCurrentVideoIfAttached());
+    }
   }
 
-  void _onWebViewDisposed(InAppWebViewController? controller) {
+  void onWebViewDisposed(InAppWebViewController? controller) {
     if (identical(_webController, controller)) {
       _webController = null;
+      _webViewMounted = false;
       _stopPolling();
+      mountTick.value++;
     }
   }
 
   Future<void> _loadCurrentVideoIfAttached() async {
     final controller = _webController;
     if (controller == null || _videoId.isEmpty) return;
+    final videoId = _videoId;
+    final navGen = ++_navGeneration;
     try {
-      await YoutubeWebViewBridge.loadWatchPage(controller, _videoId);
+      await YoutubeWebViewBridge.loadWatchPage(controller, videoId);
     } on MissingPluginException catch (e, st) {
       // Windows can deallocate the native platform view during route
       // replacement before Dart receives widget disposal. Treat that controller
       // as stale; the next mounted WebView will load [_videoId] via initialUrl.
       if (identical(_webController, controller)) {
         _webController = null;
+        _webViewMounted = false;
         _stopPolling();
+        mountTick.value++;
       }
       _logYoutube.fine('Ignoring loadUrl on stale YouTube WebView', e, st);
+      return;
     }
+    if (_navGeneration != navGen || _videoId != videoId) return;
   }
 
-  Future<void> _onPageFinished(InAppWebViewController controller) async {
+  Future<void> onPageFinished(
+    InAppWebViewController controller,
+    String? url,
+  ) async {
+    if (url == null || url == 'about:blank' || url.startsWith('about:')) {
+      return;
+    }
+    _logInitPhase('load_stop');
     await injectYoutubeMobileWatchPage(controller);
     _schedulePollKick();
   }
@@ -334,7 +461,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     await YoutubeWebViewBridge.setVolume(_webController, _volumeNormalized);
   }
 
-  Future<void> _exitNativeFullscreen(InAppWebViewController controller) async {
+  Future<void> exitNativeFullscreen(InAppWebViewController controller) async {
     if (_rejectingNativeFullscreen) return;
     _rejectingNativeFullscreen = true;
     try {
@@ -347,7 +474,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     }
   }
 
-  Future<void> _onNativeFullscreenExit(
+  Future<void> onNativeFullscreenExit(
     InAppWebViewController controller,
   ) async {
     await YoutubeWebViewBridge.forceInlinePlayback(controller);
@@ -418,72 +545,6 @@ class YoutubePlayerEngine implements PlayerEngine {
               }
             }
           },
-    );
-  }
-}
-
-class _YoutubeWebViewHost extends StatefulWidget {
-  const _YoutubeWebViewHost({required this.engine});
-
-  final YoutubePlayerEngine engine;
-
-  @override
-  State<_YoutubeWebViewHost> createState() => _YoutubeWebViewHostState();
-}
-
-class _YoutubeWebViewHostState extends State<_YoutubeWebViewHost> {
-  InAppWebViewController? _controller;
-
-  @override
-  void dispose() {
-    widget.engine._onWebViewDisposed(_controller);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final e = widget.engine;
-    final vid = e.currentVideoId;
-    if (vid.isEmpty) {
-      return const ColoredBox(color: Colors.black);
-    }
-
-    final iosInlinePlayback = defaultTargetPlatform == TargetPlatform.iOS;
-
-    return InAppWebView(
-      initialSettings: YoutubeWebViewSettings.forPlayer(),
-      onWebViewCreated: (controller) {
-        _controller = controller;
-        e._onWebViewCreated(controller);
-      },
-      onEnterFullscreen: iosInlinePlayback
-          ? (controller) {
-              unawaited(e._exitNativeFullscreen(controller));
-            }
-          : null,
-      onExitFullscreen: iosInlinePlayback
-          ? (controller) {
-              unawaited(e._onNativeFullscreenExit(controller));
-            }
-          : null,
-      onLoadStop: (controller, url) async {
-        await e._onPageFinished(controller);
-      },
-      shouldOverrideUrlLoading: (controller, action) async {
-        final url = action.request.url?.toString() ?? '';
-        if (url.contains('v=$vid') || url.contains('/$vid')) {
-          return NavigationActionPolicy.ALLOW;
-        }
-        if (url.contains('consent.youtube.com') ||
-            url.contains('accounts.google.com') ||
-            url.contains('myaccount.google.com') ||
-            url.contains('gstatic.com') ||
-            url.contains('googleapis.com')) {
-          return NavigationActionPolicy.ALLOW;
-        }
-        return NavigationActionPolicy.CANCEL;
-      },
-      initialUrlRequest: URLRequest(url: YoutubeWebViewBridge.watchUri(vid)),
     );
   }
 }
