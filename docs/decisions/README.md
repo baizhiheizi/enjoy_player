@@ -48,3 +48,4 @@ Trade-offs, follow-up work, risks.
 | [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |
 | [0023](0023-app-update-distribution.md) | App update distribution — store no-op, direct feeds on dl.enjoy.bot |
 | [0024](0024-download-landing-page.md) | Download landing page — static site on Cloudflare Pages at get.enjoy.bot |
+| [0025](0025-youtube-player-block-google-signin-nav.md) | Block Google sign-in navigations in YouTube player WebView (supplements 0015) |

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'youtube_player_engine.dart';
+import 'youtube_watch_navigation_policy.dart';
 import 'youtube_webview_bridge.dart';
 
 /// One [InAppWebView] per [YoutubePlayerEngine]; mounted in the video stage slot.
@@ -27,6 +28,20 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
   void dispose() {
     widget.engine.onWebViewDisposed(_controller);
     super.dispose();
+  }
+
+  Future<NavigationActionPolicy> _onShouldOverrideUrlLoading(
+    InAppWebViewController controller,
+    NavigationAction action,
+  ) async {
+    final url = action.request.url?.toString() ?? '';
+    final allowed = shouldAllowYoutubeWatchNavigation(
+      url: url,
+      videoId: widget.engine.currentVideoId,
+    );
+    return allowed
+        ? NavigationActionPolicy.ALLOW
+        : NavigationActionPolicy.CANCEL;
   }
 
   @override
@@ -63,24 +78,7 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
       onLoadStop: (controller, url) async {
         await e.onPageFinished(controller, url?.toString());
       },
-      shouldOverrideUrlLoading: (controller, action) async {
-        final url = action.request.url?.toString() ?? '';
-        if (url == 'about:blank' || url.startsWith('about:')) {
-          return NavigationActionPolicy.ALLOW;
-        }
-        if (vid.isNotEmpty &&
-            (url.contains('v=$vid') || url.contains('/$vid'))) {
-          return NavigationActionPolicy.ALLOW;
-        }
-        if (url.contains('consent.youtube.com') ||
-            url.contains('accounts.google.com') ||
-            url.contains('myaccount.google.com') ||
-            url.contains('gstatic.com') ||
-            url.contains('googleapis.com')) {
-          return NavigationActionPolicy.ALLOW;
-        }
-        return NavigationActionPolicy.CANCEL;
-      },
+      shouldOverrideUrlLoading: _onShouldOverrideUrlLoading,
       initialUrlRequest: URLRequest(url: initialUrl),
     );
   }

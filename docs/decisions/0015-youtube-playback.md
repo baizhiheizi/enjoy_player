@@ -26,7 +26,8 @@ YouTube **embed** playback is unreliable inside embedded WebViews (policy errors
 
 5. **Login / ads**  
    - Optional sign-in uses Google **ServiceLogin** → `m.youtube.com`, sharing the WebView **cookie jar**. Logged-in state is inferred from cookies (`LOGIN_INFO` / `SID` on `https://m.youtube.com`).  
-   - **Logout** uses `CookieManager.deleteAllCookies()` — **not** scoped to YouTube-only (cross-platform limitation); document for users.
+   - **Logout** uses `CookieManager.deleteAllCookies()` — **not** scoped to YouTube-only (cross-platform limitation); document for users.  
+   - **Player WebView navigation**: Google account URLs are cancelled during watch-page playback; explicit login uses `/youtube/login` only — see [ADR-0025](0025-youtube-player-block-google-signin-nav.md).
 
 6. **Transcripts**  
    - Cloud transcripts continue via existing **`GET /api/v1/transcripts`** with **`targetId` = local Drift row id** after sync. Local subtitle file import is hidden for YouTube rows.
