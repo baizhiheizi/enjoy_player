@@ -42,9 +42,13 @@ done
 
 - **Cannot validate locally on this runner**: Flutter's `update_engine_version.sh` writes to the read-only `bin/cache/`, so every `flutter` invocation aborts with "Read-only file system". This is a host-level issue, not a repo bug.
 - Per CI config, commands succeed on the self-hosted `Linux` runner.
-- No benchmark / perf-regression CI job exists in this repo today.
+- No benchmark / perf-regression CI job exists in this repo today — measurement infrastructure is a follow-up gap.
 
 ## Optimization Backlog (prioritized)
+
+### Addressed
+
+- **Library re-emit storms** — `MediaLibraryRepository.watchAll()` was re-emitting the entire merged list on every single Drift table change. Landed draft PR `[perf-improver] perf(library): dedupe identical watchAll emissions` (2026-06-23). Adds value-equality to `Media`, caches `lastEmitted` in the repo, regression test in `library_repository_test.dart`. For a 100-row library, a partial write drops from "1 full emission + 3 listener rebuilds + 3 × O(n log n) sort/filter" to "1 O(n) compare + 0 emissions + 0 rebuilds" when the list is unchanged.
 
 ### Confirmed hot paths / opportunities
 
@@ -54,19 +58,22 @@ done
    - Active player + transport bar still call `currentArtworkPaletteProvider` → `extractArtworkPalette`.
    - LRU cache (max 32) is in place, so revisit hits are free; the first extract for a fresh thumbnail is the cost.
    - **Idea**: bypass `PaletteGenerator` and use a hand-rolled 16×16 decode + simple `findMaxPopulationRank` (palette_generator internals). Avoids the image-decoder round-trip and runs much faster on a single image.
+
 2. **JSON decode in API client** (`lib/data/api/api_client.dart`)
    - Already uses `compute(decodeJsonToCamel, raw)` for the response body — good.
    - Audit whether per-list endpoints (`features/`, `discover/feed`, `library`) decode in parallel via `Future.wait` to overlap I/O.
+
 3. **Library grid / discover feed** — `GridView.builder` everywhere with stable item keys would let `SliverChildBuilderDelegate.findChildIndexCallback` cache placements. Worth checking if `itemExtent`/`prototypeItem` is feasible.
+
 4. **Per-tile `select` rebuilds** — `transcript_scrollable_list.dart` uses `select((i) => i)` on the active highlight index. Check whether `findChildIndexCallback` plus `addAutomaticKeepAlives: false` reduces offscreen rebuilds in long transcript lists.
-5. **Drift watchers** — `MediaLibraryRepository.watchAll()` powers `libraryMediaProvider` (rebuilds entire list on any change). Consider Drift's `tableUpdates` triggers so only changed rows re-emit.
 
 ### Investigation needed
 
-- Whether `home_screen.dart`'s home recents is also re-filtering on every provider tick.
-- Whether `_positionSub` / `_durationSub` in `PlayerController` use `where((p) => p.inSeconds != _last)` style debounce.
-- `youtube_player_engine.dart` poll-loop timer: confirm it pauses when the engine is detached.
+- Whether `home_screen.dart`'s home recents is also re-filtering on every provider tick. (Partially addressed by the watchAll dedupe PR; the sort over the merged list still runs once per *change*, but no longer on no-op writes.)
+- Whether `_positionSub` / `_durationSub` in `PlayerController` use `where((p) => p.inSeconds != _last)` style debounce. (Confirmed: position is already bucketed to 400ms in `_subscribeStreams`.)
+- `youtube_player_engine.dart` poll-loop timer: confirm it pauses when the engine is detached. (Confirmed: `_stopPolling()` is called from `dispose()`, `idleAfterClear()`, `onWebViewDisposed()`, and the `ended` event.)
 
 ## Run History (reverse chronological)
 
+- 2026-06-23 15:58 UTC — run 28037649581 — opened draft PR `[perf-improver] perf(library): dedupe identical watchAll emissions` (Media value-equality + per-listener emit dedupe + regression test). Updated monthly activity issue for 2026-06.
 - 2026-06-22 14:37 UTC — run 27960568022 — initial discovery, no PR yet (commands not locally runnable).
