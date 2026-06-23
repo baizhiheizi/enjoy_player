@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show driftRuntimeOptions;
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kDebugMode, kProfileMode, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -33,5 +34,14 @@ Future<void> main() async {
     });
   }
 
-  runApp(const ProviderScope(child: EnjoyApp()));
+  const root = ProviderScope(child: EnjoyApp());
+  Widget app = root;
+  // Windows AXTree sync bug (flutter/flutter#182444): semantics churn from
+  // ListView/Tooltip/etc. floods the console. Per-WebView ExcludeSemantics
+  // alone is not enough; skip semantics in debug/profile on Windows only.
+  if (defaultTargetPlatform == TargetPlatform.windows &&
+      (kDebugMode || kProfileMode)) {
+    app = const ExcludeSemantics(child: root);
+  }
+  runApp(app);
 }
