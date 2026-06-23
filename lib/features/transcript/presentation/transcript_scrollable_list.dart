@@ -59,16 +59,6 @@ bool _echoLayoutEqual(EchoState a, EchoState b) {
       a.endLineIndex == b.endLineIndex;
 }
 
-int _virtualIndexForEcho(EchoState echo, List<_TranscriptVirtualItem> items) {
-  return items.indexWhere(
-    (e) => e is _VirtualEcho && e.startLineIndex == echo.startLineIndex,
-  );
-}
-
-int _virtualIndexForLine(int lineIndex, List<_TranscriptVirtualItem> items) {
-  return items.indexWhere((e) => e is _VirtualLine && e.lineIndex == lineIndex);
-}
-
 class TranscriptScrollableList extends ConsumerStatefulWidget {
   const TranscriptScrollableList({
     required this.mediaId,
@@ -87,12 +77,19 @@ class TranscriptScrollableList extends ConsumerStatefulWidget {
 class _TranscriptScrollableListState
     extends ConsumerState<TranscriptScrollableList> {
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _activeLineKey = GlobalKey();
-  final GlobalKey _echoRegionKey = GlobalKey();
   int _lastScrolledIndex = -1;
   int _lastEchoScrollStart = -999;
   int _lastEchoScrollEnd = -999;
-  bool _scrollCallbackPending = false;
+
+  /// Bumped on each scroll request and in [dispose] to drop stale callbacks.
+  int _scrollGeneration = 0;
+
+  /// Scroll-target keys are rotated when the target line/echo bounds change so
+  /// the same [GlobalKey] is never reparented across [ListView] slots.
+  GlobalKey? _echoRegionScrollKey;
+  (int start, int end)? _echoRegionScrollKeyBounds;
+  GlobalKey? _activeLineScrollKey;
+  int _activeLineScrollKeyIndex = -1;
 
   List<_TranscriptVirtualItem> _cachedVirtualItems = const [];
   List<TranscriptLine>? _cachedLinesRef;
@@ -103,6 +100,7 @@ class _TranscriptScrollableListState
 
   @override
   void dispose() {
+    _scrollGeneration++;
     _scrollController.dispose();
     super.dispose();
   }
@@ -114,13 +112,38 @@ class _TranscriptScrollableListState
       _lastScrolledIndex = -1;
       _lastEchoScrollStart = -999;
       _lastEchoScrollEnd = -999;
-      _scrollCallbackPending = false;
+      _scrollGeneration++;
+      _resetScrollTargetKeys();
       _cachedVirtualItems = const [];
       _cachedLinesRef = null;
       _cachedEchoForItems = null;
       _secondaryMatcher = null;
       _cachedSecondaryRef = null;
     }
+  }
+
+  void _resetScrollTargetKeys() {
+    _echoRegionScrollKey = null;
+    _echoRegionScrollKeyBounds = null;
+    _activeLineScrollKey = null;
+    _activeLineScrollKeyIndex = -1;
+  }
+
+  GlobalKey _scrollKeyForEcho(EchoState echo) {
+    final bounds = (echo.startLineIndex, echo.endLineIndex);
+    if (_echoRegionScrollKeyBounds != bounds) {
+      _echoRegionScrollKeyBounds = bounds;
+      _echoRegionScrollKey = GlobalKey();
+    }
+    return _echoRegionScrollKey!;
+  }
+
+  GlobalKey _scrollKeyForActiveLine(int lineIndex) {
+    if (_activeLineScrollKeyIndex != lineIndex) {
+      _activeLineScrollKeyIndex = lineIndex;
+      _activeLineScrollKey = GlobalKey();
+    }
+    return _activeLineScrollKey!;
   }
 
   List<_TranscriptVirtualItem> _virtualItems(EchoState echo) {
@@ -143,14 +166,23 @@ class _TranscriptScrollableListState
     return _secondaryMatcher!;
   }
 
-  /// Rough scroll offset when the keyed item is not built yet (lazy list).
-  void _jumpToVirtualIndexEstimate(int index, {required int itemCount}) {
-    if (!_scrollController.hasClients || index < 0 || itemCount <= 0) return;
+  /// Conservative bootstrap scroll before the scroll-target widget is built.
+  ///
+  /// Uses raw line index (single-line tile height) so tall echo cards do not
+  /// inflate the estimate and overshoot off-screen.
+  void _jumpToLineIndexEstimate(int lineIndex, {required double alignment}) {
+    if (!_scrollController.hasClients || lineIndex < 0) return;
+
+    final lineCount = widget.lines.length;
+    if (lineCount <= 0) return;
 
     final pos = _scrollController.position;
-    final ratio = index / itemCount;
+    final ratio = lineIndex / lineCount;
     final estimated = ratio * pos.maxScrollExtent;
-    _scrollController.jumpTo(estimated.clamp(0.0, pos.maxScrollExtent));
+    final alignmentAdjust = alignment * pos.viewportDimension * 0.85;
+    _scrollController.jumpTo(
+      (estimated - alignmentAdjust).clamp(0.0, pos.maxScrollExtent),
+    );
   }
 
   void _ensureVisible(
@@ -158,17 +190,23 @@ class _TranscriptScrollableListState
     required double alignment,
     required Duration duration,
     required Curve curve,
+    required int generation,
   }) {
-    Scrollable.ensureVisible(
-      ctx,
-      alignment: alignment,
-      duration: duration,
-      curve: curve,
-    );
+    if (!mounted || generation != _scrollGeneration) return;
+    try {
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: alignment,
+        duration: duration,
+        curve: curve,
+      );
+    } catch (_) {
+      // Target may detach during route pop while animation is in flight.
+    }
   }
 
-  void _performTranscriptScroll() {
-    if (!mounted) return;
+  void _performTranscriptScroll({required int generation}) {
+    if (!mounted || generation != _scrollGeneration) return;
 
     final echo =
         activeEchoForTranscript(
@@ -177,32 +215,33 @@ class _TranscriptScrollableListState
         ) ??
         EchoState.inactive;
     final tok = EnjoyThemeTokens.of(context);
-    final items = _virtualItems(echo);
 
     if (echo.active) {
-      final ctx = _echoRegionKey.currentContext;
+      final echoKey = _scrollKeyForEcho(echo);
+      final ctx = echoKey.currentContext;
       if (ctx != null) {
         _ensureVisible(
           ctx,
           alignment: 0.0,
           duration: tok.motionStandard,
           curve: Curves.easeOutCubic,
+          generation: generation,
         );
         return;
       }
 
-      final echoItemIndex = _virtualIndexForEcho(echo, items);
-      _jumpToVirtualIndexEstimate(echoItemIndex, itemCount: items.length);
+      _jumpToLineIndexEstimate(echo.startLineIndex, alignment: 0.0);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final ctx2 = _echoRegionKey.currentContext;
+        if (!mounted || generation != _scrollGeneration) return;
+        final ctx2 = echoKey.currentContext;
         if (ctx2 == null) return;
         _ensureVisible(
           ctx2,
           alignment: 0.0,
           duration: tok.motionStandard,
           curve: Curves.easeOutCubic,
+          generation: generation,
         );
       });
       return;
@@ -213,29 +252,31 @@ class _TranscriptScrollableListState
     );
     if (active < 0) return;
 
-    final ctx = _activeLineKey.currentContext;
+    final activeKey = _scrollKeyForActiveLine(active);
+    final ctx = activeKey.currentContext;
     if (ctx != null) {
       _ensureVisible(
         ctx,
         alignment: 0.42,
         duration: tok.motionStandard,
         curve: Curves.easeOutCubic,
+        generation: generation,
       );
       return;
     }
 
-    final lineItemIndex = _virtualIndexForLine(active, items);
-    _jumpToVirtualIndexEstimate(lineItemIndex, itemCount: items.length);
+    _jumpToLineIndexEstimate(active, alignment: 0.42);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final ctx2 = _activeLineKey.currentContext;
+      if (!mounted || generation != _scrollGeneration) return;
+      final ctx2 = activeKey.currentContext;
       if (ctx2 == null) return;
       _ensureVisible(
         ctx2,
         alignment: 0.42,
         duration: tok.motionStandard,
         curve: Curves.easeOutCubic,
+        generation: generation,
       );
     });
   }
@@ -272,13 +313,12 @@ class _TranscriptScrollableListState
       _lastScrolledIndex = activeForUi;
     }
 
-    if (_scrollCallbackPending) return;
-    _scrollCallbackPending = true;
+    _scrollGeneration++;
+    final generation = _scrollGeneration;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollCallbackPending = false;
-      if (!mounted) return;
-      _performTranscriptScroll();
+      if (!mounted || generation != _scrollGeneration) return;
+      _performTranscriptScroll(generation: generation);
     });
   }
 
@@ -352,7 +392,7 @@ class _TranscriptScrollableListState
                 ),
                 padding: EdgeInsets.only(bottom: tok.space8),
                 child: KeyedSubtree(
-                  key: _echoRegionKey,
+                  key: _scrollKeyForEcho(echo),
                   child: EchoRegionMergedCard(
                     mediaId: widget.mediaId,
                     lines: widget.lines,
@@ -396,7 +436,10 @@ class _TranscriptScrollableListState
               );
 
               if (isActive) {
-                tile = KeyedSubtree(key: _activeLineKey, child: tile);
+                tile = KeyedSubtree(
+                  key: _scrollKeyForActiveLine(lineIndex),
+                  child: tile,
+                );
               }
 
               return Padding(
