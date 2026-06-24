@@ -1,1 +1,2 @@
 - [Run 2026-06-23](notes.md) — first run; created time_format tests PR, commented on #8, opened monthly summary
+- [Run 2026-06-24](notes-2026-06-24.md) — created local_thumbnail tests PR, updated monthly summary #12
