@@ -6,7 +6,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class VideoPlayerLayout extends StatefulWidget {
@@ -117,10 +119,11 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                     color: Colors.black,
                     child: LayoutBuilder(
                       builder: (context, c) {
-                        return widget.engine.buildVideoStage(
-                          context: context,
+                        return _VideoStageWithChrome(
+                          engine: widget.engine,
                           maxWidth: c.maxWidth,
                           maxHeight: c.maxHeight,
+                          loginOnTop: true,
                         );
                       },
                     ),
@@ -173,10 +176,11 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                   color: Colors.black,
                   child: LayoutBuilder(
                     builder: (context, c) {
-                      return widget.engine.buildVideoStage(
-                        context: context,
+                      return _VideoStageWithChrome(
+                        engine: widget.engine,
                         maxWidth: c.maxWidth,
                         maxHeight: c.maxHeight,
+                        loginOnTop: false,
                       );
                     },
                   ),
@@ -189,6 +193,46 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
           ],
         );
       },
+    );
+  }
+}
+
+class _VideoStageWithChrome extends StatelessWidget {
+  const _VideoStageWithChrome({
+    required this.engine,
+    required this.maxWidth,
+    required this.maxHeight,
+    required this.loginOnTop,
+  });
+
+  final PlayerEngine engine;
+  final double maxWidth;
+  final double maxHeight;
+
+  /// Wide side-by-side: login sits top-right on the video column (share uses
+  /// app chrome top-right). Stacked narrow: login sits bottom-right to avoid
+  /// the share button over the video top edge.
+  final bool loginOnTop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        engine.buildVideoStage(
+          context: context,
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        ),
+        Positioned(
+          top: loginOnTop ? 8 : null,
+          bottom: loginOnTop ? null : 12,
+          right: 8,
+          child: engine is YoutubePlayerEngine
+              ? const YoutubeLoginVideoFrameButton()
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }

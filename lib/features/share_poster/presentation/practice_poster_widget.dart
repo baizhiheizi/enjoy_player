@@ -120,13 +120,14 @@ class PracticePosterWidget extends StatelessWidget {
                 ),
               ),
               if (hasQuote) ...[
-                SizedBox(height: denseContent ? 12 : 14),
+                const Spacer(),
                 _PracticePosterQuoteBlock(
                   quote: data.quote!,
                   accent: accent,
                 ),
-              ],
-              SizedBox(height: denseContent ? 22 : 20),
+                const Spacer(),
+              ] else
+                const Spacer(),
               Row(
                 children: [
                   Expanded(
@@ -154,7 +155,7 @@ class PracticePosterWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              const Spacer(),
+              SizedBox(height: denseContent ? 12 : 14),
               Divider(
                 height: 24,
                 thickness: 1,
@@ -180,17 +181,27 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
 
   static const _maxQuoteLines = 2;
 
+  static TextStyle _quoteMarkStyle(Color accent, {required double fontSize}) {
+    return GoogleFonts.playfairDisplay(
+      fontSize: fontSize,
+      height: 1.0,
+      fontWeight: FontWeight.w700,
+      color: accent.withValues(alpha: 0.52),
+    );
+  }
+
   static TextStyle _quoteTextStyle({
     required double opacity,
-    double fontSize = 15,
+    required double fontSize,
+    FontWeight fontWeight = FontWeight.w600,
   }) {
     return GoogleFonts.playfairDisplay(
       fontSize: fontSize,
-      height: 1.42,
-      fontWeight: FontWeight.w500,
+      height: 1.35,
+      fontWeight: fontWeight,
       fontStyle: FontStyle.italic,
       color: Colors.white.withValues(alpha: opacity),
-      letterSpacing: 0.15,
+      letterSpacing: 0.18,
     );
   }
 
@@ -198,42 +209,57 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final lines = quote.lines.take(_maxQuoteLines).toList(growable: false);
     final perLineMax = lines.length > 1 ? 1 : _maxQuoteLines;
+    final dualLines = lines.length > 1;
+    final primarySize = dualLines ? 17.0 : 18.0;
+    final secondarySize = dualLines ? 16.0 : 18.0;
+    final markSize = dualLines ? 28.0 : 32.0;
+    final primaryStyle = _quoteTextStyle(
+      opacity: 0.97,
+      fontSize: primarySize,
+    );
+    final markStyle = _quoteMarkStyle(accent, fontSize: markSize);
 
-    return Row(
+    final markBox = TextPainter(
+      text: TextSpan(text: '“', style: markStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final textIndent = markBox.width + 5;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 1),
-          child: Text(
-            '“',
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 34,
-              height: 0.85,
-              fontWeight: FontWeight.w700,
-              color: accent.withValues(alpha: 0.45),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('“', style: markStyle),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                lines.first.displayText,
+                maxLines: perLineMax,
+                overflow: TextOverflow.ellipsis,
+                style: primaryStyle,
+              ),
+            ),
+          ],
+        ),
+        if (lines.length > 1) ...[
+          const SizedBox(height: 10),
+          Padding(
+            padding: EdgeInsets.only(left: textIndent),
+            child: Text(
+              lines[1].displayText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _quoteTextStyle(
+                opacity: 0.78,
+                fontSize: secondarySize,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < lines.length; i++) ...[
-                if (i > 0) const SizedBox(height: 10),
-                Text(
-                  lines[i].displayText,
-                  maxLines: perLineMax,
-                  overflow: TextOverflow.ellipsis,
-                  style: _quoteTextStyle(
-                    opacity: i == 0 ? 0.96 : 0.72,
-                    fontSize: i == 0 ? 15 : 14,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+        ],
       ],
     );
   }

@@ -5,16 +5,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
-import 'package:enjoy_player/features/player/application/player_engine_capabilities_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
-import 'package:enjoy_player/features/player/application/youtube_auth_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
@@ -177,7 +174,6 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
                   mediaBody,
                   if (showVideoTitleChrome)
                     _VideoTitleChromeOverlay(
-                      mediaId: mediaId,
                       mediaTitle: chrome.mediaTitle,
                     ),
                 ],
@@ -235,19 +231,14 @@ class _VideoCollapseOnlyOverlay extends ConsumerWidget {
 /// Floating title row over video when paused or buffering (does not affect layout).
 class _VideoTitleChromeOverlay extends ConsumerWidget {
   const _VideoTitleChromeOverlay({
-    required this.mediaId,
     required this.mediaTitle,
   });
 
-  final String mediaId;
   final String mediaTitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final ytSignedIn = ref.watch(youtubeLoginStateProvider).value ?? false;
-    final ytLoginChrome = ref.watch(playerYoutubeLoginChromeSupportedProvider);
 
     return Align(
       alignment: Alignment.topCenter,
@@ -291,17 +282,6 @@ class _VideoTitleChromeOverlay extends ConsumerWidget {
                     ),
                   ),
                 ),
-                if (ytLoginChrome)
-                  IconButton(
-                    tooltip: l10n.youtubeLoginTooltip,
-                    icon: Icon(
-                      ytSignedIn
-                          ? Icons.person_rounded
-                          : Icons.person_outline_rounded,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => context.push('/youtube/login'),
-                  ),
               ],
             ),
           ),
