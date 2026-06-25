@@ -1,3 +1,2 @@
-- [Run 2026-06-23](notes.md) — first run; created time_format tests PR, commented on #8, opened monthly summary
-- [Run 2026-06-24](notes-2026-06-24.md) — created local_thumbnail tests PR, updated monthly summary #12
-- [Run 2026-06-24 (run 2)](notes-2026-06-24-run2.md) — created buildQuery refactor PR + Windows path redaction fix, updated monthly summary
+- [Run 2026-06-25](notes-2026-06-25.md) — extracted quantizedPositionStream helper, commented on #31, filed #33 dead-code follow-up
+- [Historical rollup](historical-notes.md) — June 2026 runs (06-23, 06-24 ×2) condensed for memory budget
