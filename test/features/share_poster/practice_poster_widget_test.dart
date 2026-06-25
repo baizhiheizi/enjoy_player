@@ -49,14 +49,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sample lesson'), findsOneWidget);
-    expect(
-      find.text('so I could get away from the buzzing...'),
-      findsOneWidget,
-    );
-    expect(
-      find.text('and focus on the speech patterns...'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('so I could get away'), findsOneWidget);
+    expect(find.textContaining('and focus on the speech'), findsOneWidget);
     expect(find.text('5'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.text('2m 5s'), findsOneWidget);

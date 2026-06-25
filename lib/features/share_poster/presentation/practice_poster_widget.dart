@@ -205,6 +205,54 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
     );
   }
 
+  static TextSpan _shadowingQuoteSpan({
+    required String text,
+    required TextStyle baseStyle,
+    required int highlightWords,
+  }) {
+    final (lead, tail) = _splitShadowingHighlight(
+      text,
+      wordCount: highlightWords,
+    );
+    if (lead.isEmpty) {
+      return TextSpan(text: text, style: baseStyle);
+    }
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: lead,
+          style: baseStyle.copyWith(
+            color: AppColors.echoActive,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (tail.isNotEmpty) TextSpan(text: tail, style: baseStyle),
+      ],
+    );
+  }
+
+  /// First [wordCount] words (or ~4 CJK chars) — karaoke / shadowing lead-in.
+  static (String lead, String tail) _splitShadowingHighlight(
+    String text, {
+    int wordCount = 3,
+    int cjkCharCount = 4,
+  }) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return ('', '');
+
+    if (!RegExp(r'\s').hasMatch(trimmed)) {
+      if (trimmed.length <= cjkCharCount) return (trimmed, '');
+      return (trimmed.substring(0, cjkCharCount), trimmed.substring(cjkCharCount));
+    }
+
+    final matches = RegExp(r'\S+').allMatches(trimmed).toList();
+    if (matches.isEmpty) return (trimmed, '');
+    if (matches.length <= wordCount) return (trimmed, '');
+
+    final leadEnd = matches[wordCount - 1].end;
+    return (trimmed.substring(0, leadEnd), trimmed.substring(leadEnd));
+  }
+
   @override
   Widget build(BuildContext context) {
     final lines = quote.lines.take(_maxQuoteLines).toList(growable: false);
@@ -235,11 +283,14 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
             Text('“', style: markStyle),
             const SizedBox(width: 5),
             Expanded(
-              child: Text(
-                lines.first.displayText,
+              child: Text.rich(
+                _shadowingQuoteSpan(
+                  text: lines.first.displayText,
+                  baseStyle: primaryStyle,
+                  highlightWords: dualLines ? 3 : 4,
+                ),
                 maxLines: perLineMax,
                 overflow: TextOverflow.ellipsis,
-                style: primaryStyle,
               ),
             ),
           ],
