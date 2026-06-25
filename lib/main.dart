@@ -10,6 +10,7 @@ import 'app.dart';
 import 'core/logging/diagnostic_log_config.dart';
 import 'core/logging/diagnostic_session_header.dart';
 import 'core/logging/setup_logging.dart';
+import 'core/webview/platform_webview_environment.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ Future<void> main() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   await DiagnosticLogConfig.loadFromGuestSettings();
   await setupAppLogging();
+  if (defaultTargetPlatform == TargetPlatform.windows) {
+    await ensureWindowsWebViewEnvironment();
+  }
   await writeDiagnosticSessionHeader();
   MediaKit.ensureInitialized();
 

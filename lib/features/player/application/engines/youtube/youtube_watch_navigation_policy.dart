@@ -12,6 +12,26 @@ bool isPassiveGoogleSignInUrl(String url) {
   return false;
 }
 
+/// True when [loadStopUrl] is a YouTube watch/consent surface worth treating as
+/// "page ready" (excludes `about:`, Google account, etc.).
+bool isYoutubeWatchPageLoadStopUrl(String? loadStopUrl) {
+  if (loadStopUrl == null || loadStopUrl.isEmpty) return false;
+  if (loadStopUrl == 'about:blank' || loadStopUrl.startsWith('about:')) {
+    return false;
+  }
+  if (loadStopUrl.contains('accounts.google.com')) return false;
+  if (loadStopUrl.contains('consent.youtube.com')) return false;
+  return loadStopUrl.contains('youtube.com') ||
+      loadStopUrl.contains('youtu.be');
+}
+
+/// Maps platform [NavigationAction.isForMainFrame] to a strict bool.
+///
+/// Unknown / null is treated as subframe so CDN and segment loads are never
+/// blocked (Android, iOS, macOS, Windows).
+bool resolveYoutubeNavigationIsForMainFrame(bool? isForMainFrame) =>
+    isForMainFrame ?? false;
+
 /// YouTube media and static asset hosts (not matched by `google.com` alone).
 bool isYoutubePlaybackOrStaticAssetUrl(String url) {
   return url.contains('googlevideo.com') ||

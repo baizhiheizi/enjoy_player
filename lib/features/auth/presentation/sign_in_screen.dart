@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -358,6 +359,7 @@ class _SigningInWebPaneState extends ConsumerState<_SigningInWebPane> {
           Expanded(
             child: ExcludeSemantics(
               child: InAppWebView(
+                webViewEnvironment: appWebViewEnvironment,
                 initialUrlRequest: URLRequest(
                   url: WebUri(widget.verificationUrl),
                 ),

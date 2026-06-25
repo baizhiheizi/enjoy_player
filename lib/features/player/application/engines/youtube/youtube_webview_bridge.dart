@@ -26,6 +26,8 @@ class YoutubeWebViewSettings {
       loadWithOverviewMode: true,
       userAgent: kYoutubeMobileChromeUserAgent,
       thirdPartyCookiesEnabled: true,
+      // Required on Android/iOS/macOS/Windows for [shouldOverrideUrlLoading] (ADR-0025).
+      useShouldOverrideUrlLoading: true,
       // Android: allow listening for renderer crashes (reload watch page).
       useOnRenderProcessGone: defaultTargetPlatform == TargetPlatform.android
           ? true
@@ -38,6 +40,7 @@ class YoutubeWebViewSettings {
       javaScriptEnabled: true,
       thirdPartyCookiesEnabled: true,
       userAgent: kYoutubeMobileChromeUserAgent,
+      useShouldOverrideUrlLoading: true,
     );
   }
 }

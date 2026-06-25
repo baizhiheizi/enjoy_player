@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 import 'youtube_player_engine.dart';
 import 'youtube_watch_navigation_policy.dart';
 import 'youtube_webview_bridge.dart';
@@ -39,7 +40,9 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
     final allowed = shouldAllowYoutubeWatchNavigation(
       url: url,
       videoId: videoId,
-      isForMainFrame: action.isForMainFrame,
+      isForMainFrame: resolveYoutubeNavigationIsForMainFrame(
+        action.isForMainFrame,
+      ),
     );
     if (!allowed &&
         action.isForMainFrame &&
@@ -64,6 +67,7 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
 
     return ExcludeSemantics(
       child: InAppWebView(
+        webViewEnvironment: appWebViewEnvironment,
         initialSettings: YoutubeWebViewSettings.forPlayer(),
         onWebViewCreated: (controller) {
           _controller = controller;

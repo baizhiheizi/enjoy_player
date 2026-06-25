@@ -10,6 +10,7 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 const Set<String> kDiagnosticVerboseLoggerNames = {
   'YouTubePlayerEngine',
   'YouTubeWebView',
+  'WebViewEnvironment',
   'sync',
   'api',
   'auth',

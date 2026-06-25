@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'youtube_page_inject.dart';
 import 'youtube_playback_stall_watchdog.dart';
+import 'youtube_watch_navigation_policy.dart';
 import 'youtube_webview_host.dart';
 import 'youtube_state_poller.dart';
 import 'youtube_webview_bridge.dart';
@@ -47,8 +48,20 @@ class YoutubePlayerEngine implements PlayerEngine {
   bool _mountRequested = false;
   bool _webViewMounted = false;
   bool _loggedFirstPlaying = false;
+  bool _watchPageLoadStopReceived = false;
+  bool _awaitingColdInitialNavigation = false;
+  bool _nonWatchRecoveryScheduled = false;
 
   Stopwatch? _initStopwatch;
+
+  /// After [onPageFinished], nudge `<video>.play()` before a full stall reload.
+  static const Duration _kPlaybackNudgeDelay = Duration(seconds: 6);
+
+  /// When [initialUrlRequest] already navigates, wait longer before verify reload.
+  static const Duration _kColdMountVerifyDelay = Duration(seconds: 10);
+
+  Timer? _playbackNudgeTimer;
+  int _verifyGeneration = 0;
 
   /// Exposed for WebView initial URL (see [YoutubeWebViewHost]).
   String get currentVideoId => _videoId;
@@ -74,9 +87,15 @@ class YoutubePlayerEngine implements PlayerEngine {
   /// Bumped on each explicit watch/idle navigation so stale async loads can bail.
   int _navGeneration = 0;
 
+  /// Auto full-page reloads after stall (per video open).
+  int _stallRecoveryCount = 0;
+  static const int _kMaxStallRecoveries = 1;
+
   late final YoutubePlaybackStallWatchdog _stallWatchdog =
       YoutubePlaybackStallWatchdog(
+        timeout: const Duration(seconds: 12),
         onStall: (videoId) {
+          if (_playing) return;
           _logYoutube.warning(
             'youtube playback stalled after load_stop vid=$videoId',
           );
@@ -132,8 +151,14 @@ class YoutubePlayerEngine implements PlayerEngine {
 
   void markOpenTimingStart() {
     _stallWatchdog.cancel();
+    _cancelPlaybackNudge();
+    _bumpVerifyGeneration();
     _initStopwatch = Stopwatch()..start();
     _loggedFirstPlaying = false;
+    _watchPageLoadStopReceived = false;
+    _awaitingColdInitialNavigation = false;
+    _nonWatchRecoveryScheduled = false;
+    _stallRecoveryCount = 0;
     _logInitPhase('open_start');
   }
 
@@ -158,6 +183,13 @@ class YoutubePlayerEngine implements PlayerEngine {
       );
     }
     _stallWatchdog.cancel();
+    _cancelPlaybackNudge();
+    _bumpVerifyGeneration();
+    _watchPageLoadStopReceived = false;
+    _awaitingColdInitialNavigation = false;
+    _loggedFirstPlaying = false;
+    _nonWatchRecoveryScheduled = false;
+    _stallRecoveryCount = 0;
     _videoId = source.videoId;
     _playbackCompleted = false;
     _emitBuffering(true);
@@ -165,7 +197,9 @@ class YoutubePlayerEngine implements PlayerEngine {
     _emitPosition(Duration.zero);
     _emitDuration(Duration.zero);
     ensureWebViewAttached();
-    await _loadCurrentVideoIfAttached();
+    if (!_awaitingColdInitialNavigation) {
+      await _loadCurrentVideoIfAttached();
+    }
   }
 
   @override
@@ -230,6 +264,7 @@ class YoutubePlayerEngine implements PlayerEngine {
   @override
   Future<void> play() async {
     if (_playbackCompleted) {
+      _prepareWatchReload(resetFirstPlaying: true);
       _emitBuffering(true);
       _emitPlaying(false);
       await _loadCurrentVideoIfAttached();
@@ -255,6 +290,11 @@ class YoutubePlayerEngine implements PlayerEngine {
   /// Stops playback and navigates to `about:blank` while keeping the WebView warm.
   Future<void> idleAfterClear() async {
     _stallWatchdog.cancel();
+    _cancelPlaybackNudge();
+    _bumpVerifyGeneration();
+    _watchPageLoadStopReceived = false;
+    _awaitingColdInitialNavigation = false;
+    _nonWatchRecoveryScheduled = false;
     _stopPolling();
     _videoId = '';
     _mountRequested = false;
@@ -288,6 +328,8 @@ class YoutubePlayerEngine implements PlayerEngine {
   Future<void> dispose() async {
     _disposed = true;
     _stallWatchdog.cancel();
+    _cancelPlaybackNudge();
+    _bumpVerifyGeneration();
     _mountRequested = false;
     _pollKickTimer?.cancel();
     _pollKickTimer = null;
@@ -318,10 +360,16 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (v == _playing) return;
     _playing = v;
     _playingCtrl.add(v);
-    if (v && !_loggedFirstPlaying) {
-      _loggedFirstPlaying = true;
+    if (v) {
+      // Cancel stall watchdog on every play transition (not only the first).
+      // Subsequent load_stop events (ad reload, SPA hops) must not re-trigger
+      // full-page reload loops once playback has started.
       _stallWatchdog.onFirstPlaying();
-      _logInitPhase('first_playing');
+      if (!_loggedFirstPlaying) {
+        _loggedFirstPlaying = true;
+        _cancelPlaybackNudge();
+        _logInitPhase('first_playing');
+      }
     }
   }
 
@@ -351,6 +399,7 @@ class YoutubePlayerEngine implements PlayerEngine {
   ) async {
     final vid = _videoId;
     if (vid.isEmpty || _disposed) return;
+    _prepareWatchReload(resetFirstPlaying: false);
     _logYoutube.info('youtube reload after blocked sign-in vid=$vid');
     await YoutubeWebViewBridge.loadWatchPage(controller, vid);
   }
@@ -379,7 +428,21 @@ class YoutubePlayerEngine implements PlayerEngine {
     final controller = _webController;
     final vid = _videoId;
     if (controller == null || vid.isEmpty || _disposed) return;
+    if (_playing) {
+      _stallWatchdog.cancel();
+      return;
+    }
+    if (_stallRecoveryCount >= _kMaxStallRecoveries) {
+      _logYoutube.info(
+        'youtube stall recovery limit reached vid=$vid; nudging play',
+      );
+      unawaited(_nudgePlaybackStart(controller));
+      return;
+    }
+    _stallRecoveryCount++;
+    _stallWatchdog.cancel();
     _logYoutube.info('youtube reload after stall vid=$vid');
+    _prepareWatchReload(resetFirstPlaying: false, resetStallRecovery: false);
     _emitBuffering(true);
     await YoutubeWebViewBridge.loadWatchPage(controller, vid);
   }
@@ -390,6 +453,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     final vid = _videoId;
     if (controller == null || vid.isEmpty || _disposed) return;
     _logYoutube.warning('youtube WebView process terminated; reloading vid=$vid');
+    _prepareWatchReload(resetFirstPlaying: true);
     _emitBuffering(true);
     _emitPlaying(false);
     await YoutubeWebViewBridge.loadWatchPage(controller, vid);
@@ -402,6 +466,10 @@ class YoutubePlayerEngine implements PlayerEngine {
     _webController = controller;
     _webViewMounted = true;
     _logInitPhase('webview_created');
+
+    if (initialWatchUrlRequested && _videoId.isNotEmpty) {
+      _awaitingColdInitialNavigation = true;
+    }
 
     controller.addJavaScriptHandler(
       handlerName: 'onAdReload',
@@ -471,25 +539,88 @@ class YoutubePlayerEngine implements PlayerEngine {
 
     if (_videoId.isNotEmpty && !initialWatchUrlRequested) {
       unawaited(_loadCurrentVideoIfAttached());
-    }
-    if (_videoId.isNotEmpty) {
-      // All platforms: recover when initial navigation never reaches playback.
-      unawaited(_ensureWatchPageLoadedAfterDelay());
+      unawaited(
+        _ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true),
+      );
+    } else if (_videoId.isNotEmpty) {
+      // Cold mount: [initialUrlRequest] is already navigating — do not reload at 2s
+      // (causes "connection was stopped" and delays first frame until stall recovery).
+      unawaited(
+        _ensureWatchPageLoadedAfterDelay(
+          delay: _kColdMountVerifyDelay,
+          skipIfLoadStopReceived: true,
+        ),
+      );
     }
   }
 
-  Future<void> _ensureWatchPageLoadedAfterDelay() async {
-    await Future<void>.delayed(const Duration(seconds: 2));
+  void _bumpVerifyGeneration() {
+    _verifyGeneration++;
+  }
+
+  void _prepareWatchReload({
+    required bool resetFirstPlaying,
+    bool resetStallRecovery = true,
+  }) {
+    _stallWatchdog.cancel();
+    _cancelPlaybackNudge();
+    _bumpVerifyGeneration();
+    _watchPageLoadStopReceived = false;
+    _awaitingColdInitialNavigation = false;
+    _nonWatchRecoveryScheduled = false;
+    if (resetFirstPlaying) {
+      _loggedFirstPlaying = false;
+    }
+    if (resetStallRecovery) {
+      _stallRecoveryCount = 0;
+    }
+  }
+
+  Future<void> _ensureWatchPageLoadedAfterDelay({
+    Duration delay = const Duration(seconds: 2),
+    bool skipIfLoadStopReceived = false,
+  }) async {
+    final gen = _verifyGeneration;
+    await Future<void>.delayed(delay);
+    if (gen != _verifyGeneration) return;
     if (_disposed || _videoId.isEmpty || _webController == null) return;
     if (_loggedFirstPlaying) return;
+    if (skipIfLoadStopReceived && _watchPageLoadStopReceived) return;
     _logYoutube.info('youtube verify watch load vid=$_videoId');
     await _loadCurrentVideoIfAttached();
+  }
+
+  void _schedulePlaybackNudge() {
+    _playbackNudgeTimer?.cancel();
+    _playbackNudgeTimer = Timer(_kPlaybackNudgeDelay, () {
+      _playbackNudgeTimer = null;
+      if (_disposed || _loggedFirstPlaying || _webController == null) return;
+      _logYoutube.info('youtube nudge play vid=$_videoId');
+      final web = _webController;
+      unawaited(_nudgePlaybackStart(web));
+    });
+  }
+
+  Future<void> _nudgePlaybackStart(InAppWebViewController? web) async {
+    if (web == null || _disposed || _loggedFirstPlaying) return;
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await YoutubeWebViewBridge.forceInlinePlayback(web);
+    }
+    await YoutubeWebViewBridge.play(web);
+  }
+
+  void _cancelPlaybackNudge() {
+    _playbackNudgeTimer?.cancel();
+    _playbackNudgeTimer = null;
   }
 
   void onWebViewDisposed(InAppWebViewController? controller) {
     if (identical(_webController, controller)) {
       _webController = null;
       _webViewMounted = false;
+      _awaitingColdInitialNavigation = false;
+      _cancelPlaybackNudge();
+      _bumpVerifyGeneration();
       _stopPolling();
       mountTick.value++;
     }
@@ -522,13 +653,38 @@ class YoutubePlayerEngine implements PlayerEngine {
     InAppWebViewController controller,
     String? url,
   ) async {
-    if (url == null || url == 'about:blank' || url.startsWith('about:')) {
+    if (!isYoutubeWatchPageLoadStopUrl(url)) {
+      if (url != null && !url.startsWith('about:')) {
+        _logYoutube.fine('youtube skip load_stop url=$url');
+      }
+      _scheduleNonWatchRecovery();
       return;
     }
+    _awaitingColdInitialNavigation = false;
+    _watchPageLoadStopReceived = true;
+    _nonWatchRecoveryScheduled = false;
     _logInitPhase('load_stop');
-    _stallWatchdog.onLoadStop(_videoId);
+    if (!_loggedFirstPlaying) {
+      _stallWatchdog.onLoadStop(_videoId);
+      _schedulePlaybackNudge();
+    } else {
+      _stallWatchdog.cancel();
+      _cancelPlaybackNudge();
+    }
     await injectYoutubeMobileWatchPage(controller);
     _schedulePollKick();
+  }
+
+  void _scheduleNonWatchRecovery() {
+    if (_disposed || _videoId.isEmpty || _loggedFirstPlaying) return;
+    if (_nonWatchRecoveryScheduled) return;
+    _nonWatchRecoveryScheduled = true;
+    _logYoutube.info('youtube non-watch load_stop; verifying watch page');
+    unawaited(
+      _ensureWatchPageLoadedAfterDelay(
+        skipIfLoadStopReceived: true,
+      ),
+    );
   }
 
   void _schedulePollKick() {

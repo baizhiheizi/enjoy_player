@@ -2,6 +2,42 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('isYoutubeWatchPageLoadStopUrl', () {
+    test('accepts mobile watch URLs', () {
+      expect(
+        isYoutubeWatchPageLoadStopUrl(
+          'https://m.youtube.com/watch?v=mA1lnxfqHk8',
+        ),
+        isTrue,
+      );
+    });
+
+    test('rejects about blank and Google account URLs', () {
+      expect(isYoutubeWatchPageLoadStopUrl('about:blank'), isFalse);
+      expect(
+        isYoutubeWatchPageLoadStopUrl(
+          'https://accounts.google.com/ServiceLogin',
+        ),
+        isFalse,
+      );
+    });
+
+    test('rejects consent interstitial', () {
+      expect(
+        isYoutubeWatchPageLoadStopUrl(
+          'https://consent.youtube.com/m?continue=...',
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('resolveYoutubeNavigationIsForMainFrame', () {
+    test('null is treated as subframe (allow CDN)', () {
+      expect(resolveYoutubeNavigationIsForMainFrame(null), isFalse);
+    });
+  });
+
   group('isPassiveGoogleSignInUrl', () {
     test('detects passive ServiceLogin', () {
       const url =
