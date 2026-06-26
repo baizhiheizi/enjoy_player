@@ -913,6 +913,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get authChangeEmail => 'Change email';
+
+  @override
+  String get authOtpResumeTitle => 'Finish signing in';
+
+  @override
+  String authOtpResumeSubtitle(String email) {
+    return 'Enter the verification code sent to $email';
+  }
+
+  @override
+  String get authOtpResumeAction => 'Continue verification';
+
+  @override
   String get authWebSignInWaiting => 'Complete sign-in in your browser…';
 
   @override

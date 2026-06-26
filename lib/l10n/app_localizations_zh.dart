@@ -882,6 +882,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get authChangeEmail => '更换邮箱';
+
+  @override
+  String get authOtpResumeTitle => '继续登录';
+
+  @override
+  String authOtpResumeSubtitle(String email) {
+    return '请输入发送至 $email 的验证码';
+  }
+
+  @override
+  String get authOtpResumeAction => '继续验证';
+
+  @override
   String get authWebSignInWaiting => '请在浏览器中完成登录…';
 
   @override
@@ -2607,6 +2621,20 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String authOtpResendIn(int seconds) {
     return '$seconds 秒后可重新发送';
   }
+
+  @override
+  String get authChangeEmail => '更换邮箱';
+
+  @override
+  String get authOtpResumeTitle => '继续登录';
+
+  @override
+  String authOtpResumeSubtitle(String email) {
+    return '请输入发送至 $email 的验证码';
+  }
+
+  @override
+  String get authOtpResumeAction => '继续验证';
 
   @override
   String get authWebSignInWaiting => '请在浏览器中完成登录…';

@@ -44,7 +44,9 @@ class SidebarAccountChip extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall,
               ),
-              onTap: () => context.push('/sign-in'),
+              onTap: () => context.push(
+                state is AuthAwaitingOtp ? '/sign-in/email' : '/sign-in',
+              ),
             );
           }
           if (state is AuthSignedIn) {

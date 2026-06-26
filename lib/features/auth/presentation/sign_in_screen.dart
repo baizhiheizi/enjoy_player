@@ -15,6 +15,8 @@ import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/email_otp_sign_in_flow.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/sign_in_flow_scaffold.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SignInScreen extends ConsumerWidget {
@@ -34,7 +36,7 @@ class SignInScreen extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
+    return SignInFlowScaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
@@ -42,82 +44,65 @@ class SignInScreen extends ConsumerWidget {
           onPressed: () => _close(context, ref),
         ),
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [t.gradientStart, t.gradientEnd],
-              ),
-            ),
-          ),
-          auth.when(
-            data: (state) {
-              if (state is AuthSignedIn) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(t.space32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 72,
-                          color: cs.primary,
-                        ),
-                        SizedBox(height: t.space24),
-                        Text(
-                          l10n.authSignedInSuccess,
-                          textAlign: TextAlign.center,
-                          style: tt.headlineSmall,
-                        ),
-                      ],
+      child: auth.when(
+        data: (state) {
+          if (state is AuthSignedIn) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(t.space32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle_rounded,
+                      size: 72,
+                      color: cs.primary,
                     ),
-                  ),
-                );
-              }
-              if (state is AuthAwaitingOtp) {
-                return _OtpEntryPane(
-                  email: state.email,
-                  resendAfterSeconds: state.resendAfterSeconds,
-                );
-              }
-              if (state is AuthSigningInWebPkce) {
-                return _WebPkceWaitingPane();
-              }
-              return _SignInHub(onClose: () => _close(context, ref));
-            },
-            loading: () => const Center(child: SkeletonAppBootstrap()),
-            error: (e, _) => Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Padding(
-                  padding: EdgeInsets.all(t.space32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.cloud_off_rounded, size: 56, color: cs.error),
-                      SizedBox(height: t.space24),
-                      Text(
-                        l10n.errorNetwork,
-                        textAlign: TextAlign.center,
-                        style: tt.titleLarge,
-                      ),
-                      SizedBox(height: t.space24),
-                      EnjoyButton.primary(
-                        onPressed: () => ref.invalidate(authCtrlProvider),
-                        child: Text(l10n.retry),
-                      ),
-                    ],
-                  ),
+                    SizedBox(height: t.space24),
+                    Text(
+                      l10n.authSignedInSuccess,
+                      textAlign: TextAlign.center,
+                      style: tt.headlineSmall,
+                    ),
+                  ],
                 ),
               ),
+            );
+          }
+          if (state is AuthAwaitingOtp) {
+            return OtpResumePane(otp: state);
+          }
+          if (state is AuthSigningInWebPkce) {
+            return _WebPkceWaitingPane();
+          }
+          return _SignInHub(onClose: () => _close(context, ref));
+        },
+        loading: () => const Center(child: SkeletonAppBootstrap()),
+        error: (e, _) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: EdgeInsets.all(t.space32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.cloud_off_rounded, size: 56, color: cs.error),
+                  SizedBox(height: t.space24),
+                  Text(
+                    l10n.errorNetwork,
+                    textAlign: TextAlign.center,
+                    style: tt.titleLarge,
+                  ),
+                  SizedBox(height: t.space24),
+                  EnjoyButton.primary(
+                    onPressed: () => ref.invalidate(authCtrlProvider),
+                    child: Text(l10n.retry),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -271,209 +256,31 @@ class _SignInHub extends ConsumerWidget {
   }
 }
 
-class EmailEntryScreen extends ConsumerStatefulWidget {
+class EmailEntryScreen extends ConsumerWidget {
   const EmailEntryScreen({super.key});
 
   @override
-  ConsumerState<EmailEntryScreen> createState() => _EmailEntryScreenState();
-}
-
-class _EmailEntryScreenState extends ConsumerState<EmailEntryScreen> {
-  final _controller = TextEditingController();
-  bool _busy = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final email = _controller.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      AppNotice.error(context, AppLocalizations.of(context)!.authEmailInvalid);
-      return;
-    }
-    setState(() => _busy = true);
-    try {
-      await ref.read(authCtrlProvider.notifier).sendOtp(email: email);
-      if (!mounted) return;
-      context.pop();
-    } on AuthFailure catch (e) {
-      if (!mounted) return;
-      AppNotice.error(context, e.message);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.authContinueWithEmail)),
-      body: Padding(
-        padding: EdgeInsets.all(t.space24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.authEmailPrompt),
-            SizedBox(height: t.space16),
-            TextField(
-              controller: _controller,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.email],
-              decoration: InputDecoration(
-                labelText: l10n.authEmailLabel,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _submit(),
-            ),
-            SizedBox(height: t.space24),
-            EnjoyButton.primary(
-              onPressed: _busy ? null : _submit,
-              child: Text(l10n.authSendOtp),
-            ),
-          ],
+    final auth = ref.watch(authCtrlProvider).valueOrNull;
+
+    return SignInFlowScaffold(
+      appBar: AppBar(
+        leading: BackButton(
+          onPressed: () {
+            if (auth is AuthAwaitingOtp) {
+              ref.read(authCtrlProvider.notifier).cancelSignIn();
+            }
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/sign-in');
+            }
+          },
         ),
+        title: Text(l10n.authContinueWithEmail),
       ),
-    );
-  }
-}
-
-class _OtpEntryPane extends ConsumerStatefulWidget {
-  const _OtpEntryPane({required this.email, required this.resendAfterSeconds});
-
-  final String email;
-  final int resendAfterSeconds;
-
-  @override
-  ConsumerState<_OtpEntryPane> createState() => _OtpEntryPaneState();
-}
-
-class _OtpEntryPaneState extends ConsumerState<_OtpEntryPane> {
-  final _controller = TextEditingController();
-  bool _busy = false;
-  late int _resendSecondsLeft;
-
-  @override
-  void initState() {
-    super.initState();
-    _resendSecondsLeft = widget.resendAfterSeconds;
-    _tickResend();
-  }
-
-  void _tickResend() {
-    if (_resendSecondsLeft <= 0) return;
-    Future<void>.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      setState(() => _resendSecondsLeft--);
-      _tickResend();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _verify() async {
-    setState(() => _busy = true);
-    try {
-      await ref
-          .read(authCtrlProvider.notifier)
-          .verifyOtp(code: _controller.text.trim());
-    } on AuthFailure catch (e) {
-      if (!mounted) return;
-      AppNotice.error(context, e.message);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _resend() async {
-    if (_resendSecondsLeft > 0) return;
-    setState(() => _busy = true);
-    try {
-      await ref.read(authCtrlProvider.notifier).resendOtp();
-      final next = ref.read(authCtrlProvider).valueOrNull;
-      if (next is AuthAwaitingOtp && mounted) {
-        setState(() => _resendSecondsLeft = next.resendAfterSeconds);
-        _tickResend();
-      }
-    } on AuthFailure catch (e) {
-      if (!mounted) return;
-      AppNotice.error(context, e.message);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Padding(
-          padding: EdgeInsets.all(t.space32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.authOtpTitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              SizedBox(height: t.space8),
-              Text(
-                l10n.authOtpSentTo(widget.email),
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-              ),
-              SizedBox(height: t.space24),
-              TextField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  labelText: l10n.authOtpLabel,
-                  border: const OutlineInputBorder(),
-                  counterText: '',
-                ),
-                onSubmitted: (_) => _verify(),
-              ),
-              SizedBox(height: t.space16),
-              EnjoyButton.primary(
-                onPressed: _busy ? null : _verify,
-                child: Text(l10n.authVerifyOtp),
-              ),
-              SizedBox(height: t.space12),
-              EnjoyButton.ghost(
-                onPressed: (_busy || _resendSecondsLeft > 0) ? null : _resend,
-                child: Text(
-                  _resendSecondsLeft > 0
-                      ? l10n.authOtpResendIn(_resendSecondsLeft)
-                      : l10n.authOtpResend,
-                ),
-              ),
-              EnjoyButton.ghost(
-                onPressed: () =>
-                    ref.read(authCtrlProvider.notifier).cancelSignIn(),
-                child: Text(l10n.authCancel),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: const EmailOtpSignInFlow(),
     );
   }
 }

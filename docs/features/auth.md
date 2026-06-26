@@ -5,6 +5,7 @@
 Native-first sign-in ([ADR-0027](../decisions/0027-native-auth-v2.md)):
 
 - **Sign-in hub**: Continue with **Google** (Android/iOS/macOS), **Apple** (iOS/macOS), **Email OTP**, or **Other sign-in options** (OAuth PKCE in the system browser + deep link).
+- **Email OTP**: Single screen at `/sign-in/email` — enter email, then verify with a 6-digit pin on the same page. Shows the target email, supports resend with server-driven cooldown, and **Change email** to edit and resend. If the user opens the hub mid-OTP, a resume card links back to the email flow.
 - **No WebView poll flow** for Enjoy account auth — legacy `start_auth` + InAppWebView verification is removed from the client.
 - **Bearer + refresh tokens** in **flutter_secure_storage** (not Drift). On API `401`, the client refreshes once via `POST /api/v1/auth/refresh` before signing out.
 - Last **profile snapshot** cached in secure storage for fast cold start ([ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)).

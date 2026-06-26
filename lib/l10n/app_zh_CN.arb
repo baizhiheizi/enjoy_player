@@ -374,6 +374,17 @@
   "authVerifyOtp": "验证",
   "authOtpResend": "重新发送",
   "authOtpResendIn": "{seconds} 秒后可重新发送",
+  "authChangeEmail": "更换邮箱",
+  "authOtpResumeTitle": "继续登录",
+  "authOtpResumeSubtitle": "请输入发送至 {email} 的验证码",
+  "@authOtpResumeSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authOtpResumeAction": "继续验证",
   "authWebSignInWaiting": "请在浏览器中完成登录…",
   "authWaitingForApproval": "正在完成登录…",
   "authCancel": "取消",

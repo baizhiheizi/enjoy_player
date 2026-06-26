@@ -388,6 +388,17 @@
       }
     }
   },
+  "authChangeEmail": "Change email",
+  "authOtpResumeTitle": "Finish signing in",
+  "authOtpResumeSubtitle": "Enter the verification code sent to {email}",
+  "@authOtpResumeSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authOtpResumeAction": "Continue verification",
   "authWebSignInWaiting": "Complete sign-in in your browser…",
   "authWaitingForApproval": "Finishing sign-in…",
   "authCancel": "Cancel",

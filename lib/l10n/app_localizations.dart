@@ -1785,6 +1785,30 @@ abstract class AppLocalizations {
   /// **'Resend in {seconds}s'**
   String authOtpResendIn(int seconds);
 
+  /// No description provided for @authChangeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get authChangeEmail;
+
+  /// No description provided for @authOtpResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish signing in'**
+  String get authOtpResumeTitle;
+
+  /// No description provided for @authOtpResumeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to {email}'**
+  String authOtpResumeSubtitle(String email);
+
+  /// No description provided for @authOtpResumeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue verification'**
+  String get authOtpResumeAction;
+
   /// No description provided for @authWebSignInWaiting.
   ///
   /// In en, this message translates to:
