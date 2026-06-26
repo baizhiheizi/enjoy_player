@@ -3,8 +3,10 @@ import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
+import 'package:enjoy_player/features/auth/data/google_sign_in_service.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,6 +39,11 @@ class _FakeAuthRepository extends AuthRepository {
   Future<AuthState> loadInitialAuthState() async => const AuthSignedOut();
 }
 
+class _ThrowingGoogleSignInService extends GoogleSignInService {
+  @override
+  Future<void> signOut() => throw StateError('google sign-out unavailable');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -56,5 +63,35 @@ void main() {
     final state = container.read(authCtrlProvider).value;
     expect(state, isA<AuthAwaitingOtp>());
     expect((state as AuthAwaitingOtp).email, 'user@example.com');
+  });
+
+  test('signOut stays signed out when Google sign-out throws', () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final fake = _FakeAuthRepository();
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(fake),
+        googleSignInServiceProvider.overrideWithValue(
+          _ThrowingGoogleSignInService(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(authCtrlProvider.future);
+    container.read(authCtrlProvider.notifier).state = const AsyncData(
+      AuthSignedIn(
+        profile: UserProfile(
+          id: 'u1',
+          email: 'user@example.com',
+          name: 'User',
+        ),
+      ),
+    );
+
+    await container.read(authCtrlProvider.notifier).signOut();
+
+    expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
+    expect(await fake.hasAccessToken(), isFalse);
   });
 }

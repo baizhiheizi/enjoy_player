@@ -68,6 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showEnjoyAlertDialog<bool>(
       context: context,
+      useRootNavigator: true,
       title: Text(l10n.profileSignOutConfirmTitle),
       content: Text(l10n.profileSignOutConfirmMessage),
       actionsBuilder: (ctx) => [
@@ -556,7 +557,7 @@ class _ProfilePracticeSection extends ConsumerWidget {
     return stats.when(
       data: (data) => _ProfileStatsRow(stats: data),
       loading: () => SizedBox(
-        height: 96,
+        height: 100,
         child: Row(
           children: [
             Expanded(child: _ProfileStatSkeleton(tokens: t)),
@@ -927,7 +928,7 @@ class _ProfileStatTile extends StatelessWidget {
         label: '$periodLabel, $durationLabel, $recordingsLabel',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [

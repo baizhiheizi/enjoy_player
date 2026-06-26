@@ -229,8 +229,15 @@ class AuthCtrl extends _$AuthCtrl {
     _flowGeneration++;
     _cancelPkceTimeout();
     await ref.read(authRepositoryProvider).clearSession();
-    await ref.read(googleSignInServiceProvider).signOut();
+    // Update auth state before optional provider sign-out so a Google SDK
+    // failure (common when the user signed in via email or PKCE) cannot
+    // leave the UI showing a signed-in session after tokens were cleared.
     state = const AsyncData(AuthSignedOut());
+    try {
+      await ref.read(googleSignInServiceProvider).signOut();
+    } catch (e, st) {
+      _log.warning('google sign-out failed after session cleared', e, st);
+    }
   }
 
   Future<void> refreshProfile() async {
