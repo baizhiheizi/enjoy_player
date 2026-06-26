@@ -138,6 +138,47 @@ abstract class _$AiApiBaseUrl extends $AsyncNotifier<String> {
   }
 }
 
+@ProviderFor(authApiClient)
+final authApiClientProvider = AuthApiClientProvider._();
+
+final class AuthApiClientProvider
+    extends $FunctionalProvider<ApiClient, ApiClient, ApiClient>
+    with $Provider<ApiClient> {
+  AuthApiClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authApiClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authApiClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ApiClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ApiClient create(Ref ref) {
+    return authApiClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ApiClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ApiClient>(value),
+    );
+  }
+}
+
+String _$authApiClientHash() => r'0b150101c34b51340427d05b683b24424bd95c71';
+
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
 
@@ -177,7 +218,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'1e513f1ce9c39f3dead123e74003b1272063199e';
+String _$apiClientHash() => r'639f6035b7421b086667de4d7ea917db1c39f91a';
 
 @ProviderFor(aiApiClient)
 final aiApiClientProvider = AiApiClientProvider._();

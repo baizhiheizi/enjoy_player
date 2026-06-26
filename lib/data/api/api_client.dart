@@ -22,6 +22,7 @@ void _apiHttpTrace(String message) {
 
 typedef GetBaseUrl = Future<String> Function();
 typedef GetAccessToken = Future<String?> Function();
+typedef RefreshAccessToken = Future<bool> Function();
 
 class ApiClient {
   ApiClient({
@@ -29,12 +30,14 @@ class ApiClient {
     required this.getBaseUrl,
     required this.getAccessToken,
     this.sendAuthHeader = true,
+    this.refreshAccessToken,
   }) : _client = httpClient;
 
   final http.Client _client;
   final GetBaseUrl getBaseUrl;
   final GetAccessToken getAccessToken;
   final bool sendAuthHeader;
+  final RefreshAccessToken? refreshAccessToken;
 
   Future<Map<String, dynamic>> getJson(
     String path, {
@@ -213,6 +216,28 @@ class ApiClient {
     bool allowEmptyBody = false,
     bool transformBody = true,
   }) async {
+    return _sendMapWithOptionalRefresh(
+      method: method,
+      path: path,
+      queryParameters: queryParameters,
+      body: body,
+      requireAuth: requireAuth,
+      allowEmptyBody: allowEmptyBody,
+      transformBody: transformBody,
+      allowRefreshRetry: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> _sendMapWithOptionalRefresh({
+    required String method,
+    required String path,
+    Map<String, String>? queryParameters,
+    Map<String, dynamic>? body,
+    required bool requireAuth,
+    bool allowEmptyBody = false,
+    bool transformBody = true,
+    required bool allowRefreshRetry,
+  }) async {
     final response = await _dispatch(
       method: method,
       path: path,
@@ -221,6 +246,25 @@ class ApiClient {
       requireAuth: requireAuth,
       transformBody: transformBody,
     );
+
+    if (response.statusCode == 401 &&
+        requireAuth &&
+        allowRefreshRetry &&
+        refreshAccessToken != null) {
+      final refreshed = await refreshAccessToken!();
+      if (refreshed) {
+        return _sendMapWithOptionalRefresh(
+          method: method,
+          path: path,
+          queryParameters: queryParameters,
+          body: body,
+          requireAuth: requireAuth,
+          allowEmptyBody: allowEmptyBody,
+          transformBody: transformBody,
+          allowRefreshRetry: false,
+        );
+      }
+    }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty && allowEmptyBody) {

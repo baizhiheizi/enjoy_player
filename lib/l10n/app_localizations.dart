@@ -1686,7 +1686,7 @@ abstract class AppLocalizations {
   /// No description provided for @authSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A secure sign-in page opens in the app. Complete the steps and we will detect when you are done.'**
+  /// **'Sign in with Google, Apple, or email. Your progress syncs when you are signed in.'**
   String get authSignInSubtitle;
 
   /// No description provided for @authSignInCta.
@@ -1694,6 +1694,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get authSignInCta;
+
+  /// No description provided for @authContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authContinueWithGoogle;
+
+  /// No description provided for @authContinueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get authContinueWithApple;
+
+  /// No description provided for @authContinueWithEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Email'**
+  String get authContinueWithEmail;
+
+  /// No description provided for @authOtherSignInOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other sign-in options'**
+  String get authOtherSignInOptions;
+
+  /// No description provided for @authOrDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get authOrDivider;
+
+  /// No description provided for @authEmailPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'We will send a one-time code to your email.'**
+  String get authEmailPrompt;
+
+  /// No description provided for @authEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get authEmailLabel;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get authEmailInvalid;
+
+  /// No description provided for @authSendOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get authSendOtp;
+
+  /// No description provided for @authOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter verification code'**
+  String get authOtpTitle;
+
+  /// No description provided for @authOtpSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent to {email}'**
+  String authOtpSentTo(String email);
+
+  /// No description provided for @authOtpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'6-digit code'**
+  String get authOtpLabel;
+
+  /// No description provided for @authVerifyOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get authVerifyOtp;
+
+  /// No description provided for @authOtpResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get authOtpResend;
+
+  /// No description provided for @authOtpResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String authOtpResendIn(int seconds);
+
+  /// No description provided for @authWebSignInWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete sign-in in your browser…'**
+  String get authWebSignInWaiting;
 
   /// No description provided for @authWaitingForApproval.
   ///

@@ -70,5 +70,18 @@
 	<string>Enjoy Player uses the microphone for shadow-reading practice recordings.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ai.enjoy.player.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>enjoyplayer</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

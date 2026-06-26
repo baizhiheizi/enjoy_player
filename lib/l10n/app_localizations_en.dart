@@ -858,10 +858,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authSignInSubtitle =>
-      'A secure sign-in page opens in the app. Complete the steps and we will detect when you are done.';
+      'Sign in with Google, Apple, or email. Your progress syncs when you are signed in.';
 
   @override
   String get authSignInCta => 'Continue';
+
+  @override
+  String get authContinueWithGoogle => 'Continue with Google';
+
+  @override
+  String get authContinueWithApple => 'Continue with Apple';
+
+  @override
+  String get authContinueWithEmail => 'Continue with Email';
+
+  @override
+  String get authOtherSignInOptions => 'Other sign-in options';
+
+  @override
+  String get authOrDivider => 'or';
+
+  @override
+  String get authEmailPrompt => 'We will send a one-time code to your email.';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authEmailInvalid => 'Enter a valid email address.';
+
+  @override
+  String get authSendOtp => 'Send code';
+
+  @override
+  String get authOtpTitle => 'Enter verification code';
+
+  @override
+  String authOtpSentTo(String email) {
+    return 'Code sent to $email';
+  }
+
+  @override
+  String get authOtpLabel => '6-digit code';
+
+  @override
+  String get authVerifyOtp => 'Verify';
+
+  @override
+  String get authOtpResend => 'Resend code';
+
+  @override
+  String authOtpResendIn(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get authWebSignInWaiting => 'Complete sign-in in your browser…';
 
   @override
   String get authWaitingForApproval => 'Finishing sign-in…';

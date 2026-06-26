@@ -1,0 +1,51 @@
+/// Listens for OAuth PKCE deep-link callbacks and forwards them to [AuthCtrl].
+library;
+
+import 'package:app_links/app_links.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
+
+import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+
+final Logger _log = logNamed('auth.deeplink');
+
+class AuthDeepLinkListener extends ConsumerStatefulWidget {
+  const AuthDeepLinkListener({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  ConsumerState<AuthDeepLinkListener> createState() =>
+      _AuthDeepLinkListenerState();
+}
+
+class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
+  final AppLinks _appLinks = AppLinks();
+
+  @override
+  void initState() {
+    super.initState();
+    _appLinks.getInitialLink().then(_onUri);
+    _appLinks.uriLinkStream.listen(_onUri);
+  }
+
+  Future<void> _onUri(Uri? uri) async {
+    if (uri == null || !mounted) return;
+    try {
+      await ref.read(authCtrlProvider.notifier).handleAuthCallbackUri(uri);
+    } on AuthFailure catch (e) {
+      _log.warning('auth deep link failed', e);
+      if (!mounted) return;
+      AppNotice.error(context, e.message);
+    } catch (e, st) {
+      _log.warning('auth deep link failed', e, st);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}

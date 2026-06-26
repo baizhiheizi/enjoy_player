@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  app_links
   auto_updater_windows
   azure_speech
   flutter_inappwebview_windows

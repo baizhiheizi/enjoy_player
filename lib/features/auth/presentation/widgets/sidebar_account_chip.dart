@@ -25,7 +25,7 @@ class SidebarAccountChip extends ConsumerWidget {
       padding: EdgeInsets.fromLTRB(t.space8, 0, t.space8, t.space8),
       child: auth.when(
         data: (state) {
-          if (state is AuthSigningIn) {
+          if (authFlowInProgress(state)) {
             return ListTile(
               dense: true,
               leading: SizedBox(
@@ -37,7 +37,9 @@ class SidebarAccountChip extends ConsumerWidget {
                 ),
               ),
               title: Text(
-                l10n.authWaitingForApproval,
+                state is AuthAwaitingOtp
+                    ? l10n.authOtpTitle
+                    : l10n.authWebSignInWaiting,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall,

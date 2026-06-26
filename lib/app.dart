@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
+import 'package:enjoy_player/features/auth/application/auth_deep_link_listener.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_host.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -83,7 +84,9 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
             child: child ?? const SizedBox.shrink(),
           ),
         );
-        final hosted = UpdatePromptHost(child: viewport);
+        final hosted = AuthDeepLinkListener(
+          child: UpdatePromptHost(child: viewport),
+        );
         return isDesktop ? AppHotkeysKeyboardListener(child: hosted) : hosted;
       },
     );

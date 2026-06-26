@@ -827,10 +827,62 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authSignInTitle => '登录 Enjoy';
 
   @override
-  String get authSignInSubtitle => '应用内将打开安全登录页。完成步骤后我们会自动检测登录结果。';
+  String get authSignInSubtitle => '使用 Google、Apple 或邮箱登录。登录后可同步学习进度。';
 
   @override
   String get authSignInCta => '继续';
+
+  @override
+  String get authContinueWithGoogle => '使用 Google 继续';
+
+  @override
+  String get authContinueWithApple => '使用 Apple 继续';
+
+  @override
+  String get authContinueWithEmail => '使用邮箱继续';
+
+  @override
+  String get authOtherSignInOptions => '其他登录方式';
+
+  @override
+  String get authOrDivider => '或';
+
+  @override
+  String get authEmailPrompt => '我们将向您的邮箱发送一次性验证码。';
+
+  @override
+  String get authEmailLabel => '邮箱';
+
+  @override
+  String get authEmailInvalid => '请输入有效的邮箱地址。';
+
+  @override
+  String get authSendOtp => '发送验证码';
+
+  @override
+  String get authOtpTitle => '输入验证码';
+
+  @override
+  String authOtpSentTo(String email) {
+    return '验证码已发送至 $email';
+  }
+
+  @override
+  String get authOtpLabel => '6 位验证码';
+
+  @override
+  String get authVerifyOtp => '验证';
+
+  @override
+  String get authOtpResend => '重新发送';
+
+  @override
+  String authOtpResendIn(int seconds) {
+    return '$seconds 秒后可重新发送';
+  }
+
+  @override
+  String get authWebSignInWaiting => '请在浏览器中完成登录…';
 
   @override
   String get authWaitingForApproval => '正在完成登录…';
@@ -2502,10 +2554,62 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get authSignInTitle => '登录 Enjoy';
 
   @override
-  String get authSignInSubtitle => '应用内将打开安全登录页。完成步骤后我们会自动检测登录结果。';
+  String get authSignInSubtitle => '使用 Google、Apple 或邮箱登录。登录后可同步学习进度。';
 
   @override
   String get authSignInCta => '继续';
+
+  @override
+  String get authContinueWithGoogle => '使用 Google 继续';
+
+  @override
+  String get authContinueWithApple => '使用 Apple 继续';
+
+  @override
+  String get authContinueWithEmail => '使用邮箱继续';
+
+  @override
+  String get authOtherSignInOptions => '其他登录方式';
+
+  @override
+  String get authOrDivider => '或';
+
+  @override
+  String get authEmailPrompt => '我们将向您的邮箱发送一次性验证码。';
+
+  @override
+  String get authEmailLabel => '邮箱';
+
+  @override
+  String get authEmailInvalid => '请输入有效的邮箱地址。';
+
+  @override
+  String get authSendOtp => '发送验证码';
+
+  @override
+  String get authOtpTitle => '输入验证码';
+
+  @override
+  String authOtpSentTo(String email) {
+    return '验证码已发送至 $email';
+  }
+
+  @override
+  String get authOtpLabel => '6 位验证码';
+
+  @override
+  String get authVerifyOtp => '验证';
+
+  @override
+  String get authOtpResend => '重新发送';
+
+  @override
+  String authOtpResendIn(int seconds) {
+    return '$seconds 秒后可重新发送';
+  }
+
+  @override
+  String get authWebSignInWaiting => '请在浏览器中完成登录…';
 
   @override
   String get authWaitingForApproval => '正在完成登录…';

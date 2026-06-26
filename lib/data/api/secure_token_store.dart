@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'secure_token_store.g.dart';
 
 const _kAccessTokenKey = 'enjoy_player.access_token';
+const _kRefreshTokenKey = 'enjoy_player.refresh_token';
 const _kCachedProfileJsonKey = 'enjoy_player.cached_profile_json';
 
 @Riverpod(keepAlive: true)
@@ -25,7 +26,14 @@ class SecureTokenStore {
   Future<void> writeAccessToken(String token) =>
       _storage.write(key: _kAccessTokenKey, value: token);
 
+  Future<String?> readRefreshToken() => _storage.read(key: _kRefreshTokenKey);
+
+  Future<void> writeRefreshToken(String token) =>
+      _storage.write(key: _kRefreshTokenKey, value: token);
+
   Future<void> clearAccessToken() => _storage.delete(key: _kAccessTokenKey);
+
+  Future<void> clearRefreshToken() => _storage.delete(key: _kRefreshTokenKey);
 
   /// JSON from [UserProfile.toJson] for cold-start UI before network fetch.
   Future<String?> readCachedProfileJson() =>
@@ -37,9 +45,10 @@ class SecureTokenStore {
   Future<void> clearCachedProfile() =>
       _storage.delete(key: _kCachedProfileJsonKey);
 
-  /// Clears bearer token and cached profile (sign out / invalid session).
+  /// Clears bearer token, refresh token, and cached profile (sign out / invalid session).
   Future<void> clearAllAuthSecrets() async {
     await clearAccessToken();
+    await clearRefreshToken();
     await clearCachedProfile();
   }
 }

@@ -47,6 +47,9 @@ dependencies:
   riverpod_annotation: ^4.0.2
   sqlite3_flutter_libs: ^0.5.28
   url_launcher: ^6.3.1
+  google_sign_in: ^6.3.0
+  sign_in_with_apple: ^7.0.1
+  app_links: ^6.4.0
   uuid: ^4.5.1
   palette_generator: ^0.3.3+7
   flutter_animate: ^4.5.2

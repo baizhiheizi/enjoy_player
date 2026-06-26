@@ -357,8 +357,38 @@
   "assessmentEmptyReference": "Reference text is empty.",
   "assessmentInvalidStored": "Stored assessment data could not be read.",
   "authSignInTitle": "Sign in to Enjoy",
-  "authSignInSubtitle": "A secure sign-in page opens in the app. Complete the steps and we will detect when you are done.",
+  "authSignInSubtitle": "Sign in with Google, Apple, or email. Your progress syncs when you are signed in.",
   "authSignInCta": "Continue",
+  "authContinueWithGoogle": "Continue with Google",
+  "authContinueWithApple": "Continue with Apple",
+  "authContinueWithEmail": "Continue with Email",
+  "authOtherSignInOptions": "Other sign-in options",
+  "authOrDivider": "or",
+  "authEmailPrompt": "We will send a one-time code to your email.",
+  "authEmailLabel": "Email",
+  "authEmailInvalid": "Enter a valid email address.",
+  "authSendOtp": "Send code",
+  "authOtpTitle": "Enter verification code",
+  "authOtpSentTo": "Code sent to {email}",
+  "@authOtpSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authOtpLabel": "6-digit code",
+  "authVerifyOtp": "Verify",
+  "authOtpResend": "Resend code",
+  "authOtpResendIn": "Resend in {seconds}s",
+  "@authOtpResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authWebSignInWaiting": "Complete sign-in in your browser…",
   "authWaitingForApproval": "Finishing sign-in…",
   "authCancel": "Cancel",
   "authSignedInSuccess": "Signed in successfully",

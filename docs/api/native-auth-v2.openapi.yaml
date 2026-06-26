@@ -1,0 +1,272 @@
+openapi: 3.1.0
+info:
+  title: Enjoy API — Native Auth v2
+  version: 1.0.0
+  description: |
+    Synchronous token exchange for Enjoy Player native sign-in.
+    Supersedes client usage of `/api/v1/sessions/start_auth` + `/poll`.
+    JSON bodies use snake_case on the wire; clients may send camelCase if
+    the existing `@enjoy/api` transform applies.
+
+servers:
+  - url: https://enjoy.bot
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email, name]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+        locale:
+          type: string
+          nullable: true
+        learning_language:
+          type: string
+          nullable: true
+        native_language:
+          type: string
+          nullable: true
+
+    AuthTokenResponse:
+      type: object
+      required: [access_token, refresh_token, expires_in, token_type, user]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds
+        token_type:
+          type: string
+          example: Bearer
+        user:
+          $ref: '#/components/schemas/User'
+
+    OtpSendResponse:
+      type: object
+      required: [request_id, expires_in, resend_after]
+      properties:
+        request_id:
+          type: string
+        expires_in:
+          type: integer
+        resend_after:
+          type: integer
+          description: Seconds until the client may request another code
+
+paths:
+  /api/v1/auth/google:
+    post:
+      summary: Exchange Google ID token for Enjoy session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_token]
+              properties:
+                id_token:
+                  type: string
+                platform:
+                  type: string
+                  enum: [android, ios, macos]
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          description: Invalid or expired ID token
+
+  /api/v1/auth/apple:
+    post:
+      summary: Exchange Sign in with Apple credentials for Enjoy session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identity_token, authorization_code]
+              properties:
+                identity_token:
+                  type: string
+                authorization_code:
+                  type: string
+                full_name:
+                  type: object
+                  nullable: true
+                  properties:
+                    given_name:
+                      type: string
+                    family_name:
+                      type: string
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+
+  /api/v1/auth/otp/send:
+    post:
+      summary: Send email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: OTP dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpSendResponse'
+        '429':
+          description: Rate limited
+
+  /api/v1/auth/otp/verify:
+    post:
+      summary: Verify email OTP and issue session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [request_id, email, code]
+              properties:
+                request_id:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          description: Invalid or expired code
+
+  /api/v1/auth/authorize:
+    get:
+      summary: Start OAuth Authorization Code + PKCE (web fallback)
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+            example: enjoy_player
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: code_challenge
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [S256]
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to Enjoy web login or IdP
+
+  /api/v1/auth/token:
+    post:
+      summary: Exchange authorization code for session (PKCE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [grant_type, code, code_verifier, redirect_uri]
+              properties:
+                grant_type:
+                  type: string
+                  enum: [authorization_code]
+                code:
+                  type: string
+                code_verifier:
+                  type: string
+                redirect_uri:
+                  type: string
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+
+  /api/v1/auth/refresh:
+    post:
+      summary: Rotate refresh token and issue new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access_token, refresh_token, expires_in, token_type]
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  expires_in:
+                    type: integer
+                  token_type:
+                    type: string

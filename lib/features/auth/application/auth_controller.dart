@@ -6,28 +6,35 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/features/auth/data/apple_sign_in_service.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
+import 'package:enjoy_player/features/auth/data/google_sign_in_service.dart';
+import 'package:enjoy_player/features/auth/domain/auth_callback.dart';
+import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/pkce.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 
 part 'auth_controller.g.dart';
 
 final Logger _log = logNamed('auth');
 
+const _pkceFlowTimeout = Duration(minutes: 5);
+
 @Riverpod(keepAlive: true)
 class AuthCtrl extends _$AuthCtrl {
-  Timer? _pollTimer;
-  int _pollGeneration = 0;
+  Timer? _pkceTimeoutTimer;
+  int _flowGeneration = 0;
 
   @override
   Future<AuthState> build() async {
-    ref.onDispose(() {
-      _pollTimer?.cancel();
-      _pollTimer = null;
-    });
+    ref.onDispose(_cancelPkceTimeout);
     final sw = Stopwatch()..start();
     _log.info('auth: loadInitialAuthState start');
     try {
@@ -49,74 +56,180 @@ class AuthCtrl extends _$AuthCtrl {
     }
   }
 
-  Future<void> startSignIn() async {
-    final repo = ref.read(authRepositoryProvider);
-    _pollTimer?.cancel();
-    _log.info('auth: calling start_auth');
-    final start = await repo.startAuth();
-    final gen = ++_pollGeneration;
-    state = AsyncData(
-      AuthSigningIn(
-        requestId: start.requestId,
-        verificationUrl: start.verificationUrl,
-        startedAt: DateTime.now(),
-      ),
-    );
-
-    // [Timer.periodic] waits one full period before the first tick — run an
-    // immediate poll so HTTP logs and approval appear without a 2s gap.
-    Future<void> pollTick() async {
-      if (gen != _pollGeneration) return;
-      final s = state.valueOrNull;
-      if (s is! AuthSigningIn) {
-        _pollTimer?.cancel();
-        return;
-      }
-      if (DateTime.now().difference(s.startedAt) > const Duration(minutes: 5)) {
-        _pollTimer?.cancel();
-        state = const AsyncData(AuthSignedOut());
-        return;
-      }
-      try {
-        final outcome = await repo.pollAuth(s.requestId);
-        if (gen != _pollGeneration) return;
-        if (outcome is PollAuthOutcomeApproved) {
-          _pollTimer?.cancel();
-          await repo.persistAccessToken(outcome.accessToken);
-          final profile = await repo.fetchProfile();
-          if (gen != _pollGeneration) return;
-          state = AsyncData(AuthSignedIn(profile: profile));
-          // AppPreferencesCtrl listens to AuthCtrl and applies the profile
-          // itself — calling its notifier from here would create a Riverpod
-          // cycle (appPreferencesCtrl depends on appDatabase depends on auth).
-        }
-      } catch (e, st) {
-        _log.warning('poll auth failed', e, st);
-      }
-    }
-
-    _log.info('auth: polling until approved (every 2s, first tick now)');
-    unawaited(pollTick());
-    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
-      unawaited(pollTick());
-    });
-  }
-
   void cancelSignIn() {
-    _pollGeneration++;
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _flowGeneration++;
+    _cancelPkceTimeout();
     final current = state.valueOrNull;
-    if (current is AuthSigningIn) {
+    if (authFlowInProgress(current ?? const AuthSignedOut())) {
       state = const AsyncData(AuthSignedOut());
     }
   }
 
+  Future<void> signInWithGoogle() async {
+    final google = ref.read(googleSignInServiceProvider);
+    final repo = ref.read(authRepositoryProvider);
+    final gen = ++_flowGeneration;
+    try {
+      final idToken = await google.signInForIdToken();
+      if (gen != _flowGeneration) return;
+      if (idToken == null) return;
+      final profile = await repo.signInGoogle(idToken: idToken);
+      if (gen != _flowGeneration) return;
+      state = AsyncData(AuthSignedIn(profile: profile));
+    } on AuthFailure {
+      if (gen != _flowGeneration) return;
+      rethrow;
+    } catch (e, st) {
+      if (gen != _flowGeneration) return;
+      _log.warning('google sign-in failed', e, st);
+      throw AuthFailure('$e');
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    final apple = ref.read(appleSignInServiceProvider);
+    final repo = ref.read(authRepositoryProvider);
+    final gen = ++_flowGeneration;
+    try {
+      final credentials = await apple.signIn();
+      if (gen != _flowGeneration) return;
+      if (credentials == null) return;
+      final profile = await repo.signInApple(
+        identityToken: credentials.identityToken,
+        authorizationCode: credentials.authorizationCode,
+        fullName: credentials.fullName,
+      );
+      if (gen != _flowGeneration) return;
+      state = AsyncData(AuthSignedIn(profile: profile));
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return;
+      if (gen != _flowGeneration) return;
+      throw AuthFailure(e.message);
+    } on AuthFailure {
+      rethrow;
+    } catch (e, st) {
+      if (gen != _flowGeneration) return;
+      _log.warning('apple sign-in failed', e, st);
+      throw AuthFailure('$e');
+    }
+  }
+
+  Future<void> sendOtp({required String email}) async {
+    final repo = ref.read(authRepositoryProvider);
+    final gen = ++_flowGeneration;
+    _cancelPkceTimeout();
+    final response = await repo.sendOtp(email: email);
+    if (gen != _flowGeneration) return;
+    state = AsyncData(
+      AuthAwaitingOtp(
+        requestId: response.requestId,
+        email: email.trim(),
+        resendAfterSeconds: response.resendAfter,
+        startedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> verifyOtp({required String code}) async {
+    final current = state.valueOrNull;
+    if (current is! AuthAwaitingOtp) {
+      throw const AuthFailure('No OTP sign-in in progress');
+    }
+    final repo = ref.read(authRepositoryProvider);
+    final gen = ++_flowGeneration;
+    final profile = await repo.verifyOtp(
+      requestId: current.requestId,
+      email: current.email,
+      code: code,
+    );
+    if (gen != _flowGeneration) return;
+    state = AsyncData(AuthSignedIn(profile: profile));
+  }
+
+  Future<void> resendOtp() async {
+    final current = state.valueOrNull;
+    if (current is! AuthAwaitingOtp) return;
+    await sendOtp(email: current.email);
+  }
+
+  Future<void> startWebPkceSignIn() async {
+    final repo = ref.read(authRepositoryProvider);
+    final gen = ++_flowGeneration;
+    _cancelPkceTimeout();
+    final pkce = generatePkcePair();
+    final oauthState = generateOAuthState();
+    final redirectUri = authPkceRedirectUri(preferUniversalLink: true);
+    final authorizeUri = await repo.buildPkceAuthorizeUri(
+      redirectUri: redirectUri,
+      codeChallenge: pkce.challenge,
+      state: oauthState,
+    );
+    if (gen != _flowGeneration) return;
+    state = AsyncData(
+      AuthSigningInWebPkce(
+        oauthState: oauthState,
+        codeVerifier: pkce.verifier,
+        redirectUri: redirectUri,
+        startedAt: DateTime.now(),
+      ),
+    );
+    _pkceTimeoutTimer = Timer(_pkceFlowTimeout, () {
+      if (gen != _flowGeneration) return;
+      final s = state.valueOrNull;
+      if (s is AuthSigningInWebPkce) {
+        state = const AsyncData(AuthSignedOut());
+      }
+    });
+    final launched = await launchUrl(
+      authorizeUri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched) {
+      if (gen != _flowGeneration) return;
+      _cancelPkceTimeout();
+      state = const AsyncData(AuthSignedOut());
+      throw const AuthFailure('Could not open sign-in browser');
+    }
+  }
+
+  Future<void> handleAuthCallbackUri(Uri uri) async {
+    final current = state.valueOrNull;
+    if (current is! AuthSigningInWebPkce) {
+      return;
+    }
+    final parsed = parseAuthCallbackUri(uri);
+    if (parsed == null) {
+      _log.warning('auth callback ignored: invalid uri or missing params');
+      return;
+    }
+    if (parsed.state != current.oauthState) {
+      _log.warning('auth callback ignored: state mismatch');
+      return;
+    }
+    final gen = _flowGeneration;
+    final repo = ref.read(authRepositoryProvider);
+    try {
+      final profile = await repo.exchangePkceCode(
+        code: parsed.code,
+        codeVerifier: current.codeVerifier,
+        redirectUri: current.redirectUri,
+      );
+      if (gen != _flowGeneration) return;
+      _cancelPkceTimeout();
+      state = AsyncData(AuthSignedIn(profile: profile));
+    } on AuthFailure catch (e) {
+      if (gen != _flowGeneration) return;
+      _cancelPkceTimeout();
+      state = const AsyncData(AuthSignedOut());
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
-    _pollGeneration++;
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _flowGeneration++;
+    _cancelPkceTimeout();
     await ref.read(authRepositoryProvider).clearSession();
+    await ref.read(googleSignInServiceProvider).signOut();
     state = const AsyncData(AuthSignedOut());
   }
 
@@ -125,7 +238,6 @@ class AuthCtrl extends _$AuthCtrl {
     if (cur is! AuthSignedIn) return;
     final profile = await ref.read(authRepositoryProvider).fetchProfile();
     state = AsyncData(AuthSignedIn(profile: profile));
-    // AppPreferencesCtrl picks up the new profile via its auth listener.
   }
 
   Future<void> updateProfile(UpdateProfileRequest request) async {
@@ -135,15 +247,18 @@ class AuthCtrl extends _$AuthCtrl {
         .read(authRepositoryProvider)
         .updateProfile(request);
     state = AsyncData(AuthSignedIn(profile: profile));
-    // AppPreferencesCtrl picks up the new profile via its auth listener.
   }
 
-  /// When the user changes UI locale while signed in, keep server profile in sync.
   Future<void> syncLocaleToServerIfSignedIn(Locale? locale) async {
     final cur = state.valueOrNull;
     if (cur is! AuthSignedIn) return;
     final tag = locale?.toLanguageTag();
     if (tag == null) return;
     await updateProfile(UpdateProfileRequest(locale: tag));
+  }
+
+  void _cancelPkceTimeout() {
+    _pkceTimeoutTimer?.cancel();
+    _pkceTimeoutTimer = null;
   }
 }

@@ -190,6 +190,12 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/sign-in',
             builder: (context, state) => const SignInScreen(),
+            routes: [
+              GoRoute(
+                path: 'email',
+                builder: (context, state) => const EmailEntryScreen(),
+              ),
+            ],
           ),
         ],
       ),

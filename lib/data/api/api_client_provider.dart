@@ -8,6 +8,7 @@ import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 
 part 'api_client_provider.g.dart';
 
@@ -79,6 +80,17 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
 }
 
 @Riverpod(keepAlive: true)
+ApiClient authApiClient(Ref ref) {
+  final httpClient = ref.watch(httpClientProvider);
+  final tokens = ref.watch(secureTokenStoreProvider);
+  return ApiClient(
+    httpClient: httpClient,
+    getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
+    getAccessToken: tokens.readAccessToken,
+  );
+}
+
+@Riverpod(keepAlive: true)
 ApiClient apiClient(Ref ref) {
   final httpClient = ref.watch(httpClientProvider);
   final tokens = ref.watch(secureTokenStoreProvider);
@@ -86,6 +98,7 @@ ApiClient apiClient(Ref ref) {
     httpClient: httpClient,
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
     getAccessToken: tokens.readAccessToken,
+    refreshAccessToken: () => ref.read(authRepositoryProvider).refreshSession(),
   );
 }
 

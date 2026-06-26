@@ -1,4 +1,4 @@
-/// Persists session token + profile cache; calls [AuthApi].
+/// Persists session tokens + profile cache; calls [AuthApi].
 library;
 
 import 'dart:convert';
@@ -8,11 +8,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
+import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 
@@ -20,75 +22,118 @@ part 'auth_repository.g.dart';
 
 final Logger _log = logNamed('auth');
 
-/// Nested JSON maps from [decodeJsonToCamel] are often [Map<dynamic, dynamic>],
-/// not [Map<String, dynamic>], so always normalize before strict typing.
-Map<String, dynamic>? _jsonObjectAsStringMap(Object? value) {
-  if (value == null) return null;
-  if (value is Map<String, dynamic>) return value;
-  if (value is Map) {
-    return Map<String, dynamic>.from(
-      value.map((k, v) => MapEntry(k.toString(), v)),
-    );
-  }
-  return null;
-}
-
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
   return AuthRepository(
-    authApi: AuthApi(ref.watch(apiClientProvider)),
+    authApi: AuthApi(ref.watch(authApiClientProvider)),
     tokenStore: ref.watch(secureTokenStoreProvider),
+    getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
   );
 }
 
 class AuthRepository {
-  AuthRepository({required this._authApi, required this._tokenStore});
+  AuthRepository({
+    required AuthApi authApi,
+    required SecureTokenStore tokenStore,
+    required Future<String> Function() getBaseUrl,
+  }) : _authApi = authApi,
+       _tokenStore = tokenStore,
+       _getBaseUrl = getBaseUrl;
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
+  final Future<String> Function() _getBaseUrl;
 
-  Future<({String requestId, String verificationUrl})> startAuth() async {
+  Future<UserProfile> signInGoogle({required String idToken}) =>
+      _completeSignIn(
+        _authApi.signInGoogle(
+          idToken: idToken,
+          platform: authGooglePlatformParam(),
+        ),
+      );
+
+  Future<UserProfile> signInApple({
+    required String identityToken,
+    required String authorizationCode,
+    Map<String, String>? fullName,
+  }) => _completeSignIn(
+    _authApi.signInApple(
+      identityToken: identityToken,
+      authorizationCode: authorizationCode,
+      fullName: fullName,
+    ),
+  );
+
+  Future<OtpSendResponse> sendOtp({required String email}) async {
     try {
-      final m = await _authApi.startAuth();
-      final requestId = m['requestId'] as String?;
-      final verificationUrl = m['verificationUrl'] as String?;
-      if (requestId == null ||
-          requestId.isEmpty ||
-          verificationUrl == null ||
-          verificationUrl.isEmpty) {
-        throw const AuthFailure('Invalid start_auth response');
-      }
-      return (requestId: requestId, verificationUrl: verificationUrl);
+      final m = await _authApi.sendOtp(email: email.trim());
+      return OtpSendResponse.fromJson(m);
     } on ApiException catch (e) {
       throw AuthFailure(e.message);
     }
   }
 
-  Future<PollAuthOutcome> pollAuth(String requestId) async {
-    try {
-      final m = await _authApi.pollAuth(requestId);
-      final status = m['status'] as String?;
-      if (status == 'approved') {
-        final token = m['accessToken'] as String?;
-        final user = _jsonObjectAsStringMap(m['user']);
-        if (token == null || token.isEmpty || user == null) {
-          _log.warning(
-            'poll approved: expected accessToken + user object; '
-            'topKeys=${m.keys.toList()} userType=${m['user']?.runtimeType} '
-            'tokenMissing=${token == null || token.isEmpty}',
-          );
-          throw const AuthFailure('Invalid poll approved response');
-        }
-        return PollAuthOutcomeApproved(accessToken: token, user: user);
-      }
-      return const PollAuthOutcomePending();
-    } on ApiException catch (e) {
-      throw AuthFailure(e.message);
-    }
+  Future<UserProfile> verifyOtp({
+    required String requestId,
+    required String email,
+    required String code,
+  }) => _completeSignIn(
+    _authApi.verifyOtp(
+      requestId: requestId,
+      email: email.trim(),
+      code: code.trim(),
+    ),
+  );
+
+  Future<UserProfile> exchangePkceCode({
+    required String code,
+    required String codeVerifier,
+    required String redirectUri,
+  }) => _completeSignIn(
+    _authApi.exchangeAuthorizationCode(
+      code: code,
+      codeVerifier: codeVerifier,
+      redirectUri: redirectUri,
+    ),
+  );
+
+  Future<Uri> buildPkceAuthorizeUri({
+    required String redirectUri,
+    required String codeChallenge,
+    required String state,
+  }) async {
+    final base = _trimTrailingSlash(await _getBaseUrl());
+    return Uri.parse('$base/api/v1/auth/authorize').replace(
+      queryParameters: {
+        'client_id': 'enjoy_player',
+        'redirect_uri': redirectUri,
+        'code_challenge': codeChallenge,
+        'code_challenge_method': 'S256',
+        'state': state,
+      },
+    );
   }
 
-  Future<void> persistAccessToken(String token) =>
-      _tokenStore.writeAccessToken(token);
+  Future<bool> refreshSession() async {
+    final refresh = await _tokenStore.readRefreshToken();
+    if (refresh == null || refresh.isEmpty) {
+      return false;
+    }
+    try {
+      final m = await _authApi.refresh(refreshToken: refresh);
+      final tokens = AuthTokenResponse.fromJson(m);
+      await _persistTokens(tokens);
+      return true;
+    } on ApiException catch (e) {
+      _log.warning('refresh session failed', e);
+      await clearSession();
+      return false;
+    } catch (e, st) {
+      _log.warning('refresh session failed', e, st);
+      await clearSession();
+      return false;
+    }
+  }
 
   Future<UserProfile> fetchProfile() async {
     try {
@@ -134,16 +179,14 @@ class AuthRepository {
     }
   }
 
-  Future<void> _cacheProfile(UserProfile profile) async {
-    await _tokenStore.writeCachedProfileJson(jsonEncode(profile.toJson()));
-  }
+  Future<void> persistAccessToken(String token) =>
+      _tokenStore.writeAccessToken(token);
 
   Future<bool> hasAccessToken() async {
     final t = await _tokenStore.readAccessToken();
     return t != null && t.isNotEmpty;
   }
 
-  /// Cold start: token + optional cached profile, else fetch profile.
   Future<AuthState> loadInitialAuthState() async {
     final hasToken = await hasAccessToken();
     if (!hasToken) {
@@ -166,22 +209,39 @@ class AuthRepository {
   Future<void> clearSession() async {
     await _tokenStore.clearAllAuthSecrets();
   }
-}
 
-sealed class PollAuthOutcome {
-  const PollAuthOutcome();
-}
+  Future<UserProfile> _completeSignIn(
+    Future<Map<String, dynamic>> request,
+  ) async {
+    try {
+      final m = await request;
+      final tokens = AuthTokenResponse.fromJson(m);
+      await _persistTokens(tokens);
+      if (tokens.user != null) {
+        await _cacheProfile(tokens.user!);
+        return tokens.user!;
+      }
+      return fetchProfile();
+    } on ApiException catch (e) {
+      throw AuthFailure(e.message);
+    } on FormatException catch (e) {
+      throw AuthFailure(e.message);
+    }
+  }
 
-final class PollAuthOutcomePending extends PollAuthOutcome {
-  const PollAuthOutcomePending();
-}
+  Future<void> _persistTokens(AuthTokenResponse tokens) async {
+    await _tokenStore.writeAccessToken(tokens.accessToken);
+    await _tokenStore.writeRefreshToken(tokens.refreshToken);
+  }
 
-final class PollAuthOutcomeApproved extends PollAuthOutcome {
-  const PollAuthOutcomeApproved({
-    required this.accessToken,
-    required this.user,
-  });
+  Future<void> _cacheProfile(UserProfile profile) async {
+    await _tokenStore.writeCachedProfileJson(jsonEncode(profile.toJson()));
+  }
 
-  final String accessToken;
-  final Map<String, dynamic> user;
+  static String _trimTrailingSlash(String url) {
+    if (url.endsWith('/')) {
+      return url.substring(0, url.length - 1);
+    }
+    return url;
+  }
 }

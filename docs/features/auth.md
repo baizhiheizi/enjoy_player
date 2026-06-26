@@ -2,22 +2,49 @@
 
 ## Behavior
 
-- Optional sign-in: `POST /api/v1/sessions/start_auth`, then the user completes auth in an **in-app WebView** (`flutter_inappwebview`) loading `verificationUrl`; the app polls `GET /api/v1/sessions/poll` until `approved` or timeout (~5 minutes). **Open in system browser** is available from the overflow menu if an IdP blocks embedded WebViews or the user prefers the OS browser (polling unchanged).
-- **Sign-in screen**: After approval the shell navigates **home** automatically; while polling, the user can **reload the sign-in page**, open the system browser, or **cancel**; failed loads show **network error** UI with **retry**.
-- **Bearer token** is stored in **flutter_secure_storage** (not in Drift). macOS requires **Keychain Sharing** in [`DebugProfile.entitlements`](../macos/Runner/DebugProfile.entitlements) / [`Release.entitlements`](../macos/Runner/Release.entitlements) (`keychain-access-groups`); without it sign-in fails with `errSecMissingEntitlement` (-34018).
-- Last **profile snapshot** is cached in **flutter_secure_storage** (JSON) for fast cold start when a token exists — avoids coupling auth init to the session-scoped Drift DB ([ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)).
-- **Profile** screen calls `GET/PATCH /api/v1/profile` with camelCase JSON; the HTTP client maps camelCase ↔ snake_case like the web `@enjoy/api` client.
-- **Credits usage** (Worker audit log): from Profile, **Credits usage** opens `/credits` and calls Worker `GET /credits/usages` via the AI API base URL ([features/credits-usage.md](credits-usage.md)).
-- **Locale / learning / native language** from the server profile are applied to app preferences (Drift `prefs.*`) on login and profile refresh. **Settings** (guest or signed-in) and **Profile** (signed-in) offer pickers: UI **en-US / zh-CN**, learning fixed **en-US**, native **en-US / zh-CN** minus the learning tag (MVP: native **zh-CN** only while learning is English). Native must not equal learning; invalid server pairs are coerced locally and corrected with `PATCH` when the server sends conflicting values.
-- **API base URL** is configurable under Settings → Advanced (`api.base_url` in the **guest** Drift DB `enjoy_player`); default `https://enjoy.bot`. Session-scoped data (library, prefs, sync cursors) lives in `appDatabaseProvider` (guest DB when signed out, per-user file when signed in).
-- **Guest → account migration**: If the guest DB still has library or practice data after sign-in, a **Home** banner offers to copy it into the signed-in user's DB and clear those tables on the guest DB (API base URL and other guest settings stay). **Not now** hides the banner (stored in user DB as `migration.guest_dismissed`); **Settings → Local data** repeats the action while guest data exists.
+Native-first sign-in ([ADR-0027](../decisions/0027-native-auth-v2.md)):
 
-## REST clients
+- **Sign-in hub**: Continue with **Google** (Android/iOS/macOS), **Apple** (iOS/macOS), **Email OTP**, or **Other sign-in options** (OAuth PKCE in the system browser + deep link).
+- **No WebView poll flow** for Enjoy account auth — legacy `start_auth` + InAppWebView verification is removed from the client.
+- **Bearer + refresh tokens** in **flutter_secure_storage** (not Drift). On API `401`, the client refreshes once via `POST /api/v1/auth/refresh` before signing out.
+- Last **profile snapshot** cached in secure storage for fast cold start ([ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)).
+- **Profile** via `GET/PATCH /api/v1/profile` (camelCase JSON over the wire from the client’s perspective).
+- **Locale / learning / native language** applied from server profile on login and refresh (unchanged).
+- **Guest → account migration** banner on Home when guest DB has data (unchanged).
 
-Typed list/object helpers live under `lib/data/api/services/` for audios, videos, transcripts, and recordings. **Metadata sync** uses the mine endpoints for audios/videos/recordings when signed in ([features/sync.md](sync.md)).
+YouTube account login remains a separate WebView flow ([features/youtube.md](youtube.md), ADR-0015).
 
-## Related ADR
+## API endpoints (client)
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/v1/auth/google` | Exchange Google `idToken` |
+| POST | `/api/v1/auth/apple` | Exchange Apple credentials |
+| POST | `/api/v1/auth/otp/send` | Send email OTP |
+| POST | `/api/v1/auth/otp/verify` | Verify OTP → session |
+| GET | `/api/v1/auth/authorize` | Start PKCE web fallback |
+| POST | `/api/v1/auth/token` | Exchange auth code (PKCE) |
+| POST | `/api/v1/auth/refresh` | Rotate refresh token |
+
+OpenAPI contract: [native-auth-v2.openapi.yaml](../api/native-auth-v2.openapi.yaml).
+
+## Deep links (PKCE callback)
+
+- Universal / App Links: `https://enjoy.bot/app/auth/callback`
+- Custom scheme (Windows fallback): `enjoyplayer://auth/callback`
+
+Backend must host `apple-app-site-association` and Android `assetlinks.json`. Windows installer registers the `enjoyplayer://` protocol.
+
+## Platform notes
+
+- **Windows**: native Google hidden; email OTP + PKCE fallback.
+- **Android**: no Apple button; Google OAuth client requires release SHA-1 in Google Cloud Console.
+- **iOS**: Sign in with Apple required when Google is offered; enable capability in Xcode.
+- **macOS**: Keychain Sharing entitlements still required for secure storage (see ADR-0012).
+
+## Related ADRs
 
 - [ADR-0006](../decisions/0006-auth-and-profile-sync.md)
-- [ADR-0012](../decisions/0012-per-user-sqlite-isolation.md) — per-user SQLite + profile cache
-- [ADR-0016](../decisions/0016-enjoy-account-webview-sign-in.md) — in-app WebView for Enjoy account verification URL (partial supersession of 0006 delivery)
+- [ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)
+- [ADR-0016](../decisions/0016-enjoy-account-webview-sign-in.md) — superseded for Enjoy account delivery
+- [ADR-0027](../decisions/0027-native-auth-v2.md)
