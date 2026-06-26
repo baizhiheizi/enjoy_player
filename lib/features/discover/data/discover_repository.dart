@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:http/http.dart' as http;
@@ -77,21 +78,24 @@ class DiscoverRepository {
       _recommendedLoader.load();
 
   Stream<List<DiscoverChannel>> watchSubscriptions() {
-    return _db.youtubeChannelSubscriptionDao.watchAll().map(
-      (rows) => rows.map(_mapSubscription).toList(growable: false),
-    );
+    return _db.youtubeChannelSubscriptionDao
+        .watchAll()
+        .map((rows) => rows.map(_mapSubscription).toList(growable: false))
+        .distinctBy(_listEqualsDiscoverChannel);
   }
 
   Stream<List<FeedEntry>> watchTimeline() {
-    return _db.youtubeFeedEntryDao.watchTimeline().map(
-      (rows) => rows.map(_mapFeedEntry).toList(growable: false),
-    );
+    return _db.youtubeFeedEntryDao
+        .watchTimeline()
+        .map((rows) => rows.map(_mapFeedEntry).toList(growable: false))
+        .distinctBy(_listEqualsFeedEntry);
   }
 
   Stream<List<FeedEntry>> watchChannelFeed(String channelId) {
     return _db.youtubeFeedEntryDao
         .watchForChannel(channelId)
-        .map((rows) => rows.map(_mapFeedEntry).toList(growable: false));
+        .map((rows) => rows.map(_mapFeedEntry).toList(growable: false))
+        .distinctBy(_listEqualsFeedEntry);
   }
 
   Future<DiscoverChannel?> getSubscription(String channelId) async {
@@ -419,4 +423,25 @@ class DiscoverRepository {
     if (url == null || url.isEmpty) return false;
     return url.contains('i.ytimg.com/vi/');
   }
+}
+
+bool _listEqualsDiscoverChannel(
+  List<DiscoverChannel> previous,
+  List<DiscoverChannel> current,
+) {
+  if (identical(previous, current)) return true;
+  if (previous.length != current.length) return false;
+  for (var i = 0; i < previous.length; i++) {
+    if (previous[i] != current[i]) return false;
+  }
+  return true;
+}
+
+bool _listEqualsFeedEntry(List<FeedEntry> previous, List<FeedEntry> current) {
+  if (identical(previous, current)) return true;
+  if (previous.length != current.length) return false;
+  for (var i = 0; i < previous.length; i++) {
+    if (previous[i] != current[i]) return false;
+  }
+  return true;
 }
