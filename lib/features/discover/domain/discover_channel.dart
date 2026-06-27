@@ -21,4 +21,26 @@ class DiscoverChannel {
   final DateTime? lastFetchedAt;
 
   bool get isSubscribed => true;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DiscoverChannel &&
+        other.channelId == channelId &&
+        other.displayName == displayName &&
+        other.thumbnailUrl == thumbnailUrl &&
+        other.source == source &&
+        other.subscribedAt == subscribedAt &&
+        other.lastFetchedAt == lastFetchedAt;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    channelId,
+    displayName,
+    thumbnailUrl,
+    source,
+    subscribedAt,
+    lastFetchedAt,
+  );
 }
