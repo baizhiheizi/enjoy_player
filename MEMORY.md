@@ -1,4 +1,2 @@
-- [Run 2026-06-26 run 2](notes-2026-06-26-run2.md) — verified test-improver #44 (18/18 pass), commented on #45 refactor order
-- [Run 2026-06-26](notes-2026-06-26.md) — commented on #39/#40/#41, verified perf-improver branches, fixed stream_distinct bug
-- [Run 2026-06-25](notes-2026-06-25.md) — extracted quantizedPositionStream helper, commented on #31, filed #33 dead-code follow-up
-- [Historical rollup](historical-notes.md) — June 2026 runs (06-23, 06-24 ×2) condensed for memory budget
+- [Run 2026-06-27](notes-2026-06-27.md) — deleted dead `lib/core/utils/debounce.dart` (Closes #34); parallelized `DiscoverRepository._refreshChannel` per-entry reads/writes
+- [Historical rollup](historical-notes.md) — 06-23 → 06-26 ×2 condensed for memory budget
