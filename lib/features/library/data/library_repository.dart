@@ -77,11 +77,21 @@ class MediaLibraryRepository {
     var videos = <VideoRow>[];
     var audios = <AudioRow>[];
 
+    // Cache the last emitted merged list so we can skip identical re-emissions.
+    // Both Drift `watchAll` streams re-query on ANY table change; without this,
+    // a single row update (e.g. a `playbackSessionPersister` write that bumps
+    // `updatedAt`, or a duration probe that flips one row) currently re-emits
+    // the entire library — forcing `libraryHomeRecentsProvider` to re-sort and
+    // `libraryFilteredListsProvider` to re-filter + re-sort both lists.
+    var lastEmitted = const <Media>[];
+
     void emit(StreamController<List<Media>> c) {
       final merged = <Media>[
         ...videos.map(_mediaFromVideo),
         ...audios.map(_mediaFromAudio),
       ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (_listEqualsMedia(lastEmitted, merged)) return;
+      lastEmitted = merged;
       c.add(merged);
     }
 
@@ -488,4 +498,15 @@ class MediaLibraryRepository {
       Error.throwWithStackTrace(FileFailure('Relocate failed: $e'), st);
     }
   }
+}
+
+/// Element-wise comparison of two media lists without allocating. Avoids
+/// pulling in `package:collection`'s `ListEquality` for one call site.
+bool _listEqualsMedia(List<Media> a, List<Media> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

@@ -66,6 +66,44 @@ class Media {
   String get vidOrAid => contentHash;
 
   String get dexieTargetType => kind.dexieTargetType;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Media &&
+        other.id == id &&
+        other.kind == kind &&
+        other.title == title &&
+        other.sourceUri == sourceUri &&
+        other.thumbnailPath == thumbnailPath &&
+        other.durationMs == durationMs &&
+        other.language == language &&
+        other.contentHash == contentHash &&
+        other.fileSize == fileSize &&
+        other.mediaUrl == mediaUrl &&
+        other.source == source &&
+        other.provider == provider &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    title,
+    sourceUri,
+    thumbnailPath,
+    durationMs,
+    language,
+    contentHash,
+    fileSize,
+    mediaUrl,
+    source,
+    provider,
+    createdAt,
+    updatedAt,
+  );
 }
 
 extension MediaSourceKind on Media {

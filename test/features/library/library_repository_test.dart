@@ -376,5 +376,101 @@ void main() {
       final patch = await ytRepo.refreshYoutubeMetadataIfNeeded(mediaId);
       expect(patch, isNull);
     });
+
+    test('watchAll deduplicates identical emissions', () async {
+      final now = DateTime.now();
+      const id = 'dup-1';
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: id,
+          aid: 'f',
+          provider: 'user',
+          title: 'x',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///x.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final emissions = <List<Media>>[];
+      final sub = repo.watchAll().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+      expect(emissions.first, hasLength(1));
+
+      // No-op write: same row, same fields. Drift re-queries both tables and
+      // pushes the unchanged merged list back through watchAll. The repo
+      // should suppress the duplicate so home/library providers don't re-sort.
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: id,
+          aid: 'f',
+          provider: 'user',
+          title: 'x',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///x.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+
+      // A real change must still emit.
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: id,
+          aid: 'f',
+          provider: 'user',
+          title: 'renamed',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///x.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(2));
+      expect(emissions.last.single.title, 'renamed');
+
+      await sub.cancel();
+    });
   });
 }
