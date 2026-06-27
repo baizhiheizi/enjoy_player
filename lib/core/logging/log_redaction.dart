@@ -30,10 +30,7 @@ String redactLogLine(String line) {
   var out = line;
   out = out.replaceAll(_bearerToken, 'Bearer [REDACTED]');
   out = out.replaceAll(_authorizationHeader, 'Authorization: [REDACTED]');
-  out = out.replaceAllMapped(
-    _cookiePair,
-    (m) => '${m.group(1)}=[REDACTED]',
-  );
+  out = out.replaceAllMapped(_cookiePair, (m) => '${m.group(1)}=[REDACTED]');
   out = _redactAbsolutePaths(out);
   return out;
 }
@@ -41,7 +38,11 @@ String redactLogLine(String line) {
 String _redactAbsolutePaths(String line) {
   String shorten(String path) {
     if (path.length <= 48) return path;
-    return '.../${p.basename(path)}';
+    // `p.basename` splits on the host platform's separator, so on Linux/macOS
+    // it leaves Windows back-slash paths untouched. Normalize to `/` first so
+    // the basename is correct regardless of the host platform.
+    final normalized = path.replaceAll(r'\', '/');
+    return '.../${p.basename(normalized)}';
   }
 
   return line
