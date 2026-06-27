@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/recording_client_platform.dart';
 
 typedef JsonMap = Map<String, dynamic>;
@@ -25,13 +26,16 @@ class RecordingApi {
     int? limit,
     String? updatedAfter,
   }) {
-    final q = <String, String>{};
-    if (targetId != null) q['targetId'] = targetId;
-    if (targetType != null) q['targetType'] = targetType;
-    if (language != null) q['language'] = language;
-    if (limit != null) q['limit'] = '$limit';
-    if (updatedAfter != null) q['updatedAfter'] = updatedAfter;
-    return _client.getJsonList(_path, queryParameters: q.isEmpty ? null : q);
+    return _client.getJsonList(
+      _path,
+      queryParameters: buildQuery({
+        'targetId': targetId,
+        'targetType': targetType,
+        'language': language,
+        'limit': limit,
+        'updatedAfter': updatedAfter,
+      }),
+    );
   }
 
   Future<JsonMap> recording(String id) => _client.getJson('$_path/$id');

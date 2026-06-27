@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/query_params.dart';
 
 typedef JsonMap = Map<String, dynamic>;
 
@@ -17,11 +18,14 @@ class AudioApi {
     int? limit,
     String? updatedAfter,
   }) {
-    final q = <String, String>{};
-    if (provider != null) q['provider'] = provider;
-    if (limit != null) q['limit'] = '$limit';
-    if (updatedAfter != null) q['updatedAfter'] = updatedAfter;
-    return _client.getJsonList(_path, queryParameters: q.isEmpty ? null : q);
+    return _client.getJsonList(
+      _path,
+      queryParameters: buildQuery({
+        'provider': provider,
+        'limit': limit,
+        'updatedAfter': updatedAfter,
+      }),
+    );
   }
 
   Future<JsonMap> audio(String id) => _client.getJson('$_path/$id');

@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 
@@ -20,16 +21,16 @@ class CreditsApi {
     int limit = 50,
     int offset = 0,
   }) async {
-    final query = <String, String>{
-      'limit': limit.toString(),
-      'offset': offset.toString(),
-      if (startDate != null && startDate.isNotEmpty) 'startDate': startDate,
-      if (endDate != null && endDate.isNotEmpty) 'endDate': endDate,
-      if (serviceType != null && serviceType.isNotEmpty)
+    final map = await _client.getJson(
+      _path,
+      queryParameters: buildQuery({
+        'limit': limit,
+        'offset': offset,
+        'startDate': startDate,
+        'endDate': endDate,
         'serviceType': serviceType,
-    };
-
-    final map = await _client.getJson(_path, queryParameters: query);
+      }),
+    );
     final raw = map['logs'];
     final logs = <CreditsUsageLog>[];
     if (raw is List) {

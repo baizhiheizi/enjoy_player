@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/query_params.dart';
 
 typedef JsonMap = Map<String, dynamic>;
 
@@ -18,13 +19,13 @@ class VideoApi {
     int? limit,
     String? updatedAfter,
   }) {
-    final q = <String, String>{};
-    if (provider != null) q['provider'] = provider;
-    if (limit != null) q['limit'] = '$limit';
-    if (updatedAfter != null) q['updatedAfter'] = updatedAfter;
     return _client.getJsonList(
       _minePath,
-      queryParameters: q.isEmpty ? null : q,
+      queryParameters: buildQuery({
+        'provider': provider,
+        'limit': limit,
+        'updatedAfter': updatedAfter,
+      }),
     );
   }
 
@@ -45,14 +46,14 @@ class VideoApi {
     int? limit,
     String? updatedAfter,
   }) async {
-    final q = <String, String>{};
-    if (provider != null) q['provider'] = provider;
-    if (page != null) q['page'] = '$page';
-    if (limit != null) q['limit'] = '$limit';
-    if (updatedAfter != null) q['updatedAfter'] = updatedAfter;
     final m = await _client.getJson(
       _publicPath,
-      queryParameters: q.isEmpty ? null : q,
+      queryParameters: buildQuery({
+        'provider': provider,
+        'page': page,
+        'limit': limit,
+        'updatedAfter': updatedAfter,
+      }),
     );
     final rawVideos = m['videos'];
     final rawPagy = m['pagy'];
