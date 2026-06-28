@@ -5,7 +5,7 @@ Cross-platform **language-learning player** (Android, iOS, Windows, macOS; Linux
 ## Prerequisites
 
 - Flutter SDK (stable, 3.x)
-- Dart SDK ^3.9
+- Dart SDK ^3.12 (matches `pubspec.yaml` and `.github/flutter-version`)
 - **Apple (iOS + macOS)**: **Xcode**, **CocoaPods**, Apple Developer Program access for team **`46X685R747`**. See [packaging.md](docs/packaging.md#one-time-setup) for signing, TestFlight, and notarization.
 - **macOS desktop builds**: [Homebrew](https://brew.sh) plus FFmpeg kit deps — `brew bundle install --file=macos/Brewfile` (see [packaging.md](docs/packaging.md#troubleshooting)). Without this, `flutter run -d macos` can fail at launch with a missing `libz.1.dylib` / DYLD error.
 - **Windows desktop builds**: [NuGet CLI](https://learn.microsoft.com/en-us/nuget/install-nuget-client-tools?tabs=windows#nugetexe-cli) on your `PATH` (`nuget` / `nuget.exe`). Required by [`flutter_inappwebview`](https://inappwebview.dev/docs/intro#setup-windows) to pull WebView2 native dependencies during CMake/MSBuild. After installing, open a **new** terminal and run `nuget` to verify.
