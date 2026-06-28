@@ -1830,4 +1830,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notFoundBackHome => 'Back to home';
+
+  @override
+  String get recoveryTitle => 'Local data needs attention';
+
+  @override
+  String get recoverySubtitle =>
+      'Enjoy Player could not open its local database. The most common cause is a partial update. Your data is still on disk; you can copy the error before continuing.';
+
+  @override
+  String get recoveryOpenLogs => 'Open logs folder';
+
+  @override
+  String get recoveryOpenLogsError => 'Could not open the logs folder.';
+
+  @override
+  String get recoveryCopyError => 'Copy error';
+
+  @override
+  String get recoveryCopiedToClipboard => 'Error details copied to clipboard.';
+
+  @override
+  String get recoveryResetLibrary => 'Reset local library';
+
+  @override
+  String get recoveryResetLibrarySubtitle =>
+      'Wipe the local database and start fresh. Your cloud library is not affected. A backup of the current state is written to the application support directory before the wipe.';
+
+  @override
+  String get recoveryResetLibraryConfirmTitle => 'Reset local library?';
+
+  @override
+  String get recoveryResetLibraryConfirmBody =>
+      'This permanently deletes your local library, recordings, transcripts, and sync queue. The cloud library (if signed in) is preserved. A backup is written to the application support directory first.';
+
+  @override
+  String get recoveryResetLibraryConfirmAction => 'Reset everything';
+
+  @override
+  String get recoveryResetLibraryBackupError =>
+      'Backup failed — the local database was not wiped. The error has been logged.';
+
+  @override
+  String get recoveryResetLibrarySuccess =>
+      'Local library reset. Enjoy Player will restart shortly.';
+
+  @override
+  String get recoveryResetLibraryError => 'Could not reset the local library.';
 }

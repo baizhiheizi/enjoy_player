@@ -757,5 +757,19 @@
       "uri": { "type": "String" }
     }
   },
-  "notFoundBackHome": "Back to home"
+  "notFoundBackHome": "Back to home",
+  "recoveryTitle": "Local data needs attention",
+  "recoverySubtitle": "Enjoy Player could not open its local database. The most common cause is a partial update. Your data is still on disk; you can copy the error before continuing.",
+  "recoveryOpenLogs": "Open logs folder",
+  "recoveryOpenLogsError": "Could not open the logs folder.",
+  "recoveryCopyError": "Copy error",
+  "recoveryCopiedToClipboard": "Error details copied to clipboard.",
+  "recoveryResetLibrary": "Reset local library",
+  "recoveryResetLibrarySubtitle": "Wipe the local database and start fresh. Your cloud library is not affected. A backup of the current state is written to the application support directory before the wipe.",
+  "recoveryResetLibraryConfirmTitle": "Reset local library?",
+  "recoveryResetLibraryConfirmBody": "This permanently deletes your local library, recordings, transcripts, and sync queue. The cloud library (if signed in) is preserved. A backup is written to the application support directory first.",
+  "recoveryResetLibraryConfirmAction": "Reset everything",
+  "recoveryResetLibraryBackupError": "Backup failed — the local database was not wiped. The error has been logged.",
+  "recoveryResetLibrarySuccess": "Local library reset. Enjoy Player will restart shortly.",
+  "recoveryResetLibraryError": "Could not reset the local library."
 }
