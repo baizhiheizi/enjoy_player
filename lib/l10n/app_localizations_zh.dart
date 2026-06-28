@@ -202,6 +202,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get discoverRefreshPartialFailed => '部分频道动态刷新失败。';
 
   @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    return '无法刷新 $count 个频道:$names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return '无法刷新 $name。';
+  }
+
+  @override
   String get discoverRecommendedLoadFailed => '无法加载推荐频道。';
 
   @override
@@ -1952,6 +1962,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get discoverRefreshPartialFailed => '部分频道动态刷新失败。';
+
+  @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    return '无法刷新 $count 个频道:$names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return '无法刷新 $name。';
+  }
 
   @override
   String get discoverRecommendedLoadFailed => '无法加载推荐频道。';

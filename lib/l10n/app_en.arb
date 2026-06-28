@@ -74,6 +74,14 @@
   "discoverFeedErrorHint": "Check your connection and try again.",
   "discoverRetry": "Retry",
   "discoverRefreshPartialFailed": "Some channel feeds could not be refreshed.",
+  "discoverRefreshPartialFailedDetail": "Could not refresh {count, plural, one{1 channel} other{{count} channels}}: {names}",
+  "@discoverRefreshPartialFailedDetail": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "names": { "type": "String" }
+    }
+  },
+  "discoverRefreshSingleFailed": "Could not refresh {name}.",
   "discoverRecommendedLoadFailed": "Could not load recommended channels.",
   "discoverSubscriptionsLoadFailed": "Could not load subscriptions.",
   "discoverNoSubscriptionsHint": "Subscribe to a recommended channel or paste a channel URL.",

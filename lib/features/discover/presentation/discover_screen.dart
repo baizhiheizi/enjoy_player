@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_filter_strip.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
@@ -41,7 +43,7 @@ class DiscoverScreen extends ConsumerWidget {
           .refresh(force: true);
       if (!context.mounted) return;
       if (result.hasFailures) {
-        AppNotice.error(context, l10n.discoverRefreshPartialFailed);
+        _showPartialFailure(context, ref, result);
       }
     }
 
@@ -117,6 +119,37 @@ class DiscoverScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showPartialFailure(
+  BuildContext context,
+  WidgetRef ref,
+  DiscoverRefreshResult result,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  final subs = ref.read(discoverSubscriptionsProvider).valueOrNull ?? const [];
+  String label(String id) {
+    for (final s in subs) {
+      if (s.channelId == id) return s.displayName;
+    }
+    return id;
+  }
+
+  final names = result.failedChannelIds.map(label).toList(growable: false);
+  if (names.length == 1) {
+    AppNotice.error(
+      context,
+      l10n.discoverRefreshSingleFailed(names.first),
+    );
+    return;
+  }
+  AppNotice.error(
+    context,
+    l10n.discoverRefreshPartialFailedDetail(
+      names.length,
+      names.join(', '),
+    ),
+  );
 }
 
 class _DiscoverFeedSliver extends StatelessWidget {

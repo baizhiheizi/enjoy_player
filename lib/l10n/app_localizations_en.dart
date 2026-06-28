@@ -208,6 +208,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some channel feeds could not be refreshed.';
 
   @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count channels',
+      one: '1 channel',
+    );
+    return 'Could not refresh $_temp0: $names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return 'Could not refresh $name.';
+  }
+
+  @override
   String get discoverRecommendedLoadFailed =>
       'Could not load recommended channels.';
 

@@ -465,6 +465,18 @@ abstract class AppLocalizations {
   /// **'Some channel feeds could not be refreshed.'**
   String get discoverRefreshPartialFailed;
 
+  /// No description provided for @discoverRefreshPartialFailedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh {count, plural, one{1 channel} other{{count} channels}}: {names}'**
+  String discoverRefreshPartialFailedDetail(int count, String names);
+
+  /// No description provided for @discoverRefreshSingleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh {name}.'**
+  String discoverRefreshSingleFailed(Object name);
+
   /// No description provided for @discoverRecommendedLoadFailed.
   ///
   /// In en, this message translates to:

@@ -74,6 +74,19 @@
   "discoverFeedErrorHint": "请检查网络连接后重试。",
   "discoverRetry": "重试",
   "discoverRefreshPartialFailed": "部分频道动态刷新失败。",
+  "discoverRefreshPartialFailedDetail": "无法刷新 {count} 个频道:{names}",
+  "@discoverRefreshPartialFailedDetail": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "names": { "type": "String" }
+    }
+  },
+  "discoverRefreshSingleFailed": "无法刷新 {name}。",
+  "@discoverRefreshSingleFailed": {
+    "placeholders": {
+      "name": { "type": "Object" }
+    }
+  },
   "discoverRecommendedLoadFailed": "无法加载推荐频道。",
   "discoverSubscriptionsLoadFailed": "无法加载订阅。",
   "discoverNoSubscriptionsHint": "订阅推荐频道或粘贴频道链接。",
