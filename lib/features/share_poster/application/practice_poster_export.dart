@@ -2,10 +2,10 @@
 library;
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -36,10 +36,8 @@ Future<Uint8List?> captureRepaintBoundaryPng(
   return byteData?.buffer.asUint8List();
 }
 
-bool get _isMobileSharePlatform {
-  if (kIsWeb) return false;
-  return Platform.isIOS || Platform.isAndroid;
-}
+bool get _isMobileSharePlatform =>
+    Platform.isIOS || Platform.isAndroid;
 
 Future<void> sharePracticePosterPng(Uint8List pngBytes) async {
   final file = XFile.fromData(
