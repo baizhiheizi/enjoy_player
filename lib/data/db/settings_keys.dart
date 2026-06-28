@@ -24,6 +24,15 @@ abstract final class SettingsKeys {
   static String syncCursorRecordingTarget(String targetType, String targetId) =>
       'sync.cursor.recording.$targetType.$targetId';
 
+  /// ISO-8601 UTC timestamp of the last pull attempt for a given
+  /// recording target, used as a cooldown to avoid hammering the
+  /// server on every media open
+  /// (`sync.last_pull_at.recording.{targetType}.{targetId}`).
+  static String syncLastPullAtRecordingTarget(
+    String targetType,
+    String targetId,
+  ) => 'sync.last_pull_at.recording.$targetType.$targetId';
+
   /// ISO-8601 UTC timestamp of last fully successful full sync (downloads + queue).
   static const String syncLastFullSyncAt = 'sync.last_full_sync_at';
 
