@@ -1819,4 +1819,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get practicePosterLoadError =>
       'Could not load practice data for this video.';
+
+  @override
+  String get notFoundTitle => 'Page not found';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return 'We couldn\'t find $uri.';
+  }
+
+  @override
+  String get notFoundBackHome => 'Back to home';
 }

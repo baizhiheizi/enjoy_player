@@ -1743,6 +1743,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get practicePosterLoadError => '无法加载此视频的练习数据。';
+
+  @override
+  String get notFoundTitle => '页面未找到';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return '找不到 $uri。';
+  }
+
+  @override
+  String get notFoundBackHome => '返回首页';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -3484,4 +3495,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get practicePosterLoadError => '无法加载此视频的练习数据。';
+
+  @override
+  String get notFoundTitle => '页面未找到';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return '找不到 $uri。';
+  }
+
+  @override
+  String get notFoundBackHome => '返回首页';
 }

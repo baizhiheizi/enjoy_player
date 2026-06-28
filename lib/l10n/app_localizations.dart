@@ -3440,6 +3440,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load practice data for this video.'**
   String get practicePosterLoadError;
+
+  /// No description provided for @notFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found'**
+  String get notFoundTitle;
+
+  /// No description provided for @notFoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find {uri}.'**
+  String notFoundSubtitle(String uri);
+
+  /// No description provided for @notFoundBackHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to home'**
+  String get notFoundBackHome;
 }
 
 class _AppLocalizationsDelegate

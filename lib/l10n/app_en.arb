@@ -749,5 +749,13 @@
   "practicePosterShareSuccess": "Poster shared.",
   "practicePosterSaveSuccess": "Poster saved.",
   "practicePosterExportError": "Could not share practice poster.",
-  "practicePosterLoadError": "Could not load practice data for this video."
+  "practicePosterLoadError": "Could not load practice data for this video.",
+  "notFoundTitle": "Page not found",
+  "notFoundSubtitle": "We couldn't find {uri}.",
+  "@notFoundSubtitle": {
+    "placeholders": {
+      "uri": { "type": "String" }
+    }
+  },
+  "notFoundBackHome": "Back to home"
 }

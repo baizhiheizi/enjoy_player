@@ -735,5 +735,8 @@
   "practicePosterShareSuccess": "海报已分享。",
   "practicePosterSaveSuccess": "海报已保存。",
   "practicePosterExportError": "无法分享练习海报。",
-  "practicePosterLoadError": "无法加载此视频的练习数据。"
+  "practicePosterLoadError": "无法加载此视频的练习数据。",
+  "notFoundTitle": "页面未找到",
+  "notFoundSubtitle": "找不到 {uri}。",
+  "notFoundBackHome": "返回首页"
 }
