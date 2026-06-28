@@ -1,6 +1,9 @@
 /// Provides [AppDatabase] for the current auth session (per-user SQLite file).
 library;
 
+import 'dart:async';
+import 'dart:collection';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,9 +14,22 @@ import 'app_database.dart';
 
 part 'app_database_provider.g.dart';
 
+/// Maximum number of per-user [AppDatabase] instances kept open simultaneously.
+///
+/// Only the guest DB and the most recently used per-user DB need to be live at
+/// the same time — signing in as a new user closes the previous one. Two is
+/// enough because the guest DB is owned by [guestAppDatabaseProvider] (a
+/// separate keep-alive provider with its own onDispose), and only one
+/// per-user DB is "current" at a time. Anything older is evicted.
+const int _kMaxUserSessionDatabases = 2;
+
 /// One [AppDatabase] per signed-in session name — avoids constructing a new
 /// [AppDatabase] on every [appDatabase] rebuild (Drift multiple-instances warning).
-final Map<String, AppDatabase> _userSessionDatabases = <String, AppDatabase>{};
+///
+/// Bounded to [_kMaxUserSessionDatabases] entries; the oldest is evicted (and
+/// closed) before inserting a new one.
+final LinkedHashMap<String, AppDatabase> _userSessionDatabases =
+    LinkedHashMap<String, AppDatabase>();
 
 /// Drift file base name for the current auth session (guest vs per-user).
 ///
@@ -55,13 +71,29 @@ AppDatabase appDatabase(Ref ref) {
     return ref.watch(guestAppDatabaseProvider);
   }
 
-  return _userSessionDatabases.putIfAbsent(sessionName, () {
-    final db = AppDatabase(name: sessionName);
+  // Re-inserting an existing key moves it to the end (most recently used) so
+  // the eviction loop below drops the truly idle DBs first.
+  final existing = _userSessionDatabases.remove(sessionName);
+  if (existing != null) {
+    _userSessionDatabases[sessionName] = existing;
     ref.onDispose(() {
       _userSessionDatabases.remove(sessionName)?.close();
     });
-    return db;
+    return existing;
+  }
+
+  while (_userSessionDatabases.length >= _kMaxUserSessionDatabases) {
+    final oldestKey = _userSessionDatabases.keys.first;
+    final oldest = _userSessionDatabases.remove(oldestKey);
+    unawaited(oldest?.close());
+  }
+
+  final db = AppDatabase(name: sessionName);
+  _userSessionDatabases[sessionName] = db;
+  ref.onDispose(() {
+    _userSessionDatabases.remove(sessionName)?.close();
   });
+  return db;
 }
 
 String _sanitizeUserIdForDbName(String id) =>
