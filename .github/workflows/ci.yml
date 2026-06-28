@@ -27,6 +27,9 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
+      - name: Forbid new local-path packages
+        run: bash .github/scripts/check_no_new_path_deps.sh
+
       - name: Dart format
         run: |
           set -euo pipefail

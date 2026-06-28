@@ -52,3 +52,4 @@ Trade-offs, follow-up work, risks.
 | [0026](0026-local-production-diagnostics.md) | Local production diagnostics — rotating logs, opt-in verbose, zip export |
 | [0027](0027-native-auth-v2.md) | Native auth v2 — Google, Apple, email OTP, PKCE fallback (supersedes 0016 WebView-primary) |
 | [0028](0028-agentic-engine-choice.md) | Agentic workflow engine choice — third-party Anthropic-compatible proxy (proposed) |
+| [0029](0029-supply-chain-risk.md) | Supply-chain risk for pre-release and local-path dependencies |

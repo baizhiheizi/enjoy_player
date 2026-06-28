@@ -325,6 +325,27 @@ Platform CI setup (secrets, runners):
 - **Missing FFmpeg features**: run `pwsh windows/scripts/fetch_ffmpeg.ps1` before build.
 - **WebView2**: required at runtime for YouTube / in-app WebView.
 
+#### Windows FFmpeg provisioning
+
+`ffmpeg_kit_flutter_new` (under `packages/`) ships Android / iOS / macOS
+platform implementations but **no Windows implementation**. The Windows
+build does not bundle ffmpeg via a Flutter plugin; instead the release
+script downloads a GPL `ffmpeg.exe` into `windows/ffmpeg/` before
+`flutter build windows --release`.
+
+| Step | Script | Source | Verified by |
+|------|--------|--------|-------------|
+| Download | [`windows/scripts/fetch_ffmpeg.ps1`](../windows/scripts/fetch_ffmpeg.ps1) | Gyan.dev `ffmpeg-release-essentials.zip` | SHA-256 from `*.sha256` sidecar |
+| Bundle | `flutter build windows` includes `windows/ffmpeg/ffmpeg.exe` in the build output | n/a | Inno Setup packs the binary |
+| License | `windows/ffmpeg/README.md` | n/a | Reviewed before each public release |
+
+The downloader is idempotent (skips if `ffmpeg.exe -version` already
+succeeds) and fails closed on SHA-256 mismatch. The script does **not**
+run automatically as part of `flutter pub get`; trigger it explicitly
+when setting up a fresh Windows machine or when you need to bump the
+bundled FFmpeg. Do not commit `windows/ffmpeg/ffmpeg.exe` — it is
+git-ignored.
+
 ### Apple
 
 - **macOS DYLD / missing `libz.1.dylib`**: run `brew bundle install --file=macos/Brewfile` and rebuild.
