@@ -127,5 +127,17 @@ void main() {
       }
       expect(n, 2, reason: 'second call should retry after a failure');
     });
+
+    test('throws when token or region is missing from the response', () async {
+      final api = _FakeAzureTokenApi(
+        () async => <String, dynamic>{'token': '', 'region': 'westus'},
+      );
+      final cache = AzureTokenCache(api: api);
+
+      expect(
+        () => cache.getToken(durationSeconds: 30),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 }

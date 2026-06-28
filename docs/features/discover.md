@@ -50,6 +50,71 @@ Empty Discover state (no subscriptions) prompts **Manage channels** so users can
 
 RSS URL: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`
 
+### Scheduler gating
+
+The periodic refresh is intentionally **passive**:
+
+- **Subscription-gated** — the 8 h `Timer` is only armed while the
+  subscription list is non-empty. An empty list (a fresh install, or a
+  user who unsubscribed from everything) does **not** wake the app.
+  The arm is re-evaluated every time `discoverSubscriptionsProvider`
+  emits, so a re-subscription re-arms the timer without an app restart.
+- **Lifecycle-gated** — periodic ticks and the post-launch initial
+  refresh are skipped while the app is not in the foreground
+  (`WidgetsBinding.instance.lifecycleState != resumed`). A `null`
+  lifecycle state is treated as resumed so headless / desktop contexts
+  without lifecycle callbacks are not silently starved.
+- **Idempotent launch** — only one post-frame launch refresh is
+  scheduled per provider instance; the flag resets when the
+  subscription list becomes empty again.
+
+### Concurrency
+
+Per-channel RSS refresh and per-entry duration enrichment both run
+with a bounded concurrency cap, so a user with many subscriptions
+refreshes in roughly `ceil(N / cap)` round-trips instead of `N`:
+
+| Phase | Cap | Implementation |
+|-------|-----|----------------|
+| RSS refresh (per channel) | 4 | Windowed `Future.wait` over the subscription list (`_kRefreshChannelConcurrency`) |
+| Duration enrichment (per entry) | 4 | Counting semaphore with a FIFO waiter queue (`_kEnrichDurationConcurrency`) |
+
+YouTube's RSS endpoints are soft-rate-limited; 4 concurrent keeps us
+well under the threshold while turning a 20-channel refresh from
+~20 RTTs into ~5 RTTs.
+
+### Partial-failure surfacing
+
+`DiscoverRepository.refreshFeeds` returns
+`DiscoverRefreshResult { refreshedChannels, failedChannelIds }`. The
+UI consults `hasFailures` and surfaces per-channel failures via
+`AppNotice.error`:
+
+- One failed channel → `Could not refresh {name}.`
+- Many → `Could not refresh {count} channels: {names}`
+
+Successful channels keep their updated entries; only the failed
+ones' feed entries are left untouched. The next refresh retry (manual
+or the next 8 h tick) re-attempts them with the standard
+1 h skip-window.
+
+## Channel avatar cache
+
+Recommended row and subscription avatars go through
+`DiscoverRepository.fetchChannelAvatarUrl`, which keeps a bounded
+**in-memory LRU cache**:
+
+- Backing store: `LinkedHashMap<String, String>` (move-to-end on hit,
+  evict from head on overflow).
+- Capacity: **256 entries** (`_kAvatarCacheCapacity`).
+- Lifecycle: lives for the lifetime of the repository instance
+  (singleton via `discoverRepositoryProvider`).
+- Scope: per-app, not per-user-DB; subscribers moving between
+  accounts will see a cold avatar cache.
+
+Failures during avatar fetch are logged at `fine` and surface as
+`null`, so the caller can fall back to a placeholder.
+
 ## Add to library
 
 Uses the same path as **Import → From YouTube URL**: oEmbed metadata, `videos` row with `provider: youtube`, optional sync enqueue when signed in. Duplicate video ids show **In library** instead of add.
@@ -64,6 +129,8 @@ No caption availability in RSS. After import, transcript loading follows [`trans
 - **YouTube Shorts** are excluded (RSS alternate link uses `/shorts/`)
 - Handle → `channel_id` resolution may fail if YouTube HTML changes
 - Subscriptions and feed cache are per local SQLite file (guest vs signed-in user DB)
+- Avatar LRU cache is per-process (not per-DB); the 256-entry cap evicts
+  the least-recently-used channel id on overflow
 
 ## Related
 

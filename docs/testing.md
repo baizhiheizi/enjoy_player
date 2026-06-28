@@ -4,8 +4,17 @@
 
 ```bash
 flutter test
+flutter test --coverage
 flutter analyze
 ```
+
+After generating coverage, enforce the CI baseline locally:
+
+```bash
+bash .github/scripts/check_coverage_gate.sh coverage/lcov.info
+```
+
+CI uploads `coverage/lcov.info` to [Codecov](https://codecov.io) and fails when line coverage drops below the recorded baseline (see `MIN_COVERAGE` in `.github/scripts/check_coverage_gate.sh`, currently **32%**).
 
 ## Layout
 
@@ -18,6 +27,10 @@ flutter analyze
 | Transcript lines provider | `test/features/transcript/transcript_lines_provider_test.dart` |
 | File import (streaming hash) | `test/data/files/file_storage_test.dart` |
 | Subtitle parsers | `test/data/subtitle/subtitle_parser_test.dart` |
+| Sync queue + retry backoff | `test/features/sync/sync_queue_repository_test.dart`, `test/features/sync/sync_engine_test.dart` |
+| Azure WAV normalization | `test/features/ai/azure_assessment_wav_normalizer_test.dart` |
+| Echo PCM extraction guards | `test/features/shadow_reading/echo_segment_pcm_extractor_test.dart` |
+| App smoke (EnjoyApp) | `test/widget_test.dart` |
 | Drift smoke | `test/data/db/app_database_test.dart` |
 
 ## Pre-release (platform compile)

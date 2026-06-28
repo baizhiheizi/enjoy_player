@@ -17,7 +17,7 @@ YouTube exposes public Atom RSS feeds per channel (`/feeds/videos.xml?channel_id
 3. **Feed cache** in Drift (`youtube_feed_entries`), separate from library `videos`; library rows created only on explicit **Add to library** via existing `importYoutubeVideo()`.
 4. **RSS fetch on client** using `package:http`; parse Atom entries for video id, title, thumbnail, published date.
 5. **Bundled recommended catalog** (`assets/discover/recommended_channels.json`) for editorial picks; users may also subscribe via pasted channel URL/handle (best-effort HTML resolution to `channel_id`).
-6. **Refresh policy**: on app launch (debounced), pull-to-refresh, and every 8 hours while running; skip per-channel refresh if fetched within the last hour unless forced.
+6. **Refresh policy**: on app launch (debounced), pull-to-refresh, and every 8 hours while running; skip per-channel refresh if fetched within the last hour unless forced. The periodic timer is **gated on the subscription list being non-empty and the app being in the foreground** so empty installations do not wake the device and backgrounded apps do not silently refresh. RSS fetches and per-entry duration enrichment both run with a bounded concurrency cap (4 each) so a 20-channel refresh completes in ~5 round-trips rather than 20. Per-channel failures are returned in `DiscoverRefreshResult.failedChannelIds` and surfaced via a localized error notice, so a partial outage does not block the rest of the feed.
 7. **Explicit subscribe** for recommended channels (no auto-subscribe on first visit).
 
 ## Consequences
@@ -32,3 +32,12 @@ YouTube exposes public Atom RSS feeds per channel (`/feeds/videos.xml?channel_id
 
 - Feature: `docs/features/discover.md`
 - YouTube playback: ADR-0015, `docs/features/youtube.md`
+
+## Implementation notes
+
+- Refresh tunings (concurrency caps, lifecycle gating, avatar LRU)
+  live as named constants in
+  `lib/features/discover/data/discover_repository.dart`
+  (`_kRefreshChannelConcurrency`, `_kEnrichDurationConcurrency`,
+  `_kAvatarCacheCapacity`). Adjust there when raising the per-channel
+  or per-entry parallelism budget.

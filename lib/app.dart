@@ -23,7 +23,11 @@ import 'package:enjoy_player/features/update/presentation/update_prompt_host.dar
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EnjoyApp extends ConsumerStatefulWidget {
-  const EnjoyApp({super.key});
+  const EnjoyApp({super.key, @visibleForTesting this.themeBuilder});
+
+  /// When set (widget tests only), skips [buildAppTheme] / Google Fonts fetches.
+  @visibleForTesting
+  final ThemeData Function()? themeBuilder;
 
   @override
   ConsumerState<EnjoyApp> createState() => _EnjoyAppState();
@@ -117,7 +121,7 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
 
     final router = ref.watch(appRouterProvider);
     final prefsAsync = ref.watch(appPreferencesCtrlProvider);
-    final theme = buildAppTheme();
+    final theme = widget.themeBuilder?.call() ?? buildAppTheme();
 
     final live = prefsAsync.valueOrNull;
     final effective = live ?? _lastResolvedPrefs;

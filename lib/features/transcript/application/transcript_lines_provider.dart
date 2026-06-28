@@ -4,6 +4,7 @@ library;
 import 'package:async/async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/stream_distinct.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
 import '../../../data/db/media_target_resolver.dart';
@@ -11,18 +12,19 @@ import '../../../data/subtitle/transcript_line.dart';
 import '../data/transcript_repository.dart';
 import 'transcript_repository_provider.dart';
 
-List<TranscriptLine> _linesForActiveId(
-  TranscriptRepository repo,
-  List<TranscriptRow> transcriptRows,
-  String? activeId,
+/// Compares two transcript-line lists element-wise. Used to absorb identical
+/// re-emissions before they reach Riverpod listeners — see
+/// [transcriptLinesForMediaProvider].
+bool _listEqualsTranscriptLine(
+  List<TranscriptLine> previous,
+  List<TranscriptLine> current,
 ) {
-  if (activeId == null) return <TranscriptLine>[];
-  for (final r in transcriptRows) {
-    if (r.id == activeId) {
-      return repo.linesForRow(r);
-    }
+  if (identical(previous, current)) return true;
+  if (previous.length != current.length) return false;
+  for (var i = 0; i < previous.length; i++) {
+    if (previous[i] != current[i]) return false;
   }
-  return <TranscriptLine>[];
+  return true;
 }
 
 Future<List<TranscriptLine>> _computeLines(
@@ -33,9 +35,14 @@ Future<List<TranscriptLine>> _computeLines(
   required bool primary,
 }) async {
   final echo = await db.echoSessionDao.getLatestForTarget(tt, mediaId);
-  final rows = await db.transcriptDao.listForTarget(tt, mediaId);
   final id = primary ? echo?.transcriptId : echo?.secondaryTranscriptId;
-  return _linesForActiveId(repo, rows, id);
+  if (id == null) return <TranscriptLine>[];
+  // Fetch only the active row, not the entire transcript list. Avoids
+  // reading every transcript's timeline_json blob on every Drift tick —
+  // a frequent no-op tick when an in-active transcript row changes or
+  // when echo session aggregates (recordingsCount, lastActiveAt, …) bump.
+  final row = await db.transcriptDao.getById(id);
+  return row == null ? <TranscriptLine>[] : repo.linesForRow(row);
 }
 
 Stream<List<TranscriptLine>> _linesForMedia(
@@ -63,7 +70,7 @@ Stream<List<TranscriptLine>> _linesForMedia(
             .asyncMap(
               (_) => _computeLines(db, repo, tt, mediaId, primary: primary),
             ),
-      ]);
+      ]).distinctBy(_listEqualsTranscriptLine);
     });
   });
 }
