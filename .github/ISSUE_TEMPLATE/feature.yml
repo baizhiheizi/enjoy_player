@@ -1,0 +1,65 @@
+name: Feature request
+description: Propose a new feature for Enjoy Player
+title: "[feature] "
+labels: ["enhancement", "needs triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For significant changes, please also write an OpenSpec change under
+        `openspec/changes/YYYY-MM-DD-<name>/` (see `openspec/config.yaml` and
+        `docs/decisions/` for existing patterns).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem does this solve? Who is affected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch the behavior, UI, or data flow.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Out of scope / non-goals
+    validations:
+      required: false
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform(s) affected
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: false
+
+  - type: textarea
+    id: adr
+    attributes:
+      label: Related ADR(s)
+      description: e.g. `docs/decisions/0007-dynamic-color-from-artwork.md`. If this needs a new ADR, note it.
+    validations:
+      required: false
