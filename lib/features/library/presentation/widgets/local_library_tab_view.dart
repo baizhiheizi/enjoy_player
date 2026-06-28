@@ -113,9 +113,13 @@ class LocalAudioLibraryBody extends StatelessWidget {
           illustrationAsset: EnjoyIllustrations.emptyLibrary,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(
-            context,
-          ).read(librarySearchProvider.notifier).setQuery(''),
+          action: () {
+            final notifier = ProviderScope.containerOf(
+              context,
+            ).read(librarySearchProvider.notifier);
+            notifier.setQuery('');
+            notifier.commit();
+          },
           actionLabel: l10n.librarySearchClear,
         );
       }
@@ -201,9 +205,13 @@ class LocalVideoLibraryBody extends StatelessWidget {
           illustrationAsset: EnjoyIllustrations.emptyRecordings,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
-          action: () => ProviderScope.containerOf(
-            context,
-          ).read(librarySearchProvider.notifier).setQuery(''),
+          action: () {
+            final notifier = ProviderScope.containerOf(
+              context,
+            ).read(librarySearchProvider.notifier);
+            notifier.setQuery('');
+            notifier.commit();
+          },
           actionLabel: l10n.librarySearchClear,
         );
       }

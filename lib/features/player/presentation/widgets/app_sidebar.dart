@@ -153,6 +153,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         ensureLibraryRouteForSearch(GoRouter.of(context)),
                     onChanged: (v) =>
                         ref.read(librarySearchProvider.notifier).setQuery(v),
+                    onSubmitted: (_) =>
+                        ref.read(librarySearchProvider.notifier).commit(),
                     style: tt.bodyMedium,
                     decoration: InputDecoration(
                       hintText: l10n.searchHint,
