@@ -75,6 +75,15 @@ class YoutubePlayerEngine implements PlayerEngine {
   bool _disposed = false;
   bool _playbackCompleted = false;
 
+  /// True after the first buffering→false transition of the current [open].
+  /// [mountTick] is bumped only on that first transition so the host Stack
+  /// rebuilds once at the loading→playing boundary instead of every time
+  /// [YoutubePlayerEngine] emits buffering events (ad reload, post-ad resume,
+  /// etc.). Subsequent buffering cycles still update the stream but skip the
+  /// mountTick bump — the WebView host has a stable GlobalKey, so the rebuild
+  /// is just a Stack refresh, but on Windows it can flicker.
+  bool _firstBufferingOffReceived = false;
+
   Timer? _pollTimer;
   Timer? _pollKickTimer;
   double? _pendingSeekSeconds;
@@ -190,6 +199,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     _loggedFirstPlaying = false;
     _nonWatchRecoveryScheduled = false;
     _stallRecoveryCount = 0;
+    _firstBufferingOffReceived = false;
     _videoId = source.videoId;
     _playbackCompleted = false;
     _emitBuffering(true);
@@ -307,10 +317,12 @@ class YoutubePlayerEngine implements PlayerEngine {
     final controller = _webController;
     if (controller == null) return;
     await YoutubeWebViewBridge.loadIdlePage(controller);
-    if (_navGeneration != navGen || _videoId.isNotEmpty) {
-      if (_videoId.isNotEmpty && identical(_webController, controller)) {
-        unawaited(_loadCurrentVideoIfAttached());
-      }
+    // After loadIdlePage, if a new open raced in (navGeneration advanced OR
+    // _videoId is non-empty), reload the watch page for the new id.
+    if (_navGeneration != navGen &&
+        _videoId.isNotEmpty &&
+        identical(_webController, controller)) {
+      unawaited(_loadCurrentVideoIfAttached());
     }
   }
 
@@ -390,7 +402,8 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (v == _buffering) return;
     _buffering = v;
     _bufferingCtrl.add(v);
-    if (!v) {
+    if (!v && !_firstBufferingOffReceived) {
+      _firstBufferingOffReceived = true;
       mountTick.value++;
     }
   }

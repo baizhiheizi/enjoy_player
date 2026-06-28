@@ -27,33 +27,58 @@ class PlaybackSessionPersister {
   }) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 450), () async {
-      final echo = _ref.read(echoModeProvider);
-      final db = _ref.read(appDatabaseProvider);
-      final existing = await db.echoSessionDao.getOrCreateLatestForTarget(
-        dexieTargetType,
-        mediaId,
-      );
-      final now = DateTime.now();
-      await db.echoSessionDao.upsert(
-        existing.copyWith(
-          currentTimeMs: (session.currentTimeSeconds * 1000).round(),
-          currentSegmentIndex: session.currentSegmentIndex,
-          echoActive: echo.active,
-          echoStartLine: echo.startLineIndex,
-          echoEndLine: echo.endLineIndex,
-          echoStartMs: echo.active
-              ? Value((echo.startTimeSeconds * 1000).round())
-              : const Value(null),
-          echoEndMs: echo.active
-              ? Value((echo.endTimeSeconds * 1000).round())
-              : const Value(null),
-          lastActiveAt: now,
-          updatedAt: now,
-          transcriptId: const Value.absent(),
-          secondaryTranscriptId: const Value.absent(),
-        ),
-      );
+      _debounce = null;
+      await _flush(mediaId: mediaId, dexieTargetType: dexieTargetType, session: session);
     });
+  }
+
+  /// Flushes any pending debounced write synchronously (best-effort).
+  ///
+  /// [PlayerController.clear] calls this before [cancel] so swipe-to-dismiss
+  /// does not lose the last 450 ms of position updates.
+  Future<void> flush({
+    required String mediaId,
+    required String dexieTargetType,
+    required PlaybackSession session,
+  }) async {
+    final timer = _debounce;
+    if (timer == null) return;
+    timer.cancel();
+    _debounce = null;
+    await _flush(mediaId: mediaId, dexieTargetType: dexieTargetType, session: session);
+  }
+
+  Future<void> _flush({
+    required String mediaId,
+    required String dexieTargetType,
+    required PlaybackSession session,
+  }) async {
+    final echo = _ref.read(echoModeProvider);
+    final db = _ref.read(appDatabaseProvider);
+    final existing = await db.echoSessionDao.getOrCreateLatestForTarget(
+      dexieTargetType,
+      mediaId,
+    );
+    final now = DateTime.now();
+    await db.echoSessionDao.upsert(
+      existing.copyWith(
+        currentTimeMs: (session.currentTimeSeconds * 1000).round(),
+        currentSegmentIndex: session.currentSegmentIndex,
+        echoActive: echo.active,
+        echoStartLine: echo.startLineIndex,
+        echoEndLine: echo.endLineIndex,
+        echoStartMs: echo.active
+            ? Value((echo.startTimeSeconds * 1000).round())
+            : const Value(null),
+        echoEndMs: echo.active
+            ? Value((echo.endTimeSeconds * 1000).round())
+            : const Value(null),
+        lastActiveAt: now,
+        updatedAt: now,
+        transcriptId: const Value.absent(),
+        secondaryTranscriptId: const Value.absent(),
+      ),
+    );
   }
 
   void cancel() {

@@ -409,14 +409,26 @@ class PlayerController extends _$PlayerController {
   }
 
   Future<void> clear() async {
-    ref.read(playbackSessionPersisterProvider).cancel();
-
     final positionSub = _positionSub;
     final durationSub = _durationSub;
     _positionSub = null;
     _durationSub = null;
     _lastPositionEmitBucket = null;
     _lastEchoApplyBucket = null;
+
+    // Capture the current session + ids before [state = null] so the persister
+    // can flush the last 450 ms of position updates to Drift.
+    final current = state;
+    final persister = ref.read(playbackSessionPersisterProvider);
+    if (current != null) {
+      await persister.flush(
+        mediaId: current.mediaId,
+        dexieTargetType: current.dexieTargetType,
+        session: current,
+      );
+    } else {
+      persister.cancel();
+    }
 
     // Drop in-flight [openMedia] work so a dismissed YouTube open cannot
     // resurrect session state or swap engines after the user opens local media.
