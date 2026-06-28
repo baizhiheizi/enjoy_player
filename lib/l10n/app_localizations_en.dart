@@ -1900,4 +1900,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recoveryResetLibraryError => 'Could not reset the local library.';
+
+  @override
+  String get widgetErrorTitle => 'Something went wrong';
+
+  @override
+  String get widgetErrorSubtitle =>
+      'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.';
 }

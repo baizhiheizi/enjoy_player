@@ -3566,6 +3566,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not reset the local library.'**
   String get recoveryResetLibraryError;
+
+  /// No description provided for @widgetErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get widgetErrorTitle;
+
+  /// No description provided for @widgetErrorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.'**
+  String get widgetErrorSubtitle;
 }
 
 class _AppLocalizationsDelegate

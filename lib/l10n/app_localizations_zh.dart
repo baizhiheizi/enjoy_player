@@ -1815,6 +1815,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recoveryResetLibraryError => '无法重置本地资料库。';
+
+  @override
+  String get widgetErrorTitle => '出了点问题';
+
+  @override
+  String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -3628,4 +3634,10 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get recoveryResetLibraryError => '无法重置本地资料库。';
+
+  @override
+  String get widgetErrorTitle => '出了点问题';
+
+  @override
+  String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
 }

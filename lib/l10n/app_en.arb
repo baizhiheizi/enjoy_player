@@ -781,5 +781,7 @@
   "recoveryResetLibraryConfirmAction": "Reset everything",
   "recoveryResetLibraryBackupError": "Backup failed — the local database was not wiped. The error has been logged.",
   "recoveryResetLibrarySuccess": "Local library reset. Enjoy Player will restart shortly.",
-  "recoveryResetLibraryError": "Could not reset the local library."
+  "recoveryResetLibraryError": "Could not reset the local library.",
+  "widgetErrorTitle": "Something went wrong",
+  "widgetErrorSubtitle": "This screen hit an unexpected error. You can copy the details below and try navigating elsewhere."
 }

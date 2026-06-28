@@ -13,6 +13,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_metadata_notifier.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
 
@@ -128,12 +129,12 @@ Future<void> _runYoutubeMetadataRefresh(
       .refreshYoutubeMetadataIfNeeded(mediaId);
   if (patch == null) return;
 
-  controller.patchSessionMetadataIfCurrent(
-    mediaId: mediaId,
-    openGeneration: openGeneration,
-    title: patch.title,
-    thumbnailUrl: patch.thumbnailUrl,
-  );
+  ref.read(playerMetadataProvider.notifier).patchIfCurrent(
+        mediaId: mediaId,
+        openGeneration: openGeneration,
+        title: patch.title,
+        thumbnailUrl: patch.thumbnailUrl,
+      );
 }
 
 bool _youtubeMetadataNeedsRefresh(VideoRow row) {

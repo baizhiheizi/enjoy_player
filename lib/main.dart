@@ -11,6 +11,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/recovery/widget_error_surface.dart';
 import 'core/logging/diagnostic_log_config.dart';
 import 'core/logging/diagnostic_session_header.dart';
 import 'core/logging/log.dart';
@@ -25,6 +26,9 @@ final Logger _bootstrapLog = logNamed('bootstrap');
 
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kDebugMode) {
+    installReleaseWidgetErrorBuilder();
+  }
   // Two AppDatabase instances are expected: the device-global `guest` DB
   // (settings such as API base URL) and the per-user signed-in DB. They use
   // separate files and separate isolate executors, so Drift's runtime check
