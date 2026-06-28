@@ -25,8 +25,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     _webView = YoutubeWebViewController(
       session: _session,
       onStallRecovery: () => _webView.recoverStalledPlayback(),
-      onLogInitPhase: (phase) =>
-          _session.logInitPhase(phase, _logYoutube.info),
+      onLogInitPhase: (phase) => _session.logInitPhase(phase, _logYoutube.info),
     );
   }
 
@@ -116,7 +115,10 @@ class YoutubePlayerEngine implements PlayerEngine {
           children: [
             const ColoredBox(color: Colors.black),
             if (shouldMountWebView) buildWebViewHost(),
-            YoutubeVideoPoster(primaryUrl: _session.posterUrl, visible: showPoster),
+            YoutubeVideoPoster(
+              primaryUrl: _session.posterUrl,
+              visible: showPoster,
+            ),
           ],
         );
       },
@@ -244,10 +246,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     _webView.onWebViewDisposed(controller);
   }
 
-  Future<void> onPageFinished(
-    InAppWebViewController controller,
-    String? url,
-  ) =>
+  Future<void> onPageFinished(InAppWebViewController controller, String? url) =>
       _webView.onPageFinished(controller, url);
 
   Future<void> exitNativeFullscreen(InAppWebViewController controller) =>

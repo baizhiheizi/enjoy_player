@@ -26,8 +26,7 @@ Future<void> subscribeRecommendedChannel(
     return;
   }
 
-  // Let the subscription stream rebuild finish before refresh + notice.
-  await Future<void>.delayed(Duration.zero);
+  await waitForDiscoverSubscription(ref, channel.channelId);
   if (!context.mounted) return;
 
   try {

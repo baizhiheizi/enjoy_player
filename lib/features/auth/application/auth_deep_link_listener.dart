@@ -32,13 +32,13 @@ class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
   @override
   void initState() {
     super.initState();
-    _appLinks.getInitialLink().then(_onUri, onError: _onInitialLinkError);
+    unawaited(_appLinks.getInitialLink().then(_onUri, onError: _onInitialLinkError));
     _streamSub = _appLinks.uriLinkStream.listen(_onUri);
   }
 
   @override
   void dispose() {
-    _streamSub?.cancel();
+    unawaited(_streamSub?.cancel());
     _streamSub = null;
     super.dispose();
   }

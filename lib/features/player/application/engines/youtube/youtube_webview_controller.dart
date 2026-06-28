@@ -24,15 +24,15 @@ class YoutubeWebViewController {
     required this.onStallRecovery,
     required this.onLogInitPhase,
   }) : _stallWatchdog = YoutubePlaybackStallWatchdog(
-          timeout: const Duration(seconds: 12),
-          onStall: (videoId) {
-            if (session.playing) return;
-            _logWebView.warning(
-              'youtube playback stalled after load_stop vid=$videoId',
-            );
-            onStallRecovery();
-          },
-        ) {
+         timeout: const Duration(seconds: 12),
+         onStall: (videoId) {
+           if (session.playing) return;
+           _logWebView.warning(
+             'youtube playback stalled after load_stop vid=$videoId',
+           );
+           unawaited(onStallRecovery());
+         },
+       ) {
     _events = YoutubeWebViewEvents(
       session: session,
       webController: () => _webController,
@@ -149,9 +149,7 @@ class YoutubeWebViewController {
     _pollLoop.stop();
   }
 
-  Future<void> onSignInNavigationBlocked(
-    InAppWebViewController controller,
-  ) =>
+  Future<void> onSignInNavigationBlocked(InAppWebViewController controller) =>
       _navigation.onSignInNavigationBlocked(
         controller,
         prepareWatchReload: () => prepareWatchReload(resetFirstPlaying: false),

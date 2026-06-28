@@ -23,18 +23,21 @@ class _FakeAzureTokenApi extends AzureTokenApi {
 /// will accept; the fake subclass overrides every method the cache
 /// actually calls.
 class _NullApiClient extends ApiClient {
-  _NullApiClient() : super(
-    httpClient: _NullHttpClient(),
-    getBaseUrl: () async => 'https://test.invalid',
-    getAccessToken: () async => null,
-  );
+  _NullApiClient()
+    : super(
+        httpClient: _NullHttpClient(),
+        getBaseUrl: () async => 'https://test.invalid',
+        getAccessToken: () async => null,
+      );
 }
 
 class _NullHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    throw UnsupportedError('AzureTokenCache tests must override every method '
-        'they exercise; the base class should never be called.');
+    throw UnsupportedError(
+      'AzureTokenCache tests must override every method '
+      'they exercise; the base class should never be called.',
+    );
   }
 }
 
@@ -86,10 +89,7 @@ void main() {
       var n = 0;
       final api = _FakeAzureTokenApi(() async {
         n += 1;
-        return <String, dynamic>{
-          'token': 'tok-$n',
-          'region': 'westus',
-        };
+        return <String, dynamic>{'token': 'tok-$n', 'region': 'westus'};
       });
       final cache = AzureTokenCache(api: api);
       // First fetch returns a token that is *just* about to expire;

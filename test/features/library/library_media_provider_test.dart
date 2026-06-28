@@ -67,45 +67,46 @@ void main() {
           'Provider-level dedupe is covered by stream_distinct_test; '
           'Drift upsert makes a no-op DB touch hard to simulate here.',
       () async {
-      final container = makeContainer();
-      addTearDown(container.dispose);
-      final emissions = <int>[];
-      final sub = container.listen(libraryHomeRecentsProvider, (_, next) {
-        if (next.hasValue) emissions.add(next.requireValue.length);
-      }, fireImmediately: true);
-      // Wait for the initial emission (seeded data).
-      await container.read(libraryHomeRecentsProvider.future);
-      emissions.clear();
+        final container = makeContainer();
+        addTearDown(container.dispose);
+        final emissions = <int>[];
+        final sub = container.listen(libraryHomeRecentsProvider, (_, next) {
+          if (next.hasValue) emissions.add(next.requireValue.length);
+        }, fireImmediately: true);
+        // Wait for the initial emission (seeded data).
+        await container.read(libraryHomeRecentsProvider.future);
+        emissions.clear();
 
-      // Force watchAll to re-query without changing mapped [Media] values.
-      // syncStatus is not surfaced on [Media]; preserve updatedAt so the
-      // top-12 ordering and element equality stay the same.
-      await _touchSyncStatusOnly(db, 'a-old');
-      // Yield enough times for the StreamProvider to flush.
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(
-        emissions,
-        isEmpty,
-        reason:
-            'Identical top-12 should not re-emit. '
-            'Got $emissions emissions after a no-op write.',
-      );
+        // Force watchAll to re-query without changing mapped [Media] values.
+        // syncStatus is not surfaced on [Media]; preserve updatedAt so the
+        // top-12 ordering and element equality stay the same.
+        await _touchSyncStatusOnly(db, 'a-old');
+        // Yield enough times for the StreamProvider to flush.
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(
+          emissions,
+          isEmpty,
+          reason:
+              'Identical top-12 should not re-emit. '
+              'Got $emissions emissions after a no-op write.',
+        );
 
-      // Real change to the top-12 (a brand-new most-recent item) MUST emit.
-      await db.videoDao.insertRow(
-        _video('v-newest', 'Delta', 'newest', DateTime(2026, 12, 1)),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(
-        emissions,
-        isNotEmpty,
-        reason:
-            'A real top-12 change (newest item) must re-emit. '
-            'Got $emissions emissions.',
-      );
+        // Real change to the top-12 (a brand-new most-recent item) MUST emit.
+        await db.videoDao.insertRow(
+          _video('v-newest', 'Delta', 'newest', DateTime(2026, 12, 1)),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(
+          emissions,
+          isNotEmpty,
+          reason:
+              'A real top-12 change (newest item) must re-emit. '
+              'Got $emissions emissions.',
+        );
 
-      sub.close();
-    });
+        sub.close();
+      },
+    );
 
     test(
       'libraryFilteredListsProvider skips identical re-emissions '
@@ -114,37 +115,41 @@ void main() {
           'Provider-level dedupe is covered by stream_distinct_test; '
           'Drift upsert makes a no-op DB touch hard to simulate here.',
       () async {
-      final container = makeContainer();
-      addTearDown(container.dispose);
-      final emissions = <String>[];
-      final sub = container.listen(libraryFilteredListsProvider, (prev, next) {
-        if (!next.hasValue) return;
-        final sig = _signature(next.requireValue);
-        if (emissions.isNotEmpty && emissions.last == sig) return;
-        emissions.add(sig);
-      }, fireImmediately: true);
-      await container.read(libraryFilteredListsProvider.future);
-      emissions.clear();
+        final container = makeContainer();
+        addTearDown(container.dispose);
+        final emissions = <String>[];
+        final sub = container.listen(libraryFilteredListsProvider, (
+          prev,
+          next,
+        ) {
+          if (!next.hasValue) return;
+          final sig = _signature(next.requireValue);
+          if (emissions.isNotEmpty && emissions.last == sig) return;
+          emissions.add(sig);
+        }, fireImmediately: true);
+        await container.read(libraryFilteredListsProvider.future);
+        emissions.clear();
 
-      await _touchSyncStatusOnly(db, 'a-old');
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(emissions, isEmpty, reason: 'No-op write should be deduped.');
+        await _touchSyncStatusOnly(db, 'a-old');
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(emissions, isEmpty, reason: 'No-op write should be deduped.');
 
-      // Real change: rename Alpha → Zebra. Now audio list is
-      // [Bravo, Zebra], which differs, so we must see an emission.
-      final renamedRow = await db.audioDao.getById('a-old');
-      await db.audioDao.insertRow(renamedRow!.copyWith(title: 'Zebra'));
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(
-        emissions,
-        isNotEmpty,
-        reason:
-            'A real filter-list change (renamed audio) must re-emit. '
-            'Got $emissions emissions.',
-      );
+        // Real change: rename Alpha → Zebra. Now audio list is
+        // [Bravo, Zebra], which differs, so we must see an emission.
+        final renamedRow = await db.audioDao.getById('a-old');
+        await db.audioDao.insertRow(renamedRow!.copyWith(title: 'Zebra'));
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(
+          emissions,
+          isNotEmpty,
+          reason:
+              'A real filter-list change (renamed audio) must re-emit. '
+              'Got $emissions emissions.',
+        );
 
-      sub.close();
-    });
+        sub.close();
+      },
+    );
 
     test(
       'libraryFilteredListsProvider re-emits when search query changes',
@@ -166,7 +171,9 @@ void main() {
         emissions.clear();
 
         container.read(librarySearchProvider.notifier).setQuery('zz');
-        await Future<void>.delayed(const Duration(milliseconds: 30));
+        await Future<void>.delayed(
+          kLibrarySearchDebounce + const Duration(milliseconds: 50),
+        );
         // Empty result set is a real change; should emit.
         expect(emissions, isNotEmpty);
         expect(emissions.last, 0);

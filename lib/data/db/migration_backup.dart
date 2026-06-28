@@ -79,9 +79,7 @@ Future<Map<String, dynamic>> _exportTable(
   String tableName,
 ) async {
   try {
-    final rows = await db
-        .customSelect('SELECT * FROM $tableName')
-        .get();
+    final rows = await db.customSelect('SELECT * FROM $tableName').get();
     return {
       'rowCount': rows.length,
       'rows': rows.map((row) => row.data).toList(growable: false),

@@ -55,13 +55,8 @@ class SyncQueueRepository {
             .getSingleOrNull();
 
     if (existing != null) {
-      await (_db.update(
-        _db.syncQueue,
-      )..where((t) => t.id.equals(existing.id))).write(
-        SyncQueueCompanion(
-          payloadJson: Value(payloadJson),
-        ),
-      );
+      await (_db.update(_db.syncQueue)..where((t) => t.id.equals(existing.id)))
+          .write(SyncQueueCompanion(payloadJson: Value(payloadJson)));
       return existing.id;
     }
 

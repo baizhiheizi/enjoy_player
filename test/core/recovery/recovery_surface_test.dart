@@ -21,9 +21,7 @@ void main() {
   testWidgets('RecoverySurface renders the three actions', (tester) async {
     await tester.pumpWidget(
       _wrap(
-        const RecoverySurface(
-          error: 'SqliteException: file is not a database',
-        ),
+        const RecoverySurface(error: 'SqliteException: file is not a database'),
       ),
     );
     await tester.pumpAndSettle();
@@ -48,9 +46,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      _wrap(
-        const RecoverySurface(error: 'SqliteException: oops'),
-      ),
+      _wrap(const RecoverySurface(error: 'SqliteException: oops')),
     );
     await tester.pumpAndSettle();
 

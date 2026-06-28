@@ -1,6 +1,8 @@
 /// Shimmer skeleton placeholders for loading UX (respects reduced motion).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -67,7 +69,7 @@ class _SkeletonState extends State<Skeleton>
       if (!mounted) return;
       final reduce = MediaQuery.disableAnimationsOf(context);
       if (!reduce) {
-        _ctrl.repeat();
+        unawaited(_ctrl.repeat());
       }
     });
   }
@@ -79,7 +81,7 @@ class _SkeletonState extends State<Skeleton>
     if (reduce) {
       _ctrl.stop();
     } else if (!_ctrl.isAnimating) {
-      _ctrl.repeat();
+      unawaited(_ctrl.repeat());
     }
   }
 

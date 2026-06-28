@@ -1,6 +1,8 @@
 /// Riverpod notifier for OS window fullscreen state.
 library;
 
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -23,9 +25,9 @@ class WindowFullscreen extends _$WindowFullscreen with WindowListener {
     ref.onDispose(() => windowManager.removeListener(this));
 
     // Seed with current state (sync best-effort; provider starts false).
-    getWindowFullscreen().then((v) {
+    unawaited(getWindowFullscreen().then((v) {
       if (state != v) state = v;
-    });
+    }));
 
     return false;
   }

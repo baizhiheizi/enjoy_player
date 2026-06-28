@@ -1,7 +1,7 @@
 /// Volume icon + vertical slider overlay for the transport bar.
 library;
 
-import 'dart:async' show Timer;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +68,7 @@ class _TransportVolumeButtonState extends ConsumerState<TransportVolumeButton> {
 
   void _toggleMute() {
     _cancelHideTimer();
-    ref.read(playerPreferencesCtrlProvider.notifier).toggleMute();
+    unawaited(ref.read(playerPreferencesCtrlProvider.notifier).toggleMute());
   }
 
   /// Returns (left, top) in global coordinates for the popup card.

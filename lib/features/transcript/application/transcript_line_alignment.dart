@@ -9,11 +9,6 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 ///
 /// [secondary] is copied and sorted by [TranscriptLine.startSeconds] once.
 class TranscriptSecondaryMatcher {
-  TranscriptSecondaryMatcher._(this._sec);
-
-  /// Sorted by [TranscriptLine.startSeconds] ascending.
-  final List<TranscriptLine> _sec;
-
   factory TranscriptSecondaryMatcher.from(List<TranscriptLine> secondary) {
     if (secondary.isEmpty) {
       return TranscriptSecondaryMatcher._(const []);
@@ -22,6 +17,10 @@ class TranscriptSecondaryMatcher {
       ..sort((a, b) => a.startSeconds.compareTo(b.startSeconds));
     return TranscriptSecondaryMatcher._(copy);
   }
+  TranscriptSecondaryMatcher._(this._sec);
+
+  /// Sorted by [TranscriptLine.startSeconds] ascending.
+  final List<TranscriptLine> _sec;
 
   /// Last secondary cue with [TranscriptLine.startSeconds] strictly less than [pEnd].
   TranscriptLine? _lastWithStartBefore(double pEnd) {

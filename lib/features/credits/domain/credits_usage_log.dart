@@ -2,6 +2,27 @@
 library;
 
 class CreditsUsageLog {
+  factory CreditsUsageLog.fromJson(Map<String, dynamic> json) {
+    final metaRaw = json['meta'];
+    Map<String, Object?>? meta;
+    if (metaRaw is Map) {
+      meta = metaRaw.map((k, v) => MapEntry(k.toString(), v as Object?));
+    }
+
+    return CreditsUsageLog(
+      id: json['id']?.toString() ?? '',
+      userId: json['userId']?.toString() ?? '',
+      date: json['date']?.toString() ?? '',
+      timestampMs: _intFromJson(json['timestamp']) ?? 0,
+      serviceType: json['serviceType']?.toString() ?? '',
+      tier: json['tier']?.toString() ?? '',
+      creditsRequired: _intFromJson(json['required']) ?? 0,
+      usedBefore: _intFromJson(json['usedBefore']) ?? 0,
+      usedAfter: _intFromJson(json['usedAfter']) ?? 0,
+      allowed: _boolFromJson(json['allowed']) ?? false,
+      meta: meta,
+    );
+  }
   const CreditsUsageLog({
     required this.id,
     required this.userId,
@@ -29,28 +50,6 @@ class CreditsUsageLog {
   final int usedAfter;
   final bool allowed;
   final Map<String, Object?>? meta;
-
-  factory CreditsUsageLog.fromJson(Map<String, dynamic> json) {
-    final metaRaw = json['meta'];
-    Map<String, Object?>? meta;
-    if (metaRaw is Map) {
-      meta = metaRaw.map((k, v) => MapEntry(k.toString(), v as Object?));
-    }
-
-    return CreditsUsageLog(
-      id: json['id']?.toString() ?? '',
-      userId: json['userId']?.toString() ?? '',
-      date: json['date']?.toString() ?? '',
-      timestampMs: _intFromJson(json['timestamp']) ?? 0,
-      serviceType: json['serviceType']?.toString() ?? '',
-      tier: json['tier']?.toString() ?? '',
-      creditsRequired: _intFromJson(json['required']) ?? 0,
-      usedBefore: _intFromJson(json['usedBefore']) ?? 0,
-      usedAfter: _intFromJson(json['usedAfter']) ?? 0,
-      allowed: _boolFromJson(json['allowed']) ?? false,
-      meta: meta,
-    );
-  }
 }
 
 int? _intFromJson(Object? value) {

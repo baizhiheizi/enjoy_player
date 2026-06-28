@@ -43,11 +43,7 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    size: 64,
-                    color: cs.error,
-                  ),
+                  Icon(Icons.warning_amber_rounded, size: 64, color: cs.error),
                   SizedBox(height: t.space16),
                   Text(
                     l10n.recoveryTitle,

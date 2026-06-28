@@ -55,8 +55,8 @@ void main() {
       controller
         ..add(1)
         ..add(1)
-        ..add(2)
-        ..close();
+        ..add(2);
+      unawaited(controller.close());
       final a = await aFut;
       final b = await bFut;
       expect(a, [1, 2]);

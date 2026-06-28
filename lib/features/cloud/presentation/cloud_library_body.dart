@@ -1,6 +1,8 @@
 /// Remote cloud index tab bodies (paginated audio / video).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,7 +50,7 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitial();
+      unawaited(_loadInitial());
     });
   }
 
@@ -126,9 +128,9 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
   /// Refreshes the audio or video tab matching [tabController.index].
   void refreshActiveTab() {
     if (widget.tabController.index == 0) {
-      _loadAudioPage(reset: true);
+      unawaited(_loadAudioPage(reset: true));
     } else {
-      _loadVideoPage(reset: true);
+      unawaited(_loadVideoPage(reset: true));
     }
   }
 
@@ -218,7 +220,7 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
         !widget.loading &&
         _scroll.hasClients &&
         _scroll.position.pixels > _scroll.position.maxScrollExtent - 200) {
-      widget.onLoadMore();
+      unawaited(widget.onLoadMore());
     }
   }
 
@@ -290,7 +292,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
   @override
   void initState() {
     super.initState();
-    _load();
+    unawaited(_load());
   }
 
   Future<void> _load() async {
@@ -417,7 +419,7 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
         !widget.loading &&
         _scroll.hasClients &&
         _scroll.position.pixels > _scroll.position.maxScrollExtent - 200) {
-      widget.onLoadMore();
+      unawaited(widget.onLoadMore());
     }
   }
 
@@ -499,7 +501,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
   @override
   void initState() {
     super.initState();
-    _load();
+    unawaited(_load());
   }
 
   Future<void> _load() async {

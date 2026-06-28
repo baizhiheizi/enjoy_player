@@ -48,7 +48,10 @@ Future<({int exitCode, String stderr})> _runFfmpegWindowsInIsolate(
     'pcm_s16le',
     args.outputWavPath,
   ]);
-  return (exitCode: r.exitCode, stderr: r.stderr is String ? r.stderr as String : '');
+  return (
+    exitCode: r.exitCode,
+    stderr: r.stderr is String ? r.stderr as String : '',
+  );
 }
 
 Future<bool> _runFfmpegKit({

@@ -67,19 +67,21 @@ void main() {
       expect(await tokenStore.readRefreshToken(), 'r2');
     });
 
-    test('returns false but keeps session on transient network error',
-        () async {
-      final client = MockClient((_) async {
-        throw const SocketException('Connection reset by peer');
-      });
-      final repo = build(client);
+    test(
+      'returns false but keeps session on transient network error',
+      () async {
+        final client = MockClient((_) async {
+          throw const SocketException('Connection reset by peer');
+        });
+        final repo = build(client);
 
-      final ok = await repo.refreshSession();
+        final ok = await repo.refreshSession();
 
-      expect(ok, isFalse);
-      expect(await tokenStore.readAccessToken(), 'access-1');
-      expect(await tokenStore.readRefreshToken(), 'refresh-1');
-    });
+        expect(ok, isFalse);
+        expect(await tokenStore.readAccessToken(), 'access-1');
+        expect(await tokenStore.readRefreshToken(), 'refresh-1');
+      },
+    );
 
     test('returns false and keeps session on HTTP 500', () async {
       final client = MockClient((_) async => http.Response('boom', 500));
@@ -126,17 +128,18 @@ void main() {
     });
 
     test(
-        'returns false and keeps session on HTTP 400 (malformed request, not auth revocation)',
-        () async {
-      final client = MockClient((_) async => http.Response('bad', 400));
-      final repo = build(client);
+      'returns false and keeps session on HTTP 400 (malformed request, not auth revocation)',
+      () async {
+        final client = MockClient((_) async => http.Response('bad', 400));
+        final repo = build(client);
 
-      final ok = await repo.refreshSession();
+        final ok = await repo.refreshSession();
 
-      expect(ok, isFalse);
-      expect(await tokenStore.readAccessToken(), 'access-1');
-      expect(await tokenStore.readRefreshToken(), 'refresh-1');
-    });
+        expect(ok, isFalse);
+        expect(await tokenStore.readAccessToken(), 'access-1');
+        expect(await tokenStore.readRefreshToken(), 'refresh-1');
+      },
+    );
 
     test('returns false when no refresh token is stored', () async {
       await tokenStore.clearAllAuthSecrets();
@@ -182,14 +185,10 @@ void main() {
       const e5 = ApiException(message: 'oops', statusCode: 500);
       const e503 = ApiException(message: 'unavailable', statusCode: 503);
       expect(authFailureCodeForApiException(e5), AuthFailureCode.serverError);
-      expect(
-        authFailureCodeForApiException(e503),
-        AuthFailureCode.serverError,
-      );
+      expect(authFailureCodeForApiException(e503), AuthFailureCode.serverError);
     });
 
-    test('ApiException 400/404/422 maps to AuthFailure.invalidCredentials',
-        () {
+    test('ApiException 400/404/422 maps to AuthFailure.invalidCredentials', () {
       const e400 = ApiException(message: 'bad', statusCode: 400);
       const e404 = ApiException(message: 'missing', statusCode: 404);
       const e422 = ApiException(message: 'unprocessable', statusCode: 422);

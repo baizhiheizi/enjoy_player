@@ -1,6 +1,8 @@
 /// Centralized haptic feedback — respects reduced motion and platform capability.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -21,25 +23,25 @@ abstract final class Haptics {
   /// Light tap / selection (navigation, toggles, list rows).
   static void selection(BuildContext context) {
     if (!_hapticCapable() || _reducedMotion(context)) return;
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
   }
 
   /// Stronger feedback (long-press menus, destructive confirm).
   static void impactMedium(BuildContext context) {
     if (!_hapticCapable() || _reducedMotion(context)) return;
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
   }
 
   /// Success / completed action (paired with positive SnackBars).
   static void success(BuildContext context) {
     if (!_hapticCapable() || _reducedMotion(context)) return;
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
   }
 
   /// Warning / error attention (paired with error SnackBars).
   static void warning(BuildContext context) {
     if (!_hapticCapable() || _reducedMotion(context)) return;
-    HapticFeedback.heavyImpact();
+    unawaited(HapticFeedback.heavyImpact());
   }
 
   /// Wraps a tap callback with [selection] haptic (for [IconButton], [InkWell], etc.).

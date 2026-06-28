@@ -178,7 +178,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
 
   void _startElapsedTicker() {
     _stopElapsedTicker();
-    _elapsedTicker = createTicker(_onElapsedTick)..start();
+    final ticker = createTicker(_onElapsedTick);
+    unawaited(ticker.start());
+    _elapsedTicker = ticker;
   }
 
   void _clearRecordingTiming() {

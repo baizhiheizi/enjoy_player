@@ -105,7 +105,8 @@ Future<String?> backupLocalDatabaseFile() async {
     if (!dbDir.existsSync()) {
       return null;
     }
-    final stamp = DateTime.now().toUtc()
+    final stamp = DateTime.now()
+        .toUtc()
         .toIso8601String()
         .replaceAll(':', '-')
         .replaceAll('.', '-');
@@ -119,9 +120,7 @@ Future<String?> backupLocalDatabaseFile() async {
     if (!source.existsSync()) {
       return null;
     }
-    final dest = File(
-      p.join(backupDir.path, 'enjoy_player_$stamp.sqlite'),
-    );
+    final dest = File(p.join(backupDir.path, 'enjoy_player_$stamp.sqlite'));
     await source.copy(dest.path);
     _log.info('backupLocalDatabaseFile: wrote ${dest.path}');
     return dest.path;

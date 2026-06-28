@@ -11,6 +11,23 @@ SubscriptionTier? _subscriptionTierFromJson(Object? value) {
 }
 
 class UserProfile {
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id']?.toString() ?? '',
+      email: json['email'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      avatarUrl: json['avatarUrl'] as String?,
+      balance: _doubleFromJson(json['balance']),
+      hasMixin: json['hasMixin'] as bool?,
+      subscriptionTier: _subscriptionTierFromJson(json['subscriptionTier']),
+      subscriptionExpireDate: json['subscriptionExpireDate'] as String?,
+      locale: json['locale'] as String?,
+      learningLanguage: json['learningLanguage'] as String?,
+      nativeLanguage: json['nativeLanguage'] as String?,
+      goal: _intFromJson(json['goal']),
+      createdAt: json['createdAt'] as String?,
+    );
+  }
   const UserProfile({
     required this.id,
     required this.email,
@@ -40,24 +57,6 @@ class UserProfile {
   final String? nativeLanguage;
   final int? goal;
   final String? createdAt;
-
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      id: json['id']?.toString() ?? '',
-      email: json['email'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      avatarUrl: json['avatarUrl'] as String?,
-      balance: _doubleFromJson(json['balance']),
-      hasMixin: json['hasMixin'] as bool?,
-      subscriptionTier: _subscriptionTierFromJson(json['subscriptionTier']),
-      subscriptionExpireDate: json['subscriptionExpireDate'] as String?,
-      locale: json['locale'] as String?,
-      learningLanguage: json['learningLanguage'] as String?,
-      nativeLanguage: json['nativeLanguage'] as String?,
-      goal: _intFromJson(json['goal']),
-      createdAt: json['createdAt'] as String?,
-    );
-  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

@@ -4,20 +4,6 @@ library;
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 
 class AuthTokenResponse {
-  const AuthTokenResponse({
-    required this.accessToken,
-    required this.refreshToken,
-    required this.expiresIn,
-    this.tokenType = 'Bearer',
-    this.user,
-  });
-
-  final String accessToken;
-  final String refreshToken;
-  final int expiresIn;
-  final String tokenType;
-  final UserProfile? user;
-
   factory AuthTokenResponse.fromJson(Map<String, dynamic> json) {
     final access = json['accessToken'] as String?;
     final refresh = json['refreshToken'] as String?;
@@ -48,19 +34,22 @@ class AuthTokenResponse {
       user: user,
     );
   }
+  const AuthTokenResponse({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.expiresIn,
+    this.tokenType = 'Bearer',
+    this.user,
+  });
+
+  final String accessToken;
+  final String refreshToken;
+  final int expiresIn;
+  final String tokenType;
+  final UserProfile? user;
 }
 
 class OtpSendResponse {
-  const OtpSendResponse({
-    required this.requestId,
-    required this.expiresIn,
-    required this.resendAfter,
-  });
-
-  final String requestId;
-  final int expiresIn;
-  final int resendAfter;
-
   factory OtpSendResponse.fromJson(Map<String, dynamic> json) {
     final requestId = json['requestId'] as String?;
     final expiresIn = json['expiresIn'];
@@ -77,4 +66,13 @@ class OtpSendResponse {
       resendAfter: resendAfter.toInt(),
     );
   }
+  const OtpSendResponse({
+    required this.requestId,
+    required this.expiresIn,
+    required this.resendAfter,
+  });
+
+  final String requestId;
+  final int expiresIn;
+  final int resendAfter;
 }

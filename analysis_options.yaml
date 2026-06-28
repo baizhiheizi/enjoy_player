@@ -16,3 +16,11 @@ linter:
     prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: true
     use_build_context_synchronously: true
+    prefer_single_quotes: true
+    sort_constructors_first: true
+    require_trailing_commas: true
+    unawaited_futures: true
+    discarded_futures: true
+    cancel_subscriptions: true
+    close_sinks: true
+    depend_on_referenced_packages: true

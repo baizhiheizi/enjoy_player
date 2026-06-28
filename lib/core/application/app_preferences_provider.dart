@@ -1,6 +1,8 @@
 /// App-wide locale and learner language prefs (Drift-backed).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -133,7 +135,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       if (sig == _lastAppliedProfileSignature) return;
       _lastAppliedProfileSignature = sig;
       // Defer so we don't mutate state mid-listener.
-      Future<void>.microtask(() => applyFromUserProfile(v.profile));
+      unawaited(Future<void>.microtask(() => applyFromUserProfile(v.profile)));
     }, fireImmediately: true);
 
     _prefsLog.info('prefs: build done in ${sw.elapsedMilliseconds}ms');

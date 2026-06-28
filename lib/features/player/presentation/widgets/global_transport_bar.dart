@@ -143,7 +143,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
 
   void _openPlaybackRateSheet() {
     final t = EnjoyThemeTokens.of(context);
-    showEnjoySheet<void>(
+    unawaited(showEnjoySheet<void>(
       context: context,
       builder: (sheetCtx) {
         final prefs = ref.read(playerPreferencesCtrlProvider);
@@ -183,9 +183,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                     title: Text(l10n.playbackRateTimes(_formatRateCore(r))),
                     onTap: () {
                       Haptics.selection(sheetCtx);
-                      ref
-                          .read(playerPreferencesCtrlProvider.notifier)
-                          .setPlaybackRate(r);
+                      unawaited(
+                        ref
+                            .read(playerPreferencesCtrlProvider.notifier)
+                            .setPlaybackRate(r),
+                      );
                       Navigator.pop(sheetCtx);
                     },
                   ),
@@ -195,7 +197,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
           ),
         );
       },
-    );
+    ));
   }
 
   @override
