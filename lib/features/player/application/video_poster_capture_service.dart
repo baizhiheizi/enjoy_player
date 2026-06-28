@@ -112,8 +112,12 @@ class VideoPosterCaptureService {
       if (soughtForPoster && gen == currentOpenGeneration()) {
         try {
           await activeEngine.seek(Duration.zero);
-        } on Object {
-          // Best-effort restore start position after poster sampling seek.
+        } on Object catch (e, st) {
+          _log.warning(
+            'video poster capture failed to restore seek-zero position',
+            e,
+            st,
+          );
         }
       }
     }

@@ -26,6 +26,10 @@ abstract class PlayerEngine {
   /// Whether [screenshot] can produce stored video thumbnails (false for WebView).
   bool get supportsVideoPosterCapture;
 
+  /// Whether [disableRenderedSubtitles] does anything. YouTube / WebView
+  /// engines have no embedded subtitle track to disable.
+  bool get supportsSubtitleDisabling;
+
   /// Current transport flags for seeding [StreamProvider]s.
   ({bool playing, bool buffering}) get transportSnapshot;
 
@@ -144,6 +148,9 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   bool get supportsVideoPosterCapture => true;
+
+  @override
+  bool get supportsSubtitleDisabling => true;
 
   @override
   ({bool playing, bool buffering}) get transportSnapshot =>

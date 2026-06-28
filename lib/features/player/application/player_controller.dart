@@ -23,6 +23,7 @@ import 'package:enjoy_player/features/player/application/player_engine_binding.d
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_open_side_effects.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
+import 'package:enjoy_player/features/player/application/position_buckets.dart';
 import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'open_media_provider.dart';
@@ -154,8 +155,10 @@ class PlayerController extends _$PlayerController {
       await engine.open(playable);
       if (gen != _openGeneration) return;
 
-      await engine.disableRenderedSubtitles();
-      if (gen != _openGeneration) return;
+      if (engine.supportsSubtitleDisabling) {
+        await engine.disableRenderedSubtitles();
+        if (gen != _openGeneration) return;
+      }
 
       await ref
           .read(playerPreferencesCtrlProvider.notifier)
@@ -264,8 +267,8 @@ class PlayerController extends _$PlayerController {
     // Raw mpv position can arrive very often (notably streaming). Updating
     // [PlaybackSession] on every tick rebuilds all [playerControllerProvider]
     // listeners and can overwhelm the Windows semantics bridge — same motivation
-    // as [displayPositionProvider]'s 200ms quantization.
-    const positionBucketMs = 400;
+    // as [displayPositionProvider]'s quantization.
+    const positionBucketMs = kPositionBucketEchoApplyMs;
     _positionSub = _activeEngine.position.listen(
       (pos) {
         if (gen != _openGeneration) return;

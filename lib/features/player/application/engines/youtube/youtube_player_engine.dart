@@ -148,6 +148,9 @@ class YoutubePlayerEngine implements PlayerEngine {
   bool get supportsVideoPosterCapture => false;
 
   @override
+  bool get supportsSubtitleDisabling => false;
+
+  @override
   ({bool playing, bool buffering}) get transportSnapshot =>
       (playing: _playing, buffering: _buffering);
 

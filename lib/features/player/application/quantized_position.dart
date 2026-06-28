@@ -2,9 +2,8 @@
 ///
 /// Folds [PlayerEngine.position] (ADR-0015) into N-millisecond buckets and
 /// drops equal emissions, so downstream widgets only rebuild when the
-/// quantized value actually changes. Used by both the transcript cue
-/// highlight (400ms buckets) and the transport scrubber (50ms buckets);
-/// see [displayPosition] and [transportSliderPositionProvider].
+/// quantized value actually changes. Bucket sizes are centralized in
+/// `position_buckets.dart`.
 library;
 
 /// Returns a stream that emits a new [Duration] every time the input
