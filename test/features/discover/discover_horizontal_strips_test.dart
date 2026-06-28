@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/interaction/horizontal_drag_scroll_behavior.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/recommended_channel.dart';
@@ -85,7 +86,7 @@ void main() {
         DiscoverChannel(
           channelId: _channelId,
           displayName: 'TED',
-          source: 'recommended',
+          source: YoutubeSubscriptionSource.recommended,
           subscribedAt: subscribedAt,
         ),
       ];

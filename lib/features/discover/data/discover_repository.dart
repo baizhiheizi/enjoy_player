@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:http/http.dart' as http;
 
@@ -127,7 +128,7 @@ class DiscoverRepository {
     await subscribeChannel(
       channelId: channel.channelId,
       displayName: channel.name,
-      source: 'recommended',
+      source: YoutubeSubscriptionSource.recommended,
     );
   }
 
@@ -140,14 +141,14 @@ class DiscoverRepository {
     await subscribeChannel(
       channelId: resolved.channelId,
       displayName: displayName,
-      source: 'user',
+      source: YoutubeSubscriptionSource.user,
     );
   }
 
   Future<void> subscribeChannel({
     required String channelId,
     required String displayName,
-    required String source,
+    required YoutubeSubscriptionSource source,
     String? thumbnailUrl,
   }) async {
     final existing = await _db.youtubeChannelSubscriptionDao.getByChannelId(

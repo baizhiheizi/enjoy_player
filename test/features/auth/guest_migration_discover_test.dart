@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/guest_migration_providers.dart';
@@ -30,7 +31,7 @@ void main() {
         YoutubeChannelSubscriptionRow(
           channelId: channelId,
           displayName: 'TED',
-          source: 'recommended',
+          source: YoutubeSubscriptionSource.recommended,
           subscribedAt: now,
           lastFetchedAt: now,
         ),

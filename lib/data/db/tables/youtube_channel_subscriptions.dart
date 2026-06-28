@@ -3,6 +3,8 @@ library;
 
 import 'package:drift/drift.dart';
 
+import '../youtube_subscription_source.dart';
+
 @DataClassName('YoutubeChannelSubscriptionRow')
 class YoutubeChannelSubscriptions extends Table {
   @override
@@ -12,8 +14,10 @@ class YoutubeChannelSubscriptions extends Table {
   TextColumn get displayName => text()();
   TextColumn get thumbnailUrl => text().nullable()();
 
-  /// `recommended` or `user`.
-  TextColumn get source => text().withDefault(const Constant('user'))();
+  /// Bundled catalog vs user-initiated subscription.
+  TextColumn get source => textEnum<YoutubeSubscriptionSource>().withDefault(
+    const Constant('user'),
+  )();
 
   DateTimeColumn get subscribedAt => dateTime()();
   DateTimeColumn get lastFetchedAt => dateTime().nullable()();

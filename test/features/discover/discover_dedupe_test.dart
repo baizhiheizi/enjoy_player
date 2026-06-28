@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
@@ -57,7 +58,7 @@ void main() {
         channelId: 'c1',
         displayName: 'Channel',
         thumbnailUrl: 'http://example.com/a.jpg',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
         subscribedAt: subscribedAt,
         lastFetchedAt: fetchedAt,
       );
@@ -65,7 +66,7 @@ void main() {
         channelId: 'c1',
         displayName: 'Channel',
         thumbnailUrl: 'http://example.com/a.jpg',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
         subscribedAt: subscribedAt,
         lastFetchedAt: fetchedAt,
       );
@@ -73,7 +74,7 @@ void main() {
         channelId: 'c1',
         displayName: 'Channel renamed',
         thumbnailUrl: 'http://example.com/a.jpg',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
         subscribedAt: subscribedAt,
         lastFetchedAt: fetchedAt,
       );
@@ -102,7 +103,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: channelId,
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
 
       final emissions = <List<DiscoverChannel>>[];
@@ -141,7 +142,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: channelId,
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
 
       final emissions = <List<DiscoverChannel>>[];

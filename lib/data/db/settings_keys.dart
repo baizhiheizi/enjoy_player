@@ -50,6 +50,40 @@ abstract final class SettingsKeys {
 
   /// When `true`, allowlisted diagnostic loggers write FINE records to the log file.
   static const String diagnosticsVerboseEnabled = 'diagnostics.verbose_enabled';
+
+  /// JSON blob: volume, rate, repeat, split width ([PlayerPreferencesCtrl]).
+  static const String playerPreferencesV1 = 'player_preferences_v1';
+
+  /// JSON map of custom hotkey action id → binding string.
+  static const String hotkeysCustomBindings = 'hotkeys_custom_bindings';
+
+  static const _staticKeys = {
+    apiBaseUrl,
+    apiAiBaseUrl,
+    prefsLocale,
+    prefsLearningLanguage,
+    prefsNativeLanguage,
+    prefsRecordingInputDeviceId,
+    syncCursorAudio,
+    syncCursorVideo,
+    syncCursorRecording,
+    syncLastFullSyncAt,
+    migrationGuestDismissed,
+    updateLastCheckAt,
+    updateSnoozeUntil,
+    updateSnoozeVersion,
+    diagnosticsVerboseEnabled,
+    playerPreferencesV1,
+    hotkeysCustomBindings,
+  };
+
+  /// Whether [key] is a known static or dynamic settings key.
+  static bool isKnown(String key) {
+    if (_staticKeys.contains(key)) return true;
+    if (key.startsWith('sync.cursor.recording.')) return true;
+    if (key.startsWith('sync.last_pull_at.recording.')) return true;
+    return false;
+  }
 }
 
 /// Default Enjoy API origin (no trailing slash).

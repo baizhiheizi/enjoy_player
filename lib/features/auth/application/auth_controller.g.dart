@@ -33,7 +33,7 @@ final class AuthCtrlProvider
   AuthCtrl create() => AuthCtrl();
 }
 
-String _$authCtrlHash() => r'f41e57e4daf352abe939a6dc47406828641ff30b';
+String _$authCtrlHash() => r'93a0e389f787128195699465cddffe6f4bb96ead';
 
 abstract class _$AuthCtrl extends $AsyncNotifier<AuthState> {
   FutureOr<AuthState> build();
