@@ -18,6 +18,8 @@ import 'package:enjoy_player/features/transcript/application/transcript_fetch_co
 
 void schedulePlayerOpenSideEffects(
   Ref ref, {
+  required int openGeneration,
+  required bool Function() isStale,
   required String mediaId,
   required String dexieTargetType,
 }) {
@@ -25,21 +27,49 @@ void schedulePlayerOpenSideEffects(
   final signedIn = auth is AuthSignedIn;
 
   unawaited(
-    ref
-        .read(transcriptFetchCtrlProvider(mediaId).notifier)
-        .resolveOnOpen(signedIn: signedIn),
+    _runTranscriptResolve(
+      ref,
+      mediaId: mediaId,
+      isStale: isStale,
+      signedIn: signedIn,
+    ),
   );
 
   if (signedIn) {
     unawaited(
-      ref
-          .read(recordingTargetSyncServiceProvider)
-          .pullRecordingsForTarget(
-            targetType: dexieTargetType,
-            targetId: mediaId,
-          ),
+      _runRecordingPull(
+        ref,
+        dexieTargetType: dexieTargetType,
+        mediaId: mediaId,
+        isStale: isStale,
+      ),
     );
   }
+}
+
+Future<void> _runTranscriptResolve(
+  Ref ref, {
+  required String mediaId,
+  required bool Function() isStale,
+  required bool signedIn,
+}) async {
+  if (isStale()) return;
+  await ref
+      .read(transcriptFetchCtrlProvider(mediaId).notifier)
+      .resolveOnOpen(signedIn: signedIn);
+}
+
+Future<void> _runRecordingPull(
+  Ref ref, {
+  required String dexieTargetType,
+  required String mediaId,
+  required bool Function() isStale,
+}) async {
+  if (isStale()) return;
+  await ref.read(recordingTargetSyncServiceProvider).pullRecordingsForTarget(
+    targetType: dexieTargetType,
+    targetId: mediaId,
+  );
 }
 
 /// Lazy oEmbed retry after YouTube WebView reports playback-ready.

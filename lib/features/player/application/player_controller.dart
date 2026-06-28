@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -29,6 +30,8 @@ import 'playback_session_persister.dart';
 import 'player_engine_test_double_provider.dart';
 
 part 'player_controller.g.dart';
+
+final _openMediaLog = logNamed('PlayerController.openMedia');
 
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController {
@@ -88,153 +91,163 @@ class PlayerController extends _$PlayerController {
 
     final gen = ++_openGeneration;
 
-    final db = ref.read(appDatabaseProvider);
-    final resolved = await resolvePlaybackOpen(db, mediaId);
-    if (resolved == null) return;
-    if (gen != _openGeneration) return;
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final resolved = await resolvePlaybackOpen(db, mediaId);
+      if (resolved == null) return;
+      if (gen != _openGeneration) return;
 
-    final video = resolved.video;
-    final audio = resolved.audio;
-    final kind = resolved.kind;
-    final dexie = resolved.dexieTargetType;
-    final title = resolved.title;
-    final playable = resolved.playable;
+      final video = resolved.video;
+      final audio = resolved.audio;
+      final kind = resolved.kind;
+      final dexie = resolved.dexieTargetType;
+      final title = resolved.title;
+      final playable = resolved.playable;
 
-    schedulePlayerOpenSideEffects(
-      ref,
-      mediaId: mediaId,
-      dexieTargetType: dexie,
-    );
-
-    await ensureEngineForPlayableSource(
-      ref,
-      playable: playable,
-      getOwnedEngine: () => _ownedEngine,
-      setOwnedEngine: (e) => _ownedEngine = e,
-    );
-    if (gen != _openGeneration) return;
-
-    final engine = _activeEngine;
-
-    final thumb = resolved.thumbnailUrl;
-    final language = resolved.language;
-    final durationSec = resolved.durationSeconds;
-
-    if (playable is YoutubePlayableSource && engine is YoutubePlayerEngine) {
-      engine.markOpenTimingStart();
-      engine.setPosterUrl(
-        _youtubePosterUrl(
-          thumbnailPath: thumb,
-          videoId: playable.videoId,
-          mediaUrl: video?.mediaUrl,
-        ),
-      );
-      engine.ensureWebViewAttached();
-    }
-
-    // Bind video output before first decode on Windows/macOS (see media_kit_video notes).
-    // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
-    if (kind == MediaKind.video &&
-        engine is MediaKitPlayerEngine &&
-        (Platform.isWindows || Platform.isMacOS)) {
-      engine.warmVideoSurface();
-    }
-
-    await _positionSub?.cancel();
-    await _durationSub?.cancel();
-    _positionSub = null;
-    _durationSub = null;
-
-    await engine.open(playable);
-    if (gen != _openGeneration) return;
-
-    await engine.disableRenderedSubtitles();
-    if (gen != _openGeneration) return;
-
-    await ref
-        .read(playerPreferencesCtrlProvider.notifier)
-        .applyCurrentToEngine();
-    if (gen != _openGeneration) return;
-
-    final persisted = await db.echoSessionDao.getLatestForTarget(
-      dexie,
-      mediaId,
-    );
-    if (gen != _openGeneration) return;
-
-    final posMs = persisted?.currentTimeMs ?? 0;
-    if (posMs > 0) {
-      await engine.seek(Duration(milliseconds: posMs));
-    }
-    if (gen != _openGeneration) return;
-
-    if (persisted != null && persisted.echoActive) {
-      ref
-          .read(echoModeProvider.notifier)
-          .restoreFromSession(
-            startLine: persisted.echoStartLine,
-            endLine: persisted.echoEndLine,
-            echoStartMs: persisted.echoStartMs ?? 0,
-            echoEndMs: persisted.echoEndMs ?? 0,
-          );
-    } else {
-      ref.read(echoModeProvider.notifier).deactivate();
-    }
-    if (gen != _openGeneration) return;
-
-    final now = DateTime.now();
-    state = PlaybackSession(
-      mediaId: mediaId,
-      dexieTargetType: dexie,
-      mediaType: kind.storageValue,
-      mediaTitle: title,
-      thumbnailUrl: thumb,
-      durationSeconds: durationSec > 0
-          ? durationSec.toDouble()
-          : posMs / 1000.0,
-      currentTimeSeconds: posMs / 1000.0,
-      currentSegmentIndex: persisted?.currentSegmentIndex ?? -1,
-      language: language,
-      startedAt: now,
-      lastActiveAt: now,
-    );
-
-    if (gen != _openGeneration) return;
-    _subscribeStreams(
-      mediaId: mediaId,
-      dexieTargetType: dexie,
-      kind: kind,
-      video: video,
-      audio: audio,
-      gen: gen,
-    );
-
-    if (playable is YoutubePlayableSource) {
-      scheduleYoutubeMetadataRefresh(
+      schedulePlayerOpenSideEffects(
         ref,
-        mediaId: mediaId,
         openGeneration: gen,
+        isStale: () => _openGeneration != gen,
+        mediaId: mediaId,
+        dexieTargetType: dexie,
       );
-    }
 
-    if (kind == MediaKind.video &&
-        video != null &&
-        engine.supportsVideoPosterCapture) {
-      ref
-          .read(videoPosterCaptureServiceProvider)
-          .scheduleCapture(
-            mediaId: mediaId,
-            video: video,
-            restoredPositionMs: posMs,
-            gen: gen,
-            currentOpenGeneration: () => _openGeneration,
-            currentSessionMediaId: () => state?.mediaId,
-            sessionDurationSeconds: () => state?.durationSeconds,
-            activeEngine: engine,
-            onSessionThumbnail: (path) {
-              state = state?.copyWith(thumbnailUrl: path);
-            },
-          );
+      await ensureEngineForPlayableSource(
+        ref,
+        playable: playable,
+        getOwnedEngine: () => _ownedEngine,
+        setOwnedEngine: (e) => _ownedEngine = e,
+      );
+      if (gen != _openGeneration) return;
+
+      final engine = _activeEngine;
+
+      final thumb = resolved.thumbnailUrl;
+      final language = resolved.language;
+      final durationSec = resolved.durationSeconds;
+
+      if (playable is YoutubePlayableSource && engine is YoutubePlayerEngine) {
+        engine.markOpenTimingStart();
+        engine.setPosterUrl(
+          _youtubePosterUrl(
+            thumbnailPath: thumb,
+            videoId: playable.videoId,
+            mediaUrl: video?.mediaUrl,
+          ),
+        );
+        engine.ensureWebViewAttached();
+      }
+
+      // Bind video output before first decode on Windows/macOS (see media_kit_video notes).
+      // Audio-only paths skip this so unit tests and headless runs avoid native libmpv.
+      if (kind == MediaKind.video &&
+          engine is MediaKitPlayerEngine &&
+          (Platform.isWindows || Platform.isMacOS)) {
+        engine.warmVideoSurface();
+      }
+
+      await _positionSub?.cancel();
+      await _durationSub?.cancel();
+      _positionSub = null;
+      _durationSub = null;
+
+      await engine.open(playable);
+      if (gen != _openGeneration) return;
+
+      await engine.disableRenderedSubtitles();
+      if (gen != _openGeneration) return;
+
+      await ref
+          .read(playerPreferencesCtrlProvider.notifier)
+          .applyCurrentToEngine();
+      if (gen != _openGeneration) return;
+
+      final persisted = await db.echoSessionDao.getLatestForTarget(
+        dexie,
+        mediaId,
+      );
+      if (gen != _openGeneration) return;
+
+      final posMs = persisted?.currentTimeMs ?? 0;
+      if (posMs > 0) {
+        await engine.seek(Duration(milliseconds: posMs));
+      }
+      if (gen != _openGeneration) return;
+
+      if (persisted != null && persisted.echoActive) {
+        ref
+            .read(echoModeProvider.notifier)
+            .restoreFromSession(
+              startLine: persisted.echoStartLine,
+              endLine: persisted.echoEndLine,
+              echoStartMs: persisted.echoStartMs ?? 0,
+              echoEndMs: persisted.echoEndMs ?? 0,
+            );
+      } else {
+        ref.read(echoModeProvider.notifier).deactivate();
+      }
+      if (gen != _openGeneration) return;
+
+      final now = DateTime.now();
+      state = PlaybackSession(
+        mediaId: mediaId,
+        dexieTargetType: dexie,
+        mediaType: kind.storageValue,
+        mediaTitle: title,
+        thumbnailUrl: thumb,
+        durationSeconds: durationSec > 0
+            ? durationSec.toDouble()
+            : posMs / 1000.0,
+        currentTimeSeconds: posMs / 1000.0,
+        currentSegmentIndex: persisted?.currentSegmentIndex ?? -1,
+        language: language,
+        startedAt: now,
+        lastActiveAt: now,
+      );
+
+      if (gen != _openGeneration) return;
+      _subscribeStreams(
+        mediaId: mediaId,
+        dexieTargetType: dexie,
+        kind: kind,
+        video: video,
+        audio: audio,
+        gen: gen,
+      );
+
+      if (playable is YoutubePlayableSource) {
+        scheduleYoutubeMetadataRefresh(
+          ref,
+          mediaId: mediaId,
+          openGeneration: gen,
+        );
+      }
+
+      if (kind == MediaKind.video &&
+          video != null &&
+          engine.supportsVideoPosterCapture) {
+        ref
+            .read(videoPosterCaptureServiceProvider)
+            .scheduleCapture(
+              mediaId: mediaId,
+              video: video,
+              restoredPositionMs: posMs,
+              gen: gen,
+              currentOpenGeneration: () => _openGeneration,
+              currentSessionMediaId: () => state?.mediaId,
+              sessionDurationSeconds: () => state?.durationSeconds,
+              activeEngine: engine,
+              onSessionThumbnail: (path) {
+                state = state?.copyWith(thumbnailUrl: path);
+              },
+            );
+      }
+    } on Object catch (e, st) {
+      if (gen == _openGeneration) {
+        state = null;
+      }
+      _openMediaLog.severe('openMedia failed for $mediaId', e, st);
+      rethrow;
     }
   }
 
@@ -253,64 +266,74 @@ class PlayerController extends _$PlayerController {
     // listeners and can overwhelm the Windows semantics bridge — same motivation
     // as [displayPositionProvider]'s 200ms quantization.
     const positionBucketMs = 400;
-    _positionSub = _activeEngine.position.listen((pos) {
-      if (gen != _openGeneration) return;
-      final seconds = pos.inMilliseconds / 1000.0;
+    _positionSub = _activeEngine.position.listen(
+      (pos) {
+        if (gen != _openGeneration) return;
+        final seconds = pos.inMilliseconds / 1000.0;
 
-      final bucket = pos.inMilliseconds ~/ positionBucketMs;
-      final prevSec = state?.currentTimeSeconds;
-      final likelySeek = prevSec != null && (seconds - prevSec).abs() > 0.35;
-      if (likelySeek || bucket != _lastEchoApplyBucket) {
-        _lastEchoApplyBucket = bucket;
-        unawaited(_applyEcho(seconds));
-      }
+        final bucket = pos.inMilliseconds ~/ positionBucketMs;
+        final prevSec = state?.currentTimeSeconds;
+        final likelySeek = prevSec != null && (seconds - prevSec).abs() > 0.35;
+        if (likelySeek || bucket != _lastEchoApplyBucket) {
+          _lastEchoApplyBucket = bucket;
+          unawaited(_applyEcho(seconds));
+        }
 
-      if (!likelySeek && bucket == _lastPositionEmitBucket) {
-        return;
-      }
-      _lastPositionEmitBucket = bucket;
+        if (!likelySeek && bucket == _lastPositionEmitBucket) {
+          return;
+        }
+        _lastPositionEmitBucket = bucket;
 
-      state = state?.copyWith(
-        currentTimeSeconds: seconds,
-        lastActiveAt: DateTime.now(),
-      );
-      final s = state;
-      if (s != null) {
-        ref
-            .read(playbackSessionPersisterProvider)
-            .schedule(
-              mediaId: mediaId,
-              dexieTargetType: dexieTargetType,
-              session: s,
-            );
-      }
-    });
-
-    _durationSub = _activeEngine.duration.listen((d) async {
-      if (gen != _openGeneration) return;
-      if (d <= Duration.zero) return;
-      final newSec = d.inMilliseconds / 1000.0;
-      final prevSec = state?.durationSeconds;
-      if (prevSec != null && (newSec - prevSec).abs() < 0.001) {
-        return;
-      }
-      final sec = d.inMilliseconds ~/ 1000;
-      state = state?.copyWith(durationSeconds: newSec);
-      final db = ref.read(appDatabaseProvider);
-      if (kind == MediaKind.video &&
-          video != null &&
-          video.durationSeconds == 0) {
-        await db.videoDao.insertRow(
-          video.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+        state = state?.copyWith(
+          currentTimeSeconds: seconds,
+          lastActiveAt: DateTime.now(),
         );
-      } else if (kind == MediaKind.audio &&
-          audio != null &&
-          audio.durationSeconds == 0) {
-        await db.audioDao.insertRow(
-          audio.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
-        );
-      }
-    });
+        final s = state;
+        if (s != null) {
+          ref
+              .read(playbackSessionPersisterProvider)
+              .schedule(
+                mediaId: mediaId,
+                dexieTargetType: dexieTargetType,
+                session: s,
+              );
+        }
+      },
+      onError: (Object e, StackTrace st) {
+        _openMediaLog.warning('engine position stream errored', e, st);
+      },
+    );
+
+    _durationSub = _activeEngine.duration.listen(
+      (d) async {
+        if (gen != _openGeneration) return;
+        if (d <= Duration.zero) return;
+        final newSec = d.inMilliseconds / 1000.0;
+        final prevSec = state?.durationSeconds;
+        if (prevSec != null && (newSec - prevSec).abs() < 0.001) {
+          return;
+        }
+        final sec = d.inMilliseconds ~/ 1000;
+        state = state?.copyWith(durationSeconds: newSec);
+        final db = ref.read(appDatabaseProvider);
+        if (kind == MediaKind.video &&
+            video != null &&
+            video.durationSeconds == 0) {
+          await db.videoDao.insertRow(
+            video.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+          );
+        } else if (kind == MediaKind.audio &&
+            audio != null &&
+            audio.durationSeconds == 0) {
+          await db.audioDao.insertRow(
+            audio.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+          );
+        }
+      },
+      onError: (Object e, StackTrace st) {
+        _openMediaLog.warning('engine duration stream errored', e, st);
+      },
+    );
   }
 
   Future<void> _applyEcho(double positionSeconds) async {
