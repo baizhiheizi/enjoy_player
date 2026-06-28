@@ -15,7 +15,7 @@ class AuthApi {
     String? platform,
   }) => _client.postJson(
     '$_authPrefix/google',
-    body: {'idToken': idToken, if (platform != null) 'platform': platform},
+    body: {'idToken': idToken, 'platform': ?platform},
     requireAuth: false,
   );
 

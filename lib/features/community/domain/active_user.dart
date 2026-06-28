@@ -20,12 +20,6 @@ int? _intFromJson(Object? value) {
 }
 
 class ActiveUser {
-  const ActiveUser({required this.id, required this.name, this.avatarUrl});
-
-  final String id;
-  final String name;
-  final String? avatarUrl;
-
   factory ActiveUser.fromJson(Map<String, dynamic> json) {
     return ActiveUser(
       id: json['id']?.toString() ?? '',
@@ -33,23 +27,14 @@ class ActiveUser {
       avatarUrl: json['avatarUrl'] as String?,
     );
   }
+  const ActiveUser({required this.id, required this.name, this.avatarUrl});
+
+  final String id;
+  final String name;
+  final String? avatarUrl;
 }
 
 class ActiveUsersResponse {
-  const ActiveUsersResponse({
-    required this.users,
-    required this.count,
-    this.recordingsCountToday,
-    this.recordingsDurationToday,
-  });
-
-  final List<ActiveUser> users;
-  final int count;
-  final int? recordingsCountToday;
-
-  /// Total practice duration for the community today, milliseconds.
-  final int? recordingsDurationToday;
-
   factory ActiveUsersResponse.fromJson(Map<String, dynamic> json) {
     final rawUsers = json['users'];
     final users = <ActiveUser>[];
@@ -68,4 +53,17 @@ class ActiveUsersResponse {
       recordingsDurationToday: _intFromJson(json['recordingsDurationToday']),
     );
   }
+  const ActiveUsersResponse({
+    required this.users,
+    required this.count,
+    this.recordingsCountToday,
+    this.recordingsDurationToday,
+  });
+
+  final List<ActiveUser> users;
+  final int count;
+  final int? recordingsCountToday;
+
+  /// Total practice duration for the community today, milliseconds.
+  final int? recordingsDurationToday;
 }

@@ -129,7 +129,9 @@ Future<void> _runYoutubeMetadataRefresh(
       .refreshYoutubeMetadataIfNeeded(mediaId);
   if (patch == null) return;
 
-  ref.read(playerMetadataProvider.notifier).patchIfCurrent(
+  ref
+      .read(playerMetadataProvider.notifier)
+      .patchIfCurrent(
         mediaId: mediaId,
         openGeneration: openGeneration,
         title: patch.title,

@@ -13,8 +13,7 @@ class YoutubeSession {
       StreamController<Duration>.broadcast();
   final StreamController<Duration> durationCtrl =
       StreamController<Duration>.broadcast();
-  final StreamController<bool> playingCtrl =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> playingCtrl = StreamController<bool>.broadcast();
   final StreamController<bool> bufferingCtrl =
       StreamController<bool>.broadcast();
 

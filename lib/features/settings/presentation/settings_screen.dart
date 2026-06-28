@@ -1459,8 +1459,9 @@ class _AiApiBaseUrlEditorState extends ConsumerState<_AiApiBaseUrlEditor> {
                           await ref
                               .read(aiApiBaseUrlProvider.notifier)
                               .clearOverride();
-                          final url = await ref
-                              .read(aiApiBaseUrlProvider.future);
+                          final url = await ref.read(
+                            aiApiBaseUrlProvider.future,
+                          );
                           if (mounted) {
                             _controller.text = url;
                           }

@@ -33,12 +33,10 @@ AuthRepository authRepository(Ref ref) {
 
 class AuthRepository {
   AuthRepository({
-    required AuthApi authApi,
-    required SecureTokenStore tokenStore,
-    required Future<String> Function() getBaseUrl,
-  }) : _authApi = authApi,
-       _tokenStore = tokenStore,
-       _getBaseUrl = getBaseUrl;
+    required this._authApi,
+    required this._tokenStore,
+    required this._getBaseUrl,
+  });
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;

@@ -3,7 +3,6 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
-import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,8 +29,9 @@ void main() {
       // Inside the debounce window the state is still the previous value.
       expect(container.read(librarySearchProvider), '');
 
-      await Future<void>.delayed(kLibrarySearchDebounce +
-          const Duration(milliseconds: 50));
+      await Future<void>.delayed(
+        kLibrarySearchDebounce + const Duration(milliseconds: 50),
+      );
       expect(container.read(librarySearchProvider), 'alpha');
     });
 
@@ -49,8 +49,9 @@ void main() {
       // Still inside the final debounce window.
       expect(container.read(librarySearchProvider), '');
 
-      await Future<void>.delayed(kLibrarySearchDebounce +
-          const Duration(milliseconds: 50));
+      await Future<void>.delayed(
+        kLibrarySearchDebounce + const Duration(milliseconds: 50),
+      );
       expect(container.read(librarySearchProvider), 'abc');
     });
 
@@ -144,44 +145,44 @@ void main() {
 }
 
 VideoRow _videoRow(String id, String title, String md5) => VideoRow(
-      id: id,
-      vid: md5,
-      provider: 'user',
-      title: title,
-      description: null,
-      thumbnailUrl: null,
-      durationSeconds: 0,
-      language: 'und',
-      source: null,
-      localUri: 'file:///x.mp4',
-      md5: md5,
-      size: 0,
-      mediaUrl: null,
-      syncStatus: null,
-      serverUpdatedAt: null,
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
+  id: id,
+  vid: md5,
+  provider: 'user',
+  title: title,
+  description: null,
+  thumbnailUrl: null,
+  durationSeconds: 0,
+  language: 'und',
+  source: null,
+  localUri: 'file:///x.mp4',
+  md5: md5,
+  size: 0,
+  mediaUrl: null,
+  syncStatus: null,
+  serverUpdatedAt: null,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);
 
 AudioRow _audioRow(String id, String title, String md5) => AudioRow(
-      id: id,
-      aid: md5,
-      provider: 'user',
-      title: title,
-      description: null,
-      thumbnailUrl: null,
-      durationSeconds: 0,
-      language: 'und',
-      translationKey: null,
-      sourceText: null,
-      voice: null,
-      source: null,
-      localUri: 'file:///x.mp3',
-      md5: md5,
-      size: 0,
-      mediaUrl: null,
-      syncStatus: null,
-      serverUpdatedAt: null,
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
+  id: id,
+  aid: md5,
+  provider: 'user',
+  title: title,
+  description: null,
+  thumbnailUrl: null,
+  durationSeconds: 0,
+  language: 'und',
+  translationKey: null,
+  sourceText: null,
+  voice: null,
+  source: null,
+  localUri: 'file:///x.mp3',
+  md5: md5,
+  size: 0,
+  mediaUrl: null,
+  syncStatus: null,
+  serverUpdatedAt: null,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);

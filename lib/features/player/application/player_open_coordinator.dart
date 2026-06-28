@@ -116,7 +116,9 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   if (host.isOpenStale(gen)) return;
 
   if (persisted != null && persisted.echoActive) {
-    ref.read(echoModeProvider.notifier).restoreFromSession(
+    ref
+        .read(echoModeProvider.notifier)
+        .restoreFromSession(
           startLine: persisted.echoStartLine,
           endLine: persisted.echoEndLine,
           echoStartMs: persisted.echoStartMs ?? 0,
@@ -156,17 +158,15 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   );
 
   if (playable is YoutubePlayableSource) {
-    scheduleYoutubeMetadataRefresh(
-      ref,
-      mediaId: mediaId,
-      openGeneration: gen,
-    );
+    scheduleYoutubeMetadataRefresh(ref, mediaId: mediaId, openGeneration: gen);
   }
 
   if (kind == MediaKind.video &&
       video != null &&
       engine.supportsVideoPosterCapture) {
-    ref.read(videoPosterCaptureServiceProvider).scheduleCapture(
+    ref
+        .read(videoPosterCaptureServiceProvider)
+        .scheduleCapture(
           mediaId: mediaId,
           video: video,
           restoredPositionMs: posMs,

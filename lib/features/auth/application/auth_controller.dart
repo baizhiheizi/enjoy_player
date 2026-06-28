@@ -104,10 +104,7 @@ class AuthCtrl extends _$AuthCtrl {
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) return;
       if (gen != _flowGeneration) return;
-      throw AuthFailure(
-        e.message,
-        code: AuthFailureCode.invalidCredentials,
-      );
+      throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);
     } on AuthFailure {
       rethrow;
     } catch (e, st) {

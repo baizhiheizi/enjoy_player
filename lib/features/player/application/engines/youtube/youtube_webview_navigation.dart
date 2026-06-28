@@ -67,7 +67,9 @@ class YoutubeWebViewNavigation {
     final gen = captureVerifyGeneration();
     await Future<void>.delayed(delay);
     if (isVerifyGenerationStale(gen)) return;
-    if (session.disposed || session.videoId.isEmpty || webController() == null) {
+    if (session.disposed ||
+        session.videoId.isEmpty ||
+        webController() == null) {
       return;
     }
     if (session.loggedFirstPlaying) return;
@@ -85,9 +87,7 @@ class YoutubeWebViewNavigation {
     if (session.nonWatchRecoveryScheduled) return;
     session.nonWatchRecoveryScheduled = true;
     _logNav.info('youtube non-watch load_stop; verifying watch page');
-    unawaited(
-      ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true),
-    );
+    unawaited(ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true));
   }
 
   void schedulePlaybackNudge() {
@@ -110,9 +110,7 @@ class YoutubeWebViewNavigation {
     final controller = webController();
     final vid = session.videoId;
     if (controller == null || vid.isEmpty || session.disposed) return;
-    _logNav.warning(
-      'youtube WebView process terminated; reloading vid=$vid',
-    );
+    _logNav.warning('youtube WebView process terminated; reloading vid=$vid');
     prepareWatchReload();
     session.emitBuffering(true);
     session.emitPlaying(false);

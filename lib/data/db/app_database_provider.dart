@@ -77,7 +77,7 @@ AppDatabase appDatabase(Ref ref) {
   if (existing != null) {
     _userSessionDatabases[sessionName] = existing;
     ref.onDispose(() {
-      _userSessionDatabases.remove(sessionName)?.close();
+      unawaited(_userSessionDatabases.remove(sessionName)?.close());
     });
     return existing;
   }
@@ -91,7 +91,7 @@ AppDatabase appDatabase(Ref ref) {
   final db = AppDatabase(name: sessionName);
   _userSessionDatabases[sessionName] = db;
   ref.onDispose(() {
-    _userSessionDatabases.remove(sessionName)?.close();
+    unawaited(_userSessionDatabases.remove(sessionName)?.close());
   });
   return db;
 }

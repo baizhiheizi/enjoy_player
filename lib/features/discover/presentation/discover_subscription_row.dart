@@ -1,6 +1,8 @@
 /// Single row in the Discover subscriptions management list.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -93,7 +95,7 @@ class DiscoverSubscriptionRow extends ConsumerWidget {
         onTap: navigateToFeed
             ? () {
                 Haptics.selection(context);
-                context.push('/discover/channel/${channel.channelId}');
+                unawaited(context.push('/discover/channel/${channel.channelId}'));
               }
             : null,
         child: row,

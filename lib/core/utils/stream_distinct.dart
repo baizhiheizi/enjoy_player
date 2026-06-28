@@ -17,6 +17,7 @@ import 'dart:async';
 extension StreamDistinctExt<T> on Stream<T> {
   Stream<T> distinctBy(bool Function(T previous, T current) equals) {
     late StreamController<T> controller;
+    // ignore: cancel_subscriptions — cancelled in [StreamController.onCancel].
     StreamSubscription<T>? upstream;
 
     controller = StreamController<T>(
@@ -32,7 +33,7 @@ extension StreamDistinctExt<T> on Stream<T> {
           },
           onError: controller.addError,
           onDone: () {
-            if (!controller.isClosed) controller.close();
+            if (!controller.isClosed) unawaited(controller.close());
           },
         );
       },

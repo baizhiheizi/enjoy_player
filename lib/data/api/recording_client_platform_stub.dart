@@ -6,7 +6,7 @@
 /// client platform string is intentionally undefined rather than a
 /// misleading `'web'` default.
 String recordingClientPlatformValue() => throw UnsupportedError(
-      'recordingClientPlatformValue: no platform-specific implementation '
-      'was selected by the conditional import. Enjoy Player targets '
-      'Android, iOS, macOS, and Windows only.',
-    );
+  'recordingClientPlatformValue: no platform-specific implementation '
+  'was selected by the conditional import. Enjoy Player targets '
+  'Android, iOS, macOS, and Windows only.',
+);

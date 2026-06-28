@@ -1,6 +1,8 @@
 /// Read-only list of shortcuts (web `HotkeysHelpModal` parity) — premium cheatsheet.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -179,7 +181,7 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                     onPressed: () {
                       final router = GoRouter.of(context);
                       Navigator.of(context).pop();
-                      router.push('/settings/keyboard');
+                      unawaited(router.push('/settings/keyboard'));
                     },
                     child: Text(l10n.hotkeysHelpCustomize),
                   ),

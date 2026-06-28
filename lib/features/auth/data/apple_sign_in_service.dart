@@ -47,10 +47,7 @@ class AppleSignInService {
     final given = credential.givenName;
     final family = credential.familyName;
     if (given != null || family != null) {
-      fullName = {
-        if (given != null) 'givenName': given,
-        if (family != null) 'familyName': family,
-      };
+      fullName = {'givenName': ?given, 'familyName': ?family};
     }
     return AppleSignInCredentials(
       identityToken: identityToken,

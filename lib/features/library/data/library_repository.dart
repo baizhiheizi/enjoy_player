@@ -107,8 +107,8 @@ class MediaLibraryRepository {
         emit(controller);
       }, onError: controller.addError);
       controller.onCancel = () {
-        subV.cancel();
-        subA.cancel();
+        unawaited(subV.cancel());
+        unawaited(subA.cancel());
       };
     });
   }
@@ -547,9 +547,7 @@ Duration? _probeDurationInIsolate(String ffmpeg, String input) {
   }
   final stderr = result.stderr is String
       ? result.stderr as String
-      : String.fromCharCodes(
-          (result.stderr as List<int>?) ?? const <int>[],
-        );
+      : String.fromCharCodes((result.stderr as List<int>?) ?? const <int>[]);
   final sec = FfmpegMediaProbe.parseDurationSeconds(stderr);
   if (sec == null || sec <= 0) return null;
   return Duration(seconds: sec);

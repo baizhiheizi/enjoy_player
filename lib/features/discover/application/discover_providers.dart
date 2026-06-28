@@ -41,6 +41,16 @@ Stream<List<DiscoverChannel>> discoverSubscriptions(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchSubscriptions();
 }
 
+/// Waits until [channelId] appears on [discoverSubscriptionsProvider]'s stream.
+Future<void> waitForDiscoverSubscription(WidgetRef ref, String channelId) async {
+  final repo = ref.read(discoverRepositoryProvider);
+  if (await repo.getSubscription(channelId) != null) return;
+
+  await repo.watchSubscriptions().firstWhere(
+    (subs) => subs.any((s) => s.channelId == channelId),
+  );
+}
+
 @Riverpod(keepAlive: true)
 Stream<List<FeedEntry>> discoverTimeline(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchTimeline();

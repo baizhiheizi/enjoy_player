@@ -40,10 +40,14 @@ class RecordingTargetSyncService {
     final errors = <String>[];
     var synced = 0;
     var failed = 0;
-    final cursorKey =
-        SettingsKeys.syncCursorRecordingTarget(targetType, targetId);
-    final cooldownKey =
-        SettingsKeys.syncLastPullAtRecordingTarget(targetType, targetId);
+    final cursorKey = SettingsKeys.syncCursorRecordingTarget(
+      targetType,
+      targetId,
+    );
+    final cooldownKey = SettingsKeys.syncLastPullAtRecordingTarget(
+      targetType,
+      targetId,
+    );
 
     // Cooldown: short-circuit when we just pulled for this target.
     final clock = now ?? DateTime.now();
@@ -51,8 +55,7 @@ class RecordingTargetSyncService {
     final lastPull = lastPullRaw == null
         ? null
         : DateTime.tryParse(lastPullRaw)?.toUtc();
-    if (lastPull != null &&
-        clock.toUtc().difference(lastPull) < _kCooldown) {
+    if (lastPull != null && clock.toUtc().difference(lastPull) < _kCooldown) {
       _log.fine(
         'pullRecordingsForTarget($targetType:$targetId): skipped, '
         'cooldown active (last pull $lastPull, now $clock)',

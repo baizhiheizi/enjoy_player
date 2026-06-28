@@ -53,3 +53,4 @@ Trade-offs, follow-up work, risks.
 | [0027](0027-native-auth-v2.md) | Native auth v2 — Google, Apple, email OTP, PKCE fallback (supersedes 0016 WebView-primary) |
 | [0028](0028-agentic-engine-choice.md) | Agentic workflow engine choice — third-party Anthropic-compatible proxy (proposed) |
 | [0029](0029-supply-chain-risk.md) | Supply-chain risk for pre-release and local-path dependencies |
+| [0030](0030-flutter-lints-baseline-no-custom-lint.md) | Expanded flutter_lints baseline; defer custom_lint |

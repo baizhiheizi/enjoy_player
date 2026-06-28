@@ -52,12 +52,12 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  /// Default Drift database name (guest / signed-out local data).
-  static const String guestDatabaseName = 'enjoy_player';
-
   AppDatabase({QueryExecutor? executor, String name = guestDatabaseName})
     : _dbName = name,
       super(executor ?? driftDatabase(name: name));
+
+  /// Default Drift database name (guest / signed-out local data).
+  static const String guestDatabaseName = 'enjoy_player';
 
   /// Drift / sqlite file name (no path) for this instance.
   ///

@@ -74,7 +74,8 @@ class YoutubeWebViewPollLoop {
               session.emitPlaying(false);
             } else if (jsPaused && session.playing && !jsEnded) {
               session.pausedPollStreak++;
-              if (session.pausedPollStreak >= YoutubeSession.pauseConfirmPollTicks) {
+              if (session.pausedPollStreak >=
+                  YoutubeSession.pauseConfirmPollTicks) {
                 session.pausedPollStreak = 0;
                 session.emitPlaying(false);
                 stop();

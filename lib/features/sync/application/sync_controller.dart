@@ -66,9 +66,7 @@ class SyncCtrl extends _$SyncCtrl {
       // get the guest DB. Defer to a post-frame + a microtask and then
       // re-check; retry up to [_kSignInDbResolveMaxFrames] frames before
       // giving up and logging.
-      for (var attempt = 0;
-          attempt < _kSignInDbResolveMaxFrames;
-          attempt++) {
+      for (var attempt = 0; attempt < _kSignInDbResolveMaxFrames; attempt++) {
         await Future<void>.delayed(Duration.zero);
         if (ref.read(authCtrlProvider).valueOrNull is! AuthSignedIn) return;
         final db = ref.read(appDatabaseProvider);

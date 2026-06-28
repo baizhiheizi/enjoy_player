@@ -1,6 +1,7 @@
 /// Bottom sheet for selecting primary + secondary subtitle tracks.
-// ignore_for_file: deprecated_member_use
 library;
+
+import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
@@ -298,37 +299,50 @@ class _SubtitleTrackPickerSheetState
             ),
           )
         else
-          ...tracks.map(
-            (track) => _TrackTile(
-              track: track,
-              contentPadding: _sheetRowPadding(t),
-              groupValue: primaryId,
-              onTap: () => ref
-                  .read(transcriptRepositoryProvider)
-                  .setActiveTranscript(widget.mediaId, track.id),
-              onDelete: () => _deleteTrack(track),
+          RadioGroup<String?>(
+            groupValue: primaryId,
+            onChanged: (id) {
+              if (id == null) return;
+              unawaited(
+                ref
+                    .read(transcriptRepositoryProvider)
+                    .setActiveTranscript(widget.mediaId, id),
+              );
+            },
+            child: Column(
+              children: tracks
+                  .map(
+                    (track) => _TrackTile(
+                      track: track,
+                      contentPadding: _sheetRowPadding(t),
+                      onDelete: () => _deleteTrack(track),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         SizedBox(height: t.space8),
         _SectionHeader(l10n.subtitlesTranslation),
-        RadioListTile<String?>(
-          contentPadding: _sheetRowPadding(t),
-          value: null,
+        RadioGroup<String?>(
           groupValue: secondaryId,
-          onChanged: (_) => ref
+          onChanged: (id) => ref
               .read(transcriptRepositoryProvider)
-              .setSecondaryTranscript(widget.mediaId, null),
-          title: Text(l10n.subtitlesNone),
-        ),
-        ...tracks.map(
-          (track) => _TrackTile(
-            track: track,
-            contentPadding: _sheetRowPadding(t),
-            groupValue: secondaryId,
-            onTap: () => ref
-                .read(transcriptRepositoryProvider)
-                .setSecondaryTranscript(widget.mediaId, track.id),
-            onDelete: () => _deleteTrack(track),
+              .setSecondaryTranscript(widget.mediaId, id),
+          child: Column(
+            children: [
+              RadioListTile<String?>(
+                contentPadding: _sheetRowPadding(t),
+                value: null,
+                title: Text(l10n.subtitlesNone),
+              ),
+              ...tracks.map(
+                (track) => _TrackTile(
+                  track: track,
+                  contentPadding: _sheetRowPadding(t),
+                  onDelete: () => _deleteTrack(track),
+                ),
+              ),
+            ],
           ),
         ),
         const Divider(),
@@ -516,15 +530,11 @@ class _TrackTile extends StatelessWidget {
   const _TrackTile({
     required this.track,
     required this.contentPadding,
-    required this.groupValue,
-    required this.onTap,
     required this.onDelete,
   });
 
   final TranscriptTrack track;
   final EdgeInsetsGeometry contentPadding;
-  final String? groupValue;
-  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   @override
@@ -540,8 +550,6 @@ class _TrackTile extends StatelessWidget {
     return RadioListTile<String>(
       contentPadding: contentPadding,
       value: track.id,
-      groupValue: groupValue,
-      onChanged: (_) => onTap(),
       title: Text(label),
       subtitle: Padding(
         padding: EdgeInsets.only(top: t.space8),

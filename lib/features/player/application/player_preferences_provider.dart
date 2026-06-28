@@ -1,6 +1,7 @@
 /// Persisted volume / speed / repeat (maps web persisted settings).
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,7 +21,7 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
 
   @override
   PlayerPreferences build() {
-    Future<void>.microtask(_hydrate);
+    unawaited(Future<void>.microtask(_hydrate));
     return PlayerPreferences.defaults;
   }
 
