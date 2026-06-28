@@ -94,15 +94,23 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<AppPreferencesState>>(
+      appPreferencesCtrlProvider,
+      (prev, next) {
+        final nextPrefs = next.valueOrNull;
+        if (nextPrefs == null) return;
+        if (identical(nextPrefs, _lastResolvedPrefs)) return;
+        setState(() {
+          _lastResolvedPrefs = nextPrefs;
+        });
+      },
+    );
+
     final router = ref.watch(appRouterProvider);
     final prefsAsync = ref.watch(appPreferencesCtrlProvider);
     final theme = buildAppTheme();
 
     final live = prefsAsync.valueOrNull;
-    if (live != null) {
-      _lastResolvedPrefs = live;
-    }
-
     final effective = live ?? _lastResolvedPrefs;
 
     if (prefsAsync.hasError && effective == null) {
