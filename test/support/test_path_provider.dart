@@ -8,4 +8,7 @@ class TestPathProvider extends PathProviderPlatform {
 
   @override
   Future<String?> getApplicationDocumentsPath() async => documentsPath;
+
+  @override
+  Future<String?> getTemporaryPath() async => documentsPath;
 }

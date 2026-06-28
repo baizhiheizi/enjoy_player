@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
@@ -52,13 +53,10 @@ void main() {
         action: 'create',
         payloadJson: '{"x":1}',
       );
-      // Drive the row to permanent failure (5 failed attempts).
       for (var i = 0; i < 5; i++) {
         await db.syncQueueDao.markAttempted(id, error: 'fail $i');
       }
 
-      // Editing the entity updates the payload but does NOT reset the
-      // retry budget.
       final id2 = await repo.addOrUpsert(
         entityType: 'audio',
         entityId: 'a1',
@@ -104,4 +102,113 @@ void main() {
       expect(row.lastAttempt, isNull);
     },
   );
+
+  test('addOrUpsert is idempotent for the same composite key', () async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = SyncQueueRepository(db);
+
+    final id1 = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'a1',
+      action: 'create',
+      payloadJson: '{"v":1}',
+    );
+    final id2 = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'a1',
+      action: 'create',
+      payloadJson: '{"v":1}',
+    );
+
+    expect(id2, id1);
+    final rows = await db.select(db.syncQueue).get();
+    expect(rows, hasLength(1));
+  });
+
+  test('different actions on the same entity stay separate rows', () async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = SyncQueueRepository(db);
+
+    final createId = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'a1',
+      action: 'create',
+      payloadJson: '{"v":1}',
+    );
+    final deleteId = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'a1',
+      action: 'delete',
+    );
+
+    expect(deleteId, isNot(createId));
+    final rows = await db.select(db.syncQueue).get();
+    expect(rows, hasLength(2));
+  });
+
+  test('per-user databases keep isolated sync queues', () async {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+    final guestDb = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(guestDb.close);
+    final userDb = AppDatabase(
+      executor: NativeDatabase.memory(),
+      name: 'enjoy_player_user-test',
+    );
+    addTearDown(userDb.close);
+
+    final guestRepo = SyncQueueRepository(guestDb);
+    final userRepo = SyncQueueRepository(userDb);
+
+    await guestRepo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'guest-only',
+      action: 'create',
+      payloadJson: '{}',
+    );
+    await userRepo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'user-only',
+      action: 'create',
+      payloadJson: '{}',
+    );
+
+    expect(await guestDb.select(guestDb.syncQueue).get(), hasLength(1));
+    expect(await userDb.select(userDb.syncQueue).get(), hasLength(1));
+    expect(guestDb.isGuestDatabase, isTrue);
+    expect(userDb.isGuestDatabase, isFalse);
+
+    final guestRow = await guestDb.select(guestDb.syncQueue).getSingle();
+    final userRow = await userDb.select(userDb.syncQueue).getSingle();
+    expect(guestRow.entityId, 'guest-only');
+    expect(userRow.entityId, 'user-only');
+  });
+
+  test('watchSnapshot counts retryable vs permanently failed rows', () async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = SyncQueueRepository(db);
+
+    final retryableId = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'retry',
+      action: 'create',
+    );
+    final failedId = await repo.addOrUpsert(
+      entityType: 'audio',
+      entityId: 'failed',
+      action: 'create',
+    );
+    await db.syncQueueDao.markAttempted(retryableId, error: 'once');
+    for (var i = 0; i < 5; i++) {
+      await db.syncQueueDao.markAttempted(failedId, error: 'fail');
+    }
+
+    final snapshot = await repo.watchSnapshot().first;
+    expect(snapshot.retryablePending, 1);
+    expect(snapshot.permanentlyFailed, 1);
+    expect(snapshot.isFullyCaughtUp, isFalse);
+    expect(snapshot.detailRows, hasLength(2));
+  });
 }
