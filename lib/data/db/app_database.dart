@@ -52,7 +52,18 @@ class AppDatabase extends _$AppDatabase {
   static const String guestDatabaseName = 'enjoy_player';
 
   AppDatabase({QueryExecutor? executor, String name = guestDatabaseName})
-    : super(executor ?? driftDatabase(name: name));
+    : _dbName = name,
+      super(executor ?? driftDatabase(name: name));
+
+  /// Drift / sqlite file name (no path) for this instance.
+  ///
+  /// Used by callers (e.g. `SyncCtrl._onSignedIn`) that need to know
+  /// whether they are about to read the guest DB or a per-user DB
+  /// without having to inspect the executor.
+  final String _dbName;
+
+  /// True when this instance serves the device-global guest file.
+  bool get isGuestDatabase => _dbName == guestDatabaseName;
 
   @override
   int get schemaVersion => 8;

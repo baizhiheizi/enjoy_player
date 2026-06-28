@@ -9,3 +9,7 @@ String recordingClientPlatformValue() {
   if (Platform.isLinux) return 'linux';
   return 'windows';
 }
+
+/// Public alias used by tests to compare against the conditional-import
+/// dispatch result without re-implementing the platform check.
+String recordingClientPlatformIoValue() => recordingClientPlatformValue();
