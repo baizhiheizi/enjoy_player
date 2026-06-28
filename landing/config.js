@@ -3,8 +3,9 @@
 window.ENJOY_CONFIG = {
   bundleId: 'ai.enjoy.player',
 
-  // Public TestFlight invitation link (update when the invite URL changes).
-  testFlightUrl: 'https://testflight.apple.com/join/PLACEHOLDER',
+  // Public TestFlight invitation link — set when a public beta invite is available.
+  // When null, the landing page hides the iOS TestFlight card (no broken 404 link).
+  testFlightUrl: null,
 
   // Google Play open beta test track opt-in.
   playBetaUrl: 'https://play.google.com/apps/testing/ai.enjoy.player',

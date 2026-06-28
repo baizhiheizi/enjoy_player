@@ -69,7 +69,7 @@ function highlightPlatform(os) {
   if (!os) return;
 
   const card = document.getElementById(`card-${os}`);
-  if (!card) return;
+  if (!card || card.hidden) return;
 
   card.classList.add('card--recommended');
 
@@ -93,10 +93,25 @@ function highlightPlatform(os) {
   }
 }
 
+function isUsableTestFlightUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (!trimmed || /PLACEHOLDER/i.test(trimmed)) return false;
+  return trimmed.startsWith('https://testflight.apple.com/join/');
+}
+
 // ── Apply config URLs (store / TestFlight links from config.js) ─
 function applyConfig() {
+  const iosCard = document.getElementById('card-ios');
   const tfBtn = document.getElementById('btn-testflight');
-  if (tfBtn && cfg.testFlightUrl) tfBtn.href = cfg.testFlightUrl;
+  const tfUrl = isUsableTestFlightUrl(cfg.testFlightUrl) ? cfg.testFlightUrl.trim() : null;
+
+  if (iosCard) {
+    iosCard.hidden = !tfUrl;
+    iosCard.setAttribute('aria-hidden', tfUrl ? 'false' : 'true');
+  }
+
+  if (tfBtn && tfUrl) tfBtn.href = tfUrl;
 
   const playBtn = document.getElementById('btn-play-beta');
   if (playBtn && cfg.playBetaUrl) playBtn.href = cfg.playBetaUrl;

@@ -1,20 +1,26 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Tech stack: Flutter/Dart 3.12+, Riverpod, Drift, media_kit (local files), flutter_inappwebview (YouTube).
+  Supported platforms: Android, iOS, macOS, Windows — no Flutter web (AGENTS.md, ADR-0005).
+  Architecture: lib/features/<feature>/{application,data,domain,presentation}; shared code in lib/core or lib/data.
+  Persistence: Drift AppDatabase DAOs only — no raw SQL in widgets.
+  Codegen: run `dart run build_runner build` after @DriftDatabase / @Riverpod changes.
+  Verification: `flutter analyze` and `flutter test`.
+  Docs: architectural decisions → docs/decisions/ (ADRs); behavior changes → docs/features/.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Include Why, What Changes, Capabilities (new vs modified), and Impact sections.
+    - Call out breaking changes, backend/API dependencies, and explicit non-goals.
+    - Reference related ADRs when scope touches architecture or product boundaries.
+  design:
+    - Include Context, Goals/Non-Goals, Decisions (with rejected alternatives), Risks, and Migration Plan.
+    - Link to existing code with relative paths; keep domain models UI-free.
+  specs:
+    - Use SHALL/MUST requirement language with Given/When/Then scenarios.
+    - Place delta specs under changes/<name>/specs/<capability>/spec.md.
+  tasks:
+    - Group tasks by phase (docs, deps, data/domain, application, presentation, tests).
+    - Use checkbox format (- [ ] / - [x]); mark verification steps in the final group.
+    - Keep tasks implementable in isolation where possible (max ~2 hours each).
