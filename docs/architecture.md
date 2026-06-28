@@ -55,6 +55,14 @@ sequenceDiagram
 
 [`AppDatabase`](../lib/data/db/app_database.dart) uses **destructive** `onUpgrade` for schema versions below 6. **v6 → v7** adds Discover tables incrementally without wiping library data. Older upgrades still drop listed tables and recreate them. Plan releases accordingly.
 
+### Per-user database cache
+
+`app_database_provider.dart` keeps the most recent **two** per-user [`AppDatabase`](../lib/data/db/app_database.dart) instances in a bounded `LinkedHashMap`. On sign-in for a third account, the **oldest** entry is closed (and its Drift connections released) before the new one is inserted — see [ADR-0012](decisions/0012-per-user-sqlite-isolation.md) for the per-user isolation rationale. The cap keeps the file-handle / mmap footprint stable across guest ↔ account churn.
+
+#### `transcript_fetch_states` index follow-up
+
+The `transcript_fetch_states` lookup path is currently a sequential scan over `(target_type, target_id)`. A composite index on those two columns is a planned follow-up; track the schema change against the next `onUpgrade` so the index is added without dropping the table.
+
 ## Optional Enjoy account (auth)
 
 - **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).
@@ -64,7 +72,7 @@ sequenceDiagram
 
 ## Routing
 
-[`GoRouter`](../lib/core/routing/app_router.dart) + [`ShellRoute`](../lib/features/player/presentation/root_shell.dart): routes render beside an extended sidebar at wide breakpoints; [`GlobalTransportBar`](../lib/features/player/presentation/widgets/global_transport_bar.dart) spans the bottom when a playback session exists.
+[`GoRouter`](../lib/core/routing/app_router.dart) + [`ShellRoute`](../lib/features/player/presentation/root_shell.dart): routes render beside an extended sidebar at wide breakpoints; [`GlobalTransportBar`](../lib/features/player/presentation/widgets/global_transport_bar.dart) spans the bottom when a playback session exists. An **`errorBuilder`** at the router root renders [`NotFoundScreen`](../lib/core/routing/not_found_screen.dart) (localized en / zh / zh-CN) for unknown locations; the screen surfaces the attempted URI and offers a single primary action to return to `/`.
 
 ## Manual providers
 

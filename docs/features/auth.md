@@ -43,6 +43,19 @@ Backend must host `apple-app-site-association` and Android `assetlinks.json`. Wi
 - **iOS**: Sign in with Apple required when Google is offered; enable capability in Xcode.
 - **macOS**: Keychain Sharing entitlements still required for secure storage (see ADR-0012).
 
+## Secure storage configuration
+
+[`SecureTokenStore`](../../lib/features/auth/data/secure_token_store.dart) pins platform-specific `flutter_secure_storage` options rather than relying on defaults:
+
+- **Android** — `AndroidOptions()` (Keystore v10 with RSA-OAEP / AES-GCM). Tokens written by older builds with legacy ciphers are auto-migrated on first read; the migration is logged at info level so support can spot tenants on stale ciphers.
+- **iOS** — `IOSOptions(accessibility: KeychainAccessibility.first_unlock)` so tokens survive reboot but are gated on the first device unlock after boot, matching Apple's recommended posture for non-background tokens.
+
+If you need to add a new platform-specific option, add a constant in `SecureTokenStore` and document the migration story here — do not change the default globally.
+
+## Deep link lifecycle
+
+The PKCE callback stream is owned by the auth controller and is now properly **cancelled in `dispose()`** — previously a late deep link arriving after a widget unmount could call into a torn-down controller. `getInitialLink()` also has an `onError` handler that swallows platform-channel errors and falls through to the "no pending link" path so a broken platform implementation does not block the sign-in hub.
+
 ## Related ADRs
 
 - [ADR-0006](../decisions/0006-auth-and-profile-sync.md)
