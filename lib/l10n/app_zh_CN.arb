@@ -74,7 +74,7 @@
   "discoverFeedErrorHint": "请检查网络连接后重试。",
   "discoverRetry": "重试",
   "discoverRefreshPartialFailed": "部分频道动态刷新失败。",
-  "discoverRefreshPartialFailedDetail": "无法刷新 {count} 个频道:{names}",
+  "discoverRefreshPartialFailedDetail": "无法刷新 {count} 个频道：{names}",
   "@discoverRefreshPartialFailedDetail": {
     "placeholders": {
       "count": { "type": "int" },

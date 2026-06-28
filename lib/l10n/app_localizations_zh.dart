@@ -203,7 +203,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String discoverRefreshPartialFailedDetail(int count, String names) {
-    return '无法刷新 $count 个频道:$names';
+    return '无法刷新 $count 个频道：$names';
   }
 
   @override
@@ -1965,7 +1965,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String discoverRefreshPartialFailedDetail(int count, String names) {
-    return '无法刷新 $count 个频道:$names';
+    return '无法刷新 $count 个频道：$names';
   }
 
   @override

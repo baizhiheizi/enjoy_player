@@ -6,11 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 class SignInFlowScaffold extends StatelessWidget {
-  const SignInFlowScaffold({
-    super.key,
-    this.appBar,
-    required this.child,
-  });
+  const SignInFlowScaffold({super.key, this.appBar, required this.child});
 
   final PreferredSizeWidget? appBar;
   final Widget child;

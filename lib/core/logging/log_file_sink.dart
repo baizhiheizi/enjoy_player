@@ -97,7 +97,10 @@ class LogFileSink {
 
   Future<void> _rotate() async {
     final oldest = File(
-      p.join(_directory.path, '$kLogFileBaseName.${kLogFileRetentionCount - 1}'),
+      p.join(
+        _directory.path,
+        '$kLogFileBaseName.${kLogFileRetentionCount - 1}',
+      ),
     );
     if (oldest.existsSync()) {
       await oldest.delete();

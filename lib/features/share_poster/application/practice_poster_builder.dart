@@ -20,8 +20,7 @@ Future<List<RecordingRow>> listRecordingsForTarget(
 }) {
   return (db.select(db.recordings)
         ..where(
-          (t) =>
-              t.targetType.equals(targetType) & t.targetId.equals(targetId),
+          (t) => t.targetType.equals(targetType) & t.targetId.equals(targetId),
         )
         ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
       .get();

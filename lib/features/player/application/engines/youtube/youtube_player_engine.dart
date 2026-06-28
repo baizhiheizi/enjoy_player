@@ -235,10 +235,7 @@ class YoutubePlayerEngine implements PlayerEngine {
           children: [
             const ColoredBox(color: Colors.black),
             if (shouldMountWebView) buildWebViewHost(),
-            YoutubeVideoPoster(
-              primaryUrl: _posterUrl,
-              visible: showPoster,
-            ),
+            YoutubeVideoPoster(primaryUrl: _posterUrl, visible: showPoster),
           ],
         );
       },
@@ -438,18 +435,14 @@ class YoutubePlayerEngine implements PlayerEngine {
     required bool isForMainFrame,
   }) {
     if (!isForMainFrame) return;
-    _logYoutube.warning(
-      'youtube main-frame HTTP $statusCode url=${url ?? ''}',
-    );
+    _logYoutube.warning('youtube main-frame HTTP $statusCode url=${url ?? ''}');
   }
 
   void onWebResourceLoadError({
     required String url,
     required String description,
   }) {
-    _logYoutube.warning(
-      'youtube load error url=$url msg=$description',
-    );
+    _logYoutube.warning('youtube load error url=$url msg=$description');
   }
 
   Future<void> _recoverStalledPlayback() async {
@@ -480,7 +473,9 @@ class YoutubePlayerEngine implements PlayerEngine {
     final controller = _webController;
     final vid = _videoId;
     if (controller == null || vid.isEmpty || _disposed) return;
-    _logYoutube.warning('youtube WebView process terminated; reloading vid=$vid');
+    _logYoutube.warning(
+      'youtube WebView process terminated; reloading vid=$vid',
+    );
     _prepareWatchReload(resetFirstPlaying: true);
     _emitBuffering(true);
     _emitPlaying(false);
@@ -567,9 +562,7 @@ class YoutubePlayerEngine implements PlayerEngine {
 
     if (_videoId.isNotEmpty && !initialWatchUrlRequested) {
       unawaited(_loadCurrentVideoIfAttached());
-      unawaited(
-        _ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true),
-      );
+      unawaited(_ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true));
     } else if (_videoId.isNotEmpty) {
       // Cold mount: [initialUrlRequest] is already navigating — do not reload at 2s
       // (causes "connection was stopped" and delays first frame until stall recovery).
@@ -708,11 +701,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     if (_nonWatchRecoveryScheduled) return;
     _nonWatchRecoveryScheduled = true;
     _logYoutube.info('youtube non-watch load_stop; verifying watch page');
-    unawaited(
-      _ensureWatchPageLoadedAfterDelay(
-        skipIfLoadStopReceived: true,
-      ),
-    );
+    unawaited(_ensureWatchPageLoadedAfterDelay(skipIfLoadStopReceived: true));
   }
 
   void _schedulePollKick() {
@@ -740,9 +729,7 @@ class YoutubePlayerEngine implements PlayerEngine {
     }
   }
 
-  Future<void> onNativeFullscreenExit(
-    InAppWebViewController controller,
-  ) async {
+  Future<void> onNativeFullscreenExit(InAppWebViewController controller) async {
     await YoutubeWebViewBridge.forceInlinePlayback(controller);
     if (_playing && !_playbackCompleted) {
       await YoutubeWebViewBridge.play(controller);

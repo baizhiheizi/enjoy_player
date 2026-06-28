@@ -58,8 +58,8 @@ void main() {
       final manifestFile = archive.files.firstWhere(
         (f) => f.name == 'manifest.json',
       );
-      final decoded = jsonDecode(utf8.decode(manifestFile.content))
-          as Map<String, dynamic>;
+      final decoded =
+          jsonDecode(utf8.decode(manifestFile.content)) as Map<String, dynamic>;
       expect(decoded['appVersion'], '0.2.1');
     });
   });

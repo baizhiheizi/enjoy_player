@@ -10,10 +10,7 @@ import 'package:enjoy_player/features/player/application/youtube_open_preview_pr
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 
 class YoutubeLoadingVideoStage extends ConsumerWidget {
-  const YoutubeLoadingVideoStage({
-    required this.mediaId,
-    super.key,
-  });
+  const YoutubeLoadingVideoStage({required this.mediaId, super.key});
 
   final String mediaId;
 

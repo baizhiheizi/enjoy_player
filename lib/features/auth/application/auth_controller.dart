@@ -217,7 +217,7 @@ class AuthCtrl extends _$AuthCtrl {
       if (gen != _flowGeneration) return;
       _cancelPkceTimeout();
       state = AsyncData(AuthSignedIn(profile: profile));
-    } on AuthFailure catch (e) {
+    } on AuthFailure {
       if (gen != _flowGeneration) return;
       _cancelPkceTimeout();
       state = const AsyncData(AuthSignedOut());

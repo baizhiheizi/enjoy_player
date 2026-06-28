@@ -258,12 +258,7 @@ class DiscoverRepository {
       );
       results.addAll(
         await Future.wait(
-          batch.map(
-            (sub) => _refreshChannelGuarded(
-              sub,
-              fetchedAt: now,
-            ),
-          ),
+          batch.map((sub) => _refreshChannelGuarded(sub, fetchedAt: now)),
         ),
       );
     }
@@ -343,9 +338,7 @@ class DiscoverRepository {
           channelId: channelId,
           videoId: entry.videoId,
         );
-        final libraryVideo = await _db.videoDao.getYoutubeByVid(
-          entry.videoId,
-        );
+        final libraryVideo = await _db.videoDao.getYoutubeByVid(entry.videoId);
         final durationSeconds =
             libraryVideo != null && libraryVideo.durationSeconds > 0
             ? libraryVideo.durationSeconds
@@ -425,34 +418,31 @@ class DiscoverRepository {
     final tasks = <Future<void>>[];
     for (final entry in immutableEntries) {
       await acquire();
-      tasks.add(
-        () async {
-          try {
-            final cached = await _db.youtubeFeedEntryDao.getEntry(
-              channelId: channelId,
-              videoId: entry.videoId,
-            );
-            if (cached?.durationSeconds != null &&
-                cached!.durationSeconds! > 0) {
-              return;
-            }
-
-            final seconds = await YoutubeVideoDuration.fetchSeconds(
-              _client,
-              entry.videoId,
-            );
-            if (seconds == null || seconds <= 0) return;
-
-            await _db.youtubeFeedEntryDao.updateDurationSeconds(
-              channelId: channelId,
-              videoId: entry.videoId,
-              durationSeconds: seconds,
-            );
-          } finally {
-            release();
+      tasks.add(() async {
+        try {
+          final cached = await _db.youtubeFeedEntryDao.getEntry(
+            channelId: channelId,
+            videoId: entry.videoId,
+          );
+          if (cached?.durationSeconds != null && cached!.durationSeconds! > 0) {
+            return;
           }
-        }(),
-      );
+
+          final seconds = await YoutubeVideoDuration.fetchSeconds(
+            _client,
+            entry.videoId,
+          );
+          if (seconds == null || seconds <= 0) return;
+
+          await _db.youtubeFeedEntryDao.updateDurationSeconds(
+            channelId: channelId,
+            videoId: entry.videoId,
+            durationSeconds: seconds,
+          );
+        } finally {
+          release();
+        }
+      }());
     }
     await Future.wait(tasks);
   }

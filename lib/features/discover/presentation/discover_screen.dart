@@ -14,7 +14,6 @@ import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
-import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_filter_strip.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
@@ -43,7 +42,7 @@ class DiscoverScreen extends ConsumerWidget {
           .refresh(force: true);
       if (!context.mounted) return;
       if (result.hasFailures) {
-        _showPartialFailure(context, ref, result);
+        _showPartialFailure(context, ref, result.failedChannelIds);
       }
     }
 
@@ -124,7 +123,7 @@ class DiscoverScreen extends ConsumerWidget {
 void _showPartialFailure(
   BuildContext context,
   WidgetRef ref,
-  DiscoverRefreshResult result,
+  List<String> failedChannelIds,
 ) {
   final l10n = AppLocalizations.of(context)!;
   final subs = ref.read(discoverSubscriptionsProvider).valueOrNull ?? const [];
@@ -135,20 +134,14 @@ void _showPartialFailure(
     return id;
   }
 
-  final names = result.failedChannelIds.map(label).toList(growable: false);
+  final names = failedChannelIds.map(label).toList(growable: false);
   if (names.length == 1) {
-    AppNotice.error(
-      context,
-      l10n.discoverRefreshSingleFailed(names.first),
-    );
+    AppNotice.error(context, l10n.discoverRefreshSingleFailed(names.first));
     return;
   }
   AppNotice.error(
     context,
-    l10n.discoverRefreshPartialFailedDetail(
-      names.length,
-      names.join(', '),
-    ),
+    l10n.discoverRefreshPartialFailedDetail(names.length, names.join(', ')),
   );
 }
 

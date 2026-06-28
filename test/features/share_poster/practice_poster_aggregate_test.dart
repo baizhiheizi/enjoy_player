@@ -43,10 +43,7 @@ void main() {
     });
 
     test('complete sentence with period is not incomplete', () {
-      expect(
-        isLikelyIncompleteSentence('Longer practiced line.'),
-        isFalse,
-      );
+      expect(isLikelyIncompleteSentence('Longer practiced line.'), isFalse);
     });
 
     test('CJK terminal punctuation is complete', () {
@@ -120,9 +117,7 @@ void main() {
       );
       final quote = resolvePracticePosterQuote(
         lines: const [lineWithMarkup],
-        recordings: [
-          _recording(id: 'a', start: 100, duration: 500),
-        ],
+        recordings: [_recording(id: 'a', start: 100, duration: 500)],
       );
       expect(quote?.line.text, "JUST 'CAUSE I DON'T");
     });
@@ -159,9 +154,7 @@ void main() {
     test('appends ellipsis for incomplete fragment', () {
       final quote = resolvePracticePosterQuote(
         lines: const [lineFragment],
-        recordings: [
-          _recording(id: 'a', start: 3100, duration: 500),
-        ],
+        recordings: [_recording(id: 'a', start: 3100, duration: 500)],
       );
       expect(quote?.line.displayText, endsWith('...'));
       expect(quote?.line.trailingEllipsis, isTrue);
@@ -195,12 +188,7 @@ void main() {
       final quote = resolvePracticePosterQuote(
         lines: const [],
         recordings: [
-          _recording(
-            id: 'a',
-            start: 0,
-            duration: 400,
-            referenceText: 'Short',
-          ),
+          _recording(id: 'a', start: 0, duration: 400, referenceText: 'Short'),
           _recording(
             id: 'b',
             start: 0,

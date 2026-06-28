@@ -28,7 +28,11 @@ class PlaybackSessionPersister {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 450), () async {
       _debounce = null;
-      await _flush(mediaId: mediaId, dexieTargetType: dexieTargetType, session: session);
+      await _flush(
+        mediaId: mediaId,
+        dexieTargetType: dexieTargetType,
+        session: session,
+      );
     });
   }
 
@@ -45,7 +49,11 @@ class PlaybackSessionPersister {
     if (timer == null) return;
     timer.cancel();
     _debounce = null;
-    await _flush(mediaId: mediaId, dexieTargetType: dexieTargetType, session: session);
+    await _flush(
+      mediaId: mediaId,
+      dexieTargetType: dexieTargetType,
+      session: session,
+    );
   }
 
   Future<void> _flush({

@@ -66,10 +66,9 @@ Future<void> _runRecordingPull(
   required bool Function() isStale,
 }) async {
   if (isStale()) return;
-  await ref.read(recordingTargetSyncServiceProvider).pullRecordingsForTarget(
-    targetType: dexieTargetType,
-    targetId: mediaId,
-  );
+  await ref
+      .read(recordingTargetSyncServiceProvider)
+      .pullRecordingsForTarget(targetType: dexieTargetType, targetId: mediaId);
 }
 
 /// Lazy oEmbed retry after YouTube WebView reports playback-ready.

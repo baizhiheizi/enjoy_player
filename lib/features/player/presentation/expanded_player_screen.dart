@@ -60,9 +60,6 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       return ExpandedPlayerGenericErrorBody(colorScheme: cs);
     }
 
-    return ExpandedPlayerLoadingBody(
-      colorScheme: cs,
-      mediaId: widget.mediaId,
-    );
+    return ExpandedPlayerLoadingBody(colorScheme: cs, mediaId: widget.mediaId);
   }
 }

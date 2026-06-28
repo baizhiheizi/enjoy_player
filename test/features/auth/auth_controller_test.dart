@@ -81,11 +81,7 @@ void main() {
     await container.read(authCtrlProvider.future);
     container.read(authCtrlProvider.notifier).state = const AsyncData(
       AuthSignedIn(
-        profile: UserProfile(
-          id: 'u1',
-          email: 'user@example.com',
-          name: 'User',
-        ),
+        profile: UserProfile(id: 'u1', email: 'user@example.com', name: 'User'),
       ),
     );
 

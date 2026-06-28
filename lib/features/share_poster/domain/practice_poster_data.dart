@@ -54,6 +54,7 @@ class PracticePosterData {
   final String title;
   final String coverSeed;
   final bool isVideo;
+
   /// Current video frame captured while echo mode is active.
   final Uint8List? echoCoverBytes;
   final String? localThumbnailPath;
@@ -67,7 +68,8 @@ class PracticePosterData {
 }
 
 /// Computes poster stats from local recordings and transcript lines.
-({int takes, int sentencesPracticed, int spokenDurationMs}) computePracticePosterStats({
+({int takes, int sentencesPracticed, int spokenDurationMs})
+computePracticePosterStats({
   required List<RecordingRow> recordings,
   required List<TranscriptLine> lines,
 }) {
@@ -91,9 +93,7 @@ class PracticePosterData {
   );
 }
 
-final RegExp _sentenceEndPattern = RegExp(
-  r'''[.!?。！？…]["'\”\」\』]?\s*$''',
-);
+final RegExp _sentenceEndPattern = RegExp(r'''[.!?。！？…]["'\”\」\』]?\s*$''');
 
 /// Subtitle cues are often mid-sentence fragments — treat as incomplete unless
 /// they end with recognizable sentence punctuation.

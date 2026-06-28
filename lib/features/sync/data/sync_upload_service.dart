@@ -54,7 +54,11 @@ class SyncUploadService {
       final response = await _audioApi.audio(row.id);
       inner = unwrapEntity(response, 'audio');
     }
-    final serverUpdated = _requireServerUpdated(inner, entity: 'audio', id: row.id);
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'audio',
+      id: row.id,
+    );
     await _db.audioDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),
@@ -86,7 +90,11 @@ class SyncUploadService {
     VideoRow row,
     Map<String, dynamic> inner,
   ) async {
-    final serverUpdated = _requireServerUpdated(inner, entity: 'video', id: row.id);
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'video',
+      id: row.id,
+    );
     await _db.videoDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),
@@ -102,8 +110,11 @@ class SyncUploadService {
       prepareForSyncRecordingMap(row),
     );
     final inner = unwrapEntity(response, 'recording');
-    final serverUpdated =
-        _requireServerUpdated(inner, entity: 'recording', id: row.id);
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'recording',
+      id: row.id,
+    );
     await _db.recordingDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),

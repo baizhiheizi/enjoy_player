@@ -86,9 +86,7 @@ DiagnosticExportManifest defaultExportManifest({
   required String buildNumber,
   String? locale,
 }) {
-  final mode = kReleaseMode
-      ? 'release'
-      : (kProfileMode ? 'profile' : 'debug');
+  final mode = kReleaseMode ? 'release' : (kProfileMode ? 'profile' : 'debug');
   return DiagnosticExportManifest(
     appVersion: appVersion,
     buildNumber: buildNumber,

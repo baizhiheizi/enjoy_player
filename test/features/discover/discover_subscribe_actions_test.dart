@@ -40,17 +40,13 @@ class _SubscribeHarness extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FilledButton(
-      onPressed: () =>
-          subscribeRecommendedChannel(context, ref, channel),
+      onPressed: () => subscribeRecommendedChannel(context, ref, channel),
       child: const Text('Subscribe recommended'),
     );
   }
 }
 
-Widget _wrap({
-  required AppDatabase db,
-  required DiscoverRepository repo,
-}) {
+Widget _wrap({required AppDatabase db, required DiscoverRepository repo}) {
   return ProviderScope(
     overrides: [
       appDatabaseProvider.overrideWithValue(db),
@@ -64,9 +60,7 @@ Widget _wrap({
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(
-        body: _SubscribeHarness(channel: _recommended),
-      ),
+      home: const Scaffold(body: _SubscribeHarness(channel: _recommended)),
     ),
   );
 }
@@ -123,10 +117,7 @@ void main() {
         await db.youtubeChannelSubscriptionDao.getByChannelId(_channelId),
         isNull,
       );
-      expect(
-        find.text('Could not subscribe to that channel.'),
-        findsOneWidget,
-      );
+      expect(find.text('Could not subscribe to that channel.'), findsOneWidget);
     });
   });
 }

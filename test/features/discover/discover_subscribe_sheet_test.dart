@@ -67,26 +67,27 @@ void main() {
       await db.close();
     });
 
-    testWidgets('opens scroll-controlled sheet with input and subscribe action', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          db: db,
-          repo: repo,
-          onOpenSheet: () => showDiscoverSubscribeSheet(
-            tester.element(find.text('Open sheet')),
+    testWidgets(
+      'opens scroll-controlled sheet with input and subscribe action',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            db: db,
+            repo: repo,
+            onOpenSheet: () => showDiscoverSubscribeSheet(
+              tester.element(find.text('Open sheet')),
+            ),
           ),
-        ),
-      );
+        );
 
-      await _openSheet(tester);
+        await _openSheet(tester);
 
-      expect(find.text('Subscribe to channel'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.byType(SingleChildScrollView), findsOneWidget);
-      expect(find.text('Subscribe'), findsOneWidget);
-    });
+        expect(find.text('Subscribe to channel'), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
+        expect(find.byType(SingleChildScrollView), findsOneWidget);
+        expect(find.text('Subscribe'), findsOneWidget);
+      },
+    );
 
     testWidgets('rebuilds safely when keyboard viewInsets change while open', (
       tester,
@@ -114,36 +115,37 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('dismiss via drag after keyboard inset changes does not throw', (
-      tester,
-    ) async {
-      addTearDown(tester.view.reset);
+    testWidgets(
+      'dismiss via drag after keyboard inset changes does not throw',
+      (tester) async {
+        addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(
-        _wrap(
-          db: db,
-          repo: repo,
-          onOpenSheet: () => showDiscoverSubscribeSheet(
-            tester.element(find.text('Open sheet')),
+        await tester.pumpWidget(
+          _wrap(
+            db: db,
+            repo: repo,
+            onOpenSheet: () => showDiscoverSubscribeSheet(
+              tester.element(find.text('Open sheet')),
+            ),
           ),
-        ),
-      );
-      await _openSheet(tester);
+        );
+        await _openSheet(tester);
 
-      await tester.enterText(find.byType(TextField), _channelId);
+        await tester.enterText(find.byType(TextField), _channelId);
 
-      tester.view.viewInsets = const FakeViewPadding(bottom: 336);
-      await tester.pump();
+        tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+        await tester.pump();
 
-      tester.view.viewInsets = FakeViewPadding.zero;
-      await tester.pump();
+        tester.view.viewInsets = FakeViewPadding.zero;
+        await tester.pump();
 
-      await tester.drag(find.byType(BottomSheet), const Offset(0, 500));
-      await tester.pumpAndSettle();
+        await tester.drag(find.byType(BottomSheet), const Offset(0, 500));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Subscribe to channel'), findsNothing);
-      expect(tester.takeException(), isNull);
-    });
+        expect(find.text('Subscribe to channel'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('submit with channel id subscribes and closes sheet', (
       tester,

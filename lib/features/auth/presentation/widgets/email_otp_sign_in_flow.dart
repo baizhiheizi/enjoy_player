@@ -140,9 +140,8 @@ class _EmailOtpSignInFlowState extends ConsumerState<EmailOtpSignInFlow> {
                       hasError: _otpHasError,
                       onVerify: _verifyOtp,
                       onChangeEmail: () => _changeEmail(otp),
-                      onResend: () => _run(
-                        ref.read(authCtrlProvider.notifier).resendOtp,
-                      ),
+                      onResend: () =>
+                          _run(ref.read(authCtrlProvider.notifier).resendOtp),
                     )
                   : _EmailStep(
                       key: const ValueKey<String>('email-step'),
@@ -433,9 +432,7 @@ class _OtpStepState extends State<_OtpStep> {
                 Expanded(
                   child: Text(
                     widget.otp.email,
-                    style: tt.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

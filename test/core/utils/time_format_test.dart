@@ -26,10 +26,7 @@ void main() {
     test('minutes wrap past 60 by carrying into hours', () {
       // Duration stores minutes up to 59; the implementation uses
       // inMinutes.remainder(60) so 75 minutes becomes 01:15:00.
-      expect(
-        formatDurationHms(const Duration(minutes: 75)),
-        '01:15:00',
-      );
+      expect(formatDurationHms(const Duration(minutes: 75)), '01:15:00');
     });
 
     test('exactly one hour renders as 01:00:00 (zero-padded)', () {
@@ -40,9 +37,7 @@ void main() {
 
     test('hours, minutes, and seconds are zero-padded', () {
       expect(
-        formatDurationHms(
-          const Duration(hours: 2, minutes: 3, seconds: 4),
-        ),
+        formatDurationHms(const Duration(hours: 2, minutes: 3, seconds: 4)),
         '02:03:04',
       );
     });

@@ -120,10 +120,7 @@ class PracticePosterWidget extends StatelessWidget {
               ),
               if (hasQuote) ...[
                 const Spacer(),
-                _PracticePosterQuoteBlock(
-                  quote: data.quote!,
-                  accent: accent,
-                ),
+                _PracticePosterQuoteBlock(quote: data.quote!, accent: accent),
                 const Spacer(),
               ] else
                 const Spacer(),
@@ -170,10 +167,7 @@ class PracticePosterWidget extends StatelessWidget {
 }
 
 class _PracticePosterQuoteBlock extends StatelessWidget {
-  const _PracticePosterQuoteBlock({
-    required this.quote,
-    required this.accent,
-  });
+  const _PracticePosterQuoteBlock({required this.quote, required this.accent});
 
   final PracticePosterQuote quote;
   final Color accent;
@@ -239,7 +233,10 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
 
     if (!RegExp(r'\s').hasMatch(trimmed)) {
       if (trimmed.length <= cjkCharCount) return (trimmed, '');
-      return (trimmed.substring(0, cjkCharCount), trimmed.substring(cjkCharCount));
+      return (
+        trimmed.substring(0, cjkCharCount),
+        trimmed.substring(cjkCharCount),
+      );
     }
 
     final matches = RegExp(r'\S+').allMatches(trimmed).toList();
@@ -256,10 +253,7 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
     const fontSize = 18.0;
     const markSize = 32.0;
     final quoteText = quote.line.displayText;
-    final primaryStyle = _quoteTextStyle(
-      opacity: 0.97,
-      fontSize: fontSize,
-    );
+    final primaryStyle = _quoteTextStyle(opacity: 0.97, fontSize: fontSize);
     final markStyle = _quoteMarkStyle(accent, fontSize: markSize);
 
     return Row(
@@ -287,10 +281,7 @@ class _PracticePosterQuoteBlock extends StatelessWidget {
 }
 
 class _PracticePosterFooter extends StatelessWidget {
-  const _PracticePosterFooter({
-    required this.labels,
-    required this.accent,
-  });
+  const _PracticePosterFooter({required this.labels, required this.accent});
 
   final PracticePosterLabels labels;
   final Color accent;
@@ -339,11 +330,7 @@ class _PracticePosterFooter extends StatelessWidget {
 }
 
 class PracticePosterCover extends StatefulWidget {
-  const PracticePosterCover({
-    super.key,
-    required this.data,
-    this.onCoverReady,
-  });
+  const PracticePosterCover({super.key, required this.data, this.onCoverReady});
 
   final PracticePosterData data;
   final VoidCallback? onCoverReady;

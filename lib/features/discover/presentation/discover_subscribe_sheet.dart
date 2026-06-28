@@ -29,7 +29,8 @@ class _DiscoverSubscribeSheet extends ConsumerStatefulWidget {
       _DiscoverSubscribeSheetState();
 }
 
-class _DiscoverSubscribeSheetState extends ConsumerState<_DiscoverSubscribeSheet> {
+class _DiscoverSubscribeSheetState
+    extends ConsumerState<_DiscoverSubscribeSheet> {
   late final TextEditingController _controller;
   var _submitting = false;
 
@@ -54,7 +55,9 @@ class _DiscoverSubscribeSheetState extends ConsumerState<_DiscoverSubscribeSheet
       await ref.read(discoverRepositoryProvider).subscribeFromUserInput(input);
       await Future<void>.delayed(Duration.zero);
       if (!mounted) return;
-      await ref.read(discoverRefreshStateProvider.notifier).refresh(force: true);
+      await ref
+          .read(discoverRefreshStateProvider.notifier)
+          .refresh(force: true);
       if (!mounted) return;
       Navigator.pop(context);
       AppNotice.success(context, l10n.discoverSubscribed);

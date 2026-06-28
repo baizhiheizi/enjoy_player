@@ -164,9 +164,9 @@ class _PracticePosterPreviewSheetState
               SizedBox(height: t.space12),
               Text(
                 l10n.practicePosterPreviewTitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: t.space16),
@@ -198,8 +198,8 @@ class _PracticePosterPreviewSheetState
                     padding: EdgeInsets.only(bottom: t.space12),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final widthScale = constraints.maxWidth /
-                            practicePosterLogicalWidth;
+                        final widthScale =
+                            constraints.maxWidth / practicePosterLogicalWidth;
                         final scale = math.min(1.0, widthScale);
 
                         return Center(

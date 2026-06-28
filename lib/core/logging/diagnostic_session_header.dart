@@ -18,9 +18,7 @@ Future<void> writeDiagnosticSessionHeader({String? localeTag}) async {
   final info = await PackageInfo.fromPlatform();
   final channel = resolveDistributionChannel().name;
   final platform = Platform.operatingSystem;
-  final mode = kReleaseMode
-      ? 'release'
-      : (kProfileMode ? 'profile' : 'debug');
+  final mode = kReleaseMode ? 'release' : (kProfileMode ? 'profile' : 'debug');
   final locale = localeTag ?? Platform.localeName;
   final verbose = DiagnosticLogConfig.verboseEnabled;
   final exe = Platform.resolvedExecutable;

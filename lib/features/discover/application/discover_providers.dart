@@ -157,6 +157,9 @@ class DiscoverFeedRefreshScheduler extends _$DiscoverFeedRefreshScheduler {
     } else {
       _periodic?.cancel();
       _periodic = null;
+      // Allow the post-frame initial refresh to run again after the user
+      // re-subscribes following an empty subscription list.
+      _launchScheduled = false;
     }
 
     return 0;
