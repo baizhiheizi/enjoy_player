@@ -531,6 +531,8 @@
   "settingsAiApiBaseUrl": "AI API 基础地址",
   "settingsAiApiBaseUrlHint": "示例：https://worker.enjoy.bot",
   "settingsAiApiBaseUrlSave": "保存 AI API 地址",
+  "settingsAiApiBaseUrlUseDefault": "使用主 API 地址",
+  "settingsAiApiBaseUrlCleared": "AI API 现在跟随主 API 地址。",
   "settingsAccountSignedOut": "未登录",
   "settingsAccountOpenProfile": "打开个人资料",
   "settingsAccountSignIn": "登录",

@@ -1417,29 +1417,67 @@ class _AiApiBaseUrlEditorState extends ConsumerState<_AiApiBaseUrlEditor> {
           autocorrect: false,
         ),
         SizedBox(height: t.space12),
-        FilledButton(
-          onPressed: (!_loaded || _saving)
-              ? null
-              : () async {
-                  setState(() => _saving = true);
-                  try {
-                    await ref
-                        .read(aiApiBaseUrlProvider.notifier)
-                        .setBaseUrl(_controller.text);
-                    if (context.mounted) {
-                      AppNotice.success(context, l10n.settingsAiApiBaseUrlSave);
-                    }
-                  } finally {
-                    if (mounted) setState(() => _saving = false);
-                  }
-                },
-          child: _saving
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.settingsAiApiBaseUrlSave),
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton(
+                onPressed: (!_loaded || _saving)
+                    ? null
+                    : () async {
+                        setState(() => _saving = true);
+                        try {
+                          await ref
+                              .read(aiApiBaseUrlProvider.notifier)
+                              .setBaseUrl(_controller.text);
+                          if (context.mounted) {
+                            AppNotice.success(
+                              context,
+                              l10n.settingsAiApiBaseUrlSave,
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _saving = false);
+                        }
+                      },
+                child: _saving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.settingsAiApiBaseUrlSave),
+              ),
+            ),
+            SizedBox(width: t.space8),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: (!_loaded || _saving)
+                    ? null
+                    : () async {
+                        setState(() => _saving = true);
+                        try {
+                          await ref
+                              .read(aiApiBaseUrlProvider.notifier)
+                              .clearOverride();
+                          final url = await ref
+                              .read(aiApiBaseUrlProvider.future);
+                          if (mounted) {
+                            _controller.text = url;
+                          }
+                          if (context.mounted) {
+                            AppNotice.success(
+                              context,
+                              l10n.settingsAiApiBaseUrlCleared,
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _saving = false);
+                        }
+                      },
+                child: Text(l10n.settingsAiApiBaseUrlUseDefault),
+              ),
+            ),
+          ],
         ),
       ],
     );

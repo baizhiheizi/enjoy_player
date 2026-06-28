@@ -1305,6 +1305,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiApiBaseUrlSave => 'Save AI API URL';
 
   @override
+  String get settingsAiApiBaseUrlUseDefault => 'Use API URL';
+
+  @override
+  String get settingsAiApiBaseUrlCleared =>
+      'AI API now follows the main API URL.';
+
+  @override
   String get settingsAccountSignedOut => 'Not signed in';
 
   @override

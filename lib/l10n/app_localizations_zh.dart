@@ -1254,6 +1254,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';
 
   @override
+  String get settingsAiApiBaseUrlUseDefault => '使用主 API 地址';
+
+  @override
+  String get settingsAiApiBaseUrlCleared => 'AI API 现在跟随主 API 地址。';
+
+  @override
   String get settingsAccountSignedOut => '未登录';
 
   @override
@@ -3004,6 +3010,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';
+
+  @override
+  String get settingsAiApiBaseUrlUseDefault => '使用主 API 地址';
+
+  @override
+  String get settingsAiApiBaseUrlCleared => 'AI API 现在跟随主 API 地址。';
 
   @override
   String get settingsAccountSignedOut => '未登录';

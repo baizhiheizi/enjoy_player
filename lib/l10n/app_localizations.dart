@@ -2505,6 +2505,18 @@ abstract class AppLocalizations {
   /// **'Save AI API URL'**
   String get settingsAiApiBaseUrlSave;
 
+  /// No description provided for @settingsAiApiBaseUrlUseDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use API URL'**
+  String get settingsAiApiBaseUrlUseDefault;
+
+  /// No description provided for @settingsAiApiBaseUrlCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'AI API now follows the main API URL.'**
+  String get settingsAiApiBaseUrlCleared;
+
   /// No description provided for @settingsAccountSignedOut.
   ///
   /// In en, this message translates to:

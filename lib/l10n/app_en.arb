@@ -545,6 +545,8 @@
   "settingsAiApiBaseUrl": "AI API base URL",
   "settingsAiApiBaseUrlHint": "Example: https://worker.enjoy.bot",
   "settingsAiApiBaseUrlSave": "Save AI API URL",
+  "settingsAiApiBaseUrlUseDefault": "Use API URL",
+  "settingsAiApiBaseUrlCleared": "AI API now follows the main API URL.",
   "settingsAccountSignedOut": "Not signed in",
   "settingsAccountOpenProfile": "Open profile",
   "settingsAccountSignIn": "Sign in",

@@ -618,6 +618,10 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     SettingRow(key: key, value: value),
     mode: InsertMode.insertOrReplace,
   );
+
+  /// Removes a key. No-op when the key is absent.
+  Future<void> deleteValue(String key) =>
+      (delete(settingsKv)..where((t) => t.key.equals(key))).go();
 }
 
 @DriftAccessor(tables: [YoutubeChannelSubscriptions])

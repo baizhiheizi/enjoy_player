@@ -8,13 +8,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/chat_message.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
+import 'package:enjoy_player/features/ai/presentation/ai_playground_azure_error.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:logging/logging.dart';
 
@@ -230,12 +230,13 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
         }
       }
       _append(buf.toString());
-    } on AzureSpeechException catch (e, st) {
-      _log.warning('Assessment failed', e, st);
-      _append('Assessment ${e.code}: ${e.message}');
     } catch (e, st) {
       _log.warning('Assessment failed', e, st);
-      _append('Assessment ${_err(e)}');
+      if (isAzureSpeechException(e)) {
+        _append('Assessment ${formatAzureSpeechError(e)}');
+      } else {
+        _append('Assessment ${_err(e)}');
+      }
     }
   }
 
