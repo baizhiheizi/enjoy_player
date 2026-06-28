@@ -10,9 +10,23 @@ const _kAccessTokenKey = 'enjoy_player.access_token';
 const _kRefreshTokenKey = 'enjoy_player.refresh_token';
 const _kCachedProfileJsonKey = 'enjoy_player.cached_profile_json';
 
+/// Pin Android to the v10 default RSA-OAEP / AES-GCM ciphers (migrates from
+/// the deprecated Jetpack Security `encryptedSharedPreferences` on first read)
+/// and iOS to `first_unlock` so tokens survive device reboot but stay
+/// inaccessible until the user has unlocked the device at least once.
+const _kAndroidOptions = AndroidOptions();
+const _kIosOptions = IOSOptions(
+  accessibility: KeychainAccessibility.first_unlock,
+);
+
 @Riverpod(keepAlive: true)
 SecureTokenStore secureTokenStore(Ref ref) {
-  return SecureTokenStore(const FlutterSecureStorage());
+  return SecureTokenStore(
+    const FlutterSecureStorage(
+      aOptions: _kAndroidOptions,
+      iOptions: _kIosOptions,
+    ),
+  );
 }
 
 /// Thin wrapper around [FlutterSecureStorage].
