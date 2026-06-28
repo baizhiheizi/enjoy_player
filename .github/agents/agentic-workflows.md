@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 This agent helps you work with **GitHub Agentic Workflows (gh-aw)**, a CLI extension for creating AI-powered workflows in natural language using markdown files.
 
+> **Upstream prompts:** Files under `.github/aw/*.md` referenced below are **not vendored** in this repository. Load them from the upstream [`github/gh-aw`](https://github.com/github/gh-aw/tree/main/.github/aw) repo (raw GitHub URLs or `gh api` / web fetch). The local [`.github/skills/agentic-workflows/SKILL.md`](../skills/agentic-workflows/SKILL.md) lists the full path inventory.
+
 ## What This Agent Does
 
 This is a **dispatcher agent** that routes your request to the appropriate specialized prompt based on your task:
@@ -213,7 +215,7 @@ gh aw compile --validate
 
 ## Important Notes
 
-- Always reference the instructions file at `.github/aw/github-agentic-workflows.md` for complete documentation
+- Always reference the instructions file at `github/gh-aw` → `.github/aw/github-agentic-workflows.md` for complete documentation (not copied locally)
 - Use the MCP tool `agentic-workflows` when running in GitHub Copilot Cloud
 - Workflows must be compiled to `.lock.yml` files before running in GitHub Actions
 - **Bash tools are enabled by default** - Don't restrict bash commands unnecessarily since workflows are sandboxed by the AWF

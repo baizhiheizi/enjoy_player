@@ -15,12 +15,10 @@ permissions:
 
 jobs:
   analyze-test:
-    runs-on: [self-hosted, Linux]
+    name: Analyze & test (managed)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Ensure Linux tooling
-        run: bash .github/scripts/ensure_linux_tooling.sh
 
       - uses: ./.github/actions/setup-flutter
 
@@ -29,6 +27,9 @@ jobs:
 
       - name: Forbid new local-path packages
         run: bash .github/scripts/check_no_new_path_deps.sh
+
+      - name: Check for plaintext secrets in tracked files
+        run: bash .github/scripts/check_secrets.sh
 
       - name: Dart format
         run: |

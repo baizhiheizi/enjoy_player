@@ -12,7 +12,9 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [apple-release-ci.md](apple-release-ci.md) | Release | GitHub Actions Apple release workflow & secrets |
 | [android-release-ci.md](android-release-ci.md) | Release | GitHub Actions Android release workflow & secrets |
 | [windows-release-ci.md](windows-release-ci.md) | Release | GitHub Actions Windows release workflow |
-| [ci-self-hosted-runners.md](ci-self-hosted-runners.md) | Release / CI | Self-hosted runner setup for all workflows |
+| [ci.md](ci.md) | Contributors / CI | Hybrid managed + self-hosted CI strategy |
+| [agent-skills.md](agent-skills.md) | AI agents | Canonical skill paths per vendor |
+| [ci-self-hosted-runners.md](ci-self-hosted-runners.md) | Release / CI | Self-hosted runner setup for compile/release workflows |
 | [testing.md](testing.md) | Contributors | Test strategy or CI commands change |
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
 | [features/](features/) | Product + dev | Feature behavior changes |

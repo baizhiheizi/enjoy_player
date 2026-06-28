@@ -1,6 +1,8 @@
 # Self-hosted CI runners
 
-All GitHub Actions workflows in this repo (except **Release Windows**, which still uses GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready) run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
+**Overview:** [ci.md](ci.md) describes the hybrid managed + self-hosted strategy. PR gates (`flutter analyze`, `flutter test`, format, secret scan) run on GitHub-hosted **`ubuntu-latest`** so merges are not blocked when self-hosted runners are offline.
+
+Platform compile smokes and releases (below) run on **self-hosted** runners registered for this repository only, except **Release Windows**, which still uses GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready for publishing. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
 
 Shared workflow pieces:
 
@@ -118,7 +120,7 @@ Windows release/smoke workflows run `windows/scripts/fetch_ffmpeg.ps1` automatic
 
 | Workflow | Runner | Notes |
 |----------|--------|-------|
-| [ci.yml](../.github/workflows/ci.yml) | Linux | analyze, format, test |
+| [ci.yml](../.github/workflows/ci.yml) | GitHub-hosted `ubuntu-latest` | analyze, format, test, secret scan |
 | [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | build_runner drift check |
 | [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | APK + AAB compile smoke |
 | [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | debug + release smoke |
