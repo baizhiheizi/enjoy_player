@@ -3,6 +3,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+@TableIndex(
+  name: 'idx_transcript_fetch_states_target',
+  columns: {#targetType, #targetId},
+)
 @DataClassName('TranscriptFetchStateRow')
 class TranscriptFetchStates extends Table {
   @override

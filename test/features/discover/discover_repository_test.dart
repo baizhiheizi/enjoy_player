@@ -4,6 +4,7 @@ import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/data/youtube_fetch.dart';
 import 'package:enjoy_player/features/discover/data/youtube_rss_parser.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +54,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: 'UCAuUUnT6oDeKwE6v1NGQxug',
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
 
       final result = await repo.refreshFeeds(force: true);
@@ -75,7 +76,7 @@ void main() {
           YoutubeChannelSubscriptionRow(
             channelId: channelId,
             displayName: 'TED',
-            source: 'recommended',
+            source: YoutubeSubscriptionSource.recommended,
             subscribedAt: subscribedAt,
             lastFetchedAt: fetchedAt,
           ),
@@ -84,7 +85,7 @@ void main() {
         await repo.subscribeChannel(
           channelId: channelId,
           displayName: 'TED Talks',
-          source: 'user',
+          source: YoutubeSubscriptionSource.user,
         );
 
         final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -101,7 +102,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: channelId,
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
@@ -126,7 +127,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: oldId,
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
 
       final result = await repo.refreshFeeds(force: true);
@@ -148,7 +149,7 @@ void main() {
       await repo.subscribeChannel(
         channelId: channelId,
         displayName: 'TED',
-        source: 'recommended',
+        source: YoutubeSubscriptionSource.recommended,
       );
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(

@@ -1,4 +1,5 @@
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/recommended_channel.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_recommended_channel_card.dart';
@@ -16,7 +17,7 @@ void main() {
   final subscribedChannel = DiscoverChannel(
     channelId: 'UCtestchannel0001',
     displayName: 'TED',
-    source: 'recommended',
+    source: YoutubeSubscriptionSource.recommended,
     subscribedAt: subscribedAt,
   );
 

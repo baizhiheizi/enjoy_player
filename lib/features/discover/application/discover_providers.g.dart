@@ -487,7 +487,7 @@ final class DiscoverFeedRefreshSchedulerProvider
 }
 
 String _$discoverFeedRefreshSchedulerHash() =>
-    r'6fac9d694011145b3f4b3cdcee3d5e50dd470d45';
+    r'32d18862fc0c280a7c50f583221294b27353805a';
 
 abstract class _$DiscoverFeedRefreshScheduler extends $Notifier<int> {
   int build();
