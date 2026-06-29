@@ -1,3 +1,4 @@
+- [Run 2026-06-29 run 2](notes-2026-06-29-run2.md) — split `settings_screen.dart` 1,605→716 LOC; 14 private widgets extracted into 9 focused files; API URL editors de-duplicated into one parameterized `BaseUrlEditor`; comment on #148
 - [Run 2026-06-29](notes-2026-06-29.md) — extracted generic `listEquals<T>` helper; refactored 3 duplicated element-wise list equality helpers; new Monthly Activity 2026-06 (resume) issue since #12 was closed as "not_planned"
 - [Run 2026-06-27](notes-2026-06-27.md) — deleted dead `lib/core/utils/debounce.dart` (Closes #34); parallelized `DiscoverRepository._refreshChannel` per-entry reads/writes
 - [Historical rollup](historical-notes.md) — 06-23 → 06-26 ×2 condensed for memory budget
