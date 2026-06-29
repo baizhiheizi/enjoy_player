@@ -1,0 +1,29 @@
+name: Agentic egress check
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'docs/decisions/0028-agentic-engine-choice.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - 'docs/decisions/0028-agentic-engine-choice.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify agentic egress allow-list (ADR-0028)
+        run: bash .github/scripts/verify_agentic_egress.sh

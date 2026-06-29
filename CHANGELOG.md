@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- ADR-0028 (proposed) records the third-party Anthropic-compatible proxy used by every agentic workflow and lists the data-egress + retention questions that need owner sign-off.
+- ADR-0028 accepted: agentic workflows route inference through the MiniMax proxy with CI egress allow-list checks; zero-retention posture pending annual re-verification (medium risk).
 
 ## [0.2.3] - 2026-06-24
 

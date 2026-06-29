@@ -1,0 +1,30 @@
+name: OpenSpec drift
+
+on:
+  pull_request:
+    paths:
+      - 'openspec/**'
+  push:
+    branches: [main]
+    paths:
+      - 'openspec/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install OpenSpec CLI
+        run: npm install -g @fission-ai/openspec@1.3.1
+
+      - name: Verify OpenSpec status for active changes
+        run: bash .github/scripts/verify_openspec_status.sh
