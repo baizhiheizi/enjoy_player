@@ -60,17 +60,22 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(guestAppDatabaseProvider);
-    // When no AI base URL is explicitly persisted, follow the main
-    // [ApiBaseUrl] (the worker lives on the same origin as the public
-    // API by default). This keeps the two settings coupled by default
-    // and avoids the "I changed the API URL but the AI still hits the
-    // old host" footgun called out in #83. An explicit override in
-    // settingsKv still wins.
+    // Worker routes (chat, ASR, translation, YouTube transcripts, …) live
+    // on a separate origin from the public API, so with no persisted
+    // override we always default to the worker origin. Following
+    // [apiBaseUrl] here would let the no-override branch land on
+    // `https://enjoy.bot`, which 404s on `/youtube/transcripts`.
+    //
+    // Users who actually want the AI URL to follow a non-default API URL
+    // (e.g. a staging origin where worker + API share a host) can opt in
+    // explicitly via the "Use API URL" button — that calls
+    // [clearOverride], which makes the in-memory state follow
+    // [apiBaseUrl] until the next override. See #83, #105, #120.
     final raw = await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl);
-    if (raw == null) {
-      return ref.watch(apiBaseUrlProvider.future);
-    }
-    return normalizeApiBaseUrl(raw, await ref.read(apiBaseUrlProvider.future));
+    return normalizeApiBaseUrl(
+      raw ?? kDefaultAiApiBaseUrl,
+      kDefaultAiApiBaseUrl,
+    );
   }
 
   /// Persists and refreshes [aiApiClientProvider].
