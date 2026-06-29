@@ -1,6 +1,8 @@
 /// Domain model for a subscribed or recommended YouTube channel.
 library;
 
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
+
 class DiscoverChannel {
   const DiscoverChannel({
     required this.channelId,
@@ -15,8 +17,8 @@ class DiscoverChannel {
   final String displayName;
   final String? thumbnailUrl;
 
-  /// `recommended` or `user`.
-  final String source;
+  /// Bundled catalog vs user-initiated subscription.
+  final YoutubeSubscriptionSource source;
   final DateTime subscribedAt;
   final DateTime? lastFetchedAt;
 

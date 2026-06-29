@@ -3,17 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('YoutubePlaybackStallWatchdog', () {
-    test('fires onStall after timeout when first playing never arrives', () async {
-      final stalled = <String>[];
-      final watchdog = YoutubePlaybackStallWatchdog(
-        timeout: const Duration(milliseconds: 20),
-        onStall: stalled.add,
-      );
+    test(
+      'fires onStall after timeout when first playing never arrives',
+      () async {
+        final stalled = <String>[];
+        final watchdog = YoutubePlaybackStallWatchdog(
+          timeout: const Duration(milliseconds: 20),
+          onStall: stalled.add,
+        );
 
-      watchdog.onLoadStop('abc12345678');
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      expect(stalled, ['abc12345678']);
-    });
+        watchdog.onLoadStop('abc12345678');
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(stalled, ['abc12345678']);
+      },
+    );
 
     test('does not fire when first playing arrives in time', () async {
       final stalled = <String>[];

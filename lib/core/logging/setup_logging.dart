@@ -8,6 +8,7 @@
 /// All builds also persist redacted records to a rotating file when supported.
 library;
 
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
@@ -35,7 +36,7 @@ Future<void> setupAppLogging() async {
         record.stackTrace != null;
 
     if (DiagnosticLogConfig.shouldPersistRecord(record)) {
-      LogFileSink.instance?.writeRecord(record);
+      unawaited(LogFileSink.instance?.writeRecord(record));
     }
 
     if (mirrorToStdout) {

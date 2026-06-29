@@ -208,6 +208,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some channel feeds could not be refreshed.';
 
   @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count channels',
+      one: '1 channel',
+    );
+    return 'Could not refresh $_temp0: $names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return 'Could not refresh $name.';
+  }
+
+  @override
   String get discoverRecommendedLoadFailed =>
       'Could not load recommended channels.';
 
@@ -1305,6 +1321,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAiApiBaseUrlSave => 'Save AI API URL';
 
   @override
+  String get settingsAiApiBaseUrlUseDefault => 'Use API URL';
+
+  @override
+  String get settingsAiApiBaseUrlCleared =>
+      'AI API now follows the main API URL.';
+
+  @override
   String get settingsAccountSignedOut => 'Not signed in';
 
   @override
@@ -1819,4 +1842,69 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get practicePosterLoadError =>
       'Could not load practice data for this video.';
+
+  @override
+  String get notFoundTitle => 'Page not found';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return 'We couldn\'t find $uri.';
+  }
+
+  @override
+  String get notFoundBackHome => 'Back to home';
+
+  @override
+  String get recoveryTitle => 'Local data needs attention';
+
+  @override
+  String get recoverySubtitle =>
+      'Enjoy Player could not open its local database. The most common cause is a partial update. Your data is still on disk; you can copy the error before continuing.';
+
+  @override
+  String get recoveryOpenLogs => 'Open logs folder';
+
+  @override
+  String get recoveryOpenLogsError => 'Could not open the logs folder.';
+
+  @override
+  String get recoveryCopyError => 'Copy error';
+
+  @override
+  String get recoveryCopiedToClipboard => 'Error details copied to clipboard.';
+
+  @override
+  String get recoveryResetLibrary => 'Reset local library';
+
+  @override
+  String get recoveryResetLibrarySubtitle =>
+      'Wipe the local database and start fresh. Your cloud library is not affected. A backup of the current state is written to the application support directory before the wipe.';
+
+  @override
+  String get recoveryResetLibraryConfirmTitle => 'Reset local library?';
+
+  @override
+  String get recoveryResetLibraryConfirmBody =>
+      'This permanently deletes your local library, recordings, transcripts, and sync queue. The cloud library (if signed in) is preserved. A backup is written to the application support directory first.';
+
+  @override
+  String get recoveryResetLibraryConfirmAction => 'Reset everything';
+
+  @override
+  String get recoveryResetLibraryBackupError =>
+      'Backup failed — the local database was not wiped. The error has been logged.';
+
+  @override
+  String get recoveryResetLibrarySuccess =>
+      'Local library reset. Enjoy Player will restart shortly.';
+
+  @override
+  String get recoveryResetLibraryError => 'Could not reset the local library.';
+
+  @override
+  String get widgetErrorTitle => 'Something went wrong';
+
+  @override
+  String get widgetErrorSubtitle =>
+      'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.';
 }

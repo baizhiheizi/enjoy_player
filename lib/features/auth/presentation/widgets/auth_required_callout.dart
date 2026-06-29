@@ -1,6 +1,8 @@
 /// Reusable “sign in to use this feature” UI for Enjoy account–gated flows.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -77,7 +79,7 @@ class AuthRequiredCallout extends ConsumerWidget {
   final bool compact;
 
   void _openSignIn(BuildContext context) {
-    context.push('/sign-in?from=${surface.fromQueryParam}');
+    unawaited(context.push('/sign-in?from=${surface.fromQueryParam}'));
   }
 
   @override

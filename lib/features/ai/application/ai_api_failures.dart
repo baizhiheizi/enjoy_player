@@ -3,7 +3,7 @@ import 'package:enjoy_player/data/api/api_exception.dart';
 
 AppFailure mapApiExceptionToAppFailure(ApiException e) {
   if (e.isUnauthorized) {
-    return AuthFailure(e.message);
+    return AuthFailure(e.message, code: AuthFailureCode.sessionRevoked);
   }
   if (e.statusCode == 402) {
     return CreditsFailure(e.message);

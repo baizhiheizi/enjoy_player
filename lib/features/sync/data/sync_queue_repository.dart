@@ -32,6 +32,13 @@ class SyncQueueRepository {
 
   /// Adds or refreshes a queue row for `(entityType, entityId, action)` —
   /// mirrors web [addSyncQueueItem].
+  ///
+  /// On an existing row, only [payloadJson] is overwritten. The
+  /// `retryCount`, `lastAttempt`, and `error` columns are **preserved**
+  /// so a permanently failed row stays failed even if the entity is
+  /// edited locally — editing the entity should not silently re-arm
+  /// a row that was rejected by the server. To re-arm failed rows
+  /// use [resetFailed].
   Future<int> addOrUpsert({
     required String entityType,
     required String entityId,
@@ -48,16 +55,8 @@ class SyncQueueRepository {
             .getSingleOrNull();
 
     if (existing != null) {
-      await (_db.update(
-        _db.syncQueue,
-      )..where((t) => t.id.equals(existing.id))).write(
-        SyncQueueCompanion(
-          payloadJson: Value(payloadJson),
-          retryCount: const Value(0),
-          error: const Value(null),
-          lastAttempt: const Value(null),
-        ),
-      );
+      await (_db.update(_db.syncQueue)..where((t) => t.id.equals(existing.id)))
+          .write(SyncQueueCompanion(payloadJson: Value(payloadJson)));
       return existing.id;
     }
 

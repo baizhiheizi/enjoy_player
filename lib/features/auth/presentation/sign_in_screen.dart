@@ -262,15 +262,12 @@ class EmailEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final auth = ref.watch(authCtrlProvider).valueOrNull;
 
     return SignInFlowScaffold(
       appBar: AppBar(
         leading: BackButton(
           onPressed: () {
-            if (auth is AuthAwaitingOtp) {
-              ref.read(authCtrlProvider.notifier).cancelSignIn();
-            }
+            ref.read(authCtrlProvider.notifier).cancelSignIn();
             if (context.canPop()) {
               context.pop();
             } else {

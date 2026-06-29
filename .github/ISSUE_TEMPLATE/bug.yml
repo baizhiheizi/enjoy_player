@@ -1,0 +1,102 @@
+name: Bug report
+description: Report broken behavior in Enjoy Player (Flutter app)
+title: "[bug] "
+labels: ["bug", "needs triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. The agentic workflows in this repo (issue-triage,
+        duplicate-code, perf-improver, test-improver) rely on the structured fields
+        below — please fill them in to help us route and reproduce quickly.
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: From Settings → About, or `flutter run --version` output.
+      placeholder: "0.2.3+4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: false
+      options:
+        - Android
+        - iOS
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: Distribution channel
+      multiple: false
+      options:
+        - Store / TestFlight / release
+        - Direct (sideload / OTA)
+        - Debug / dev build
+    validations:
+      required: false
+
+  - type: dropdown
+    id: signed_in
+    attributes:
+      label: Signed in to Enjoy account?
+      multiple: false
+      options:
+        - No (guest)
+        - Yes
+        - N/A
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered list of actions leading to the bug.
+      placeholder: |
+        1. Open the library
+        2. Tap ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: From `~/.config/EnjoyPlayer/logs/` or in-app diagnostics export.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Media kind, file size, language, transcript presence, echo mode active, etc.
+    validations:
+      required: false

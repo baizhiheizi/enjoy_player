@@ -82,7 +82,7 @@ class AuthCtrl extends _$AuthCtrl {
     } catch (e, st) {
       if (gen != _flowGeneration) return;
       _log.warning('google sign-in failed', e, st);
-      throw AuthFailure('$e');
+      throw AuthFailure('$e', code: AuthFailureCode.unknown);
     }
   }
 
@@ -104,13 +104,13 @@ class AuthCtrl extends _$AuthCtrl {
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) return;
       if (gen != _flowGeneration) return;
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);
     } on AuthFailure {
       rethrow;
     } catch (e, st) {
       if (gen != _flowGeneration) return;
       _log.warning('apple sign-in failed', e, st);
-      throw AuthFailure('$e');
+      throw AuthFailure('$e', code: AuthFailureCode.unknown);
     }
   }
 
@@ -217,7 +217,7 @@ class AuthCtrl extends _$AuthCtrl {
       if (gen != _flowGeneration) return;
       _cancelPkceTimeout();
       state = AsyncData(AuthSignedIn(profile: profile));
-    } on AuthFailure catch (e) {
+    } on AuthFailure {
       if (gen != _flowGeneration) return;
       _cancelPkceTimeout();
       state = const AsyncData(AuthSignedOut());

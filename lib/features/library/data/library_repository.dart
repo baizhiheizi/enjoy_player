@@ -2,6 +2,8 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:drift/drift.dart';
@@ -105,8 +107,8 @@ class MediaLibraryRepository {
         emit(controller);
       }, onError: controller.addError);
       controller.onCancel = () {
-        subV.cancel();
-        subA.cancel();
+        unawaited(subV.cancel());
+        unawaited(subA.cancel());
       };
     });
   }
@@ -374,6 +376,12 @@ class MediaLibraryRepository {
   }
 
   /// Fills `duration_seconds` when still zero after import, using `ffmpeg -i`.
+  ///
+  /// The probe is dispatched to a worker isolate so a multi-GB video
+  /// import does not block the UI thread for several seconds. The
+  /// Isolate.run pattern mirrors `lib/data/files/file_storage.dart:128`
+  /// (chunked SHA-256 hashing) so the platform-channel hop is amortised
+  /// across the import.
   Future<void> _probeAndPatchDuration(
     String mediaId,
     String fileUri, {
@@ -382,22 +390,29 @@ class MediaLibraryRepository {
     final ffmpeg = await FfmpegMediaProbe.resolveFfmpegExecutable();
     if (ffmpeg == null) return;
     final input = FfmpegMediaProbe.mediaInputForFfmpeg(fileUri);
-    final stderr = await FfmpegMediaProbe.loadIdentifyStderr(ffmpeg, input);
-    if (stderr == null || stderr.isEmpty) return;
-    final sec = FfmpegMediaProbe.parseDurationSeconds(stderr);
-    if (sec == null || sec <= 0) return;
+
+    Duration? sec;
+    try {
+      sec = await Isolate.run(
+        () => _probeDurationInIsolate(ffmpeg, input),
+        debugName: 'ffmpeg-duration-probe',
+      );
+    } catch (_) {
+      return;
+    }
+    if (sec == null) return;
 
     if (video) {
       final row = await _db.videoDao.getById(mediaId);
       if (row == null || row.durationSeconds != 0) return;
       await _db.videoDao.insertRow(
-        row.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+        row.copyWith(durationSeconds: sec.inSeconds, updatedAt: DateTime.now()),
       );
     } else {
       final row = await _db.audioDao.getById(mediaId);
       if (row == null || row.durationSeconds != 0) return;
       await _db.audioDao.insertRow(
-        row.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
+        row.copyWith(durationSeconds: sec.inSeconds, updatedAt: DateTime.now()),
       );
     }
   }
@@ -409,17 +424,25 @@ class MediaLibraryRepository {
   Future<void> ensureVideoPosterAfterMetadataInsert(VideoRow _) async {}
 
   Future<void> deleteMedia(String id) async {
-    final v = await _db.videoDao.getById(id);
-    if (v != null) {
-      await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.delete);
-      await _db.videoDao.deleteId(id);
-      return;
-    }
-    final a = await _db.audioDao.getById(id);
-    if (a != null) {
-      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.delete);
-    }
-    await _db.audioDao.deleteId(id);
+    // Atomic: enqueue the sync row inside the same transaction as the
+    // local delete. If the local delete fails, the sync enqueue is
+    // rolled back and the user can retry; previously, a sync row
+    // could be left pointing at a media id that no longer exists
+    // locally when the local delete threw between the two calls.
+    await _db.transaction(() async {
+      final v = await _db.videoDao.getById(id);
+      if (v != null) {
+        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.delete);
+        await _db.videoDao.deleteId(id);
+        return;
+      }
+      final a = await _db.audioDao.getById(id);
+      if (a != null) {
+        await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.delete);
+        await _db.audioDao.deleteId(id);
+        return;
+      }
+    });
   }
 
   Future<Media?> getById(String id) async {
@@ -509,4 +532,23 @@ bool _listEqualsMedia(List<Media> a, List<Media> b) {
     if (a[i] != b[i]) return false;
   }
   return true;
+}
+
+/// Top-level so it can be sent to a worker isolate via [Isolate.run].
+/// Returns the parsed duration in seconds, or `null` when ffmpeg is
+/// missing / the input is unreadable / the stderr does not contain a
+/// `Duration:` line.
+Duration? _probeDurationInIsolate(String ffmpeg, String input) {
+  // Run synchronously inside the worker isolate; ffmpeg `-i` only
+  // inspects metadata so this typically returns in < 2s.
+  final result = Process.runSync(ffmpeg, ['-hide_banner', '-i', input]);
+  if (result.exitCode != 0 && result.exitCode != 1) {
+    return null;
+  }
+  final stderr = result.stderr is String
+      ? result.stderr as String
+      : String.fromCharCodes((result.stderr as List<int>?) ?? const <int>[]);
+  final sec = FfmpegMediaProbe.parseDurationSeconds(stderr);
+  if (sec == null || sec <= 0) return null;
+  return Duration(seconds: sec);
 }

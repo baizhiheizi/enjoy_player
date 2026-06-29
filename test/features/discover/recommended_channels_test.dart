@@ -12,7 +12,7 @@ void main() {
       'lists verified public channels with unique ids and handles',
       () async {
         final channels = await RecommendedChannelsLoader().load();
-        expect(channels, hasLength(5));
+        expect(channels, hasLength(1));
 
         final ids = <String>{};
         final handles = <String>{};
@@ -30,10 +30,6 @@ void main() {
 
         expect(channels.map((c) => c.channelId).toList(), [
           'UCAuUUnT6oDeKwE6v1NGQxug',
-          'UCsooa4yRKGN_zEE8iknghZA',
-          'UCHaHD477h-FeBbVh9Sh7syA',
-          'UCz4tgANd4yy8Oe0iXCdSWfA',
-          'UCvy2UaY2781nN8S6hZ0e0gA',
         ]);
         expect(channels.first.handle, '@TED');
         expect(channels.first.name, 'TED');

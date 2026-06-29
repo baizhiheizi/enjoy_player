@@ -74,6 +74,14 @@
   "discoverFeedErrorHint": "Check your connection and try again.",
   "discoverRetry": "Retry",
   "discoverRefreshPartialFailed": "Some channel feeds could not be refreshed.",
+  "discoverRefreshPartialFailedDetail": "Could not refresh {count, plural, one{1 channel} other{{count} channels}}: {names}",
+  "@discoverRefreshPartialFailedDetail": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "names": { "type": "String" }
+    }
+  },
+  "discoverRefreshSingleFailed": "Could not refresh {name}.",
   "discoverRecommendedLoadFailed": "Could not load recommended channels.",
   "discoverSubscriptionsLoadFailed": "Could not load subscriptions.",
   "discoverNoSubscriptionsHint": "Subscribe to a recommended channel or paste a channel URL.",
@@ -545,6 +553,8 @@
   "settingsAiApiBaseUrl": "AI API base URL",
   "settingsAiApiBaseUrlHint": "Example: https://worker.enjoy.bot",
   "settingsAiApiBaseUrlSave": "Save AI API URL",
+  "settingsAiApiBaseUrlUseDefault": "Use API URL",
+  "settingsAiApiBaseUrlCleared": "AI API now follows the main API URL.",
   "settingsAccountSignedOut": "Not signed in",
   "settingsAccountOpenProfile": "Open profile",
   "settingsAccountSignIn": "Sign in",
@@ -749,5 +759,29 @@
   "practicePosterShareSuccess": "Poster shared.",
   "practicePosterSaveSuccess": "Poster saved.",
   "practicePosterExportError": "Could not share practice poster.",
-  "practicePosterLoadError": "Could not load practice data for this video."
+  "practicePosterLoadError": "Could not load practice data for this video.",
+  "notFoundTitle": "Page not found",
+  "notFoundSubtitle": "We couldn't find {uri}.",
+  "@notFoundSubtitle": {
+    "placeholders": {
+      "uri": { "type": "String" }
+    }
+  },
+  "notFoundBackHome": "Back to home",
+  "recoveryTitle": "Local data needs attention",
+  "recoverySubtitle": "Enjoy Player could not open its local database. The most common cause is a partial update. Your data is still on disk; you can copy the error before continuing.",
+  "recoveryOpenLogs": "Open logs folder",
+  "recoveryOpenLogsError": "Could not open the logs folder.",
+  "recoveryCopyError": "Copy error",
+  "recoveryCopiedToClipboard": "Error details copied to clipboard.",
+  "recoveryResetLibrary": "Reset local library",
+  "recoveryResetLibrarySubtitle": "Wipe the local database and start fresh. Your cloud library is not affected. A backup of the current state is written to the application support directory before the wipe.",
+  "recoveryResetLibraryConfirmTitle": "Reset local library?",
+  "recoveryResetLibraryConfirmBody": "This permanently deletes your local library, recordings, transcripts, and sync queue. The cloud library (if signed in) is preserved. A backup is written to the application support directory first.",
+  "recoveryResetLibraryConfirmAction": "Reset everything",
+  "recoveryResetLibraryBackupError": "Backup failed — the local database was not wiped. The error has been logged.",
+  "recoveryResetLibrarySuccess": "Local library reset. Enjoy Player will restart shortly.",
+  "recoveryResetLibraryError": "Could not reset the local library.",
+  "widgetErrorTitle": "Something went wrong",
+  "widgetErrorSubtitle": "This screen hit an unexpected error. You can copy the details below and try navigating elsewhere."
 }

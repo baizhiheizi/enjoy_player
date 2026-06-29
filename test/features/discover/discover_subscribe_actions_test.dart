@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
@@ -40,17 +41,13 @@ class _SubscribeHarness extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FilledButton(
-      onPressed: () =>
-          subscribeRecommendedChannel(context, ref, channel),
+      onPressed: () => subscribeRecommendedChannel(context, ref, channel),
       child: const Text('Subscribe recommended'),
     );
   }
 }
 
-Widget _wrap({
-  required AppDatabase db,
-  required DiscoverRepository repo,
-}) {
+Widget _wrap({required AppDatabase db, required DiscoverRepository repo}) {
   return ProviderScope(
     overrides: [
       appDatabaseProvider.overrideWithValue(db),
@@ -64,9 +61,7 @@ Widget _wrap({
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(
-        body: _SubscribeHarness(channel: _recommended),
-      ),
+      home: const Scaffold(body: _SubscribeHarness(channel: _recommended)),
     ),
   );
 }
@@ -104,7 +99,7 @@ void main() {
       );
       expect(row, isNotNull);
       expect(row!.displayName, 'TED');
-      expect(row.source, 'recommended');
+      expect(row.source, YoutubeSubscriptionSource.recommended);
 
       expect(find.text('Subscribed to channel'), findsOneWidget);
     });
@@ -123,10 +118,7 @@ void main() {
         await db.youtubeChannelSubscriptionDao.getByChannelId(_channelId),
         isNull,
       );
-      expect(
-        find.text('Could not subscribe to that channel.'),
-        findsOneWidget,
-      );
+      expect(find.text('Could not subscribe to that channel.'), findsOneWidget);
     });
   });
 }

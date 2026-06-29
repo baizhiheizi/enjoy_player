@@ -1,6 +1,8 @@
 /// Scrollable transcript list with auto-scroll (active cue, or echo block in echo mode).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -194,11 +196,13 @@ class _TranscriptScrollableListState
   }) {
     if (!mounted || generation != _scrollGeneration) return;
     try {
-      Scrollable.ensureVisible(
-        ctx,
-        alignment: alignment,
-        duration: duration,
-        curve: curve,
+      unawaited(
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: alignment,
+          duration: duration,
+          curve: curve,
+        ),
       );
     } catch (_) {
       // Target may detach during route pop while animation is in flight.

@@ -1,6 +1,8 @@
 /// Listens for OAuth PKCE deep-link callbacks and forwards them to [AuthCtrl].
 library;
 
+import 'dart:async';
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,12 +27,24 @@ class AuthDeepLinkListener extends ConsumerStatefulWidget {
 
 class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
   final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _streamSub;
 
   @override
   void initState() {
     super.initState();
-    _appLinks.getInitialLink().then(_onUri);
-    _appLinks.uriLinkStream.listen(_onUri);
+    unawaited(_appLinks.getInitialLink().then(_onUri, onError: _onInitialLinkError));
+    _streamSub = _appLinks.uriLinkStream.listen(_onUri);
+  }
+
+  @override
+  void dispose() {
+    unawaited(_streamSub?.cancel());
+    _streamSub = null;
+    super.dispose();
+  }
+
+  void _onInitialLinkError(Object error, StackTrace stack) {
+    _log.warning('app_links.getInitialLink failed', error, stack);
   }
 
   Future<void> _onUri(Uri? uri) async {

@@ -1,6 +1,8 @@
 /// Progress slider + elapsed / total times for the transport bar.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -134,9 +136,11 @@ class _TransportProgressStripState
                         Haptics.selection(context);
                       }
                     }
-                    ref
-                        .read(playerInteractionsProvider.notifier)
-                        .seekToProgressFraction(v);
+                    unawaited(
+                      ref
+                          .read(playerInteractionsProvider.notifier)
+                          .seekToProgressFraction(v),
+                    );
                   },
                 ),
               ),

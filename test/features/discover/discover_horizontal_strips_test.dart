@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/interaction/horizontal_drag_scroll_behavior.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/recommended_channel.dart';
@@ -28,10 +29,7 @@ const _recommended = [
   ),
 ];
 
-Widget _localized(
-  Widget child, {
-  List<Override> overrides = const [],
-}) {
+Widget _localized(Widget child, {List<Override> overrides = const []}) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp(
@@ -56,28 +54,29 @@ Finder _horizontalDragScrollConfiguration() {
 
 void main() {
   group('Discover horizontal strips', () {
-    testWidgets('recommended avatar strip uses stable horizontal scroll behavior', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _localized(
-          const DiscoverRecommendedAvatarStrip(
-            recommended: _recommended,
-            subscribedChannelIds: {},
+    testWidgets(
+      'recommended avatar strip uses stable horizontal scroll behavior',
+      (tester) async {
+        await tester.pumpWidget(
+          _localized(
+            const DiscoverRecommendedAvatarStrip(
+              recommended: _recommended,
+              subscribedChannelIds: {},
+            ),
+            overrides: [
+              for (final channel in _recommended)
+                recommendedChannelAvatarProvider(
+                  channel.channelId,
+                ).overrideWith((ref) async => null),
+            ],
           ),
-          overrides: [
-            for (final channel in _recommended)
-              recommendedChannelAvatarProvider(
-                channel.channelId,
-              ).overrideWith((ref) async => null),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(_horizontalDragScrollConfiguration(), findsOneWidget);
-      expect(find.byType(ListView), findsOneWidget);
-    });
+        expect(_horizontalDragScrollConfiguration(), findsOneWidget);
+        expect(find.byType(ListView), findsOneWidget);
+      },
+    );
 
     testWidgets('channel filter strip uses stable horizontal scroll behavior', (
       tester,
@@ -87,7 +86,7 @@ void main() {
         DiscoverChannel(
           channelId: _channelId,
           displayName: 'TED',
-          source: 'recommended',
+          source: YoutubeSubscriptionSource.recommended,
           subscribedAt: subscribedAt,
         ),
       ];
@@ -111,46 +110,47 @@ void main() {
       expect(find.text('All'), findsOneWidget);
     });
 
-    testWidgets('recommended avatar strip rebuilds when subscription set changes', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _localized(
-          const DiscoverRecommendedAvatarStrip(
-            recommended: _recommended,
-            subscribedChannelIds: {},
+    testWidgets(
+      'recommended avatar strip rebuilds when subscription set changes',
+      (tester) async {
+        await tester.pumpWidget(
+          _localized(
+            const DiscoverRecommendedAvatarStrip(
+              recommended: _recommended,
+              subscribedChannelIds: {},
+            ),
+            overrides: [
+              for (final channel in _recommended)
+                recommendedChannelAvatarProvider(
+                  channel.channelId,
+                ).overrideWith((ref) async => null),
+            ],
           ),
-          overrides: [
-            for (final channel in _recommended)
-              recommendedChannelAvatarProvider(
-                channel.channelId,
-              ).overrideWith((ref) async => null),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byType(ListView), findsOneWidget);
-      expect(_horizontalDragScrollConfiguration(), findsOneWidget);
+        expect(find.byType(ListView), findsOneWidget);
+        expect(_horizontalDragScrollConfiguration(), findsOneWidget);
 
-      await tester.pumpWidget(
-        _localized(
-          const DiscoverRecommendedAvatarStrip(
-            recommended: _recommended,
-            subscribedChannelIds: {_channelId},
+        await tester.pumpWidget(
+          _localized(
+            const DiscoverRecommendedAvatarStrip(
+              recommended: _recommended,
+              subscribedChannelIds: {_channelId},
+            ),
+            overrides: [
+              for (final channel in _recommended)
+                recommendedChannelAvatarProvider(
+                  channel.channelId,
+                ).overrideWith((ref) async => null),
+            ],
           ),
-          overrides: [
-            for (final channel in _recommended)
-              recommendedChannelAvatarProvider(
-                channel.channelId,
-              ).overrideWith((ref) async => null),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(_horizontalDragScrollConfiguration(), findsOneWidget);
-    });
+        expect(tester.takeException(), isNull);
+        expect(_horizontalDragScrollConfiguration(), findsOneWidget);
+      },
+    );
   });
 }

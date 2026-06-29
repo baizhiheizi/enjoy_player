@@ -29,35 +29,4 @@ abstract final class AppColors {
 
   // ── Seed for Material 3 ColorScheme.fromSeed ──────────────────────────
   static const seedBrand = brand;
-
-  // ── Legacy aliases kept for widgets that still reference them ─────────
-  /// @deprecated Use surfaceDark
-  static const surface = surfaceDark;
-
-  /// @deprecated Use surfaceContainerLowestDark
-  static const surfaceContainerLowest = surfaceContainerLowestDark;
-
-  /// @deprecated Use surfaceContainerLowDark
-  static const surfaceContainerLow = surfaceContainerLowDark;
-
-  /// @deprecated Use surfaceContainerDark
-  static const surfaceContainer = surfaceContainerDark;
-
-  /// @deprecated Use surfaceContainerHighDark
-  static const surfaceContainerHigh = surfaceContainerHighDark;
-
-  /// @deprecated Use surfaceContainerHighestDark
-  static const surfaceContainerHighest = surfaceContainerHighestDark;
-
-  /// @deprecated Use gradientStartDark
-  static const gradientStart = gradientStartDark;
-
-  /// @deprecated Use gradientEndDark
-  static const gradientEnd = gradientEndDark;
-
-  /// @deprecated Use seedBrand
-  static const seedAmber = seedBrand;
-
-  /// @deprecated Use seedBrand
-  static const seedViolet = seedBrand;
 }

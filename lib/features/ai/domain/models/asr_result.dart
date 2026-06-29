@@ -1,19 +1,5 @@
 /// Whisper-style JSON response (keys camelCase after [ApiClient] decode).
 final class AsrResult {
-  const AsrResult({
-    required this.text,
-    this.segments,
-    this.language,
-    this.duration,
-    this.wordCount,
-  });
-
-  final String text;
-  final List<AsrSegment>? segments;
-  final String? language;
-  final double? duration;
-  final int? wordCount;
-
   factory AsrResult.fromJson(Map<String, dynamic> json) {
     final segs = json['segments'] as List<dynamic>?;
     final transcriptionInfo = _jsonMap(json['transcriptionInfo']);
@@ -29,9 +15,31 @@ final class AsrResult {
       wordCount: json['wordCount'] as int? ?? json['word_count'] as int?,
     );
   }
+  const AsrResult({
+    required this.text,
+    this.segments,
+    this.language,
+    this.duration,
+    this.wordCount,
+  });
+
+  final String text;
+  final List<AsrSegment>? segments;
+  final String? language;
+  final double? duration;
+  final int? wordCount;
 }
 
 final class AsrSegment {
+  factory AsrSegment.fromJson(Map<String, dynamic> json) {
+    final w = json['words'] as List<dynamic>?;
+    return AsrSegment(
+      start: (json['start'] as num?)?.toDouble() ?? 0,
+      end: (json['end'] as num?)?.toDouble() ?? 0,
+      text: json['text'] as String? ?? '',
+      words: w?.map((e) => AsrWord.fromJson(_jsonMap(e) ?? const {})).toList(),
+    );
+  }
   const AsrSegment({
     required this.start,
     required this.end,
@@ -43,16 +51,6 @@ final class AsrSegment {
   final double end;
   final String text;
   final List<AsrWord>? words;
-
-  factory AsrSegment.fromJson(Map<String, dynamic> json) {
-    final w = json['words'] as List<dynamic>?;
-    return AsrSegment(
-      start: (json['start'] as num?)?.toDouble() ?? 0,
-      end: (json['end'] as num?)?.toDouble() ?? 0,
-      text: json['text'] as String? ?? '',
-      words: w?.map((e) => AsrWord.fromJson(_jsonMap(e) ?? const {})).toList(),
-    );
-  }
 }
 
 /// JSON nested objects decode as [Map<dynamic, dynamic>]; normalize for casts.
@@ -64,12 +62,6 @@ Map<String, dynamic>? _jsonMap(dynamic value) {
 }
 
 final class AsrWord {
-  const AsrWord({required this.word, required this.start, required this.end});
-
-  final String word;
-  final double start;
-  final double end;
-
   factory AsrWord.fromJson(Map<String, dynamic> json) {
     return AsrWord(
       word: json['word'] as String? ?? '',
@@ -77,4 +69,9 @@ final class AsrWord {
       end: (json['end'] as num?)?.toDouble() ?? 0,
     );
   }
+  const AsrWord({required this.word, required this.start, required this.end});
+
+  final String word;
+  final double start;
+  final double end;
 }

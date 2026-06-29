@@ -1,0 +1,20 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 32%
+        threshold: 0%
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - "**/*.g.dart"
+  - "**/*.freezed.dart"
+  - "lib/l10n/**"
+  - "packages/**"

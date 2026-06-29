@@ -144,6 +144,56 @@ Only needed when uploading to `dl.enjoy.bot`. Install **AWS CLI v2**:
 - **macOS**: `brew install awscli`
 - **Windows**: `winget install Amazon.AWSCLI`
 
+Credentials are loaded into the shell environment from a **local, gitignored** file
+(`publish_env.local.ps1` on Windows, `publish_env.local.sh` elsewhere) or, in CI,
+from GitHub Actions secrets. **Never commit real AWS/R2 access keys or secret keys** —
+the pre-commit hook ([`.githooks/pre-commit`](../.githooks/pre-commit)) blocks
+credential-shaped strings (`AKIA…`, 64-hex R2 secrets) and the local credential
+files themselves. If you have ever pasted real keys into a working-tree file,
+**rotate them in Cloudflare R2** and start from a clean local copy.
+
+#### Recommended secret sources
+
+Prefer one of these over a plaintext working-tree file so credentials never touch
+the repository disk:
+
+| Source | When to use | How to load |
+|--------|-------------|-------------|
+| **GitHub Actions secrets** | CI releases | Reference as `${{ secrets.R2_ACCESS_KEY_ID }}` in the workflow; the workflow sets the same `AWS_*` / `PUBLISH_*` env vars |
+| **Windows Credential Manager** | Local Windows releases | Read into the session before running `release.ps1`, e.g. via `cmdkey` or a vault CLI, exporting the same env vars |
+| **1Password CLI** (`op`) | Any local host | `export AWS_SECRET_ACCESS_KEY="$(op read 'op://Private/r2/secret')"` etc. before `release.sh` |
+
+The local `publish_env.local.*` loaders are a convenience for maintainers who
+prefer a dotenv-style flow; keep them on disk only, never in git.
+
+#### WinSparkle DSA private key
+
+`sign_sparkle_enclosure.sh` resolves the DSA private key for Windows appcast
+signing in this order:
+
+1. `SPARKLE_DSA_PRIV_PEM` env var (an absolute path to the key file)
+2. `SPARKLE_DSA_PRIV_PEM_BASE64` env var (base64-encoded key, decoded to a temp file)
+3. `dsa_priv.pem` at the **repo root** (auto-detected — the recommended default)
+
+Because the repo-root path is auto-detected, **do not hardcode an absolute path**
+in your local env file. If the key lives elsewhere, resolve it relative to the
+repo root:
+
+```bash
+# bash / macOS / Linux
+export SPARKLE_DSA_PRIV_PEM="$(git rev-parse --show-toplevel)/keys/dsa_priv.pem"
+```
+
+```powershell
+# PowerShell
+$env:SPARKLE_DSA_PRIV_PEM = Join-Path (git rev-parse --show-toplevel) "keys/dsa_priv.pem"
+```
+
+CI injects the key as base64 via `SPARKLE_DSA_PRIV_PEM_BASE64` (see
+[`sign_sparkle_enclosure.sh`](../.github/scripts/sign_sparkle_enclosure.sh)).
+
+#### Local publish setup
+
 ```powershell
 # Windows
 Copy-Item .github\scripts\publish_env.example.ps1 .github\scripts\publish_env.local.ps1
@@ -161,6 +211,20 @@ cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 # edit values, then:
 bash .github/scripts/release.sh --platform apple --publish
 ```
+
+#### Pre-commit secret scanning
+
+After cloning, enable the local secret scanner so credential-shaped strings
+and the local credential files cannot be committed by accident:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook scans staged content for AWS/R2 access key patterns and blocks the
+forbidden local credential / key files outright. Bypass with `git commit --no-verify`
+only for a known-good false positive (e.g. a hex test fixture), and note it in the
+commit message.
 
 ---
 
@@ -324,6 +388,27 @@ Platform CI setup (secrets, runners):
 - **NuGet / WebView2 restore fails**: ensure `nuget` on PATH with `nuget.org` source — see [README](../README.md).
 - **Missing FFmpeg features**: run `pwsh windows/scripts/fetch_ffmpeg.ps1` before build.
 - **WebView2**: required at runtime for YouTube / in-app WebView.
+
+#### Windows FFmpeg provisioning
+
+`ffmpeg_kit_flutter_new` (under `packages/`) ships Android / iOS / macOS
+platform implementations but **no Windows implementation**. The Windows
+build does not bundle ffmpeg via a Flutter plugin; instead the release
+script downloads a GPL `ffmpeg.exe` into `windows/ffmpeg/` before
+`flutter build windows --release`.
+
+| Step | Script | Source | Verified by |
+|------|--------|--------|-------------|
+| Download | [`windows/scripts/fetch_ffmpeg.ps1`](../windows/scripts/fetch_ffmpeg.ps1) | Gyan.dev `ffmpeg-release-essentials.zip` | SHA-256 from `*.sha256` sidecar |
+| Bundle | `flutter build windows` includes `windows/ffmpeg/ffmpeg.exe` in the build output | n/a | Inno Setup packs the binary |
+| License | `windows/ffmpeg/README.md` | n/a | Reviewed before each public release |
+
+The downloader is idempotent (skips if `ffmpeg.exe -version` already
+succeeds) and fails closed on SHA-256 mismatch. The script does **not**
+run automatically as part of `flutter pub get`; trigger it explicitly
+when setting up a fresh Windows machine or when you need to bump the
+bundled FFmpeg. Do not commit `windows/ffmpeg/ffmpeg.exe` — it is
+git-ignored.
 
 ### Apple
 

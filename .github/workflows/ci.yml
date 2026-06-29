@@ -27,6 +27,9 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
+      - name: Forbid new local-path packages
+        run: bash .github/scripts/check_no_new_path_deps.sh
+
       - name: Dart format
         run: |
           set -euo pipefail
@@ -40,8 +43,17 @@ jobs:
       - name: Flutter analyze
         run: flutter analyze
 
-      - name: Flutter test (app)
-        run: flutter test
+      - name: Flutter test (app, with coverage)
+        run: flutter test --coverage
+
+      - name: Coverage gate (line baseline)
+        run: bash .github/scripts/check_coverage_gate.sh coverage/lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage/lcov.info
+          fail_ci_if_error: false
 
       - name: Flutter test (path packages)
         run: |

@@ -465,6 +465,18 @@ abstract class AppLocalizations {
   /// **'Some channel feeds could not be refreshed.'**
   String get discoverRefreshPartialFailed;
 
+  /// No description provided for @discoverRefreshPartialFailedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh {count, plural, one{1 channel} other{{count} channels}}: {names}'**
+  String discoverRefreshPartialFailedDetail(int count, String names);
+
+  /// No description provided for @discoverRefreshSingleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh {name}.'**
+  String discoverRefreshSingleFailed(Object name);
+
   /// No description provided for @discoverRecommendedLoadFailed.
   ///
   /// In en, this message translates to:
@@ -2505,6 +2517,18 @@ abstract class AppLocalizations {
   /// **'Save AI API URL'**
   String get settingsAiApiBaseUrlSave;
 
+  /// No description provided for @settingsAiApiBaseUrlUseDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use API URL'**
+  String get settingsAiApiBaseUrlUseDefault;
+
+  /// No description provided for @settingsAiApiBaseUrlCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'AI API now follows the main API URL.'**
+  String get settingsAiApiBaseUrlCleared;
+
   /// No description provided for @settingsAccountSignedOut.
   ///
   /// In en, this message translates to:
@@ -3440,6 +3464,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load practice data for this video.'**
   String get practicePosterLoadError;
+
+  /// No description provided for @notFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found'**
+  String get notFoundTitle;
+
+  /// No description provided for @notFoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find {uri}.'**
+  String notFoundSubtitle(String uri);
+
+  /// No description provided for @notFoundBackHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to home'**
+  String get notFoundBackHome;
+
+  /// No description provided for @recoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data needs attention'**
+  String get recoveryTitle;
+
+  /// No description provided for @recoverySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy Player could not open its local database. The most common cause is a partial update. Your data is still on disk; you can copy the error before continuing.'**
+  String get recoverySubtitle;
+
+  /// No description provided for @recoveryOpenLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Open logs folder'**
+  String get recoveryOpenLogs;
+
+  /// No description provided for @recoveryOpenLogsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the logs folder.'**
+  String get recoveryOpenLogsError;
+
+  /// No description provided for @recoveryCopyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error'**
+  String get recoveryCopyError;
+
+  /// No description provided for @recoveryCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Error details copied to clipboard.'**
+  String get recoveryCopiedToClipboard;
+
+  /// No description provided for @recoveryResetLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local library'**
+  String get recoveryResetLibrary;
+
+  /// No description provided for @recoveryResetLibrarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wipe the local database and start fresh. Your cloud library is not affected. A backup of the current state is written to the application support directory before the wipe.'**
+  String get recoveryResetLibrarySubtitle;
+
+  /// No description provided for @recoveryResetLibraryConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local library?'**
+  String get recoveryResetLibraryConfirmTitle;
+
+  /// No description provided for @recoveryResetLibraryConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your local library, recordings, transcripts, and sync queue. The cloud library (if signed in) is preserved. A backup is written to the application support directory first.'**
+  String get recoveryResetLibraryConfirmBody;
+
+  /// No description provided for @recoveryResetLibraryConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset everything'**
+  String get recoveryResetLibraryConfirmAction;
+
+  /// No description provided for @recoveryResetLibraryBackupError.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed — the local database was not wiped. The error has been logged.'**
+  String get recoveryResetLibraryBackupError;
+
+  /// No description provided for @recoveryResetLibrarySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Local library reset. Enjoy Player will restart shortly.'**
+  String get recoveryResetLibrarySuccess;
+
+  /// No description provided for @recoveryResetLibraryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reset the local library.'**
+  String get recoveryResetLibraryError;
+
+  /// No description provided for @widgetErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get widgetErrorTitle;
+
+  /// No description provided for @widgetErrorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.'**
+  String get widgetErrorSubtitle;
 }
 
 class _AppLocalizationsDelegate

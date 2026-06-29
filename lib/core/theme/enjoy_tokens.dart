@@ -10,6 +10,59 @@ import 'colors.dart';
 /// Premium cinematic-editorial tokens; use [EnjoyThemeTokens.of] from widgets.
 @immutable
 class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
+  /// Dark-only app tokens derived from the active [ColorScheme].
+  factory EnjoyThemeTokens.build(ColorScheme scheme) {
+    return EnjoyThemeTokens(
+      space4: 4,
+      space8: 8,
+      space12: 12,
+      space16: 16,
+      space20: 20,
+      space24: 24,
+      space32: 32,
+      space40: 40,
+      radiusSm: 8,
+      radiusMd: 12,
+      radiusLg: 16,
+      radiusXl: 20,
+      radiusFull: 999,
+      elevationNone: 0,
+      elevationCard: 1,
+      elevationSheet: 3,
+      elevationModal: 8,
+      elevationBar: 2,
+      elevationSurface: 1,
+      breakpointRail: 900,
+      breakpointTranscriptSideBySide: 720,
+      motionFast: const Duration(milliseconds: 180),
+      motionStandard: const Duration(milliseconds: 260),
+      motionEnter: const Duration(milliseconds: 240),
+      motionExit: const Duration(milliseconds: 160),
+      motionMedium: const Duration(milliseconds: 220),
+      echoActive: AppColors.echoActive,
+      ccBadge: scheme.primary,
+      transcriptLinePadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ),
+      contentMaxWidth: 720,
+      miniBarBlurSigma: 20,
+      sidebarWidth: 248,
+      sidebarBrandHeight: 56,
+      transportHeight: 88,
+      heroTitleLetterSpacing: -1.2,
+      glassTint: scheme.surface.withValues(alpha: 0.55),
+      glassBorder: scheme.outlineVariant.withValues(alpha: 0.22),
+      gradientStart: AppColors.gradientStartDark,
+      gradientEnd: AppColors.gradientEndDark,
+      useGlassOnSidebar: false,
+      bottomNavHeight: 68,
+      desktopGutter: 24,
+      modalMaxWidth: 400,
+      modalMaxWidthLarge: 560,
+      focusRingWidth: 2,
+    );
+  }
   const EnjoyThemeTokens({
     required this.space4,
     required this.space8,
@@ -165,60 +218,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   static EnjoyThemeTokens of(BuildContext context) {
     return Theme.of(context).extension<EnjoyThemeTokens>() ??
         EnjoyThemeTokens.build(Theme.of(context).colorScheme);
-  }
-
-  /// Dark-only app tokens derived from the active [ColorScheme].
-  factory EnjoyThemeTokens.build(ColorScheme scheme) {
-    return EnjoyThemeTokens(
-      space4: 4,
-      space8: 8,
-      space12: 12,
-      space16: 16,
-      space20: 20,
-      space24: 24,
-      space32: 32,
-      space40: 40,
-      radiusSm: 8,
-      radiusMd: 12,
-      radiusLg: 16,
-      radiusXl: 20,
-      radiusFull: 999,
-      elevationNone: 0,
-      elevationCard: 1,
-      elevationSheet: 3,
-      elevationModal: 8,
-      elevationBar: 2,
-      elevationSurface: 1,
-      breakpointRail: 900,
-      breakpointTranscriptSideBySide: 720,
-      motionFast: const Duration(milliseconds: 180),
-      motionStandard: const Duration(milliseconds: 260),
-      motionEnter: const Duration(milliseconds: 240),
-      motionExit: const Duration(milliseconds: 160),
-      motionMedium: const Duration(milliseconds: 220),
-      echoActive: AppColors.echoActive,
-      ccBadge: scheme.primary,
-      transcriptLinePadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 10,
-      ),
-      contentMaxWidth: 720,
-      miniBarBlurSigma: 20,
-      sidebarWidth: 248,
-      sidebarBrandHeight: 56,
-      transportHeight: 88,
-      heroTitleLetterSpacing: -1.2,
-      glassTint: scheme.surface.withValues(alpha: 0.55),
-      glassBorder: scheme.outlineVariant.withValues(alpha: 0.22),
-      gradientStart: AppColors.gradientStartDark,
-      gradientEnd: AppColors.gradientEndDark,
-      useGlassOnSidebar: false,
-      bottomNavHeight: 68,
-      desktopGutter: 24,
-      modalMaxWidth: 400,
-      modalMaxWidthLarge: 560,
-      focusRingWidth: 2,
-    );
   }
 
   // ── copyWith ───────────────────────────────────────────────────────────

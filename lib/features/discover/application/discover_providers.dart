@@ -41,6 +41,16 @@ Stream<List<DiscoverChannel>> discoverSubscriptions(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchSubscriptions();
 }
 
+/// Waits until [channelId] appears on [discoverSubscriptionsProvider]'s stream.
+Future<void> waitForDiscoverSubscription(WidgetRef ref, String channelId) async {
+  final repo = ref.read(discoverRepositoryProvider);
+  if (await repo.getSubscription(channelId) != null) return;
+
+  await repo.watchSubscriptions().firstWhere(
+    (subs) => subs.any((s) => s.channelId == channelId),
+  );
+}
+
 @Riverpod(keepAlive: true)
 Stream<List<FeedEntry>> discoverTimeline(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchTimeline();
@@ -130,18 +140,49 @@ class DiscoverFeedRefreshScheduler extends _$DiscoverFeedRefreshScheduler {
       _launchScheduled = false;
     });
 
-    _periodic ??= Timer.periodic(const Duration(hours: 8), (_) {
-      unawaited(_launchRefresh());
-    });
-
-    if (!_launchScheduled) {
-      _launchScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(_launchRefresh());
+    // Only arm the timer when there is at least one subscription;
+    // otherwise the periodic refresh would be a no-op (the repo
+    // returns immediately when the subscription list is empty) but
+    // would still wake the app every 8 hours.
+    final subList = ref.watch(discoverSubscriptionsProvider).valueOrNull;
+    if (subList != null && subList.isNotEmpty) {
+      _periodic ??= Timer.periodic(const Duration(hours: 8), (_) {
+        if (_isAppResumed) {
+          unawaited(_launchRefresh());
+        } else {
+          _log.fine(
+            'discover feed refresh tick skipped: app is not in foreground',
+          );
+        }
       });
+
+      if (!_launchScheduled) {
+        _launchScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_isAppResumed) {
+            unawaited(_launchRefresh());
+          }
+        });
+      }
+    } else {
+      _periodic?.cancel();
+      _periodic = null;
+      // Allow the post-frame initial refresh to run again after the user
+      // re-subscribes following an empty subscription list.
+      _launchScheduled = false;
     }
 
     return 0;
+  }
+
+  /// Whether the app is currently in the foreground. Reads
+  /// [WidgetsBinding.lifecycleState] (the global binding) which is
+  /// kept current by the host platform's lifecycle callback bridge.
+  /// `null` is treated as "resumed" so we do not silently skip the
+  /// first refresh on platforms that do not publish a state.
+  bool get _isAppResumed {
+    final state = WidgetsBinding.instance.lifecycleState;
+    return state == null || state == AppLifecycleState.resumed;
   }
 
   Future<void> _launchRefresh() async {

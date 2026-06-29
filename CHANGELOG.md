@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- NotFoundScreen fallback route for unknown go_router locations (en/zh/zh-CN localized).
+- GitHub issue templates (`bug`, `feature`, `chore`) and a PR template at `.github/`.
+- `PlayerEngine.supportsSubtitleDisabling` to skip the no-op `disableRenderedSubtitles` await on YouTube opens.
+- `kPositionBucketEchoApplyMs`, `kPositionBucketDisplayMs`, `kPositionBucketScrubberMs` constants in `lib/features/player/application/position_buckets.dart` consolidating three previously inline quantization values.
+- `SyncMissingUpdatedAtError` thrown by `SyncUploadService` when the server omits `updatedAt`, preserving local `serverUpdatedAt` instead of silently bumping it to `DateTime.now()`.
+
+### Changed
+
+- `lib/main.dart` wraps the entire bootstrap in `runZonedGuarded` and installs `FlutterError.onError` + `PlatformDispatcher.instance.onError` so framework errors are routed through the diagnostic log pipeline instead of crashing silently.
+- `PlayerController.openMedia` catches exceptions from `engine.open` and downstream awaits so a failed open no longer leaves `state` pointing at a phantom session.
+- `PlayerController.clear()` flushes the pending `PlaybackSessionPersister` write before cancelling, so swipe-to-dismiss no longer loses the last 450 ms of position updates.
+- `YoutubePlayerEngine._emitBuffering(false)` only bumps `mountTick` on the first buffering→false transition per open, reducing ad-reload flicker.
+- `_userSessionDatabases` in `app_database_provider.dart` is a bounded `LinkedHashMap` (cap = 2) — oldest entry is closed before inserting a new one.
+- `SecureTokenStore` now pins `AndroidOptions()` (v10 RSA-OAEP / AES-GCM with auto-migration from legacy ciphers) and `IOSOptions(accessibility: KeychainAccessibility.first_unlock)`.
+- `EmailEntryScreen` BackButton always calls `cancelSignIn()` (it was previously gated on `AuthAwaitingOtp`).
+- `_EnjoyAppState.build` uses `ref.listen` to mirror `appPreferencesCtrlProvider` into `_lastResolvedPrefs` via `setState` instead of writing the field as a build-time side effect.
+
+### Fixed
+
+- `VideoPosterCaptureService` seek-zero restore failures now log at warning level (was a nested empty `catch` that swallowed real errors).
+- Drift `transcript_fetch_states` missing index — see follow-up.
+- Auth deep-link stream subscription now stored + cancelled in `dispose()`; `getInitialLink()` has an `onError` handler.
+- `YoutubePlayerEngine.idleAfterClear()` removed a dead branch where `_videoId.isNotEmpty` was checked after `_videoId = ''`.
+- Two `kIsWeb` branches removed from `log_file_sink.dart` and `practice_poster_export.dart` per AGENTS.md hard rule.
+
+### Security
+
+- ADR-0028 accepted: agentic workflows route inference through the MiniMax proxy with CI egress allow-list checks; zero-retention posture pending annual re-verification (medium risk).
+
 ## [0.2.3] - 2026-06-24
 
 ### Fixed

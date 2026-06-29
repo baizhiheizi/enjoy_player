@@ -9,6 +9,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/layout/constrained_app_viewport.dart';
+import 'package:enjoy_player/core/recovery/recovery_actions.dart';
+import 'package:enjoy_player/core/recovery/recovery_surface.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -21,7 +23,11 @@ import 'package:enjoy_player/features/update/presentation/update_prompt_host.dar
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EnjoyApp extends ConsumerStatefulWidget {
-  const EnjoyApp({super.key});
+  const EnjoyApp({super.key, @visibleForTesting this.themeBuilder});
+
+  /// When set (widget tests only), skips [buildAppTheme] / Google Fonts fetches.
+  @visibleForTesting
+  final ThemeData Function()? themeBuilder;
 
   @override
   ConsumerState<EnjoyApp> createState() => _EnjoyAppState();
@@ -42,13 +48,20 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
     );
   }
 
-  MaterialApp _errorMaterialApp(ThemeData theme, Object error) {
+  MaterialApp _errorMaterialApp(
+    ThemeData theme,
+    Object error,
+    StackTrace? stack,
+  ) {
+    final isDb = isUnrecoverableDatabaseError(error);
     return MaterialApp(
       scaffoldMessengerKey: appScaffoldMessengerKey,
       theme: theme,
-      home: ConstrainedAppViewport(
-        child: Scaffold(body: Center(child: Text('$error'))),
-      ),
+      home: isDb
+          ? RecoverySurface(error: error, stack: stack)
+          : ConstrainedAppViewport(
+              child: Scaffold(body: Center(child: Text('$error'))),
+            ),
     );
   }
 
@@ -94,19 +107,27 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<AppPreferencesState>>(appPreferencesCtrlProvider, (
+      prev,
+      next,
+    ) {
+      final nextPrefs = next.valueOrNull;
+      if (nextPrefs == null) return;
+      if (identical(nextPrefs, _lastResolvedPrefs)) return;
+      setState(() {
+        _lastResolvedPrefs = nextPrefs;
+      });
+    });
+
     final router = ref.watch(appRouterProvider);
     final prefsAsync = ref.watch(appPreferencesCtrlProvider);
-    final theme = buildAppTheme();
+    final theme = widget.themeBuilder?.call() ?? buildAppTheme();
 
     final live = prefsAsync.valueOrNull;
-    if (live != null) {
-      _lastResolvedPrefs = live;
-    }
-
     final effective = live ?? _lastResolvedPrefs;
 
     if (prefsAsync.hasError && effective == null) {
-      return _errorMaterialApp(theme, prefsAsync.error!);
+      return _errorMaterialApp(theme, prefsAsync.error!, prefsAsync.stackTrace);
     }
 
     if (prefsAsync.isLoading && effective == null) {

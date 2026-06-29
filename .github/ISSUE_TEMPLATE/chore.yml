@@ -1,0 +1,36 @@
+name: Chore / refactor / docs
+description: Maintenance work that does not change user-visible behavior
+title: "[chore] "
+labels: ["needs triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for refactors, dependency bumps, CI changes, docs, or other
+        non-user-visible work. For behavioral changes prefer the bug or feature
+        templates.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this needed? Reference an issue or ADR if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk & rollout
+      description: Backwards-incompatible? Migration needed? Feature-flagged?
+    validations:
+      required: false

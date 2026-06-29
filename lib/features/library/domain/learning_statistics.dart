@@ -38,6 +38,13 @@ class PeriodStats {
 }
 
 class LearningStatistics {
+  factory LearningStatistics.fromJson(Map<String, dynamic> json) {
+    return LearningStatistics(
+      today: PeriodStats.fromJson(_jsonObjectAsStringMap(json['today'])),
+      week: PeriodStats.fromJson(_jsonObjectAsStringMap(json['week'])),
+      month: PeriodStats.fromJson(_jsonObjectAsStringMap(json['month'])),
+    );
+  }
   const LearningStatistics({
     required this.today,
     required this.week,
@@ -53,12 +60,4 @@ class LearningStatistics {
     week: PeriodStats.zero(),
     month: PeriodStats.zero(),
   );
-
-  factory LearningStatistics.fromJson(Map<String, dynamic> json) {
-    return LearningStatistics(
-      today: PeriodStats.fromJson(_jsonObjectAsStringMap(json['today'])),
-      week: PeriodStats.fromJson(_jsonObjectAsStringMap(json['week'])),
-      month: PeriodStats.fromJson(_jsonObjectAsStringMap(json['month'])),
-    );
-  }
 }

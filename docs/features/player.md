@@ -27,6 +27,7 @@
 ## Engine contract (ADR-0015)
 
 - `PlayerEngine` continues to expose **`buildVideoStage`** alongside transport commands so YouTube can keep a **single long-lived** `InAppWebView` (no `Key` by `videoId`) without duplicating lifecycle between layers. Splitting a separate “video surface factory” from playback ports would be possible later but is **not** planned unless tests or reuse demand it — the WebView ordering constraints are easy to regress.
+- **`supportsSubtitleDisabling`** tells the open coordinator whether `disableRenderedSubtitles()` is meaningful for the active engine. `MediaKitPlayerEngine` returns `true` (it owns the libmpv embedded track list); `YoutubePlayerEngine` returns `false` because the WebView watch page renders its own captions and there is no engine-side track to disable — the open coordinator short-circuits the await on YouTube opens. Callers that need to gate UI on this capability should read it instead of branching on engine type.
 
 ## Fullscreen (desktop)
 
@@ -39,3 +40,18 @@
 
 - Repeat modes (`RepeatMode` persisted — wiring to playback end events).
 - Keyboard shortcuts / desktop menu integration.
+
+## Position quantization (single source of truth)
+
+`lib/features/player/application/position_buckets.dart` consolidates the three position quantization buckets into named constants. Do not inline these values in feature code — the per-bucket split keeps the transport scrubber responsive while the transcript highlight avoids per-tick rebuilds that flood the Windows accessibility bridge (flutter/flutter#182444). See `quantized_position.dart` for the dedup behavior.
+
+| Constant | Value | Used by |
+|----------|------:|---------|
+| `kPositionBucketEchoApplyMs` | 400 | Echo window apply — echo enforcement snaps to 400 ms ticks so the recorded clip window lines up across runs |
+| `kPositionBucketDisplayMs` | 400 | Time display + transcript active-line highlight — 400 ms matches human-perceptible cue changes |
+| `kPositionBucketScrubberMs` | 50 | Transport scrubber position updates — finer bucket keeps the slider tracking finger drags without regressing accessibility |
+
+## Open / close behavior
+
+- **`PlayerController.openMedia`** catches exceptions from `engine.open` and any downstream awaits so a failed open does not leave `state` pointing at a phantom session. The player surfaces the error to the existing failure path (`AsyncValue.error`) rather than masking it with stale session metadata.
+- **`PlayerController.clear()`** flushes the pending `PlaybackSessionPersister` write **before** cancelling the debounce timer, so a swipe-to-dismiss does not lose the last ~450 ms of position updates. Tests for the persister should cover the "dismiss while debounced write is queued" case explicitly.

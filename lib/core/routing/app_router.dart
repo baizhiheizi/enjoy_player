@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/routing/auth_router_tick.dart';
+import 'package:enjoy_player/core/routing/not_found_screen.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
@@ -63,6 +64,7 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: '/',
     refreshListenable: authTick,
+    errorBuilder: (context, state) => NotFoundScreen(uri: state.uri),
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final auth = ref.read(authCtrlProvider);

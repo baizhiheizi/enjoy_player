@@ -78,7 +78,9 @@ Widget _flowHarness({
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('email step transitions to OTP step on same screen', (tester) async {
+  testWidgets('email step transitions to OTP step on same screen', (
+    tester,
+  ) async {
     final auth = _EmailOtpAuthCtrl(const AuthSignedOut());
     await tester.pumpWidget(_flowHarness(auth: auth));
     await tester.pumpAndSettle();

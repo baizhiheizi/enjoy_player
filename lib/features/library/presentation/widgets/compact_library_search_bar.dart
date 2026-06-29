@@ -61,6 +61,7 @@ class _CompactLibrarySearchBarState
         focusNode: compactFocusNode,
         controller: _controller,
         onChanged: (v) => ref.read(librarySearchProvider.notifier).setQuery(v),
+        onSubmitted: (_) => ref.read(librarySearchProvider.notifier).commit(),
         style: tt.bodyMedium,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(

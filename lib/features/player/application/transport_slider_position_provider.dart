@@ -4,10 +4,13 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'player_engine_provider.dart';
+import 'position_buckets.dart';
 import 'quantized_position.dart';
 
-/// ~50ms buckets — smooth enough for the slider without flooding semantics rebuilds.
 final transportSliderPositionProvider = StreamProvider<Duration>((ref) {
   final engine = ref.watch(playerEngineProvider);
-  return quantizedPositionStream(engine.position, bucketMs: 50);
+  return quantizedPositionStream(
+    engine.position,
+    bucketMs: kPositionBucketScrubberMs,
+  );
 });

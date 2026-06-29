@@ -5,6 +5,7 @@
 ///   [MediaCard.row]  — horizontal row card for list views (audio).
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart'
@@ -41,7 +42,7 @@ void _showMobileDeleteMenu(
   final title = (label != null && label.isNotEmpty)
       ? label
       : ml.deleteButtonTooltip;
-  showEnjoySheet<void>(
+  unawaited(showEnjoySheet<void>(
     context: context,
     builder: (sheetContext) {
       final cs = Theme.of(sheetContext).colorScheme;
@@ -68,7 +69,7 @@ void _showMobileDeleteMenu(
         ),
       );
     },
-  );
+  ));
 }
 
 Widget _heroArtworkShell(String? mediaId, Widget child) {

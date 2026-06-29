@@ -1,6 +1,8 @@
 /// Full-screen WebView for Google / YouTube sign-in (shared cookie jar with player WebView).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -49,7 +51,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     icon: const Icon(Icons.close_rounded, size: 24),
                     color: colorScheme.onSurface,
                     onPressed: () {
-                      HapticFeedback.lightImpact();
+                      unawaited(HapticFeedback.lightImpact());
                       ref.invalidate(youtubeLoginStateProvider);
                       context.pop();
                     },
@@ -71,7 +73,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     icon: const Icon(Icons.logout_rounded, size: 22),
                     color: colorScheme.onSurfaceVariant,
                     onPressed: () async {
-                      HapticFeedback.lightImpact();
+                      unawaited(HapticFeedback.lightImpact());
                       await CookieManager.instance(
                         webViewEnvironment: appWebViewEnvironment,
                       ).deleteAllCookies();

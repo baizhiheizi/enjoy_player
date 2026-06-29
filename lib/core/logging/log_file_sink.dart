@@ -3,7 +3,6 @@ library;
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -28,9 +27,6 @@ class LogFileSink {
 
   static Future<LogFileSink?> ensureInitialized() async {
     if (_instance != null) return _instance;
-    if (kIsWeb) {
-      return null;
-    }
     try {
       final support = await getApplicationSupportDirectory();
       final dir = Directory(p.join(support.path, 'logs'));
@@ -101,7 +97,10 @@ class LogFileSink {
 
   Future<void> _rotate() async {
     final oldest = File(
-      p.join(_directory.path, '$kLogFileBaseName.${kLogFileRetentionCount - 1}'),
+      p.join(
+        _directory.path,
+        '$kLogFileBaseName.${kLogFileRetentionCount - 1}',
+      ),
     );
     if (oldest.existsSync()) {
       await oldest.delete();

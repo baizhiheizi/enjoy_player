@@ -2,6 +2,12 @@
 # Usage (Git Bash / macOS / Linux, from repo root):
 #   source .github/scripts/publish_env.local.sh
 #   bash .github/scripts/release.sh --platform windows --publish
+#
+# SECURITY: never paste real AWS/R2 credentials into a tracked file. The
+# pre-commit hook (.githooks/pre-commit) blocks credential-shaped strings and
+# the local credential files. Load real values from a secure store (1Password
+# CLI / GitHub Actions secrets) into this local copy only. See
+# docs/packaging.md → "Publish credentials".
 
 export AWS_ACCESS_KEY_ID="<R2 access key id>"
 export AWS_SECRET_ACCESS_KEY="<R2 secret access key>"
@@ -13,4 +19,11 @@ export PUBLISH_PREFIX="player"
 export CLOUDFLARE_API_TOKEN="<token with Cache Purge>"
 export CLOUDFLARE_ZONE_ID="<zone id for enjoy.bot>"
 # export ENJOY_PLAYER_DL_BASE="https://dl.enjoy.bot/player"
-# export SPARKLE_DSA_PRIV_PEM="/path/to/dsa_priv.pem"
+
+# WinSparkle signing (required for desktop auto-update appcast).
+# sign_sparkle_enclosure.sh auto-detects a `dsa_priv.pem` at the repo root,
+# so leave SPARKLE_DSA_PRIV_PEM unset when the key lives there. Only set it
+# explicitly when the key is elsewhere — resolve relative to the repo root
+# (NEVER hardcode an absolute path):
+#   export SPARKLE_DSA_PRIV_PEM="$(git rev-parse --show-toplevel)/keys/dsa_priv.pem"
+# CI injects the key as base64 via SPARKLE_DSA_PRIV_PEM_BASE64 instead.

@@ -13,11 +13,14 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_metadata_notifier.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
 
 void schedulePlayerOpenSideEffects(
   Ref ref, {
+  required int openGeneration,
+  required bool Function() isStale,
   required String mediaId,
   required String dexieTargetType,
 }) {
@@ -25,21 +28,48 @@ void schedulePlayerOpenSideEffects(
   final signedIn = auth is AuthSignedIn;
 
   unawaited(
-    ref
-        .read(transcriptFetchCtrlProvider(mediaId).notifier)
-        .resolveOnOpen(signedIn: signedIn),
+    _runTranscriptResolve(
+      ref,
+      mediaId: mediaId,
+      isStale: isStale,
+      signedIn: signedIn,
+    ),
   );
 
   if (signedIn) {
     unawaited(
-      ref
-          .read(recordingTargetSyncServiceProvider)
-          .pullRecordingsForTarget(
-            targetType: dexieTargetType,
-            targetId: mediaId,
-          ),
+      _runRecordingPull(
+        ref,
+        dexieTargetType: dexieTargetType,
+        mediaId: mediaId,
+        isStale: isStale,
+      ),
     );
   }
+}
+
+Future<void> _runTranscriptResolve(
+  Ref ref, {
+  required String mediaId,
+  required bool Function() isStale,
+  required bool signedIn,
+}) async {
+  if (isStale()) return;
+  await ref
+      .read(transcriptFetchCtrlProvider(mediaId).notifier)
+      .resolveOnOpen(signedIn: signedIn);
+}
+
+Future<void> _runRecordingPull(
+  Ref ref, {
+  required String dexieTargetType,
+  required String mediaId,
+  required bool Function() isStale,
+}) async {
+  if (isStale()) return;
+  await ref
+      .read(recordingTargetSyncServiceProvider)
+      .pullRecordingsForTarget(targetType: dexieTargetType, targetId: mediaId);
 }
 
 /// Lazy oEmbed retry after YouTube WebView reports playback-ready.
@@ -99,12 +129,14 @@ Future<void> _runYoutubeMetadataRefresh(
       .refreshYoutubeMetadataIfNeeded(mediaId);
   if (patch == null) return;
 
-  controller.patchSessionMetadataIfCurrent(
-    mediaId: mediaId,
-    openGeneration: openGeneration,
-    title: patch.title,
-    thumbnailUrl: patch.thumbnailUrl,
-  );
+  ref
+      .read(playerMetadataProvider.notifier)
+      .patchIfCurrent(
+        mediaId: mediaId,
+        openGeneration: openGeneration,
+        title: patch.title,
+        thumbnailUrl: patch.thumbnailUrl,
+      );
 }
 
 bool _youtubeMetadataNeedsRefresh(VideoRow row) {

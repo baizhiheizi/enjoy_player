@@ -23,11 +23,14 @@ final libraryMediaProvider = StreamProvider<List<Media>>((ref) {
 final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
   const recentLimit = 12;
   final repo = ref.watch(mediaLibraryRepositoryProvider);
-  return repo.watchAll().map((items) {
-    final sorted = [...items]
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    return sorted.take(recentLimit).toList();
-  }).distinctBy(_listEqualsMedia);
+  return repo
+      .watchAll()
+      .map((items) {
+        final sorted = [...items]
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        return sorted.take(recentLimit).toList();
+      })
+      .distinctBy(_listEqualsMedia);
 });
 
 /// Pre-filtered + title-sorted audio/video lists for [LibraryScreen].
@@ -41,19 +44,22 @@ final libraryFilteredListsProvider =
     StreamProvider<({List<Media> audio, List<Media> video})>((ref) {
       final repo = ref.watch(mediaLibraryRepositoryProvider);
       final query = ref.watch(librarySearchProvider);
-      return repo.watchAll().map((items) {
-        final filtered = _filterMediaByQuery(items, query);
-        final audioItems =
-            filtered.where((m) => m.kind == MediaKind.audio).toList()
-              ..sort((a, b) => a.title.compareTo(b.title));
-        final videoItems =
-            filtered.where((m) => m.kind == MediaKind.video).toList()
-              ..sort((a, b) => a.title.compareTo(b.title));
-        return (audio: audioItems, video: videoItems);
-      }).distinctBy((prev, next) {
-        return _listEqualsMedia(prev.audio, next.audio) &&
-            _listEqualsMedia(prev.video, next.video);
-      });
+      return repo
+          .watchAll()
+          .map((items) {
+            final filtered = _filterMediaByQuery(items, query);
+            final audioItems =
+                filtered.where((m) => m.kind == MediaKind.audio).toList()
+                  ..sort((a, b) => a.title.compareTo(b.title));
+            final videoItems =
+                filtered.where((m) => m.kind == MediaKind.video).toList()
+                  ..sort((a, b) => a.title.compareTo(b.title));
+            return (audio: audioItems, video: videoItems);
+          })
+          .distinctBy((prev, next) {
+            return _listEqualsMedia(prev.audio, next.audio) &&
+                _listEqualsMedia(prev.video, next.video);
+          });
     });
 
 List<Media> _filterMediaByQuery(List<Media> items, String query) {

@@ -19,6 +19,18 @@ class TranscriptLine {
 
   double get endSeconds => (startMs + durationMs) / 1000.0;
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TranscriptLine &&
+        other.text == text &&
+        other.startMs == startMs &&
+        other.durationMs == durationMs;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, startMs, durationMs);
+
   Map<String, dynamic> toJson() => {
     'text': text,
     'start': startMs,

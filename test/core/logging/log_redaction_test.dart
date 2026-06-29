@@ -33,7 +33,8 @@ void main() {
     });
 
     test('shortens long POSIX absolute paths', () {
-      const path = '/Users/alice/Library/Application Support/Enjoy/logs/out.log';
+      const path =
+          '/Users/alice/Library/Application Support/Enjoy/logs/out.log';
       final out = redactLogLine('path=$path');
       expect(out, contains('.../out.log'));
       expect(out, isNot(contains('/Users/alice/Library')));

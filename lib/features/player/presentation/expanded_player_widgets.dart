@@ -173,9 +173,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
                 children: [
                   mediaBody,
                   if (showVideoTitleChrome)
-                    _VideoTitleChromeOverlay(
-                      mediaTitle: chrome.mediaTitle,
-                    ),
+                    _VideoTitleChromeOverlay(mediaTitle: chrome.mediaTitle),
                 ],
               )
             else
@@ -230,9 +228,7 @@ class _VideoCollapseOnlyOverlay extends ConsumerWidget {
 
 /// Floating title row over video when paused or buffering (does not affect layout).
 class _VideoTitleChromeOverlay extends ConsumerWidget {
-  const _VideoTitleChromeOverlay({
-    required this.mediaTitle,
-  });
+  const _VideoTitleChromeOverlay({required this.mediaTitle});
 
   final String mediaTitle;
 

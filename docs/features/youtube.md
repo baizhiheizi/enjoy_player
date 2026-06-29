@@ -46,6 +46,10 @@ When the **worker** transcript poll returns `status: failed`, the app records a 
 - Embedded MKV/MP4 subtitle track extraction is unavailable for YouTube (no `media_kit` decode of the stream).
 - Ad behavior depends on YouTube, cookies, and account; “no ads” is best-effort when signed in with Premium where applicable.
 
+## Buffering transitions
+
+`YoutubePlayerEngine._emitBuffering(false)` only bumps the internal `mountTick` on the **first** buffering → playing transition per open. Mid-roll ad breaks and re-bufferings after the first play do not retrigger the tick, so the player UI does not flash the loading indicator on every ad pause. Tests for the buffering state should cover the "buffering → playing → buffering → playing" sequence and assert the mountTick only changes once.
+
 ## Platform notes
 
 | Platform | WebView | Profile / cookies | Navigation policy (ADR-0025) | Process crash recovery |

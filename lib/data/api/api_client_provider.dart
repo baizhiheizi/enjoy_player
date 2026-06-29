@@ -60,11 +60,17 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(guestAppDatabaseProvider);
+    // When no AI base URL is explicitly persisted, follow the main
+    // [ApiBaseUrl] (the worker lives on the same origin as the public
+    // API by default). This keeps the two settings coupled by default
+    // and avoids the "I changed the API URL but the AI still hits the
+    // old host" footgun called out in #83. An explicit override in
+    // settingsKv still wins.
     final raw = await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl);
-    return normalizeApiBaseUrl(
-      raw ?? kDefaultAiApiBaseUrl,
-      kDefaultAiApiBaseUrl,
-    );
+    if (raw == null) {
+      return ref.watch(apiBaseUrlProvider.future);
+    }
+    return normalizeApiBaseUrl(raw, await ref.read(apiBaseUrlProvider.future));
   }
 
   /// Persists and refreshes [aiApiClientProvider].
@@ -75,6 +81,14 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
         .settingsDao
         .setValue(SettingsKeys.apiAiBaseUrl, normalized);
     state = AsyncData(normalized);
+    ref.invalidate(aiApiClientProvider);
+  }
+
+  /// Clears the override and falls back to following [apiBaseUrlProvider].
+  Future<void> clearOverride() async {
+    final db = ref.read(guestAppDatabaseProvider);
+    await db.settingsDao.deleteValue(SettingsKeys.apiAiBaseUrl);
+    state = AsyncData(await ref.read(apiBaseUrlProvider.future));
     ref.invalidate(aiApiClientProvider);
   }
 }

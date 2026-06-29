@@ -22,18 +22,13 @@ class SharePracticePosterButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final targetTypeAsync = ref.watch(
-      dexieTargetTypeForMediaProvider(mediaId),
-    );
+    final targetTypeAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
 
     final targetType = targetTypeAsync.value;
     if (targetType == null) return const SizedBox.shrink();
 
     final recordingsAsync = ref.watch(
-      recordingsForTargetProvider((
-        targetType: targetType,
-        targetId: mediaId,
-      )),
+      recordingsForTargetProvider((targetType: targetType, targetId: mediaId)),
     );
 
     final hasRecordings = recordingsAsync.maybeWhen(
@@ -46,11 +41,8 @@ class SharePracticePosterButton extends ConsumerWidget {
     return IconButton(
       tooltip: l10n.practicePosterShareTooltip,
       icon: Icon(Icons.ios_share_rounded, color: iconColor),
-      onPressed: () => showPracticePosterPreviewSheet(
-        context,
-        ref,
-        mediaId: mediaId,
-      ),
+      onPressed: () =>
+          showPracticePosterPreviewSheet(context, ref, mediaId: mediaId),
     );
   }
 }

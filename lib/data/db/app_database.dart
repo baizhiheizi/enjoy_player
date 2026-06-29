@@ -5,6 +5,10 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
+import 'migration_backup.dart';
+import 'settings_keys.dart';
+import 'youtube_subscription_source.dart';
 import 'tables/audios.dart';
 import 'tables/dictations.dart';
 import 'tables/echo_sessions.dart';
@@ -48,14 +52,25 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
+  AppDatabase({QueryExecutor? executor, String name = guestDatabaseName})
+    : _dbName = name,
+      super(executor ?? driftDatabase(name: name));
+
   /// Default Drift database name (guest / signed-out local data).
   static const String guestDatabaseName = 'enjoy_player';
 
-  AppDatabase({QueryExecutor? executor, String name = guestDatabaseName})
-    : super(executor ?? driftDatabase(name: name));
+  /// Drift / sqlite file name (no path) for this instance.
+  ///
+  /// Used by callers (e.g. `SyncCtrl._onSignedIn`) that need to know
+  /// whether they are about to read the guest DB or a per-user DB
+  /// without having to inspect the executor.
+  final String _dbName;
+
+  /// True when this instance serves the device-global guest file.
+  bool get isGuestDatabase => _dbName == guestDatabaseName;
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,42 +78,62 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      if (from == 7 && to == 8) {
+      await _runMigrations(m, from, to);
+    },
+  );
+
+  /// Explicit schema steps — no blanket table drops without [backupToJson].
+  Future<void> _runMigrations(Migrator m, int from, int to) async {
+    if (from >= to) return;
+
+    var current = from;
+    while (current < to) {
+      if (current < 6 && to >= 7) {
+        await backupToJson(m.database, from: current, to: to);
+        await _dropLegacyTables(m);
+        await m.createAll();
+        return;
+      }
+
+      final next = current + 1;
+      if (next == 7) {
+        await m.createTable(youtubeChannelSubscriptions);
+        await m.createTable(youtubeFeedEntries);
+      } else if (next == 8) {
         await m.addColumn(
           youtubeFeedEntries,
           youtubeFeedEntries.durationSeconds,
         );
-        return;
+      } else if (next == 9) {
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_transcript_fetch_states_target '
+          'ON transcript_fetch_states (target_type, target_id)',
+        );
       }
+      current = next;
+    }
+  }
 
-      // v6 → v7 only adds Discover tables; preserve existing library data.
-      if (from >= 6 && to == 7) {
-        await m.createTable(youtubeChannelSubscriptions);
-        await m.createTable(youtubeFeedEntries);
-        return;
-      }
-
-      const tables = <String>[
-        'sync_queue',
-        'dictations',
-        'recordings',
-        'echo_sessions',
-        'transcripts',
-        'transcript_fetch_states',
-        'youtube_feed_entries',
-        'youtube_channel_subscriptions',
-        'videos',
-        'audios',
-        'playback_sessions',
-        'media',
-        'settings',
-      ];
-      for (final name in tables) {
-        await m.database.customStatement('DROP TABLE IF EXISTS $name');
-      }
-      await m.createAll();
-    },
-  );
+  Future<void> _dropLegacyTables(Migrator m) async {
+    const tables = <String>[
+      'sync_queue',
+      'dictations',
+      'recordings',
+      'echo_sessions',
+      'transcripts',
+      'transcript_fetch_states',
+      'youtube_feed_entries',
+      'youtube_channel_subscriptions',
+      'videos',
+      'audios',
+      'playback_sessions',
+      'media',
+      'settings',
+    ];
+    for (final name in tables) {
+      await m.database.customStatement('DROP TABLE IF EXISTS $name');
+    }
+  }
 }
 
 @DriftAccessor(tables: [Videos])
@@ -607,17 +642,38 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
     with _$SettingsDaoMixin {
   SettingsDao(super.db);
 
+  static final _log = logNamed('SettingsDao');
+
+  void _assertKnownKey(String key) {
+    if (SettingsKeys.isKnown(key)) return;
+    final message = 'Unknown settings key: $key';
+    assert(() {
+      throw StateError(message);
+    }());
+    _log.warning(message);
+  }
+
   Future<String?> getValue(String key) async {
+    _assertKnownKey(key);
     final row = await (select(
       settingsKv,
     )..where((t) => t.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 
-  Future<void> setValue(String key, String value) => into(settingsKv).insert(
-    SettingRow(key: key, value: value),
-    mode: InsertMode.insertOrReplace,
-  );
+  Future<void> setValue(String key, String value) {
+    _assertKnownKey(key);
+    return into(settingsKv).insert(
+      SettingRow(key: key, value: value),
+      mode: InsertMode.insertOrReplace,
+    );
+  }
+
+  /// Removes a key. No-op when the key is absent.
+  Future<void> deleteValue(String key) {
+    _assertKnownKey(key);
+    return (delete(settingsKv)..where((t) => t.key.equals(key))).go();
+  }
 }
 
 @DriftAccessor(tables: [YoutubeChannelSubscriptions])

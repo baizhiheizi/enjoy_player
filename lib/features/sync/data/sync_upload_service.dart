@@ -13,6 +13,23 @@ import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 
 final _log = logNamed('sync.upload');
 
+/// Thrown when a server upload response omits the required `updatedAt` field.
+///
+/// Without `updatedAt` we cannot trust [serverUpdatedAt] — defaulting to
+/// `DateTime.now()` would silently make the local row appear newer than the
+/// server and trigger spurious re-uploads that could clobber concurrent
+/// server-side edits. The row is left untouched and the sync queue will retry.
+class SyncMissingUpdatedAtError extends Error {
+  SyncMissingUpdatedAtError(this.entity, this.id);
+
+  final String entity;
+  final String id;
+
+  @override
+  String toString() =>
+      'SyncMissingUpdatedAtError($entity $id): server response missing updatedAt';
+}
+
 class SyncUploadService {
   SyncUploadService({
     required this._db,
@@ -37,14 +54,17 @@ class SyncUploadService {
       final response = await _audioApi.audio(row.id);
       inner = unwrapEntity(response, 'audio');
     }
-    final serverUpdated =
-        parseIsoDate(inner['updatedAt']) ?? DateTime.now().toUtc();
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'audio',
+      id: row.id,
+    );
     await _db.audioDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),
         serverUpdatedAt: Value(serverUpdated),
         mediaUrl: Value(inner['mediaUrl'] as String? ?? row.mediaUrl),
-        updatedAt: parseIsoDate(inner['updatedAt']) ?? row.updatedAt,
+        updatedAt: serverUpdated,
       ),
     );
   }
@@ -70,14 +90,17 @@ class SyncUploadService {
     VideoRow row,
     Map<String, dynamic> inner,
   ) async {
-    final serverUpdated =
-        parseIsoDate(inner['updatedAt']) ?? DateTime.now().toUtc();
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'video',
+      id: row.id,
+    );
     await _db.videoDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),
         serverUpdatedAt: Value(serverUpdated),
         mediaUrl: Value(inner['mediaUrl'] as String? ?? row.mediaUrl),
-        updatedAt: parseIsoDate(inner['updatedAt']) ?? row.updatedAt,
+        updatedAt: serverUpdated,
       ),
     );
   }
@@ -87,16 +110,34 @@ class SyncUploadService {
       prepareForSyncRecordingMap(row),
     );
     final inner = unwrapEntity(response, 'recording');
-    final serverUpdated =
-        parseIsoDate(inner['updatedAt']) ?? DateTime.now().toUtc();
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'recording',
+      id: row.id,
+    );
     await _db.recordingDao.insertRow(
       row.copyWith(
         syncStatus: const Value('synced'),
         serverUpdatedAt: Value(serverUpdated),
         audioUrl: Value(inner['audioUrl'] as String? ?? row.audioUrl),
-        updatedAt: parseIsoDate(inner['updatedAt']) ?? row.updatedAt,
+        updatedAt: serverUpdated,
       ),
     );
+  }
+
+  DateTime _requireServerUpdated(
+    Map<String, dynamic> inner, {
+    required String entity,
+    required String id,
+  }) {
+    final parsed = parseIsoDate(inner['updatedAt']);
+    if (parsed == null) {
+      _log.warning(
+        'server response missing updatedAt for $entity $id; refusing to write',
+      );
+      throw SyncMissingUpdatedAtError(entity, id);
+    }
+    return parsed;
   }
 
   Future<void> deleteAudio(String id) async {

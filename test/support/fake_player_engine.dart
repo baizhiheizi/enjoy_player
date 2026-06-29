@@ -56,6 +56,9 @@ class FakePlayerEngine implements PlayerEngine {
   bool get supportsVideoPosterCapture => true;
 
   @override
+  bool get supportsSubtitleDisabling => true;
+
+  @override
   ({bool playing, bool buffering}) get transportSnapshot =>
       (playing: false, buffering: false);
 

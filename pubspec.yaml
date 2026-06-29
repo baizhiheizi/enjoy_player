@@ -22,14 +22,16 @@ dependencies:
     path: packages/azure_speech
   drift: ^2.31.0
   drift_flutter: ^0.2.8
-  file_picker: ^12.0.0-beta.2
+  # Pre-release dep (single-publisher supply chain) — pinned exactly so a
+  # fresh `pub get` cannot upgrade without an explicit PR. See ADR-0029.
+  file_picker: 12.0.0-beta.4
   freezed_annotation: ^3.0.0
   flutter_riverpod: ^3.3.1
   flutter_secure_storage: ^10.2.0
   go_router: ^17.2.3
   http: ^1.4.0
   google_fonts: ^8.1.0
-  intl: any
+  intl: ^0.20.2
   json_annotation: ^4.11.0
   logging: ^1.3.0
   meta: ^1.16.0
@@ -41,8 +43,11 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   package_info_plus: ^10.1.0
-  auto_updater: ^0.2.1
-  ota_update: ^7.0.2
+  # Pre-release / single-publisher deps (Windows + mobile auto-update flow).
+  # Pinned exactly so `pub get` cannot silently upgrade; bump via PR. See
+  # ADR-0029.
+  auto_updater: 0.2.1
+  ota_update: 7.1.0
   record: ^7.0.0
   riverpod_annotation: ^4.0.2
   sqlite3_flutter_libs: ^0.5.28

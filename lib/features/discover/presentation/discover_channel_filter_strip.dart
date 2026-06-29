@@ -66,9 +66,9 @@ class _DiscoverChannelFilterStripState
       data: (subs) {
         return SizedBox(
           height: DiscoverChannelFilterStrip.rowHeight,
-            child: ScrollConfiguration(
-              behavior: const HorizontalDragScrollBehavior(),
-              child: Scrollbar(
+          child: ScrollConfiguration(
+            behavior: const HorizontalDragScrollBehavior(),
+            child: Scrollbar(
               controller: _scrollController,
               interactive: true,
               notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,

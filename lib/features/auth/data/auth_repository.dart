@@ -33,12 +33,10 @@ AuthRepository authRepository(Ref ref) {
 
 class AuthRepository {
   AuthRepository({
-    required AuthApi authApi,
-    required SecureTokenStore tokenStore,
-    required Future<String> Function() getBaseUrl,
-  }) : _authApi = authApi,
-       _tokenStore = tokenStore,
-       _getBaseUrl = getBaseUrl;
+    required this._authApi,
+    required this._tokenStore,
+    required this._getBaseUrl,
+  });
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
@@ -69,7 +67,7 @@ class AuthRepository {
       final m = await _authApi.sendOtp(email: email.trim());
       return OtpSendResponse.fromJson(m);
     } on ApiException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
     }
   }
 
@@ -126,13 +124,23 @@ class AuthRepository {
       return true;
     } on ApiException catch (e) {
       _log.warning('refresh session failed', e);
-      await clearSession();
+      if (_shouldRevokeSessionOnApiException(e)) {
+        await clearSession();
+      }
       return false;
     } catch (e, st) {
       _log.warning('refresh session failed', e, st);
-      await clearSession();
       return false;
     }
+  }
+
+  /// Server explicitly told us the session is no longer valid; we must
+  /// wipe local tokens. Transient 5xx / network errors keep the session
+  /// so the next request can retry.
+  static bool _shouldRevokeSessionOnApiException(ApiException e) {
+    final status = e.statusCode;
+    if (status == 401 || status == 403) return true;
+    return false;
   }
 
   Future<UserProfile> fetchProfile() async {
@@ -145,7 +153,7 @@ class AuthRepository {
       if (e.isUnauthorized) {
         await clearSession();
       }
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
     }
   }
 
@@ -163,7 +171,7 @@ class AuthRepository {
       if (e.isUnauthorized) {
         await clearSession();
       }
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
     }
   }
 
@@ -223,9 +231,9 @@ class AuthRepository {
       }
       return fetchProfile();
     } on ApiException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
     } on FormatException catch (e) {
-      throw AuthFailure(e.message);
+      throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);
     }
   }
 
@@ -244,4 +252,18 @@ class AuthRepository {
     }
     return url;
   }
+}
+
+/// Maps an [ApiException] thrown by the auth API to an [AuthFailureCode] so
+/// the UI can distinguish "you typed the wrong code" from "the server is down"
+/// from "your session expired and we logged you out".
+AuthFailureCode authFailureCodeForApiException(ApiException e) {
+  final status = e.statusCode;
+  if (status == 401 || status == 403) return AuthFailureCode.sessionRevoked;
+  if (status == 429) return AuthFailureCode.rateLimited;
+  if (status != null && status >= 500) return AuthFailureCode.serverError;
+  if (status == 400 || status == 404 || status == 422) {
+    return AuthFailureCode.invalidCredentials;
+  }
+  return AuthFailureCode.unknown;
 }

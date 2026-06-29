@@ -2,10 +2,12 @@
 library;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:http/http.dart' as http;
 
@@ -20,6 +22,18 @@ import 'youtube_rss_parser.dart';
 import 'youtube_video_duration.dart';
 
 final _log = logNamed('discover.repository');
+
+/// Maximum number of channels refreshed in parallel. YouTube's RSS
+/// endpoints are rate-limit sensitive; 4 keeps us well under the
+/// soft-limit and finishes a 20-channel refresh in ~5 RTTs.
+const int _kRefreshChannelConcurrency = 4;
+
+/// Maximum number of duration-enrichment fetches in parallel.
+const int _kEnrichDurationConcurrency = 4;
+
+/// Maximum number of distinct channel avatars to keep in memory.
+/// LinkedHashMap-based LRU; oldest unread entry is evicted on insert.
+const int _kAvatarCacheCapacity = 256;
 
 class DiscoverRefreshResult {
   const DiscoverRefreshResult({
@@ -64,7 +78,12 @@ class DiscoverRepository {
   late final YoutubeChannelResolver _channelResolver;
   final YoutubeRssParser _rssParser;
   MediaLibraryRepository? _libraryRepository;
-  final Map<String, String> _avatarUrlCache = {};
+
+  /// Bounded LRU cache for channel avatar URLs. LinkedHashMap preserves
+  /// insertion order; we move-to-end on every hit, and evict from the
+  /// head when the cache is full. Prevents unbounded growth on a
+  /// user who subscribes / unsubscribes many channels.
+  final LinkedHashMap<String, String> _avatarUrlCache = LinkedHashMap();
 
   static const minRefreshInterval = Duration(hours: 1);
   static const rssFeedBase =
@@ -109,7 +128,7 @@ class DiscoverRepository {
     await subscribeChannel(
       channelId: channel.channelId,
       displayName: channel.name,
-      source: 'recommended',
+      source: YoutubeSubscriptionSource.recommended,
     );
   }
 
@@ -122,14 +141,14 @@ class DiscoverRepository {
     await subscribeChannel(
       channelId: resolved.channelId,
       displayName: displayName,
-      source: 'user',
+      source: YoutubeSubscriptionSource.user,
     );
   }
 
   Future<void> subscribeChannel({
     required String channelId,
     required String displayName,
-    required String source,
+    required YoutubeSubscriptionSource source,
     String? thumbnailUrl,
   }) async {
     final existing = await _db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -160,13 +179,20 @@ class DiscoverRepository {
 
   /// Channel profile photo from the public channel page — cached in memory.
   Future<String?> fetchChannelAvatarUrl(String channelId) async {
-    final cached = _avatarUrlCache[channelId];
-    if (cached != null) return cached;
+    final cached = _avatarUrlCache.remove(channelId);
+    if (cached != null) {
+      // Move-to-end on hit; preserves the LRU ordering.
+      _avatarUrlCache[channelId] = cached;
+      return cached;
+    }
 
     try {
       final url = await _channelResolver.fetchChannelAvatarUrl(channelId);
       if (url != null && url.isNotEmpty) {
         _avatarUrlCache[channelId] = url;
+        while (_avatarUrlCache.length > _kAvatarCacheCapacity) {
+          _avatarUrlCache.remove(_avatarUrlCache.keys.first);
+        }
       }
       return url;
     } catch (e, st) {
@@ -203,39 +229,75 @@ class DiscoverRepository {
     }
 
     final now = DateTime.now();
-    var refreshed = 0;
-    final failed = <String>[];
-
+    final work = <YoutubeChannelSubscriptionRow>[];
     for (final sub in subs) {
       if (!force &&
           sub.lastFetchedAt != null &&
           now.difference(sub.lastFetchedAt!) < minRefreshInterval) {
         continue;
       }
+      work.add(sub);
+    }
+    if (work.isEmpty) {
+      return const DiscoverRefreshResult(
+        refreshedChannels: 0,
+        failedChannelIds: [],
+      );
+    }
 
-      try {
-        await _refreshChannel(
-          canonicalCatalogChannelId(sub.channelId),
-          fetchedAt: now,
-        );
+    // Run up to [_kRefreshChannelConcurrency] channel refreshes in
+    // parallel. YouTube's RSS endpoints are soft-rate-limited; 4
+    // concurrent is well below the threshold and turns a 20-channel
+    // refresh from 20 RTTs into ~5 RTTs.
+    final results = <_ChannelRefreshOutcome>[];
+    for (var i = 0; i < work.length; i += _kRefreshChannelConcurrency) {
+      final batch = work.sublist(
+        i,
+        i + _kRefreshChannelConcurrency > work.length
+            ? work.length
+            : i + _kRefreshChannelConcurrency,
+      );
+      results.addAll(
+        await Future.wait(
+          batch.map((sub) => _refreshChannelGuarded(sub, fetchedAt: now)),
+        ),
+      );
+    }
+
+    var refreshed = 0;
+    final failed = <String>[];
+    for (final outcome in results) {
+      if (outcome.success) {
         refreshed++;
-      } on YoutubeFeedFetchException catch (e, st) {
-        _log.warning(
-          'RSS refresh failed for ${sub.channelId}: ${e.message}',
-          e,
-          st,
-        );
-        failed.add(sub.channelId);
-      } catch (e, st) {
-        _log.warning('RSS refresh failed for ${sub.channelId}', e, st);
-        failed.add(sub.channelId);
+      } else {
+        failed.add(outcome.channelId);
       }
     }
 
     return DiscoverRefreshResult(
       refreshedChannels: refreshed,
-      failedChannelIds: failed,
+      failedChannelIds: List.unmodifiable(failed),
     );
+  }
+
+  Future<_ChannelRefreshOutcome> _refreshChannelGuarded(
+    YoutubeChannelSubscriptionRow sub, {
+    required DateTime fetchedAt,
+  }) async {
+    final id = sub.channelId;
+    try {
+      await _refreshChannel(
+        canonicalCatalogChannelId(id),
+        fetchedAt: fetchedAt,
+      );
+      return _ChannelRefreshOutcome.success(id);
+    } on YoutubeFeedFetchException catch (e, st) {
+      _log.warning('RSS refresh failed for $id: ${e.message}', e, st);
+      return _ChannelRefreshOutcome.failure(id);
+    } catch (e, st) {
+      _log.warning('RSS refresh failed for $id', e, st);
+      return _ChannelRefreshOutcome.failure(id);
+    }
   }
 
   Future<void> _refreshChannel(
@@ -277,9 +339,7 @@ class DiscoverRepository {
           channelId: channelId,
           videoId: entry.videoId,
         );
-        final libraryVideo = await _db.videoDao.getYoutubeByVid(
-          entry.videoId,
-        );
+        final libraryVideo = await _db.videoDao.getYoutubeByVid(entry.videoId);
         final durationSeconds =
             libraryVideo != null && libraryVideo.durationSeconds > 0
             ? libraryVideo.durationSeconds
@@ -326,27 +386,66 @@ class DiscoverRepository {
     String channelId,
     List<FeedEntry> entries,
   ) async {
-    for (final entry in entries) {
-      final cached = await _db.youtubeFeedEntryDao.getEntry(
-        channelId: channelId,
-        videoId: entry.videoId,
-      );
-      if (cached?.durationSeconds != null && cached!.durationSeconds! > 0) {
-        continue;
+    // Cap parallel HTML page fetches at [_kEnrichDurationConcurrency]
+    // using a counting semaphore (queue of waiters). Previously this
+    // loop ran sequentially — for a 15-entry channel that was 15 RTTs
+    // of latency on every refresh, and 15 × 20 channels = 300 HTML
+    // page requests when many subscriptions refresh together.
+    final immutableEntries = List<FeedEntry>.unmodifiable(entries);
+    var inFlight = 0;
+    final waiters = <Completer<void>>[];
+
+    Future<void> acquire() async {
+      if (inFlight < _kEnrichDurationConcurrency) {
+        inFlight += 1;
+        return;
       }
-
-      final seconds = await YoutubeVideoDuration.fetchSeconds(
-        _client,
-        entry.videoId,
-      );
-      if (seconds == null || seconds <= 0) continue;
-
-      await _db.youtubeFeedEntryDao.updateDurationSeconds(
-        channelId: channelId,
-        videoId: entry.videoId,
-        durationSeconds: seconds,
-      );
+      final c = Completer<void>();
+      waiters.add(c);
+      await c.future;
     }
+
+    void release() {
+      if (waiters.isNotEmpty) {
+        // Hand the slot to the next waiter in FIFO order; do not
+        // decrement inFlight because the waiter immediately claims
+        // the same slot.
+        waiters.removeAt(0).complete();
+      } else {
+        inFlight -= 1;
+      }
+    }
+
+    final tasks = <Future<void>>[];
+    for (final entry in immutableEntries) {
+      await acquire();
+      tasks.add(() async {
+        try {
+          final cached = await _db.youtubeFeedEntryDao.getEntry(
+            channelId: channelId,
+            videoId: entry.videoId,
+          );
+          if (cached?.durationSeconds != null && cached!.durationSeconds! > 0) {
+            return;
+          }
+
+          final seconds = await YoutubeVideoDuration.fetchSeconds(
+            _client,
+            entry.videoId,
+          );
+          if (seconds == null || seconds <= 0) return;
+
+          await _db.youtubeFeedEntryDao.updateDurationSeconds(
+            channelId: channelId,
+            videoId: entry.videoId,
+            durationSeconds: seconds,
+          );
+        } finally {
+          release();
+        }
+      }());
+    }
+    await Future.wait(tasks);
   }
 
   Future<void> _repairLegacyCatalogChannelIds() async {
@@ -423,6 +522,18 @@ class DiscoverRepository {
     if (url == null || url.isEmpty) return false;
     return url.contains('i.ytimg.com/vi/');
   }
+}
+
+/// Internal: outcome of a single per-channel refresh.
+class _ChannelRefreshOutcome {
+  const _ChannelRefreshOutcome._(this.channelId, this.success);
+  factory _ChannelRefreshOutcome.success(String channelId) =>
+      _ChannelRefreshOutcome._(channelId, true);
+  factory _ChannelRefreshOutcome.failure(String channelId) =>
+      _ChannelRefreshOutcome._(channelId, false);
+
+  final String channelId;
+  final bool success;
 }
 
 bool _listEqualsDiscoverChannel(

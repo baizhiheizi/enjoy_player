@@ -33,15 +33,13 @@ void main() {
         const [4, 5],
         const [1, 2, 3],
       ]);
-      final out = await source
-          .distinctBy((a, b) {
-            if (a.length != b.length) return false;
-            for (var i = 0; i < a.length; i++) {
-              if (a[i] != b[i]) return false;
-            }
-            return true;
-          })
-          .toList();
+      final out = await source.distinctBy((a, b) {
+        if (a.length != b.length) return false;
+        for (var i = 0; i < a.length; i++) {
+          if (a[i] != b[i]) return false;
+        }
+        return true;
+      }).toList();
       expect(out.length, 3);
       expect(out[0], [1, 2, 3]);
       expect(out[1], [4, 5]);
@@ -57,8 +55,8 @@ void main() {
       controller
         ..add(1)
         ..add(1)
-        ..add(2)
-        ..close();
+        ..add(2);
+      unawaited(controller.close());
       final a = await aFut;
       final b = await bFut;
       expect(a, [1, 2]);

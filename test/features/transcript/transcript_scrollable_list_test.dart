@@ -214,61 +214,62 @@ void main() {
     expect(find.text('4'), findsOneWidget);
   });
 
-  testWidgets('unmount during echo scroll does not throw framework assertions', (
-    tester,
-  ) async {
-    final lines = _sampleLines(8);
-    late ProviderContainer container;
+  testWidgets(
+    'unmount during echo scroll does not throw framework assertions',
+    (tester) async {
+      final lines = _sampleLines(8);
+      late ProviderContainer container;
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: _scrollTestOverrides(highlightIndex: 2),
-        child: Builder(
-          builder: (context) {
-            container = ProviderScope.containerOf(context);
-            final scheme = ColorScheme.fromSeed(
-              seedColor: const Color(0xFF003366),
-            );
-            return MaterialApp(
-              theme: ThemeData(
-                colorScheme: scheme,
-                extensions: [EnjoyThemeTokens.build(scheme)],
-              ),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: Scaffold(
-                body: SizedBox(
-                  height: 400,
-                  child: TranscriptScrollableList(
-                    mediaId: _mediaId,
-                    lines: lines,
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: _scrollTestOverrides(highlightIndex: 2),
+          child: Builder(
+            builder: (context) {
+              container = ProviderScope.containerOf(context);
+              final scheme = ColorScheme.fromSeed(
+                seedColor: const Color(0xFF003366),
+              );
+              return MaterialApp(
+                theme: ThemeData(
+                  colorScheme: scheme,
+                  extensions: [EnjoyThemeTokens.build(scheme)],
+                ),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Scaffold(
+                  body: SizedBox(
+                    height: 400,
+                    child: TranscriptScrollableList(
+                      mediaId: _mediaId,
+                      lines: lines,
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
+      await tester.pump();
 
-    container
-        .read(echoModeProvider.notifier)
-        .activate(
-          startLineIndex: 3,
-          endLineIndex: 3,
-          startTimeSeconds: lines[3].startSeconds,
-          endTimeSeconds: lines[3].endSeconds,
-        );
-    await tester.pump();
+      container
+          .read(echoModeProvider.notifier)
+          .activate(
+            startLineIndex: 3,
+            endLineIndex: 3,
+            startTimeSeconds: lines[3].startSeconds,
+            endTimeSeconds: lines[3].endSeconds,
+          );
+      await tester.pump();
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    expect(tester.takeException(), isNull);
-  });
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('active line scrolls into view with mid-viewport bias', (
     tester,

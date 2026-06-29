@@ -106,7 +106,7 @@ class _AppHotkeysKeyboardListenerState
       switch (action) {
         case EscapeDismissalAction.closeCheatsheet:
           if (navCtx != null) {
-            Navigator.of(navCtx, rootNavigator: true).maybePop();
+            unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
           }
           return true;
         case EscapeDismissalAction.exitFullscreen:
@@ -139,7 +139,7 @@ class _AppHotkeysKeyboardListenerState
     if (_matches(event, ctrl, 'global.help')) {
       if (navCtx == null) return false;
       if (hotkeysCheatsheetOpen.value) {
-        Navigator.of(navCtx, rootNavigator: true).maybePop();
+        unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
         return true;
       }
       unawaited(showHotkeysHelpDialog(navCtx));

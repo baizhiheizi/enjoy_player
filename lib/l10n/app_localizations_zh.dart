@@ -202,6 +202,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get discoverRefreshPartialFailed => '部分频道动态刷新失败。';
 
   @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    return '无法刷新 $count 个频道：$names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return '无法刷新 $name。';
+  }
+
+  @override
   String get discoverRecommendedLoadFailed => '无法加载推荐频道。';
 
   @override
@@ -1254,6 +1264,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';
 
   @override
+  String get settingsAiApiBaseUrlUseDefault => '使用主 API 地址';
+
+  @override
+  String get settingsAiApiBaseUrlCleared => 'AI API 现在跟随主 API 地址。';
+
+  @override
   String get settingsAccountSignedOut => '未登录';
 
   @override
@@ -1743,6 +1759,68 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get practicePosterLoadError => '无法加载此视频的练习数据。';
+
+  @override
+  String get notFoundTitle => '页面未找到';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return '找不到 $uri。';
+  }
+
+  @override
+  String get notFoundBackHome => '返回首页';
+
+  @override
+  String get recoveryTitle => '本地数据需要处理';
+
+  @override
+  String get recoverySubtitle =>
+      'Enjoy Player 无法打开本地数据库。最常见的原因是更新不完整。数据仍然在磁盘上;继续操作前你可以先复制错误信息。';
+
+  @override
+  String get recoveryOpenLogs => '打开日志文件夹';
+
+  @override
+  String get recoveryOpenLogsError => '无法打开日志文件夹。';
+
+  @override
+  String get recoveryCopyError => '复制错误';
+
+  @override
+  String get recoveryCopiedToClipboard => '错误详情已复制到剪贴板。';
+
+  @override
+  String get recoveryResetLibrary => '重置本地资料库';
+
+  @override
+  String get recoveryResetLibrarySubtitle =>
+      '清除本地数据库并重新开始。云端资料库不受影响。清除前会将当前状态备份到应用支持目录。';
+
+  @override
+  String get recoveryResetLibraryConfirmTitle => '重置本地资料库?';
+
+  @override
+  String get recoveryResetLibraryConfirmBody =>
+      '这将永久删除你的本地资料库、录音、转写和同步队列。如果已登录,云端资料库会保留。清除前会先在应用支持目录写入一份备份。';
+
+  @override
+  String get recoveryResetLibraryConfirmAction => '全部清除';
+
+  @override
+  String get recoveryResetLibraryBackupError => '备份失败,本地数据库未被清除。错误已记录。';
+
+  @override
+  String get recoveryResetLibrarySuccess => '本地资料库已重置,Enjoy Player 即将重启。';
+
+  @override
+  String get recoveryResetLibraryError => '无法重置本地资料库。';
+
+  @override
+  String get widgetErrorTitle => '出了点问题';
+
+  @override
+  String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -1943,6 +2021,16 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get discoverRefreshPartialFailed => '部分频道动态刷新失败。';
 
   @override
+  String discoverRefreshPartialFailedDetail(int count, String names) {
+    return '无法刷新 $count 个频道：$names';
+  }
+
+  @override
+  String discoverRefreshSingleFailed(Object name) {
+    return '无法刷新 $name。';
+  }
+
+  @override
   String get discoverRecommendedLoadFailed => '无法加载推荐频道。';
 
   @override
@@ -2995,6 +3083,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsAiApiBaseUrlSave => '保存 AI API 地址';
 
   @override
+  String get settingsAiApiBaseUrlUseDefault => '使用主 API 地址';
+
+  @override
+  String get settingsAiApiBaseUrlCleared => 'AI API 现在跟随主 API 地址。';
+
+  @override
   String get settingsAccountSignedOut => '未登录';
 
   @override
@@ -3484,4 +3578,66 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get practicePosterLoadError => '无法加载此视频的练习数据。';
+
+  @override
+  String get notFoundTitle => '页面未找到';
+
+  @override
+  String notFoundSubtitle(String uri) {
+    return '找不到 $uri。';
+  }
+
+  @override
+  String get notFoundBackHome => '返回首页';
+
+  @override
+  String get recoveryTitle => '本地数据需要处理';
+
+  @override
+  String get recoverySubtitle =>
+      'Enjoy Player 无法打开本地数据库。最常见的原因是更新不完整。数据仍然在磁盘上;继续操作前你可以先复制错误信息。';
+
+  @override
+  String get recoveryOpenLogs => '打开日志文件夹';
+
+  @override
+  String get recoveryOpenLogsError => '无法打开日志文件夹。';
+
+  @override
+  String get recoveryCopyError => '复制错误';
+
+  @override
+  String get recoveryCopiedToClipboard => '错误详情已复制到剪贴板。';
+
+  @override
+  String get recoveryResetLibrary => '重置本地资料库';
+
+  @override
+  String get recoveryResetLibrarySubtitle =>
+      '清除本地数据库并重新开始。云端资料库不受影响。清除前会将当前状态备份到应用支持目录。';
+
+  @override
+  String get recoveryResetLibraryConfirmTitle => '重置本地资料库?';
+
+  @override
+  String get recoveryResetLibraryConfirmBody =>
+      '这将永久删除你的本地资料库、录音、转写和同步队列。如果已登录,云端资料库会保留。清除前会先在应用支持目录写入一份备份。';
+
+  @override
+  String get recoveryResetLibraryConfirmAction => '全部清除';
+
+  @override
+  String get recoveryResetLibraryBackupError => '备份失败,本地数据库未被清除。错误已记录。';
+
+  @override
+  String get recoveryResetLibrarySuccess => '本地资料库已重置,Enjoy Player 即将重启。';
+
+  @override
+  String get recoveryResetLibraryError => '无法重置本地资料库。';
+
+  @override
+  String get widgetErrorTitle => '出了点问题';
+
+  @override
+  String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
 }
