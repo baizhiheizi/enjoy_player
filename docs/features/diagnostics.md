@@ -27,7 +27,7 @@ Settings → About → **Export diagnostic report**.
 Builds a zip containing:
 
 - Rotated log files under `logs/`
-- `manifest.json` (version, platform, channel, build mode, export time, verbose flag)
+- `manifest.json` (app version, build number, platform, distribution channel, build mode, export time, verbose flag, optional locale)
 
 Default filename: `EnjoyPlayer-diagnostics-<date>.zip`. User chooses save location via the platform file picker.
 
