@@ -59,9 +59,9 @@ sequenceDiagram
 
 `app_database_provider.dart` keeps the most recent **two** per-user [`AppDatabase`](../lib/data/db/app_database.dart) instances in a bounded `LinkedHashMap`. On sign-in for a third account, the **oldest** entry is closed (and its Drift connections released) before the new one is inserted — see [ADR-0012](decisions/0012-per-user-sqlite-isolation.md) for the per-user isolation rationale. The cap keeps the file-handle / mmap footprint stable across guest ↔ account churn.
 
-#### `transcript_fetch_states` index follow-up
+#### `transcript_fetch_states` composite index
 
-The `transcript_fetch_states` lookup path is currently a sequential scan over `(target_type, target_id)`. A composite index on those two columns is a planned follow-up; track the schema change against the next `onUpgrade` so the index is added without dropping the table.
+The `(target_type, target_id)` lookup on [`TranscriptFetchStates`](../lib/data/db/tables/transcript_fetch_states.dart) is now backed by the composite index `idx_transcript_fetch_states_target`. The index is declared on the table via `@TableIndex` (so new installs get it from `createAll()`) and the **v8 → v9** migration step adds it to existing databases with `CREATE INDEX IF NOT EXISTS` — neither path drops the table or its data.
 
 ## Optional Enjoy account (auth)
 
