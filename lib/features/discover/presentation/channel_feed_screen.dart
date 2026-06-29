@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -82,8 +83,12 @@ class ChannelFeedScreen extends ConsumerWidget {
                   padding: EdgeInsets.all(t.space24),
                   itemCount: entries.length,
                   separatorBuilder: (_, _) => SizedBox(height: t.space24),
-                  itemBuilder: (context, index) =>
-                      DiscoverFeedTile(entry: entries[index]),
+                  itemBuilder: (context, index) => KeyedSubtree(
+                    key: ValueKey<String>(
+                      'channel-feed-${entries[index].videoId}',
+                    ),
+                    child: DiscoverFeedTile(entry: entries[index]),
+                  ),
                 );
               }
 
@@ -97,8 +102,17 @@ class ChannelFeedScreen extends ConsumerWidget {
                 ),
                 itemCount: entries.length,
                 itemBuilder: (context, index) => Align(
+                  key: ValueKey<String>(
+                    'channel-feed-${entries[index].videoId}',
+                  ),
                   alignment: Alignment.topCenter,
                   child: DiscoverFeedTile(entry: entries[index]),
+                ),
+                findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+                  items: entries,
+                  key: key,
+                  prefix: 'channel-feed-',
+                  idOf: (e) => e.videoId,
                 ),
               );
             },
