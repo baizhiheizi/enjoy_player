@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -204,8 +205,12 @@ class _DiscoverFeedSliver extends StatelessWidget {
                 return SliverList.separated(
                   itemCount: entries.length,
                   separatorBuilder: (_, _) => SizedBox(height: t.space24),
-                  itemBuilder: (context, index) =>
-                      DiscoverFeedTile(entry: entries[index]),
+                  itemBuilder: (context, index) => KeyedSubtree(
+                    key: ValueKey<String>(
+                      'discover-feed-${entries[index].videoId}',
+                    ),
+                    child: DiscoverFeedTile(entry: entries[index]),
+                  ),
                 );
               }
 
@@ -218,10 +223,19 @@ class _DiscoverFeedSliver extends StatelessWidget {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => Align(
+                    key: ValueKey<String>(
+                      'discover-feed-${entries[index].videoId}',
+                    ),
                     alignment: Alignment.topCenter,
                     child: DiscoverFeedTile(entry: entries[index]),
                   ),
                   childCount: entries.length,
+                  findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+                    items: entries,
+                    key: key,
+                    prefix: 'discover-feed-',
+                    idOf: (e) => e.videoId,
+                  ),
                 ),
               );
             },

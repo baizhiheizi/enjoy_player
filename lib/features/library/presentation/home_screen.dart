@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
@@ -108,16 +109,24 @@ class HomeScreen extends ConsumerWidget {
                                   mainAxisSpacing: t.space12,
                                   crossAxisSpacing: t.space12,
                                 ),
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              final m = recent[index];
-                              return Align(
-                                alignment: Alignment.topCenter,
-                                child: _HomeMediaTile(media: m),
-                              );
-                            }, childCount: recent.length),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final m = recent[index];
+                                return Align(
+                                  key: ValueKey<String>('home-media-${m.id}'),
+                                  alignment: Alignment.topCenter,
+                                  child: _HomeMediaTile(media: m),
+                                );
+                              },
+                              childCount: recent.length,
+                              findChildIndexCallback: (key) =>
+                                  findSliverIndexByPrefixedId(
+                                    items: recent,
+                                    key: key,
+                                    prefix: 'home-media-',
+                                    idOf: (m) => m.id,
+                                  ),
+                            ),
                           );
                         },
                       ),
