@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Pre-commit secret scanner.
+#
+# Blocks commits that introduce leaked publish credentials into the working
+# tree — AWS / Cloudflare R2 access keys, 64-char R2 secrets, and the local
+# credential files themselves. Intentionally simple: no dependencies beyond
+# git + grep so it works in Git Bash, macOS, and Linux.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+#
+# Bypass for a known-good commit (e.g. a hex fixture in tests):
+#   git commit --no-verify
+#
+# See docs/packaging.md → "Publish credentials" for the secret-loading flow.
+set -euo pipefail
+
+# Files that must never be committed (publish_env.local.* are the plaintext
+# credential loaders).
+forbidden_files=(
+  ".github/scripts/publish_env.local.ps1"
+  ".github/scripts/publish_env.local.sh"
+  "dsa_priv.pem"
+  "dsa_pub.pem"
+)
+
+# Patterns that look like real credentials. We match on the long, low-entropy
+# shapes that are essentially never legitimate source: AWS/R2 access key ids
+# (historically AKIA…, but R2 uses 32-hex), 64-hex R2 secret access keys, and
+# the env-var assignment lines that carry them.
+patterns=(
+  'AKIA[0-9A-Z]{16}'
+  '[0-9a-f]{64}'
+  'AWS_SECRET_ACCESS_KEY[[:space:]]*=[[:space:]]*"[0-9a-f]{40,}"'
+  'AWS_ACCESS_KEY_ID[[:space:]]*=[[:space:]]*"[0-9a-f]{32}"'
+  'r2\.cloudflarestorage\.com/[0-9a-f]{20,}'
+)
+
+status=0
+
+# 1. Block forbidden local credential / key files outright.
+while read -r file; do
+  for forbidden in "${forbidden_files[@]}"; do
+    if [[ "$file" == "$forbidden" ]]; then
+      echo "ERROR: refusing to commit tracked credential / key file: $file" >&2
+      echo "       These files must stay local (see .gitignore)." >&2
+      status=1
+    fi
+  done
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+# 2. Scan staged file content for credential-shaped strings.
+# Skip binary files and the example templates (they contain the literal
+# patterns as placeholders, e.g. "<R2 access key id>").
+while read -r file; do
+  case "$file" in
+    *.png|*.jpg|*.jpeg|*.gif|*.webp|*.icns|*.ico|*.zip|*.gz|*.lock) continue ;;
+    ".github/scripts/publish_env.example.ps1") continue ;;
+    ".github/scripts/publish_env.example.sh") continue ;;
+    ".githooks/pre-commit") continue ;;
+  esac
+
+  content=$(git diff --cached -- "$file" 2>/dev/null) || continue
+  for pat in "${patterns[@]}"; do
+    if printf '%s' "$content" | grep -Eq "$pat"; then
+      echo "ERROR: possible leaked credential in $file matches /$pat/" >&2
+      echo "       If this is a false positive (e.g. a test fixture), use" >&2
+      echo "       'git commit --no-verify' and leave a note in the message." >&2
+      status=1
+      break
+    fi
+  done
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [[ $status -ne 0 ]]; then
+  echo "" >&2
+  echo "Commit blocked by secret scanner. Rotate any exposed keys and load" >&2
+  echo "credentials from a secure store (see docs/packaging.md)." >&2
+  exit 1
+fi
+
+exit 0

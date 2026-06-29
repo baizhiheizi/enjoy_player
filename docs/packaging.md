@@ -144,6 +144,56 @@ Only needed when uploading to `dl.enjoy.bot`. Install **AWS CLI v2**:
 - **macOS**: `brew install awscli`
 - **Windows**: `winget install Amazon.AWSCLI`
 
+Credentials are loaded into the shell environment from a **local, gitignored** file
+(`publish_env.local.ps1` on Windows, `publish_env.local.sh` elsewhere) or, in CI,
+from GitHub Actions secrets. **Never commit real AWS/R2 access keys or secret keys** —
+the pre-commit hook ([`.githooks/pre-commit`](../.githooks/pre-commit)) blocks
+credential-shaped strings (`AKIA…`, 64-hex R2 secrets) and the local credential
+files themselves. If you have ever pasted real keys into a working-tree file,
+**rotate them in Cloudflare R2** and start from a clean local copy.
+
+#### Recommended secret sources
+
+Prefer one of these over a plaintext working-tree file so credentials never touch
+the repository disk:
+
+| Source | When to use | How to load |
+|--------|-------------|-------------|
+| **GitHub Actions secrets** | CI releases | Reference as `${{ secrets.R2_ACCESS_KEY_ID }}` in the workflow; the workflow sets the same `AWS_*` / `PUBLISH_*` env vars |
+| **Windows Credential Manager** | Local Windows releases | Read into the session before running `release.ps1`, e.g. via `cmdkey` or a vault CLI, exporting the same env vars |
+| **1Password CLI** (`op`) | Any local host | `export AWS_SECRET_ACCESS_KEY="$(op read 'op://Private/r2/secret')"` etc. before `release.sh` |
+
+The local `publish_env.local.*` loaders are a convenience for maintainers who
+prefer a dotenv-style flow; keep them on disk only, never in git.
+
+#### WinSparkle DSA private key
+
+`sign_sparkle_enclosure.sh` resolves the DSA private key for Windows appcast
+signing in this order:
+
+1. `SPARKLE_DSA_PRIV_PEM` env var (an absolute path to the key file)
+2. `SPARKLE_DSA_PRIV_PEM_BASE64` env var (base64-encoded key, decoded to a temp file)
+3. `dsa_priv.pem` at the **repo root** (auto-detected — the recommended default)
+
+Because the repo-root path is auto-detected, **do not hardcode an absolute path**
+in your local env file. If the key lives elsewhere, resolve it relative to the
+repo root:
+
+```bash
+# bash / macOS / Linux
+export SPARKLE_DSA_PRIV_PEM="$(git rev-parse --show-toplevel)/keys/dsa_priv.pem"
+```
+
+```powershell
+# PowerShell
+$env:SPARKLE_DSA_PRIV_PEM = Join-Path (git rev-parse --show-toplevel) "keys/dsa_priv.pem"
+```
+
+CI injects the key as base64 via `SPARKLE_DSA_PRIV_PEM_BASE64` (see
+[`sign_sparkle_enclosure.sh`](../.github/scripts/sign_sparkle_enclosure.sh)).
+
+#### Local publish setup
+
 ```powershell
 # Windows
 Copy-Item .github\scripts\publish_env.example.ps1 .github\scripts\publish_env.local.ps1
@@ -161,6 +211,20 @@ cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 # edit values, then:
 bash .github/scripts/release.sh --platform apple --publish
 ```
+
+#### Pre-commit secret scanning
+
+After cloning, enable the local secret scanner so credential-shaped strings
+and the local credential files cannot be committed by accident:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook scans staged content for AWS/R2 access key patterns and blocks the
+forbidden local credential / key files outright. Bypass with `git commit --no-verify`
+only for a known-good false positive (e.g. a hex test fixture), and note it in the
+commit message.
 
 ---
 
