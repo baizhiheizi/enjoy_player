@@ -38,8 +38,14 @@ Requirements (spec `003-byok-ai`):
    - **Azure Speech**: extend `packages/azure_speech` with `transcribe` and `synthesize` (subscription-key auth); assessment BYOK uses the same plugin with subscription key instead of Enjoy token.
 
 5. **Settings UI**
-   - Route `/settings/ai-providers` with one card per modality (`ModalityProviderCard`).
-   - Masked saved keys, per-modality remove-BYOK, validation via `ByokConfigValidator` + localized error keys.
+   - Route `/settings/ai-providers` with one [`ModalityProviderCard`][modality-card] per `ModalityKind` so the page reads as a cohesive settings surface (no per-modality fragmentation).
+   - Each card uses a **segmented provider control** (`SegmentedButton<AIProvider>`) for Enjoy / BYOK, a **modality badge** (`_ProviderPill`) in the header that reflects the saved provider, and an **inset BYOK panel** (`_ByokPanel`) revealed via `AnimatedSwitcher` when BYOK is selected.
+   - LLM and speech BYOK forms expose their own `SegmentedButton` for API spec / provider choice; assessment stays Azure-only (subscription key + region).
+   - Card footer is calmer: a `Divider`-separated row with a provider-status icon, privacy/explainer text, optional **Remove BYOK**, and primary **Save** (with spinner during save).
+   - Masked saved keys (e.g. `sk-…1234`) are shown as a preview chip so users can confirm a secret is persisted without revealing it.
+   - Per-modality remove-BYOK with confirmation dialog; validation errors surface inline via `AppNotice.error` with localized keys from `byok_validation_messages.dart`.
+
+   [modality-card]: ../../lib/features/ai/presentation/settings/widgets/modality_provider_card.dart
 
 6. **Observability**
    - Log capability failures at warning level without API keys, subscription keys, or bearer tokens in message or attached objects.

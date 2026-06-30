@@ -26,7 +26,7 @@ Assessment requires the native Azure Speech SDK (see [echo-mode](echo-mode.md)).
 
 ## BYOK provider (per-modality settings)
 
-**Settings → AI providers** (`/settings/ai-providers`) configures Enjoy vs BYOK independently for LLM, ASR, TTS, and assessment.
+**Settings → AI providers** (`/settings/ai-providers`) configures Enjoy vs BYOK independently for LLM, ASR, TTS, and assessment. The screen renders a **stack of modality cards** — one per `ModalityKind` — so each surface reads as a cohesive settings page rather than four disjoint widgets.
 
 | Modality | BYOK backends | Secret storage |
 |----------|---------------|----------------|
@@ -37,12 +37,26 @@ Assessment requires the native Azure Speech SDK (see [echo-mode](echo-mode.md)).
 
 Translation, dictionary, and contextual translation follow the **LLM** provider when BYOK is selected (LLM-backed prompts, not Enjoy worker HTTP).
 
+### Card layout (`ModalityProviderCard`)
+
+Each modality is rendered through the shared [`ModalityProviderCard`](../../lib/features/ai/presentation/settings/widgets/modality_provider_card.dart) widget so the four surfaces stay visually consistent:
+
+1. **Header** — modality icon (`auto_awesome_outlined`, `graphic_eq_rounded`, `record_voice_over_outlined`, `verified_outlined`) next to the title, subtitle, and a **provider pill** (`_ProviderPill`) that reflects the active provider (Enjoy / BYOK).
+2. **Segmented provider control** — `SegmentedButton<AIProvider>` with `Enjoy AI` and `BYOK` segments. Disabled while a save is in flight.
+3. **Inset BYOK panel** (`_ByokPanel`) — an `AnimatedSwitcher` reveals an inset surface when the provider switches to BYOK. Inside the panel:
+   - LLM → `LlmByokForm` with a `SegmentedButton<LlmApiSpec>` for OpenAI / Anthropic / Google compatibility, plus a preset shortcut list and a "fetch models" affordance when the base URL is editable.
+   - Speech (ASR / TTS) → `SpeechByokForm` with a `SegmentedButton<SpeechByokKind>` for OpenAI-compatible vs Azure Speech, switching between subscription-key fields and base-URL + model fields.
+   - Assessment → `SpeechByokForm` (Azure-only, subscription key + region).
+4. **Footer** — a `Divider` separator, then a quiet row with a provider-status icon, the privacy/explainer text, an optional **Remove BYOK** button (only when BYOK is already saved), and a primary **Save** button with a loading spinner.
+
+Keys are **masked** in storage and the field shows a saved-key preview chip (e.g. `sk-…1234`) so users can confirm the secret is persisted without revealing it.
+
 ### Persistence and security
 
 - Non-secret config: Drift settings key `ai.modality_configs_v1` (`AiModalityConfigRepository`).
 - Secrets: [`ByokSecretStore`](../../lib/data/api/byok_secret_store.dart) (secure storage per modality).
-- Validation: [`ByokConfigValidator`](../../lib/features/ai/domain/byok_config_validator.dart) — HTTPS base URLs only, required fields per vendor.
-- Missing secret at runtime: [`ByokNotConfiguredFailure`](../../lib/features/ai/domain/byok_not_configured_failure.dart) with localized message and link to AI providers settings (no silent Enjoy fallback).
+- Validation: [`ByokConfigValidator`](../../lib/features/ai/domain/byok_config_validator.dart) — HTTPS base URLs only, required fields per vendor. Validation failures surface inline via `AppNotice.error` with localized keys from [`byok_validation_messages.dart`](../../lib/features/ai/presentation/settings/byok_validation_messages.dart).
+- Missing secret at runtime: [`ByokNotConfiguredFailure`](../../lib/features/ai/domain/byok_not_configured_failure.dart) with localized message and link back to `/settings/ai-providers` (no silent Enjoy fallback).
 
 ### Capability routing
 
@@ -64,6 +78,9 @@ Translation, dictionary, and contextual translation follow the **LLM** provider 
 - BYOK implementations: `lib/features/ai/data/byok/`
 - Riverpod services and capability wiring: `lib/features/ai/application/`
 - Settings UI: `lib/features/ai/presentation/settings/`
+  - Screen: `ai_providers_screen.dart` (privacy callout + stacked modality cards)
+  - Shared modality card: `widgets/modality_provider_card.dart` (segmented provider, modality pill, inset BYOK panel, calmer footer)
+  - Per-modality forms: `widgets/llm_byok_form.dart`, `widgets/speech_byok_form.dart`, `widgets/byok_api_key_field.dart`
 - HTTP clients (Enjoy paths only): `lib/data/api/services/ai/`
 
 ## Consumers
