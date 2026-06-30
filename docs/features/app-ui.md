@@ -15,6 +15,8 @@
 **Typography**:
 - Display / UI: **Inter** (Google Fonts), `w600` tight-tracked for hero titles.
 - Transcript body: **Source Serif 4** (Google Fonts), default ON, toggleable.
+- Transcript **secondary** (translation) track: **Noto Sans SC** (Google Fonts), upright (no italic), `w400` at 14pt serif / 13.5pt sans-serif reading mode.
+- **CJK fallbacks**: transcript styles layer Noto **Serif** (KR / SC / JP) on the body when serif reading is on, and Noto **Sans** (KR / SC / JP) + Inter on the secondary track and UI. The fallbacks are appended via `fontFamilyFallback` so Windows stops substituting low-quality system CJK fonts for Chinese / Japanese / Korean text.
 - Tabular figures everywhere on timestamps and durations via `FontFeature.tabularFigures()`.
 - Type scale: `12 / 13 / 14 / 16 / 18 / 22 / 28 / 36 / 48`.
 
