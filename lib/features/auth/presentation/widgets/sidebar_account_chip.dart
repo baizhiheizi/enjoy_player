@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SidebarAccountChip extends ConsumerWidget {
@@ -52,6 +53,7 @@ class SidebarAccountChip extends ConsumerWidget {
           if (state is AuthSignedIn) {
             final p = state.profile;
             final avatarUrl = p.avatarUrl;
+            final isPro = p.subscriptionTier == SubscriptionTier.pro;
             return ListTile(
               dense: true,
               leading: CircleAvatar(
@@ -63,19 +65,47 @@ class SidebarAccountChip extends ConsumerWidget {
                     ? Icon(Icons.person_rounded, size: 18, color: cs.primary)
                     : null,
               ),
-              title: Text(
-                p.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge,
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      p.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                  if (isPro) ...[
+                    SizedBox(width: t.space4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        l10n.profileSubscriptionPro,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: cs.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               subtitle: Text(
-                l10n.settingsAccountOpenProfile,
+                isPro
+                    ? l10n.profileSubscriptionTile
+                    : l10n.settingsAccountOpenProfile,
                 style: Theme.of(
                   context,
                 ).textTheme.labelSmall?.copyWith(color: cs.primary),
               ),
-              onTap: () => context.push('/profile'),
+              onTap: () => context.push(isPro ? '/subscription' : '/profile'),
             );
           }
           return ListTile(

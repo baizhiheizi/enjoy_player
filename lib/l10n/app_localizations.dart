@@ -2019,6 +2019,408 @@ abstract class AppLocalizations {
   /// **'You will need to sign in again to sync and use AI features.'**
   String get profileSignOutConfirmMessage;
 
+  /// No description provided for @profileSubscriptionTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get profileSubscriptionTile;
+
+  /// No description provided for @profileSubscriptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View your plan and upgrade to Pro'**
+  String get profileSubscriptionSubtitle;
+
+  /// No description provided for @subscriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscriptionTitle;
+
+  /// No description provided for @subscriptionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your subscription plan and Pro benefits.'**
+  String get subscriptionDescription;
+
+  /// No description provided for @subscriptionErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load subscription status'**
+  String get subscriptionErrorLoading;
+
+  /// No description provided for @subscriptionStatusCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription status'**
+  String get subscriptionStatusCardTitle;
+
+  /// No description provided for @subscriptionCurrentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get subscriptionCurrentPlan;
+
+  /// No description provided for @subscriptionStatusTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier'**
+  String get subscriptionStatusTier;
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get subscriptionActive;
+
+  /// No description provided for @subscriptionInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get subscriptionInactive;
+
+  /// No description provided for @subscriptionStatusExpiration.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiration'**
+  String get subscriptionStatusExpiration;
+
+  /// No description provided for @subscriptionNeverExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Never expires'**
+  String get subscriptionNeverExpires;
+
+  /// No description provided for @subscriptionExpiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on {date}'**
+  String subscriptionExpiresOn(String date);
+
+  /// No description provided for @subscriptionStatusCreditsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily credits limit'**
+  String get subscriptionStatusCreditsLimit;
+
+  /// No description provided for @subscriptionDailyCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} credits'**
+  String subscriptionDailyCredits(String count);
+
+  /// No description provided for @subscriptionTierComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get subscriptionTierComparisonTitle;
+
+  /// No description provided for @subscriptionTierFreeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get subscriptionTierFreeName;
+
+  /// No description provided for @subscriptionTierFreeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect for light usage'**
+  String get subscriptionTierFreeDescription;
+
+  /// No description provided for @subscriptionTierFreePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get subscriptionTierFreePrice;
+
+  /// No description provided for @subscriptionTierFreeDailyCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'1,000 credits/day'**
+  String get subscriptionTierFreeDailyCredits;
+
+  /// No description provided for @subscriptionTierProName.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get subscriptionTierProName;
+
+  /// No description provided for @subscriptionTierProDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For serious learners'**
+  String get subscriptionTierProDescription;
+
+  /// No description provided for @subscriptionTierProPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'9.99 USD/month'**
+  String get subscriptionTierProPrice;
+
+  /// No description provided for @subscriptionTierProDailyCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'60,000 credits/day'**
+  String get subscriptionTierProDailyCredits;
+
+  /// No description provided for @subscriptionFeatureFreeTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic translation'**
+  String get subscriptionFeatureFreeTranslation;
+
+  /// No description provided for @subscriptionFeatureFreeSmartTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited smart translation'**
+  String get subscriptionFeatureFreeSmartTranslation;
+
+  /// No description provided for @subscriptionFeatureFreeDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited dictionary'**
+  String get subscriptionFeatureFreeDictionary;
+
+  /// No description provided for @subscriptionFeatureFreeAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited ASR'**
+  String get subscriptionFeatureFreeAsr;
+
+  /// No description provided for @subscriptionFeatureFreeTts.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited TTS'**
+  String get subscriptionFeatureFreeTts;
+
+  /// No description provided for @subscriptionFeatureFreeAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited assessment'**
+  String get subscriptionFeatureFreeAssessment;
+
+  /// No description provided for @subscriptionFeatureProTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited translation'**
+  String get subscriptionFeatureProTranslation;
+
+  /// No description provided for @subscriptionFeatureProSmartTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensive smart translation'**
+  String get subscriptionFeatureProSmartTranslation;
+
+  /// No description provided for @subscriptionFeatureProDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensive dictionary'**
+  String get subscriptionFeatureProDictionary;
+
+  /// No description provided for @subscriptionFeatureProAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensive ASR'**
+  String get subscriptionFeatureProAsr;
+
+  /// No description provided for @subscriptionFeatureProTts.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensive TTS'**
+  String get subscriptionFeatureProTts;
+
+  /// No description provided for @subscriptionFeatureProAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensive assessment'**
+  String get subscriptionFeatureProAssessment;
+
+  /// No description provided for @subscriptionUpgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get subscriptionUpgrade;
+
+  /// No description provided for @subscriptionExtend.
+  ///
+  /// In en, this message translates to:
+  /// **'Extend subscription'**
+  String get subscriptionExtend;
+
+  /// No description provided for @subscriptionPurchaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Pro subscription'**
+  String get subscriptionPurchaseTitle;
+
+  /// No description provided for @subscriptionPurchaseSelectDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Select duration'**
+  String get subscriptionPurchaseSelectDuration;
+
+  /// No description provided for @subscriptionPurchasePaymentTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get subscriptionPurchasePaymentTab;
+
+  /// No description provided for @subscriptionPurchaseBalanceTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Use balance'**
+  String get subscriptionPurchaseBalanceTab;
+
+  /// No description provided for @subscriptionPurchaseDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get subscriptionPurchaseDuration;
+
+  /// No description provided for @subscriptionPurchaseOneMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get subscriptionPurchaseOneMonth;
+
+  /// No description provided for @subscriptionPurchaseMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String subscriptionPurchaseMonths(int count);
+
+  /// No description provided for @subscriptionPurchasePaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get subscriptionPurchasePaymentMethod;
+
+  /// No description provided for @subscriptionProcessorStripe.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe'**
+  String get subscriptionProcessorStripe;
+
+  /// No description provided for @subscriptionProcessorMixin.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixin'**
+  String get subscriptionProcessorMixin;
+
+  /// No description provided for @subscriptionTotalPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get subscriptionTotalPriceLabel;
+
+  /// No description provided for @subscriptionTotalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} USD'**
+  String subscriptionTotalPrice(String amount);
+
+  /// No description provided for @subscriptionContinueToPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to payment'**
+  String get subscriptionContinueToPayment;
+
+  /// No description provided for @subscriptionBalancePurchaseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert all available balance to subscription time.'**
+  String get subscriptionBalancePurchaseDescription;
+
+  /// No description provided for @subscriptionBalanceZeroMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your balance is zero. Unable to purchase with balance.'**
+  String get subscriptionBalanceZeroMessage;
+
+  /// No description provided for @subscriptionPurchaseWithBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase with balance'**
+  String get subscriptionPurchaseWithBalance;
+
+  /// No description provided for @subscriptionConfirmBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase with balance?'**
+  String get subscriptionConfirmBalanceTitle;
+
+  /// No description provided for @subscriptionConfirmBalanceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will convert all available balance to subscription time.'**
+  String get subscriptionConfirmBalanceMessage;
+
+  /// No description provided for @subscriptionConfirmPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm purchase'**
+  String get subscriptionConfirmPurchase;
+
+  /// No description provided for @subscriptionRedirectingToPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Redirecting to payment…'**
+  String get subscriptionRedirectingToPayment;
+
+  /// No description provided for @subscriptionPaymentUrlMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment URL not available'**
+  String get subscriptionPaymentUrlMissing;
+
+  /// No description provided for @subscriptionPaymentLaunchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open payment page'**
+  String get subscriptionPaymentLaunchFailed;
+
+  /// No description provided for @subscriptionPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed'**
+  String get subscriptionPurchaseFailed;
+
+  /// No description provided for @subscriptionPurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase successful'**
+  String get subscriptionPurchaseSuccess;
+
+  /// No description provided for @subscriptionMobilePurchaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile purchase coming soon'**
+  String get subscriptionMobilePurchaseTitle;
+
+  /// No description provided for @subscriptionMobilePurchaseMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app purchase on iOS and Android is not available yet. If you already have Pro from the web or desktop app, your status appears above.'**
+  String get subscriptionMobilePurchaseMessage;
+
+  /// No description provided for @subscriptionCreditsLimitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'AI credits limit reached. Upgrade for higher limits.'**
+  String get subscriptionCreditsLimitMessage;
+
+  /// No description provided for @subscriptionViewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View plans'**
+  String get subscriptionViewPlans;
+
   /// No description provided for @creditsUsageTitle.
   ///
   /// In en, this message translates to:

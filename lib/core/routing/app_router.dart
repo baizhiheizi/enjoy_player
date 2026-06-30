@@ -26,6 +26,7 @@ import 'package:enjoy_player/features/player/presentation/youtube_login_screen.d
 import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
+import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -184,6 +185,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/credits',
             builder: (context, state) => const CreditsUsageScreen(),
+          ),
+          GoRoute(
+            path: '/subscription',
+            builder: (context, state) => const SubscriptionScreen(),
           ),
         ],
       ),

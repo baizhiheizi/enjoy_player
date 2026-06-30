@@ -1007,6 +1007,216 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSignOutConfirmMessage => '退出后需要重新登录才能同步和使用 AI 功能。';
 
   @override
+  String get profileSubscriptionTile => '订阅';
+
+  @override
+  String get profileSubscriptionSubtitle => '查看方案并升级至专业版';
+
+  @override
+  String get subscriptionTitle => '订阅';
+
+  @override
+  String get subscriptionDescription => '管理订阅方案与 Pro 权益。';
+
+  @override
+  String get subscriptionErrorLoading => '无法加载订阅状态';
+
+  @override
+  String get subscriptionStatusCardTitle => '订阅状态';
+
+  @override
+  String get subscriptionCurrentPlan => '当前方案';
+
+  @override
+  String get subscriptionStatusTier => '档位';
+
+  @override
+  String get subscriptionStatusActive => '状态';
+
+  @override
+  String get subscriptionActive => '有效';
+
+  @override
+  String get subscriptionInactive => '无效';
+
+  @override
+  String get subscriptionStatusExpiration => '到期时间';
+
+  @override
+  String get subscriptionNeverExpires => '永不过期';
+
+  @override
+  String subscriptionExpiresOn(String date) {
+    return '到期于 $date';
+  }
+
+  @override
+  String get subscriptionStatusCreditsLimit => '每日积分上限';
+
+  @override
+  String subscriptionDailyCredits(String count) {
+    return '$count 积分';
+  }
+
+  @override
+  String get subscriptionTierComparisonTitle => '选择方案';
+
+  @override
+  String get subscriptionTierFreeName => '免费';
+
+  @override
+  String get subscriptionTierFreeDescription => '适合轻度使用';
+
+  @override
+  String get subscriptionTierFreePrice => '免费';
+
+  @override
+  String get subscriptionTierFreeDailyCredits => '1,000 积分/天';
+
+  @override
+  String get subscriptionTierProName => '专业版';
+
+  @override
+  String get subscriptionTierProDescription => '适合认真学习者';
+
+  @override
+  String get subscriptionTierProPrice => '9.99 USD/月';
+
+  @override
+  String get subscriptionTierProDailyCredits => '60,000 积分/天';
+
+  @override
+  String get subscriptionFeatureFreeTranslation => '基础翻译';
+
+  @override
+  String get subscriptionFeatureFreeSmartTranslation => '有限智能翻译';
+
+  @override
+  String get subscriptionFeatureFreeDictionary => '有限词典';
+
+  @override
+  String get subscriptionFeatureFreeAsr => '有限语音识别';
+
+  @override
+  String get subscriptionFeatureFreeTts => '有限语音合成';
+
+  @override
+  String get subscriptionFeatureFreeAssessment => '有限发音评估';
+
+  @override
+  String get subscriptionFeatureProTranslation => '无限翻译';
+
+  @override
+  String get subscriptionFeatureProSmartTranslation => '大量智能翻译';
+
+  @override
+  String get subscriptionFeatureProDictionary => '大量词典查询';
+
+  @override
+  String get subscriptionFeatureProAsr => '大量语音识别';
+
+  @override
+  String get subscriptionFeatureProTts => '大量语音合成';
+
+  @override
+  String get subscriptionFeatureProAssessment => '大量发音评估';
+
+  @override
+  String get subscriptionUpgrade => '升级至专业版';
+
+  @override
+  String get subscriptionExtend => '续订';
+
+  @override
+  String get subscriptionPurchaseTitle => '购买 Pro 订阅';
+
+  @override
+  String get subscriptionPurchaseSelectDuration => '选择时长';
+
+  @override
+  String get subscriptionPurchasePaymentTab => '支付';
+
+  @override
+  String get subscriptionPurchaseBalanceTab => '使用余额';
+
+  @override
+  String get subscriptionPurchaseDuration => '时长';
+
+  @override
+  String get subscriptionPurchaseOneMonth => '1 个月';
+
+  @override
+  String subscriptionPurchaseMonths(int count) {
+    return '$count 个月';
+  }
+
+  @override
+  String get subscriptionPurchasePaymentMethod => '支付方式';
+
+  @override
+  String get subscriptionProcessorStripe => 'Stripe';
+
+  @override
+  String get subscriptionProcessorMixin => 'Mixin';
+
+  @override
+  String get subscriptionTotalPriceLabel => '合计';
+
+  @override
+  String subscriptionTotalPrice(String amount) {
+    return '$amount USD';
+  }
+
+  @override
+  String get subscriptionContinueToPayment => '继续支付';
+
+  @override
+  String get subscriptionBalancePurchaseDescription => '将全部可用余额转换为订阅时长。';
+
+  @override
+  String get subscriptionBalanceZeroMessage => '余额为零，无法使用余额购买。';
+
+  @override
+  String get subscriptionPurchaseWithBalance => '使用余额购买';
+
+  @override
+  String get subscriptionConfirmBalanceTitle => '确认使用余额购买？';
+
+  @override
+  String get subscriptionConfirmBalanceMessage => '将全部可用余额转换为订阅时长。';
+
+  @override
+  String get subscriptionConfirmPurchase => '确认购买';
+
+  @override
+  String get subscriptionRedirectingToPayment => '正在跳转到支付页面…';
+
+  @override
+  String get subscriptionPaymentUrlMissing => '支付链接不可用';
+
+  @override
+  String get subscriptionPaymentLaunchFailed => '无法打开支付页面';
+
+  @override
+  String get subscriptionPurchaseFailed => '购买失败';
+
+  @override
+  String get subscriptionPurchaseSuccess => '购买成功';
+
+  @override
+  String get subscriptionMobilePurchaseTitle => '移动端购买即将推出';
+
+  @override
+  String get subscriptionMobilePurchaseMessage =>
+      'iOS 和 Android 的应用内购买尚未开放。若您已在网页或桌面端购买 Pro，上方会显示您的状态。';
+
+  @override
+  String get subscriptionCreditsLimitMessage => 'AI 积分已达上限。升级可获得更高额度。';
+
+  @override
+  String get subscriptionViewPlans => '查看方案';
+
+  @override
   String get creditsUsageTitle => '积分使用';
 
   @override

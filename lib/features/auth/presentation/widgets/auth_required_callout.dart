@@ -23,6 +23,7 @@ enum AuthRequiredSurface {
   cloud,
   sync,
   credits,
+  subscription,
 }
 
 extension AuthRequiredSurfaceX on AuthRequiredSurface {
@@ -33,6 +34,7 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
     AuthRequiredSurface.cloud => 'cloud',
     AuthRequiredSurface.sync => 'sync',
     AuthRequiredSurface.credits => 'credits',
+    AuthRequiredSurface.subscription => 'subscription',
   };
 
   /// Title + body for the callout (localized).
@@ -53,6 +55,10 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
     ),
     AuthRequiredSurface.credits => (
       l10n.creditsUsageTitle,
+      l10n.syncScreenSignedOutBody,
+    ),
+    AuthRequiredSurface.subscription => (
+      l10n.subscriptionTitle,
       l10n.syncScreenSignedOutBody,
     ),
   };

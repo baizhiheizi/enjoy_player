@@ -161,6 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 _ProfileAccountCard(
                   balance: p.balance,
                   onCreditsTap: () => context.push('/credits'),
+                  onSubscriptionTap: () => context.push('/subscription'),
                 ),
                 SizedBox(height: t.space8),
                 _ProfileSectionHeader(
@@ -637,10 +638,12 @@ class _ProfileAccountCard extends StatelessWidget {
   const _ProfileAccountCard({
     required this.balance,
     required this.onCreditsTap,
+    required this.onSubscriptionTap,
   });
 
   final double? balance;
   final VoidCallback onCreditsTap;
+  final VoidCallback onSubscriptionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -695,6 +698,18 @@ class _ProfileAccountCard extends StatelessWidget {
               endIndent: t.space20,
               color: cs.outlineVariant.withValues(alpha: 0.18),
             ),
+          _ProfileNavTile(
+            leadingIcon: Icons.workspace_premium_outlined,
+            title: l10n.profileSubscriptionTile,
+            subtitle: l10n.profileSubscriptionSubtitle,
+            onTap: onSubscriptionTap,
+          ),
+          Divider(
+            height: 1,
+            indent: t.space20,
+            endIndent: t.space20,
+            color: cs.outlineVariant.withValues(alpha: 0.18),
+          ),
           _ProfileNavTile(
             leadingIcon: Icons.receipt_long_rounded,
             title: l10n.profileCreditsUsageTile,

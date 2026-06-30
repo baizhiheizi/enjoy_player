@@ -3,6 +3,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/features/ai/domain/models/translation_result.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -69,6 +71,24 @@ class TranslationLookupSection extends ConsumerWidget {
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupTranslation,
                     compact: true,
+                  );
+                }
+                if (e is CreditsFailure) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      LookupErrorRow(
+                        message: lookupErrorUserMessage(e, l10n),
+                        onRetry: () => ref.invalidate(
+                          lookupSheetTranslationProvider(params),
+                        ),
+                        isRetrying: async.hasError && async.isLoading,
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/subscription'),
+                        child: Text(l10n.subscriptionViewPlans),
+                      ),
+                    ],
                   );
                 }
                 return LookupErrorRow(

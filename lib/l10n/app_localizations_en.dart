@@ -1048,6 +1048,223 @@ class AppLocalizationsEn extends AppLocalizations {
       'You will need to sign in again to sync and use AI features.';
 
   @override
+  String get profileSubscriptionTile => 'Subscription';
+
+  @override
+  String get profileSubscriptionSubtitle => 'View your plan and upgrade to Pro';
+
+  @override
+  String get subscriptionTitle => 'Subscription';
+
+  @override
+  String get subscriptionDescription =>
+      'Manage your subscription plan and Pro benefits.';
+
+  @override
+  String get subscriptionErrorLoading => 'Failed to load subscription status';
+
+  @override
+  String get subscriptionStatusCardTitle => 'Subscription status';
+
+  @override
+  String get subscriptionCurrentPlan => 'Current plan';
+
+  @override
+  String get subscriptionStatusTier => 'Tier';
+
+  @override
+  String get subscriptionStatusActive => 'Status';
+
+  @override
+  String get subscriptionActive => 'Active';
+
+  @override
+  String get subscriptionInactive => 'Inactive';
+
+  @override
+  String get subscriptionStatusExpiration => 'Expiration';
+
+  @override
+  String get subscriptionNeverExpires => 'Never expires';
+
+  @override
+  String subscriptionExpiresOn(String date) {
+    return 'Expires on $date';
+  }
+
+  @override
+  String get subscriptionStatusCreditsLimit => 'Daily credits limit';
+
+  @override
+  String subscriptionDailyCredits(String count) {
+    return '$count credits';
+  }
+
+  @override
+  String get subscriptionTierComparisonTitle => 'Choose your plan';
+
+  @override
+  String get subscriptionTierFreeName => 'Free';
+
+  @override
+  String get subscriptionTierFreeDescription => 'Perfect for light usage';
+
+  @override
+  String get subscriptionTierFreePrice => 'Free';
+
+  @override
+  String get subscriptionTierFreeDailyCredits => '1,000 credits/day';
+
+  @override
+  String get subscriptionTierProName => 'Pro';
+
+  @override
+  String get subscriptionTierProDescription => 'For serious learners';
+
+  @override
+  String get subscriptionTierProPrice => '9.99 USD/month';
+
+  @override
+  String get subscriptionTierProDailyCredits => '60,000 credits/day';
+
+  @override
+  String get subscriptionFeatureFreeTranslation => 'Basic translation';
+
+  @override
+  String get subscriptionFeatureFreeSmartTranslation =>
+      'Limited smart translation';
+
+  @override
+  String get subscriptionFeatureFreeDictionary => 'Limited dictionary';
+
+  @override
+  String get subscriptionFeatureFreeAsr => 'Limited ASR';
+
+  @override
+  String get subscriptionFeatureFreeTts => 'Limited TTS';
+
+  @override
+  String get subscriptionFeatureFreeAssessment => 'Limited assessment';
+
+  @override
+  String get subscriptionFeatureProTranslation => 'Unlimited translation';
+
+  @override
+  String get subscriptionFeatureProSmartTranslation =>
+      'Extensive smart translation';
+
+  @override
+  String get subscriptionFeatureProDictionary => 'Extensive dictionary';
+
+  @override
+  String get subscriptionFeatureProAsr => 'Extensive ASR';
+
+  @override
+  String get subscriptionFeatureProTts => 'Extensive TTS';
+
+  @override
+  String get subscriptionFeatureProAssessment => 'Extensive assessment';
+
+  @override
+  String get subscriptionUpgrade => 'Upgrade to Pro';
+
+  @override
+  String get subscriptionExtend => 'Extend subscription';
+
+  @override
+  String get subscriptionPurchaseTitle => 'Purchase Pro subscription';
+
+  @override
+  String get subscriptionPurchaseSelectDuration => 'Select duration';
+
+  @override
+  String get subscriptionPurchasePaymentTab => 'Payment';
+
+  @override
+  String get subscriptionPurchaseBalanceTab => 'Use balance';
+
+  @override
+  String get subscriptionPurchaseDuration => 'Duration';
+
+  @override
+  String get subscriptionPurchaseOneMonth => '1 month';
+
+  @override
+  String subscriptionPurchaseMonths(int count) {
+    return '$count months';
+  }
+
+  @override
+  String get subscriptionPurchasePaymentMethod => 'Payment method';
+
+  @override
+  String get subscriptionProcessorStripe => 'Stripe';
+
+  @override
+  String get subscriptionProcessorMixin => 'Mixin';
+
+  @override
+  String get subscriptionTotalPriceLabel => 'Total';
+
+  @override
+  String subscriptionTotalPrice(String amount) {
+    return '$amount USD';
+  }
+
+  @override
+  String get subscriptionContinueToPayment => 'Continue to payment';
+
+  @override
+  String get subscriptionBalancePurchaseDescription =>
+      'Convert all available balance to subscription time.';
+
+  @override
+  String get subscriptionBalanceZeroMessage =>
+      'Your balance is zero. Unable to purchase with balance.';
+
+  @override
+  String get subscriptionPurchaseWithBalance => 'Purchase with balance';
+
+  @override
+  String get subscriptionConfirmBalanceTitle => 'Purchase with balance?';
+
+  @override
+  String get subscriptionConfirmBalanceMessage =>
+      'This will convert all available balance to subscription time.';
+
+  @override
+  String get subscriptionConfirmPurchase => 'Confirm purchase';
+
+  @override
+  String get subscriptionRedirectingToPayment => 'Redirecting to payment…';
+
+  @override
+  String get subscriptionPaymentUrlMissing => 'Payment URL not available';
+
+  @override
+  String get subscriptionPaymentLaunchFailed => 'Could not open payment page';
+
+  @override
+  String get subscriptionPurchaseFailed => 'Purchase failed';
+
+  @override
+  String get subscriptionPurchaseSuccess => 'Purchase successful';
+
+  @override
+  String get subscriptionMobilePurchaseTitle => 'Mobile purchase coming soon';
+
+  @override
+  String get subscriptionMobilePurchaseMessage =>
+      'In-app purchase on iOS and Android is not available yet. If you already have Pro from the web or desktop app, your status appears above.';
+
+  @override
+  String get subscriptionCreditsLimitMessage =>
+      'AI credits limit reached. Upgrade for higher limits.';
+
+  @override
+  String get subscriptionViewPlans => 'View plans';
+
+  @override
   String get creditsUsageTitle => 'Credits usage';
 
   @override

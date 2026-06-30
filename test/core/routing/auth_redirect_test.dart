@@ -15,6 +15,7 @@ void main() {
     test('profile and credits shorthands', () {
       expect(encodeSignInFrom('/profile'), 'profile');
       expect(encodeSignInFrom('/credits'), 'credits');
+      expect(encodeSignInFrom('/subscription'), 'subscription');
     });
 
     test('encodes other paths', () {
@@ -33,6 +34,7 @@ void main() {
     test('shorthand targets', () {
       expect(resolvePostSignInPath('profile'), '/profile');
       expect(resolvePostSignInPath('credits'), '/credits');
+      expect(resolvePostSignInPath('subscription'), '/subscription');
     });
 
     test('encoded full paths', () {
