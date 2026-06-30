@@ -7,38 +7,6 @@
       "description": "Talks on ideas worth spreading — clear speech, many with captions.",
       "language": "en",
       "tags": ["clear-speech", "captions-common"]
-    },
-    {
-      "channelId": "UCSf3FUnsZ7ZovXfGQ8arL9A",
-      "handle": "@EasyJapanesePodcast",
-      "name": "Easy Japanese",
-      "description": "Slow, clear Japanese for learners — street interviews and everyday topics.",
-      "language": "ja",
-      "tags": ["clear-speech", "captions-common"]
-    },
-    {
-      "channelId": "UC5r3WHrX4Z7peSYpDlgktGw",
-      "handle": "@talktomeinkorean",
-      "name": "Talk To Me In Korean",
-      "description": "Structured Korean lessons and natural speech for all levels.",
-      "language": "ko",
-      "tags": ["structured", "captions-common"]
-    },
-    {
-      "channelId": "UCAL4AMMMXKxHDu3FqZV6CbQ",
-      "handle": "@EasySpanish",
-      "name": "Easy Spanish",
-      "description": "Authentic Spanish street interviews with subtitles for learners.",
-      "language": "es",
-      "tags": ["clear-speech", "captions-common"]
-    },
-    {
-      "channelId": "UCI4xp8qHD1MDErkqxb1dPbA",
-      "handle": "@innerFrench",
-      "name": "innerFrench",
-      "description": "Comprehensible French input for intermediate learners.",
-      "language": "fr",
-      "tags": ["clear-speech", "captions-common"]
     }
   ]
 }
