@@ -203,11 +203,14 @@ class TranscriptRepository {
     if (tt == null) return false;
 
     final session = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
-    if (session?.transcriptId != null) return false;
-
     final rows = await _db.transcriptDao.listForTarget(tt, mediaId);
     _sortTranscriptRows(rows);
     if (rows.isEmpty) return false;
+
+    final currentId = session?.transcriptId;
+    if (currentId != null && rows.any((r) => r.id == currentId)) {
+      return false;
+    }
 
     await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
       tt,

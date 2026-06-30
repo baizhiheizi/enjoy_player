@@ -299,7 +299,7 @@ class _SubtitleTrackPickerSheetState
             ),
           )
         else
-          RadioGroup<String?>(
+          RadioGroup<String>(
             groupValue: primaryId,
             onChanged: (id) {
               if (id == null) return;
@@ -336,7 +336,7 @@ class _SubtitleTrackPickerSheetState
                 title: Text(l10n.subtitlesNone),
               ),
               ...tracks.map(
-                (track) => _TrackTile(
+                (track) => _SecondaryTrackTile(
                   track: track,
                   contentPadding: _sheetRowPadding(t),
                   onDelete: () => _deleteTrack(track),
@@ -539,6 +539,48 @@ class _TrackTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _TrackRadioTile<String>(
+      track: track,
+      contentPadding: contentPadding,
+      onDelete: onDelete,
+    );
+  }
+}
+
+class _SecondaryTrackTile extends StatelessWidget {
+  const _SecondaryTrackTile({
+    required this.track,
+    required this.contentPadding,
+    required this.onDelete,
+  });
+
+  final TranscriptTrack track;
+  final EdgeInsetsGeometry contentPadding;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TrackRadioTile<String?>(
+      track: track,
+      contentPadding: contentPadding,
+      onDelete: onDelete,
+    );
+  }
+}
+
+class _TrackRadioTile<T> extends StatelessWidget {
+  const _TrackRadioTile({
+    required this.track,
+    required this.contentPadding,
+    required this.onDelete,
+  });
+
+  final TranscriptTrack track;
+  final EdgeInsetsGeometry contentPadding;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
@@ -547,9 +589,9 @@ class _TrackTile extends StatelessWidget {
 
     final label = track.label.isNotEmpty ? track.label : track.language;
 
-    return RadioListTile<String>(
+    return RadioListTile<T>(
       contentPadding: contentPadding,
-      value: track.id,
+      value: track.id as T,
       title: Text(label),
       subtitle: Padding(
         padding: EdgeInsets.only(top: t.space8),

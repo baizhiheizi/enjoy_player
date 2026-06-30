@@ -694,6 +694,69 @@ void main() {
       expect(session?.transcriptId, 'tr-official');
     });
 
+    test('ensurePrimaryTranscript reassigns stale session transcript id', () async {
+      final now = DateTime.now();
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: 'm1',
+          aid: 'f',
+          provider: 'user',
+          title: 't',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: 'file:///a.mp3',
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final timelineJson = jsonEncode([
+        const TranscriptLine(text: 'x', startMs: 0, durationMs: 100).toJson(),
+      ]);
+
+      await db.transcriptDao.upsert(
+        TranscriptRow(
+          id: 'tr-official',
+          targetType: 'Audio',
+          targetId: 'm1',
+          language: 'en',
+          source: 'official',
+          timelineJson: timelineJson,
+          referenceId: null,
+          label: 'official',
+          trackIndex: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+        'Audio',
+        'm1',
+        'tr-missing',
+      );
+
+      final repo = TranscriptRepository(db);
+      final assigned = await repo.ensurePrimaryTranscript('m1');
+      expect(assigned, isTrue);
+
+      final session = await db.echoSessionDao.getLatestForTarget('Audio', 'm1');
+      expect(session?.transcriptId, 'tr-official');
+    });
+
     test(
       'importSidecarSubtitles imports adjacent srt for local media',
       () async {
