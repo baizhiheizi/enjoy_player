@@ -162,6 +162,7 @@
   "subtitlesPrimary": "Primary",
   "subtitlesTranslation": "Translation (optional)",
   "subtitlesNone": "None",
+  "subtitlesNotSelected": "Not selected",
   "subtitlesImportFile": "Import subtitle file…",
   "subtitlesDeleteTrack": "Delete track",
   "importSubtitleSuccess": "Subtitle imported",

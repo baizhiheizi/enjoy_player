@@ -167,6 +167,7 @@
   "subtitlesPrimary": "主字幕",
   "subtitlesTranslation": "翻译（可选）",
   "subtitlesNone": "无",
+  "subtitlesNotSelected": "未选择",
   "subtitlesImportFile": "导入字幕文件…",
   "subtitlesDeleteTrack": "删除轨道",
   "importSubtitleSuccess": "字幕已导入",

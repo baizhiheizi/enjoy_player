@@ -433,6 +433,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subtitlesNone => '无';
 
   @override
+  String get subtitlesNotSelected => '未选择';
+
+  @override
   String get subtitlesImportFile => '导入字幕文件…';
 
   @override
@@ -2298,6 +2301,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subtitlesNone => '无';
+
+  @override
+  String get subtitlesNotSelected => '未选择';
 
   @override
   String get subtitlesImportFile => '导入字幕文件…';

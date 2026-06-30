@@ -452,6 +452,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtitlesNone => 'None';
 
   @override
+  String get subtitlesNotSelected => 'Not selected';
+
+  @override
   String get subtitlesImportFile => 'Import subtitle file…';
 
   @override

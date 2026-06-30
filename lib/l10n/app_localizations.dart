@@ -915,6 +915,12 @@ abstract class AppLocalizations {
   /// **'None'**
   String get subtitlesNone;
 
+  /// No description provided for @subtitlesNotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not selected'**
+  String get subtitlesNotSelected;
+
   /// No description provided for @subtitlesImportFile.
   ///
   /// In en, this message translates to:

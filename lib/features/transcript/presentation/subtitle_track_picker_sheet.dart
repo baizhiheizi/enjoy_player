@@ -32,16 +32,55 @@ import '../domain/transcript_track.dart';
 /// Horizontal inset aligned with section headers and list rows.
 double _sheetHorizontalPadding(EnjoyThemeTokens t) => t.space16 + t.space4;
 
-/// Shared padding for radio rows, import tile, and empty/error bodies.
-EdgeInsetsDirectional _sheetRowPadding(EnjoyThemeTokens t) =>
-    EdgeInsetsDirectional.fromSTEB(
-      _sheetHorizontalPadding(t),
-      t.space4,
-      t.space8,
-      t.space4,
-    );
+/// Inner padding for track options inside a collapsible card.
+EdgeInsetsDirectional _trackOptionPadding(EnjoyThemeTokens t) =>
+    EdgeInsetsDirectional.fromSTEB(t.space8, t.space4, t.space8, t.space4);
+
+ThemeData _trackPickerRadioTheme(BuildContext context) {
+  final cs = Theme.of(context).colorScheme;
+  return Theme.of(context).copyWith(
+    splashColor: cs.primary.withValues(alpha: 0.08),
+    highlightColor: Colors.transparent,
+    hoverColor: cs.onSurface.withValues(alpha: 0.04),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return cs.primary;
+        return cs.onSurfaceVariant.withValues(alpha: 0.55);
+      }),
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+    listTileTheme: ListTileThemeData(
+      tileColor: Colors.transparent,
+      selectedTileColor: Colors.transparent,
+      iconColor: cs.onSurfaceVariant,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(EnjoyThemeTokens.of(context).radiusSm),
+      ),
+    ),
+  );
+}
 
 enum SubtitleTrackPickerPresentation { sheet, dialog }
+
+enum _PickerSection { primary, secondary }
+
+/// Max height for an expanded track list before it scrolls internally.
+const double _kExpandedTrackListMaxHeight = 280;
+
+String _trackLabel(TranscriptTrack track) =>
+    track.label.isNotEmpty ? track.label : track.language;
+
+TranscriptTrack? _findTrack(List<TranscriptTrack> tracks, String? id) {
+  if (id == null) return null;
+  for (final track in tracks) {
+    if (track.id == id) return track;
+  }
+  return null;
+}
 
 String _providerLabel(AppLocalizations l10n, String source) {
   switch (source) {
@@ -92,15 +131,12 @@ Future<void> showSubtitleTrackPicker(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(t.radiusXl),
           ),
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 32,
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: t.desktopGutter,
+            vertical: t.space32,
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 560,
-              maxHeight: MediaQuery.sizeOf(ctx).height * 0.88,
-            ),
+            constraints: BoxConstraints(maxWidth: t.modalMaxWidthLarge),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(t.radiusXl),
               child: SubtitleTrackPickerSheet(
@@ -141,6 +177,7 @@ class SubtitleTrackPickerSheet extends ConsumerStatefulWidget {
 class _SubtitleTrackPickerSheetState
     extends ConsumerState<SubtitleTrackPickerSheet> {
   ScrollController? _dialogScroll;
+  _PickerSection? _expandedSection;
 
   @override
   void initState() {
@@ -233,9 +270,20 @@ class _SubtitleTrackPickerSheetState
     await ref.read(transcriptRepositoryProvider).deleteTranscript(track.id);
   }
 
-  Widget _buildTrackList({
+  void _toggleSection(_PickerSection section) {
+    setState(() {
+      _expandedSection = _expandedSection == section ? null : section;
+    });
+  }
+
+  void _collapseSection() {
+    if (_expandedSection != null) {
+      setState(() => _expandedSection = null);
+    }
+  }
+
+  List<Widget> _buildTrackListBody({
     required BuildContext context,
-    required ScrollController scrollCtrl,
     required EnjoyThemeTokens t,
     required AppLocalizations l10n,
     required List<TranscriptTrack> tracks,
@@ -244,129 +292,325 @@ class _SubtitleTrackPickerSheetState
     required bool showExtractEmbedded,
     required bool showImportFile,
     required bool isFetching,
+    required bool inlineExpandedLists,
   }) {
     final theme = Theme.of(context);
 
-    return ListView(
-      controller: scrollCtrl,
-      padding: EdgeInsets.only(bottom: t.space16),
-      children: [
-        if (isFetching)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              _sheetHorizontalPadding(t),
-              t.space8,
-              _sheetHorizontalPadding(t),
-              t.space8,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                SizedBox(width: t.space12),
-                Expanded(
-                  child: Text(
-                    l10n.transcriptFetchingSubtitles,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return [
+      if (isFetching)
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            _sheetHorizontalPadding(t),
+            t.space8,
+            _sheetHorizontalPadding(t),
+            t.space8,
           ),
-        _SectionHeader(l10n.subtitlesPrimary),
-        if (tracks.isEmpty)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              _sheetHorizontalPadding(t),
-              t.space4,
-              _sheetHorizontalPadding(t),
-              t.space12,
-            ),
-            child: Text(
-              l10n.noTranscriptHint,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.45,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              SizedBox(width: t.space12),
+              Expanded(
+                child: Text(
+                  l10n.transcriptFetchingSubtitles,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      if (tracks.isEmpty)
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: _sheetHorizontalPadding(t)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow.withValues(
+                alpha: 0.92,
+              ),
+              borderRadius: BorderRadius.circular(t.radiusLg),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(
+                  alpha: 0.16,
+                ),
               ),
             ),
-          )
-        else
-          RadioGroup<String>(
+            child: Padding(
+              padding: EdgeInsets.all(t.space16),
+              child: Text(
+                l10n.noTranscriptHint,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ),
+        )
+      else
+        _CollapsibleTrackSection(
+          title: l10n.subtitlesPrimary,
+          isExpanded: _expandedSection == _PickerSection.primary,
+          onToggle: () => _toggleSection(_PickerSection.primary),
+          inlineExpandedList: inlineExpandedLists,
+          selectionLabel: () {
+            final selected = _findTrack(tracks, primaryId);
+            return selected == null
+                ? l10n.subtitlesNotSelected
+                : _trackLabel(selected);
+          }(),
+          selectedTrack: _findTrack(tracks, primaryId),
+          child: RadioGroup<String>(
             groupValue: primaryId,
             onChanged: (id) {
               if (id == null) return;
+              _collapseSection();
               unawaited(
                 ref
                     .read(transcriptRepositoryProvider)
                     .setActiveTranscript(widget.mediaId, id),
               );
             },
-            child: Column(
-              children: tracks
-                  .map(
-                    (track) => _TrackTile(
-                      track: track,
-                      contentPadding: _sheetRowPadding(t),
-                      onDelete: () => _deleteTrack(track),
-                    ),
-                  )
-                  .toList(),
+            child: Theme(
+              data: _trackPickerRadioTheme(context),
+              child: Column(
+                children: tracks
+                    .map(
+                      (track) => _TrackOptionTile<String>(
+                        value: track.id,
+                        selected: primaryId == track.id,
+                        track: track,
+                        padding: _trackOptionPadding(t),
+                        onDelete: () => _deleteTrack(track),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ),
-        SizedBox(height: t.space8),
-        _SectionHeader(l10n.subtitlesTranslation),
-        RadioGroup<String?>(
+        ),
+      SizedBox(height: t.space12),
+      _CollapsibleTrackSection(
+        title: l10n.subtitlesTranslation,
+        isExpanded: _expandedSection == _PickerSection.secondary,
+        onToggle: () => _toggleSection(_PickerSection.secondary),
+        inlineExpandedList: inlineExpandedLists,
+        selectionLabel: () {
+          if (secondaryId == null) return l10n.subtitlesNone;
+          final selected = _findTrack(tracks, secondaryId);
+          return selected == null
+              ? l10n.subtitlesNotSelected
+              : _trackLabel(selected);
+        }(),
+        selectedTrack: _findTrack(tracks, secondaryId),
+        child: RadioGroup<String?>(
           groupValue: secondaryId,
-          onChanged: (id) => ref
-              .read(transcriptRepositoryProvider)
-              .setSecondaryTranscript(widget.mediaId, id),
-          child: Column(
-            children: [
-              RadioListTile<String?>(
-                contentPadding: _sheetRowPadding(t),
-                value: null,
-                title: Text(l10n.subtitlesNone),
-              ),
-              ...tracks.map(
-                (track) => _SecondaryTrackTile(
-                  track: track,
-                  contentPadding: _sheetRowPadding(t),
-                  onDelete: () => _deleteTrack(track),
+          onChanged: (id) {
+            _collapseSection();
+            unawaited(
+              ref
+                  .read(transcriptRepositoryProvider)
+                  .setSecondaryTranscript(widget.mediaId, id),
+            );
+          },
+          child: Theme(
+            data: _trackPickerRadioTheme(context),
+            child: Column(
+              children: [
+                _NoneOptionTile(
+                  padding: _trackOptionPadding(t),
+                  label: l10n.subtitlesNone,
+                  selected: secondaryId == null,
                 ),
+                ...tracks.map(
+                  (track) => _TrackOptionTile<String?>(
+                    value: track.id,
+                    selected: secondaryId == track.id,
+                    track: track,
+                    padding: _trackOptionPadding(t),
+                    onDelete: () => _deleteTrack(track),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      SizedBox(height: t.space16),
+      _SubtitleActionsSection(
+        horizontalPadding: _sheetHorizontalPadding(t),
+        showExtractEmbedded: showExtractEmbedded,
+        showImportFile: showImportFile,
+        onExtractEmbedded: _extractEmbedded,
+        onRefreshCloud: _refreshCloud,
+        onImportFile: _importFile,
+      ),
+    ];
+  }
+
+  Widget _buildSheetHeader(BuildContext context, EnjoyThemeTokens t) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        _sheetHorizontalPadding(t),
+        t.space4,
+        _sheetHorizontalPadding(t),
+        t.space4,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: cs.primaryContainer.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(t.radiusSm),
+            ),
+            child: Icon(
+              Icons.closed_caption_rounded,
+              size: 20,
+              color: cs.primary,
+            ),
+          ),
+          SizedBox(width: t.space12),
+          Expanded(
+            child: Text(
+              l10n.subtitles,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
               ),
-            ],
+            ),
           ),
-        ),
-        const Divider(),
-        if (showExtractEmbedded)
-          TranscriptBusyListTile(
-            contentPadding: _sheetRowPadding(t),
-            icon: Icons.subtitles_outlined,
-            title: l10n.subtitlesExtractEmbedded,
-            onTap: _extractEmbedded,
+          IconButton(
+            style: IconButton.styleFrom(
+              minimumSize: const Size(40, 40),
+              fixedSize: const Size(40, 40),
+              backgroundColor: cs.surfaceContainerHighest.withValues(
+                alpha: 0.65,
+              ),
+            ),
+            icon: Icon(
+              Icons.close_rounded,
+              size: 20,
+              color: cs.onSurfaceVariant,
+            ),
+            tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+            onPressed: () => Navigator.pop(context),
           ),
-        TranscriptBusyListTile(
-          contentPadding: _sheetRowPadding(t),
-          icon: Icons.cloud_download_outlined,
-          title: l10n.subtitlesRefreshCloud,
-          onTap: _refreshCloud,
-        ),
-        if (showImportFile)
-          TranscriptBusyListTile(
-            contentPadding: _sheetRowPadding(t),
-            icon: Icons.upload_file_rounded,
-            title: l10n.subtitlesImportFile,
-            onTap: _importFile,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTracksContent({
+    required BuildContext context,
+    required ScrollController scrollCtrl,
+    required EnjoyThemeTokens t,
+    required AppLocalizations l10n,
+    required AsyncValue<List<TranscriptTrack>> tracksAsync,
+    required bool isDialog,
+    required bool showExtractEmbedded,
+    required bool showImportFile,
+    required bool isFetching,
+    required String? primaryId,
+    required String? secondaryId,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+
+    Widget whenData(List<TranscriptTrack> tracks) {
+      final body = _buildTrackListBody(
+        context: context,
+        t: t,
+        l10n: l10n,
+        tracks: tracks,
+        primaryId: primaryId,
+        secondaryId: secondaryId,
+        showExtractEmbedded: showExtractEmbedded,
+        showImportFile: showImportFile,
+        isFetching: isFetching,
+        inlineExpandedLists: isDialog,
+      );
+
+      if (isDialog) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: body,
+        );
+      }
+
+      return ListView(
+        controller: scrollCtrl,
+        padding: EdgeInsets.only(bottom: t.space16),
+        children: body,
+      );
+    }
+
+    return tracksAsync.when(
+      data: whenData,
+      loading: () => isDialog
+          ? Padding(
+              padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
+              child: const SkeletonTranscript(lineCount: 4),
+            )
+          : SkeletonTranscript(lineCount: 12, controller: scrollCtrl),
+      error: (error, _) {
+        final errorBody = [
+          SizedBox(height: t.space24),
+          Icon(
+            Icons.error_outline_rounded,
+            size: 40,
+            color: cs.error,
           ),
-      ],
+          SizedBox(height: t.space12),
+          Text(
+            l10n.transcriptErrorFriendlyTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: t.space8),
+          Text(
+            l10n.transcriptErrorFriendlyHint,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: t.space16),
+          FilledButton.tonal(
+            onPressed: () => ref.invalidate(
+              allTranscriptsForMediaProvider(widget.mediaId),
+            ),
+            child: Text(l10n.retry),
+          ),
+        ];
+
+        if (isDialog) {
+          return Padding(
+            padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: errorBody,
+            ),
+          );
+        }
+
+        return ListView(
+          controller: scrollCtrl,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
+          children: errorBody,
+        );
+      },
     );
   }
 
@@ -398,88 +642,55 @@ class _SubtitleTrackPickerSheetState
     final isFetching = fetchState.status == TranscriptFetchStatus.loading;
 
     Widget columnBody(ScrollController sc) {
-      return Column(
-        children: [
-          if (widget.presentation == SubtitleTrackPickerPresentation.sheet)
-            const PaddedSheetDragHandle()
-          else
-            SizedBox(height: t.space8),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: _sheetHorizontalPadding(t),
-            ),
-            child: Row(
+      final isDialog =
+          widget.presentation == SubtitleTrackPickerPresentation.dialog;
+      final divider = Divider(
+        height: 1,
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(
+          alpha: 0.18,
+        ),
+      );
+      final tracksContent = _buildTracksContent(
+        context: context,
+        scrollCtrl: sc,
+        t: t,
+        l10n: l10n,
+        tracksAsync: tracksAsync,
+        isDialog: isDialog,
+        showExtractEmbedded: showExtractEmbedded,
+        showImportFile: !isYoutube,
+        isFetching: isFetching,
+        primaryId: primaryId,
+        secondaryId: secondaryId,
+      );
+
+      if (isDialog) {
+        final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SingleChildScrollView(
+            controller: sc,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.subtitles,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const Spacer(),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    fixedSize: const Size(48, 48),
-                  ),
-                  icon: const Icon(Icons.close_rounded),
-                  tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                  onPressed: () => Navigator.pop(context),
-                ),
+                SizedBox(height: t.space20),
+                _buildSheetHeader(context, t),
+                divider,
+                tracksContent,
+                SizedBox(height: t.space20),
               ],
             ),
           ),
-          const Divider(),
-          Expanded(
-            child: tracksAsync.when(
-              data: (tracks) => _buildTrackList(
-                context: context,
-                scrollCtrl: sc,
-                t: t,
-                l10n: l10n,
-                tracks: tracks,
-                primaryId: primaryId,
-                secondaryId: secondaryId,
-                showExtractEmbedded: showExtractEmbedded,
-                showImportFile: !isYoutube,
-                isFetching: isFetching,
-              ),
-              loading: () => SkeletonTranscript(lineCount: 12, controller: sc),
-              error: (error, _) => ListView(
-                controller: sc,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
-                children: [
-                  SizedBox(height: t.space24),
-                  Icon(
-                    Icons.error_outline_rounded,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  SizedBox(height: t.space12),
-                  Text(
-                    l10n.transcriptErrorFriendlyTitle,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: t.space8),
-                  Text(
-                    l10n.transcriptErrorFriendlyHint,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  SizedBox(height: t.space16),
-                  FilledButton.tonal(
-                    onPressed: () => ref.invalidate(
-                      allTranscriptsForMediaProvider(widget.mediaId),
-                    ),
-                    child: Text(l10n.retry),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        );
+      }
+
+      return Column(
+        children: [
+          const PaddedSheetDragHandle(),
+          _buildSheetHeader(context, t),
+          divider,
+          Expanded(child: tracksContent),
         ],
       );
     }
@@ -498,85 +709,287 @@ class _SubtitleTrackPickerSheetState
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.label);
+class _CollapsibleTrackSection extends StatelessWidget {
+  const _CollapsibleTrackSection({
+    required this.title,
+    required this.isExpanded,
+    required this.onToggle,
+    required this.selectionLabel,
+    this.selectedTrack,
+    required this.child,
+    this.inlineExpandedList = false,
+  });
 
-  final String label;
+  final String title;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final String selectionLabel;
+  final TranscriptTrack? selectedTrack;
+  final Widget child;
+  final bool inlineExpandedList;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final horizontal = _sheetHorizontalPadding(t);
+
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        _sheetHorizontalPadding(t),
-        t.space12,
-        _sheetHorizontalPadding(t),
-        t.space4,
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: cs.onSurfaceVariant,
-          letterSpacing: 0.9,
-          fontWeight: FontWeight.w600,
+      padding: EdgeInsets.symmetric(horizontal: horizontal),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          border: Border.all(
+            color: isExpanded
+                ? cs.primary.withValues(alpha: 0.28)
+                : cs.outlineVariant.withValues(alpha: 0.16),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: cs.shadow.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Material(
+                color: isExpanded
+                    ? cs.primaryContainer.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                child: InkWell(
+                  onTap: onToggle,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      t.space16,
+                      t.space12,
+                      t.space12,
+                      isExpanded ? t.space12 : t.space16,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: tt.labelLarge?.copyWith(
+                                  color: cs.primary,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              if (!isExpanded) ...[
+                                SizedBox(height: t.space8),
+                                _SelectionSummary(
+                                  label: selectionLabel,
+                                  track: selectedTrack,
+                                  compact: true,
+                                ),
+                              ] else ...[
+                                SizedBox(height: t.space4),
+                                Text(
+                                  selectionLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: tt.bodySmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: t.space8),
+                        AnimatedContainer(
+                          duration: t.motionFast,
+                          curve: Curves.easeOut,
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: cs.surfaceContainerHighest.withValues(
+                              alpha: 0.75,
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: cs.outlineVariant.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: AnimatedRotation(
+                            turns: isExpanded ? 0.5 : 0,
+                            duration: t.motionFast,
+                            curve: Curves.easeOut,
+                            child: Icon(
+                              Icons.expand_more_rounded,
+                              size: 20,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedSize(
+                duration: t.motionStandard,
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                clipBehavior: Clip.hardEdge,
+                child: isExpanded
+                    ? DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: cs.surfaceContainerLowest.withValues(
+                            alpha: 0.55,
+                          ),
+                          border: Border(
+                            top: BorderSide(
+                              color: cs.outlineVariant.withValues(alpha: 0.14),
+                            ),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            t.space8,
+                            t.space8,
+                            t.space8,
+                            t.space12,
+                          ),
+                          child: inlineExpandedList
+                              ? child
+                              : ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: _kExpandedTrackListMaxHeight,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: child,
+                                  ),
+                                ),
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _TrackTile extends StatelessWidget {
-  const _TrackTile({
-    required this.track,
-    required this.contentPadding,
-    required this.onDelete,
+class _SelectionSummary extends StatelessWidget {
+  const _SelectionSummary({
+    required this.label,
+    this.track,
+    this.compact = false,
   });
 
-  final TranscriptTrack track;
-  final EdgeInsetsGeometry contentPadding;
-  final VoidCallback onDelete;
+  final String label;
+  final TranscriptTrack? track;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return _TrackRadioTile<String>(
-      track: track,
-      contentPadding: contentPadding,
-      onDelete: onDelete,
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final muted = track == null;
+    final selected = track;
+    final badgeColors = selected == null
+        ? null
+        : _providerBadgeColors(cs, selected.source);
+
+    if (compact && selected != null && badgeColors != null) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: tt.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ),
+          SizedBox(width: t.space8),
+          _MetaChip(
+            label: _providerLabel(l10n, selected.source),
+            background: badgeColors.bg,
+            foreground: badgeColors.fg,
+          ),
+          if (selected.language.isNotEmpty && selected.language != 'und') ...[
+            SizedBox(width: t.space8),
+            _MetaChip(
+              label: selected.language.toUpperCase(),
+              background: cs.surfaceContainerHighest,
+              foreground: cs.onSurfaceVariant,
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: (compact ? tt.titleSmall : tt.bodyMedium)?.copyWith(
+            color: muted ? cs.onSurfaceVariant : cs.onSurface,
+            fontWeight: muted ? FontWeight.w400 : FontWeight.w600,
+          ),
+        ),
+        if (selected != null && badgeColors != null) ...[
+          SizedBox(height: t.space8),
+          Wrap(
+            spacing: t.space8,
+            runSpacing: t.space4,
+            children: [
+              _MetaChip(
+                label: _providerLabel(l10n, selected.source),
+                background: badgeColors.bg,
+                foreground: badgeColors.fg,
+              ),
+              if (selected.language.isNotEmpty && selected.language != 'und')
+                _MetaChip(
+                  label: selected.language.toUpperCase(),
+                  background: cs.surfaceContainerHighest,
+                  foreground: cs.onSurfaceVariant,
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
 
-class _SecondaryTrackTile extends StatelessWidget {
-  const _SecondaryTrackTile({
+class _TrackOptionTile<T> extends StatelessWidget {
+  const _TrackOptionTile({
+    required this.value,
+    required this.selected,
     required this.track,
-    required this.contentPadding,
+    required this.padding,
     required this.onDelete,
   });
 
+  final T value;
+  final bool selected;
   final TranscriptTrack track;
-  final EdgeInsetsGeometry contentPadding;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return _TrackRadioTile<String?>(
-      track: track,
-      contentPadding: contentPadding,
-      onDelete: onDelete,
-    );
-  }
-}
-
-class _TrackRadioTile<T> extends StatelessWidget {
-  const _TrackRadioTile({
-    required this.track,
-    required this.contentPadding,
-    required this.onDelete,
-  });
-
-  final TranscriptTrack track;
-  final EdgeInsetsGeometry contentPadding;
+  final EdgeInsetsGeometry padding;
   final VoidCallback onDelete;
 
   @override
@@ -584,50 +997,226 @@ class _TrackRadioTile<T> extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final providerLabel = _providerLabel(l10n, track.source);
+    final tt = Theme.of(context).textTheme;
+    final label = _trackLabel(track);
     final badgeColors = _providerBadgeColors(cs, track.source);
 
-    final label = track.label.isNotEmpty ? track.label : track.language;
-
-    return RadioListTile<T>(
-      contentPadding: contentPadding,
-      value: track.id as T,
-      title: Text(label),
-      subtitle: Padding(
-        padding: EdgeInsets.only(top: t.space8),
-        child: Wrap(
-          spacing: t.space8,
-          runSpacing: t.space4,
-          children: [
-            _Badge(
-              label: providerLabel,
-              background: badgeColors.bg,
-              foreground: badgeColors.fg,
+    return Padding(
+      padding: padding,
+      child: Material(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.34)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.28),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusSm),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.42)
+                : cs.outlineVariant.withValues(alpha: 0.14),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: RadioListTile<T>(
+          value: value,
+          selected: selected,
+          contentPadding: EdgeInsets.fromLTRB(
+            t.space8,
+            t.space8,
+            t.space4,
+            t.space8,
+          ),
+          controlAffinity: ListTileControlAffinity.leading,
+          title: Text(
+            label,
+            style: tt.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.2,
             ),
-            if (track.language.isNotEmpty && track.language != 'und')
-              _Badge(
-                label: track.language.toUpperCase(),
-                background: cs.surfaceContainerHighest,
-                foreground: cs.onSurfaceVariant,
-              ),
-          ],
+          ),
+          subtitle: Padding(
+            padding: EdgeInsets.only(top: t.space8),
+            child: Wrap(
+              spacing: t.space8,
+              runSpacing: t.space4,
+              children: [
+                _MetaChip(
+                  label: _providerLabel(l10n, track.source),
+                  background: badgeColors.bg,
+                  foreground: badgeColors.fg,
+                ),
+                if (track.language.isNotEmpty && track.language != 'und')
+                  _MetaChip(
+                    label: track.language.toUpperCase(),
+                    background: cs.surfaceContainerHighest,
+                    foreground: cs.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+          secondary: IconButton(
+            style: IconButton.styleFrom(
+              minimumSize: const Size(36, 36),
+              fixedSize: const Size(36, 36),
+              backgroundColor: cs.surface.withValues(alpha: 0.35),
+            ),
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              size: 18,
+              color: cs.onSurfaceVariant,
+            ),
+            tooltip: l10n.subtitlesDeleteTrack,
+            onPressed: onDelete,
+          ),
         ),
-      ),
-      secondary: IconButton(
-        style: IconButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          fixedSize: const Size(48, 48),
-        ),
-        icon: const Icon(Icons.delete_outline),
-        tooltip: l10n.subtitlesDeleteTrack,
-        onPressed: onDelete,
       ),
     );
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
+class _NoneOptionTile extends StatelessWidget {
+  const _NoneOptionTile({
+    required this.padding,
+    required this.label,
+    required this.selected,
+  });
+
+  final EdgeInsetsGeometry padding;
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: padding,
+      child: Material(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.34)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.28),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusSm),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.42)
+                : cs.outlineVariant.withValues(alpha: 0.14),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: RadioListTile<String?>(
+          value: null,
+          selected: selected,
+          contentPadding: EdgeInsets.fromLTRB(
+            t.space8,
+            t.space12,
+            t.space12,
+            t.space12,
+          ),
+          controlAffinity: ListTileControlAffinity.leading,
+          title: Text(
+            label,
+            style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubtitleActionsSection extends StatelessWidget {
+  const _SubtitleActionsSection({
+    required this.horizontalPadding,
+    required this.showExtractEmbedded,
+    required this.showImportFile,
+    required this.onExtractEmbedded,
+    required this.onRefreshCloud,
+    required this.onImportFile,
+  });
+
+  final double horizontalPadding;
+  final bool showExtractEmbedded;
+  final bool showImportFile;
+  final Future<void> Function() onExtractEmbedded;
+  final Future<void> Function() onRefreshCloud;
+  final Future<void> Function() onImportFile;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    final tiles = <Widget>[
+      if (showExtractEmbedded)
+        TranscriptBusyListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: t.space12,
+            vertical: t.space4,
+          ),
+          icon: Icons.subtitles_outlined,
+          title: l10n.subtitlesExtractEmbedded,
+          onTap: onExtractEmbedded,
+        ),
+      TranscriptBusyListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: t.space12,
+          vertical: t.space4,
+        ),
+        icon: Icons.cloud_download_outlined,
+        title: l10n.subtitlesRefreshCloud,
+        onTap: onRefreshCloud,
+      ),
+      if (showImportFile)
+        TranscriptBusyListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: t.space12,
+            vertical: t.space4,
+          ),
+          icon: Icons.upload_file_rounded,
+          title: l10n.subtitlesImportFile,
+          onTap: onImportFile,
+        ),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.16),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          child: Column(
+            children: [
+              for (var i = 0; i < tiles.length; i++) ...[
+                if (i > 0)
+                  Divider(
+                    height: 1,
+                    indent: t.space16 + 24 + t.space16,
+                    endIndent: t.space16,
+                    color: cs.outlineVariant.withValues(alpha: 0.14),
+                  ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: t.space4),
+                  child: tiles[i],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({
     required this.label,
     required this.background,
     required this.foreground,
@@ -641,16 +1230,22 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
+      padding: EdgeInsets.symmetric(
+        horizontal: t.space8,
+        vertical: t.space4 - 1,
+      ),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(t.space4),
+        color: background.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(t.radiusFull),
+        border: Border.all(color: foreground.withValues(alpha: 0.14)),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: foreground,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.25,
+          height: 1.1,
         ),
       ),
     );
