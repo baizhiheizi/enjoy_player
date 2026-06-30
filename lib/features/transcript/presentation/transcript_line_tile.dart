@@ -381,8 +381,21 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
           SizedBox(height: tok.space4),
           primaryWidget,
           if (secondaryWidget != null) ...[
-            SizedBox(height: tok.space4),
-            secondaryWidget,
+            SizedBox(height: tok.space8),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.22),
+                    width: 2,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(left: tok.space12),
+                child: secondaryWidget,
+              ),
+            ),
           ],
         ],
       ),

@@ -5,6 +5,28 @@ library;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// CJK fallbacks so Windows does not substitute low-quality system fonts.
+List<String> _transcriptCjkSerifFallbacks() => [
+  GoogleFonts.notoSerifKr().fontFamily,
+  GoogleFonts.notoSerifSc().fontFamily,
+  GoogleFonts.notoSerifJp().fontFamily,
+].whereType<String>().toList();
+
+List<String> _transcriptCjkSansFallbacks() => [
+  GoogleFonts.notoSansKr().fontFamily,
+  GoogleFonts.notoSansSc().fontFamily,
+  GoogleFonts.notoSansJp().fontFamily,
+  GoogleFonts.inter().fontFamily,
+].whereType<String>().toList();
+
+TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
+  return style.copyWith(
+    fontFamilyFallback: serif
+        ? _transcriptCjkSerifFallbacks()
+        : _transcriptCjkSansFallbacks(),
+  );
+}
+
 /// Builds the base [TextTheme] using Inter family.
 ///
 /// Display titles use Inter (approximating Inter Tight until the Google Fonts
@@ -149,26 +171,32 @@ class TranscriptTypographyTokens
       ).apply(bodyColor: scheme.onSurface);
       return TranscriptTypographyTokens(
         useSerif: true,
-        bodyStyle: (serif.bodyLarge ?? const TextStyle()).copyWith(
-          fontSize: 17,
-          fontWeight: FontWeight.w400,
-          height: 1.65,
-          letterSpacing: 0.01,
-          color: scheme.onSurface,
+        bodyStyle: _withCjkFallbacks(
+          (serif.bodyLarge ?? const TextStyle()).copyWith(
+            fontSize: 17,
+            fontWeight: FontWeight.w400,
+            height: 1.65,
+            letterSpacing: 0.01,
+            color: scheme.onSurface,
+          ),
+          serif: true,
         ),
-        secondaryStyle: (serif.bodyMedium ?? const TextStyle()).copyWith(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.italic,
-          height: 1.5,
-          color: scheme.onSurfaceVariant,
+        secondaryStyle: _withCjkFallbacks(
+          GoogleFonts.notoSansSc(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            height: 1.55,
+            letterSpacing: 0.02,
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.88),
+          ),
+          serif: false,
         ),
         timestampStyle: (base.labelSmall ?? const TextStyle()).copyWith(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
           fontFeatures: const [FontFeature.tabularFigures()],
-          color: scheme.onSurfaceVariant,
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
         ),
       );
     }
@@ -181,18 +209,27 @@ class TranscriptTypographyTokens
   ) {
     return TranscriptTypographyTokens(
       useSerif: false,
-      bodyStyle: (base.bodyLarge ?? const TextStyle()).copyWith(
-        fontSize: 16,
-        height: 1.6,
-        color: scheme.onSurface,
+      bodyStyle: _withCjkFallbacks(
+        (base.bodyLarge ?? const TextStyle()).copyWith(
+          fontSize: 16,
+          height: 1.6,
+          color: scheme.onSurface,
+        ),
+        serif: false,
       ),
-      secondaryStyle: (base.bodySmall ?? const TextStyle()).copyWith(
-        fontStyle: FontStyle.italic,
-        color: scheme.onSurfaceVariant,
+      secondaryStyle: _withCjkFallbacks(
+        GoogleFonts.notoSansSc(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w400,
+          height: 1.55,
+          letterSpacing: 0.02,
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.88),
+        ),
+        serif: false,
       ),
       timestampStyle: (base.labelSmall ?? const TextStyle()).copyWith(
         fontFeatures: const [FontFeature.tabularFigures()],
-        color: scheme.onSurfaceVariant,
+        color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
       ),
     );
   }
