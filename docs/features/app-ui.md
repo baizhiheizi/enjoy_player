@@ -60,6 +60,7 @@ Single dark `ThemeData` only (`buildAppTheme()`). No light theme and no Settings
 | `TranscriptPanel` | Source Serif 4 body; editorial left-rail active line; neutral echo card with 8px orange rail |
 | `ShadowReadingPanel` | Idle: three-zone bar (pitch icon, centered 56pt FAB, play + more; delete in menu); recording: centered FAB + countdown |
 | `SettingsScreen` | iOS-style grouped `_SettingsCard`; **Appearance & Language** rows open pickers for display + native language (learning fixed en-US); guest vs signed-in copy for language sync |
+| `ProfileScreen` | Editorial profile hub; tier chip mirrors `UserProfile.subscriptionTier`; opens from sidebar account row or `/profile` |
 | `NotFoundScreen` | `errorBuilder` fallback at the router root for unknown `go_router` locations; localized en / zh / zh-CN, shows the attempted URI, single primary "Back to Home" action to `/` |
 
 ## Design token reference (`EnjoyThemeTokens`)
@@ -93,6 +94,7 @@ Focus ring: 2px (custom nav / sidebars)
 | `EmptyState` | `core/theme/widgets/empty_state.dart` | Editorial empty state |
 | `GlassSurface` | `core/theme/widgets/glass_surface.dart` | **Transport bar only** |
 | `AppSidebar` | `features/player/presentation/widgets/app_sidebar.dart` | Flat tonal sidebar |
+| `SidebarAccountChip` | `features/auth/presentation/widgets/sidebar_account_chip.dart` | Account row at the bottom of `AppSidebar`: signed-out → **Sign in** → `/sign-in`; awaiting OTP → progress + resume → `/sign-in` or `/sign-in/email`; signed-in → avatar + name + Pro badge + **Open profile** subtitle → `/profile`; Free users also get an inline **Upgrade** pill that routes to `/subscription` |
 
 ## Dynamic color module
 

@@ -2,7 +2,11 @@
 
 ## Behavior
 
-Signed-in users open **Subscription** from Profile → Account or navigate to `/subscription`.
+Signed-in users open **Subscription** from any of:
+
+- Sidebar account row — Free users see an inline **Upgrade** pill that routes to `/subscription`.
+- Profile → Account → **Subscription**.
+- Direct route `/subscription`.
 
 ### All platforms
 
@@ -15,8 +19,12 @@ Signed-in users open **Subscription** from Profile → Account or navigate to `/
 
 - **Upgrade to Pro** / **Extend subscription** opens a purchase sheet:
   - Duration presets (1 month, 1 season, 1 year, or custom 1–12 months)
-  - Stripe or Mixin processor
+  - Processor picker:
+    - **Stripe** — Card (Mastercard), WeChat Pay, Alipay, Google Pay
+    - **Cryptocurrency** — USDT, USDC, BTC, ETH, DOGE, *and more*
   - External checkout via system browser (`payUrl`)
+
+> **Note** — the `mixin` value is preserved on the wire (Rails API still expects `processor=mixin`); only the UI label is **Cryptocurrency** (en) / **虚拟货币** (zh). `PaymentProcessor.fromJson` continues to accept the `mixin` string.
 
 ### Mobile (iOS, Android)
 
@@ -29,11 +37,12 @@ Signed-in users open **Subscription** from Profile → Account or navigate to `/
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/v1/subscriptions` | Current subscription status |
-| POST | `/api/v1/subscriptions` | Start checkout (`months`, `processor`) |
+| POST | `/api/v1/subscriptions` | Start checkout (`months`, `processor`) — `processor` accepts `stripe` or `mixin` |
 
 Rails API base URL (`apiClientProvider`); bearer auth required.
 
 ## Related
 
 - Profile tier chip uses cached `UserProfile.subscriptionTier`.
+- `SidebarAccountChip` (`lib/features/auth/presentation/widgets/sidebar_account_chip.dart`) — sidebar entry that opens `/profile` on tap and exposes an inline `/subscription` Upgrade pill for Free users.
 - [ADR-0032](../decisions/0032-platform-scoped-subscription-purchase.md) — platform-scoped purchase policy.
