@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/services.dart';

@@ -95,7 +95,7 @@ void main() {
             (ref) => Stream<List<DiscoverChannel>>.value(const []),
           ),
         ],
-        child: EnjoyApp(themeBuilder: _testTheme),
+        child: const EnjoyApp(themeBuilder: _testTheme),
       ),
     );
 

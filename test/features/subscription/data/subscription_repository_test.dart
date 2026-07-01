@@ -64,7 +64,7 @@ void main() {
 
     test('maps 402 to CreditsFailure', () async {
       final repo = SubscriptionRepository(
-        _ThrowingApi(ApiException(message: 'limit', statusCode: 402)),
+        _ThrowingApi(const ApiException(message: 'limit', statusCode: 402)),
       );
 
       expect(

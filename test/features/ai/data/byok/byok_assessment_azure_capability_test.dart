@@ -20,7 +20,7 @@ class _FakeSecretStore implements ByokSecretStoreBase {
 
   @override
   Future<bool> hasApiKey(ModalityKind modality) async =>
-      _key != null && _key!.isNotEmpty;
+      _key != null && _key.isNotEmpty;
 
   @override
   Future<String?> readApiKey(ModalityKind modality) async => _key;

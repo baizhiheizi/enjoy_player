@@ -16,7 +16,7 @@ void main() {
         modality: ModalityKind.llm,
         config: const AIServiceConfig(
           provider: AIProvider.byok,
-          llmByok: const LlmByokConfig(
+          llmByok: LlmByokConfig(
             apiSpec: LlmApiSpec.openAiCompatible,
             baseUrl: 'https://api.openai.com/v1',
             model: 'gpt-4o-mini',
@@ -34,7 +34,7 @@ void main() {
         modality: ModalityKind.llm,
         config: const AIServiceConfig(
           provider: AIProvider.byok,
-          llmByok: const LlmByokConfig(
+          llmByok: LlmByokConfig(
             apiSpec: LlmApiSpec.openAiCompatible,
             baseUrl: 'https://api.deepseek.com/v1',
             model: 'deepseek-chat',
@@ -52,7 +52,7 @@ void main() {
         modality: ModalityKind.llm,
         config: const AIServiceConfig(
           provider: AIProvider.byok,
-          llmByok: const LlmByokConfig(
+          llmByok: LlmByokConfig(
             apiSpec: LlmApiSpec.openAiCompatible,
             baseUrl: 'https://192.168.1.5/v1',
             model: 'gpt-4o-mini',
@@ -71,7 +71,7 @@ void main() {
         modality: ModalityKind.assessment,
         config: const AIServiceConfig(
           provider: AIProvider.byok,
-          speechByok: const SpeechByokConfig(
+          speechByok: SpeechByokConfig(
             kind: SpeechByokKind.openAiCompatible,
           ),
         ),
@@ -86,7 +86,7 @@ void main() {
         modality: ModalityKind.assessment,
         config: const AIServiceConfig(
           provider: AIProvider.byok,
-          speechByok: const SpeechByokConfig(
+          speechByok: SpeechByokConfig(
             kind: SpeechByokKind.azureSpeech,
             region: 'eastus',
           ),

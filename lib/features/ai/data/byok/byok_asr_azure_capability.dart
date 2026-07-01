@@ -18,12 +18,10 @@ import 'package:uuid/uuid.dart';
 /// ASR via user Azure Speech subscription key + region (native recognize-once).
 final class ByokAsrAzureCapability implements AsrCapability {
   ByokAsrAzureCapability({
-    required SpeechByokConfig config,
-    required ByokSecretStoreBase secrets,
+    required this._config,
+    required this._secrets,
     AzureSpeech? sdk,
-  }) : _config = config,
-       _secrets = secrets,
-       _sdk = sdk ?? AzureSpeech.instance;
+  }) : _sdk = sdk ?? AzureSpeech.instance;
 
   final SpeechByokConfig _config;
   final ByokSecretStoreBase _secrets;

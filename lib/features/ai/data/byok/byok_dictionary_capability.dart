@@ -55,6 +55,6 @@ final class ByokDictionaryCapability implements DictionaryCapability {
       return trimmed.substring(start, end + 1);
     }
 
-    throw FormatException('Dictionary BYOK response is not JSON');
+    throw const FormatException('Dictionary BYOK response is not JSON');
   }
 }

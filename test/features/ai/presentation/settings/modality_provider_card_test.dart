@@ -52,8 +52,8 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
-          localizationsDelegates: const [
+        child: const MaterialApp(
+          localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -66,7 +66,7 @@ void main() {
                 modality: ModalityKind.llm,
                 title: 'Language models',
                 subtitle: 'Chat and translation',
-                config: const AIServiceConfig(
+                config: AIServiceConfig(
                   provider: AIProvider.byok,
                   llmByok: LlmByokConfig(
                     apiSpec: LlmApiSpec.openAiCompatible,

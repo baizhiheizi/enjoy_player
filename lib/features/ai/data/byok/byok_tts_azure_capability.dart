@@ -13,12 +13,10 @@ import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 /// TTS via user Azure Speech subscription key + region (native synthesis).
 final class ByokTtsAzureCapability implements TtsCapability {
   ByokTtsAzureCapability({
-    required SpeechByokConfig config,
-    required ByokSecretStoreBase secrets,
+    required this._config,
+    required this._secrets,
     AzureSpeech? sdk,
-  }) : _config = config,
-       _secrets = secrets,
-       _sdk = sdk ?? AzureSpeech.instance;
+  }) : _sdk = sdk ?? AzureSpeech.instance;
 
   final SpeechByokConfig _config;
   final ByokSecretStoreBase _secrets;

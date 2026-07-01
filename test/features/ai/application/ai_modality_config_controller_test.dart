@@ -8,7 +8,6 @@ import 'package:enjoy_player/features/ai/domain/byok_config_validator.dart';
 import 'package:enjoy_player/features/ai/domain/llm_api_spec.dart';
 import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
-import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:drift/native.dart';

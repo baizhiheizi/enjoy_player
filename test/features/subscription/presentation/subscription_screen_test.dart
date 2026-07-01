@@ -125,9 +125,9 @@ void main() {
           colorScheme: scheme,
           extensions: [EnjoyThemeTokens.build(scheme)],
         ),
-        home: Scaffold(
+        home: const Scaffold(
           body: TierComparison(
-            status: const SubscriptionStatus(
+            status: SubscriptionStatus(
               subscriptionActive: true,
               subscriptionTier: SubscriptionTier.free,
             ),

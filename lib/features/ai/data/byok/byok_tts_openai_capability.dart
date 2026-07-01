@@ -13,12 +13,10 @@ import 'package:http/http.dart' as http;
 /// TTS via user OpenAI-compatible speech endpoint.
 final class ByokTtsOpenAiCapability implements TtsCapability {
   ByokTtsOpenAiCapability({
-    required SpeechByokConfig config,
-    required ByokSecretStoreBase secrets,
-    http.Client? httpClient,
-  }) : _config = config,
-       _secrets = secrets,
-       _httpClient = httpClient;
+    required this._config,
+    required this._secrets,
+    this._httpClient,
+  });
 
   final SpeechByokConfig _config;
   final ByokSecretStoreBase _secrets;

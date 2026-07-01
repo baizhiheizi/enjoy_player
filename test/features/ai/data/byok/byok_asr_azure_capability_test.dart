@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_asr_azure_capability.dart';
@@ -20,7 +18,7 @@ class _FakeSecretStore implements ByokSecretStoreBase {
 
   @override
   Future<bool> hasApiKey(ModalityKind modality) async =>
-      _key != null && _key!.isNotEmpty;
+      _key != null && _key.isNotEmpty;
 
   @override
   Future<String?> readApiKey(ModalityKind modality) async => _key;
