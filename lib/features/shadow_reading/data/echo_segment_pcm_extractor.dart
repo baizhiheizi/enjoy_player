@@ -29,6 +29,7 @@ Future<EchoSegmentPcmResult?> extractMonoFloat32Segment({
   required double durationSec,
 }) async {
   if (durationSec <= 0 || mediaFilePath.trim().isEmpty) return null;
+  if (!File(mediaFilePath).existsSync()) return null;
   final tempDir = await getTemporaryDirectory();
   final outFile = p.join(
     tempDir.path,
@@ -121,6 +122,7 @@ Future<EchoSegmentPcmResult?> extractEntireFileMonoF32(
   String mediaFilePath,
 ) async {
   if (mediaFilePath.trim().isEmpty) return null;
+  if (!File(mediaFilePath).existsSync()) return null;
   final tempDir = await getTemporaryDirectory();
   final outFile = p.join(
     tempDir.path,
