@@ -7,28 +7,12 @@ metadata:
 
 # Historical run rollup (June 2026)
 
-## 2026-06-23 (run 28037645580) — selected 9, 2, 3, 11
-- **Task 9**: 15 unit tests for `lib/core/utils/time_format.dart` on branch `repo-assist/test-time-format`. All green. PR blocked by Actions push permission → surfaced as issue #11.
-- **Task 2**: Commented on #8 (settings_screen.dart refactor) offering to break the 1566-LOC refactor into per-widget PRs starting with `settings_tile.dart`; flagged `_ApiBaseUrlEditor`/`_AiApiBaseUrlEditor` dedup as follow-up.
-- **Task 11**: Created monthly summary issue #12.
-
-## 2026-06-24 (runs 28075911933, 28109415369) — selected 5, 3, 2, 11
-- **Task 5** (run 1): 5 unit tests for `lib/core/utils/local_thumbnail.dart` → branch `repo-assist/test-utils-2026-06-24` → issue #20.
-- **Task 5** (run 2): Refactored 6 manual query-parameter call sites across 5 API services into shared `buildQuery()` helper + 6 unit tests (addresses #15) → branch `repo-assist/refactor-build-query-2026-06-24` → issue #26.
-- **Task 3** (run 2): One-line Windows-path redaction fix in `lib/core/logging/log_redaction.dart` (closes #23) → branch `repo-assist/fix-windows-path-redaction` → issue #27.
-- **Task 2** (run 2): Commented on #23 confirming the fix.
-- **Task 11** (both runs): Updated #12.
-
-## 2026-06-25 (run 28141530121) — selected 9, 6, 2, 11
-- (Details lost when condensing for memory budget — see git history if needed.)
-
-## 2026-06-26 (runs 28220000000–28259999999) — selected 5, 9, 2, 11
-- (Details lost when condensing for memory budget — see git history if needed.)
-
-## 2026-06-27 (run 28280000000-ish) — selected 9, 5, 2, 11
-- **Task 9**: Deleted dead `lib/core/utils/debounce.dart` (Closes #34) → branch `repo-assist/chore-remove-dead-debounce`.
-- **Task 5**: Parallelized `DiscoverRepository._refreshChannel` per-entry reads/writes → branch `repo-assist/perf-parallelize-discover-refresh`.
-- **Task 2 / Task 11**: Updated #12 (closed later as "not_planned").
+## 2026-06-23 → 2026-06-27 — see git history
+- 06-23 (run 28037645580): 15 time_format unit tests → blocked PR #11.
+- 06-24 (2 runs): local_thumbnail tests (#20), buildQuery refactor (#26), log_redaction fix (#27).
+- 06-25: see git history.
+- 06-26 (2 runs): see git history.
+- 06-27: deleted dead debounce.dart (Closes #34) → `repo-assist/chore-remove-dead-debounce`; parallelized `_refreshChannel`.
 
 ## 2026-06-29 (run 28350302166) — selected 4, 5, 2, 11
 - **Task 5**: Extracted generic `listEquals<T>` helper in `lib/core/utils/list_equals.dart` + 7 unit tests; refactored 3 near-identical element-wise list equality helpers (`_listEqualsDiscoverChannel`, `_listEqualsFeedEntry`, `_listEqualsTranscriptLine`). Branch `repo-assist/refactor-list-equals-helper-2026-06-29`. `_listEqualsRecordingRow` in `app_database.dart` deliberately left alone (Drift-generated `RecordingRow` has no value `==`).
