@@ -2385,4 +2385,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get widgetErrorSubtitle =>
       'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.';
+
+  @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
+  String get settingsSearchNoResultsTitle => 'No matching settings';
+
+  @override
+  String get settingsSearchNoResultsHint =>
+      'Try a different word, or clear your search to browse everything.';
+
+  @override
+  String get settingsSearchClear => 'Clear search';
+
+  @override
+  String get settingsSectionExpandSemantics => 'Expand section';
+
+  @override
+  String get settingsSectionCollapseSemantics => 'Collapse section';
+
+  @override
+  String get settingsSectionNeedsAttention => 'Needs attention';
 }

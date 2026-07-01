@@ -6,13 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/sync/application/pending_rekey_provider.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
-import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SyncStatusScreen extends ConsumerStatefulWidget {
@@ -114,6 +117,7 @@ class _SignedInBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final snapshotAsync = ref.watch(syncQueueSnapshotProvider);
@@ -130,73 +134,104 @@ class _SignedInBody extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(t.space16),
       children: [
-        Text(
-          l10n.syncScreenLastSyncLabel,
-          style: tt.titleSmall?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        const SizedBox(height: 4),
-        lastSyncAsync.when(
-          data: (iso) => Text(
-            lastSyncLine(l10n, iso),
-            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          loading: () => const SizedBox(
-            height: 22,
-            width: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          error: (e, _) => Text('$e', style: tt.bodyMedium),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          l10n.syncPendingRekeyLabel,
-          style: tt.titleSmall?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        const SizedBox(height: 4),
-        pendingRekeyAsync.when(
-          data: (count) => Column(
+        EnjoyCard(
+          padding: EdgeInsets.zero,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                '$count',
-                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              if (count > 0) ...[
-                const SizedBox(height: 8),
-                Text(
-                  l10n.syncPendingRekeyHint,
-                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              SettingsRow(
+                leadingIcon: Icons.history_rounded,
+                title: l10n.syncScreenLastSyncLabel,
+                showChevron: false,
+                valueBadge: lastSyncAsync.when(
+                  data: (iso) => SettingsValuePill(label: lastSyncLine(l10n, iso)),
+                  loading: () => const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (e, _) => SettingsValuePill(
+                    icon: Icons.error_outline_rounded,
+                    label: l10n.error,
+                    foregroundColor: cs.error,
+                  ),
                 ),
-              ],
+              ),
+              const SettingsRowDivider(insetForLeading: false),
+              SettingsRow(
+                leadingIcon: Icons.link_rounded,
+                title: l10n.syncPendingRekeyLabel,
+                subtitle: pendingRekeyAsync.maybeWhen(
+                  data: (count) => count > 0 ? l10n.syncPendingRekeyHint : null,
+                  orElse: () => null,
+                ),
+                showChevron: false,
+                valueBadge: pendingRekeyAsync.when(
+                  data: (count) => SettingsValuePill(
+                    label: '$count',
+                    foregroundColor: count > 0 ? cs.primary : null,
+                  ),
+                  loading: () => const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (e, _) => SettingsValuePill(
+                    icon: Icons.error_outline_rounded,
+                    label: l10n.error,
+                    foregroundColor: cs.error,
+                  ),
+                ),
+              ),
             ],
           ),
-          loading: () => const SizedBox(
-            height: 22,
-            width: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          error: (e, _) => Text('$e'),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: t.space16),
         snapshotAsync.when(
           data: (snap) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _StatRow(
-                  label: l10n.syncScreenStatRetryable,
-                  value: '${snap.retryablePending}',
-                  emphasized: snap.retryablePending > 0,
+                EnjoyCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SettingsRow(
+                        leadingIcon: Icons.hourglass_empty_rounded,
+                        leadingIconTint: snap.retryablePending > 0
+                            ? cs.primary
+                            : null,
+                        title: l10n.syncScreenStatRetryable,
+                        showChevron: false,
+                        valueBadge: SettingsValuePill(
+                          label: '${snap.retryablePending}',
+                          foregroundColor: snap.retryablePending > 0
+                              ? cs.primary
+                              : null,
+                        ),
+                      ),
+                      const SettingsRowDivider(insetForLeading: false),
+                      SettingsRow(
+                        leadingIcon: Icons.error_outline_rounded,
+                        leadingIconTint: snap.permanentlyFailed > 0
+                            ? cs.error
+                            : null,
+                        title: l10n.syncScreenStatFailed,
+                        showChevron: false,
+                        valueBadge: SettingsValuePill(
+                          label: '${snap.permanentlyFailed}',
+                          foregroundColor: snap.permanentlyFailed > 0
+                              ? cs.error
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _StatRow(
-                  label: l10n.syncScreenStatFailed,
-                  value: '${snap.permanentlyFailed}',
-                  emphasized: snap.permanentlyFailed > 0,
-                ),
-                const SizedBox(height: 24),
+                SizedBox(height: t.space16),
                 FilledButton.icon(
                   onPressed: busySync ? null : onSyncNow,
                   icon: busySync
@@ -208,7 +243,7 @@ class _SignedInBody extends ConsumerWidget {
                       : const Icon(Icons.sync_rounded),
                   label: Text(l10n.syncScreenSyncNow),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: t.space12),
                 OutlinedButton.icon(
                   onPressed: (busyRetry || snap.permanentlyFailed == 0)
                       ? null
@@ -222,94 +257,65 @@ class _SignedInBody extends ConsumerWidget {
                       : const Icon(Icons.refresh_rounded),
                   label: Text(l10n.syncScreenRetryFailed),
                 ),
-                const SizedBox(height: 24),
-                ExpansionTile(
-                  title: Text(l10n.syncQueueDetails),
-                  initiallyExpanded: false,
-                  children: snap.detailRows.isEmpty
-                      ? [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                l10n.syncQueueEmpty,
-                                style: tt.bodyMedium?.copyWith(
-                                  color: cs.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ]
-                      : snap.detailRows
-                            .map(
-                              (row) => ListTile(
-                                dense: true,
-                                title: Text(
-                                  '${row.entityType} · ${row.entityId}',
-                                  style: tt.bodyMedium,
-                                ),
-                                subtitle: Text(
-                                  [
-                                    row.action,
-                                    'retries ${row.retryCount}',
-                                    if (row.error != null &&
-                                        row.error!.isNotEmpty)
-                                      _truncate(row.error!, 120),
-                                  ].join('\n'),
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
+                SizedBox(height: t.space16),
+                EnjoyCard(
+                  padding: EdgeInsets.zero,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      dividerColor: Colors.transparent,
+                    ),
+                    child: ExpansionTile(
+                      title: Text(l10n.syncQueueDetails),
+                      initiallyExpanded: false,
+                      children: snap.detailRows.isEmpty
+                          ? [
+                              Padding(
+                                padding: EdgeInsets.all(t.space16),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    l10n.syncQueueEmpty,
+                                    style: tt.bodyMedium?.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
-                                isThreeLine:
-                                    row.error != null && row.error!.length > 40,
                               ),
-                            )
-                            .toList(),
+                            ]
+                          : snap.detailRows
+                                .map(
+                                  (row) => ListTile(
+                                    dense: true,
+                                    title: Text(
+                                      '${row.entityType} · ${row.entityId}',
+                                      style: tt.bodyMedium,
+                                    ),
+                                    subtitle: Text(
+                                      [
+                                        row.action,
+                                        'retries ${row.retryCount}',
+                                        if (row.error != null &&
+                                            row.error!.isNotEmpty)
+                                          _truncate(row.error!, 120),
+                                      ].join('\n'),
+                                      style: tt.bodySmall?.copyWith(
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    isThreeLine:
+                                        row.error != null &&
+                                        row.error!.length > 40,
+                                  ),
+                                )
+                                .toList(),
+                    ),
+                  ),
                 ),
               ],
             );
           },
           loading: () => const SkeletonSettingsList(rowCount: 5),
           error: (e, _) => Text('$e'),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  const _StatRow({
-    required this.label,
-    required this.value,
-    required this.emphasized,
-  });
-
-  final String label;
-  final String value;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: tt.bodyLarge?.copyWith(
-              color: emphasized ? cs.error : cs.onSurface,
-              fontWeight: emphasized ? FontWeight.w600 : null,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: tt.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: emphasized ? cs.error : cs.onSurface,
-          ),
         ),
       ],
     );

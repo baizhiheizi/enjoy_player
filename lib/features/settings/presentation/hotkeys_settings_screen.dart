@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_reset_all.dart';
@@ -46,15 +47,24 @@ class HotkeysSettingsScreen extends ConsumerWidget {
         maxWidth: t.contentMaxWidth + 96,
         padding: EdgeInsets.all(t.space16),
         children: [
-          Text(
-            l10n.hotkeysSettingsSubtitle(helpKeyLabel),
-            style: tt.bodySmall?.copyWith(
-              color: cs.onSurfaceVariant,
-              height: 1.35,
+          Padding(
+            padding: EdgeInsets.only(
+              left: t.space8,
+              right: t.space8,
+              bottom: t.space16,
+            ),
+            child: Text(
+              l10n.hotkeysSettingsSubtitle(helpKeyLabel),
+              style: tt.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                height: 1.35,
+              ),
             ),
           ),
-          SizedBox(height: t.space16),
-          const HotkeysSettingsSection(),
+          EnjoyCard(
+            padding: EdgeInsets.all(t.space16),
+            child: const HotkeysSettingsSection(),
+          ),
         ],
       ),
     );

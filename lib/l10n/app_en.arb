@@ -1154,5 +1154,12 @@
   "recoveryResetLibrarySuccess": "Local library reset. Enjoy Player will restart shortly.",
   "recoveryResetLibraryError": "Could not reset the local library.",
   "widgetErrorTitle": "Something went wrong",
-  "widgetErrorSubtitle": "This screen hit an unexpected error. You can copy the details below and try navigating elsewhere."
+  "widgetErrorSubtitle": "This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.",
+  "settingsSearchHint": "Search settings",
+  "settingsSearchNoResultsTitle": "No matching settings",
+  "settingsSearchNoResultsHint": "Try a different word, or clear your search to browse everything.",
+  "settingsSearchClear": "Clear search",
+  "settingsSectionExpandSemantics": "Expand section",
+  "settingsSectionCollapseSemantics": "Collapse section",
+  "settingsSectionNeedsAttention": "Needs attention"
 }

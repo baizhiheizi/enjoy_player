@@ -776,5 +776,12 @@
   "recoveryResetLibrarySuccess": "本地资料库已重置,Enjoy Player 即将重启。",
   "recoveryResetLibraryError": "无法重置本地资料库。",
   "widgetErrorTitle": "出了点问题",
-  "widgetErrorSubtitle": "此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。"
+  "widgetErrorSubtitle": "此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。",
+  "settingsSearchHint": "搜索设置",
+  "settingsSearchNoResultsTitle": "没有匹配的设置",
+  "settingsSearchNoResultsHint": "换个关键词试试，或清除搜索以浏览全部设置。",
+  "settingsSearchClear": "清除搜索",
+  "settingsSectionExpandSemantics": "展开分组",
+  "settingsSectionCollapseSemantics": "收起分组",
+  "settingsSectionNeedsAttention": "需要注意"
 }

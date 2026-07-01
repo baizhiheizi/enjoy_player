@@ -2282,6 +2282,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
+
+  @override
+  String get settingsSearchHint => '搜索设置';
+
+  @override
+  String get settingsSearchNoResultsTitle => '没有匹配的设置';
+
+  @override
+  String get settingsSearchNoResultsHint => '换个关键词试试，或清除搜索以浏览全部设置。';
+
+  @override
+  String get settingsSearchClear => '清除搜索';
+
+  @override
+  String get settingsSectionExpandSemantics => '展开分组';
+
+  @override
+  String get settingsSectionCollapseSemantics => '收起分组';
+
+  @override
+  String get settingsSectionNeedsAttention => '需要注意';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -4122,4 +4143,25 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get widgetErrorSubtitle => '此界面遇到意外错误。你可以复制下面的详情，然后尝试前往其他页面。';
+
+  @override
+  String get settingsSearchHint => '搜索设置';
+
+  @override
+  String get settingsSearchNoResultsTitle => '没有匹配的设置';
+
+  @override
+  String get settingsSearchNoResultsHint => '换个关键词试试，或清除搜索以浏览全部设置。';
+
+  @override
+  String get settingsSearchClear => '清除搜索';
+
+  @override
+  String get settingsSectionExpandSemantics => '展开分组';
+
+  @override
+  String get settingsSectionCollapseSemantics => '收起分组';
+
+  @override
+  String get settingsSectionNeedsAttention => '需要注意';
 }

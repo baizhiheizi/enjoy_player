@@ -4466,6 +4466,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This screen hit an unexpected error. You can copy the details below and try navigating elsewhere.'**
   String get widgetErrorSubtitle;
+
+  /// No description provided for @settingsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search settings'**
+  String get settingsSearchHint;
+
+  /// No description provided for @settingsSearchNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching settings'**
+  String get settingsSearchNoResultsTitle;
+
+  /// No description provided for @settingsSearchNoResultsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different word, or clear your search to browse everything.'**
+  String get settingsSearchNoResultsHint;
+
+  /// No description provided for @settingsSearchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get settingsSearchClear;
+
+  /// No description provided for @settingsSectionExpandSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand section'**
+  String get settingsSectionExpandSemantics;
+
+  /// No description provided for @settingsSectionCollapseSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse section'**
+  String get settingsSectionCollapseSemantics;
+
+  /// No description provided for @settingsSectionNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get settingsSectionNeedsAttention;
 }
 
 class _AppLocalizationsDelegate
