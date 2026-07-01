@@ -32,8 +32,13 @@
 	<string>Enjoy Player uses the microphone for shadow-reading practice recordings.</string>
 	<key>SUPublicEDKey</key>
 	<string>XnT9Tv0IiX0mWTgWUGu8wit0C+6+G27hSCaCD3OTjWY=</string>
+	<!-- `app_links` (AuthDeepLinkListener) owns enjoyplayer:// callbacks.
+	     Flutter's own deep-link auto-forwarding would otherwise also push
+	     the raw URI onto go_router as an initial route, which has no
+	     matching path and briefly renders the "not found" screen while the
+	     token exchange completes in the background. -->
 	<key>FlutterDeepLinkingEnabled</key>
-	<true/>
+	<false/>
 	<!--
 	  TODO(google-oauth): GIDClientID must be a real macOS-type OAuth client ID
 	  created in Google Cloud Console for bundle ID ai.enjoy.player, matching

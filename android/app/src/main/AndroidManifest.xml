@@ -22,6 +22,16 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- `app_links` (AuthDeepLinkListener) owns the enjoyplayer://
+                 intent-filter below. Flutter's own deep-link auto-forwarding
+                 (default true since Flutter 3.27) would otherwise also push
+                 the raw intent onto go_router as an initial route — which has
+                 no matching path and briefly renders the "not found" screen
+                 while the token exchange completes in the background. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

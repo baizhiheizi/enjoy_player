@@ -11,6 +11,18 @@ const _profile = UserProfile(
 );
 
 void main() {
+  group('isNativeAuthCallbackArtifact', () {
+    test('matches the go_router path for an auto-forwarded auth callback', () {
+      expect(isNativeAuthCallbackArtifact('/callback'), isTrue);
+    });
+
+    test('does not match real app routes', () {
+      expect(isNativeAuthCallbackArtifact('/'), isFalse);
+      expect(isNativeAuthCallbackArtifact('/sign-in'), isFalse);
+      expect(isNativeAuthCallbackArtifact('/auth/callback'), isFalse);
+    });
+  });
+
   group('encodeSignInFrom', () {
     test('profile and credits shorthands', () {
       expect(encodeSignInFrom('/profile'), 'profile');

@@ -68,6 +68,8 @@ If you need to add a new platform-specific option, add a constant in `SecureToke
 
 The PKCE callback stream is owned by the auth controller and is now properly **cancelled in `dispose()`** — previously a late deep link arriving after a widget unmount could call into a torn-down controller. `getInitialLink()` also has an `onError` handler that swallows platform-channel errors and falls through to the "no pending link" path so a broken platform implementation does not block the sign-in hub.
 
+`AuthDeepLinkListener` (via `app_links`) is the **only** owner of `enjoyplayer://` callbacks. Flutter's own native deep-link auto-forwarding is explicitly disabled (`flutter_deeplinking_enabled=false` on Android, `FlutterDeepLinkingEnabled=false` on iOS/macOS) — otherwise the OS delivers the same callback intent/URL to *both* `app_links` and Flutter's navigation channel, and go_router sees it as an unmatched `/callback` route (no such path exists) and briefly renders the "Page not found" screen even though the token exchange completes successfully in the background. As a defense in depth, `isNativeAuthCallbackArtifact` in [`auth_redirect.dart`](../../lib/core/routing/auth_redirect.dart) also makes go_router treat a stray `/callback` location like `/` instead of falling through to the not-found screen, in case any platform still forwards it.
+
 ## Related ADRs
 
 - [ADR-0006](../decisions/0006-auth-and-profile-sync.md)

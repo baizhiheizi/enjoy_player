@@ -67,7 +67,13 @@ GoRouter appRouter(Ref ref) {
     refreshListenable: authTick,
     errorBuilder: (context, state) => NotFoundScreen(uri: state.uri),
     redirect: (context, state) {
-      final loc = state.matchedLocation;
+      // A stray `/callback` is go_router's view of an auto-forwarded
+      // enjoyplayer://auth/callback deep link (see isNativeAuthCallbackArtifact
+      // doc). Treat it like landing on home while AuthDeepLinkListener
+      // finishes the token exchange, rather than showing "Page not found".
+      final loc = isNativeAuthCallbackArtifact(state.matchedLocation)
+          ? '/'
+          : state.matchedLocation;
 
       if (kReleaseMode && loc.startsWith('/settings/ai-playground')) {
         return '/settings';

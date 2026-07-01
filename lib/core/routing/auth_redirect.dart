@@ -16,6 +16,18 @@ bool isSignInAllowlisted(String matchedLocation) {
   return signInAllowlistedLocations.contains(matchedLocation);
 }
 
+/// Matches the location go_router derives if the OS ever auto-forwards the
+/// custom-scheme PKCE redirect (`enjoyplayer://auth/callback`) as an initial
+/// route before `AuthDeepLinkListener` can process it via app_links.
+///
+/// go_router's top-level redirect only sees the URI's `path` component, so
+/// `enjoyplayer://auth/callback?code=...&state=...` becomes matchedLocation
+/// `/callback`. No app route is registered at that path; treat it like `/`
+/// so users land on home (or sign-in, if the token exchange hasn't finished
+/// yet) instead of a "Page not found" screen.
+bool isNativeAuthCallbackArtifact(String matchedLocation) =>
+    matchedLocation == '/callback';
+
 /// Returns `true` when the user has an active Enjoy account session.
 bool isAuthenticated(AuthState? state) => state is AuthSignedIn;
 
