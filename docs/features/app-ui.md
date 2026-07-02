@@ -99,8 +99,8 @@ Focus ring: 2px (custom nav / sidebars)
 ## Dynamic color module
 
 `lib/core/theme/dynamic_color/`
-- `artwork_palette.dart` — LRU-cached extraction via `palette_generator`
-- `dynamic_color_provider.dart` — Riverpod providers: `currentArtworkPaletteProvider`, `artworkPaletteProvider(path)`
+- `artwork_palette.dart` — `extractArtworkPalette(path)` extracts an `ArtworkPalette { dominant, accent, onAccent, vibrant }` from a local thumbnail via `palette_generator`. Results are held in a process-wide **LRU cache** (cap = 32) keyed by `(path, size, mtime)`; lookups re-`stat` the file and evict any prior entry for the same path whose `(size, mtime)` no longer matches the live stat, so re-thumbnailing or rewriting the file in place correctly invalidates the cache. `ArtworkPalette` has value-equality on its four `Color` fields. `@visibleForTesting` seams (`debugResetArtworkPaletteCache`, `debugArtworkPaletteCacheSize`, `debugArtworkPaletteCacheContainsPath`, `debugLookupArtworkPalette`, `debugPutArtworkPalette`) are the only supported access path for tests.
+- `dynamic_color_provider.dart` — Riverpod providers: `currentArtworkPaletteProvider` (active player, watches `playerControllerProvider`'s `thumbnailUrl`), `artworkPaletteProvider(path)` (per-path family).
 
 See ADR-0007 for rationale.
 

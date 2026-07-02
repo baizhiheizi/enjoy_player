@@ -12,14 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `findSliverIndexByPrefixedId<T>` in `lib/core/utils/sliver_key_index.dart` — shared `findChildIndexCallback` lookup for sliver grids/lists keyed by a `"$prefix${id}"` `ValueKey<String>`.
+- `ArtworkPalette` now has value-equality on its four `Color` fields so `Map<ArtworkPalette, ...>` use sites and `==` checks behave like data classes. `@visibleForTesting` cache seams on `lib/core/theme/dynamic_color/artwork_palette.dart`: `debugResetArtworkPaletteCache`, `debugArtworkPaletteCacheSize`, `debugArtworkPaletteCacheContainsPath`, `debugLookupArtworkPalette`, `debugPutArtworkPalette`. 12 tests in `test/core/theme/artwork_palette_test.dart` cover the new invalidation contract.
 
 ### Changed
 
 - Home recents grid, discover merged feed grid, and channel feed grid use stable per-row `ValueKey`s + `findChildIndexCallback` so a Drift re-emit or RSS refresh no longer rebuilds every visible tile.
+- **Artwork palette LRU cache key**: switched from thumbnail path alone to `(path, size, mtime)`. The in-process LRU in `extractArtworkPalette` re-`stat`s the file on every lookup and evicts any prior entry for the same path whose `(size, mtime)` no longer matches the live stat. LRU cap stays at 32 entries. ADR-0007 updated to describe the new key shape and invalidation contract.
 
 ### Fixed
 
 - Documented the `POST /youtube/transcripts` polling contract (request body, attempt/delay budget, `forceRefresh` semantics, and outcome handling) — no behavior change, closes a docs gap between `YoutubeTranscriptsApi` and `docs/features/transcript.md`.
+- **Artwork palette stale-cache leak**: re-thumbnailing or rewriting the local artwork file in place used to return the cached palette for the previous bytes because the LRU key was the path string only. Keyed by `(path, size, mtime)` so a regenerate-then-reopen cycle extracts a fresh palette.
 - **Windows deep links**: PKCE sign-in callbacks no longer spawn a stray second window. The installer-registered `enjoyplayer://` protocol previously launched a fresh `enjoy_player.exe` per click; that process had no in-memory PKCE state, so the original window was stuck waiting and a second window was left open. `windows/runner/main.cpp` now detects an already-running instance via `FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"Enjoy Player")`, forwards the URI to it through `app_links`'s `SendAppLink` (`WM_COPYDATA`), restores/foregrounds that window, and exits. See [docs/features/auth.md](docs/features/auth.md#deep-links-pkce-callback).
 
 ## [0.3.0] - 2026-07-01
