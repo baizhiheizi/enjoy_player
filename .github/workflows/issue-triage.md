@@ -31,7 +31,7 @@ runs-on:
 - linux
 - agentic
 runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/issue-triage.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/issue-triage.md@1c6668b751c51af8571f01204ceffb19362e0f66
 timeout-minutes: 10
 tools:
   github:
@@ -41,6 +41,7 @@ tools:
     - labels
   web-fetch: null
 ---
+
 # Agentic Triage
 
 <!-- Note - this file can be customized to your needs. Replace this section directly, or add further instructions here. After editing run 'gh aw compile' -->

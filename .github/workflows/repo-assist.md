@@ -115,27 +115,27 @@ steps:
   name: Fetch repo data for task weighting
   run: |
     mkdir -p /tmp/gh-aw
-    
+
     # Fetch open issues with labels (up to 500)
     gh issue list --state open --limit 500 --json number,labels > /tmp/gh-aw/issues.json
-    
+
     # Fetch open PRs with titles (up to 200)
     gh pr list --state open --limit 200 --json number,title > /tmp/gh-aw/prs.json
-    
+
     # Compute task weights and select three tasks for this run
     python3 - << 'EOF'
     import json, random, os
-    
+
     with open('/tmp/gh-aw/issues.json') as f:
         issues = json.load(f)
     with open('/tmp/gh-aw/prs.json') as f:
         prs = json.load(f)
-    
+
     open_issues     = len(issues)
     unlabelled      = sum(1 for i in issues if not i.get('labels'))
     repo_assist_prs = sum(1 for p in prs if p['title'].startswith('[repo-assist]'))
     other_prs       = sum(1 for p in prs if not p['title'].startswith('[repo-assist]'))
-    
+
     task_names = {
         1:  'Issue Labelling',
         2:  'Issue Investigation and Comment',
@@ -148,7 +148,7 @@ steps:
         9:  'Testing Improvements',
         10: 'Take the Repository Forward',
     }
-    
+
     weights = {
         1:  1   + 3 * unlabelled,
         2:  3   + 1 * open_issues,
@@ -161,14 +161,14 @@ steps:
         9:  3   + 0.05 * open_issues,
         10: 3   + 0.05 * open_issues,
     }
-    
+
     # Seed with run ID for reproducibility within a run
     run_id = int(os.environ.get('GITHUB_RUN_ID', '0'))
     rng = random.Random(run_id)
-    
+
     task_ids     = list(weights.keys())
     task_weights = [weights[t] for t in task_ids]
-    
+
     # Weighted sample without replacement (pick 3 distinct tasks)
     NUM_TASKS_PER_RUN = 3
     chosen, seen = [], set()
@@ -178,7 +178,7 @@ steps:
             chosen.append(t)
         if len(chosen) == NUM_TASKS_PER_RUN:
             break
-    
+
     print('=== Repo Assist Task Selection ===')
     print(f'Open issues       : {open_issues}')
     print(f'Unlabelled issues : {unlabelled}')
@@ -191,7 +191,7 @@ steps:
         print(f'  Task {t:2d} ({task_names[t]}): weight {w:6.1f}{tag}')
     print()
     print(f'Selected tasks for this run: ' + ', '.join(f'Task {c} ({task_names[c]})' for c in chosen))
-    
+
     result = {
         'open_issues': open_issues, 'unlabelled_issues': unlabelled,
         'repo_assist_prs': repo_assist_prs, 'other_prs': other_prs,
@@ -224,7 +224,7 @@ runs-on:
 - linux
 - agentic
 runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/repo-assist.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/repo-assist.md@1c6668b751c51af8571f01204ceffb19362e0f66
 timeout-minutes: 60
 tools:
   bash: true
@@ -235,6 +235,7 @@ tools:
   repo-memory: true
   web-fetch: null
 ---
+
 # Repo Assist
 
 ## Command Mode

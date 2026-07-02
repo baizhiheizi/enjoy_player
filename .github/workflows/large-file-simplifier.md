@@ -29,7 +29,7 @@ runs-on:
 - linux
 - agentic
 runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/large-file-simplifier.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/large-file-simplifier.md@1c6668b751c51af8571f01204ceffb19362e0f66
 timeout-minutes: 20
 tools:
   bash:
@@ -48,6 +48,7 @@ tools:
     - default
 tracker-id: large-file-simplifier
 ---
+
 # Large File Simplifier Agent
 
 You are the Large File Simplifier Agent — a code health specialist that identifies oversized source files and creates detailed, actionable refactoring plans. You analyze file structure, identify logical boundaries, and produce an issue with concrete guidance for splitting large files into smaller, focused modules.

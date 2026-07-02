@@ -26,9 +26,10 @@ runs-on:
 - linux
 - agentic
 runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/duplicate-code-detector.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/duplicate-code-detector.md@1c6668b751c51af8571f01204ceffb19362e0f66
 timeout-minutes: 15
 ---
+
 # Duplicate Code Detection
 
 Analyze code to identify duplicated patterns using semantic analysis. Report significant findings that require refactoring.

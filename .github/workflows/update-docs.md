@@ -27,7 +27,7 @@ runs-on:
 - linux
 - agentic
 runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/update-docs.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/update-docs.md@1c6668b751c51af8571f01204ceffb19362e0f66
 timeout-minutes: 15
 tools:
   bash: true
@@ -36,6 +36,7 @@ tools:
     - all
   web-fetch: null
 ---
+
 # Update Docs
 
 ## Job Description
