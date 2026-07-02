@@ -22,6 +22,8 @@ PODS:
   - OrderedSet (6.0.3)
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
+  - sign_in_with_apple (0.0.1):
+    - FlutterMacOS
   - Sparkle (2.9.2)
 
 DEPENDENCIES:
@@ -33,6 +35,7 @@ DEPENDENCIES:
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
+  - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
 
 SPEC REPOS:
   trunk:
@@ -57,6 +60,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
+  sign_in_with_apple:
+    :path: Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos
 
 SPEC CHECKSUMS:
   auto_updater_macos: 3a42f1a06be6981f1a18be37e6e7bf86aa732118
@@ -69,6 +74,7 @@ SPEC CHECKSUMS:
   MicrosoftCognitiveServicesSpeech-macOS: dd6553a510acf213e02e768eb66022551f3930f8
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
   Sparkle: 2d0c930d42d53ee0fdf98bbb342c08eaf18ab5f0
 
 PODFILE CHECKSUM: 018b92253fb86934d884859ff93bbf45d3fac032
