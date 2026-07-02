@@ -68,6 +68,15 @@ Widget build(BuildContext context) {
 - No SQL strings outside Drift-generated / DAO code.
 - Use `NativeDatabase.memory()` in tests (see `test/data/db/app_database_test.dart`).
 
+## REST services
+
+Every `*Api` class under `lib/data/api/services/` follows the same shape — see [api/rest-services.md](api/rest-services.md) for the full reference. Short version:
+
+- Extend [`RestApi`](../lib/data/api/rest_api.dart); forward the client with `super(client)`.
+- Do **not** declare your own `typedef JsonMap` — import it from [`api_client.dart`](../lib/data/api/api_client.dart) and use it for both request bodies and response shapes.
+- Pick the right `*ApiClient` provider (`authApiClient` / `apiClient` / `aiApiClient`) for the endpoint's base URL and auth posture; do not instantiate `ApiClient` directly.
+- Expose services through a `keepAlive` Riverpod provider in `services/<area>/`, never construct them in widgets.
+
 ## Testing
 
 - Unit tests for pure logic (`echo_window`, subtitle parsers, repositories), DAOs, and Riverpod notifiers.

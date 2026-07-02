@@ -67,6 +67,7 @@ The `(target_type, target_id)` lookup on [`TranscriptFetchStates`](../lib/data/d
 ## Optional Enjoy account (auth)
 
 - **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).
+- **Service layer:** every `*Api` under `lib/data/api/services/` extends the [`RestApi`](../lib/data/api/rest_api.dart) base (one `client` field, shared via `@protected`) and returns the shared `JsonMap` typedef re-exported from [`api_client.dart`](../lib/data/api/api_client.dart). See [api/rest-services.md](api/rest-services.md) for the canonical pattern and how to pick between the three `*ApiClient` providers.
 - **Tokens:** `flutter_secure_storage` (access token only).
 - **Browser sign-in:** `url_launcher` for `start_auth` / `poll` flow ([ADR-0006](decisions/0006-auth-and-profile-sync.md), [features/auth.md](features/auth.md)).
 - **Cloud metadata sync:** when signed in, [`SyncCtrl`](../lib/features/sync/application/sync_controller.dart) runs re-key for offline imports, drains `sync_queue`, and (when signed in and the player opens media) pulls recording metadata per target — see [ADR-0013](decisions/0013-local-first-sync.md), [features/sync.md](features/sync.md), [features/cloud.md](features/cloud.md).
