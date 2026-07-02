@@ -8,7 +8,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [AGENTS.md](../AGENTS.md) | AI agents | Global rules change |
 | [architecture.md](architecture.md) | Everyone | Layers, providers, or DB schema change |
 | [tech-stack.md](tech-stack.md) | Everyone | Dependencies or versions change |
-| [conventions.md](conventions.md) | Contributors | Style / lint / folder rules change |
+| [conventions.md](conventions.md) | Contributors | Style / lint / folder rules change (incl. the sliver stable-key convention) |
 | [packaging.md](packaging.md) | Release | Local-first release runbook (Windows / Android / Apple) |
 | [apple-release-ci.md](apple-release-ci.md) | Release | GitHub Actions Apple release workflow & secrets |
 | [android-release-ci.md](android-release-ci.md) | Release | GitHub Actions Android release workflow & secrets |

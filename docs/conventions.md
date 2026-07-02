@@ -62,3 +62,26 @@ log.info('hello');
 - Keep expensive file, image, transcript, database, and audio work out of `build` methods and list/grid item builders.
 - Cache, stream, page, debounce, or move heavy work off the main isolate when it can block frames.
 - Include a performance goal or verification note for playback, startup, scrolling, transcript rendering, sync, and media import changes.
+
+## Sliver performance (long live lists)
+
+Grids/lists backed by a Drift stream or an RSS refresh re-emit their full item list on every change, even when only one row changed. Without a stable key + lookup, `SliverChildBuilderDelegate` falls back to rebuilding **every visible child** on each emission.
+
+Use a stable `ValueKey<String>` per row plus `findChildIndexCallback` so Flutter can re-use existing `Element`s instead of tearing them down:
+
+```dart
+SliverChildBuilderDelegate(
+  (context, index) => Tile(key: ValueKey<String>('$kPrefix${items[index].id}'), ...),
+  childCount: items.length,
+  findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
+    items: items,
+    key: key,
+    prefix: kPrefix,
+    idOf: (item) => item.id,
+  ),
+)
+```
+
+[`findSliverIndexByPrefixedId<T>`](../lib/core/utils/sliver_key_index.dart) centralizes the key-shape lookup so the prefix used when constructing the `ValueKey` cannot drift from the prefix used in `findChildIndexCallback`. It returns `null` for any key that doesn't match (wrong type, wrong prefix, or no matching id), which tells the sliver framework to fall back to its default scan for that child.
+
+Applied to the home recents grid (`home-media-` prefix), the discover merged feed grid (`discover-feed-` prefix), and the channel feed grid (`channel-feed-` prefix) — see [features/library.md](features/library.md) and [features/discover.md](features/discover.md). Covered by 10 unit tests in `test/core/utils/sliver_key_index_test.dart`.

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `findSliverIndexByPrefixedId<T>` in `lib/core/utils/sliver_key_index.dart` — shared `findChildIndexCallback` lookup for sliver grids/lists keyed by a `"$prefix${id}"` `ValueKey<String>`.
+
+### Changed
+
+- Home recents grid, discover merged feed grid, and channel feed grid use stable per-row `ValueKey`s + `findChildIndexCallback` so a Drift re-emit or RSS refresh no longer rebuilds every visible tile.
+
 ## [0.3.0] - 2026-07-01
 
 ### Added
