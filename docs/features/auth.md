@@ -52,6 +52,8 @@ This is the only redirect URI whitelisted in enjoy_web's `config/native_auth_cli
 
 ## Google OAuth client setup (manual, one-time)
 
+OAuth client IDs are **public identifiers**, not secrets — they are safe to embed in client code the same way they already ship in `google-services.json` / `GoogleService-Info.plist`. The Web application client ID lives as a named constant, `kGoogleWebClientId` in [`google_auth_config.dart`](../../lib/features/auth/domain/google_auth_config.dart), rather than being inlined at each call site. Rotating any of these client IDs does not affect the `enjoyplayer://auth/callback` redirect URI (see [Deep links](#deep-links-pkce-callback)) — the scheme is stable and only needs to change if the app's URL scheme itself changes.
+
 `GoogleSignInService` and `ios/Runner/Info.plist` / `macos/Runner/Info.plist` currently ship with `REPLACE_WITH_*` placeholders. Someone with access to the Google Cloud project backing `google.client_id` in enjoy_web's Rails credentials must:
 
 1. **Android** — no new OAuth client needed. `GoogleSignInService` already passes the existing **Web application** client ID (`kGoogleWebClientId` in [`google_auth_config.dart`](../../lib/features/auth/domain/google_auth_config.dart)) as `serverClientId`; enjoy_web's `NativeAuth::GoogleIdTokenVerifier` already accepts it for `platform=android` (falls back to `google.client_id` when `google.android_client_id` is unset). You only need to register the app's **SHA-1 fingerprints** (debug + release keystores, `keytool -list -v -keystore <path>`) against package `ai.enjoy.player` in Google Cloud Console → Credentials, or Google Sign-In will reject the app at runtime.
@@ -81,5 +83,6 @@ The PKCE callback stream is owned by the auth controller and is now properly **c
 - [ADR-0006](../decisions/0006-auth-and-profile-sync.md)
 - [ADR-0012](../decisions/0012-per-user-sqlite-isolation.md)
 - [ADR-0016](../decisions/0016-enjoy-account-webview-sign-in.md) — superseded for Enjoy account delivery
-- [ADR-0027](../decisions/0027-native-auth-v2.md)
+- [ADR-0027](../decisions/0027-native-auth-v2.md) — §Decision 2 (redirect URI) superseded by ADR-0034
 - [ADR-0031](../decisions/0031-login-only-access.md)
+- [ADR-0034](../decisions/0034-custom-scheme-only-pkce-callback.md) — custom-scheme-only PKCE callback, drops the universal/app-link alternative

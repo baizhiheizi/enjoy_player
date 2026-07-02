@@ -57,3 +57,4 @@ Trade-offs, follow-up work, risks.
 | [0031](0031-login-only-access.md) | Login-only application access — auth gate, welcome sign-in hub, guest migration removed |
 | [0032](0032-platform-scoped-subscription-purchase.md) | Platform-scoped Pro purchase — desktop external checkout; mobile IAP deferred |
 | [0033](0033-byok-ai-provider-settings.md) | BYOK AI provider settings — per-modality Enjoy vs BYOK, secure secrets, direct vendor HTTP |
+| [0034](0034-custom-scheme-only-pkce-callback.md) | Custom-scheme-only PKCE callback — drops universal/app links (partial supersession of 0027) |
