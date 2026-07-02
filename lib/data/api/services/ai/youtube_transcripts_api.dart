@@ -1,7 +1,7 @@
 /// Worker `POST /youtube/transcripts` (sync poll; may return `generating` with HTTP 202).
 library;
 
-import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
 /// Contract for YouTube transcript polling on the Enjoy Worker.
 abstract class YoutubeTranscriptsClient {
@@ -13,10 +13,9 @@ abstract class YoutubeTranscriptsClient {
   });
 }
 
-class YoutubeTranscriptsApi implements YoutubeTranscriptsClient {
-  YoutubeTranscriptsApi(this._client);
-
-  final ApiClient _client;
+class YoutubeTranscriptsApi extends RestApi
+    implements YoutubeTranscriptsClient {
+  YoutubeTranscriptsApi(super.client);
 
   static const _path = '/youtube/transcripts';
 
@@ -27,7 +26,7 @@ class YoutubeTranscriptsApi implements YoutubeTranscriptsClient {
     String? captionFetch,
     bool? forceRefresh,
   }) {
-    return _client.postJson(
+    return client.postJson(
       _path,
       body: {
         'videoId': videoId,

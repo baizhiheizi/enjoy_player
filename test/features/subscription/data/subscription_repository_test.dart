@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/subscription_api.dart';
 import 'package:enjoy_player/features/subscription/data/subscription_repository.dart';
@@ -10,6 +11,9 @@ class _FakeSubscriptionApi implements SubscriptionApi {
   _FakeSubscriptionApi(this._handler);
 
   final Future<Map<String, dynamic>> Function(String method) _handler;
+
+  @override
+  ApiClient get client => throw UnimplementedError();
 
   @override
   Future<Map<String, dynamic>> getStatus() => _handler('getStatus');
@@ -54,10 +58,7 @@ void main() {
       );
 
       final session = await repo.purchase(
-        const PurchaseRequest(
-          months: 1,
-          processor: PaymentProcessor.stripe,
-        ),
+        const PurchaseRequest(months: 1, processor: PaymentProcessor.stripe),
       );
       expect(session.payUrl, 'https://pay.example.com');
     });
@@ -67,10 +68,7 @@ void main() {
         _ThrowingApi(const ApiException(message: 'limit', statusCode: 402)),
       );
 
-      expect(
-        () => repo.getStatus(),
-        throwsA(isA<CreditsFailure>()),
-      );
+      expect(() => repo.getStatus(), throwsA(isA<CreditsFailure>()));
     });
   });
 }
@@ -79,6 +77,9 @@ class _ThrowingApi implements SubscriptionApi {
   _ThrowingApi(this.error);
 
   final ApiException error;
+
+  @override
+  ApiClient get client => throw UnimplementedError();
 
   @override
   Future<Map<String, dynamic>> getStatus() => throw error;

@@ -2,18 +2,15 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class AzureTokenApi {
-  AzureTokenApi(this._client);
-
-  final ApiClient _client;
+class AzureTokenApi extends RestApi {
+  AzureTokenApi(super.client);
 
   static const _path = '/azure/tokens';
 
   Future<JsonMap> generateToken({JsonMap? usage}) {
-    return _client.postJson(
+    return client.postJson(
       _path,
       body: usage == null ? <String, dynamic>{} : {'usage': usage},
     );

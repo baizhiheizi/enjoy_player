@@ -8,11 +8,10 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
@@ -21,14 +20,9 @@ import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import '../enjoy_tokens.dart';
 import '../generative_media_cover.dart';
 
-bool _deleteLongPressEnabledForPlatform() {
-  return defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS;
-}
-
 /// Inline trash on the card is for pointer UIs; phones use long-press → sheet.
 bool _showPointerDeleteButton() {
-  return !_deleteLongPressEnabledForPlatform();
+  return !isMobilePlatform;
 }
 
 /// Bottom sheet with a single destructive delete action (Android / iOS).
@@ -42,34 +36,36 @@ void _showMobileDeleteMenu(
   final title = (label != null && label.isNotEmpty)
       ? label
       : ml.deleteButtonTooltip;
-  unawaited(showEnjoySheet<void>(
-    context: context,
-    builder: (sheetContext) {
-      final cs = Theme.of(sheetContext).colorScheme;
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const PaddedSheetDragHandle(),
-            ListTile(
-              leading: Icon(Icons.delete_outline_rounded, color: cs.error),
-              title: Text(
-                title,
-                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
-                  color: cs.error,
-                  fontWeight: FontWeight.w600,
+  unawaited(
+    showEnjoySheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        final cs = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const PaddedSheetDragHandle(),
+              ListTile(
+                leading: Icon(Icons.delete_outline_rounded, color: cs.error),
+                title: Text(
+                  title,
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    color: cs.error,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onDelete();
+                },
               ),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                onDelete();
-              },
-            ),
-          ],
-        ),
-      );
-    },
-  ));
+            ],
+          ),
+        );
+      },
+    ),
+  );
 }
 
 Widget _heroArtworkShell(String? mediaId, Widget child) {
@@ -257,8 +253,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
             Haptics.selection(context);
             widget.onTap();
           },
-          onLongPress:
-              widget.onDelete != null && _deleteLongPressEnabledForPlatform()
+          onLongPress: widget.onDelete != null && isMobilePlatform
               ? () => _showMobileDeleteMenu(
                   context,
                   onDelete: widget.onDelete!,
@@ -592,7 +587,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
           onLongPress:
               widget.trailing == null &&
                   widget.onDelete != null &&
-                  _deleteLongPressEnabledForPlatform()
+                  isMobilePlatform
               ? () => _showMobileDeleteMenu(
                   context,
                   onDelete: widget.onDelete!,
@@ -877,17 +872,15 @@ class _Badge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showLanguageIcon) ...[
-            Icon(
-              Icons.translate_rounded,
-              size: 14,
-              color: cs.primary,
-            ),
+            Icon(Icons.translate_rounded, size: 14, color: cs.primary),
             const SizedBox(width: 4),
           ],
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: onTap != null ? cs.onPrimaryContainer : cs.onSurfaceVariant,
+              color: onTap != null
+                  ? cs.onPrimaryContainer
+                  : cs.onSurfaceVariant,
               fontWeight: onTap != null ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -914,10 +907,7 @@ class _Badge extends StatelessWidget {
 
 /// Language chip overlaid on grid tile artwork (bottom-left).
 class _ThumbnailLanguageBadge extends StatelessWidget {
-  const _ThumbnailLanguageBadge({
-    required this.label,
-    required this.onTap,
-  });
+  const _ThumbnailLanguageBadge({required this.label, required this.onTap});
 
   final String label;
   final VoidCallback onTap;

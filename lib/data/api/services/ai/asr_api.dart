@@ -1,12 +1,10 @@
 /// `POST /audio/transcriptions` (OpenAI-compatible Whisper).
 library;
 
-import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-class AsrApi {
-  AsrApi(this._client);
-
-  final ApiClient _client;
+class AsrApi extends RestApi {
+  AsrApi(super.client);
 
   static const _path = '/audio/transcriptions';
 
@@ -26,7 +24,7 @@ class AsrApi {
       if (prompt != null && prompt.isNotEmpty) 'prompt': prompt,
       if (durationSeconds != null) 'duration_seconds': '$durationSeconds',
     };
-    return _client.postMultipartJson(
+    return client.postMultipartJson(
       _path,
       fileFieldName: 'file',
       fileBytes: audioBytes,

@@ -3,12 +3,11 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/application/transport_slider_position_provider.dart';
@@ -77,9 +76,7 @@ class _TransportProgressStripState
     extends ConsumerState<TransportProgressStrip> {
   int? _scrubSecond;
 
-  bool get _hapticScrub =>
-      defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.android;
+  bool get _hapticScrub => isMobilePlatform;
 
   @override
   Widget build(BuildContext context) {

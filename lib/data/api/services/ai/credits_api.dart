@@ -2,15 +2,13 @@
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
-import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/query_params.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_log.dart';
 import 'package:enjoy_player/features/credits/domain/credits_usage_page.dart';
 
-class CreditsApi {
-  CreditsApi(this._client);
-
-  final ApiClient _client;
+class CreditsApi extends RestApi {
+  CreditsApi(super.client);
 
   static const _path = '/credits/usages';
 
@@ -22,7 +20,7 @@ class CreditsApi {
     int limit = 50,
     int offset = 0,
   }) async {
-    final map = await _client.getJson(
+    final map = await client.getJson(
       _path,
       queryParameters: buildQuery({
         'limit': limit,
