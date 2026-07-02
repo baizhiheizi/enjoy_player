@@ -105,7 +105,7 @@ Primary audience for this feature is **mobile users sharing to WeChat** (Moments
 - **[Thumbnail load delay]** → Preview sheet shows loading until image ready; disable Share until capture succeeds.
 - **[Long CJK hero text]** → Max 3–4 lines with ellipsis in poster widget.
 - **[Copyright on thumbnail/subtitle text]** → Voluntary user share; no Enjoy-hosted public page in MVP.
-- **[share_plus platform quirks]** → Graceful error + fallback "Save image" where share fails; log via `Log.named`.
+- **[share_plus platform quirks]** → Graceful error + fallback "Save image" where share fails; log via `logNamed` (see [conventions.md § Logging](../../../docs/conventions.md#logging)).
 - **[Empty practice]** → Hide menu item when zero recordings; no empty poster.
 
 ## Migration Plan
