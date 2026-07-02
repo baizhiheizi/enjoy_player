@@ -139,6 +139,7 @@ tools:
     description: Source file mappings, content hashes, and file summaries for incremental wiki regeneration
     max-file-count: 50
     max-file-size: 1048576
+    max-patch-size: 51200
 ---
 # Wiki Generator
 
