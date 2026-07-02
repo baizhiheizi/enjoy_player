@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Documented the `POST /youtube/transcripts` polling contract (request body, attempt/delay budget, `forceRefresh` semantics, and outcome handling) — no behavior change, closes a docs gap between `YoutubeTranscriptsApi` and `docs/features/transcript.md`.
+
 ## [0.3.0] - 2026-07-01
 
 ### Added

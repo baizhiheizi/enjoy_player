@@ -13,6 +13,7 @@ Enjoy Player calls the Enjoy / worker HTTP surface for cloud-backed AI, and supp
 | Dictionary | `POST /dictionary/query` | `dictionaryServiceProvider` → `DictionaryCapability` |
 | Azure token | `POST /azure/tokens` | `azureTokenApiProvider` + `azureTokenCacheProvider` (9 min TTL) |
 | Pronunciation assessment | `POST /azure/tokens` + **native Azure Speech SDK** | `assessmentServiceProvider` → `EnjoyAssessmentCapability` → [`packages/azure_speech`](../../packages/azure_speech/) |
+| YouTube transcripts (poll) | `POST /youtube/transcripts` | `YoutubeTranscriptsApi` → `TranscriptRepository._fetchYoutubeWorkerTranscripts` — see [transcript.md § YouTube (Worker)](transcript.md) |
 
 ### Native pronunciation plugin
 
