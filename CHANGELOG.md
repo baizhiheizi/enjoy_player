@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Home recents grid, discover merged feed grid, and channel feed grid use stable per-row `ValueKey`s + `findChildIndexCallback` so a Drift re-emit or RSS refresh no longer rebuilds every visible tile.
 
+### Fixed
+
+- **Windows deep links**: PKCE sign-in callbacks no longer spawn a stray second window. The installer-registered `enjoyplayer://` protocol previously launched a fresh `enjoy_player.exe` per click; that process had no in-memory PKCE state, so the original window was stuck waiting and a second window was left open. `windows/runner/main.cpp` now detects an already-running instance via `FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"Enjoy Player")`, forwards the URI to it through `app_links`'s `SendAppLink` (`WM_COPYDATA`), restores/foregrounds that window, and exits. See [docs/features/auth.md](docs/features/auth.md#deep-links-pkce-callback).
+
 ## [0.3.0] - 2026-07-01
 
 ### Added

@@ -38,6 +38,12 @@ Default filename: `EnjoyPlayer-diagnostics-<date>.zip`. User chooses save locati
 - Logs may include YouTube video IDs and media UUIDs needed for playback/sync debugging.
 - Turn off diagnostic logging after collecting a report unless actively troubleshooting.
 
+## Framework error routing
+
+`lib/main.dart` wraps the entire bootstrap in `runZonedGuarded(_bootstrap, _onZoneError)` and installs `FlutterError.onError` + `PlatformDispatcher.instance.onError` before running the app. This means widget-tree errors (`FlutterError.onError`), engine/platform-channel errors (`PlatformDispatcher.onError`), and any uncaught error in the bootstrap zone (`_onZoneError`) all funnel through the same `Log.named('bootstrap')` pipeline instead of crashing silently or only surfacing in the debug console. `FlutterError.onError` still calls `FlutterError.presentError` afterward, so the existing red error box / release banner behavior is unchanged — the handler adds logging, it does not suppress the error.
+
+In a diagnostic zip (see **Export diagnostic report** above), look for `severe`-level `FlutterError:` or `PlatformDispatcher error` lines in the rotated log files to find a framework-level crash that a user reported.
+
 ## YouTube stall warning
 
 If YouTube page load completes (`load_stop`) but playback never reaches `first_playing` within 30 seconds, one **WARNING** is logged at default tier:
