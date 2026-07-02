@@ -4,14 +4,11 @@ library;
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/query_params.dart';
 import 'package:enjoy_player/data/api/recording_client_platform.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class RecordingApi {
-  RecordingApi(this._client, {String? clientPlatform})
+class RecordingApi extends RestApi {
+  RecordingApi(super.client, {String? clientPlatform})
     : clientPlatform = clientPlatform ?? recordingClientPlatformValue();
-
-  final ApiClient _client;
 
   /// Sent as `client_platform` (snake) on upload metadata (`windows`, `macos`,
   /// `android`, `ios`, … — never a generic client name like `flutter`).
@@ -26,7 +23,7 @@ class RecordingApi {
     int? limit,
     String? updatedAfter,
   }) {
-    return _client.getJsonList(
+    return client.getJsonList(
       _path,
       queryParameters: buildQuery({
         'targetId': targetId,
@@ -38,7 +35,7 @@ class RecordingApi {
     );
   }
 
-  Future<JsonMap> recording(String id) => _client.getJson('$_path/$id');
+  Future<JsonMap> recording(String id) => client.getJson('$_path/$id');
 
   Future<JsonMap> uploadRecording(JsonMap recording) {
     final payload = <String, dynamic>{
@@ -59,16 +56,14 @@ class RecordingApi {
       if (recording['createdAt'] != null) 'createdAt': recording['createdAt'],
       if (recording['updatedAt'] != null) 'updatedAt': recording['updatedAt'],
     };
-    return _client.postJson(_path, body: {'recording': payload});
+    return client.postJson(_path, body: {'recording': payload});
   }
 
-  Future<JsonMap> deleteRecording(String id) =>
-      _client.deleteJson('$_path/$id');
+  Future<JsonMap> deleteRecording(String id) => client.deleteJson('$_path/$id');
 
   Future<JsonMap> updateRecording(
     String id,
     JsonMap data, {
     bool skipTransform = false,
-  }) =>
-      _client.putJson('$_path/$id', body: data, transformBody: !skipTransform);
+  }) => client.putJson('$_path/$id', body: data, transformBody: !skipTransform);
 }

@@ -24,6 +24,10 @@ typedef GetBaseUrl = Future<String> Function();
 typedef GetAccessToken = Future<String?> Function();
 typedef RefreshAccessToken = Future<bool> Function();
 
+/// Shared alias for decoded JSON objects; import from here instead of
+/// redeclaring per service file.
+typedef JsonMap = Map<String, dynamic>;
+
 class ApiClient {
   ApiClient({
     required http.Client httpClient,

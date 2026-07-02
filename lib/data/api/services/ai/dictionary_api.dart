@@ -2,13 +2,10 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class DictionaryApi {
-  DictionaryApi(this._client);
-
-  final ApiClient _client;
+class DictionaryApi extends RestApi {
+  DictionaryApi(super.client);
 
   static const _path = '/dictionary/query';
 
@@ -18,7 +15,7 @@ class DictionaryApi {
     required String targetLanguage,
     bool? forceRefresh,
   }) {
-    return _client.postJson(
+    return client.postJson(
       _path,
       body: {
         'word': word,

@@ -3,13 +3,10 @@ library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/query_params.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class TranscriptApi {
-  TranscriptApi(this._client);
-
-  final ApiClient _client;
+class TranscriptApi extends RestApi {
+  TranscriptApi(super.client);
 
   static const _path = '/api/v1/transcripts';
 
@@ -19,7 +16,7 @@ class TranscriptApi {
     String? source,
     String? language,
   }) {
-    return _client.getJsonList(
+    return client.getJsonList(
       _path,
       queryParameters: buildQuery({
         'targetId': targetId,
@@ -30,11 +27,11 @@ class TranscriptApi {
     );
   }
 
-  Future<JsonMap> transcript(String id) => _client.getJson('$_path/$id');
+  Future<JsonMap> transcript(String id) => client.getJson('$_path/$id');
 
   Future<JsonMap> uploadTranscript(JsonMap transcript) =>
-      _client.postJson(_path, body: {'transcript': transcript});
+      client.postJson(_path, body: {'transcript': transcript});
 
   Future<JsonMap> syncTranscript(JsonMap data) =>
-      _client.postJson(_path, body: data);
+      client.postJson(_path, body: data);
 }

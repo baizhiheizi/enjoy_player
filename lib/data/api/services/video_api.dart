@@ -3,13 +3,10 @@ library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/query_params.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class VideoApi {
-  VideoApi(this._client);
-
-  final ApiClient _client;
+class VideoApi extends RestApi {
+  VideoApi(super.client);
 
   static const _minePath = '/api/v1/mine/videos';
   static const _publicPath = '/api/v1/videos';
@@ -19,7 +16,7 @@ class VideoApi {
     int? limit,
     String? updatedAfter,
   }) {
-    return _client.getJsonList(
+    return client.getJsonList(
       _minePath,
       queryParameters: buildQuery({
         'provider': provider,
@@ -29,16 +26,15 @@ class VideoApi {
     );
   }
 
-  Future<JsonMap> video(String id) => _client.getJson('$_minePath/$id');
+  Future<JsonMap> video(String id) => client.getJson('$_minePath/$id');
 
   Future<JsonMap> uploadVideo(JsonMap video) =>
-      _client.postJson(_minePath, body: {'video': video});
+      client.postJson(_minePath, body: {'video': video});
 
-  Future<JsonMap> deleteVideo(String id) =>
-      _client.deleteJson('$_minePath/$id');
+  Future<JsonMap> deleteVideo(String id) => client.deleteJson('$_minePath/$id');
 
   Future<JsonMap> registerVideo(JsonMap data) =>
-      _client.postJson(_publicPath, body: data);
+      client.postJson(_publicPath, body: data);
 
   Future<({List<JsonMap> videos, JsonMap pagy})> listVideos({
     String? provider,
@@ -46,7 +42,7 @@ class VideoApi {
     int? limit,
     String? updatedAfter,
   }) async {
-    final m = await _client.getJson(
+    final m = await client.getJson(
       _publicPath,
       queryParameters: buildQuery({
         'provider': provider,

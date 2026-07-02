@@ -2,14 +2,11 @@
 library;
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/rest_api.dart';
 import 'package:enjoy_player/features/ai/domain/chat_message.dart';
 
-typedef JsonMap = Map<String, dynamic>;
-
-class ChatApi {
-  ChatApi(this._client);
-
-  final ApiClient _client;
+class ChatApi extends RestApi {
+  ChatApi(super.client);
 
   static const _path = '/chat/completions';
 
@@ -20,7 +17,7 @@ class ChatApi {
     bool stream = false,
     JsonMap? responseFormat,
   }) {
-    return _client.postJson(
+    return client.postJson(
       _path,
       body: {
         'messages': messages.map((m) => m.toJsonBody()).toList(),
