@@ -83,3 +83,7 @@ The `(target_type, target_id)` lookup on [`TranscriptFetchStates`](../lib/data/d
 
 - **Do not** run `palette_generator` / heavy image analysis per item in large `GridView` / `ListView` builders on the UI isolate — see [features/library.md](features/library.md) § *Performance (signed-in cold start, Windows)*. Use Flutter DevTools **CPU profiler** on the UI thread when investigating jank or “Not responding” during scroll or startup.
 - Plans that affect playback, startup, scrolling, transcript rendering, sync, or media import must state the expected performance budget or verification path before implementation.
+
+## Sliver child identity (long live lists)
+
+Sliver grids/lists backed by a Drift stream or RSS refresh (home recents, discover merged feed, channel feed) use a stable `ValueKey<String>` per row plus `findChildIndexCallback` — via the shared [`findSliverIndexByPrefixedId`](../lib/core/utils/sliver_key_index.dart) helper — so a re-emit that only inserts/reorders items reuses existing `Element`s instead of rebuilding every visible child. See [conventions.md § Sliver performance](conventions.md#sliver-performance-long-live-lists) for the required pattern when adding a new long-lived sliver.

@@ -117,6 +117,10 @@ Recommended row and subscription avatars go through
 Failures during avatar fetch are logged at `fine` and surface as
 `null`, so the caller can fall back to a placeholder.
 
+## Sliver performance
+
+The merged feed grid (main Discover screen) and the channel feed grid (`/discover/channel/:channelId`) both re-render their full entry list on every RSS refresh. Each tile uses a stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart) so a refresh that only prepends new entries reuses existing tile `Element`s instead of rebuilding the whole visible grid. See [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists) for the shared convention.
+
 ## Add to library
 
 Uses the same path as **Import → From YouTube URL**: oEmbed metadata, `videos` row with `provider: youtube`, optional sync enqueue when signed in. Duplicate video ids show **In library** instead of add.

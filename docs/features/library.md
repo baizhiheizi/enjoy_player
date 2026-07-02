@@ -29,6 +29,8 @@
 
 **Regression checks:** Use Flutter DevTools **CPU profiler** (UI thread) if similar freezes reappear; avoid reintroducing per-item `PaletteGenerator` in large scrollables without an isolate or precomputed palette.
 
+**Reorder rebuild cost:** Separately, the Home recents grid re-emits its full list on every Drift tick (new import, delete, thumbnail update). The grid's `SliverChildBuilderDelegate` uses a stable `ValueKey<String>('home-media-${media.id}')` per tile plus `findChildIndexCallback` (via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart)) so an insert/reorder reuses existing tile `Element`s instead of rebuilding every visible child — see [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists).
+
 ## Future
 
 - Metadata editing, search filters.
