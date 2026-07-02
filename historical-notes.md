@@ -16,12 +16,11 @@ metadata:
 
 ## 2026-06-29 (run 28350302166) — selected 4, 5, 2, 11
 - **Task 5**: Extracted generic `listEquals<T>` helper in `lib/core/utils/list_equals.dart` + 7 unit tests; refactored 3 near-identical element-wise list equality helpers (`_listEqualsDiscoverChannel`, `_listEqualsFeedEntry`, `_listEqualsTranscriptLine`). Branch `repo-assist/refactor-list-equals-helper-2026-06-29`. `_listEqualsRecordingRow` in `app_database.dart` deliberately left alone (Drift-generated `RecordingRow` has no value `==`).
-- **Task 4 / Task 2**: No actionable change / no comments (all 4 open issues were auto-generated).
 - **Task 11**: Created fresh `[repo-assist] Monthly Activity 2026-06 (resume)` (#147) since #12 was closed as "not_planned" on 2026-06-27.
 
 ## Sandbox note
 - `/opt/hostedtoolcache/flutter/stable-3.44.0-x64/flutter/bin/cache/` is read-only.
-- Workaround: copy the toolchain to `/tmp/flutter/` and use `/tmp/flutter/bin/flutter` directly. Works for `pub get`, `test`, `analyze`, `dart format`.
+- Workaround: copy the toolchain to `/tmp/flutter_sdk/` and use `/tmp/flutter_sdk/bin/flutter` directly. Works for `pub get`, `test`, `analyze`, `dart format`.
 
 ## Safeoutputs push-PR limitation (recurring)
 - `create_pull_request` emits a `.patch` + `.bundle` under `/tmp/gh-aw/` but does not actually open a PR on GitHub from the agentic runner.

@@ -1,3 +1,4 @@
+- [Run 2026-07-02](notes-2026-07-02.md) — added 21 hotkey_format display tests (last untested pure-Dart file in `lib/features/hotkeys/presentation/`); added 4 hotkey test rows to `docs/testing.md` layout table; resolved pre-existing ffmpeg-kit test failure (removed from Future Work)
 - [Run 2026-07-01](notes-2026-07-01.md) — extracted `resolveWorkerLanguagePair` helper (addresses #163); invalidated artwork palette LRU on size+mtime (addresses #151 backlog #2); closed June summary #147, opened July summary
 - [Run 2026-06-29 run 2](notes-2026-06-29-run2.md) — split `settings_screen.dart` 1,605→716 LOC; 14 private widgets extracted into 9 focused files; API URL editors de-duplicated into one parameterized `BaseUrlEditor`; comment on #148
 - [Run 2026-06-29](notes-2026-06-29.md) — extracted generic `listEquals<T>` helper; refactored 3 duplicated element-wise list equality helpers; new Monthly Activity 2026-06 (resume) issue since #12 was closed as "not_planned"
