@@ -3,16 +3,13 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
+import 'package:enjoy_player/core/platform/mobile_platform.dart';
+
 abstract final class Haptics {
-  static bool _hapticCapable() {
-    return defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.android;
-  }
+  static bool _hapticCapable() => isMobilePlatform;
 
   static bool _reducedMotion(BuildContext? context) {
     if (context == null) return false;
