@@ -427,6 +427,10 @@ git-ignored.
   ```
   The script retries automatically (5 attempts). Disable VPN/proxy if uploads keep failing.
 - **No Developer ID identity**: install Developer ID Application cert or set `SIGN_IDENTITY` before running `notarize_release.sh`.
+- **`HTTP status code: 403. A required agreement is missing or has expired.`**: not a build problem — the Apple Developer team (`46X685R747`) has an unsigned/expired legal agreement (e.g. annual Program License Agreement or Paid Apps Agreement renewal). Sign in to [App Store Connect](https://appstoreconnect.apple.com) or [developer.apple.com/account](https://developer.apple.com/account) with an Admin/Legal role, accept the pending agreement, then retry the upload only (app is already signed):
+  ```bash
+  ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app" --skip-sign
+  ```
 - **TestFlight skipped**: set App Store Connect API env vars or upload IPA manually via Transporter.
 
 ### Publish (R2 / AWS CLI)
