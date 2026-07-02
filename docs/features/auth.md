@@ -76,6 +76,10 @@ The PKCE callback stream is owned by the auth controller and is now properly **c
 
 `AuthDeepLinkListener` (via `app_links`) is the **only** owner of `enjoyplayer://` callbacks. Flutter's own native deep-link auto-forwarding is explicitly disabled (`flutter_deeplinking_enabled=false` on Android, `FlutterDeepLinkingEnabled=false` on iOS/macOS) — otherwise the OS delivers the same callback intent/URL to *both* `app_links` and Flutter's navigation channel, and go_router sees it as an unmatched `/callback` route (no such path exists) and briefly renders the "Page not found" screen even though the token exchange completes successfully in the background. As a defense in depth, `isNativeAuthCallbackArtifact` in [`auth_redirect.dart`](../../lib/core/routing/auth_redirect.dart) also makes go_router treat a stray `/callback` location like `/` instead of falling through to the not-found screen, in case any platform still forwards it.
 
+### Email OTP — BackButton always cancels
+
+`EmailEntryScreen`'s `AppBar` `BackButton` unconditionally calls `AuthCtrl.cancelSignIn()` before popping, instead of only doing so when the flow state was `AuthAwaitingOtp`. The previous gating left a stale in-flight OTP request (and its `resendAfterSeconds` cooldown) alive in `AuthCtrl` state after backing out of the email entry step itself, which the resume card on the sign-in hub would then surface as if the OTP flow were still active. Cancelling unconditionally on back-navigation matches the explicit **Cancel** button's behavior in the same flow.
+
 ## Related ADRs
 
 - [ADR-0006](../decisions/0006-auth-and-profile-sync.md)

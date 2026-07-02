@@ -45,6 +45,23 @@ log.info('hello');
 - Long-lived globals: `@Riverpod(keepAlive: true)`
 - Prefer `Notifier` / generated providers over mutable singletons.
 - Avoid circular dependencies: UI sync widgets listen to `Player` streams instead of `PlayerController` calling `PlayerUi` directly.
+- **No build-time side effects**: don't read a provider's value and assign it to a `State` field directly inside `build()` — that mutates state as a side effect of building, which Flutter disallows triggering a rebuild from. Instead use `ref.listen` at the top of `build()` and call `setState` from the listener callback. Example (`_EnjoyAppState.build` in [`app.dart`](../lib/app.dart) mirrors `appPreferencesCtrlProvider` into `_lastResolvedPrefs` so the last-known preferences stay visible during an auth-scoped DB switch reload):
+
+```dart
+@override
+Widget build(BuildContext context) {
+  ref.listen<AsyncValue<AppPreferencesState>>(appPreferencesCtrlProvider, (
+    prev,
+    next,
+  ) {
+    final nextPrefs = next.valueOrNull;
+    if (nextPrefs == null) return;
+    if (identical(nextPrefs, _lastResolvedPrefs)) return;
+    setState(() => _lastResolvedPrefs = nextPrefs);
+  });
+  // ...
+}
+```
 
 ## Database
 
