@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
+import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/case_conversion.dart';
@@ -174,16 +175,15 @@ class ApiClient {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = await _decodeResponseBody(response);
-        if (decoded is! Map) {
+        final map = castJsonObjectOrNull(decoded);
+        if (map == null) {
           throw ApiException(
             message: 'Expected JSON object',
             statusCode: response.statusCode,
             body: decoded,
           );
         }
-        return Map<String, dynamic>.from(
-          decoded.map((k, v) => MapEntry(k.toString(), v)),
-        );
+        return map;
       }
       await _throwApiError(response);
       throw AssertionError('unreachable');
@@ -271,16 +271,15 @@ class ApiClient {
         return const <String, dynamic>{};
       }
       final decoded = await _decodeResponseBody(response);
-      if (decoded is! Map) {
+      final map = castJsonObjectOrNull(decoded);
+      if (map == null) {
         throw ApiException(
           message: 'Expected JSON object',
           statusCode: response.statusCode,
           body: decoded,
         );
       }
-      return Map<String, dynamic>.from(
-        decoded.map((k, v) => MapEntry(k.toString(), v)),
-      );
+      return map;
     }
 
     await _throwApiError(response);
@@ -313,17 +312,15 @@ class ApiClient {
         );
       }
       return decoded.map<Map<String, dynamic>>((e) {
-        if (e is Map<String, dynamic>) return e;
-        if (e is Map) {
-          return Map<String, dynamic>.from(
-            e.map((k, v) => MapEntry(k.toString(), v)),
+        final map = castJsonObjectOrNull(e);
+        if (map == null) {
+          throw ApiException(
+            message: 'Array element is not an object',
+            statusCode: response.statusCode,
+            body: e,
           );
         }
-        throw ApiException(
-          message: 'Array element is not an object',
-          statusCode: response.statusCode,
-          body: e,
-        );
+        return map;
       }).toList();
     }
 

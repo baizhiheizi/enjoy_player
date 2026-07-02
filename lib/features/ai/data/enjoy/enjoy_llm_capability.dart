@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/ai/chat_api.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/llm_capability.dart';
@@ -8,19 +9,6 @@ final class EnjoyLlmCapability implements LlmCapability {
 
   final ChatApi _api;
 
-  /// JSON from [convertKeysToCamel] uses [Map] values that are often
-  /// `Map<dynamic, dynamic>`, not `Map<String, dynamic>`, so avoid `is`
-  /// checks on the latter for nested objects.
-  Map<String, dynamic>? _stringKeyMap(Object? value) {
-    if (value is Map<String, dynamic>) return value;
-    if (value is Map) {
-      return Map<String, dynamic>.from(
-        value.map((k, v) => MapEntry(k.toString(), v)),
-      );
-    }
-    return null;
-  }
-
   String _contentFromResponse(Map<String, dynamic> map) {
     final choicesRaw = map['choices'];
     if (choicesRaw is! List || choicesRaw.isEmpty) {
@@ -29,14 +17,14 @@ final class EnjoyLlmCapability implements LlmCapability {
         statusCode: 502,
       );
     }
-    final first = _stringKeyMap(choicesRaw.first);
+    final first = castJsonObjectOrNull(choicesRaw.first);
     if (first == null) {
       throw const ApiException(
         message: 'No choices in chat completion',
         statusCode: 502,
       );
     }
-    final message = _stringKeyMap(first['message']);
+    final message = castJsonObjectOrNull(first['message']);
     if (message == null) {
       throw const ApiException(
         message: 'No message in completion choice',

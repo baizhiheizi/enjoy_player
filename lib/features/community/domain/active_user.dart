@@ -1,16 +1,7 @@
 /// Active learners payload from `GET /api/v1/users/active` (camelCase JSON).
 library;
 
-Map<String, dynamic>? _jsonObjectAsStringMap(Object? value) {
-  if (value == null) return null;
-  if (value is Map<String, dynamic>) return value;
-  if (value is Map) {
-    return Map<String, dynamic>.from(
-      value.map((k, v) => MapEntry(k.toString(), v)),
-    );
-  }
-  return null;
-}
+import 'package:enjoy_player/core/json/json_cast.dart';
 
 int? _intFromJson(Object? value) {
   if (value == null) return null;
@@ -40,7 +31,7 @@ class ActiveUsersResponse {
     final users = <ActiveUser>[];
     if (rawUsers is List) {
       for (final e in rawUsers) {
-        final m = _jsonObjectAsStringMap(e);
+        final m = castJsonObjectOrNull(e);
         if (m != null) {
           users.add(ActiveUser.fromJson(m));
         }

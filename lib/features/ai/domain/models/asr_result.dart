@@ -1,12 +1,14 @@
+import 'package:enjoy_player/core/json/json_cast.dart';
+
 /// Whisper-style JSON response (keys camelCase after [ApiClient] decode).
 final class AsrResult {
   factory AsrResult.fromJson(Map<String, dynamic> json) {
     final segs = json['segments'] as List<dynamic>?;
-    final transcriptionInfo = _jsonMap(json['transcriptionInfo']);
+    final transcriptionInfo = castJsonObjectOrNull(json['transcriptionInfo']);
     return AsrResult(
       text: json['text'] as String? ?? '',
       segments: segs
-          ?.map((e) => AsrSegment.fromJson(_jsonMap(e) ?? const {}))
+          ?.map((e) => AsrSegment.fromJson(castJsonObjectOrNull(e) ?? const {}))
           .toList(),
       language:
           transcriptionInfo?['language'] as String? ??
@@ -37,7 +39,9 @@ final class AsrSegment {
       start: (json['start'] as num?)?.toDouble() ?? 0,
       end: (json['end'] as num?)?.toDouble() ?? 0,
       text: json['text'] as String? ?? '',
-      words: w?.map((e) => AsrWord.fromJson(_jsonMap(e) ?? const {})).toList(),
+      words: w
+          ?.map((e) => AsrWord.fromJson(castJsonObjectOrNull(e) ?? const {}))
+          .toList(),
     );
   }
   const AsrSegment({
@@ -51,14 +55,6 @@ final class AsrSegment {
   final double end;
   final String text;
   final List<AsrWord>? words;
-}
-
-/// JSON nested objects decode as [Map<dynamic, dynamic>]; normalize for casts.
-Map<String, dynamic>? _jsonMap(dynamic value) {
-  if (value == null) return null;
-  if (value is Map<String, dynamic>) return value;
-  if (value is Map) return Map<String, dynamic>.from(value);
-  return null;
 }
 
 final class AsrWord {

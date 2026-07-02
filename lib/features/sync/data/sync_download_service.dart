@@ -1,6 +1,7 @@
 /// Download remote entities into Drift (metadata only).
 library;
 
+import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
@@ -52,7 +53,7 @@ class SyncDownloadService {
           limit: _pageSize,
           updatedAfter: cursor,
         );
-        batch = raw.map<Map<String, dynamic>>(_asJsonMap).toList();
+        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
       } catch (e) {
         return SyncResult(
           success: false,
@@ -114,7 +115,7 @@ class SyncDownloadService {
           limit: _pageSize,
           updatedAfter: cursor,
         );
-        batch = raw.map<Map<String, dynamic>>(_asJsonMap).toList();
+        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
       } catch (e) {
         return SyncResult(
           success: false,
@@ -178,7 +179,7 @@ class SyncDownloadService {
           limit: _pageSize,
           updatedAfter: cursor,
         );
-        batch = raw.map<Map<String, dynamic>>(_asJsonMap).toList();
+        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
       } catch (e) {
         return SyncResult(
           success: false,
@@ -231,12 +232,6 @@ class SyncDownloadService {
     final r = await _downloadRecordingsInternal(resetCursor: true);
     return a.merge(v).merge(r);
   }
-}
-
-Map<String, dynamic> _asJsonMap(Object? e) {
-  if (e is Map<String, dynamic>) return e;
-  if (e is Map) return Map<String, dynamic>.from(e);
-  throw FormatException('Expected JSON object, got ${e.runtimeType}');
 }
 
 String? _maxUpdatedAtIso(List<Map<String, dynamic>> batch) {

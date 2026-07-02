@@ -1,19 +1,7 @@
 /// Learning statistics from `GET /api/v1/mine/stats` (camelCase JSON).
 library;
 
-/// Nested maps from [decodeJsonToCamel] are [Map<dynamic, dynamic>], not
-/// [Map<String, dynamic>], so strict `is Map<String, dynamic>` loses `today` /
-/// `week` / `month` and stats read as zero.
-Map<String, dynamic>? _jsonObjectAsStringMap(Object? value) {
-  if (value == null) return null;
-  if (value is Map<String, dynamic>) return value;
-  if (value is Map) {
-    return Map<String, dynamic>.from(
-      value.map((k, v) => MapEntry(k.toString(), v)),
-    );
-  }
-  return null;
-}
+import 'package:enjoy_player/core/json/json_cast.dart';
 
 class PeriodStats {
   const PeriodStats({
@@ -40,9 +28,12 @@ class PeriodStats {
 class LearningStatistics {
   factory LearningStatistics.fromJson(Map<String, dynamic> json) {
     return LearningStatistics(
-      today: PeriodStats.fromJson(_jsonObjectAsStringMap(json['today'])),
-      week: PeriodStats.fromJson(_jsonObjectAsStringMap(json['week'])),
-      month: PeriodStats.fromJson(_jsonObjectAsStringMap(json['month'])),
+      // Nested maps from decodeJsonToCamel may be Map<dynamic, dynamic>; see
+      // castJsonObjectOrNull doc for why a strict `is Map<String, dynamic>`
+      // check would silently read `today` / `week` / `month` as zero.
+      today: PeriodStats.fromJson(castJsonObjectOrNull(json['today'])),
+      week: PeriodStats.fromJson(castJsonObjectOrNull(json['week'])),
+      month: PeriodStats.fromJson(castJsonObjectOrNull(json['month'])),
     );
   }
   const LearningStatistics({
