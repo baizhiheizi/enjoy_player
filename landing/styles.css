@@ -527,6 +527,16 @@ a:hover { text-decoration: underline; }
 
 .btn--secondary:hover { background: rgba(255, 255, 255, 0.1); }
 
+.btn--disabled,
+.btn--disabled:hover,
+.btn--disabled:active,
+.btn--disabled:focus-visible {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
 /* ── Card note (install guidance) ────────────────────────────── */
 .card-note {
   font-size: 0.75rem;

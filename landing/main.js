@@ -100,21 +100,64 @@ function isUsableTestFlightUrl(url) {
   return trimmed.startsWith('https://testflight.apple.com/join/');
 }
 
-// ── Apply config URLs (store / TestFlight links from config.js) ─
-function applyConfig() {
-  const iosCard = document.getElementById('card-ios');
-  const tfBtn = document.getElementById('btn-testflight');
-  const tfUrl = isUsableTestFlightUrl(cfg.testFlightUrl) ? cfg.testFlightUrl.trim() : null;
+function isUsablePlayBetaUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  return trimmed.startsWith('https://play.google.com/');
+}
 
-  if (iosCard) {
-    iosCard.hidden = !tfUrl;
-    iosCard.setAttribute('aria-hidden', tfUrl ? 'false' : 'true');
+function applyStoreButton(btnId, url, labelKey, isValid, ariaLabel) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  const validUrl = isValid(url) ? url.trim() : null;
+  const labelEl = btn.querySelector('[data-i18n]');
+
+  if (validUrl) {
+    btn.href = validUrl;
+    btn.classList.remove('btn--disabled');
+    btn.removeAttribute('aria-disabled');
+    btn.removeAttribute('tabindex');
+    btn.target = '_blank';
+    btn.rel = 'noopener noreferrer';
+    btn.setAttribute('aria-label', ariaLabel);
+    if (labelEl) labelEl.setAttribute('data-i18n', labelKey);
+  } else {
+    btn.removeAttribute('href');
+    btn.classList.add('btn--disabled');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.setAttribute('tabindex', '-1');
+    btn.removeAttribute('target');
+    btn.removeAttribute('rel');
+    if (labelEl) labelEl.setAttribute('data-i18n', 'download.comingSoon');
   }
 
-  if (tfBtn && tfUrl) tfBtn.href = tfUrl;
+  if (labelEl && window.translations) {
+    const lang = document.documentElement.lang || 'en';
+    const key = labelEl.getAttribute('data-i18n');
+    if (window.translations[lang]?.[key]) {
+      labelEl.textContent = window.translations[lang][key];
+    }
+  }
+}
 
-  const playBtn = document.getElementById('btn-play-beta');
-  if (playBtn && cfg.playBetaUrl) playBtn.href = cfg.playBetaUrl;
+// ── Apply config URLs (store / TestFlight links from config.js) ─
+function applyConfig() {
+  applyStoreButton(
+    'btn-testflight',
+    cfg.testFlightUrl,
+    'download.ios.btn',
+    isUsableTestFlightUrl,
+    'Join the TestFlight beta for Enjoy Player on iOS',
+  );
+  applyStoreButton(
+    'btn-play-beta',
+    cfg.playBetaUrl,
+    'download.android.btn.play',
+    isUsablePlayBetaUrl,
+    'Join the Google Play beta for Enjoy Player',
+  );
 }
 
 // ── Main ────────────────────────────────────────────────────────

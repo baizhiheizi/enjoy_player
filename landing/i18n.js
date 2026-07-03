@@ -37,9 +37,11 @@ const translations = {
     'download.android.note': 'Tip: installing the APK requires enabling <em>Install unknown apps</em> in your Android settings.',
     
     'download.ios.title': 'iOS',
-    'download.ios.subtitle': 'iOS 14.0+ · TestFlight Beta',
+    'download.ios.subtitle': 'iOS 14.0+',
     'download.ios.btn': 'Join TestFlight',
-    'download.ios.note': 'Free beta via Apple TestFlight. App Store release coming soon.',
+    'download.ios.note': 'App Store and TestFlight releases coming soon.',
+    
+    'download.comingSoon': 'Coming soon',
     
     'recommended': 'Recommended',
     'footer.copyright': '© 2026 Enjoy Player'
@@ -82,9 +84,11 @@ const translations = {
     'download.android.note': '提示：安装 APK 需要在 Android 设置中开启<em>允许安装未知应用</em>。',
     
     'download.ios.title': 'iOS',
-    'download.ios.subtitle': 'iOS 14.0+ · TestFlight Beta',
+    'download.ios.subtitle': 'iOS 14.0+',
     'download.ios.btn': '加入 TestFlight',
-    'download.ios.note': '通过 Apple TestFlight 免费参与 Beta 测试。App Store 版本即将推出。',
+    'download.ios.note': 'App Store 与 TestFlight 版本即将推出。',
+    
+    'download.comingSoon': '即将推出',
     
     'recommended': '推荐',
     'footer.copyright': '© 2026 Enjoy Player'

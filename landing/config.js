@@ -7,8 +7,9 @@ window.ENJOY_CONFIG = {
   // When null, the landing page hides the iOS TestFlight card (no broken 404 link).
   testFlightUrl: null,
 
-  // Google Play open beta test track opt-in.
-  playBetaUrl: 'https://play.google.com/apps/testing/ai.enjoy.player',
+  // Google Play open beta test track opt-in — set when the Play test track is live.
+  // When null, the landing page shows a disabled "Coming soon" button.
+  playBetaUrl: null,
 
   // Same-origin manifest proxy (served by the Pages Function).
   manifestUrl: '/api/latest',
