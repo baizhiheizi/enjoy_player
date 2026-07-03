@@ -492,6 +492,8 @@ npx wrangler pages deploy .
 
 When the TestFlight invite URL changes or the Play beta URL changes, edit [`landing/config.js`](../landing/config.js) and push to `main`. The deploy workflow picks it up automatically.
 
+`testFlightUrl` and `playBetaUrl` accept only `https://testflight.apple.com/join/...` and `https://play.google.com/...` respectively — anything else (including `null` or empty string) disables the matching store button. When disabled, the card stays visible with a **Coming soon** label, `btn--disabled` styling, and `aria-disabled="true"`, so users can still see the platform exists without being sent to a broken link. Direct-download buttons (Windows, macOS, Android APK) are never disabled by this — they always come from `dl.enjoy.bot/player/latest.json`.
+
 ### Custom domain
 
 `get.enjoy.bot` must have a CNAME record pointing to `enjoy-player-landing.pages.dev` in Cloudflare DNS. Until the custom domain is attached, the `enjoy-player-landing.pages.dev` URL works for verification.

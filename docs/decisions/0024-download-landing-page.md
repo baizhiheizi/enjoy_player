@@ -20,7 +20,7 @@ The app explicitly forbids Flutter web (ADR-0005), so the landing page must be a
 
 4. **Static fallback links** — When JS is disabled or the manifest is unreachable, all platform buttons fall back to the GitHub releases/latest page, so no action is ever missing.
 
-5. **Store/TestFlight links in `config.js`** — iOS (TestFlight) and Android Play beta have stable URLs that do not come from `latest.json`. They live in `landing/config.js` (the single file to update for link maintenance), applied by JS on load.
+5. **Store/TestFlight links in `config.js`** — iOS (TestFlight) and Android Play beta have stable URLs that do not come from `latest.json`. They live in `landing/config.js` (the single file to update for link maintenance), applied by JS on load. URLs are validated by origin (`https://testflight.apple.com/join/...` / `https://play.google.com/...`); anything else — including `null` — renders the matching card with a disabled **Coming soon** button (`btn--disabled`, `aria-disabled="true"`) instead of dropping the card or exposing a broken link.
 
 6. **OS detection with progressive enhancement** — `navigator.userAgentData` / `userAgent` / `platform` heuristics; iPadOS is disambiguated from macOS via `navigator.maxTouchPoints > 1`. The detected platform's card is reordered to the front and highlighted with a gradient border. All four platform cards always render.
 
@@ -30,6 +30,7 @@ The app explicitly forbids Flutter web (ADR-0005), so the landing page must be a
 
 - `landing/` must not contain a `web/` subdirectory or any Flutter web artefacts.
 - The TestFlight invite URL and Play beta URL in `landing/config.js` must be updated manually when they change (invite expiry, new TestFlight group, etc.).
+- When either URL is `null` or fails origin validation, the corresponding store card stays visible with a disabled **Coming soon** button — visitors see the platform exists, but cannot click through to a missing invite.
 - A new version of the app automatically surfaces on the landing page on the next page load, because the manifest proxy reflects the live `latest.json`.
 - Wrangler and the deploy workflow have no impact on the Flutter app build pipeline.
 - Two CI secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) must be set in the repository before the deploy workflow can run.

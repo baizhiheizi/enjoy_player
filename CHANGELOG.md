@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Landing page store buttons**: iOS TestFlight and Android Play beta cards now stay visible when their URLs are unset in `landing/config.js`, rendering a disabled "Coming soon" button (`btn--disabled`, `aria-disabled="true"`) instead of dropping the cards or shipping a broken link. See [docs/packaging.md](docs/packaging.md#updating-store-links) and [ADR-0024](docs/decisions/0024-download-landing-page.md).
+
 ## [0.3.1] - 2026-07-03
 
 ### Added
