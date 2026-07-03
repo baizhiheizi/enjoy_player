@@ -298,10 +298,19 @@ void main() {
         fake.screenshotReturnValue = Uint8List.fromList(const [10, 11, 12]);
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
-        await Future<void>.delayed(const Duration(milliseconds: 1200));
+
+        // The capture pipeline schedules its own real-time delays (seek +
+        // settle) before writing the thumbnail, so poll for completion
+        // instead of racing it with a single fixed sleep, which flakes
+        // under CPU contention (e.g. full-suite runs).
+        VideoRow? row = await db.videoDao.getById(id);
+        final deadline = DateTime.now().add(const Duration(seconds: 5));
+        while (row?.thumbnailUrl == null && DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          row = await db.videoDao.getById(id);
+        }
 
         expect(fake.screenshotCalls, greaterThanOrEqualTo(1));
-        final row = await db.videoDao.getById(id);
         expect(row!.thumbnailUrl, isNotNull);
         final thumbFile = File(row.thumbnailUrl!);
         expect(thumbFile.existsSync(), isTrue);
