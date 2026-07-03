@@ -29,7 +29,7 @@ permissions:
 jobs:
   release:
     name: iOS + macOS release
-    runs-on: [self-hosted, macos]
+    runs-on: [self-hosted, macos, flutter]
     env:
       APPLE_USE_RUNNER_KEYCHAIN: ${{ vars.APPLE_USE_RUNNER_KEYCHAIN || 'true' }}
       NOTARY_PROFILE: enjoy-notary

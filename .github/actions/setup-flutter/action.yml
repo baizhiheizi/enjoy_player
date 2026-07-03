@@ -1,5 +1,10 @@
 name: Setup Flutter
-description: Pin Flutter from .github/flutter-version without GitHub Actions cache.
+description: >-
+  Pin Flutter from .github/flutter-version without GitHub Actions cache.
+  Installs into a persistent, version-keyed directory on the runner's local
+  disk and skips the download entirely when that version is already there —
+  self-hosted runners keep this across jobs, so Flutter is only fetched once
+  per version bump.
 
 runs:
   using: composite
@@ -18,13 +23,62 @@ runs:
         $version = (Get-Content -Path '.github/flutter-version' -Raw).Trim() -replace '\s', ''
         "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Install Flutter (Unix)
+    - name: Install Flutter (Linux/macOS)
       if: runner.os != 'Windows'
-      uses: subosito/flutter-action@v2
-      with:
-        channel: stable
-        flutter-version: ${{ steps.flutter_version_unix.outputs.version }}
-        cache: false
+      shell: bash
+      run: |
+        # Avoid subosito/flutter-action here too: it re-downloads/reinstalls
+        # every run (cache:false), which wastes bandwidth and time on a
+        # self-hosted runner where the previous install already sits on
+        # local disk. Mirror the Windows branch instead: install into a
+        # persistent, version-keyed directory and skip the download when
+        # it's already there.
+        set -euo pipefail
+
+        version="${{ steps.flutter_version_unix.outputs.version }}"
+        cache_root="${RUNNER_TOOL_CACHE:-${RUNNER_TEMP:-/tmp}}"
+        install_dir="$cache_root/flutter-$version-stable"
+        flutter_root="$install_dir/flutter"
+        flutter_bin="$flutter_root/bin/flutter"
+
+        if [ ! -x "$flutter_bin" ]; then
+          rm -rf "$install_dir"
+          mkdir -p "$install_dir"
+
+          case "${{ runner.os }}" in
+            Linux)
+              url="https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${version}-stable.tar.xz"
+              archive="${RUNNER_TEMP:-/tmp}/flutter_linux_${version}-stable.tar.xz"
+              curl -fsSL -o "$archive" "$url"
+              tar -xJf "$archive" -C "$install_dir"
+              ;;
+            macOS)
+              arch_suffix=""
+              if [ "${{ runner.arch }}" = "ARM64" ]; then
+                arch_suffix="_arm64"
+              fi
+              url="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos${arch_suffix}_${version}-stable.zip"
+              archive="${RUNNER_TEMP:-/tmp}/flutter_macos${arch_suffix}_${version}-stable.zip"
+              curl -fsSL -o "$archive" "$url"
+              unzip -q "$archive" -d "$install_dir"
+              ;;
+            *)
+              echo "::error::Unsupported runner.os for Flutter install: ${{ runner.os }}"
+              exit 1
+              ;;
+          esac
+
+          rm -f "$archive"
+        fi
+
+        if [ ! -x "$flutter_bin" ]; then
+          echo "::error::Flutter $version was not installed at $flutter_root"
+          exit 1
+        fi
+
+        echo "$flutter_root/bin" >> "$GITHUB_PATH"
+        echo "FLUTTER_ROOT=$flutter_root" >> "$GITHUB_ENV"
+        "$flutter_bin" --version
 
     - name: Install Flutter (Windows)
       if: runner.os == 'Windows'

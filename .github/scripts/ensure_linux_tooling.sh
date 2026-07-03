@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Install Linux build packages only when missing (self-hosted runners).
+#
+# On the shared gh-sr agentic runner pool, most of these are now baked into
+# the container image at build time via `container_runner_image.extra_apt_packages`
+# in runners.yml, so this should normally be a fast no-op there. Kept as a
+# safety net for any Linux runner (agentic image rebuild pending, or a plain
+# native host) where a package isn't baked in yet.
 set -euo pipefail
 
 packages=(

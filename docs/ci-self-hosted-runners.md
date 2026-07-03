@@ -1,18 +1,30 @@
 # Self-hosted CI runners
 
-All GitHub Actions workflows in this repo (except **Release Windows**, which still uses GitHub-hosted `windows-latest` until a self-hosted Windows runner is ready) run on **self-hosted** runners registered for this repository only. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
+All GitHub Actions workflows in this repo run on **self-hosted** runners. They do **not** use GitHub Actions cache (`actions/cache` or `cache: true` on setup actions) or upload build outputs via `actions/upload-artifact` — both bill for storage. Dependencies stay on the runner's local disk between jobs; release binaries go to **dl.enjoy.bot** (S3/R2) when publish is enabled, or remain on the runner workspace until the job ends.
+
+Runners are managed via **[`gh-sr`](https://github.com/an-lee/gh-sr)** (`~/.gh-sr/runners.yml` on the control machine), except where noted. See that repo's docs for `hosts` / `runners` / `container_runner_image` schema.
 
 Shared workflow pieces:
 
 | Path | Purpose |
 |------|---------|
-| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from [`.github/flutter-version`](../.github/flutter-version) (`cache: false`) |
+| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from [`.github/flutter-version`](../.github/flutter-version). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, no GitHub cache API. |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1 |
-| [`.github/scripts/ensure_linux_tooling.sh`](../.github/scripts/ensure_linux_tooling.sh) | Install apt packages only when missing |
+| [`.github/scripts/ensure_linux_tooling.sh`](../.github/scripts/ensure_linux_tooling.sh) | Install apt packages only when missing. On the shared gh-sr agentic pool these are now normally baked into the container image (see below), so this is usually a fast no-op. |
 | [`.github/scripts/ensure_nuget_feed.ps1`](../.github/scripts/ensure_nuget_feed.ps1) | Ensure NuGet.org feed on Windows |
 | [`.github/workflows/shared/runtime.md`](../.github/workflows/shared/runtime.md) | gh-aw shared Flutter pre-agent setup + `dart` network for agentic workflows |
 
-When you bump Flutter in `.github/flutter-version`, the next workflow run installs/switches to that version on the runner via `flutter-action` (local disk, no GitHub cache API).
+When you bump Flutter in `.github/flutter-version`, the next workflow run downloads that version once per runner/host and reuses it from local disk afterward.
+
+---
+
+## Baking dependencies into the runner instead of installing them per job
+
+Because runners are self-hosted, dependencies that don't change often should live on the runner rather than being fetched by every job:
+
+- **Linux (shared gh-sr agentic pool):** gh-sr builds a Docker image for `runner_mode: container` / `profile: agentic` runners. `runners.yml`'s `container_runner_image.extra_apt_packages` bakes the Flutter Linux build packages (`clang`, `cmake`, `ninja-build`, `xz-utils`, `zip`, `libgtk-3-dev`, `liblzma-dev`, `libsqlite3-dev`) into that image, on top of the packages already in gh-sr's own core manifest (`curl`, `git`, `jq`, `pkg-config`, `unzip`, …). This survives `gh sr rebuild` / `gh sr update` (which recreate the container and would otherwise wipe anything installed at runtime by `ensure_linux_tooling.sh`).
+- **macOS / Windows (native runners):** gh-sr has no generic dependency-baking mechanism for native runners — the runner's own filesystem just persists between jobs as long as it isn't reinstalled from scratch. Install Flutter's OS-level prerequisites once, manually, per the checklists below; the idempotent scripts (`fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1`, `ensure_inno_setup.ps1`, `ensure_ios_ci_toolchain.sh`) then skip re-installing on every run.
+- **Flutter SDK itself (all platforms):** handled at the workflow level by [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) — see the table above.
 
 ---
 
@@ -38,24 +50,26 @@ Agentic workflow sources: `test-improver`, `repo-assist`, `perf-improver`, `dupl
 
 ## Register runners
 
-GitHub → repo **Settings** → **Actions** → **Runners** → **New self-hosted runner**.
+Runners are registered via `gh-sr` (`gh sr setup && gh sr up`), except where noted below. Labels must match workflow `runs-on`:
 
-Use labels that match workflow `runs-on`:
+| Workflow | Labels | gh-sr runner block |
+|----------|--------|---------------------|
+| CI, Codegen drift, Android APK smoke, Release Android | `self-hosted`, `Linux` | `baizhiheizi` (org-scoped, `profile: agentic`, shared with gh-aw) |
+| gh-aw agentic workflows (test-improver, repo-assist, …) | `self-hosted`, `linux`, `agentic` | `baizhiheizi` (same pool as above) |
+| Build Apple, Release Apple | `self-hosted`, `macos`, `flutter` | `baizhiheizi-mac` (org-scoped, shared) |
+| Build Windows, Release Windows | `self-hosted`, `windows`, `flutter` | `enjoy-player-win` (repo-scoped, dedicated) |
 
-| Workflow | Labels |
-|----------|--------|
-| CI, Codegen drift, Android APK smoke | `self-hosted`, `Linux` |
-| gh-aw agentic workflows (test-improver, repo-assist, …) | `self-hosted`, `linux`, `agentic` |
-| Build Apple, Release Apple | `self-hosted`, `macos` |
-| Release Android | `self-hosted`, `Linux` |
-| Build Windows | `self-hosted`, `Windows` |
-| Release Windows | GitHub-hosted `windows-latest` (planned: `self-hosted`, `Windows`) |
+The **`flutter`** label is a distinguishing custom label added to the macOS and Windows runner blocks so this repo's workflows can target them explicitly, even though today they're the only pool on those hosts. The Linux CI jobs deliberately do **not** add a distinguishing label — they intentionally share the same pool as the gh-aw agentic runners (see below), matched purely by `self-hosted` + `Linux`.
+
+`enjoy-player-win` is a **dedicated, repo-scoped** native Windows runner (introduced to close the gap where no self-hosted Windows runner previously existed — Release Windows used to run on GitHub-hosted `windows-latest`). Unlike the shared Linux/macOS org pools, it only serves `baizhiheizi/enjoy_player`.
 
 ---
 
 ## Linux runner checklist
 
-One machine can serve CI, codegen, and Android smoke jobs.
+One machine (the shared gh-sr agentic pool) serves CI, codegen, and Android smoke jobs.
+
+The Flutter build packages below are baked into the gh-sr container image via `container_runner_image.extra_apt_packages` in `runners.yml` — after `gh sr rebuild`, they no longer need manual installation or a per-job `apt-get`. This list is kept here for reference and for any non-gh-sr / native Linux host:
 
 ```bash
 # Flutter (pin to .github/flutter-version)
@@ -69,7 +83,8 @@ java -version
 export ANDROID_SDK_ROOT="$HOME/Android/Sdk"   # example path
 sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-# Build deps (CI also runs ensure_linux_tooling.sh idempotently)
+# Build deps — baked into the gh-sr agentic image; CI also runs
+# ensure_linux_tooling.sh idempotently as a safety net.
 sudo apt-get install -y \
   clang cmake curl git ninja-build pkg-config unzip xz-utils zip \
   libgtk-3-dev liblzma-dev libsqlite3-dev
@@ -104,13 +119,24 @@ Runner user must access Keychain certs when using `APPLE_USE_RUNNER_KEYCHAIN=tru
 
 ## Windows runner checklist
 
-```bash
+`gh-sr` has no automated dependency-baking for native Windows runners (that's Linux/container-image only — see above), so the following is a **one-time manual setup** on the host before `gh sr setup enjoy-player-win`:
+
+- **Visual Studio Build Tools** with the **"Desktop development with C++"** workload (required by `flutter build windows`)
+- **Git** on `PATH`
+- **NuGet CLI** on `PATH` (WebView2 / `azure_speech` restore) — `ensure_nuget_feed.ps1` only configures the feed, it does not install `nuget` itself
+- **Chocolatey** — `ensure_inno_setup.ps1` falls back to `choco install innosetup` when Inno Setup isn't already present
+- **OpenSSH Server**, only if `gh-sr` will reach this host over SSH (not needed when the host's `addr: local`, as with `z13`)
+
+Once those are in place:
+
+```powershell
 flutter --version
 flutter doctor
 nuget help   # NuGet CLI on PATH for azure_speech / WebView2
+iscc /?      # Inno Setup, or let ensure_inno_setup.ps1 install it via choco
 ```
 
-Windows release/smoke workflows run `windows/scripts/fetch_ffmpeg.ps1` automatically; for local builds see [packaging.md](packaging.md).
+Windows workflows run `windows/scripts/fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1`, and (for releases) `ensure_inno_setup.ps1` automatically — all idempotent, so after the first run they no-op. For local builds see [packaging.md](packaging.md).
 
 ---
 
@@ -125,4 +151,4 @@ Windows release/smoke workflows run `windows/scripts/fetch_ffmpeg.ps1` automatic
 | [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | iOS + macOS compile smoke |
 | [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | signed IPA, TestFlight, notarized macOS |
 | [release_android.yml](../.github/workflows/release_android.yml) | Linux | signed AAB/APK for Play / sideload |
-| [release_windows.yml](../.github/workflows/release_windows.yml) | GitHub-hosted `windows-latest` | release build + Inno Setup installer |
+| [release_windows.yml](../.github/workflows/release_windows.yml) | self-hosted Windows (`enjoy-player-win`) | release build + Inno Setup installer |

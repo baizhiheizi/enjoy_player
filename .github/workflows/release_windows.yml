@@ -25,9 +25,13 @@ permissions:
 jobs:
   release:
     name: Windows release
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows, flutter]
     steps:
       - uses: actions/checkout@v6
+
+      - name: Short workspace path (Windows MAX_PATH)
+        shell: pwsh
+        run: .github/scripts/use_short_windows_workdir.ps1
 
       - uses: ./.github/actions/setup-flutter
 
@@ -57,3 +61,9 @@ jobs:
           SPARKLE_DSA_PRIV_PEM_BASE64: ${{ secrets.SPARKLE_DSA_PRIV_PEM_BASE64 }}
           RELEASE_REQUIRE_S3: "1"
         run: bash .github/scripts/release_windows.sh --publish-only --publish
+
+      - name: Remove short workspace drive mapping
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path 'W:\') { subst W: /d }
