@@ -56,7 +56,7 @@ dart run build_runner build
 - **Grid stable keys + findChildIndexCallback** (#150, merged 2026-06-29) — `ValueKey(entity.id)` + `findChildIndexCallback` on home/discover/channel-feed grids. New `lib/core/utils/sliver_key_index.dart`.
 - **Discover perf parent** (#106, closed) — semaphore, `List.unmodifiable`, scheduler gating.
 - **Artwork palette cache staleness** (#188, merged 2026-07-02) — LRU key `(path, size, mtime)`. `_lookupFresh` walks order list, drops stale entries.
-- **Transcript tracks Drift re-emissions** (this run, 2026-07-03) — `TranscriptRepository.watchTracks` (consumed in always-mounted `transport_cc_fullscreen`) gains `==`/`hashCode` on `TranscriptTrack` and `.distinctBy(_listEqualsTranscriptTrack)`. Branch `perf-assist/transcript-tracks-dedupe-2026-07-03`.
+- **Transcript tracks Drift re-emissions** (this run, 2026-07-06) — `TranscriptRepository.watchTracks` (consumed in always-mounted `transport_cc_fullscreen`). Adds `==`/`hashCode` to `TranscriptTrack` (7 fields). `.distinctBy(_listEqualsTranscriptTrack)` over mapped stream. 9 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-06`.
 
 ### Confirmed hot paths / opportunities
 
@@ -64,6 +64,12 @@ dart run build_runner build
 2. **API client JSON decode** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. Audit (2026-06-30) confirmed `audio_api.audios()`/`transcript_api.transcripts()` are simple one-shots; no fan-out. Correct as-is.
 3. **Dictations DAO** — `DictationDao.watchByTarget` is not consumed in `lib/` today (only referenced in generated code). When hooked up, needs the same `.distinctBy(equals)` treatment.
 4. **Cosmetic** — `recommendedChannelAvatar` provider does `ref.watch(discoverSubscriptionsProvider)` redundantly (`discover_providers.dart:158-180`).
+
+## Measurement infrastructure status
+
+- No benchmark suite, no CI perf regression job, no profiler integration exists today.
+- All perf-improver work to date measures via **emission-count assertions** in unit tests: `emissions.add(...)` into a `List`, compare lengths before/after a Drift write. Cheap, deterministic, runs in `flutter test`. This is the only measurement infrastructure available — adequate for dedupe / rebuild hot-path PRs but not for compute-bound work (e.g. palette decode).
+- For compute-bound work, the natural extension would be `Stopwatch`-based microbenchmarks in `test/perf/`, gated on `--dart-define=PERF=1` to keep them out of the default `flutter test` path. Not yet built.
 
 ## Investigation completed
 
@@ -75,9 +81,10 @@ dart run build_runner build
 
 ## Run History (recent; older entries archived)
 
-- 2026-07-03 15:00 UTC — run 28668255781 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions`. `TranscriptTrack` gains `==`/`hashCode` (7 fields). `watchTracks` ends in `.distinctBy(_listEqualsTranscriptTrack)`. 10 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-03`. `dart format` clean on touched files, `flutter analyze` clean (full repo), `flutter test` 785 pass / 2 pre-existing skip. PR draft created.
-- 2026-07-02 15:30 UTC — run 28599784313 — drafted `[perf-improver] perf(theme): key artwork palette LRU on path + size + mtime`. 12 new unit tests. Branch `perf-assist/artwork-palette-cache-invalidation`. → merged 2026-07-02 as PR #188.
-- 2026-06-30 — run 28455287886 — investigation only. Audited post-dedupe-wave state; PR #150 confirmed merged. Investigated artwork palette isolation (deferred). No new PR.
+- 2026-07-06 — run 28805344315 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions`. `TranscriptTrack` gains `==`/`hashCode` over 7 fields. `TranscriptRepository.watchTracks` ends in `.distinctBy(_listEqualsTranscriptTrack)`. Reuses shared `Stream.distinctBy(equals)` extension from #64/#65/#79/#137. 9 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-06`. `dart format` clean, `flutter analyze` clean, `flutter test` 793 pass / 2 pre-existing skip. PR draft created.
+- 2026-07-03 15:00 UTC — run 28668255781 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions` (first attempt; branch was lost on cleanup). → re-attempted this run.
+- 2026-07-02 15:30 UTC — run 28599784313 — drafted `[perf-improver] perf(theme): key artwork palette LRU on path + size + mtime` → merged as PR #188.
+- 2026-06-30 — run 28455287886 — investigation only. Audited post-dedupe-wave state.
 - 2026-06-29 — run 28387064065 — drafted `[perf-improver] perf(ui): stable item keys + findChildIndexCallback` → merged as PR #150.
 - 2026-06-28 — run 28387064065 — opened PR #137 transcript lines dedupe → merged.
 - 2026-06-27 — run 28291742117 — drafted recordings dedupe → merged as PR #79.
