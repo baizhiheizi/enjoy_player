@@ -5,7 +5,7 @@
 Native-first sign-in ([ADR-0027](../decisions/0027-native-auth-v2.md)) with **login-only app access** ([ADR-0031](../decisions/0031-login-only-access.md)):
 
 - **Login gate**: Signed-out users can only open `/sign-in` and `/sign-in/email`. Home, library, discover, player, settings, profile, credits, and YouTube login routes redirect to sign-in until authenticated.
-- **Welcome sign-in hub**: Single screen with welcome copy plus **Continue with Google** (Android/iOS/macOS), **Apple** (iOS/macOS), **Email OTP**, or **Other sign-in options** (OAuth PKCE). No guest mode, skip, or cancel-to-home.
+- **Welcome sign-in hub**: Single screen with welcome copy plus **Continue with Google** (Android always; iOS/macOS only once `kGoogleNativeSignInConfiguredOnApple` is flipped to `true` — see [Google OAuth client setup](#google-oauth-client-setup-manual-one-time)), **Apple** (iOS/macOS), **Email OTP**, or **Other sign-in options** (OAuth PKCE). No guest mode, skip, or cancel-to-home.
 - **Post-sign-in navigation**: Redirects preserve the intended destination via `?from=` (e.g. `profile`, `credits`, or an encoded path).
 - **Email OTP**: Single screen at `/sign-in/email` — enter email, then verify with a 6-digit pin on the same page. Shows the target email, supports resend with server-driven cooldown, and **Change email** to edit and resend. If the user opens the hub mid-OTP, a resume card links back to the email flow.
 - **No WebView poll flow** for Enjoy account auth — legacy `start_auth` + InAppWebView verification is removed from the client.
@@ -61,16 +61,21 @@ OAuth client IDs are **public identifiers**, not secrets — they are safe to em
    - `ios/Runner/Info.plist`: `GIDClientID` value with the new client ID, and the second `CFBundleURLSchemes` entry with that client ID reversed (e.g. `com.googleusercontent.apps.123456-abc`).
    - enjoy_web Rails credentials: `google.ios_client_id` with the same client ID (`bin/rails credentials:edit`).
 3. **macOS** — same as iOS: create a **macOS** (or reuse the iOS) type OAuth client, update `macos/Runner/Info.plist`'s `GIDClientID` + reversed `CFBundleURLSchemes`, and set `google.macos_client_id` in Rails credentials (optional — falls back to `ios_client_id`).
-4. Rebuild the app on each platform and confirm `signInForIdToken()` returns a non-null token, then that `POST /api/v1/auth/google` succeeds.
+4. **Flip `kGoogleNativeSignInConfiguredOnApple` to `true`** in [`google_auth_config.dart`](../../lib/features/auth/domain/google_auth_config.dart) in the same change as steps 2–3. Until both Info.plist files *and* this flag are updated together, `nativeGoogleSignInSupported` keeps the "Continue with Google" button hidden on iOS/macOS by design: `google_sign_in`'s iOS/macOS implementation reads `GIDClientID` straight from Info.plist and calling `GIDSignIn.signIn()` while it's still the placeholder throws an **uncaught, uncatchable native `NSInvalidArgumentException`** ("Your app is missing support for the following URL schemes: com.googleusercontent.apps...") that kills the whole app process — Dart `try`/`catch` cannot intercept it because the exception fires inside Google's native SDK before control returns to the Flutter engine. `GoogleSignInService.signInForIdToken()` also throws a `StateError` early as defense-in-depth for any call site that bypasses the UI gating.
+5. Rebuild the app on each platform and confirm `signInForIdToken()` returns a non-null token, then that `POST /api/v1/auth/google` succeeds.
 
 ## Secure storage configuration
 
-[`SecureTokenStore`](../../lib/features/auth/data/secure_token_store.dart) pins platform-specific `flutter_secure_storage` options rather than relying on defaults:
+[`SecureTokenStore`](../../lib/data/api/secure_token_store.dart) pins platform-specific `flutter_secure_storage` options rather than relying on defaults:
 
 - **Android** — `AndroidOptions()` (Keystore v10 with RSA-OAEP / AES-GCM). Tokens written by older builds with legacy ciphers are auto-migrated on first read; the migration is logged at info level so support can spot tenants on stale ciphers.
 - **iOS** — `IOSOptions(accessibility: KeychainAccessibility.first_unlock)` so tokens survive reboot but are gated on the first device unlock after boot, matching Apple's recommended posture for non-background tokens.
 
 If you need to add a new platform-specific option, add a constant in `SecureTokenStore` and document the migration story here — do not change the default globally.
+
+### Self-healing keychain writes (iOS/macOS)
+
+All writes go through `SecureTokenStore._writeResilient()`, which retries once after deleting the key if the platform layer reports `errSecDuplicateItem` (-25299, "The specified item already exists in the keychain."). This is a real gap in `flutter_secure_storage_darwin`'s `write()`: its existence check queries with `kSecAttrAccessible` included, but that attribute isn't part of a keychain item's primary key — so a leftover item stored under a *different* accessibility (an older app build, or a process killed mid-write) makes the existence check report "not found" while the subsequent `SecItemAdd` still collides on account/service, surfacing as an uncaught `PlatformException` that otherwise permanently blocks sign-in. Deleting-then-retrying searches without the accessibility filter, so it clears the stale item regardless of its accessibility level. `AuthCtrl.handleAuthCallbackUri` also catches any non-`AuthFailure` error from the token exchange (not just this one) and resets state to `AuthSignedOut` instead of leaving the flow stuck on the "waiting for browser" pane.
 
 ## Deep link lifecycle
 
