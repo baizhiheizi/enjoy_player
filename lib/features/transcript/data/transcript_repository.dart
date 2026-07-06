@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import '../../../core/application/app_language_catalog.dart';
 import '../../../core/ids/enjoy_ids.dart';
 import '../../../core/logging/log.dart';
+import '../../../core/utils/stream_distinct.dart';
 import '../../../core/utils/youtube_video_identity.dart';
 import '../../../data/api/services/ai/youtube_transcripts_api.dart';
 import '../../../data/api/services/transcript_api.dart';
@@ -47,6 +48,25 @@ TranscriptTrack _trackFromRow(TranscriptRow row) {
     label: row.label,
     trackIndex: row.trackIndex,
   );
+}
+
+/// Element-wise list comparison for [TranscriptTrack] lists.
+///
+/// Used by `watchTracks` to absorb identical re-emissions (e.g. when a
+/// sibling Drift table bumps but the resolved track list is unchanged)
+/// before the value reaches Riverpod listeners. The per-track `==`
+/// (via `TranscriptTrack.hashCode` / `operator ==`) handles the
+/// element-wise check.
+bool _listEqualsTranscriptTrack(
+  List<TranscriptTrack> previous,
+  List<TranscriptTrack> current,
+) {
+  if (identical(previous, current)) return true;
+  if (previous.length != current.length) return false;
+  for (var i = 0; i < previous.length; i++) {
+    if (previous[i] != current[i]) return false;
+  }
+  return true;
 }
 
 int _sourcePriority(String source) {
@@ -140,11 +160,14 @@ class TranscriptRepository {
         if (tt == null) {
           return Stream.value(<TranscriptTrack>[]);
         }
-        return _db.transcriptDao.watchAllForTarget(tt, mediaId).map((rows) {
-          final sorted = [...rows];
-          _sortTranscriptRows(sorted);
-          return sorted.map(_trackFromRow).toList();
-        });
+        return _db.transcriptDao
+            .watchAllForTarget(tt, mediaId)
+            .map((rows) {
+              final sorted = [...rows];
+              _sortTranscriptRows(sorted);
+              return sorted.map(_trackFromRow).toList();
+            })
+            .distinctBy(_listEqualsTranscriptTrack);
       });
 
   /// Orchestrates transcript resolution when media is opened.
