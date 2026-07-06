@@ -1,0 +1,21 @@
+{
+  "pages": [
+    { "slug": "Home", "title": "Home", "level": 1, "parent": null },
+    { "slug": "Architecture", "title": "Architecture", "level": 1, "parent": null, "sidebarSections": ["Layer map", "Runtime flow", "Engine strategy", "Routing"] },
+    { "slug": "Conventions", "title": "Conventions", "level": 1, "parent": null, "sidebarSections": ["Naming and layout", "Imports", "Code quality", "UI interaction", "Riverpod", "Testing", "Performance", "Sliver performance"] },
+    { "slug": "Player", "title": "Player", "level": 1, "parent": null, "sidebarSections": ["Engine contract", "Open / close flow", "Wide layout", "Fullscreen (desktop)", "Position quantization", "Synced local-only media"] },
+    { "slug": "Library-Discovery", "title": "Library & Discovery", "level": 1, "parent": null, "sidebarSections": ["Library UI", "Imports", "Discover", "Performance (cold start)"] },
+    { "slug": "Transcripts-Echo", "title": "Transcripts & Echo", "level": 1, "parent": null, "sidebarSections": ["Transcript", "Echo mode", "Shadow reading", "Pronunciation assessment", "Microphone selection"] },
+    { "slug": "Sync-Cloud", "title": "Sync & Cloud", "level": 1, "parent": null, "sidebarSections": ["Sync queue", "Conflict policy", "Cloud Tabs"] },
+    { "slug": "AI", "title": "AI", "level": 1, "parent": null, "sidebarSections": ["Capability layer", "BYOK providers", "Azure pronunciation"] },
+    { "slug": "Auth", "title": "Auth", "level": 1, "parent": null, "sidebarSections": ["WebView sign-in (v1)", "Native auth v2", "Login-only access"] },
+    { "slug": "Settings-Hotkeys", "title": "Settings & Hotkeys", "level": 1, "parent": null, "sidebarSections": ["Player prefs", "Hotkeys", "Theme and typography", "Diagnostics"] },
+    { "slug": "Persistence", "title": "Persistence", "level": 1, "parent": null, "sidebarSections": ["Drift tables", "Migrations", "Per-user isolation", "Recovery"] },
+    { "slug": "Lookups-Sharing", "title": "Lookups & Sharing", "level": 1, "parent": null, "sidebarSections": ["Dictionary lookup", "Practice poster", "Community credits"] },
+    { "slug": "Release-Packaging", "title": "Release & Packaging", "level": 1, "parent": null, "sidebarSections": ["Host matrix", "Update distribution", "Signing identity", "Landing page"] },
+    { "slug": "For-Agents", "title": "For Agents", "level": 1, "parent": null },
+    { "slug": "AGENTSmd", "title": "AGENTS.md", "level": 2, "parent": "For-Agents" },
+    { "slug": "llmstxt", "title": "llms.txt", "level": 2, "parent": "For-Agents" }
+  ],
+  "generatedAt": "2026-07-06T00:00:00Z"
+}

@@ -1,0 +1,121 @@
+{
+  "Home": {
+    "sourceFiles": [
+      { "path": "README.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Architecture": {
+    "sourceFiles": [
+      { "path": "docs/architecture.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Conventions": {
+    "sourceFiles": [
+      { "path": "docs/conventions.md", "hash": "n/a" },
+      { "path": "AGENTS.md", "hash": "n/a" },
+      { "path": ".specify/memory/constitution.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Player": {
+    "sourceFiles": [
+      { "path": "docs/features/player.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Library-Discovery": {
+    "sourceFiles": [
+      { "path": "docs/features/library.md", "hash": "n/a" },
+      { "path": "docs/features/discover.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Transcripts-Echo": {
+    "sourceFiles": [
+      { "path": "docs/features/transcript.md", "hash": "n/a" },
+      { "path": "docs/features/echo-mode.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Sync-Cloud": {
+    "sourceFiles": [
+      { "path": "docs/features/sync.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "AI": {
+    "sourceFiles": [
+      { "path": "docs/features/ai.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Auth": {
+    "sourceFiles": [
+      { "path": "docs/features/auth.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Settings-Hotkeys": {
+    "sourceFiles": [
+      { "path": "docs/features/settings.md", "hash": "n/a" },
+      { "path": "docs/features/hotkeys.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Persistence": {
+    "sourceFiles": [
+      { "path": "docs/features/local-database-recovery.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Lookups-Sharing": {
+    "sourceFiles": [
+      { "path": "docs/features/dictionary-lookup.md", "hash": "n/a" },
+      { "path": "docs/features/share-poster.md", "hash": "n/a" },
+      { "path": "docs/features/credits-usage.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "Release-Packaging": {
+    "sourceFiles": [
+      { "path": "docs/packaging.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "For-Agents": {
+    "sourceFiles": [
+      { "path": ".github/agentic-wiki/PAGES.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "AGENTSmd": {
+    "sourceFiles": [
+      { "path": ".github/agentic-wiki/PAGES.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  },
+  "llmstxt": {
+    "sourceFiles": [
+      { "path": ".github/agentic-wiki/PAGES.md", "hash": "n/a" }
+    ],
+    "templateHash": "n/a",
+    "generatedAt": "2026-07-06T00:00:00Z"
+  }
+}
