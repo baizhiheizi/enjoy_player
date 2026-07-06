@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Local database recovery**: detection + reset flow were both leaving users stuck. `recovery_actions.dart` now reads the `.sqlite` files from `getApplicationDocumentsDirectory()` — the directory `drift_flutter` actually writes into (the previous path was `ApplicationSupport/databases/`, which nothing populated), and `isUnrecoverableDatabaseError` now also matches `SqliteException`, `no such column`, `duplicate column name`, and `disk image malformed` (prior regex typo missed the `ite`). A successful reset invalidates `guestAppDatabaseProvider` / `appDatabaseProvider` / `appPreferencesCtrlProvider` via the new `performRecoveryReset` + `recoveryResetResultProvider` so the app reloads in place instead of forcing a manual relaunch, and `_fallbackLocalizationsDelegates` keeps `RecoverySurface` rendering before the router-backed `MaterialApp.router` resolves a locale. `RecoverySurface.onReset` is now injectable for tests. See [docs/features/local-database-recovery.md](docs/features/local-database-recovery.md).
+
 ## [0.3.1] - 2026-07-03
 
 ### Added
