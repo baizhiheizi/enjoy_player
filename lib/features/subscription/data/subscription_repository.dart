@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/subscription_api.dart';
-import 'package:enjoy_player/data/api/services/subscription_api_provider.dart';
+import 'package:enjoy_player/data/api/services/api_providers.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_session.dart';
 import 'package:enjoy_player/features/subscription/domain/purchase_request.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
