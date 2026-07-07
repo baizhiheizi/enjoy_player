@@ -74,22 +74,25 @@ class SubtitleActionsSection extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(t.radiusLg),
-          child: Column(
-            children: [
-              for (var i = 0; i < tiles.length; i++) ...[
-                if (i > 0)
-                  Divider(
-                    height: 1,
-                    indent: t.space16 + 24 + t.space16,
-                    endIndent: t.space16,
-                    color: cs.outlineVariant.withValues(alpha: 0.14),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              children: [
+                for (var i = 0; i < tiles.length; i++) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      indent: t.space16 + 24 + t.space16,
+                      endIndent: t.space16,
+                      color: cs.outlineVariant.withValues(alpha: 0.14),
+                    ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: t.space4),
+                    child: tiles[i],
                   ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: t.space4),
-                  child: tiles[i],
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
