@@ -91,29 +91,88 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
     GlobalCupertinoLocalizations.delegate,
   ];
 
-  MaterialApp _loadingMaterialApp(ThemeData theme) {
+  /// Centralized MaterialApp/MaterialApp.router construction for every
+  /// branch of [build].
+  ///
+  /// The loading, error, and router branches all configure the same
+  /// fallback localization delegates, supported locales, scaffold
+  /// messenger key, and theme; only `home` (loading/error) vs
+  /// `routerConfig + locale` (router) differs. Routing all three through
+  /// this single factory makes the missing-delegates bug fixed in 8f7d301
+  /// [RecoverySurface] crashing on `AppLocalizations.of(context)` in the
+  /// loading/error fallbacks structurally impossible to reintroduce.
+  ///
+  /// Pass `router: null` to build a plain `MaterialApp` with [home];
+  /// pass a [GoRouter] to build a `MaterialApp.router` with the supplied
+  /// [prefs] as the locale source.
+  Widget _baseMaterialApp({
+    required ThemeData theme,
+    required Widget home,
+    GoRouter? router,
+    AppPreferencesState? prefs,
+  }) {
+    if (router != null) {
+      return MaterialApp.router(
+        scaffoldMessengerKey: appScaffoldMessengerKey,
+        onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
+        theme: theme,
+        locale: prefs?.locale,
+        localizationsDelegates: _fallbackLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+        builder: _shellBuilder,
+      );
+    }
     return MaterialApp(
       scaffoldMessengerKey: appScaffoldMessengerKey,
       theme: theme,
       localizationsDelegates: _fallbackLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      home: home,
+    );
+  }
+
+  /// Wraps the router-configured app in its system-chrome overlay,
+  /// deep-link listener, update prompt, and (on desktop) hotkey listener.
+  /// Only the router variant needs a `builder`; the loading + error
+  /// fallbacks render their `home` directly.
+  Widget _shellBuilder(BuildContext context, Widget? child) {
+    const overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF09090B),
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarContrastEnforced: false,
+    );
+    final viewport = ConstrainedAppViewport(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: child ?? const SizedBox.shrink(),
+      ),
+    );
+    final hosted = AuthDeepLinkListener(
+      child: UpdatePromptHost(child: viewport),
+    );
+    return isDesktop ? AppHotkeysKeyboardListener(child: hosted) : hosted;
+  }
+
+  Widget _loadingBranch(ThemeData theme) {
+    return _baseMaterialApp(
+      theme: theme,
       home: const ConstrainedAppViewport(
         child: Scaffold(body: Center(child: SkeletonAppBootstrap())),
       ),
     );
   }
 
-  MaterialApp _errorMaterialApp(
+  Widget _errorBranch(
     ThemeData theme,
     Object error,
     StackTrace? stack,
   ) {
     final isDb = isUnrecoverableDatabaseError(error);
-    return MaterialApp(
-      scaffoldMessengerKey: appScaffoldMessengerKey,
+    return _baseMaterialApp(
       theme: theme,
-      localizationsDelegates: _fallbackLocalizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
       home: isDb
           ? RecoverySurface(
               error: error,
@@ -129,38 +188,16 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
     );
   }
 
-  Widget _routerApp({
+  Widget _routerBranch({
     required GoRouter router,
     required ThemeData theme,
     required AppPreferencesState prefs,
   }) {
-    return MaterialApp.router(
-      scaffoldMessengerKey: appScaffoldMessengerKey,
-      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
+    return _baseMaterialApp(
       theme: theme,
-      locale: prefs.locale,
-      localizationsDelegates: _fallbackLocalizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: router,
-      builder: (context, child) {
-        const overlayStyle = SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          systemNavigationBarColor: Color(0xFF09090B),
-          systemNavigationBarIconBrightness: Brightness.light,
-          systemNavigationBarContrastEnforced: false,
-        );
-        final viewport = ConstrainedAppViewport(
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: overlayStyle,
-            child: child ?? const SizedBox.shrink(),
-          ),
-        );
-        final hosted = AuthDeepLinkListener(
-          child: UpdatePromptHost(child: viewport),
-        );
-        return isDesktop ? AppHotkeysKeyboardListener(child: hosted) : hosted;
-      },
+      home: const SizedBox.shrink(),
+      router: router,
+      prefs: prefs,
     );
   }
 
@@ -186,14 +223,14 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
     final effective = live ?? _lastResolvedPrefs;
 
     if (prefsAsync.hasError && effective == null) {
-      return _errorMaterialApp(theme, prefsAsync.error!, prefsAsync.stackTrace);
+      return _errorBranch(theme, prefsAsync.error!, prefsAsync.stackTrace);
     }
 
     if (prefsAsync.isLoading && effective == null) {
-      return _loadingMaterialApp(theme);
+      return _loadingBranch(theme);
     }
 
-    return _routerApp(
+    return _routerBranch(
       router: router,
       theme: theme,
       prefs: effective ?? AppPreferencesState.initial,
