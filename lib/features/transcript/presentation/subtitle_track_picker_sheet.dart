@@ -17,6 +17,7 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import 'subtitle_track_picker_helpers.dart';
 import 'import_subtitle_language_dialog.dart';
 import 'transcript_busy_action.dart';
 import 'transcript_embedded_extract.dart';
@@ -29,88 +30,7 @@ import '../application/video_row_for_media_provider.dart';
 import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
 
-/// Horizontal inset aligned with section headers and list rows.
-double _sheetHorizontalPadding(EnjoyThemeTokens t) => t.space16 + t.space4;
-
-/// Inner padding for track options inside a collapsible card.
-EdgeInsetsDirectional _trackOptionPadding(EnjoyThemeTokens t) =>
-    EdgeInsetsDirectional.fromSTEB(t.space8, t.space4, t.space8, t.space4);
-
-ThemeData _trackPickerRadioTheme(BuildContext context) {
-  final cs = Theme.of(context).colorScheme;
-  return Theme.of(context).copyWith(
-    splashColor: cs.primary.withValues(alpha: 0.08),
-    highlightColor: Colors.transparent,
-    hoverColor: cs.onSurface.withValues(alpha: 0.04),
-    radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) return cs.primary;
-        return cs.onSurfaceVariant.withValues(alpha: 0.55);
-      }),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    ),
-    listTileTheme: ListTileThemeData(
-      tileColor: Colors.transparent,
-      selectedTileColor: Colors.transparent,
-      iconColor: cs.onSurfaceVariant,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      visualDensity: VisualDensity.compact,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(EnjoyThemeTokens.of(context).radiusSm),
-      ),
-    ),
-  );
-}
-
 enum SubtitleTrackPickerPresentation { sheet, dialog }
-
-enum _PickerSection { primary, secondary }
-
-/// Max height for an expanded track list before it scrolls internally.
-const double _kExpandedTrackListMaxHeight = 280;
-
-String _trackLabel(TranscriptTrack track) =>
-    track.label.isNotEmpty ? track.label : track.language;
-
-TranscriptTrack? _findTrack(List<TranscriptTrack> tracks, String? id) {
-  if (id == null) return null;
-  for (final track in tracks) {
-    if (track.id == id) return track;
-  }
-  return null;
-}
-
-String _providerLabel(AppLocalizations l10n, String source) {
-  switch (source) {
-    case 'official':
-      return l10n.subtitlesProviderOfficial;
-    case 'auto':
-      return l10n.subtitlesProviderAuto;
-    case 'ai':
-      return l10n.subtitlesProviderAi;
-    case 'user':
-      return l10n.subtitlesProviderUser;
-    default:
-      return source.toUpperCase();
-  }
-}
-
-({Color bg, Color fg}) _providerBadgeColors(ColorScheme cs, String source) {
-  switch (source) {
-    case 'official':
-      return (bg: cs.primaryContainer, fg: cs.onPrimaryContainer);
-    case 'auto':
-      return (bg: cs.tertiaryContainer, fg: cs.onTertiaryContainer);
-    case 'ai':
-      return (bg: cs.secondaryContainer, fg: cs.onSecondaryContainer);
-    case 'user':
-      return (bg: cs.surfaceContainerHighest, fg: cs.onSurfaceVariant);
-    default:
-      return (bg: cs.surfaceContainerHigh, fg: cs.onSurfaceVariant);
-  }
-}
 
 /// Shows a modal bottom sheet (narrow) or centered dialog (wide) for picking subtitles.
 Future<void> showSubtitleTrackPicker(
@@ -177,7 +97,7 @@ class SubtitleTrackPickerSheet extends ConsumerStatefulWidget {
 class _SubtitleTrackPickerSheetState
     extends ConsumerState<SubtitleTrackPickerSheet> {
   ScrollController? _dialogScroll;
-  _PickerSection? _expandedSection;
+  PickerSection? _expandedSection;
 
   @override
   void initState() {
@@ -270,7 +190,7 @@ class _SubtitleTrackPickerSheetState
     await ref.read(transcriptRepositoryProvider).deleteTranscript(track.id);
   }
 
-  void _toggleSection(_PickerSection section) {
+  void _toggleSection(PickerSection section) {
     setState(() {
       _expandedSection = _expandedSection == section ? null : section;
     });
@@ -300,9 +220,9 @@ class _SubtitleTrackPickerSheetState
       if (isFetching)
         Padding(
           padding: EdgeInsets.fromLTRB(
-            _sheetHorizontalPadding(t),
+            sheetHorizontalPadding(t),
             t.space8,
-            _sheetHorizontalPadding(t),
+            sheetHorizontalPadding(t),
             t.space8,
           ),
           child: Row(
@@ -329,7 +249,7 @@ class _SubtitleTrackPickerSheetState
         ),
       if (tracks.isEmpty)
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: _sheetHorizontalPadding(t)),
+          padding: EdgeInsets.symmetric(horizontal: sheetHorizontalPadding(t)),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLow.withValues(
@@ -337,9 +257,7 @@ class _SubtitleTrackPickerSheetState
               ),
               borderRadius: BorderRadius.circular(t.radiusLg),
               border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(
-                  alpha: 0.16,
-                ),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.16),
               ),
             ),
             child: Padding(
@@ -355,18 +273,18 @@ class _SubtitleTrackPickerSheetState
           ),
         )
       else
-        _CollapsibleTrackSection(
+        CollapsibleTrackSection(
           title: l10n.subtitlesPrimary,
-          isExpanded: _expandedSection == _PickerSection.primary,
-          onToggle: () => _toggleSection(_PickerSection.primary),
+          isExpanded: _expandedSection == PickerSection.primary,
+          onToggle: () => _toggleSection(PickerSection.primary),
           inlineExpandedList: inlineExpandedLists,
           selectionLabel: () {
-            final selected = _findTrack(tracks, primaryId);
+            final selected = findTrack(tracks, primaryId);
             return selected == null
                 ? l10n.subtitlesNotSelected
-                : _trackLabel(selected);
+                : trackLabel(selected);
           }(),
-          selectedTrack: _findTrack(tracks, primaryId),
+          selectedTrack: findTrack(tracks, primaryId),
           child: RadioGroup<String>(
             groupValue: primaryId,
             onChanged: (id) {
@@ -379,15 +297,15 @@ class _SubtitleTrackPickerSheetState
               );
             },
             child: Theme(
-              data: _trackPickerRadioTheme(context),
+              data: trackPickerRadioTheme(context),
               child: Column(
                 children: tracks
                     .map(
-                      (track) => _TrackOptionTile<String>(
+                      (track) => TrackOptionTile<String>(
                         value: track.id,
                         selected: primaryId == track.id,
                         track: track,
-                        padding: _trackOptionPadding(t),
+                        padding: trackOptionPadding(t),
                         onDelete: () => _deleteTrack(track),
                       ),
                     )
@@ -397,19 +315,19 @@ class _SubtitleTrackPickerSheetState
           ),
         ),
       SizedBox(height: t.space12),
-      _CollapsibleTrackSection(
+      CollapsibleTrackSection(
         title: l10n.subtitlesTranslation,
-        isExpanded: _expandedSection == _PickerSection.secondary,
-        onToggle: () => _toggleSection(_PickerSection.secondary),
+        isExpanded: _expandedSection == PickerSection.secondary,
+        onToggle: () => _toggleSection(PickerSection.secondary),
         inlineExpandedList: inlineExpandedLists,
         selectionLabel: () {
           if (secondaryId == null) return l10n.subtitlesNone;
-          final selected = _findTrack(tracks, secondaryId);
+          final selected = findTrack(tracks, secondaryId);
           return selected == null
               ? l10n.subtitlesNotSelected
-              : _trackLabel(selected);
+              : trackLabel(selected);
         }(),
-        selectedTrack: _findTrack(tracks, secondaryId),
+        selectedTrack: findTrack(tracks, secondaryId),
         child: RadioGroup<String?>(
           groupValue: secondaryId,
           onChanged: (id) {
@@ -421,20 +339,20 @@ class _SubtitleTrackPickerSheetState
             );
           },
           child: Theme(
-            data: _trackPickerRadioTheme(context),
+            data: trackPickerRadioTheme(context),
             child: Column(
               children: [
-                _NoneOptionTile(
-                  padding: _trackOptionPadding(t),
+                NoneOptionTile(
+                  padding: trackOptionPadding(t),
                   label: l10n.subtitlesNone,
                   selected: secondaryId == null,
                 ),
                 ...tracks.map(
-                  (track) => _TrackOptionTile<String?>(
+                  (track) => TrackOptionTile<String?>(
                     value: track.id,
                     selected: secondaryId == track.id,
                     track: track,
-                    padding: _trackOptionPadding(t),
+                    padding: trackOptionPadding(t),
                     onDelete: () => _deleteTrack(track),
                   ),
                 ),
@@ -444,8 +362,8 @@ class _SubtitleTrackPickerSheetState
         ),
       ),
       SizedBox(height: t.space16),
-      _SubtitleActionsSection(
-        horizontalPadding: _sheetHorizontalPadding(t),
+      SubtitleActionsSection(
+        horizontalPadding: sheetHorizontalPadding(t),
         showExtractEmbedded: showExtractEmbedded,
         showImportFile: showImportFile,
         onExtractEmbedded: _extractEmbedded,
@@ -461,9 +379,9 @@ class _SubtitleTrackPickerSheetState
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        _sheetHorizontalPadding(t),
+        sheetHorizontalPadding(t),
         t.space4,
-        _sheetHorizontalPadding(t),
+        sheetHorizontalPadding(t),
         t.space4,
       ),
       child: Row(
@@ -560,18 +478,14 @@ class _SubtitleTrackPickerSheetState
       data: whenData,
       loading: () => isDialog
           ? Padding(
-              padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
+              padding: EdgeInsets.all(sheetHorizontalPadding(t)),
               child: const SkeletonTranscript(lineCount: 4),
             )
           : SkeletonTranscript(lineCount: 12, controller: scrollCtrl),
       error: (error, _) {
         final errorBody = [
           SizedBox(height: t.space24),
-          Icon(
-            Icons.error_outline_rounded,
-            size: 40,
-            color: cs.error,
-          ),
+          Icon(Icons.error_outline_rounded, size: 40, color: cs.error),
           SizedBox(height: t.space12),
           Text(
             l10n.transcriptErrorFriendlyTitle,
@@ -581,33 +495,29 @@ class _SubtitleTrackPickerSheetState
           Text(
             l10n.transcriptErrorFriendlyHint,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: cs.onSurfaceVariant,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: t.space16),
           FilledButton.tonal(
-            onPressed: () => ref.invalidate(
-              allTranscriptsForMediaProvider(widget.mediaId),
-            ),
+            onPressed: () =>
+                ref.invalidate(allTranscriptsForMediaProvider(widget.mediaId)),
             child: Text(l10n.retry),
           ),
         ];
 
         if (isDialog) {
           return Padding(
-            padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: errorBody,
-            ),
+            padding: EdgeInsets.all(sheetHorizontalPadding(t)),
+            child: Column(mainAxisSize: MainAxisSize.min, children: errorBody),
           );
         }
 
         return ListView(
           controller: scrollCtrl,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(_sheetHorizontalPadding(t)),
+          padding: EdgeInsets.all(sheetHorizontalPadding(t)),
           children: errorBody,
         );
       },
@@ -646,9 +556,9 @@ class _SubtitleTrackPickerSheetState
           widget.presentation == SubtitleTrackPickerPresentation.dialog;
       final divider = Divider(
         height: 1,
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(
-          alpha: 0.18,
-        ),
+        color: Theme.of(
+          context,
+        ).colorScheme.outlineVariant.withValues(alpha: 0.18),
       );
       final tracksContent = _buildTracksContent(
         context: context,
@@ -709,8 +619,9 @@ class _SubtitleTrackPickerSheetState
   }
 }
 
-class _CollapsibleTrackSection extends StatelessWidget {
-  const _CollapsibleTrackSection({
+class CollapsibleTrackSection extends StatelessWidget {
+  const CollapsibleTrackSection({
+    super.key,
     required this.title,
     required this.isExpanded,
     required this.onToggle,
@@ -733,7 +644,7 @@ class _CollapsibleTrackSection extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final horizontal = _sheetHorizontalPadding(t);
+    final horizontal = sheetHorizontalPadding(t);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontal),
@@ -789,7 +700,7 @@ class _CollapsibleTrackSection extends StatelessWidget {
                               ),
                               if (!isExpanded) ...[
                                 SizedBox(height: t.space8),
-                                _SelectionSummary(
+                                SelectionSummary(
                                   label: selectionLabel,
                                   track: selectedTrack,
                                   compact: true,
@@ -867,11 +778,9 @@ class _CollapsibleTrackSection extends StatelessWidget {
                               ? child
                               : ConstrainedBox(
                                   constraints: const BoxConstraints(
-                                    maxHeight: _kExpandedTrackListMaxHeight,
+                                    maxHeight: kExpandedTrackListMaxHeight,
                                   ),
-                                  child: SingleChildScrollView(
-                                    child: child,
-                                  ),
+                                  child: SingleChildScrollView(child: child),
                                 ),
                         ),
                       )
@@ -885,8 +794,9 @@ class _CollapsibleTrackSection extends StatelessWidget {
   }
 }
 
-class _SelectionSummary extends StatelessWidget {
-  const _SelectionSummary({
+class SelectionSummary extends StatelessWidget {
+  const SelectionSummary({
+    super.key,
     required this.label,
     this.track,
     this.compact = false,
@@ -906,7 +816,7 @@ class _SelectionSummary extends StatelessWidget {
     final selected = track;
     final badgeColors = selected == null
         ? null
-        : _providerBadgeColors(cs, selected.source);
+        : providerBadgeColors(cs, selected.source);
 
     if (compact && selected != null && badgeColors != null) {
       return Row(
@@ -923,14 +833,14 @@ class _SelectionSummary extends StatelessWidget {
             ),
           ),
           SizedBox(width: t.space8),
-          _MetaChip(
-            label: _providerLabel(l10n, selected.source),
+          MetaChip(
+            label: providerLabel(l10n, selected.source),
             background: badgeColors.bg,
             foreground: badgeColors.fg,
           ),
           if (selected.language.isNotEmpty && selected.language != 'und') ...[
             SizedBox(width: t.space8),
-            _MetaChip(
+            MetaChip(
               label: selected.language.toUpperCase(),
               background: cs.surfaceContainerHighest,
               foreground: cs.onSurfaceVariant,
@@ -958,13 +868,13 @@ class _SelectionSummary extends StatelessWidget {
             spacing: t.space8,
             runSpacing: t.space4,
             children: [
-              _MetaChip(
-                label: _providerLabel(l10n, selected.source),
+              MetaChip(
+                label: providerLabel(l10n, selected.source),
                 background: badgeColors.bg,
                 foreground: badgeColors.fg,
               ),
               if (selected.language.isNotEmpty && selected.language != 'und')
-                _MetaChip(
+                MetaChip(
                   label: selected.language.toUpperCase(),
                   background: cs.surfaceContainerHighest,
                   foreground: cs.onSurfaceVariant,
@@ -977,8 +887,9 @@ class _SelectionSummary extends StatelessWidget {
   }
 }
 
-class _TrackOptionTile<T> extends StatelessWidget {
-  const _TrackOptionTile({
+class TrackOptionTile<T> extends StatelessWidget {
+  const TrackOptionTile({
+    super.key,
     required this.value,
     required this.selected,
     required this.track,
@@ -998,8 +909,8 @@ class _TrackOptionTile<T> extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final label = _trackLabel(track);
-    final badgeColors = _providerBadgeColors(cs, track.source);
+    final label = trackLabel(track);
+    final badgeColors = providerBadgeColors(cs, track.source);
 
     return Padding(
       padding: padding,
@@ -1039,13 +950,13 @@ class _TrackOptionTile<T> extends StatelessWidget {
               spacing: t.space8,
               runSpacing: t.space4,
               children: [
-                _MetaChip(
-                  label: _providerLabel(l10n, track.source),
+                MetaChip(
+                  label: providerLabel(l10n, track.source),
                   background: badgeColors.bg,
                   foreground: badgeColors.fg,
                 ),
                 if (track.language.isNotEmpty && track.language != 'und')
-                  _MetaChip(
+                  MetaChip(
                     label: track.language.toUpperCase(),
                     background: cs.surfaceContainerHighest,
                     foreground: cs.onSurfaceVariant,
@@ -1073,8 +984,9 @@ class _TrackOptionTile<T> extends StatelessWidget {
   }
 }
 
-class _NoneOptionTile extends StatelessWidget {
-  const _NoneOptionTile({
+class NoneOptionTile extends StatelessWidget {
+  const NoneOptionTile({
+    super.key,
     required this.padding,
     required this.label,
     required this.selected,
@@ -1125,8 +1037,9 @@ class _NoneOptionTile extends StatelessWidget {
   }
 }
 
-class _SubtitleActionsSection extends StatelessWidget {
-  const _SubtitleActionsSection({
+class SubtitleActionsSection extends StatelessWidget {
+  const SubtitleActionsSection({
+    super.key,
     required this.horizontalPadding,
     required this.showExtractEmbedded,
     required this.showImportFile,
@@ -1186,9 +1099,7 @@ class _SubtitleActionsSection extends StatelessWidget {
         decoration: BoxDecoration(
           color: cs.surfaceContainerLow.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(t.radiusLg),
-          border: Border.all(
-            color: cs.outlineVariant.withValues(alpha: 0.16),
-          ),
+          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.16)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(t.radiusLg),
@@ -1215,8 +1126,9 @@ class _SubtitleActionsSection extends StatelessWidget {
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({
+class MetaChip extends StatelessWidget {
+  const MetaChip({
+    super.key,
     required this.label,
     required this.background,
     required this.foreground,
