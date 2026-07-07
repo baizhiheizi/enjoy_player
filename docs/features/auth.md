@@ -64,6 +64,18 @@ OAuth client IDs are **public identifiers**, not secrets — they are safe to em
 4. **Flip `kGoogleNativeSignInConfiguredOnApple` to `true`** in [`google_auth_config.dart`](../../lib/features/auth/domain/google_auth_config.dart) in the same change as steps 2–3. Until both Info.plist files *and* this flag are updated together, `nativeGoogleSignInSupported` keeps the "Continue with Google" button hidden on iOS/macOS by design: `google_sign_in`'s iOS/macOS implementation reads `GIDClientID` straight from Info.plist and calling `GIDSignIn.signIn()` while it's still the placeholder throws an **uncaught, uncatchable native `NSInvalidArgumentException`** ("Your app is missing support for the following URL schemes: com.googleusercontent.apps...") that kills the whole app process — Dart `try`/`catch` cannot intercept it because the exception fires inside Google's native SDK before control returns to the Flutter engine. `GoogleSignInService.signInForIdToken()` also throws a `StateError` early as defense-in-depth for any call site that bypasses the UI gating.
 5. Rebuild the app on each platform and confirm `signInForIdToken()` returns a non-null token, then that `POST /api/v1/auth/google` succeeds.
 
+### Configuration status (as of last doc audit)
+
+The five steps above must land **together**. The current checkout is partially complete — keep this table honest as the missing piece lands:
+
+| Step | State | Notes |
+|------|-------|-------|
+| 2 — iOS `Info.plist` `GIDClientID` + reversed `CFBundleURLSchemes` | ✅ Configured (`93185289922-ostq1e99j92mq3l5dokeb904rgetkcvu`) | Expect matching `google.ios_client_id` in enjoy_web Rails credentials. |
+| 3 — macOS `Info.plist` `GIDClientID` + reversed `CFBundleURLSchemes` | ❌ Still `REPLACE_WITH_MACOS_OAUTH_CLIENT_ID` | First Google sign-in on macOS will crash (see flag caveat below). |
+| 4 — `kGoogleNativeSignInConfiguredOnApple = true` | ⚠️ Flipped, but **premature for macOS** | The button is shown on macOS today; macOS Info.plist must be filled in (step 3) in the same change that flipped this flag, or revert this flag until step 3 lands. |
+
+Until step 3 lands, do **not** ship a macOS build with `kGoogleNativeSignInConfiguredOnApple = true` to external testers — the gate's purpose is to keep the placeholder from triggering an uncatchable native crash. If macOS must ship before the OAuth client exists, revert the flag; the button hides itself again.
+
 ## Apple Sign-In setup (manual, one-time)
 
 Apple Sign-In fails **on the device** with `com.apple.AuthenticationServices.AuthorizationError error 1000` when the app binary is not signed with the Sign in with Apple entitlement — this happens inside `SignInWithApple.getAppleIDCredential()` **before** `POST /api/v1/auth/apple`, so backend credentials cannot fix it.
