@@ -7,9 +7,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Wiki documentation template at `.github/agentic-wiki/PAGES.md` consumed by the
+  `agentic-wiki-writer` workflow. Includes page outlines for Home, Getting
+  Started, Architecture, Player, Transcripts, Library, Sync, Auth, Settings,
+  Release & CI, Local Packages, and an index page for AI coding agents.
+- Google Sign-In configuration files (`google-services.json` /
+  `GoogleService-Info.plist`) flipped from `REPLACE_WITH_*` placeholders to
+  shipped defaults; the Web application client ID is referenced from
+  `kGoogleWebClientId` in `lib/features/auth/domain/google_auth_config.dart`.
+- `macos/Runner/ReleaseDirect.entitlements` — separate entitlements file for
+  Developer ID direct-download builds (sandbox + network + app keychain
+  group, **without** `com.apple.developer.applesignin`, which is unsupported
+  on Developer ID distribution).
+- Dicebear SVG avatar URLs are rewritten to PNG before being handed to
+  Flutter image decoders, fixing black/missing avatars in the community
+  activity card, account hero, and profile sidebar.
+
+### Changed
+
+- Database is now strictly sign-in gated — guest rekey imports and the
+  signed-out library fallback were removed in `35a2a57`. `guestAppDatabaseProvider`
+  was renamed to `deviceGlobalAppDatabaseProvider` so `enjoy_player.sqlite` is
+  clearly device-global settings (not a guest library). See
+  [ADR-0012](docs/decisions/0012-per-user-sqlite-isolation.md) and
+  [ADR-0031](docs/decisions/0031-login-only-access.md).
+- macOS local/Xcode builds no longer reference `com.apple.developer.applesignin`
+  (the capability is unsupported on Developer ID distribution and breaks
+  provisioning on macOS). iOS still ships with the entitlement on all
+  Runner configurations; macOS Direct builds use `ReleaseDirect.entitlements`
+  via `notarize_release.sh`.
+- `release.ps1` `--notarize` is now auto-enabled when `--publish` builds a
+  macOS zip, so direct-download publish flows no longer need to pass it
+  explicitly.
+- `--norsrc` was added to the macOS zip `ditto` invocation in the Apple
+  release CI to omit AppleDouble entries that broke framework seals when
+  unzipping downstream.
+
 ### Fixed
 
 - **Landing page store buttons**: iOS TestFlight and Android Play beta cards now stay visible when their URLs are unset in `landing/config.js`, rendering a disabled "Coming soon" button (`btn--disabled`, `aria-disabled="true"`) instead of dropping the cards or shipping a broken link. See [docs/packaging.md](docs/packaging.md#updating-store-links) and [ADR-0024](docs/decisions/0024-download-landing-page.md).
+- **macOS keychain cold-start (`-34018`)**: `keychain-access-groups` was
+  empty, which broke `flutter_secure_storage` in local debug builds and
+  trapped the app in an auth retry loop. The app's own keychain group
+  (`$(AppIdentifierPrefix)$(CFBundleIdentifier)`) is now set on Debug,
+  Profile, Release, and ReleaseDirect entitlements. See
+  [docs/features/auth.md](docs/features/auth.md).
+- **macOS Developer ID direct-download launch (`error 163`)**: Sign in with
+  Apple entitlements are unsupported on Developer ID builds; switching to
+  `ReleaseDirect.entitlements` and repacking from a stapled app before
+  publish unblocks notarized direct downloads on macOS 26.
+- **Apple Sign-In entitlements** on iOS and macOS: `ios/Runner/Runner.entitlements`
+  now ships `com.apple.developer.applesignin` referenced from all Runner
+  build configurations (`CODE_SIGN_ENTITLEMENTS`) so physical devices no
+  longer surface `AuthorizationError error 1000` before the API call.
+- **Auth cold-start resilience**: keychain and transient network failures
+  during startup are now treated as signed-out (`AuthSignedOut`) instead
+  of fatal errors. `AuthCtrl.handleAuthCallbackUri` also catches any
+  non-`AuthFailure` error from the token exchange and resets state, so
+  the sign-in hub is no longer trapped on the "waiting for browser" pane.
+- **Apple release test gate**: macOS Info.plist and Runner entitlements are
+  now consistent across local Xcode and notarized release flows, so the
+  release Apple workflow no longer gets blocked on missing plist keys.
+- **Apple CI on self-hosted mac runners**: `.github/actions/setup-flutter`
+  now installs CocoaPods and the iOS toolchain on the self-hosted mac
+  runner so `build_apple.yml` and `release_apple.yml` can run end-to-end
+  without manual `pod install`.
+- **Skipped-frame skeleton crash**: skeleton list placeholders no longer
+  crash inside nested scroll views when the parent scroll view computes
+  a negative scroll offset during initial layout.
+- **Drift `ADD COLUMN` migrations are now idempotent**: `_addColumnIfMissing`
+  short-circuits when the column already exists, so downgrading and
+  re-upgrading the schema no longer hangs the database open.
+- **Blank-window hang after a failed migration**: combined with the
+  idempotent ADD COLUMN fix above, the database opens even when the on-disk
+  schema includes columns added by a newer build.
+- **Local DB recovery paths**: `RecoverySurface` and `performRecoveryReset`
+  now point at the correct per-user / device-global database files and
+  the in-place reset flow is wired into the recovery UI for the user that
+  needs it (with a downgrade-safe migration test). See
+  [docs/features/local-database-recovery.md](docs/features/local-database-recovery.md).
+- **`TranscriptRepository.watchTracks` re-emissions**: identical watch
+  emissions are now deduped with `Stream.distinctBy(_listEqualsTranscriptTrack)`
+  so the always-mounted transport bar stops rebuilding on no-op Drift
+  ticks (#208). Mirrors the same fix already applied to `watchLines`.
+- **Apple Info.plist placeholder URL scheme** is now a valid reversed host
+  format (`com.googleusercontent.apps.REPLACE_WITH_CLIENT_ID`) so iOS
+  bundle validation stops rejecting the binary before Google Sign-In
+  configuration can be completed.
+
+### Security
+
+- Sign in with Apple entitlement is no longer included in the macOS
+  ReleaseDirect entitlements (unsupported on Developer ID distribution);
+  this narrows the entitlement set for direct-download macOS builds.
 
 ## [0.3.1] - 2026-07-03
 
