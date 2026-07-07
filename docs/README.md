@@ -19,6 +19,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
 | [features/](features/) | Product + dev | Feature behavior changes |
 | [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
+| [features/skeleton-loading.md](features/skeleton-loading.md) | Product + dev | Skeleton widget API, prebuilt placeholders, or sliver-safe placement rules change |
 | [features/hotkeys.md](features/hotkeys.md) | Product + dev | Keyboard shortcuts or customization behavior changes |
 | [features/auth.md](features/auth.md) | Product + dev | Sign-in, profile, API base URL, or settings sync behavior changes |
 | [features/credits-usage.md](features/credits-usage.md) | Product + dev | Credits usage audit (Worker `/credits/usages`) behavior changes |
