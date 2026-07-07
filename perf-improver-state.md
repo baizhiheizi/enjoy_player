@@ -56,14 +56,14 @@ dart run build_runner build
 - **Grid stable keys + findChildIndexCallback** (#150, merged 2026-06-29) — `ValueKey(entity.id)` + `findChildIndexCallback` on home/discover/channel-feed grids. New `lib/core/utils/sliver_key_index.dart`.
 - **Discover perf parent** (#106, closed) — semaphore, `List.unmodifiable`, scheduler gating.
 - **Artwork palette cache staleness** (#188, merged 2026-07-02) — LRU key `(path, size, mtime)`. `_lookupFresh` walks order list, drops stale entries.
-- **Transcript tracks Drift re-emissions** (this run, 2026-07-06) — `TranscriptRepository.watchTracks` (consumed in always-mounted `transport_cc_fullscreen`). Adds `==`/`hashCode` to `TranscriptTrack` (7 fields). `.distinctBy(_listEqualsTranscriptTrack)` over mapped stream. 9 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-06`.
+- **Transcript tracks Drift re-emissions** (2026-07-06 → PR #208, merged 2026-07-07; docs mirrored in PR #238, merged 2026-07-07) — `TranscriptRepository.watchTracks` (consumed in always-mounted `transport_cc_fullscreen`). Adds `==`/`hashCode` to `TranscriptTrack` (7 fields). `.distinctBy(_listEqualsTranscriptTrack)` over mapped stream. 9 new unit tests. Reuses shared `Stream.distinctBy(equals)` from #64. **Closed.**
 
 ### Confirmed hot paths / opportunities
 
-1. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `PaletteGenerator.fromImageProvider` decodes + analyses pixels on the UI isolate. `home_screen.dart` already routes around it via `generativeAccentForSeed`. `expanded_player_screen` + `global_transport_bar` pay the cost. LRU cache (32) makes revisits free. `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off per "no new dependencies without discussion" rule.
+1. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `PaletteGenerator.fromImageProvider` decodes + analyses pixels on the UI isolate. `home_screen.dart` already routes around it via `generativeAccentForSeed`. `expanded_player_screen` + `global_transport_bar` pay the cost. LRU cache (32) makes revisits free. `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off per "no new dependencies without discussion" rule. **Deferred until maintainer bumps or hand-rolls quantization.**
 2. **API client JSON decode** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. Audit (2026-06-30) confirmed `audio_api.audios()`/`transcript_api.transcripts()` are simple one-shots; no fan-out. Correct as-is.
-3. **Dictations DAO** — `DictationDao.watchByTarget` is not consumed in `lib/` today (only referenced in generated code). When hooked up, needs the same `.distinctBy(equals)` treatment.
-4. **Cosmetic** — `recommendedChannelAvatar` provider does `ref.watch(discoverSubscriptionsProvider)` redundantly (`discover_providers.dart:158-180`).
+3. **Dictations DAO** — `DictationDao.watchByTarget` is NOT consumed in `lib/` today (only referenced in generated code, no `dictationDao.` references in `lib/**/*.dart`). When hooked up, needs the same `.distinctBy(equals)` treatment (#56-style). Premature until consumer exists.
+4. **Cosmetic** — `recommendedChannelAvatar` provider does `ref.watch(discoverSubscriptionsProvider)` redundantly (`discover_providers.dart:158-180`). Out of scope here.
 
 ## Measurement infrastructure status
 
@@ -77,11 +77,13 @@ dart run build_runner build
 - `youtube_player_engine.dart` poll-loop timer — `_stopPolling()` confirmed in `dispose()`, `idleAfterClear()`, `onWebViewDisposed()`, and `ended`.
 - Issue #131 (transcript lines) — closed 2026-06-28 by PR #137.
 - Issue #106 (Discover perf parent) — closed 2026-06-28 by `@an-lee`.
+- Issue #219 (transcript tracks dedupe) — closed 2026-07-07 by PR #208 (code) + PR #238 (docs).
 - Artwork palette cache staleness (2026-07-02) — fixed by PR #188.
 
 ## Run History (recent; older entries archived)
 
-- 2026-07-06 — run 28805344315 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions`. `TranscriptTrack` gains `==`/`hashCode` over 7 fields. `TranscriptRepository.watchTracks` ends in `.distinctBy(_listEqualsTranscriptTrack)`. Reuses shared `Stream.distinctBy(equals)` extension from #64/#65/#79/#137. 9 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-06`. `dart format` clean, `flutter analyze` clean, `flutter test` 793 pass / 2 pre-existing skip. PR draft created.
+- 2026-07-07 15:30 UTC — run 28878529792 (this run). Investigation only: no new PR. Verified PR #208 (code, merged 2026-07-07 06:11) and PR #238 (docs/conventions mirroring #208, merged 2026-07-07 12:29) shipped the transcript-tracks dedupe. Remaining backlog items are either out of scope (palette isolate needs maintainer sign-off; JSON-decode threshold is correct as-is; dictations DAO has no consumer; `recommendedChannelAvatar` is cosmetic) or already closed. No actionable comments, no new code change, no issue updates warranting safe-output traffic other than the monthly summary + memory update.
+- 2026-07-06 15:30 UTC — run 28805344315 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions`. `TranscriptTrack` gains `==`/`hashCode` over 7 fields. `TranscriptRepository.watchTracks` ends in `.distinctBy(_listEqualsTranscriptTrack)`. Reuses the shared `Stream.distinctBy(equals)` extension from #64/#65/#79/#137. 9 new unit tests. Branch `perf-assist/transcript-tracks-dedupe-2026-07-06`. `dart format` clean, `flutter analyze` clean, `flutter test` 793 pass / 2 pre-existing skip. PR draft created. → merged 2026-07-07 as PR #208 (code, by `@an-lee`) + PR #238 (docs/conventions update, by `@an-lee`).
 - 2026-07-03 15:00 UTC — run 28668255781 — drafted `[perf-improver] perf(transcript): dedupe identical watchTracks emissions` (first attempt; branch was lost on cleanup). → re-attempted this run.
 - 2026-07-02 15:30 UTC — run 28599784313 — drafted `[perf-improver] perf(theme): key artwork palette LRU on path + size + mtime` → merged as PR #188.
 - 2026-06-30 — run 28455287886 — investigation only. Audited post-dedupe-wave state.
