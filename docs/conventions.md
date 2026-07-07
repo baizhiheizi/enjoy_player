@@ -111,3 +111,38 @@ SliverChildBuilderDelegate(
 [`findSliverIndexByPrefixedId<T>`](../lib/core/utils/sliver_key_index.dart) centralizes the key-shape lookup so the prefix used when constructing the `ValueKey` cannot drift from the prefix used in `findChildIndexCallback`. It returns `null` for any key that doesn't match (wrong type, wrong prefix, or no matching id), which tells the sliver framework to fall back to its default scan for that child.
 
 Applied to the home recents grid (`home-media-` prefix), the discover merged feed grid (`discover-feed-` prefix), and the channel feed grid (`channel-feed-` prefix) — see [features/library.md](features/library.md) and [features/discover.md](features/discover.md). Covered by 10 unit tests in `test/core/utils/sliver_key_index_test.dart`.
+
+## Stream dedupe (long live streams)
+
+Drift `watchX` queries emit a fresh list on **every** write that touches the underlying tables (or any table in the same query graph), even when the post-mapping value is identical to the previous one. A `StreamProvider` wrapping such a stream re-emits the new list to every listener, and Riverpod rebuilds the dependents — visible as redundant rebuilds for always-mounted UI (transport bar, app shell badges).
+
+The shared [`StreamDistinctExt.distinctBy<T>`](../lib/core/utils/stream_distinct.dart) extension collapses those no-op emissions before they reach listeners:
+
+```dart
+_db.transcriptDao.watchAllForTarget(tt, mediaId)
+    .map((rows) => rows.map(_trackFromRow).toList())
+    .distinctBy((prev, next) {
+      if (identical(prev, next)) return true;
+      if (prev.length != next.length) return false;
+      for (var i = 0; i < prev.length; i++) {
+        if (prev[i] != next[i]) return false;
+      }
+      return true;
+    });
+```
+
+Three rules keep the pattern cheap and correct:
+
+1. **Define value equality on the element type.** `List` defaults to identity, so a custom list comparator must compare elements via their own `==` / `hashCode`. Drift rows (`TranscriptRow`, `RecordingRow`, …) get this from generated code; hand-written domain models used by dedupe (e.g. `TranscriptTrack`, `Media`, `DiscoverChannel`, `FeedEntry`, `TranscriptLine`, `ArtworkPalette`) must override both.
+2. **Keep dedupe state per subscriber.** `StreamDistinctExt` stores the "last seen" reference in the per-subscription controller so two subscribers on the same source stream each see every emission — matches Drift's per-subscriber semantics and avoids cross-talk between consumers.
+3. **Forward errors and stay open.** The extension propagates upstream errors and only closes when the upstream completes, so a transient Drift error does not poison the rest of the pipeline.
+
+Applied to:
+
+- [`TranscriptRepository.watchTracks`](../lib/features/transcript/data/transcript_repository.dart) — drives `allTranscriptsForMediaProvider`, consumed by `TransportCcButton` (always mounted in the transport bar) and the subtitle track picker.
+- [`transcriptLinesProvider`](../lib/features/transcript/application/transcript_lines_provider.dart) — keeps the transcript panel from rebuilding on each session bump.
+- [`libraryMediaProvider`](../lib/features/library/application/library_media_provider.dart) — `List<Media>` for the home recents grid.
+- [`DiscoverRepository`](../lib/features/discover/data/discover_repository.dart) — `List<DiscoverChannel>` (subscriptions) and `List<FeedEntry>` (merged feed + channel feed).
+- [`AppDatabase`](../lib/data/db/app_database.dart) — `List<RecordingRow>` for shadow-reading playback state.
+
+Covered by 6 unit tests in `test/core/utils/stream_distinct_test.dart` (first-value forward, drop-on-equal, structural equality, per-subscriber isolation, error propagation) plus per-feature dedupe tests (`transcript_tracks_dedupe_test.dart`, `transcript_lines_provider_dedupe_test.dart`).
