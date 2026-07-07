@@ -3,7 +3,7 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/api/services/ai/ai_api_providers.dart';
-import '../../../data/api/services/transcript_api_provider.dart';
+import '../../../data/api/services/api_providers.dart';
 import '../../../data/db/app_database_provider.dart';
 import '../data/transcript_repository.dart';
 

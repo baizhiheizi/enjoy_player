@@ -53,4 +53,4 @@ final class SecureTokenStoreProvider
   }
 }
 
-String _$secureTokenStoreHash() => r'9f99fbed56753b9fa04d0b8f632124afd2395e16';
+String _$secureTokenStoreHash() => r'b01ce013417994c84901243eb0c0ea8ba9248e9b';

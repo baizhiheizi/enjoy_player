@@ -4,7 +4,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/data/api/services/stats_api_provider.dart';
+import 'package:enjoy_player/data/api/services/api_providers.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
