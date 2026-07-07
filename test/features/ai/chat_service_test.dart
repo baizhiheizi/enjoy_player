@@ -32,6 +32,31 @@ final class _FakeLlm implements LlmCapability {
   }
 }
 
+final class _ThrowingLlm implements LlmCapability {
+  const _ThrowingLlm(this._statusCode);
+  final int _statusCode;
+
+  @override
+  Future<String> generateChatCompletion({
+    required List<ChatMessage> messages,
+    double? temperature,
+    int? maxTokens,
+    Map<String, dynamic>? responseFormat,
+  }) async {
+    throw ApiException(message: 'boom', statusCode: _statusCode);
+  }
+
+  @override
+  Future<String> generateText({
+    String? systemPrompt,
+    required String userPrompt,
+    double? temperature,
+    int? maxTokens,
+  }) async {
+    throw UnimplementedError();
+  }
+}
+
 void main() {
   test('mapApiExceptionToAppFailure maps 402 to CreditsFailure', () {
     final f = mapApiExceptionToAppFailure(
@@ -54,4 +79,27 @@ void main() {
     );
     expect(out, 'echo:ping');
   });
+
+  test(
+    'ChatService.complete translates ApiException via guardAiCall to an '
+    'AppFailure subtree member',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          llmCapabilityProvider.overrideWithValue(const _ThrowingLlm(503)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final chat = container.read(chatServiceProvider);
+      await expectLater(
+        chat.complete(
+          messages: const [
+            ChatMessage(role: ChatMessage.roleUser, content: 'ping'),
+          ],
+        ),
+        throwsA(isA<AppFailure>()),
+      );
+    },
+  );
 }

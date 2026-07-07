@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/features/ai/application/ai_api_failures.dart';
 import 'package:enjoy_player/features/ai/application/ai_capability_providers.dart';
 import 'package:enjoy_player/features/ai/domain/chat_message.dart';
@@ -21,13 +20,9 @@ final class AsrService {
 
   final Ref _ref;
 
-  Future<AsrResult> transcribe(AsrRequest request) async {
-    try {
-      return await _ref.read(asrCapabilityProvider).transcribe(request);
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  Future<AsrResult> transcribe(AsrRequest request) => guardAiCall(
+        () => _ref.read(asrCapabilityProvider).transcribe(request),
+      );
 }
 
 final class ChatService {
@@ -39,19 +34,14 @@ final class ChatService {
     required List<ChatMessage> messages,
     double? temperature,
     int? maxTokens,
-  }) async {
-    try {
-      return await _ref
-          .read(llmCapabilityProvider)
-          .generateChatCompletion(
-            messages: messages,
-            temperature: temperature,
-            maxTokens: maxTokens,
-          );
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  }) =>
+      guardAiCall(
+        () => _ref.read(llmCapabilityProvider).generateChatCompletion(
+              messages: messages,
+              temperature: temperature,
+              maxTokens: maxTokens,
+            ),
+      );
 }
 
 final class TranslationService {
@@ -64,20 +54,15 @@ final class TranslationService {
     required String sourceLanguage,
     required String targetLanguage,
     bool? forceRefresh,
-  }) async {
-    try {
-      return await _ref
-          .read(translationCapabilityProvider)
-          .translate(
-            text: text,
-            sourceLanguage: sourceLanguage,
-            targetLanguage: targetLanguage,
-            forceRefresh: forceRefresh,
-          );
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  }) =>
+      guardAiCall(
+        () => _ref.read(translationCapabilityProvider).translate(
+              text: text,
+              sourceLanguage: sourceLanguage,
+              targetLanguage: targetLanguage,
+              forceRefresh: forceRefresh,
+            ),
+      );
 }
 
 final class ContextualTranslationService {
@@ -90,20 +75,15 @@ final class ContextualTranslationService {
     required String sourceLanguage,
     required String targetLanguage,
     String? context,
-  }) async {
-    try {
-      return await _ref
-          .read(contextualTranslationCapabilityProvider)
-          .translate(
-            text: text,
-            sourceLanguage: sourceLanguage,
-            targetLanguage: targetLanguage,
-            context: context,
-          );
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  }) =>
+      guardAiCall(
+        () => _ref.read(contextualTranslationCapabilityProvider).translate(
+              text: text,
+              sourceLanguage: sourceLanguage,
+              targetLanguage: targetLanguage,
+              context: context,
+            ),
+      );
 }
 
 final class DictionaryService {
@@ -116,20 +96,15 @@ final class DictionaryService {
     required String sourceLanguage,
     required String targetLanguage,
     bool? forceRefresh,
-  }) async {
-    try {
-      return await _ref
-          .read(dictionaryCapabilityProvider)
-          .lookupDictionary(
-            word: word,
-            sourceLanguage: sourceLanguage,
-            targetLanguage: targetLanguage,
-            forceRefresh: forceRefresh,
-          );
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  }) =>
+      guardAiCall(
+        () => _ref.read(dictionaryCapabilityProvider).lookupDictionary(
+              word: word,
+              sourceLanguage: sourceLanguage,
+              targetLanguage: targetLanguage,
+              forceRefresh: forceRefresh,
+            ),
+      );
 }
 
 final class TtsService {
@@ -137,13 +112,9 @@ final class TtsService {
 
   final Ref _ref;
 
-  Future<TtsResult> synthesize(TtsRequest request) async {
-    try {
-      return await _ref.read(ttsCapabilityProvider).synthesize(request);
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  Future<TtsResult> synthesize(TtsRequest request) => guardAiCall(
+        () => _ref.read(ttsCapabilityProvider).synthesize(request),
+      );
 }
 
 final class AssessmentService {
@@ -151,13 +122,9 @@ final class AssessmentService {
 
   final Ref _ref;
 
-  Future<AssessmentResult> assess(AssessmentRequest request) async {
-    try {
-      return await _ref.read(assessmentCapabilityProvider).assess(request);
-    } on ApiException catch (e) {
-      throw mapApiExceptionToAppFailure(e);
-    }
-  }
+  Future<AssessmentResult> assess(AssessmentRequest request) => guardAiCall(
+        () => _ref.read(assessmentCapabilityProvider).assess(request),
+      );
 }
 
 @Riverpod(keepAlive: true)
