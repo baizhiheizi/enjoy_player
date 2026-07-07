@@ -18,6 +18,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'subtitle_track_picker_helpers.dart';
+import 'subtitle_track_picker_primitives.dart';
 import 'import_subtitle_language_dialog.dart';
 import 'transcript_busy_action.dart';
 import 'transcript_embedded_extract.dart';
@@ -1120,44 +1121,6 @@ class SubtitleActionsSection extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class MetaChip extends StatelessWidget {
-  const MetaChip({
-    super.key,
-    required this.label,
-    required this.background,
-    required this.foreground,
-  });
-
-  final String label;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.space8,
-        vertical: t.space4 - 1,
-      ),
-      decoration: BoxDecoration(
-        color: background.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        border: Border.all(color: foreground.withValues(alpha: 0.14)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: foreground,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.25,
-          height: 1.1,
         ),
       ),
     );
