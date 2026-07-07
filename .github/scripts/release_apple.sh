@@ -43,6 +43,11 @@ done
 
 release_log_publish_only
 
+if [[ "${RELEASE_PUBLISH}" == true && "${NOTARIZE}" != true && "${RELEASE_SKIP_BUILD}" != true ]]; then
+  echo ">>> macOS direct download requires notarization; enabling --notarize (--publish)"
+  NOTARIZE=true
+fi
+
 if [[ "${RELEASE_SKIP_BUILD}" == true ]]; then
   release_check_disk_space "${root}" 512
 elif [[ "${MACOS_ONLY}" == true ]]; then

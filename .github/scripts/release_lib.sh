@@ -341,7 +341,12 @@ release_pack_macos_zip() {
   version="$(release_version)"
   zip="${root}/EnjoyPlayer-macOS-v${version}.zip"
   rm -f "${zip}"
-  ditto -c -k --keepParent "${app_path}" "${zip}"
+  # Omit AppleDouble (._*) entries; they break embedded framework seals after unzip/Archive Utility.
+  ditto -c -k --norsrc --keepParent "${app_path}" "${zip}"
+  if unzip -l "${zip}" | grep -q '/\._'; then
+    echo "macOS zip contains AppleDouble entries; codesign will break after extraction." >&2
+    exit 1
+  fi
   bash "${root}/.github/scripts/rename_release_artifacts.sh" apple
 }
 

@@ -152,7 +152,7 @@ if [ "${SIGN_ONLY}" = true ]; then
 fi
 
 echo "==> Creating notarization zip"
-ditto -c -k --keepParent "${APP_BUNDLE}" "${ZIP_PATH}"
+ditto -c -k --norsrc --keepParent "${APP_BUNDLE}" "${ZIP_PATH}"
 zip_mb="$(du -m "${ZIP_PATH}" | awk '{print $1}')"
 echo "    Upload size: ~${zip_mb}MB (large bundles may need several minutes on slow networks)"
 

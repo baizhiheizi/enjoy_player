@@ -219,7 +219,7 @@ brew bundle install --file=macos/Brewfile
 (cd macos && pod install)
 bash .github/scripts/build_macos_release.sh
 ./macos/scripts/notarize_release.sh "build/macos/Build/Products/Release/Enjoy Player.app"
-ditto -c -k --keepParent "build/macos/Build/Products/Release/Enjoy Player.app" \
+ditto -c -k --norsrc --keepParent "build/macos/Build/Products/Release/Enjoy Player.app" \
   "EnjoyPlayer-macOS-v$(bash .github/scripts/read_pubspec_version.sh).zip"
 ```
 

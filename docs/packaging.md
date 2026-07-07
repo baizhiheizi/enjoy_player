@@ -74,7 +74,7 @@ flowchart TD
 | `-Publish` | `--publish` | Build + upload to `dl.enjoy.bot` |
 | `-FeedsOnly` | `--feeds-only` | Build local update feeds only (no S3) |
 
-Apple-only flags: `--notarize` (macOS direct download), `--testflight` (upload IPA), `--macos-only` (skip iOS build).
+Apple-only flags: `--notarize` (macOS direct download; auto-enabled when `--publish` builds a macOS zip), `--testflight` (upload IPA), `--macos-only` (skip iOS build).
 
 ---
 
