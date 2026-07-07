@@ -25,12 +25,31 @@ case "${configuration}" in
     ;;
 esac
 
-xcodebuild \
-  -workspace ios/Runner.xcworkspace \
-  -scheme Runner \
-  -configuration "${configuration}" \
-  -sdk iphoneos \
-  -destination 'generic/platform=iOS' \
-  -derivedDataPath build/ios/DerivedData \
-  CODE_SIGNING_ALLOWED=NO \
-  build
+xcodebuild_with_retry() {
+  local attempt output status
+  for attempt in 1 2 3; do
+    if output="$(xcodebuild \
+      -workspace ios/Runner.xcworkspace \
+      -scheme Runner \
+      -configuration "${configuration}" \
+      -sdk iphoneos \
+      -destination 'generic/platform=iOS' \
+      -derivedDataPath build/ios/DerivedData \
+      CODE_SIGNING_ALLOWED=NO \
+      build 2>&1)"; then
+      echo "${output}"
+      return 0
+    fi
+    status=$?
+    echo "${output}" >&2
+    if [[ "${attempt}" -lt 3 ]] \
+      && echo "${output}" | grep -qE 'Could not resolve package dependencies|Couldn.t fetch updates from remote repositories'; then
+      echo "xcodebuild SPM resolve failed (attempt ${attempt}/3); retrying in 15s…" >&2
+      sleep 15
+      continue
+    fi
+    return "${status}"
+  done
+}
+
+xcodebuild_with_retry

@@ -198,32 +198,39 @@ class SkeletonMediaList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return ListView.separated(
+    return Padding(
       padding: EdgeInsets.symmetric(horizontal: t.space16, vertical: t.space8),
-      itemCount: itemCount,
-      separatorBuilder: (context, index) => SizedBox(height: t.space8),
-      itemBuilder: (context, i) {
-        return Row(
-          children: [
-            Skeleton.box(
-              width: 56,
-              height: 56,
-              borderRadius: BorderRadius.circular(t.radiusMd),
-            ),
-            SizedBox(width: t.space16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Skeleton.line(width: double.infinity, height: 16),
-                  SizedBox(height: t.space8),
-                  Skeleton.line(width: i.isEven ? 180.0 : 220.0, height: 12),
-                ],
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < itemCount; i++) ...[
+            if (i > 0) SizedBox(height: t.space8),
+            Row(
+              children: [
+                Skeleton.box(
+                  width: 56,
+                  height: 56,
+                  borderRadius: BorderRadius.circular(t.radiusMd),
+                ),
+                SizedBox(width: t.space16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Skeleton.line(width: double.infinity, height: 16),
+                      SizedBox(height: t.space8),
+                      Skeleton.line(
+                        width: i.isEven ? 180.0 : 220.0,
+                        height: 12,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
-        );
-      },
+        ],
+      ),
     );
   }
 }
@@ -236,6 +243,8 @@ class SkeletonMediaGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.all(t.space16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -279,32 +288,39 @@ class SkeletonSettingsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return ListView.separated(
+    return Padding(
       padding: EdgeInsets.all(t.space16),
-      itemCount: rowCount,
-      separatorBuilder: (context, index) => SizedBox(height: t.space12),
-      itemBuilder: (context, i) {
-        return Row(
-          children: [
-            Skeleton.box(
-              width: 36,
-              height: 36,
-              borderRadius: BorderRadius.circular(t.radiusSm),
-            ),
-            SizedBox(width: t.space12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Skeleton.line(width: i % 3 == 0 ? 220.0 : 160.0, height: 15),
-                  SizedBox(height: t.space8),
-                  Skeleton.line(width: 280, height: 12),
-                ],
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < rowCount; i++) ...[
+            if (i > 0) SizedBox(height: t.space12),
+            Row(
+              children: [
+                Skeleton.box(
+                  width: 36,
+                  height: 36,
+                  borderRadius: BorderRadius.circular(t.radiusSm),
+                ),
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Skeleton.line(
+                        width: i % 3 == 0 ? 220.0 : 160.0,
+                        height: 15,
+                      ),
+                      SizedBox(height: t.space8),
+                      Skeleton.line(width: 280, height: 12),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
-        );
-      },
+        ],
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/core/utils/avatar_url.dart';
 
 int? _intFromJson(Object? value) {
   if (value == null) return null;
@@ -15,7 +16,7 @@ class ActiveUser {
     return ActiveUser(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
-      avatarUrl: json['avatarUrl'] as String?,
+      avatarUrl: rasterAvatarUrl(json['avatarUrl'] as String?),
     );
   }
   const ActiveUser({required this.id, required this.name, this.avatarUrl});

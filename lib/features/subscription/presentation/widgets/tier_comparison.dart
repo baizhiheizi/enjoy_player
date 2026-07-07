@@ -36,9 +36,12 @@ class TierComparison extends StatelessWidget {
           children: [
             Icon(Icons.compare_arrows_rounded, size: 22, color: Theme.of(context).colorScheme.primary),
             SizedBox(width: t.space8),
-            Text(
-              l10n.subscriptionTierComparisonTitle,
-              style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            Flexible(
+              child: Text(
+                l10n.subscriptionTierComparisonTitle,
+                style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
@@ -53,6 +56,7 @@ class TierComparison extends StatelessWidget {
               dailyCredits: l10n.subscriptionTierFreeDailyCredits,
               features: _freeFeatures(l10n),
               isCurrent: currentTier == SubscriptionTier.free,
+              stretchVertically: wide,
               actionLabel: currentTier == SubscriptionTier.free
                   ? l10n.subscriptionCurrentPlan
                   : l10n.subscriptionUpgrade,
@@ -69,6 +73,7 @@ class TierComparison extends StatelessWidget {
               isCurrent: currentTier == SubscriptionTier.pro,
               emphasize: true,
               showRecommended: currentTier == SubscriptionTier.free,
+              stretchVertically: wide,
               actionLabel: currentTier == SubscriptionTier.pro
                   ? l10n.subscriptionExtend
                   : l10n.subscriptionUpgrade,
@@ -140,6 +145,7 @@ class _PlanCard extends StatelessWidget {
     required this.actionLabel,
     this.emphasize = false,
     this.showRecommended = false,
+    this.stretchVertically = false,
     this.onAction,
   });
 
@@ -151,6 +157,7 @@ class _PlanCard extends StatelessWidget {
   final bool isCurrent;
   final bool emphasize;
   final bool showRecommended;
+  final bool stretchVertically;
   final String actionLabel;
   final VoidCallback? onAction;
 
@@ -161,13 +168,12 @@ class _PlanCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final card = SizedBox(
-      height: double.infinity,
-      child: EnjoyCard(
-        padding: EdgeInsets.all(t.space20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    final card = EnjoyCard(
+      padding: EdgeInsets.all(t.space20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: stretchVertically ? MainAxisSize.max : MainAxisSize.min,
+        children: [
             SizedBox(
               height: 28,
               child: Align(
@@ -256,7 +262,8 @@ class _PlanCard extends StatelessWidget {
               ),
               SizedBox(height: t.space8),
             ],
-            const Spacer(),
+            if (stretchVertically) const Spacer(),
+            if (!stretchVertically) SizedBox(height: t.space16),
             if (onAction == null)
               EnjoyButton.secondary(
                 onPressed: null,
@@ -269,14 +276,11 @@ class _PlanCard extends StatelessWidget {
               ),
           ],
         ),
-      ),
     );
 
     if (!emphasize) return card;
 
-    return SizedBox(
-      height: double.infinity,
-      child: DecoratedBox(
+    return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(t.radiusLg + 2),
           gradient: LinearGradient(
@@ -293,10 +297,9 @@ class _PlanCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(1.5),
-          child: card,
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(1.5),
+        child: card,
       ),
     );
   }

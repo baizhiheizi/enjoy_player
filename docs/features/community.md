@@ -10,7 +10,7 @@ The community activity card surfaces **active learners** on the signed-in **Home
 - **Timeout**: the request uses an **8-second client timeout**; on timeout (or any other error), the card hides / shows no data rather than a retry affordance (matches web parity).
 - **Variants**: `CommunityActivityCardVariant.card` (full stats + up to 8 avatars; tablet/desktop) and `CommunityActivityCardVariant.summary` (compact headline + up to 4 avatars; mobile insight strip).
 - **Today stats**: when the server returns `recordingsCountToday` / `recordingsDurationToday`, the card shows the aggregated practice volume; otherwise the stat row is hidden.
-- **Avatars**: rendered with `CachedNetworkImage` from `avatarUrl`; missing avatars fall back to **initials** derived from the user's name (`_initials` in `community_activity_card.dart`).
+- **Avatars**: rendered with `CachedNetworkImage` from `avatarUrl` (Dicebear SVG URLs are rewritten to PNG via `rasterAvatarUrl` in `lib/core/utils/avatar_url.dart` because Flutter cannot decode SVG with raster image widgets); missing avatars fall back to **initials** derived from the user's name (`_initials` in `community_activity_card.dart`).
 - **Layout**: on wide viewports (≈720px+) Today's Goal and Community Activity cards share a responsive two-column row above the recent media grid; on narrow screens they stack.
 
 ## Signed-in gating

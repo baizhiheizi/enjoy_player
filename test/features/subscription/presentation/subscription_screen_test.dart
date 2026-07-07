@@ -111,6 +111,30 @@ void main() {
     expect(find.text(l10n.retry), findsOneWidget);
   });
 
+  testWidgets('renders tier comparison on narrow phone without layout errors', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      _harness(
+        const SubscriptionScreen(),
+        overrides: [
+          subscriptionStatusProvider.overrideWith(
+            (ref) async => const SubscriptionStatus(
+              subscriptionActive: true,
+              subscriptionTier: SubscriptionTier.free,
+            ),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('iOS upgrade shows coming-soon dialog not purchase sheet', (
     tester,
   ) async {

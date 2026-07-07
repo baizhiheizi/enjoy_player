@@ -104,6 +104,7 @@ class AuthCtrl extends _$AuthCtrl {
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) return;
       if (gen != _flowGeneration) return;
+      _log.warning('apple sign-in authorization failed: ${e.code} ${e.message}');
       throw AuthFailure(e.message, code: AuthFailureCode.invalidCredentials);
     } on AuthFailure {
       rethrow;
@@ -222,6 +223,16 @@ class AuthCtrl extends _$AuthCtrl {
       _cancelPkceTimeout();
       state = const AsyncData(AuthSignedOut());
       rethrow;
+    } catch (e, st) {
+      // Any other failure here (e.g. a secure-storage PlatformException
+      // persisting tokens) must still reset state and surface to the user —
+      // otherwise the flow stays stuck on the "waiting for browser" pane
+      // forever even though the server-side exchange already succeeded.
+      if (gen != _flowGeneration) return;
+      _cancelPkceTimeout();
+      state = const AsyncData(AuthSignedOut());
+      _log.warning('web PKCE callback failed', e, st);
+      throw AuthFailure('$e', code: AuthFailureCode.unknown);
     }
   }
 

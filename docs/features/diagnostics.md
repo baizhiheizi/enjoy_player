@@ -29,7 +29,7 @@ Builds a zip containing:
 - Rotated log files under `logs/`
 - `manifest.json` (app version, build number, platform, distribution channel, build mode, export time, verbose flag, optional locale)
 
-Default filename: `EnjoyPlayer-diagnostics-<date>.zip`. User chooses save location via the platform file picker.
+Default filename: `EnjoyPlayer-diagnostics-<date>.zip`. On iOS and Android, the system share sheet is used (save to Files, AirDrop, etc.). On desktop, the user chooses save location via the platform file picker.
 
 ## Privacy
 

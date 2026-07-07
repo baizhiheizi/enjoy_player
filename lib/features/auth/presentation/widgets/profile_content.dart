@@ -17,6 +17,7 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -521,7 +522,7 @@ class _ProfileHeroCard extends StatelessWidget {
               CircleAvatar(
                 radius: 32,
                 backgroundImage: p.avatarUrl != null && p.avatarUrl!.isNotEmpty
-                    ? NetworkImage(p.avatarUrl!)
+                    ? NetworkImage(rasterAvatarUrl(p.avatarUrl!)!)
                     : null,
                 child: p.avatarUrl == null || p.avatarUrl!.isEmpty
                     ? Icon(Icons.person_rounded, size: 36, color: cs.primary)

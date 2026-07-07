@@ -56,10 +56,10 @@ Runners are registered via `gh-sr` (`gh sr setup && gh sr up`), except where not
 |----------|--------|---------------------|
 | CI, Codegen drift, Android APK smoke, Release Android | `self-hosted`, `Linux` | `baizhiheizi` (org-scoped, `profile: agentic`, shared with gh-aw) |
 | gh-aw agentic workflows (test-improver, repo-assist, …) | `self-hosted`, `linux`, `agentic` | `baizhiheizi` (same pool as above) |
-| Build Apple, Release Apple | `self-hosted`, `macos`, `flutter` | `baizhiheizi-mac` (org-scoped, shared) |
+| Build Apple, Release Apple | `self-hosted`, `macos` | `baizhiheizi-mac` (org-scoped, shared) |
 | Build Windows, Release Windows | `self-hosted`, `windows`, `flutter` | `enjoy-player-win` (repo-scoped, dedicated) |
 
-The **`flutter`** label is a distinguishing custom label added to the macOS and Windows runner blocks so this repo's workflows can target them explicitly, even though today they're the only pool on those hosts. The Linux CI jobs deliberately do **not** add a distinguishing label — they intentionally share the same pool as the gh-aw agentic runners (see below), matched purely by `self-hosted` + `Linux`.
+The **`macos`** label (GitHub's default for macOS self-hosted runners) is what Apple workflows target. An optional **`flutter`** custom label can be added to runner blocks for stricter routing, but it is **not** required by [`build_apple.yml`](../.github/workflows/build_apple.yml) or [`release_apple.yml`](../.github/workflows/release_apple.yml).
 
 `enjoy-player-win` is a **dedicated, repo-scoped** native Windows runner (introduced to close the gap where no self-hosted Windows runner previously existed — Release Windows used to run on GitHub-hosted `windows-latest`). Unlike the shared Linux/macOS org pools, it only serves `baizhiheizi/enjoy_player`.
 

@@ -39,6 +39,16 @@ else
   ok "Developer ID cert: ${dev_id}"
 fi
 
+dist_id="$(
+  security find-identity -v -p codesigning 2>/dev/null \
+    | awk -F'"' '/Apple Distribution/ { print $2; exit }'
+)"
+if [[ -z "${dist_id}" ]]; then
+  warn "Apple Distribution cert missing — TestFlight / App Store IPA signing will fail"
+else
+  ok "Apple Distribution cert: ${dist_id}"
+fi
+
 if [[ -n "${dev_id}" ]]; then
   probe="$(mktemp -t enjoy-codesign-probe)"
   cp /bin/ls "${probe}"

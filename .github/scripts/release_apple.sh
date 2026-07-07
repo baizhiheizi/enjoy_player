@@ -69,6 +69,15 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   (cd "${root}/macos" && pod install)
 
   if [[ "${MACOS_ONLY}" != true ]]; then
+    dist_id="$(
+      security find-identity -v -p codesigning 2>/dev/null \
+        | awk -F'"' '/Apple Distribution/ { print $2; exit }'
+    )"
+    if [[ -z "${dist_id}" ]]; then
+      echo "Apple Distribution certificate missing in keychain — iOS IPA / TestFlight will fail." >&2
+      echo "Install via Xcode (Signing & Capabilities) or import the .p12, then retry." >&2
+      exit 1
+    fi
     (cd "${root}/ios" && pod install)
 
     echo ">>> Build iOS IPA"

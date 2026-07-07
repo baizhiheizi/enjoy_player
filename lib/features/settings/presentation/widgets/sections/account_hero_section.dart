@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -32,7 +33,7 @@ class AccountHeroSection extends ConsumerWidget {
     return auth.when(
       data: (state) {
         if (state is AuthSignedIn) {
-          final avatarUrl = state.profile.avatarUrl;
+          final avatarUrl = rasterAvatarUrl(state.profile.avatarUrl);
           final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
           return _AccountHeroCard(
             sectionLabel: l10n.settingsSectionAccount,

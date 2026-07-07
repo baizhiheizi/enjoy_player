@@ -1,6 +1,8 @@
 /// User profile returned by `GET/PATCH /api/v1/profile` (camelCase JSON).
 library;
 
+import 'package:enjoy_player/core/utils/avatar_url.dart';
+
 enum SubscriptionTier { free, pro }
 
 SubscriptionTier? _subscriptionTierFromJson(Object? value) {
@@ -16,7 +18,7 @@ class UserProfile {
       id: json['id']?.toString() ?? '',
       email: json['email'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      avatarUrl: json['avatarUrl'] as String?,
+      avatarUrl: rasterAvatarUrl(json['avatarUrl'] as String?),
       balance: _doubleFromJson(json['balance']),
       hasMixin: json['hasMixin'] as bool?,
       subscriptionTier: _subscriptionTierFromJson(json['subscriptionTier']),

@@ -32,7 +32,7 @@ permissions:
 jobs:
   ios:
     name: iOS smoke
-    runs-on: [self-hosted, macos, flutter]
+    runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6
 
@@ -57,7 +57,7 @@ jobs:
 
   macos:
     name: macOS smoke
-    runs-on: [self-hosted, macos, flutter]
+    runs-on: [self-hosted, macos]
     steps:
       - uses: actions/checkout@v6
 

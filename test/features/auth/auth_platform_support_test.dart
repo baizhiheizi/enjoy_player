@@ -23,4 +23,31 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     expect(nativeAppleSignInSupported, isFalse);
   });
+
+  test('nativeGoogleSignInSupported is false on windows', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    expect(nativeGoogleSignInSupported, isFalse);
+  });
+
+  test('nativeGoogleSignInSupported is true on android', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    expect(nativeGoogleSignInSupported, isTrue);
+  });
+
+  test(
+    'nativeGoogleSignInSupported stays hidden on iOS/macOS until '
+    'kGoogleNativeSignInConfiguredOnApple is flipped on — calling '
+    'GIDSignIn.signIn() beforehand crashes the app with an uncatchable '
+    'native exception (see docs/features/auth.md)',
+    () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      expect(nativeGoogleSignInSupported, isFalse);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      expect(nativeGoogleSignInSupported, isFalse);
+    },
+  );
 }

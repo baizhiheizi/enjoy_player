@@ -26,7 +26,7 @@ permissions:
 jobs:
   release:
     name: iOS + macOS release
-    runs-on: [self-hosted, macos, flutter]
+    runs-on: [self-hosted, macos]
     env:
       APPLE_USE_RUNNER_KEYCHAIN: ${{ vars.APPLE_USE_RUNNER_KEYCHAIN || 'true' }}
       NOTARY_PROFILE: enjoy-notary
@@ -66,7 +66,7 @@ jobs:
           AWS_DEFAULT_REGION: auto
           AWS_ENDPOINT_URL_S3: ${{ secrets.AWS_ENDPOINT_URL_S3 }}
           PUBLISH_BUCKET: ${{ secrets.PUBLISH_BUCKET }}
-          PUBLISH_PREFIX: player
+          PUBLISH_PREFIX: ${{ secrets.PUBLISH_PREFIX || 'player' }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           RELEASE_REQUIRE_S3: "1"

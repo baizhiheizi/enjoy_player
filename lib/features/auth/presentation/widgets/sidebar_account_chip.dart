@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -52,7 +53,7 @@ class SidebarAccountChip extends ConsumerWidget {
           }
           if (state is AuthSignedIn) {
             final p = state.profile;
-            final avatarUrl = p.avatarUrl;
+            final avatarUrl = rasterAvatarUrl(p.avatarUrl);
             final isPro = p.subscriptionTier == SubscriptionTier.pro;
             final isFree = !isPro;
             return ListTile(

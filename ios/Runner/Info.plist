@@ -90,7 +90,7 @@
 	  export with "URL schemes ... not in the correct format".
 	-->
 	<key>GIDClientID</key>
-	<string>REPLACE_WITH_IOS_OAUTH_CLIENT_ID.apps.googleusercontent.com</string>
+	<string>93185289922-ostq1e99j92mq3l5dokeb904rgetkcvu.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -106,7 +106,7 @@
 			<string>ai.enjoy.player.google-signin</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>replace-with-reversed-ios-client-id</string>
+				<string>com.googleusercontent.apps.93185289922-ostq1e99j92mq3l5dokeb904rgetkcvu</string>
 			</array>
 		</dict>
 	</array>
