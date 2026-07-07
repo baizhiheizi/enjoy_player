@@ -27,6 +27,31 @@
 - **Auto-follow**: While the engine is **playing**, the list auto-scrolls when the target would be off-screen (`Scrollable.ensureVisible`). **Non-echo**: the **active cue** is brought into view with a mid-viewport bias (`alignment ~0.42`). **Echo mode**: the merged **echo block** (controls + cue card + shadow-reading stack) is the scroll target and is aligned to the **top** of the transcript viewport to leave more vertical room for the shadow panel. When paused, the list does not auto-scroll.
 - **Echo region** (echo mode on): **Expand / shrink** controls sit **between** the transcript list and the shadow panel as separate rows (not inside the cue card). **Cue lines** use one merged rounded **transcript card**; **shadow reading** is a **compact stack** below with an **idle toolbar** (pitch **icon** toggle, **centered** 56pt record FAB, play + **more** menu **grouped at center**; **delete** is in the menu as a **list-style row** (leading delete icon, same column as take checkmarks), with a **confirm dialog** before removal), **pitch chart** when expanded (headerless body only), and **recording focus** (centered FAB + elapsed vs segment target; over-target warning only). Long hint is in the record control **tooltip** (shortcut + `shadowReadingHint`) — see [`ShadowReadingPanel`](../../lib/features/shadow_reading/presentation/shadow_reading_panel.dart). Take duration is derived from the **WAV header** (see [`wav_duration_ms`](../../lib/core/audio/wav_duration_ms.dart)). Take playback uses a dedicated **`media_kit`** preview player ([`recording_preview_player`](../../lib/core/audio/recording_preview_player.dart)), separate from lesson playback so the loaded lesson is not replaced.
 
+## Code layout
+
+The subtitle track picker is split into focused modules under
+[`lib/features/transcript/presentation/`](../../lib/features/transcript/presentation/),
+organized by dependency layer (helpers → primitives → tiles → sections →
+actions → sheet). The public API is unchanged; `showSubtitleTrackPicker`,
+`SubtitleTrackPickerSheet`, and `SubtitleTrackPickerPresentation` continue to
+be exported from [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart).
+
+| File | Responsibility |
+|------|----------------|
+| [`subtitle_track_picker_helpers.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_helpers.dart) | Pure helpers (`sheetHorizontalPadding`, `trackOptionPadding`, `trackPickerRadioTheme`, `trackLabel`, `findTrack`, `providerLabel`, `providerBadgeColors`), the `kExpandedTrackListMaxHeight` const, and the `PickerSection` enum. No widgets. |
+| [`subtitle_track_picker_primitives.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_primitives.dart) | `MetaChip` — the rounded pill used for provider / language badges, shared by `SelectionSummary` and `TrackOptionTile`. |
+| [`subtitle_track_picker_tiles.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_tiles.dart) | `TrackOptionTile<T>` (per-track radio row with provider + language chips and delete action) and `NoneOptionTile` (the explicit "none" row in the translation list). |
+| [`subtitle_track_picker_sections.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sections.dart) | `CollapsibleTrackSection` (the expandable card used for both primary and translation lists) and `SelectionSummary` (collapsed-state label + chip summary). |
+| [`subtitle_track_picker_actions.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_actions.dart) | `SubtitleActionsSection` — the leaf widget that renders the Extract / Refresh from cloud / Import subtitle list. Wraps the tile column in a transparent `Material` so `ListTile` ink splashes render correctly. |
+| [`subtitle_track_picker_sheet.dart`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) | Slimmed sheet: `SubtitleTrackPickerPresentation` enum, `showSubtitleTrackPicker` launcher, and `SubtitleTrackPickerSheet` + its state class. Owns the `PickerSection` expand/collapse state and provider interactions (import file, extract embedded, refresh cloud, delete track). |
+
+Smoke coverage lives in
+[`subtitle_track_picker_sheet_test.dart`](../../test/features/transcript/subtitle_track_picker_sheet_test.dart)
+(pumps the sheet in dialog presentation with faked providers and asserts the
+empty-tracks hint plus primary + translation section headers for a single
+track). The split is also recorded as
+[`2026-07-07-subtitle-track-picker-split-design.md`](../superpowers/specs/2026-07-07-subtitle-track-picker-split-design.md).
+
 ## Future
 
 - Multiple languages, editing timelines, auto-translate, export — parity with web `TranscriptDisplay`.
