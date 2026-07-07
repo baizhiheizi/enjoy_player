@@ -63,6 +63,28 @@ Keys are **masked** in storage and the field shows a saved-key preview chip (e.g
 
 [`ai_capability_providers.dart`](../../lib/features/ai/application/ai_capability_providers.dart) resolves `Enjoy*Capability` vs `Byok*Capability` from `aiModalityConfigsProvider`. Feature code should use `*ServiceProvider`, not vendor HTTP in widgets.
 
+### Error translation (`guardAiCall`)
+
+Every `*Service` in [`ai_services.dart`](../../lib/features/ai/application/ai_services.dart) (`AsrService`, `ChatService`, `TranslationService`, `ContextualTranslationService`, `DictionaryService`, `TtsService`, `AssessmentService`) wraps its single Riverpod capability call in [`guardAiCall<T>()`](../../lib/features/ai/application/ai_api_failures.dart):
+
+```dart
+Future<AsrResult> transcribe(AsrRequest request) => guardAiCall(
+      () => _ref.read(asrCapabilityProvider).transcribe(request),
+    );
+```
+
+`guardAiCall` runs the body and translates any [`ApiException`](../../lib/data/api/api_exception.dart) thrown by the underlying REST client into the user-facing [`AppFailure`](../../lib/core/errors/app_failure.dart) hierarchy used by the AI presentation layer, via [`mapApiExceptionToAppFailure`](../../lib/features/ai/application/ai_api_failures.dart):
+
+| `ApiException` | `AppFailure` |
+|----------------|--------------|
+| `statusCode == 401` (`isUnauthorized`) | `AuthFailure(code: AuthFailureCode.sessionRevoked)` |
+| `statusCode == 402` | `CreditsFailure` |
+| Any other | `NetworkFailure(statusCode: e.statusCode)` |
+
+Centralising the catch means any future cross-cutting change (new `ApiException` subclasses, telemetry, context-specific failure codes) happens in one place for every AI capability instead of in N near-identical `try`/`catch` blocks. The `*ServiceProvider` access pattern at every call site is unchanged — only the service body shape differs.
+
+Missing BYOK credentials are surfaced **before** the capability runs, by the `ByokNotConfigured*Capability` wrappers and [`ByokNotConfiguredFailure`](../../lib/features/ai/domain/byok_not_configured_failure.dart) — see [BYOK provider § Persistence and security](#persistence-and-security) above. The translation table above only applies to errors thrown by the resolved capability itself.
+
 ### Debug UI
 
 **Settings → Developer → AI playground** shows the active provider label per modality and exercises ASR, chat, translation, dictionary, and assessment.
@@ -90,4 +112,4 @@ Feature screens should depend on `*ServiceProvider` types in `application/`, not
 
 ## Verification
 
-Automated: `flutter test test/features/ai/` and `packages/azure_speech/test/`. Manual BYOK scenarios: [`specs/003-byok-ai/quickstart.md`](../../specs/003-byok-ai/quickstart.md).
+Automated: `flutter test test/features/ai/` and `packages/azure_speech/test/`. `test/features/ai/chat_service_test.dart` pins the `guardAiCall` translation by overriding `llmCapabilityProvider` with a stub that throws `ApiException 503` and asserting the future completes-with-error as an `AppFailure`. Manual BYOK scenarios: [`specs/003-byok-ai/quickstart.md`](../../specs/003-byok-ai/quickstart.md).

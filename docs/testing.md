@@ -29,6 +29,7 @@ CI uploads `coverage/lcov.info` to [Codecov](https://codecov.io) and fails when 
 | Subtitle parsers | `test/data/subtitle/subtitle_parser_test.dart` |
 | Sync queue + retry backoff | `test/features/sync/sync_queue_repository_test.dart`, `test/features/sync/sync_engine_test.dart` |
 | Azure WAV normalization | `test/features/ai/azure_assessment_wav_normalizer_test.dart` |
+| AI service `ApiException → AppFailure` translation | `test/features/ai/chat_service_test.dart` |
 | Echo PCM extraction guards | `test/features/shadow_reading/echo_segment_pcm_extractor_test.dart` |
 | Sliver key index helper | `test/core/utils/sliver_key_index_test.dart` |
 | App smoke (EnjoyApp) | `test/widget_test.dart` |
