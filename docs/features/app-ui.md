@@ -93,6 +93,12 @@ Focus ring: 2px (custom nav / sidebars)
 | `HeroArtwork` | `core/theme/widgets/hero_artwork.dart` | Artwork + rim light + shadow |
 | `EmptyState` | `core/theme/widgets/empty_state.dart` | Editorial empty state |
 | `GlassSurface` | `core/theme/widgets/glass_surface.dart` | **Transport bar only** |
+| `Skeleton` (+ `.box` / `.line` / `.circle`) | `core/theme/widgets/skeleton.dart` | Single shimmer placeholder primitive; see [skeleton-loading.md](skeleton-loading.md) |
+| `SkeletonAppBootstrap` | same | Full-viewport app-bootstrap loading shell |
+| `SkeletonMediaList` / `SkeletonMediaGrid` | same | Library / Home tab body loading states (sliver-safe) |
+| `SkeletonSettingsList` | same | Settings hub loading state (sliver-safe) |
+| `SkeletonTranscript` | same | Transcript panel loading state (own `ScrollView`) |
+| `SkeletonProfile` | same | Profile screen loading state |
 | `AppSidebar` | `features/player/presentation/widgets/app_sidebar.dart` | Flat tonal sidebar |
 | `SidebarAccountChip` | `features/auth/presentation/widgets/sidebar_account_chip.dart` | Account row at the bottom of `AppSidebar`: signed-out → **Sign in** → `/sign-in`; awaiting OTP → progress + resume → `/sign-in` or `/sign-in/email`; signed-in → avatar + name + Pro badge + **Open profile** subtitle → `/profile`; Free users also get an inline **Upgrade** pill that routes to `/subscription` |
 
