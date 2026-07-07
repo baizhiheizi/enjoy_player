@@ -1,6 +1,8 @@
 #!/bin/sh
 # Notarize a release-built macOS .app for direct distribution (Developer ID).
 #
+# Uses ReleaseDirect.entitlements (no Sign in with Apple / keychain groups —
+# those are unsupported for Developer ID and cause launch error 163 on macOS 26+).
 # Prerequisites (one-time on the release machine):
 #   1. Developer ID Application certificate in Keychain (team 46X685R747).
 #   2. App-specific password stored for notarytool, e.g.:
@@ -45,7 +47,7 @@ fi
 NOTARY_PROFILE="${NOTARY_PROFILE:-enjoy-notary}"
 SCRIPT_DIR="$(CDPATH= cd "$(dirname "$0")" && pwd)"
 MACOS_DIR="$(dirname "${SCRIPT_DIR}")"
-ENTITLEMENTS="${MACOS_DIR}/Runner/Release.entitlements"
+ENTITLEMENTS="${MACOS_ENTITLEMENTS:-${MACOS_DIR}/Runner/ReleaseDirect.entitlements}"
 FRAMEWORKS_DIR="${APP_BUNDLE}/Contents/Frameworks"
 ZIP_PATH="$(mktemp -t enjoy-player-notarize).zip"
 

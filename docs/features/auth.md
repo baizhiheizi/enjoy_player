@@ -48,7 +48,7 @@ This is the only redirect URI whitelisted in enjoy_web's `config/native_auth_cli
 - **Windows**: native Google hidden; email OTP + PKCE fallback.
 - **Android**: no Apple button; Google OAuth client requires release SHA-1 in Google Cloud Console.
 - **iOS**: Sign in with Apple required when Google is offered. Enable the capability on App ID `ai.enjoy.player` in Apple Developer, and ship `ios/Runner/Runner.entitlements` with `com.apple.developer.applesignin` referenced from all Runner build configurations (`CODE_SIGN_ENTITLEMENTS`). Missing entitlements surface as `AuthorizationError error 1000` before any API call.
-- **macOS**: Same Apple entitlement in `macos/Runner/DebugProfile.entitlements` and `Release.entitlements`. Keychain Sharing entitlements still required for secure storage (see ADR-0012).
+- **macOS**: Same Apple entitlement in `macos/Runner/DebugProfile.entitlements` and `Release.entitlements` for local/Xcode builds. **Developer ID direct-download** releases use `macos/Runner/ReleaseDirect.entitlements` (no Sign in with Apple — unsupported for Developer ID distribution; including it prevents launch on macOS 26+). Direct macOS builds hide the Apple button via `nativeAppleSignInSupported`; use Google (when configured), email OTP, or PKCE.
 
 ## Google OAuth client setup (manual, one-time)
 
@@ -79,7 +79,8 @@ Apple Sign-In fails **on the device** with `com.apple.AuthenticationServices.Aut
 |----------|------|----------------|
 | **iOS** | `ios/Runner/Runner.entitlements` | `com.apple.developer.applesignin` → `Default` |
 | **iOS** | `ios/Runner.xcodeproj` | `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` on Debug/Release/Profile |
-| **macOS** | `macos/Runner/DebugProfile.entitlements` + `Release.entitlements` | same `com.apple.developer.applesignin` key |
+| **macOS (Xcode / local)** | `macos/Runner/DebugProfile.entitlements` + `Release.entitlements` | `com.apple.developer.applesignin` → `Default` |
+| **macOS (Developer ID zip)** | `macos/Runner/ReleaseDirect.entitlements` via `notarize_release.sh` | sandbox + network only (no Apple Sign-In entitlement) |
 
 After editing entitlements, do a **clean rebuild** (`flutter clean && flutter run`) so Xcode regenerates the provisioning profile that includes the capability. If error 1000 persists on a physical device, open `ios/Runner.xcworkspace` (or `macos/Runner.xcworkspace`) → Runner target → **Signing & Capabilities** and confirm **Sign in with Apple** appears; toggle it off/on to refresh the profile.
 

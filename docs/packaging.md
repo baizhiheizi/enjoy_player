@@ -136,7 +136,7 @@ flutter test
 
 - **Bundle ID**: `ai.enjoy.player` (ADR-0020)
 - iOS: automatic signing in Xcode; export via [`ios/ExportOptions.export.plist`](../ios/ExportOptions.export.plist)
-- macOS direct download: compile unsigned, then **Developer ID Application** sign + notarization in post-steps (`build_macos_release.sh` + `notarize_release.sh`; Debug/Profile keep Apple Development for local runs)
+- macOS direct download: compile unsigned, then **Developer ID Application** sign + notarization in post-steps (`build_macos_release.sh` + `notarize_release.sh` using `ReleaseDirect.entitlements`; Debug/Profile keep Apple Development + `DebugProfile.entitlements` for local runs). Do not embed Sign in with Apple or empty `keychain-access-groups` in Developer ID builds — macOS 26 rejects them at launch (error 163) even when notarization passes.
 
 ### Publish credentials (optional)
 

@@ -43,7 +43,7 @@ done
 
 release_log_publish_only
 
-if [[ "${RELEASE_PUBLISH}" == true && "${NOTARIZE}" != true && "${RELEASE_SKIP_BUILD}" != true ]]; then
+if [[ "${RELEASE_PUBLISH}" == true && "${NOTARIZE}" != true ]]; then
   echo ">>> macOS direct download requires notarization; enabling --notarize (--publish)"
   NOTARIZE=true
 fi
@@ -128,22 +128,25 @@ elif [[ "${NOTARIZE}" == true || "${RELEASE_PUBLISH}" == true ]]; then
 
   if [[ "${NOTARIZE}" == true ]]; then
     bash "${root}/.github/scripts/setup_notary_credentials.sh" || true
-    echo ">>> Notarize macOS app (existing build)"
-    chmod +x "${root}/macos/scripts/notarize_release.sh"
-    notarize_args=()
-    if release_app_has_developer_id_signature "${MACOS_APP_PATH}"; then
-      notarize_args+=(--skip-sign)
+    if release_macos_app_is_notarized "${MACOS_APP_PATH}"; then
+      echo ">>> macOS app already notarized and stapled"
+    else
+      echo ">>> Notarize macOS app (existing build)"
+      chmod +x "${root}/macos/scripts/notarize_release.sh"
+      notarize_args=()
+      if release_app_has_developer_id_signature "${MACOS_APP_PATH}"; then
+        notarize_args+=(--skip-sign)
+      fi
+      "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}" ${notarize_args[@]+"${notarize_args[@]}"}
     fi
-    "${root}/macos/scripts/notarize_release.sh" "${MACOS_APP_PATH}" ${notarize_args[@]+"${notarize_args[@]}"}
   fi
 
-  if [[ "${NOTARIZE}" == true ]]; then
+  if [[ "${RELEASE_PUBLISH}" == true ]]; then
+    release_assert_macos_app_notarized "${MACOS_APP_PATH}"
+    echo ">>> Repack macOS zip from notarized app"
     release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
-  else
-    zip="$(release_macos_zip_path "${root}")"
-    if [[ ! -f "${zip}" ]]; then
-      release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
-    fi
+  elif [[ "${NOTARIZE}" == true ]]; then
+    release_pack_macos_zip "${root}" "${MACOS_APP_PATH}"
   fi
 fi
 
@@ -154,6 +157,7 @@ if [[ "${RELEASE_PUBLISH}" == true ]]; then
     echo "Missing macOS zip: ${zip}" >&2
     exit 1
   fi
+  release_assert_macos_app_notarized "${MACOS_APP_PATH}"
   publish_args=(--macos-zip "${zip}")
   if [[ "${RELEASE_FEEDS_ONLY}" == true ]]; then
     publish_args=(--feeds-only "${publish_args[@]}")

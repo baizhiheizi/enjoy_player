@@ -4,6 +4,7 @@ library;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 
+import 'package:enjoy_player/core/release/distribution_channel.dart';
 import 'package:enjoy_player/features/auth/domain/google_auth_config.dart';
 
 /// Google native SDK is unreliable on Windows desktop. On iOS/macOS it is
@@ -20,10 +21,16 @@ bool get nativeGoogleSignInSupported {
   return true;
 }
 
-/// Sign in with Apple is available on Apple platforms only.
-bool get nativeAppleSignInSupported =>
-    defaultTargetPlatform == TargetPlatform.iOS ||
-    defaultTargetPlatform == TargetPlatform.macOS;
+/// Sign in with Apple is available on iOS and on macOS store builds.
+/// Developer ID direct-download macOS builds omit the entitlement (unsupported
+/// for Developer ID distribution; the app would fail to launch on macOS 26+).
+bool get nativeAppleSignInSupported {
+  if (defaultTargetPlatform == TargetPlatform.iOS) return true;
+  if (defaultTargetPlatform == TargetPlatform.macOS) {
+    return resolveDistributionChannel() != DistributionChannel.direct;
+  }
+  return false;
+}
 
 /// OAuth PKCE redirect URI for the current platform.
 ///

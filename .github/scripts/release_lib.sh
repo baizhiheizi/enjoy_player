@@ -334,6 +334,24 @@ release_app_has_developer_id_signature() {
   codesign -dvv "${app_path}" 2>&1 | grep -q 'Authority=Developer ID Application'
 }
 
+release_macos_app_is_notarized() {
+  local app_path="$1"
+  stapler validate "${app_path}" >/dev/null 2>&1
+}
+
+release_assert_macos_app_notarized() {
+  local app_path="$1"
+  if [[ ! -d "${app_path}" ]]; then
+    echo "Missing macOS app bundle: ${app_path}" >&2
+    exit 1
+  fi
+  if ! release_macos_app_is_notarized "${app_path}"; then
+    echo "macOS app is not notarized and stapled: ${app_path}" >&2
+    echo "Direct download requires --notarize before --publish." >&2
+    exit 1
+  fi
+}
+
 release_pack_macos_zip() {
   local root="$1"
   local app_path="$2"

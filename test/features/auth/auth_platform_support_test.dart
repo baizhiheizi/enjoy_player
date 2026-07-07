@@ -15,12 +15,20 @@ void main() {
     expect(authPkceRedirectUri(), 'enjoyplayer://auth/callback');
   });
 
-  test('nativeAppleSignInSupported only on Apple platforms', () {
+  test('nativeAppleSignInSupported on iOS and not on Android', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     expect(nativeAppleSignInSupported, isTrue);
 
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    expect(nativeAppleSignInSupported, isFalse);
+  });
+
+  test('nativeAppleSignInSupported is false on macOS direct builds', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    // Desktop defaults to direct when DISTRIBUTION_CHANNEL is unset (see
+    // resolveDistributionChannel); Developer ID builds omit Apple Sign-In.
     expect(nativeAppleSignInSupported, isFalse);
   });
 
