@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
+import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -20,9 +21,8 @@ class WidgetErrorSurface extends StatefulWidget {
   State<WidgetErrorSurface> createState() => _WidgetErrorSurfaceState();
 }
 
-class _WidgetErrorSurfaceState extends State<WidgetErrorSurface> {
-  bool _busy = false;
-
+class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
+    with RecoveryBusyAction {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -81,7 +81,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface> {
                           width: double.infinity,
                           child: EnjoyButton.secondary(
                             icon: Icons.copy_rounded,
-                            onPressed: _busy ? null : _onCopy,
+                            onPressed: busy ? null : _onCopy,
                             child: Text(l10n.recoveryCopyError),
                           ),
                         ),
@@ -97,24 +97,20 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface> {
     );
   }
 
-  Future<void> _onCopy() async {
-    setState(() => _busy = true);
-    try {
-      final ok = await copyErrorToClipboard(
-        widget.details.exception,
-        widget.details.stack,
+  Future<void> _onCopy() => runBusyAction<bool>(
+        () => copyErrorToClipboard(
+          widget.details.exception,
+          widget.details.stack,
+        ),
+        (ctx, ok) async {
+          final l10n = AppLocalizations.of(ctx)!;
+          if (ok) {
+            AppNotice.success(ctx, l10n.recoveryCopiedToClipboard);
+          } else {
+            AppNotice.error(ctx, l10n.recoveryCopiedToClipboard);
+          }
+        },
       );
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      if (ok) {
-        AppNotice.success(context, l10n.recoveryCopiedToClipboard);
-      } else {
-        AppNotice.error(context, l10n.recoveryCopiedToClipboard);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
 }
 
 /// Installs [ErrorWidget.builder] for release/profile (debug keeps red screen).
