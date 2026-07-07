@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Avatars** — Dicebear SVG URLs returned by the Enjoy API (e.g. `https://api.dicebear.com/.../svg?seed=…`) are now rewritten to their PNG counterpart (`…/png?seed=…`) before being handed to Flutter's raster image widgets. The shared helper lives at [`lib/core/utils/avatar_url.dart`](lib/core/utils/avatar_url.dart) (`rasterAvatarUrl`) and is invoked at every decode site — `ActiveUser`, `UserProfile`, `SidebarAccountChip`, `ProfileContent`, `AccountHeroSection`, and the community activity card — so unsigned `NetworkImage` / `CachedNetworkImageProvider` decoders no longer fail with "Image provider cannot decode image" on SVG payloads. Documented alongside `CommunityActivityCard` in [docs/features/community.md](docs/features/community.md#home-signed-in); no behavior change for PNG-originated avatars. Closes a long-standing gap surfaced when the first SVG payloads shipped from the cloud profile endpoint.
+
 ## [0.3.1] - 2026-07-03
 
 ### Added
