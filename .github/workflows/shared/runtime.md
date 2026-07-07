@@ -40,7 +40,7 @@ Run `dart run build_runner build` only after editing `@DriftDatabase`, `@DriftAc
 
 Read [`AGENTS.md`](../../../AGENTS.md) before editing. In particular:
 
-- Use Riverpod (`ConsumerWidget` / `ConsumerStatefulWidget`); no `print()` — use `Log.named`
+- Use Riverpod (`ConsumerWidget` / `ConsumerStatefulWidget`); no `print()` — use `logNamed`
 - Never construct `media_kit` `Player()` outside `PlayerController`
 - Do not add Flutter web targets or `kIsWeb` branches
 
