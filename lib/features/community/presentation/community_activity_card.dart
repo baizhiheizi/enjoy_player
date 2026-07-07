@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/community/application/active_users_provider.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -23,19 +24,6 @@ const int _kMaxAvatarsCard = 8;
 const int _kMaxAvatarsSummary = 4;
 const double _kSummaryAvatarSize = 28;
 const double _kSummaryAvatarOverlap = 8;
-
-String _formatDurationMs(int ms) {
-  final seconds = ms ~/ 1000;
-  final minutes = seconds ~/ 60;
-  final hours = minutes ~/ 60;
-  if (hours > 0) {
-    return '${hours}h ${minutes % 60}m';
-  }
-  if (minutes > 0) {
-    return '${minutes}m ${seconds % 60}s';
-  }
-  return '${seconds}s';
-}
 
 String _initials(String name) {
   if (name.trim().isEmpty) return 'U';
@@ -137,7 +125,7 @@ class CommunityActivityCard extends ConsumerWidget {
       }
       if (data.recordingsDurationToday != null) {
         parts.add(
-          '${_formatDurationMs(data.recordingsDurationToday!)} ${l10n.homePracticeTime}',
+          '${formatPracticeDurationMs(data.recordingsDurationToday!)} ${l10n.homePracticeTime}',
         );
       }
       return parts.join(', ');
@@ -286,7 +274,7 @@ class _SummaryBody extends StatelessWidget {
               if (data.recordingsDurationToday != null)
                 _InlineMetric(
                   icon: Icons.schedule,
-                  value: _formatDurationMs(data.recordingsDurationToday!),
+                  value: formatPracticeDurationMs(data.recordingsDurationToday!),
                   label: l10n.homePracticeTime,
                   cs: cs,
                   tabular: tabular,
@@ -697,7 +685,7 @@ class _TodayStatsBody extends StatelessWidget {
               Expanded(
                 child: _StatBlock(
                   icon: Icons.schedule,
-                  valueText: _formatDurationMs(data.recordingsDurationToday!),
+                  valueText: formatPracticeDurationMs(data.recordingsDurationToday!),
                   label: l10n.homePracticeTime,
                   compactValue: compactValues,
                 ),

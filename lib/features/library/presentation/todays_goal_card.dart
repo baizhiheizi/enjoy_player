@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
@@ -20,19 +21,6 @@ enum TodaysGoalCardVariant {
 
   /// Linear progress + compact copy (mobile insight strip).
   bar,
-}
-
-String _formatDurationMs(int ms) {
-  final seconds = ms ~/ 1000;
-  final minutes = seconds ~/ 60;
-  final hours = minutes ~/ 60;
-  if (hours > 0) {
-    return '${hours}h ${minutes % 60}m';
-  }
-  if (minutes > 0) {
-    return '${minutes}m ${seconds % 60}s';
-  }
-  return '${seconds}s';
 }
 
 int _completedMinutes(int recordingDurationMs) =>
@@ -302,7 +290,7 @@ class TodaysGoalCard extends ConsumerWidget {
         ),
         SizedBox(height: t.space4),
         Text(
-          '${recordingDurationMs > 0 ? _formatDurationMs(recordingDurationMs) : '0m'} ${l10n.homeCompleted}',
+          '${formatPracticeDurationMs(recordingDurationMs)} ${l10n.homeCompleted}',
           textAlign: TextAlign.center,
           style: Theme.of(
             context,
@@ -338,9 +326,7 @@ class TodaysGoalCard extends ConsumerWidget {
   ) {
     final frac = _progressFractionMs(recordingDurationMs, goalMinutes);
     final radius = BorderRadius.circular(t.radiusSm);
-    final durationText = recordingDurationMs > 0
-        ? _formatDurationMs(recordingDurationMs)
-        : '0m';
+    final durationText = formatPracticeDurationMs(recordingDurationMs);
     final tabular = const [FontFeature.tabularFigures()];
 
     return Column(
