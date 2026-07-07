@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
+import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -34,9 +35,8 @@ class RecoverySurface extends StatefulWidget {
   State<RecoverySurface> createState() => _RecoverySurfaceState();
 }
 
-class _RecoverySurfaceState extends State<RecoverySurface> {
-  bool _busy = false;
-
+class _RecoverySurfaceState extends State<RecoverySurface>
+    with RecoveryBusyAction {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -93,7 +93,7 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
                           width: double.infinity,
                           child: EnjoyButton.secondary(
                             icon: Icons.copy_rounded,
-                            onPressed: _busy ? null : _onCopy,
+                            onPressed: busy ? null : _onCopy,
                             child: Text(l10n.recoveryCopyError),
                           ),
                         ),
@@ -105,7 +105,7 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
                     width: double.infinity,
                     child: EnjoyButton.secondary(
                       icon: Icons.folder_open_rounded,
-                      onPressed: _busy ? null : _onOpenLogs,
+                      onPressed: busy ? null : _onOpenLogs,
                       child: Text(l10n.recoveryOpenLogs),
                     ),
                   ),
@@ -134,7 +134,7 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
                           width: double.infinity,
                           child: EnjoyButton.destructive(
                             icon: Icons.delete_outline_rounded,
-                            onPressed: _busy ? null : _onResetRequest,
+                            onPressed: busy ? null : _onResetRequest,
                             child: Text(l10n.recoveryResetLibrary),
                           ),
                         ),
@@ -150,35 +150,26 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
     );
   }
 
-  Future<void> _onCopy() async {
-    setState(() => _busy = true);
-    try {
-      final ok = await copyErrorToClipboard(widget.error, widget.stack);
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      if (ok) {
-        AppNotice.success(context, l10n.recoveryCopiedToClipboard);
-      } else {
-        AppNotice.error(context, l10n.recoveryCopiedToClipboard);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+  Future<void> _onCopy() => runBusyAction<bool>(
+        () => copyErrorToClipboard(widget.error, widget.stack),
+        (ctx, ok) async {
+          final l10n = AppLocalizations.of(ctx)!;
+          if (ok) {
+            AppNotice.success(ctx, l10n.recoveryCopiedToClipboard);
+          } else {
+            AppNotice.error(ctx, l10n.recoveryCopiedToClipboard);
+          }
+        },
+      );
 
-  Future<void> _onOpenLogs() async {
-    setState(() => _busy = true);
-    try {
-      final ok = await openLogsFolder();
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      if (!ok) {
-        AppNotice.error(context, l10n.recoveryOpenLogsError);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+  Future<void> _onOpenLogs() => runBusyAction<bool>(
+        openLogsFolder,
+        (ctx, ok) async {
+          if (ok) return;
+          final l10n = AppLocalizations.of(ctx)!;
+          AppNotice.error(ctx, l10n.recoveryOpenLogsError);
+        },
+      );
 
   Future<void> _onResetRequest() async {
     final l10n = AppLocalizations.of(context)!;
@@ -210,22 +201,18 @@ class _RecoverySurfaceState extends State<RecoverySurface> {
     }
   }
 
-  Future<void> _onResetConfirm() async {
-    setState(() => _busy = true);
-    try {
-      final outcome = await (widget.onReset ?? resetLocalLibraryWithBackup)();
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      switch (outcome) {
-        case RecoveryResetOutcome.success:
-          AppNotice.success(context, l10n.recoveryResetLibrarySuccess);
-        case RecoveryResetOutcome.backupFailed:
-          AppNotice.error(context, l10n.recoveryResetLibraryBackupError);
-        case RecoveryResetOutcome.wipeFailed:
-          AppNotice.error(context, l10n.recoveryResetLibraryError);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+  Future<void> _onResetConfirm() => runBusyAction<RecoveryResetOutcome>(
+        () => (widget.onReset ?? resetLocalLibraryWithBackup)(),
+        (ctx, outcome) async {
+          final l10n = AppLocalizations.of(ctx)!;
+          switch (outcome) {
+            case RecoveryResetOutcome.success:
+              AppNotice.success(ctx, l10n.recoveryResetLibrarySuccess);
+            case RecoveryResetOutcome.backupFailed:
+              AppNotice.error(ctx, l10n.recoveryResetLibraryBackupError);
+            case RecoveryResetOutcome.wipeFailed:
+              AppNotice.error(ctx, l10n.recoveryResetLibraryError);
+          }
+        },
+      );
 }
