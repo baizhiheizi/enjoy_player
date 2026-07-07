@@ -24,6 +24,10 @@ const _kAndroidOptions = AndroidOptions();
 const _kIosOptions = IOSOptions(
   accessibility: KeychainAccessibility.first_unlock,
 );
+const _kMacOsOptions = MacOsOptions(
+  accessibility: KeychainAccessibility.first_unlock,
+  usesDataProtectionKeychain: false,
+);
 
 @Riverpod(keepAlive: true)
 SecureTokenStore secureTokenStore(Ref ref) {
@@ -31,6 +35,7 @@ SecureTokenStore secureTokenStore(Ref ref) {
     const FlutterSecureStorage(
       aOptions: _kAndroidOptions,
       iOptions: _kIosOptions,
+      mOptions: _kMacOsOptions,
     ),
   );
 }
@@ -51,9 +56,9 @@ class SecureTokenStore {
   Future<void> writeRefreshToken(String token) =>
       _writeResilient(_kRefreshTokenKey, token);
 
-  Future<void> clearAccessToken() => _storage.delete(key: _kAccessTokenKey);
+  Future<void> clearAccessToken() => _deleteBestEffort(_kAccessTokenKey);
 
-  Future<void> clearRefreshToken() => _storage.delete(key: _kRefreshTokenKey);
+  Future<void> clearRefreshToken() => _deleteBestEffort(_kRefreshTokenKey);
 
   /// JSON from [UserProfile.toJson] for cold-start UI before network fetch.
   Future<String?> readCachedProfileJson() =>
@@ -63,13 +68,21 @@ class SecureTokenStore {
       _writeResilient(_kCachedProfileJsonKey, json);
 
   Future<void> clearCachedProfile() =>
-      _storage.delete(key: _kCachedProfileJsonKey);
+      _deleteBestEffort(_kCachedProfileJsonKey);
 
   /// Clears bearer token, refresh token, and cached profile (sign out / invalid session).
   Future<void> clearAllAuthSecrets() async {
-    await clearAccessToken();
-    await clearRefreshToken();
-    await clearCachedProfile();
+    await _deleteBestEffort(_kAccessTokenKey);
+    await _deleteBestEffort(_kRefreshTokenKey);
+    await _deleteBestEffort(_kCachedProfileJsonKey);
+  }
+
+  Future<void> _deleteBestEffort(String key) async {
+    try {
+      await _storage.delete(key: key);
+    } on PlatformException catch (e) {
+      _log.warning('secure storage delete failed for "$key"', e);
+    }
   }
 
   /// Writes to the keychain/keystore, self-healing from a stale entry that

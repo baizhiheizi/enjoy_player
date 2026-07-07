@@ -6,6 +6,7 @@ import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -149,6 +150,71 @@ void main() {
       final ok = await repo.refreshSession();
 
       expect(ok, isFalse);
+    });
+  });
+
+  group('AuthRepository.loadInitialAuthState', () {
+    late SecureTokenStore tokenStore;
+
+    setUp(() async {
+      FlutterSecureStorage.setMockInitialValues({});
+      tokenStore = SecureTokenStore(const FlutterSecureStorage());
+    });
+
+    AuthRepository buildRepo(http.Client client) {
+      final api = AuthApi(
+        ApiClient(
+          httpClient: client,
+          getBaseUrl: () async => 'https://enjoy.bot',
+          getAccessToken: tokenStore.readAccessToken,
+        ),
+      );
+      return AuthRepository(
+        authApi: api,
+        tokenStore: tokenStore,
+        getBaseUrl: () async => 'https://enjoy.bot',
+      );
+    }
+
+    test('returns signed out when no access token is stored', () async {
+      final repo = buildRepo(MockClient((_) async => http.Response('{}', 200)));
+
+      final state = await repo.loadInitialAuthState();
+
+      expect(state, isA<AuthSignedOut>());
+    });
+
+    test(
+      'returns signed out on transient network error without clearing tokens',
+      () async {
+        await tokenStore.writeAccessToken('access-1');
+        await tokenStore.writeRefreshToken('refresh-1');
+        final client = MockClient((_) async {
+          throw const SocketException('Connection reset by peer');
+        });
+        final repo = buildRepo(client);
+
+        final state = await repo.loadInitialAuthState();
+
+        expect(state, isA<AuthSignedOut>());
+        expect(await tokenStore.readAccessToken(), 'access-1');
+      },
+    );
+
+    test('returns signed in from cached profile without network', () async {
+      await tokenStore.writeAccessToken('access-1');
+      await tokenStore.writeCachedProfileJson(
+        '{"id":"u1","email":"a@b.c","name":"A"}',
+      );
+      final client = MockClient((_) async {
+        throw StateError('network should not be called');
+      });
+      final repo = buildRepo(client);
+
+      final state = await repo.loadInitialAuthState();
+
+      expect(state, isA<AuthSignedIn>());
+      expect((state as AuthSignedIn).profile.id, 'u1');
     });
   });
 

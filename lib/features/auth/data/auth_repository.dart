@@ -3,6 +3,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -196,20 +197,32 @@ class AuthRepository {
   }
 
   Future<AuthState> loadInitialAuthState() async {
-    final hasToken = await hasAccessToken();
-    if (!hasToken) {
-      await _tokenStore.clearCachedProfile();
+    try {
+      final hasToken = await hasAccessToken();
+      if (!hasToken) {
+        await _tokenStore.clearCachedProfile();
+        return const AuthSignedOut();
+      }
+    } on PlatformException catch (e, st) {
+      _log.warning('loadInitialAuthState: secure storage read failed', e, st);
       return const AuthSignedOut();
     }
+
     final cached = await readCachedProfile();
     if (cached != null) {
       return AuthSignedIn(profile: cached);
     }
+
     try {
       final profile = await fetchProfile();
       return AuthSignedIn(profile: profile);
     } on AuthFailure {
       await clearSession();
+      return const AuthSignedOut();
+    } catch (e, st) {
+      // Transient network errors at cold start must not block the app behind
+      // the sign-in "Network error" screen — mirror refreshSession behavior.
+      _log.warning('loadInitialAuthState: profile fetch failed', e, st);
       return const AuthSignedOut();
     }
   }
