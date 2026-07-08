@@ -1,0 +1,34 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+# Markdown hard-wrapping style varies by contributor and renderer.
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+[*.ps1]
+# PowerShell community convention.
+indent_size = 4
+
+[*.bat]
+# Windows cmd interpreter requires CRLF.
+indent_size = 4
+end_of_line = crlf
+
+# Generated files -- owned by `dart run build_runner build` and
+# `flutter gen-l10n`, not by humans. Don't let a stray editor "fix"
+# drift into a regenerated file.
+[*.{g,freezed,config,gen,mocks,pb}.dart]
+trim_trailing_whitespace = false
+
+[lib/l10n/**]
+trim_trailing_whitespace = false
