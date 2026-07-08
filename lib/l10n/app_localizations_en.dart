@@ -2303,6 +2303,52 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in under Settings to use cloud dictionary, translation, and contextual translation.';
 
   @override
+  String get lookupLanguageEnUs => 'English';
+
+  @override
+  String get lookupLanguageEnGb => 'English (UK)';
+
+  @override
+  String get lookupLanguageZhCn => '中文';
+
+  @override
+  String get lookupLanguageJaJp => '日本語';
+
+  @override
+  String get lookupLanguageKoKr => '한국어';
+
+  @override
+  String get lookupLanguageEsEs => 'Español (España)';
+
+  @override
+  String get lookupLanguageEsMx => 'Español (México)';
+
+  @override
+  String get lookupLanguageFrFr => 'Français (France)';
+
+  @override
+  String get lookupLanguageFrCa => 'Français (Canada)';
+
+  @override
+  String get lookupLanguageDeDe => 'Deutsch';
+
+  @override
+  String get lookupLanguageItIt => 'Italiano';
+
+  @override
+  String get lookupLanguagePtBr => 'Português (Brasil)';
+
+  @override
+  String get lookupLanguagePtPt => 'Português (Portugal)';
+
+  @override
+  String get lookupLanguageRuRu => 'Русский';
+
+  @override
+  String get lookupSourceResetToLearning =>
+      'Source language reset to learning default';
+
+  @override
   String get authRequiredCloudFeaturesTitle => 'Account required';
 
   @override

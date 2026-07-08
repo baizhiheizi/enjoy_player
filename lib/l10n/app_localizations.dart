@@ -4317,6 +4317,96 @@ abstract class AppLocalizations {
   /// **'Sign in under Settings to use cloud dictionary, translation, and contextual translation.'**
   String get lookupCloudRequiresSignIn;
 
+  /// No description provided for @lookupLanguageEnUs.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get lookupLanguageEnUs;
+
+  /// No description provided for @lookupLanguageEnGb.
+  ///
+  /// In en, this message translates to:
+  /// **'English (UK)'**
+  String get lookupLanguageEnGb;
+
+  /// No description provided for @lookupLanguageZhCn.
+  ///
+  /// In en, this message translates to:
+  /// **'中文'**
+  String get lookupLanguageZhCn;
+
+  /// No description provided for @lookupLanguageJaJp.
+  ///
+  /// In en, this message translates to:
+  /// **'日本語'**
+  String get lookupLanguageJaJp;
+
+  /// No description provided for @lookupLanguageKoKr.
+  ///
+  /// In en, this message translates to:
+  /// **'한국어'**
+  String get lookupLanguageKoKr;
+
+  /// No description provided for @lookupLanguageEsEs.
+  ///
+  /// In en, this message translates to:
+  /// **'Español (España)'**
+  String get lookupLanguageEsEs;
+
+  /// No description provided for @lookupLanguageEsMx.
+  ///
+  /// In en, this message translates to:
+  /// **'Español (México)'**
+  String get lookupLanguageEsMx;
+
+  /// No description provided for @lookupLanguageFrFr.
+  ///
+  /// In en, this message translates to:
+  /// **'Français (France)'**
+  String get lookupLanguageFrFr;
+
+  /// No description provided for @lookupLanguageFrCa.
+  ///
+  /// In en, this message translates to:
+  /// **'Français (Canada)'**
+  String get lookupLanguageFrCa;
+
+  /// No description provided for @lookupLanguageDeDe.
+  ///
+  /// In en, this message translates to:
+  /// **'Deutsch'**
+  String get lookupLanguageDeDe;
+
+  /// No description provided for @lookupLanguageItIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Italiano'**
+  String get lookupLanguageItIt;
+
+  /// No description provided for @lookupLanguagePtBr.
+  ///
+  /// In en, this message translates to:
+  /// **'Português (Brasil)'**
+  String get lookupLanguagePtBr;
+
+  /// No description provided for @lookupLanguagePtPt.
+  ///
+  /// In en, this message translates to:
+  /// **'Português (Portugal)'**
+  String get lookupLanguagePtPt;
+
+  /// No description provided for @lookupLanguageRuRu.
+  ///
+  /// In en, this message translates to:
+  /// **'Русский'**
+  String get lookupLanguageRuRu;
+
+  /// No description provided for @lookupSourceResetToLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Source language reset to learning default'**
+  String get lookupSourceResetToLearning;
+
   /// No description provided for @authRequiredCloudFeaturesTitle.
   ///
   /// In en, this message translates to:

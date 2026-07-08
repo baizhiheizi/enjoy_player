@@ -106,11 +106,78 @@ const Set<String> kInvalidLanguageTags = <String>{
   'zxx',
 };
 
-/// Short UI labels for [kSupportedNativeLanguageTags] (lookup sheet pills / picker).
+/// Short UI labels for [kSupportedLookupLanguageTags] (lookup sheet pills / picker).
 const Map<String, String> kLookupLanguageLabels = <String, String>{
   'en-US': 'English',
+  'en-GB': 'English (UK)',
   'zh-CN': '中文',
+  'ja-JP': '日本語',
+  'ko-KR': '한국어',
+  'es-ES': 'Español (España)',
+  'es-MX': 'Español (México)',
+  'fr-FR': 'Français (France)',
+  'fr-CA': 'Français (Canada)',
+  'de-DE': 'Deutsch',
+  'it-IT': 'Italiano',
+  'pt-BR': 'Português (Brasil)',
+  'pt-PT': 'Português (Portugal)',
+  'ru-RU': 'Русский',
 };
+
+/// Lookup-sheet source / target catalog (separate from profile / focus / media
+/// lists so widening the lookup picker does not regress profile / settings UI).
+///
+/// First-wave tags cover the top languages requested by Enjoy Player users as
+/// of 2026-07-08 and overlap with the Azure pronunciation-assessment locale
+/// table where relevant.
+const List<String> kSupportedLookupLanguageTags = <String>[
+  'en-US',
+  'en-GB',
+  'zh-CN',
+  'ja-JP',
+  'ko-KR',
+  'es-ES',
+  'es-MX',
+  'fr-FR',
+  'fr-CA',
+  'de-DE',
+  'it-IT',
+  'pt-BR',
+  'pt-PT',
+  'ru-RU',
+];
+
+/// Sorts [tags] with the user's learning language first (primary-subtag
+/// match), then alphabetical by primary subtag, then by region subtag.
+/// Stable for ties; returns a new list (input is not mutated).
+List<String> sortLookupLanguages(
+  List<String> tags, {
+  required String learningTag,
+}) {
+  final learnPrimary = _primarySubtag(normalizeBcp47Tag(learningTag));
+  final indexed = List<MapEntry<String, int>>.generate(tags.length, (i) {
+    return MapEntry<String, int>(tags[i], i);
+  });
+  indexed.sort((a, b) {
+    final aTag = normalizeBcp47Tag(a.key);
+    final bTag = normalizeBcp47Tag(b.key);
+    final aPrimary = _primarySubtag(aTag);
+    final bPrimary = _primarySubtag(bTag);
+    final aIsLearn = aPrimary == learnPrimary;
+    final bIsLearn = bPrimary == learnPrimary;
+    if (aIsLearn != bIsLearn) return aIsLearn ? -1 : 1;
+    final byPrimary = aPrimary.compareTo(bPrimary);
+    if (byPrimary != 0) return byPrimary;
+    final aParts = aTag.split('-');
+    final bParts = bTag.split('-');
+    final aRegion = aParts.length >= 2 ? aParts[1] : '';
+    final bRegion = bParts.length >= 2 ? bParts[1] : '';
+    final byRegion = aRegion.compareTo(bRegion);
+    if (byRegion != 0) return byRegion;
+    return a.value.compareTo(b.value);
+  });
+  return indexed.map((e) => e.key).toList(growable: false);
+}
 
 /// True when [tag] has a non-empty primary subtag not in [kInvalidLanguageTags].
 bool isValidLanguageTag(String? tag) {

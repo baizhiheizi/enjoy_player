@@ -12,10 +12,13 @@ Sections appear in the sheet in that order: translation, then definition/diction
 
 ## Languages
 
-- **Default source** comes from the **active primary transcript** track’s `language` field (not the media row / `PlaybackSession.language`, which may be `und`).
-- **Validation** — `canonicalLookupTag` maps supported tags to `en-US` / `zh-CN`; `und`, empty, and other unsupported values fall back to the **learning language** for source; target uses the stored native tag with the same canonicalization plus **never-native-equals-learning** coercion.
-- **In-sheet override** — Source / target can be changed per lookup via the picker row (`LookupLanguagePickerRow`); choices are **not** persisted (web parity).
-- **Worker payloads** — Translation, dictionary, and contextual system prompts use **stripped base** language codes (`workerLanguageBase`) so the backend never receives regioned `und` or full BCP-47 where the worker expects `en` / `zh`.
+- **Lookup catalog** — `kSupportedLookupLanguageTags` ([`lib/core/application/app_language_catalog.dart`](../../lib/core/application/app_language_catalog.dart)) is the **separate** source of truth for the lookup sheet's source / target options. First-wave 14 tags: `en-US`, `en-GB`, `zh-CN`, `ja-JP`, `ko-KR`, `es-ES`, `es-MX`, `fr-FR`, `fr-CA`, `de-DE`, `it-IT`, `pt-BR`, `pt-PT`, `ru-RU`. Decoupled from `kSupportedNativeLanguageTags` (profile "native") and `kSupportedFocusLanguageTags` (profile "learning") so widening the lookup picker does not regress profile / settings UI.
+- **Default source** comes from the **active primary transcript** track's `language` field (not the media row / `PlaybackSession.language`, which may be `und`). `resolveLookupSource` first tries `canonicalLookupTag` (narrow en / zh short-circuit), then matches against the lookup catalog by full BCP-47 tag (e.g. `ko-KR` → `ko-KR`) or by primary subtag (e.g. `ja` → `ja-JP`). `und` / empty / denylisted primaries fall back to the **learning language**.
+- **Default target** — `resolveLookupTarget` returns the user's stored native preference when it is in the lookup list; otherwise it falls back via primary-subtag match (e.g. stored `de-AT` → `de-DE`), then to the first non-source non-learning entry. Null / empty / denylisted natives use the legacy `coerceNativeIfEqualsLearning` path so existing en-US / zh-CN users see no behavior change (zh-CN for learn=en-US, en-US for learn=zh-CN).
+- **In-sheet override** — Source / target can be changed per lookup via the picker row (`LookupLanguagePickerRow`); choices are **not** persisted (web parity). Option lists are pre-sorted with the user's learning language first (via `sortLookupLanguages`), then alphabetical by primary subtag, then by region.
+- **Cache invalidation** — `LookupSheetResultCache.evictForPair(source, target)` is called before each `setState` on source / target change and on swap, so stale results from the prior pair cannot be observed above the new pair's loading skeletons (FR-006, FR-010, SC-004).
+- **Worker payloads** — Translation, dictionary, and contextual system prompts use **stripped base** language codes (`workerLanguageBase`) so the backend never receives regioned `und` or full BCP-47 where the worker expects `en` / `ko` / `ja` etc.
+- **Worker rejection** — When the worker rejects a chosen source / target pair (e.g. unsupported regional variant), the section renders `LookupErrorRow` with the localized message + **Retry** affordance. No silent fallback to `en-US` / `zh-CN`.
 
 ## UX rules
 

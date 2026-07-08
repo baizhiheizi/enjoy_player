@@ -16,6 +16,7 @@ class LookupLanguagePickerRow extends StatelessWidget {
     required this.onSourceChanged,
     required this.onTargetChanged,
     required this.onSwap,
+    this.learningTag,
     super.key,
   });
 
@@ -25,24 +26,34 @@ class LookupLanguagePickerRow extends StatelessWidget {
   final ValueChanged<String> onTargetChanged;
   final VoidCallback onSwap;
 
+  /// Learner's learning language tag (used to pre-sort the option list with
+  /// the user's learning language first). Falls back to the source language
+  /// when null.
+  final String? learningTag;
+
   String _label(String tag) =>
       kLookupLanguageLabels[normalizeBcp47Tag(tag)] ?? normalizeBcp47Tag(tag);
 
+  List<LanguageChoiceOption> _sourceOptions() {
+    final learn = learningTag ?? sourceLanguage;
+    return sortLookupLanguages(
+      kSupportedLookupLanguageTags,
+      learningTag: learn,
+    ).map((v) => LanguageChoiceOption(value: v, label: _label(v))).toList();
+  }
+
   Future<void> _pickSource(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final options = kSupportedNativeLanguageTags
-        .map((v) => LanguageChoiceOption(value: v, label: _label(v)))
-        .toList(growable: false);
     final picked = await showLanguageChoiceSheet(
       context: context,
       title: l10n.lookupPickSourceTitle,
-      options: options,
+      options: _sourceOptions(),
       selectedValue: sourceLanguage,
     );
     if (picked != null && !tagsEqual(picked, sourceLanguage)) {
       onSourceChanged(picked);
       if (tagsEqual(picked, targetLanguage)) {
-        final other = kSupportedNativeLanguageTags.firstWhere(
+        final other = kSupportedLookupLanguageTags.firstWhere(
           (t) => !tagsEqual(t, picked),
           orElse: () => targetLanguage,
         );
@@ -53,9 +64,13 @@ class LookupLanguagePickerRow extends StatelessWidget {
 
   Future<void> _pickTarget(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final allowed = kSupportedNativeLanguageTags
-        .where((t) => !tagsEqual(t, sourceLanguage))
-        .toList(growable: false);
+    final learn = learningTag ?? sourceLanguage;
+    final allowed = sortLookupLanguages(
+      kSupportedLookupLanguageTags.where(
+        (t) => !tagsEqual(t, sourceLanguage),
+      ).toList(growable: false),
+      learningTag: learn,
+    );
     if (allowed.isEmpty) return;
     final options = allowed
         .map((v) => LanguageChoiceOption(value: v, label: _label(v)))
@@ -79,7 +94,7 @@ class LookupLanguagePickerRow extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     final canSwap = !tagsEqual(sourceLanguage, targetLanguage);
-    final targetChoices = kSupportedNativeLanguageTags
+    final targetChoices = kSupportedLookupLanguageTags
         .where((x) => !tagsEqual(x, sourceLanguage))
         .toList(growable: false);
 

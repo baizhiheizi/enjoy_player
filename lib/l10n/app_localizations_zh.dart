@@ -2204,6 +2204,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lookupCloudRequiresSignIn => '请在「设置」中登录后使用云端词典、翻译与语境翻译。';
 
   @override
+  String get lookupLanguageEnUs => '英语';
+
+  @override
+  String get lookupLanguageEnGb => '英语（英国）';
+
+  @override
+  String get lookupLanguageZhCn => '中文';
+
+  @override
+  String get lookupLanguageJaJp => '日语';
+
+  @override
+  String get lookupLanguageKoKr => '韩语';
+
+  @override
+  String get lookupLanguageEsEs => '西班牙语（西班牙）';
+
+  @override
+  String get lookupLanguageEsMx => '西班牙语（墨西哥）';
+
+  @override
+  String get lookupLanguageFrFr => '法语（法国）';
+
+  @override
+  String get lookupLanguageFrCa => '法语（加拿大）';
+
+  @override
+  String get lookupLanguageDeDe => '德语';
+
+  @override
+  String get lookupLanguageItIt => '意大利语';
+
+  @override
+  String get lookupLanguagePtBr => '葡萄牙语（巴西）';
+
+  @override
+  String get lookupLanguagePtPt => '葡萄牙语（葡萄牙）';
+
+  @override
+  String get lookupLanguageRuRu => '俄语';
+
+  @override
+  String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
+
+  @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
 
   @override
@@ -4084,6 +4129,51 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get lookupCloudRequiresSignIn => '请在「设置」中登录后使用云端词典、翻译与语境翻译。';
+
+  @override
+  String get lookupLanguageEnUs => '英语';
+
+  @override
+  String get lookupLanguageEnGb => '英语（英国）';
+
+  @override
+  String get lookupLanguageZhCn => '中文';
+
+  @override
+  String get lookupLanguageJaJp => '日语';
+
+  @override
+  String get lookupLanguageKoKr => '韩语';
+
+  @override
+  String get lookupLanguageEsEs => '西班牙语（西班牙）';
+
+  @override
+  String get lookupLanguageEsMx => '西班牙语（墨西哥）';
+
+  @override
+  String get lookupLanguageFrFr => '法语（法国）';
+
+  @override
+  String get lookupLanguageFrCa => '法语（加拿大）';
+
+  @override
+  String get lookupLanguageDeDe => '德语';
+
+  @override
+  String get lookupLanguageItIt => '意大利语';
+
+  @override
+  String get lookupLanguagePtBr => '葡萄牙语（巴西）';
+
+  @override
+  String get lookupLanguagePtPt => '葡萄牙语（葡萄牙）';
+
+  @override
+  String get lookupLanguageRuRu => '俄语';
+
+  @override
+  String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';

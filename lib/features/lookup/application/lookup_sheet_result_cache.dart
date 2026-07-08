@@ -43,6 +43,22 @@ final class LookupSheetResultCache {
   void evictDictionary(LookupDictionaryParams params) {
     _dictionary.remove(params);
   }
+
+  /// Removes every cached entry whose params struct's `sourceLanguage` and
+  /// `targetLanguage` match the given pair. Used on swap / source or target
+  /// change so stale results from the prior pair cannot be observed against
+  /// the new pair's loading skeletons.
+  void evictForPair({
+    required String sourceLanguage,
+    required String targetLanguage,
+  }) {
+    _contextual.removeWhere(
+      (k, _) => k.sourceLanguage == sourceLanguage && k.targetLanguage == targetLanguage,
+    );
+    _dictionary.removeWhere(
+      (k, _) => k.sourceLanguage == sourceLanguage && k.targetLanguage == targetLanguage,
+    );
+  }
 }
 
 @Riverpod(keepAlive: true)

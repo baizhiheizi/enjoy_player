@@ -7,9 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
+import 'package:enjoy_player/features/lookup/application/lookup_target_languages.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/contextual_translation_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/dictionary_lookup_section.dart';
@@ -41,6 +47,12 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
   ScrollController? _dialogScroll;
 
   static const double _hPad = 20;
+  static final _log = logNamed('Lookup');
+
+  String get _learningTag {
+    final prefs = ref.read(appPreferencesCtrlProvider).valueOrNull;
+    return prefs?.effectiveLearningLanguage ?? kDefaultLearningLanguageTag;
+  }
 
   @override
   void initState() {
@@ -50,6 +62,49 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
     if (widget.presentation == DictionaryLookupPresentation.dialog) {
       _dialogScroll = ScrollController();
     }
+  }
+
+  void _changeSource(String next) {
+    final l10n = AppLocalizations.of(context);
+    final prev = _sourceLanguage;
+    final override = resolveLookupSourceOverride(next);
+    if (override != null) {
+      if (tagsEqual(prev, override)) return;
+      _evictPriorPair(prev, _targetLanguage);
+      setState(() => _sourceLanguage = override);
+      _log.info('lookup source $prev → $override');
+      return;
+    }
+    AppNotice.info(context, l10n?.lookupSourceResetToLearning ?? '');
+  }
+
+  void _changeTarget(String next) {
+    final prev = _targetLanguage;
+    if (tagsEqual(prev, next)) return;
+    _evictPriorPair(_sourceLanguage, prev);
+    setState(() => _targetLanguage = next);
+    _log.info('lookup target $prev → $next');
+  }
+
+  void _swapLanguages() {
+    final prevSource = _sourceLanguage;
+    final prevTarget = _targetLanguage;
+    if (tagsEqual(prevSource, prevTarget)) return;
+    _evictPriorPair(prevSource, prevTarget);
+    setState(() {
+      _sourceLanguage = prevTarget;
+      _targetLanguage = prevSource;
+    });
+    _log.info('lookup swap $prevSource/$prevTarget → $prevTarget/$prevSource');
+  }
+
+  void _evictPriorPair(String source, String target) {
+    if (source.isEmpty || target.isEmpty) return;
+    if (tagsEqual(source, target)) return;
+    ref.read(lookupSheetResultCacheProvider).evictForPair(
+          sourceLanguage: source,
+          targetLanguage: target,
+        );
   }
 
   @override
@@ -155,15 +210,10 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                 child: LookupLanguagePickerRow(
                   sourceLanguage: _sourceLanguage,
                   targetLanguage: _targetLanguage,
-                  onSourceChanged: (v) => setState(() => _sourceLanguage = v),
-                  onTargetChanged: (v) => setState(() => _targetLanguage = v),
-                  onSwap: () {
-                    setState(() {
-                      final s = _sourceLanguage;
-                      _sourceLanguage = _targetLanguage;
-                      _targetLanguage = s;
-                    });
-                  },
+                  learningTag: _learningTag,
+                  onSourceChanged: (v) => _changeSource(v),
+                  onTargetChanged: (v) => _changeTarget(v),
+                  onSwap: _swapLanguages,
                 ),
               ),
             ),
