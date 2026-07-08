@@ -5,21 +5,29 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_cue_reveal_provider.dart';
+import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
+import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_recording_badge.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_text_selection_scope.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class TranscriptLineTile extends StatefulWidget {
+class TranscriptLineTile extends ConsumerStatefulWidget {
   const TranscriptLineTile({
     required this.line,
+    required this.mediaId,
     required this.secondaryText,
     required this.isActive,
     required this.inEcho,
@@ -32,6 +40,7 @@ class TranscriptLineTile extends StatefulWidget {
   });
 
   final TranscriptLine line;
+  final String mediaId;
   final String? secondaryText;
   final bool isActive;
   final bool inEcho;
@@ -52,10 +61,10 @@ class TranscriptLineTile extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<TranscriptLineTile> createState() => _TranscriptLineTileState();
+  ConsumerState<TranscriptLineTile> createState() => _TranscriptLineTileState();
 }
 
-class _TranscriptLineTileState extends State<TranscriptLineTile> {
+class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
   bool _hover = false;
   Timer? _selectionToolbarTimer;
 
@@ -85,6 +94,20 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
     if (element == null) return null;
     visit(element);
     return found;
+  }
+
+  void _handleTap(BuildContext context) {
+    Haptics.selection(context);
+    final prefs = ref.read(transcriptBlurPreferencesCtrlProvider).valueOrNull;
+    if (prefs?.enabled == true) {
+      ref
+          .read(tapRevealHoldCtrlProvider(widget.mediaId).notifier)
+          .setHold(
+            cueId: cueIdFor(widget.line),
+            holdSeconds: prefs!.tapRevealSeconds,
+          );
+    }
+    widget.onTap();
   }
 
   void _onSelectableSelectionChanged(
@@ -299,6 +322,16 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
 
     final primaryPlain = transcriptPlainForSelection(widget.line.text);
 
+    final prefs = ref.watch(transcriptBlurPreferencesCtrlProvider).valueOrNull;
+    final blurEnabled = prefs?.enabled ?? false;
+    final cueId = cueIdFor(widget.line);
+    final providerRevealed = ref.watch(
+      transcriptCueRevealProvider(widget.mediaId, cueId),
+    );
+    // The active playback cue has no privileged state — `providerRevealed`
+    // may be `true` only because the user explicitly hovered or tapped.
+    final isRevealed = !blurEnabled || _hover || providerRevealed;
+
     String statePrefix = '';
     if (l10n != null) {
       if (echoCurrent) {
@@ -363,6 +396,14 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
             );
     }
 
+    final blurredPrimary = TranscriptBlurText(
+      revealed: isRevealed,
+      child: primaryWidget,
+    );
+    final blurredSecondary = secondaryWidget == null
+        ? null
+        : TranscriptBlurText(revealed: isRevealed, child: secondaryWidget);
+
     final textBody = Padding(
       padding: tok.transcriptLinePadding,
       child: Column(
@@ -379,8 +420,8 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
             ],
           ),
           SizedBox(height: tok.space4),
-          primaryWidget,
-          if (secondaryWidget != null) ...[
+          blurredPrimary,
+          if (blurredSecondary != null) ...[
             SizedBox(height: tok.space8),
             DecoratedBox(
               decoration: BoxDecoration(
@@ -393,7 +434,7 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
               ),
               child: Padding(
                 padding: EdgeInsets.only(left: tok.space12),
-                child: secondaryWidget,
+                child: blurredSecondary,
               ),
             ),
           ],
@@ -437,10 +478,7 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
         child: Material(
           color: bg ?? Colors.transparent,
           child: InkWell(
-            onTap: () {
-              Haptics.selection(context);
-              widget.onTap();
-            },
+            onTap: () => _handleTap(context),
             highlightColor: scheme.onSurface.withValues(alpha: 0.04),
             splashColor: scheme.primary.withValues(alpha: 0.06),
             child: content,
@@ -464,10 +502,7 @@ class _TranscriptLineTileState extends State<TranscriptLineTile> {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(tok.radiusSm),
-            onTap: () {
-              Haptics.selection(context);
-              widget.onTap();
-            },
+            onTap: () => _handleTap(context),
             hoverColor: Colors.transparent,
             highlightColor: scheme.primary.withValues(alpha: 0.06),
             splashColor: scheme.primary.withValues(alpha: 0.10),

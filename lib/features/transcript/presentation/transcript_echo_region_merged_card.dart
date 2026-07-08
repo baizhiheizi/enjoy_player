@@ -75,6 +75,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
       final tile = TranscriptLineTile(
         key: ValueKey<String>('echo-line-$i'),
         line: line,
+        mediaId: mediaId,
         secondaryText: secondaryText,
         isActive: isActive,
         inEcho: true,

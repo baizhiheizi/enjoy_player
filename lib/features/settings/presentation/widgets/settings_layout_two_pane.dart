@@ -27,6 +27,7 @@ import 'package:enjoy_player/features/settings/presentation/widgets/sections/clo
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/developer_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/keyboard_shortcuts_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/recording_section.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/transcript_blur_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_no_results.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_card.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_rail_item.dart';
@@ -42,6 +43,7 @@ List<String> _railSectionIds() {
     SettingsSectionIds.appearanceLanguage,
     SettingsSectionIds.aiProviders,
     SettingsSectionIds.recording,
+    SettingsSectionIds.transcriptBlur,
     if (isDesktop) SettingsSectionIds.keyboardShortcuts,
     if (!kReleaseMode) SettingsSectionIds.developer,
     SettingsSectionIds.about,
@@ -60,6 +62,8 @@ Widget _sectionBody(String sectionId) {
       return const AiProvidersSectionBody();
     case SettingsSectionIds.recording:
       return const RecordingSectionBody();
+    case SettingsSectionIds.transcriptBlur:
+      return const TranscriptBlurSectionBody();
     case SettingsSectionIds.keyboardShortcuts:
       return const KeyboardShortcutsSectionBody();
     case SettingsSectionIds.developer:
@@ -105,9 +109,9 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
         : railIds.first;
     if (effectiveSelected != selected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(settingsSelectedSectionProvider.notifier).select(
-          effectiveSelected,
-        );
+        ref
+            .read(settingsSelectedSectionProvider.notifier)
+            .select(effectiveSelected);
       });
     }
 
@@ -186,7 +190,11 @@ class _DetailPane extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SettingsSectionHeader(title: visual.title, hint: visual.hint, icon: visual.icon),
+          SettingsSectionHeader(
+            title: visual.title,
+            hint: visual.hint,
+            icon: visual.icon,
+          ),
           SizedBox(height: t.space8),
           _sectionBody(sectionId),
         ],

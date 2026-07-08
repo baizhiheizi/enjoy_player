@@ -4640,6 +4640,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Needs attention'**
   String get settingsSectionNeedsAttention;
+
+  /// No description provided for @transcriptBlurToggleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur practice (focus on listening)'**
+  String get transcriptBlurToggleTooltip;
+
+  /// No description provided for @transcriptBlurToggleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening-focus mode on'**
+  String get transcriptBlurToggleOn;
+
+  /// No description provided for @transcriptBlurToggleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening-focus mode off'**
+  String get transcriptBlurToggleOff;
+
+  /// No description provided for @transcriptBlurEmptyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'No transcript lines to practice with'**
+  String get transcriptBlurEmptyTooltip;
+
+  /// No description provided for @transcriptBlurSettingsHoldDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap-reveal hold duration'**
+  String get transcriptBlurSettingsHoldDuration;
+
+  /// No description provided for @transcriptBlurSettingsHoldDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How long a tapped cue stays unblurred on touch devices'**
+  String get transcriptBlurSettingsHoldDurationHint;
+
+  /// No description provided for @transcriptBlurSemanticsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur practice on. Tap or hover to reveal a line.'**
+  String get transcriptBlurSemanticsOn;
+
+  /// No description provided for @transcriptBlurSemanticsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur practice off.'**
+  String get transcriptBlurSemanticsOff;
+
+  /// No description provided for @transcriptBlurSettingsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening-focus practice'**
+  String get transcriptBlurSettingsSectionTitle;
+
+  /// No description provided for @transcriptBlurSettingsSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur every transcript line so you listen first, then peek to check yourself.'**
+  String get transcriptBlurSettingsSectionHint;
 }
 
 class _AppLocalizationsDelegate

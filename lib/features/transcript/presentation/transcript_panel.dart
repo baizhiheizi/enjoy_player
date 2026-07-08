@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_blur_toolbar.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_empty_state.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_embedded_extract.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_scrollable_list.dart';
@@ -85,6 +86,13 @@ class TranscriptPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        TranscriptBlurToolbar(
+          mediaId: mediaId,
+          hasLines: linesAsync.maybeWhen(
+            data: (l) => l.isNotEmpty,
+            orElse: () => false,
+          ),
+        ),
         Expanded(
           child: linesAsync.when(
             data: (lines) {

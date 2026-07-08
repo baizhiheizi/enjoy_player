@@ -18,6 +18,9 @@ abstract final class SettingsSectionIds {
   static const keyboardShortcuts = 'keyboardShortcuts';
   static const developer = 'developer';
   static const about = 'about';
+
+  /// Transcript blur (practice / listening-focus) mode — hold duration.
+  static const transcriptBlur = 'transcriptBlur';
 }
 
 /// Identity of one section header or row, before localization.
@@ -72,13 +75,15 @@ List<SettingsSearchEntry> filterSettingsEntries(
 ) {
   final q = query.trim().toLowerCase();
   if (q.isEmpty) return entries;
-  return entries.where((e) {
-    if (e.title.toLowerCase().contains(q)) return true;
-    for (final k in e.keywords) {
-      if (k.toLowerCase().contains(q)) return true;
-    }
-    return false;
-  }).toList(growable: false);
+  return entries
+      .where((e) {
+        if (e.title.toLowerCase().contains(q)) return true;
+        for (final k in e.keywords) {
+          if (k.toLowerCase().contains(q)) return true;
+        }
+        return false;
+      })
+      .toList(growable: false);
 }
 
 /// The single source of truth for what's discoverable in Settings. The
@@ -119,6 +124,11 @@ const List<SettingsEntryDescriptor> kSettingsRegistry = [
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.recording,
     rowId: 'micPicker',
+  ),
+  SettingsEntryDescriptor(sectionId: SettingsSectionIds.transcriptBlur),
+  SettingsEntryDescriptor(
+    sectionId: SettingsSectionIds.transcriptBlur,
+    rowId: 'holdDuration',
   ),
   SettingsEntryDescriptor(sectionId: SettingsSectionIds.keyboardShortcuts),
   SettingsEntryDescriptor(

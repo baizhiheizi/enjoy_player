@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 Widget transcriptTileHarness(Widget child) {
-  return MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: child),
+  return ProviderScope(
+    overrides: [
+      transcriptBlurPreferencesCtrlProvider.overrideWith(
+        () => _FakeBlurPrefsCtrl(TranscriptBlurPreferences.defaults),
+      ),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
   );
+}
+
+class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
+  _FakeBlurPrefsCtrl(this._initial);
+  final TranscriptBlurPreferences _initial;
+
+  @override
+  Future<TranscriptBlurPreferences> build() async => _initial;
+
+  @override
+  Future<void> setEnabled(bool value) async {}
+
+  @override
+  Future<void> setTapRevealSeconds(int seconds) async {}
 }
 
 void main() {
@@ -23,6 +47,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: true,
           inEcho: false,
@@ -48,6 +73,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: false,
           inEcho: false,
@@ -75,6 +101,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: false,
           inEcho: true,
@@ -105,6 +132,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: true,
           inEcho: false,
@@ -143,6 +171,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: true,
           inEcho: false,
@@ -183,6 +212,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: false,
           inEcho: false,
@@ -209,6 +239,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: false,
           inEcho: false,
@@ -234,6 +265,7 @@ void main() {
             startMs: 0,
             durationMs: 2000,
           ),
+          mediaId: 'test',
           secondaryText: null,
           isActive: false,
           inEcho: false,
