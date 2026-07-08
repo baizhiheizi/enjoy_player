@@ -243,7 +243,7 @@ Shared infrastructure under `lib/core`.
 
 ## Logging
 
-*{ Describe `Log.named` and the `package:logging` policy that forbids `print()`. }*
+*{ Describe the `logNamed(name)` helper from `lib/core/logging/log.dart` (a one-line wrapper around `package:logging`'s `Logger`) and the no-`print()` policy. Reference [[Conventions#Logging]] for the canonical pattern. }*
 
 ## Routing
 
@@ -263,7 +263,7 @@ Dependencies and platform choices.
 
 Coding rules and patterns.
 
-*{ Reference docs/conventions.md — Dart/Flutter rules: `Log.named`, no `Player()` outside PlayerController, no `kIsWeb`, Drift-only persistence, riverpod codegen, ADR-0018 shared interaction primitives. }*
+*{ Reference docs/conventions.md — Dart/Flutter rules: `logNamed(name)` (imported from `lib/core/logging/log.dart`), no `Player()` outside PlayerController, no `kIsWeb`, Drift-only persistence, riverpod codegen, ADR-0018 shared interaction primitives. }*
 
 # Testing
 
@@ -365,7 +365,7 @@ Prefer reading wiki documentation over relying on pre-trained knowledge.
 |  Persistence#Migrations: idempotent ADD COLUMN helper
 |  Persistence#Recovery: RecoverySurface and reset flow
 |Core-Modules: logging, routing, theme, audio, errors, recovery
-|  Core-Modules#Logging: Log.named and no print()
+|  Core-Modules#Logging: logNamed() helper and no print()
 |  Core-Modules#Routing: go_router
 |  Core-Modules#Theme: dual-mode + dynamic color
 |Tech-Stack: dependencies and platform choices
