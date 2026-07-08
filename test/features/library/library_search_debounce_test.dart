@@ -76,6 +76,37 @@ void main() {
       notifier.commit();
       expect(container.read(librarySearchProvider), 'hello world');
     });
+
+    test('clear() during a pending debounce resets to empty', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(librarySearchProvider.notifier);
+
+      notifier.setQuery('alpha');
+      // Clear while the debounce is still pending.
+      notifier.clear();
+      expect(container.read(librarySearchProvider), '');
+
+      // Wait past the debounce window: the cancelled timer must not
+      // flip state back to 'alpha'.
+      await Future<void>.delayed(
+        kLibrarySearchDebounce + const Duration(milliseconds: 50),
+      );
+      expect(container.read(librarySearchProvider), '');
+    });
+
+    test('clear() after a committed non-empty state resets to empty', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(librarySearchProvider.notifier);
+
+      notifier.setQuery('hello');
+      notifier.commit();
+      expect(container.read(librarySearchProvider), 'hello');
+
+      notifier.clear();
+      expect(container.read(librarySearchProvider), '');
+    });
   });
 
   group('MediaLibraryRepository.deleteMedia atomicity', () {

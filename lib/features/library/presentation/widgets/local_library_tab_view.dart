@@ -118,8 +118,7 @@ class LocalAudioLibraryBody extends StatelessWidget {
             final notifier = ProviderScope.containerOf(
               context,
             ).read(librarySearchProvider.notifier);
-            notifier.setQuery('');
-            notifier.commit();
+            notifier.clear();
           },
           actionLabel: l10n.librarySearchClear,
         );
@@ -211,8 +210,7 @@ class LocalVideoLibraryBody extends StatelessWidget {
             final notifier = ProviderScope.containerOf(
               context,
             ).read(librarySearchProvider.notifier);
-            notifier.setQuery('');
-            notifier.commit();
+            notifier.clear();
           },
           actionLabel: l10n.librarySearchClear,
         );

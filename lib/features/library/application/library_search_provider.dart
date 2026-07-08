@@ -39,12 +39,22 @@ class LibrarySearchNotifier extends Notifier<String> {
     });
   }
 
-  /// Synchronously commit the pending input (e.g. on Enter / submit
-  /// or when an empty-state "Clear" action is tapped). Cancels the
-  /// pending debounced commit.
+  /// Synchronously commit the pending input (e.g. on Enter / submit).
+  /// Cancels the pending debounced commit.
   void commit() {
     _debounce?.cancel();
     _debounce = null;
     state = _pending.trim();
+  }
+
+  /// Resets the search state to `''`, cancelling any pending debounce and
+  /// discarding the pending buffer. Use this for the empty-state "Clear"
+  /// action and any other call site that wants an immediate, unconditional
+  /// reset (no need to mirror it with `setQuery('') + commit()`).
+  void clear() {
+    _debounce?.cancel();
+    _debounce = null;
+    _pending = '';
+    state = '';
   }
 }
