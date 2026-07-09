@@ -33,6 +33,11 @@ runs:
         # local disk. Mirror the Windows branch instead: install into a
         # persistent, version-keyed directory and skip the download when
         # it's already there.
+        #
+        # Flutter's release archives are git checkouts. A cached tree that
+        # still has bin/flutter but lost/corrupt .git makes `flutter --version`
+        # exit 128 ("fatal: not a git repository"). Treat that as a miss and
+        # reinstall.
         set -euo pipefail
 
         version="${{ steps.flutter_version_unix.outputs.version }}"
@@ -41,7 +46,13 @@ runs:
         flutter_root="$install_dir/flutter"
         flutter_bin="$flutter_root/bin/flutter"
 
-        if [ ! -x "$flutter_bin" ]; then
+        flutter_sdk_ok() {
+          [ -x "$flutter_bin" ] || return 1
+          [ -d "$flutter_root/.git" ] || return 1
+          git -C "$flutter_root" rev-parse --git-dir >/dev/null 2>&1
+        }
+
+        install_flutter_sdk() {
           rm -rf "$install_dir"
           mkdir -p "$install_dir"
 
@@ -69,12 +80,23 @@ runs:
           esac
 
           rm -f "$archive"
+        }
+
+        if ! flutter_sdk_ok; then
+          if [ -e "$install_dir" ]; then
+            echo "Cached Flutter $version at $flutter_root is incomplete; reinstalling."
+          fi
+          install_flutter_sdk
         fi
 
-        if [ ! -x "$flutter_bin" ]; then
-          echo "::error::Flutter $version was not installed at $flutter_root"
+        if ! flutter_sdk_ok; then
+          echo "::error::Flutter $version was not installed at $flutter_root (missing binary or .git)"
           exit 1
         fi
+
+        # Self-hosted runners may extract the SDK as a different user than the
+        # job user; mark it safe so git/flutter version probes do not fail.
+        git config --global --add safe.directory "$flutter_root"
 
         echo "$flutter_root/bin" >> "$GITHUB_PATH"
         echo "FLUTTER_ROOT=$flutter_root" >> "$GITHUB_ENV"
@@ -91,8 +113,16 @@ runs:
         $installDir = Join-Path $cacheRoot "flutter-windows-$version-stable"
         $flutterRoot = Join-Path $installDir 'flutter'
         $flutterBat = Join-Path $flutterRoot 'bin\flutter.bat'
+        $flutterGit = Join-Path $flutterRoot '.git'
 
-        if (-not (Test-Path $flutterBat)) {
+        function Test-FlutterSdkOk {
+          if (-not (Test-Path $flutterBat)) { return $false }
+          if (-not (Test-Path $flutterGit)) { return $false }
+          git -C $flutterRoot rev-parse --git-dir 2>$null | Out-Null
+          return ($LASTEXITCODE -eq 0)
+        }
+
+        function Install-FlutterSdk {
           Remove-Item -Path $installDir -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 
@@ -100,11 +130,21 @@ runs:
           $url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_$version-stable.zip"
           Invoke-WebRequest -Uri $url -OutFile $archive
           Expand-Archive -Path $archive -DestinationPath $installDir -Force
+          Remove-Item -Path $archive -Force -ErrorAction SilentlyContinue
         }
 
-        if (-not (Test-Path $flutterBat)) {
-          throw "Flutter $version was not installed at $flutterRoot"
+        if (-not (Test-FlutterSdkOk)) {
+          if (Test-Path $installDir) {
+            Write-Host "Cached Flutter $version at $flutterRoot is incomplete; reinstalling."
+          }
+          Install-FlutterSdk
         }
+
+        if (-not (Test-FlutterSdkOk)) {
+          throw "Flutter $version was not installed at $flutterRoot (missing binary or .git)"
+        }
+
+        git config --global --add safe.directory $flutterRoot
 
         (Join-Path $flutterRoot 'bin') | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         "FLUTTER_ROOT=$flutterRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
