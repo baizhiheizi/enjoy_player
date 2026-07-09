@@ -3,9 +3,12 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+/// Shared shape for every lookup request: the query text plus the source →
+/// target language pair. Equality lives here so the three concrete params
+/// classes below stay in sync as map keys for [LookupSheetResultCache].
 @immutable
-final class LookupTranslationParams {
-  const LookupTranslationParams({
+base class LookupTextParams {
+  const LookupTextParams({
     required this.text,
     required this.sourceLanguage,
     required this.targetLanguage,
@@ -18,7 +21,7 @@ final class LookupTranslationParams {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LookupTranslationParams &&
+      other is LookupTextParams &&
           text == other.text &&
           sourceLanguage == other.sourceLanguage &&
           targetLanguage == other.targetLanguage;
@@ -28,53 +31,42 @@ final class LookupTranslationParams {
 }
 
 @immutable
-final class LookupContextualParams {
+final class LookupTranslationParams extends LookupTextParams {
+  const LookupTranslationParams({
+    required super.text,
+    required super.sourceLanguage,
+    required super.targetLanguage,
+  });
+}
+
+/// Contextual translation params add an optional surrounding-text [context].
+@immutable
+final class LookupContextualParams extends LookupTextParams {
   const LookupContextualParams({
-    required this.text,
-    required this.sourceLanguage,
-    required this.targetLanguage,
+    required super.text,
+    required super.sourceLanguage,
+    required super.targetLanguage,
     this.context,
   });
 
-  final String text;
-  final String sourceLanguage;
-  final String targetLanguage;
   final String? context;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is LookupContextualParams &&
-          text == other.text &&
-          sourceLanguage == other.sourceLanguage &&
-          targetLanguage == other.targetLanguage &&
+          super == other &&
           context == other.context;
 
   @override
-  int get hashCode =>
-      Object.hash(text, sourceLanguage, targetLanguage, context);
+  int get hashCode => Object.hash(super.hashCode, context);
 }
 
 @immutable
-final class LookupDictionaryParams {
+final class LookupDictionaryParams extends LookupTextParams {
   const LookupDictionaryParams({
-    required this.word,
-    required this.sourceLanguage,
-    required this.targetLanguage,
+    required super.text,
+    required super.sourceLanguage,
+    required super.targetLanguage,
   });
-
-  final String word;
-  final String sourceLanguage;
-  final String targetLanguage;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is LookupDictionaryParams &&
-          word == other.word &&
-          sourceLanguage == other.sourceLanguage &&
-          targetLanguage == other.targetLanguage;
-
-  @override
-  int get hashCode => Object.hash(word, sourceLanguage, targetLanguage);
 }

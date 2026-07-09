@@ -11,8 +11,6 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
@@ -22,6 +20,7 @@ import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -49,33 +48,15 @@ class ContextualTranslationLookupSection extends ConsumerWidget {
       title: l10n.lookupSectionContextualTranslation,
       initiallyExpanded: false,
       leading: const Icon(Icons.article_outlined),
-      bodyBuilder: (ctx) {
-        final auth = ref.watch(authCtrlProvider);
-        return auth.when(
-          data: (state) {
-            if (state is! AuthSignedIn) {
-              return const AuthRequiredCallout(
-                surface: AuthRequiredSurface.lookupContextual,
-                compact: true,
-              );
-            }
-            return _ContextualFetchBody(
-              params: params,
-              theme: theme,
-              mdStyle: mdStyle,
-              l10n: l10n,
-            );
-          },
-          loading: () => const LookupSectionShimmer(),
-          error: (Object e, StackTrace st) {
-            Object.hash(e.hashCode, st.hashCode);
-            return const AuthRequiredCallout(
-              surface: AuthRequiredSurface.lookupContextual,
-              compact: true,
-            );
-          },
-        );
-      },
+      bodyBuilder: (ctx) => LookupSectionAuthGate(
+        surface: AuthRequiredSurface.lookupContextual,
+        child: _ContextualFetchBody(
+          params: params,
+          theme: theme,
+          mdStyle: mdStyle,
+          l10n: l10n,
+        ),
+      ),
     );
   }
 }

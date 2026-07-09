@@ -39,7 +39,7 @@ Future<DictionaryResult> lookupSheetDictionary(
   final result = await ref
       .read(dictionaryServiceProvider)
       .lookup(
-        word: params.word,
+        word: params.text,
         sourceLanguage: params.sourceLanguage,
         targetLanguage: params.targetLanguage,
       );

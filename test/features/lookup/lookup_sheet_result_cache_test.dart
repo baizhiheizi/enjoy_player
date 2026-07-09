@@ -38,17 +38,17 @@ void main() {
         targetLanguage: pairC.target,
       );
       final dictA = LookupDictionaryParams(
-        word: '안녕',
+        text: '안녕',
         sourceLanguage: pairA.source,
         targetLanguage: pairA.target,
       );
       final dictB = LookupDictionaryParams(
-        word: '안녕',
+        text: '안녕',
         sourceLanguage: pairB.source,
         targetLanguage: pairB.target,
       );
       final dictC = LookupDictionaryParams(
-        word: 'こんにちは',
+        text: 'こんにちは',
         sourceLanguage: pairC.source,
         targetLanguage: pairC.target,
       );

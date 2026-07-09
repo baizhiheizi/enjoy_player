@@ -7,13 +7,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/features/ai/domain/models/translation_result.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -36,16 +35,10 @@ class TranslationLookupSection extends ConsumerWidget {
       title: l10n.lookupSectionTranslation,
       initiallyExpanded: true,
       leading: const Icon(Icons.translate_rounded),
-      bodyBuilder: (ctx) {
-        final auth = ref.watch(authCtrlProvider);
-        return auth.when(
-          data: (state) {
-            if (state is! AuthSignedIn) {
-              return const AuthRequiredCallout(
-                surface: AuthRequiredSurface.lookupTranslation,
-                compact: true,
-              );
-            }
+      bodyBuilder: (ctx) => LookupSectionAuthGate(
+        surface: AuthRequiredSurface.lookupTranslation,
+        child: Builder(
+          builder: (_) {
             final async = ref.watch(lookupSheetTranslationProvider(params));
             return async.when(
               skipLoadingOnReload: true,
@@ -66,7 +59,6 @@ class TranslationLookupSection extends ConsumerWidget {
               },
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
-                Object.hash(e.hashCode, st.hashCode);
                 if (e is AuthFailure) {
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupTranslation,
@@ -100,16 +92,8 @@ class TranslationLookupSection extends ConsumerWidget {
               },
             );
           },
-          loading: () => const LookupSectionShimmer(),
-          error: (Object e, StackTrace st) {
-            Object.hash(e.hashCode, st.hashCode);
-            return const AuthRequiredCallout(
-              surface: AuthRequiredSurface.lookupTranslation,
-              compact: true,
-            );
-          },
-        );
-      },
+        ),
+      ),
     );
   }
 }
