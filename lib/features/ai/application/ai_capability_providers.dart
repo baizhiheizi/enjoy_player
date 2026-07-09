@@ -117,7 +117,7 @@ ContextualTranslationCapability resolveContextualTranslationCapability(
 TtsCapability resolveTtsCapability(Ref ref, AIServiceConfig config) {
   switch (config.provider) {
     case AIProvider.enjoy:
-      return const EnjoyTtsCapability();
+      return EnjoyTtsCapability(tokenCache: ref.read(azureTokenCacheProvider));
     case AIProvider.byok:
       final speechByok = config.speechByok;
       if (speechByok == null) return const ByokNotConfiguredTtsCapability();

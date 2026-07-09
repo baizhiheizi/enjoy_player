@@ -4,8 +4,10 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -205,6 +207,57 @@ class FileStorage {
           const FileFailure('Hash mismatch: file does not match synced media.'),
           st,
         );
+      }
+      Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
+    }
+  }
+
+  /// Writes raw bytes (e.g. synthesized TTS audio) into app media storage
+  /// and returns the same [FileImportResult] shape as file-based imports.
+  ///
+  /// Used by the Craft from text flow to persist TTS audio bytes alongside
+  /// regular media imports so the same playback / sync path applies.
+  /// The SHA-256 is computed from the raw bytes directly (not chunked file
+  /// hash) because the bytes never exist on disk before this call.
+  Future<FileImportResult> importBytes(
+    Uint8List bytes, {
+    required String extension,
+    String title = 'Crafted audio',
+  }) async {
+    try {
+      if (bytes.isEmpty) {
+        throw const FileFailure('Import failed: empty audio bytes');
+      }
+
+      final docs = await getApplicationDocumentsDirectory();
+      final mediaDir = Directory(p.join(docs.path, 'media'));
+      if (!await mediaDir.exists()) {
+        await mediaDir.create(recursive: true);
+      }
+
+      final contentHashHex = sha256.convert(bytes).toString();
+      final ext = extension.startsWith('.') ? extension : '.$extension';
+      final destPath = p.join(mediaDir.path, '$contentHashHex$ext');
+      final destFile = File(destPath);
+
+      if (!await destFile.exists()) {
+        final raf = await destFile.open(mode: FileMode.write);
+        try {
+          await raf.writeFrom(bytes);
+        } finally {
+          await raf.close();
+        }
+      }
+
+      return FileImportResult(
+        localPath: destPath,
+        contentHashHex: contentHashHex,
+        fileSize: bytes.length,
+        title: title,
+      );
+    } catch (e, st) {
+      if (e is FileFailure) {
+        Error.throwWithStackTrace(e, st);
       }
       Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
     }

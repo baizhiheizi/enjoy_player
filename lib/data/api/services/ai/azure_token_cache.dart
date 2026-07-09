@@ -33,9 +33,14 @@ final class AzureTokenCache {
   /// the call budget. The completer is cleared once the fetch settles.
   Future<({String token, String region})>? _inFlight;
 
-  /// [durationSeconds] is forwarded for worker-side cost estimation (assessment).
+  /// [durationSeconds] is forwarded for worker-side cost estimation.
+  ///
+  /// [purpose] controls the worker-side token usage tag. Defaults to
+  /// `'assessment'` for back-compat with the assessment flow; pass `'tts'`
+  /// for Enjoy TTS synthesis (Craft from text).
   Future<({String token, String region})> getToken({
     required int durationSeconds,
+    String purpose = 'assessment',
   }) async {
     final now = DateTime.now();
     final at = _fetchedAt;
@@ -54,10 +59,13 @@ final class AzureTokenCache {
           ? await _debugOverrideFetch()
           : await _api!.generateToken(
               usage: <String, dynamic>{
-                'purpose': 'assessment',
-                'assessment': <String, dynamic>{
-                  'durationSeconds': durationSeconds,
-                },
+                'purpose': purpose,
+                if (purpose == 'assessment')
+                  'assessment': <String, dynamic>{
+                    'durationSeconds': durationSeconds,
+                  },
+                if (purpose == 'tts')
+                  'tts': <String, dynamic>{'durationSeconds': durationSeconds},
               },
             );
 

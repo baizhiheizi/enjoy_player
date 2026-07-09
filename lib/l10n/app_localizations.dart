@@ -4730,6 +4730,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blur practice off.'**
   String get transcriptBlurSemanticsOff;
+
+  /// No description provided for @importCraftFromText.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft from text…'**
+  String get importCraftFromText;
+
+  /// No description provided for @craftSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft audio from text'**
+  String get craftSheetTitle;
+
+  /// No description provided for @craftModeTranslateThenSpeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate then speak'**
+  String get craftModeTranslateThenSpeak;
+
+  /// No description provided for @craftModeSpeakDirectly.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak directly'**
+  String get craftModeSpeakDirectly;
+
+  /// No description provided for @craftSourceLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source language'**
+  String get craftSourceLanguageLabel;
+
+  /// No description provided for @craftTargetLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning language'**
+  String get craftTargetLanguageLabel;
+
+  /// No description provided for @craftTextInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste or type text…'**
+  String get craftTextInputHint;
+
+  /// No description provided for @craftPasteFromClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste from clipboard'**
+  String get craftPasteFromClipboard;
+
+  /// No description provided for @craftAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft'**
+  String get craftAction;
+
+  /// No description provided for @craftCraftingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Crafting your audio…'**
+  String get craftCraftingProgress;
+
+  /// No description provided for @craftEmptyTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least a sentence to craft.'**
+  String get craftEmptyTextHint;
+
+  /// No description provided for @craftSameLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like this is already in your learning language.'**
+  String get craftSameLanguageHint;
+
+  /// No description provided for @craftSameLanguageSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak directly'**
+  String get craftSameLanguageSwitch;
+
+  /// No description provided for @craftOfflineBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. Craft needs an internet connection.'**
+  String get craftOfflineBanner;
+
+  /// No description provided for @craftSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use Craft'**
+  String get craftSignInRequired;
+
+  /// No description provided for @craftFailureTts.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t turn the text into audio. Check your TTS provider settings or try again.'**
+  String get craftFailureTts;
+
+  /// No description provided for @craftFailureTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t translate the text. Try again or switch to Speak directly.'**
+  String get craftFailureTranslate;
+
+  /// No description provided for @craftFailureSave.
+  ///
+  /// In en, this message translates to:
+  /// **'The audio was generated but couldn\'t be saved. Free up space and try again.'**
+  String get craftFailureSave;
+
+  /// No description provided for @craftAlreadyInLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your library'**
+  String get craftAlreadyInLibrary;
+
+  /// No description provided for @craftOpenExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get craftOpenExisting;
+
+  /// No description provided for @craftRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get craftRetry;
+
+  /// No description provided for @craftOpenAiSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open AI settings'**
+  String get craftOpenAiSettings;
+
+  /// No description provided for @craftLengthCapNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Crafted the first 5000 characters; the rest was not synthesized.'**
+  String get craftLengthCapNotice;
+
+  /// No description provided for @libraryProviderCraftBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft'**
+  String get libraryProviderCraftBadge;
+
+  /// No description provided for @craftTtsSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft uses the TTS provider below.'**
+  String get craftTtsSettingsHint;
 }
 
 class _AppLocalizationsDelegate

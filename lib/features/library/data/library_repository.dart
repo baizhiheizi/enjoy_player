@@ -2,10 +2,12 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
@@ -267,6 +269,174 @@ class MediaLibraryRepository {
     await _db.videoDao.insertRow(row);
     await _enqueueSync?.call(SyncEntityType.video, rowId, SyncAction.create);
     return rowId;
+  }
+
+  /// Imports synthesized TTS audio + transcript(s) from the Craft from text
+  /// flow. Dedupes by content hash over (sourceFlag|learningLanguage|normalizedText).
+  ///
+  /// [sourceFlag] is `'craft-translate'` or `'craft-direct'` — avoids importing
+  /// CraftMode from the craft feature module so this repository stays
+  /// decoupled.
+  ///
+  /// When [sourceLanguage] is non-null (Translate then speak), a secondary
+  /// transcript row is created so bilingual overlay works on first play.
+  Future<String> importCraftedFromText({
+    required Uint8List audioBytes,
+    required String audioFormat,
+    required String learningLanguage,
+    String? sourceLanguage,
+    required String text,
+    required String normalizedText,
+    required String sourceFlag,
+    required String signedInUserId,
+  }) async {
+    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText';
+    final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
+
+    // Dedupe: if the same content hash exists, return the existing id.
+    final existing = await _db.audioDao.getByMd5(contentHash);
+    if (existing != null) {
+      return existing.id;
+    }
+
+    // Write audio bytes to local storage.
+    final importResult = await _storage.importBytes(
+      audioBytes,
+      extension: audioFormat,
+      title: _craftTitle(normalizedText),
+    );
+
+    final aid = enjoyLocalAudioAid(
+      contentHashHex: contentHash,
+      userId: signedInUserId,
+    );
+    final id = enjoyAudioId(aid: aid);
+    final now = DateTime.now();
+    final canonicalLearning = canonicalMediaLanguageTag(learningLanguage);
+    final canonicalSource = sourceLanguage != null
+        ? canonicalMediaLanguageTag(sourceLanguage)
+        : null;
+
+    // Build primary transcript timeline (single-line).
+    final primaryTimelineJson = jsonEncode([
+      {'text': normalizedText, 'start': 0, 'duration': 0},
+    ]);
+    final primaryTranscriptId = enjoyTranscriptId(
+      targetType: 'Audio',
+      targetId: id,
+      language: canonicalLearning,
+      source: 'ai',
+    );
+
+    // Build secondary transcript timeline (source text) for Translate then speak.
+    final hasSecondary = canonicalSource != null;
+    String? secondaryTranscriptId;
+    String? secondaryTimelineJson;
+    if (hasSecondary) {
+      secondaryTranscriptId = enjoyTranscriptId(
+        targetType: 'Audio',
+        targetId: id,
+        language: canonicalSource,
+        source: 'ai',
+      );
+      secondaryTimelineJson = jsonEncode([
+        {'text': text, 'start': 0, 'duration': 0},
+      ]);
+    }
+
+    // Single transaction: audio row + primary transcript + optional secondary.
+    await _db.transaction(() async {
+      final audioRow = AudioRow(
+        id: id,
+        aid: aid,
+        provider: 'craft',
+        title: importResult.title,
+        description: null,
+        thumbnailUrl: null,
+        durationSeconds: 0,
+        language: canonicalLearning,
+        translationKey: canonicalSource ?? canonicalLearning,
+        sourceText: text,
+        voice: null,
+        source: sourceFlag,
+        localUri: importResult.fileUri,
+        md5: contentHash,
+        size: importResult.fileSize,
+        mediaUrl: null,
+        syncStatus: 'pending',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await _db.audioDao.insertRow(audioRow);
+
+      final primaryRow = TranscriptRow(
+        id: primaryTranscriptId,
+        targetType: 'Audio',
+        targetId: id,
+        language: canonicalLearning,
+        source: 'ai',
+        timelineJson: primaryTimelineJson,
+        referenceId: canonicalSource,
+        label: '',
+        trackIndex: null,
+        syncStatus: 'local',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await _db.transcriptDao.upsert(primaryRow);
+
+      if (canonicalSource != null &&
+          secondaryTranscriptId != null &&
+          secondaryTimelineJson != null) {
+        final secondaryRow = TranscriptRow(
+          id: secondaryTranscriptId,
+          targetType: 'Audio',
+          targetId: id,
+          language: canonicalSource,
+          source: 'ai',
+          timelineJson: secondaryTimelineJson,
+          referenceId: primaryTranscriptId,
+          label: '',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await _db.transcriptDao.upsert(secondaryRow);
+      }
+    });
+
+    // Probe duration asynchronously (same path as importMedia).
+    unawaited(_probeAndPatchDuration(id, importResult.localPath, video: false));
+
+    // Enqueue sync.
+    await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
+    return id;
+  }
+
+  /// Trims normalized text to ~40 chars for the audio title.
+  String _craftTitle(String normalizedText) {
+    if (normalizedText.length <= 40) return normalizedText;
+    return '${normalizedText.substring(0, 40)}…';
+  }
+
+  /// Checks whether a Crafted audio with the same content hash already exists.
+  /// Returns the existing media id, or `null` if no match.
+  ///
+  /// Called by the Craft controller BEFORE any AI calls to enable dedupe
+  /// without wasting translate / synthesize requests.
+  Future<String?> findExistingCrafted({
+    required String learningLanguage,
+    required String normalizedText,
+    required String sourceFlag,
+  }) async {
+    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText';
+    final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
+    final existing = await _db.audioDao.getByMd5(contentHash);
+    return existing?.id;
   }
 
   /// Re-fetches oEmbed when title/thumbnail are still import placeholders.
