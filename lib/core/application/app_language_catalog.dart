@@ -154,15 +154,15 @@ List<String> sortLookupLanguages(
   List<String> tags, {
   required String learningTag,
 }) {
-  final learnPrimary = _primarySubtag(normalizeBcp47Tag(learningTag));
+  final learnPrimary = primaryLanguageSubtag(normalizeBcp47Tag(learningTag));
   final indexed = List<MapEntry<String, int>>.generate(tags.length, (i) {
     return MapEntry<String, int>(tags[i], i);
   });
   indexed.sort((a, b) {
     final aTag = normalizeBcp47Tag(a.key);
     final bTag = normalizeBcp47Tag(b.key);
-    final aPrimary = _primarySubtag(aTag);
-    final bPrimary = _primarySubtag(bTag);
+    final aPrimary = primaryLanguageSubtag(aTag);
+    final bPrimary = primaryLanguageSubtag(bTag);
     final aIsLearn = aPrimary == learnPrimary;
     final bIsLearn = bPrimary == learnPrimary;
     if (aIsLearn != bIsLearn) return aIsLearn ? -1 : 1;
@@ -184,7 +184,7 @@ bool isValidLanguageTag(String? tag) {
   if (tag == null) return false;
   final trimmed = tag.trim();
   if (trimmed.isEmpty) return false;
-  final primary = _primarySubtag(trimmed);
+  final primary = primaryLanguageSubtag(trimmed);
   if (primary.isEmpty) return false;
   return !kInvalidLanguageTags.contains(primary);
 }
@@ -207,7 +207,13 @@ String normalizeLanguageAlias(String tag) {
   return trimmed;
 }
 
-String _primarySubtag(String tag) {
+/// Primary language subtag of [tag], lowercased (`en-US` → `en`, `kor` → `ko`).
+///
+/// Normalizes legacy aliases first (e.g. `kor` → `ko`) via [normalizeLanguageAlias],
+/// then splits on `-` / `_` and returns the first subtag lowercased. Shared by the
+/// catalog resolvers and the lookup language resolvers so both use one definition
+/// of "same language" (see [matchesLanguageBroad], [resolveLookupSource], etc.).
+String primaryLanguageSubtag(String tag) {
   final normalized = normalizeLanguageAlias(tag);
   return normalized.split(RegExp(r'[-_]')).first.toLowerCase();
 }
@@ -216,7 +222,7 @@ String _primarySubtag(String tag) {
 String? canonicalLookupTag(String? tag) {
   if (!isValidLanguageTag(tag)) return null;
   final trimmed = normalizeLanguageAlias(tag!.trim());
-  final primary = _primarySubtag(trimmed);
+  final primary = primaryLanguageSubtag(trimmed);
   if (primary == 'en') return 'en-US';
   if (primary == 'zh') return 'zh-CN';
   final n = normalizeBcp47Tag(trimmed);
@@ -237,9 +243,9 @@ String canonicalFocusLanguageTag(String? tag) {
   for (final supported in kSupportedFocusLanguageTags) {
     if (tagsEqual(normalized, supported)) return supported;
   }
-  final primary = _primarySubtag(normalized);
+  final primary = primaryLanguageSubtag(normalized);
   for (final supported in kSupportedFocusLanguageTags) {
-    if (_primarySubtag(supported) == primary) return supported;
+    if (primaryLanguageSubtag(supported) == primary) return supported;
   }
   return kDefaultLearningLanguageTag;
 }
@@ -256,10 +262,10 @@ String canonicalMediaLanguageTag(String? tag) {
     if (supported == kUnknownMediaLanguageTag) continue;
     if (tagsEqual(normalized, supported)) return supported;
   }
-  final primary = _primarySubtag(normalized);
+  final primary = primaryLanguageSubtag(normalized);
   for (final supported in kSupportedMediaLanguageTags) {
     if (supported == kUnknownMediaLanguageTag) continue;
-    if (_primarySubtag(supported) == primary) return supported;
+    if (primaryLanguageSubtag(supported) == primary) return supported;
   }
   if (isValidLanguageTag(normalized)) return normalized;
   return kUnknownMediaLanguageTag;
@@ -269,7 +275,7 @@ String canonicalMediaLanguageTag(String? tag) {
 bool matchesLanguageBroad(String? a, String? b) {
   if (a == null || b == null) return false;
   if (tagsEqual(a, b)) return true;
-  return _primarySubtag(a) == _primarySubtag(b);
+  return primaryLanguageSubtag(a) == primaryLanguageSubtag(b);
 }
 
 /// Resolves [tag] to an Azure pronunciation assessment locale, or `null` if unsupported.
@@ -287,9 +293,9 @@ String? resolveAzureAssessmentLocale(String? tag) {
     if (locale.toLowerCase() == lower) return locale;
   }
 
-  final primary = _primarySubtag(normalized);
+  final primary = primaryLanguageSubtag(normalized);
   for (final locale in kAzurePronunciationAssessmentLocales) {
-    if (_primarySubtag(locale) == primary) {
+    if (primaryLanguageSubtag(locale) == primary) {
       if (normalizeBcp47Tag(normalized) == normalizeBcp47Tag(locale)) {
         return locale;
       }

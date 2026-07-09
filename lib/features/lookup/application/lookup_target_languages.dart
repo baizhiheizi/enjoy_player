@@ -27,9 +27,9 @@ String resolveLookupSource(
         if (tagsEqual(normalized, supported)) return supported;
       }
       // Primary-subtag match (e.g. ja → ja-JP, de → de-DE).
-      final primary = _primarySubtagOnly(normalized);
+      final primary = primaryLanguageSubtag(normalized);
       for (final supported in kSupportedLookupLanguageTags) {
-        if (_primarySubtagOnly(supported) == primary) return supported;
+        if (primaryLanguageSubtag(supported) == primary) return supported;
       }
     }
   }
@@ -54,15 +54,12 @@ String? resolveLookupSourceOverride(String? override) {
     if (tagsEqual(normalized, supported)) return supported;
   }
   // Primary-subtag match (e.g. ja → ja-JP, kor → ko-KR).
-  final primary = _primarySubtagOnly(normalized);
+  final primary = primaryLanguageSubtag(normalized);
   for (final supported in kSupportedLookupLanguageTags) {
-    if (_primarySubtagOnly(supported) == primary) return supported;
+    if (primaryLanguageSubtag(supported) == primary) return supported;
   }
   return null;
 }
-
-String _primarySubtagOnly(String tag) =>
-    normalizeLanguageAlias(tag).split(RegExp(r'[-_]')).first.toLowerCase();
 
 /// Native / UI target: canonical supported tag, or coerced when equal to learning / invalid.
 ///
@@ -102,11 +99,11 @@ String resolveLookupTarget(
   //    Only when native is not equal to learning — otherwise legacy behavior
   //    wins so existing en-US / zh-CN users see no regression.
   if (normalized != null && !tagsEqual(normalized, learn)) {
-    final wantedPrimary = _primarySubtagOnly(normalized);
+    final wantedPrimary = primaryLanguageSubtag(normalized);
     for (final candidate in supported) {
       if (tagsEqual(candidate, learn)) continue;
       if (src != null && tagsEqual(candidate, src)) continue;
-      if (_primarySubtagOnly(candidate) == wantedPrimary) return candidate;
+      if (primaryLanguageSubtag(candidate) == wantedPrimary) return candidate;
     }
   }
 

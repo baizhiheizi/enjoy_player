@@ -3,12 +3,12 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
@@ -16,6 +16,7 @@ import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_refresh_icon_button.dart';
+import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_auth_gate.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_section_shimmer.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -28,7 +29,7 @@ class DictionaryLookupSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final params = LookupDictionaryParams(
-      word: request.selectedText,
+      text: request.selectedText,
       sourceLanguage: request.sourceLanguage,
       targetLanguage: request.targetLanguage,
     );
@@ -37,16 +38,10 @@ class DictionaryLookupSection extends ConsumerWidget {
       title: l10n.lookupSectionDictionary,
       initiallyExpanded: false,
       leading: const Icon(Icons.menu_book_outlined),
-      bodyBuilder: (_) {
-        final auth = ref.watch(authCtrlProvider);
-        return auth.when(
-          data: (state) {
-            if (state is! AuthSignedIn) {
-              return const AuthRequiredCallout(
-                surface: AuthRequiredSurface.lookupDictionary,
-                compact: true,
-              );
-            }
+      bodyBuilder: (_) => LookupSectionAuthGate(
+        surface: AuthRequiredSurface.lookupDictionary,
+        child: Builder(
+          builder: (_) {
             void forceRefresh() {
               ref.read(lookupSheetResultCacheProvider).evictDictionary(params);
               ref.invalidate(lookupSheetDictionaryProvider(params));
@@ -66,11 +61,26 @@ class DictionaryLookupSection extends ConsumerWidget {
               ),
               loading: () => const LookupSectionShimmer(),
               error: (Object e, StackTrace st) {
-                Object.hash(e.hashCode, st.hashCode);
                 if (e is AuthFailure) {
                   return const AuthRequiredCallout(
                     surface: AuthRequiredSurface.lookupDictionary,
                     compact: true,
+                  );
+                }
+                if (e is CreditsFailure) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      LookupErrorRow(
+                        message: lookupErrorUserMessage(e, l10n),
+                        onRetry: forceRefresh,
+                        isRetrying: async.hasError && async.isLoading,
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/subscription'),
+                        child: Text(l10n.subscriptionViewPlans),
+                      ),
+                    ],
                   );
                 }
                 return LookupErrorRow(
@@ -81,16 +91,8 @@ class DictionaryLookupSection extends ConsumerWidget {
               },
             );
           },
-          loading: () => const LookupSectionShimmer(),
-          error: (Object e, StackTrace st) {
-            Object.hash(e.hashCode, st.hashCode);
-            return const AuthRequiredCallout(
-              surface: AuthRequiredSurface.lookupDictionary,
-              compact: true,
-            );
-          },
-        );
-      },
+        ),
+      ),
     );
   }
 }
