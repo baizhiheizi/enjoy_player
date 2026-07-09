@@ -883,7 +883,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescToggleEchoMode => '切换回声模式';
 
   @override
-  String get hotkeysDescToggleDictationMode => '切换听写模式';
+  String get hotkeysDescToggleBlurPractice => '切换听力专注（模糊练习）';
 
   @override
   String get hotkeysDescToggleRecording => '开始/停止录音';
@@ -923,9 +923,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get hotkeysStubSearch => '搜索功能尚未提供。';
-
-  @override
-  String get hotkeysStubDictation => '听写模式尚未提供。';
 
   @override
   String get assessmentTitle => '发音评测';
@@ -3093,7 +3090,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get hotkeysDescToggleEchoMode => '切换回声模式';
 
   @override
-  String get hotkeysDescToggleDictationMode => '切换听写模式';
+  String get hotkeysDescToggleBlurPractice => '切换听力专注（模糊练习）';
 
   @override
   String get hotkeysDescToggleRecording => '开始/停止录音';
@@ -3133,9 +3130,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get hotkeysStubSearch => '搜索功能尚未提供。';
-
-  @override
-  String get hotkeysStubDictation => '听写模式尚未提供。';
 
   @override
   String get assessmentTitle => '发音评测';

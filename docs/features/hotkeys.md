@@ -10,7 +10,7 @@ Keyboard shortcuts mirror the Enjoy web app defaults (`stores/hotkeys.ts`). Cust
 - **Library** `/`: on desktop shell browse routes (Home, Library, Cloud, Settings — not the expanded player), focuses library search and navigates to `/library` when needed so filtered results are visible. On **wide** layouts the sidebar field receives focus; on **narrow** layouts the compact Library search field receives focus after navigation. Clicking or tabbing into the sidebar search also navigates to Library.
 - **Player** shortcuts apply when a playback session exists (`playerControllerProvider`).
 - **Echo brackets**: expand/shrink apply only when Echo mode is active (handled inside `PlayerInteractions`).
-- **Shadow reading**: `R` / `G` / `P` / `V` pulse a Riverpod bus consumed by `ShadowReadingPanel` / `PitchContourSection`. `Escape` during an active recording cancels via the same bus (`recordingCancel` / `isRecordingActive`). Assessment (`V`) runs the same flow as the shadow-reading **assess** control (view result if already assessed, otherwise run). Dictation (`H`) is reserved (no UI yet).
+- **Shadow reading**: `R` / `G` / `P` / `V` pulse a Riverpod bus consumed by `ShadowReadingPanel` / `PitchContourSection`. `Escape` during an active recording cancels via the same bus (`recordingCancel` / `isRecordingActive`). Assessment (`V`) runs the same flow as the shadow-reading **assess** control (view result if already assessed, otherwise run). `H` toggles listening-focus (blur practice).
 
 ## Customization
 

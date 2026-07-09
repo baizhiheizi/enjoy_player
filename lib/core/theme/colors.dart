@@ -8,6 +8,10 @@ abstract final class AppColors {
   // ── Echo & feature accents ──────────────────────────────────────────────
   static const echoActive = Color(0xFFE65100);
 
+  /// Listening-focus / blur practice accent (cool teal, distinct from echo's
+  /// warm orange and the brand purple).
+  static const blurActive = Color(0xFF00897B);
+
   // ── Brand — Premium Purple ──────────────────────────────────────────────
   static const brand = Color(0xFF7B61FF);
   static const brandSecondary = Color(0xFF4797F5);

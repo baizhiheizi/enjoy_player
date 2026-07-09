@@ -54,10 +54,11 @@ track). The split is also recorded as
 
 ## Blur practice (listening-focus) mode
 
-A panel-level "Blur practice" toggle renders every transcript cue body
-text with a CSS-style `ImageFilter.blur` filter so the user can
-practice listening first and then peek at the text to check
-themselves. The mode is deliberately hearing-focused:
+A "Blur practice" toggle in the bottom transport bar (next to the Echo
+button) renders every transcript cue body text with a CSS-style
+`ImageFilter.blur` filter so the user can practice listening first and
+then peek at the text to check themselves. The mode is deliberately
+hearing-focused:
 
 - The **active playback cue is never auto-revealed**. Even when
   playback runs through the transcript, every cue — including the
@@ -71,20 +72,25 @@ themselves. The mode is deliberately hearing-focused:
 
 ### Toggle, hover, and tap-reveal
 
-- The **toggle** lives in a toolbar row at the top of the transcript
-  panel (`TranscriptBlurToolbar`,
-  [`lib/features/transcript/presentation/transcript_blur_toolbar.dart`](../../lib/features/transcript/presentation/transcript_blur_toolbar.dart)).
-  It uses `EnjoyTappableIcon` with a tooltip + semantics label; tapping
-  flips the global on/off state.
+- The **toggle** lives in the bottom transport bar's secondary tool
+  cluster, immediately after the Echo button
+  ([`global_transport_bar.dart`](../../lib/features/player/presentation/widgets/global_transport_bar.dart)).
+  It mirrors the Echo button styling (active state tinted with the
+  `blurActive` token) and carries a hotkey hint in its tooltip. The
+  same global state is also exposed as a switch in **Settings →
+  Transcript → Listening-focus practice**, and the `H` key toggles it.
 - On macOS and Windows, **hovering a cue unblurs it**; pointer-out
   re-blurs it within one frame. The hover state is owned by the tile
   widget itself so per-frame hover changes do not invalidate unrelated
-  cues.
+  cues. This now applies to active and echo cues too — selectable tiles
+  carry the same `MouseRegion` as plain cues.
 - On every platform (including desktop as a fallback), **tapping a
-  blurred cue seeks playback to that cue AND starts a configurable
-  hold** (default 3 seconds). During the hold the cue is unblurred;
-  when the hold expires it re-blurs. Tapping a different cue replaces
-  the hold (the prior cue re-blurs immediately, the new cue reveals).
+  blurred cue starts a configurable hold** (default 3 seconds) that
+  reveals it. For plain cues the tap also seeks playback to that cue;
+  for selectable (active / echo) cues the tap reveals without seeking.
+  During the hold the cue is unblurred; when the hold expires it
+  re-blurs. Tapping a different cue replaces the hold (the prior cue
+  re-blurs immediately, the new cue reveals).
 
 ### Persistence
 
@@ -112,7 +118,8 @@ The blur is applied via `TranscriptBlurText`
 ([`lib/features/transcript/presentation/transcript_blur_text.dart`](../../lib/features/transcript/presentation/transcript_blur_text.dart))
 inside `TranscriptLineTile`. Only the body text widgets are wrapped —
 timestamps, recording badges, hover tints, the active-line rail, and
-the merged echo card shell are never blurred. When the toggle is off
+the merged echo card chrome (rails / dividers / controls) are never
+blurred; the cue text inside the echo card is. When the toggle is off
 the cue renders exactly as before (zero overhead).
 
 ### Active-line and active-cue rule (the 2026-07-08 clarification)
@@ -131,8 +138,11 @@ exactly like every other cue.
 ### Echo mode
 
 Blur practice mode continues to apply to cues rendered inside the
-echo region. Hover and tap-reveal work the same way; the merged echo
-card and the shadow-reading panel are not blurred.
+echo region, including the active echo cue. Hover and tap-reveal work
+the same way as plain cues: the echo tiles carry a `MouseRegion`
+(hover reveal) and tapping the cue text starts the reveal hold. Only
+the cue body text is blurred — the echo card chrome and the
+shadow-reading panel are not.
 
 ### Tests
 
@@ -142,10 +152,14 @@ Coverage lives under
 - `transcript_blur_preferences_provider_test.dart` — hydration,
   default fallbacks, clamping of `tapRevealSeconds`, persistence,
   read-only projection during loading.
-- `transcript_blur_toolbar_test.dart` — toggle rendering, tooltip,
-  disabled state when no lines.
+- `global_transport_bar_test.dart` (under
+  [`test/features/player/`](../../test/features/player/)) — the blur
+  toggle's off/on icon states, disabled state when there are no
+  transcript lines, and that a tap flips `setEnabled`.
 - `transcript_blur_hover_test.dart` — pointer-enter reveals;
   pointer-out re-blurs; toggle-off bypass.
+- `transcript_blur_selectable_reveal_test.dart` — the active / echo
+  (selectable) cue reveals on hover and tap-reveal, matching plain cues.
 - `transcript_blur_hold_test.dart` — tap seeks + reveals; expiry
   re-blurs; second tap replaces the hold; toggle-off bypass.
 - `transcript_blur_active_line_stays_blurred_test.dart` — drives the
@@ -153,9 +167,6 @@ Coverage lives under
   active cue never auto-reveals (the spec's hard rule).
 - `transcript_blur_settings_test.dart` — settings UI renders ARB
   strings; slider drag persists.
-- `transcript_blur_a11y_test.dart` — semantics label flips between
-  on/off; tooltip string present in both states; Enter activates the
-  toggle.
 - `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
   under `ImageFiltered`; per-frame budget assertion.
 

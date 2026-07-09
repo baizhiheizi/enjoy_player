@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_blur_toolbar.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class TranscriptBlurSectionBody extends ConsumerWidget {
@@ -28,6 +27,25 @@ class TranscriptBlurSectionBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Discovery affordance: toggling listening-focus here flips the
+          // same global state as the transport-bar button (hotkey: H).
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              l10n.transcriptBlurSettingsSectionTitle,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              l10n.transcriptBlurSettingsSectionHint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            value: prefs.enabled,
+            onChanged: (v) => ref
+                .read(transcriptBlurPreferencesCtrlProvider.notifier)
+                .setEnabled(v),
+          ),
           Row(
             children: [
               Icon(
@@ -75,15 +93,6 @@ class TranscriptBlurSectionBody extends ConsumerWidget {
               onChanged: (v) => ref
                   .read(transcriptBlurPreferencesCtrlProvider.notifier)
                   .setTapRevealSeconds(v.round()),
-            ),
-          ),
-          // The toolbar is reused as a discovery affordance — users can
-          // toggle from here too. hasLines=true so the toggle is enabled.
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: TranscriptBlurToolbar(
-              mediaId: '__settings__',
-              hasLines: true,
             ),
           ),
         ],

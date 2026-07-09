@@ -924,7 +924,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeysDescToggleEchoMode => 'Toggle Echo mode';
 
   @override
-  String get hotkeysDescToggleDictationMode => 'Toggle dictation mode';
+  String get hotkeysDescToggleBlurPractice =>
+      'Toggle listening-focus (blur practice)';
 
   @override
   String get hotkeysDescToggleRecording => 'Start/Stop recording';
@@ -966,9 +967,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hotkeysStubSearch => 'Search is not available yet.';
-
-  @override
-  String get hotkeysStubDictation => 'Dictation mode is not available yet.';
 
   @override
   String get assessmentTitle => 'Pronunciation assessment';

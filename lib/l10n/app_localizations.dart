@@ -1779,11 +1779,11 @@ abstract class AppLocalizations {
   /// **'Toggle Echo mode'**
   String get hotkeysDescToggleEchoMode;
 
-  /// No description provided for @hotkeysDescToggleDictationMode.
+  /// No description provided for @hotkeysDescToggleBlurPractice.
   ///
   /// In en, this message translates to:
-  /// **'Toggle dictation mode'**
-  String get hotkeysDescToggleDictationMode;
+  /// **'Toggle listening-focus (blur practice)'**
+  String get hotkeysDescToggleBlurPractice;
 
   /// No description provided for @hotkeysDescToggleRecording.
   ///
@@ -1862,12 +1862,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search is not available yet.'**
   String get hotkeysStubSearch;
-
-  /// No description provided for @hotkeysStubDictation.
-  ///
-  /// In en, this message translates to:
-  /// **'Dictation mode is not available yet.'**
-  String get hotkeysStubDictation;
 
   /// No description provided for @assessmentTitle.
   ///

@@ -26,8 +26,8 @@ String hotkeyDescription(AppLocalizations l10n, HotkeyDefinition d) {
       return l10n.hotkeysDescReplayLine;
     case 'toggleEchoMode':
       return l10n.hotkeysDescToggleEchoMode;
-    case 'toggleDictationMode':
-      return l10n.hotkeysDescToggleDictationMode;
+    case 'toggleBlurPractice':
+      return l10n.hotkeysDescToggleBlurPractice;
     case 'toggleRecording':
       return l10n.hotkeysDescToggleRecording;
     case 'toggleAssessment':

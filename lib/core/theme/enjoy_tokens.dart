@@ -40,6 +40,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       motionExit: const Duration(milliseconds: 160),
       motionMedium: const Duration(milliseconds: 220),
       echoActive: AppColors.echoActive,
+      blurActive: AppColors.blurActive,
       ccBadge: scheme.primary,
       transcriptLinePadding: const EdgeInsets.symmetric(
         horizontal: 16,
@@ -97,6 +98,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.motionMedium,
     // ── Feature colors ─────────────────────────────────────────────
     required this.echoActive,
+    required this.blurActive,
     required this.ccBadge,
     // ── Layout ─────────────────────────────────────────────────────
     required this.transcriptLinePadding,
@@ -173,6 +175,9 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   // ── Feature colors ─────────────────────────────────────────────────────
   final Color echoActive;
+
+  /// Accent used for the listening-focus (blur practice) toggle when active.
+  final Color blurActive;
   final Color ccBadge;
 
   // ── Layout ─────────────────────────────────────────────────────────────
@@ -250,6 +255,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     Duration? motionExit,
     Duration? motionMedium,
     Color? echoActive,
+    Color? blurActive,
     Color? ccBadge,
     EdgeInsets? transcriptLinePadding,
     double? contentMaxWidth,
@@ -298,6 +304,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       motionExit: motionExit ?? this.motionExit,
       motionMedium: motionMedium ?? this.motionMedium,
       echoActive: echoActive ?? this.echoActive,
+      blurActive: blurActive ?? this.blurActive,
       ccBadge: ccBadge ?? this.ccBadge,
       transcriptLinePadding:
           transcriptLinePadding ?? this.transcriptLinePadding,
@@ -383,6 +390,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         milliseconds: ms(motionMedium, other.motionMedium).round(),
       ),
       echoActive: Color.lerp(echoActive, other.echoActive, t)!,
+      blurActive: Color.lerp(blurActive, other.blurActive, t)!,
       ccBadge: Color.lerp(ccBadge, other.ccBadge, t)!,
       transcriptLinePadding: EdgeInsets.lerp(
         transcriptLinePadding,

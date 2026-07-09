@@ -110,6 +110,20 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     widget.onTap();
   }
 
+  /// Reveal-only tap for selectable (active / echo) cues: starts the
+  /// tap-reveal hold without seeking, since selectable cues disable
+  /// tap-to-seek. No-op when blur practice is off.
+  void _revealHoldOnly() {
+    final prefs = ref.read(transcriptBlurPreferencesCtrlProvider).valueOrNull;
+    if (prefs?.enabled != true) return;
+    ref
+        .read(tapRevealHoldCtrlProvider(widget.mediaId).notifier)
+        .setHold(
+          cueId: cueIdFor(widget.line),
+          holdSeconds: prefs!.tapRevealSeconds,
+        );
+  }
+
   void _onSelectableSelectionChanged(
     BuildContext selectableSubtreeContext,
     TextSelection selection,
@@ -258,12 +272,13 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     );
   }
 
-  Widget _richSelectable({required TextSpan span}) {
+  Widget _richSelectable({required TextSpan span, VoidCallback? onTap}) {
     return Builder(
       builder: (selectableSubtreeContext) {
         return TranscriptTextSelectionScope(
           child: SelectableText.rich(
             span,
+            onTap: onTap,
             contextMenuBuilder: (menuContext, editableTextState) {
               return _selectionToolbar(menuContext, editableTextState);
             },
@@ -365,6 +380,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               defaultColor: defaultFg,
               emphasize: widget.isActive,
             ),
+            onTap: _revealHoldOnly,
           )
         : Text.rich(
             transcriptMarkupToTextSpan(
@@ -385,6 +401,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                 defaultColor: scheme.onSurfaceVariant,
                 emphasize: false,
               ),
+              onTap: _revealHoldOnly,
             )
           : Text.rich(
               transcriptMarkupToTextSpan(
@@ -466,7 +483,11 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         container: true,
         label: semanticsLabel,
         focusable: true,
-        child: Material(color: bg ?? Colors.transparent, child: content),
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _hover = true),
+          onExit: (_) => setState(() => _hover = false),
+          child: Material(color: bg ?? Colors.transparent, child: content),
+        ),
       );
     }
 

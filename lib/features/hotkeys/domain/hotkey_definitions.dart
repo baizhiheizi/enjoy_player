@@ -88,10 +88,10 @@ final List<HotkeyDefinition> hotkeyDefinitions = [
     customizable: true,
   ),
   const HotkeyDefinition(
-    id: 'player.toggleDictationMode',
+    id: 'player.toggleBlurPractice',
     defaultKeys: 'h',
-    description: 'Toggle dictation mode',
-    descriptionKey: 'toggleDictationMode',
+    description: 'Toggle listening-focus (blur practice)',
+    descriptionKey: 'toggleBlurPractice',
     scope: HotkeyScope.player,
     customizable: true,
   ),
