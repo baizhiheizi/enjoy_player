@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+<<<<<<< HEAD
 - **YouTube bilingual transcripts**: when the learner's native language differs
   from the source, the worker fetch sends a single multi-language
   `pollTranscripts({ languages: [source, native], waitMs })` request instead of
@@ -36,6 +37,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cue no longer keeps a stale translation. See
   [ADR-0039](docs/decisions/0039-auto-translate-primary-text-keyed-overlay.md)
   and [docs/features/transcript.md](docs/features/transcript.md#auto-translate).
+=======
+- Local CI gate scripts under `.github/scripts/` so contributors and agents
+  can mirror the cheapest CI failures before pushing:
+  - `validate_ci_gates.sh` — runs `check_dart_format` + `check_codegen_drift`
+    (and optionally `flutter analyze` / `flutter test` via `--analyze`,
+    `--test`, or `--all`); `--fix` auto-formats and regenerates codegen.
+  - `check_dart_format.sh` — fails when `dart format` would change a file in
+    `lib`, `test`, or any path package's `lib`/`test`. `--fix` writes the
+    formatting.
+  - `check_codegen_drift.sh` — runs `build_runner` in the root and any path
+    package that declares it, then fails if generated `*.g.dart` /
+    `*.freezed.dart` files drift from `HEAD`. `--fix` regenerates and leaves
+    the diff to commit.
+- `.githooks/pre-push` — blocks pushes that would fail CI `Dart format` and
+  (when Dart/lib/package sources are in the push range) `Codegen drift`.
+  Install once per clone with `git config core.hooksPath .githooks`; bypass
+  with `git push --no-verify`.
+>>>>>>> docs(changelog): record local CI gate scripts and pre-push hook
 
 ## [0.4.0] - 2026-07-09
 
