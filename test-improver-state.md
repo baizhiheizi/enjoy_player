@@ -2,6 +2,15 @@
 
 ## Last run
 
+- **Run date**: 2026-07-09 (UTC)
+- **Run URL**: https://github.com/baizhiheizi/enjoy_player/actions/runs/29006069001
+- **Branch**: test-assist/media-resolver-coverage
+- **Commit**: 3b185eb `test(files): add coverage for data/files/media_resolver.dart`
+- **Files added/modified**: `test/data/files/media_resolver_test.dart` (31 tests, new file)
+- **PR-fallback patch**: `/tmp/gh-aw/agent/aw-test-assist-media-resolver-coverage.patch` (11,097 bytes)
+
+## Previous run (one before last)
+
 - **Run date**: 2026-07-06 (UTC)
 - **Run URL**: https://github.com/baizhiheizi/enjoy_player/actions/runs/28780847692
 - **Branch**: test-assist/transcript-line-coverage
@@ -9,7 +18,17 @@
 - **Files added/modified**: `test/data/subtitle/transcript_line_test.dart` (32 tests, new file)
 - **PR-fallback patch**: `/tmp/gh-aw/aw-test-assist-transcript-line-coverage.patch` (11809 bytes)
 
-## Validation commands (validated 2026-07-06)
+## Run discovered between last-run and this-run
+
+- **Run date**: 2026-07-08 (UTC)
+- **Run URL**: https://github.com/baizhiheizi/enjoy_player/actions/runs/28926245588
+- **Branch**: test-assist/ai-api-failures-coverage
+- **Commit**: 1484e0f
+- **Files added/modified**: `test/features/ai/application/ai_api_failures_test.dart` (11 tests, new file)
+- **PR-fallback patch**: `/tmp/gh-aw/agent/aw-test-assist-ai-api-failures-coverage.patch` (5,290 bytes)
+- **Net from this run**: 11 new tests, full suite 866/2/0.
+
+## Validation commands (validated 2026-07-09)
 
 ```bash
 flutter pub get
@@ -18,7 +37,9 @@ flutter analyze
 flutter test
 ```
 
-Pre-existing failures on main: **NONE this run.** Full suite is 807/2/0 (pass/skip/fail).
+Pre-existing failures on main: **NONE this run.** Full suite is **1040/2/0** (pass/skip/fail). Last run (2026-07-08) was 866/2/0 — net +174 across all landed PRs in the meantime, net +31 from this run's `media_resolver_test.dart`.
+
+Pre-existing info-level issue from analyzer (not introduced by this run): `lib/features/transcript/presentation/subtitle_track_picker_sheet.dart:437:28 prefer_const_constructors`. Tolerated as pre-existing.
 
 Two earlier pre-existing failures remain fixed upstream:
 
@@ -31,18 +52,22 @@ Note: pre-existing formatting issues in 73+ unrelated test files (NOT introduced
 
 ## Test counts
 
-- **Before this run (main)**: 775 pass / 0 fail / 2 skipped.
-- **After this run (test-assist/transcript-line-coverage)**: 807 pass / 0 fail / 2 skipped = net +32 from this PR.
+- **Before this run (main, 2026-07-08 baseline)**: 866 pass / 0 fail / 2 skipped.
+- **After this run (test-assist/media-resolver-coverage)**: 1040 pass / 0 fail / 2 skipped. Net +31 from this PR (the wider +174 is from PRs landed between 2026-07-08 and 2026-07-09 by other agents).
 
 ## Backlog (pure-Dart utility files with no test coverage)
 
 - `lib/data/subtitle/embedded_subtitle_service.dart` (443 LOC) — subtitle parsing/embedding in MVP scope. Heavy ffmpeg dep.
 - `lib/data/api/recording_client_platform_stub.dart` (12 LOC) — platform-interface stub; documents the `UnsupportedError` contract on non-supported targets (intentionally not exercised at runtime; tested indirectly via `recording_client_platform_test.dart`).
-- `lib/core/logging/log.dart` (6 LOC), `log_file_sink.dart` (120 LOC), `diagnostic_session_header.dart` (33 LOC), `setup_logging.dart` (83 LOC) — logging infrastructure; has IO + `package_info_plus` deps.
-- ~~`lib/data/subtitle/transcript_line.dart`~~ — **covered this run** (32 tests, PR-fallback ready).
-- ~~`lib/core/ids/enjoy_ids.dart`~~ — covered by Repo Assist PR-fallback #187 (32 tests).
+- `lib/core/logging/diagnostic_session_header.dart` (33 LOC) — IO + `package_info_plus` deps make this harder; needs fakes.
+- `lib/core/logging/setup_logging.dart` (83 LOC) — logging init; probably needs shimming.
+- `lib/core/logging/log_file_sink.dart` (120 LOC) — file IO singleton; needs tmp dir.
+- ~~`lib/data/files/media_resolver.dart`~~ — **covered this run** (31 tests, PR-fallback ready).
+- ~~`lib/data/subtitle/transcript_line.dart`~~ — covered 2026-07-06 (32 tests, PR-fallback ready).
+- ~~`lib/core/ids/enjoy_ids.dart`~~ — covered by Repo Assist PR #186 (32 tests, merged).
 - ~~`lib/core/utils/youtube_video_identity.dart`~~ — covered 2026-07-02 (38 tests, PR-fallback ready).
 - ~~`lib/core/errors/app_failure.dart`~~ — covered 2026-07-01 (28 tests, PR-fallback ready).
+- ~~`lib/features/ai/application/ai_api_failures.dart`~~ — covered 2026-07-08 (11 tests, PR-fallback ready).
 - ~~`lib/core/release/distribution_channel.dart`~~ — covered 2026-06-27 (17 tests, merged #75).
 - ~~`lib/core/logging/diagnostic_log_config.dart`~~ — covered by #58 (merged).
 - ~~`lib/data/api/case_conversion.dart`~~ — covered by #63 (merged).
@@ -58,11 +83,14 @@ Note: pre-existing formatting issues in 73+ unrelated test files (NOT introduced
 - ~~`lib/core/utils/stream_distinct.dart`~~ → already has a test file (added between runs).
 - ~~`lib/core/utils/local_thumbnail.dart`~~ → already has a test file (added between runs).
 - ~~`lib/data/api/recording_client_platform.dart`~~ → already has `test/data/api/recording_client_platform_test.dart` (added between runs).
+- ~~`lib/data/files/media_resolver.dart`~~ → covered this run (31 tests, PR-fallback ready).
 
 ## Recent runs (reverse chronological)
 
 | Date (UTC) | Run | Goal | Outcome |
 |---|---|---|---|
+| 2026-07-09 | 29006069001 | media_resolver coverage | 31 tests, PR-fallback ready, full suite 1040/2/0 (was 866 at 2026-07-08; net +31 from this PR; +174 across all landed PRs since) |
+| 2026-07-08 | 28926245588 | ai_api_failures coverage | 11 tests, PR-fallback ready, full suite 866/2/0 (was 855; net +11) |
 | 2026-07-06 | 28780847692 | transcript_line coverage | 32 tests, PR-fallback ready, full suite 807/2/0 (was 775; net +32) |
 | 2026-07-02 | 28576284868 | youtube_video_identity coverage | 38 tests (replaces 5-test scaffold; net +33), PR-fallback ready, full suite green |
 | 2026-07-01 | 28505844942 | app_failure coverage (round 2, redo) | 28 tests, PR-fallback ready |
@@ -77,6 +105,8 @@ Note: pre-existing formatting issues in 73+ unrelated test files (NOT introduced
 - 2026-07-01 round: `test-assist/app-failure-coverage` (commit `d93cf61`, PR-fallback patch at `/tmp/gh-aw/agent/aw-test-assist-app-failure-coverage.patch`) — awaiting PR creation by maintainer.
 - 2026-07-02 round: `test-assist/youtube-video-identity-coverage` (commit `f896981`, PR-fallback patch at `/tmp/gh-aw/agent/aw-test-assist-youtube-video-identity.patch`) — awaiting PR creation by maintainer.
 - 2026-07-06 round: `test-assist/transcript-line-coverage` (commit `75e414a`, PR-fallback patch at `/tmp/gh-aw/aw-test-assist-transcript-line-coverage.patch`) — awaiting PR creation by maintainer.
+- 2026-07-08 round: `test-assist/ai-api-failures-coverage` (commit `1484e0f`, PR-fallback patch at `/tmp/gh-aw/agent/aw-test-assist-ai-api-failures-coverage.patch`) — awaiting PR creation by maintainer.
+- 2026-07-09 round: `test-assist/media-resolver-coverage` (commit `3b185eb`, PR-fallback patch at `/tmp/gh-aw/agent/aw-test-assist-media-resolver-coverage.patch`) — awaiting PR creation by maintainer.
 
 ## Round-robin backlog order
 
