@@ -29,17 +29,47 @@ The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSuppo
 
 ## Codegen
 
-After schema or `@riverpod` changes:
+After schema or `@riverpod` / `@Riverpod` / Freezed / Drift annotation changes, regenerate **and commit** the outputs:
 
 ```bash
 dart run build_runner build
+# or (root + path packages, then fail if tree drifts):
+bash .github/scripts/check_codegen_drift.sh --fix
 ```
+
+Never hand-edit `*.g.dart` / `*.freezed.dart`. A source change without regenerating the matching generated file fails the **Codegen drift** workflow.
 
 ## Verification
 
+Before pushing Dart / `lib` / `packages` / `test` changes, run the same cheap gates CI uses:
+
 ```bash
+bash .github/scripts/validate_ci_gates.sh
+# auto-fix format + regenerate codegen when needed:
+bash .github/scripts/validate_ci_gates.sh --fix
+# full local mirror (slower):
+bash .github/scripts/validate_ci_gates.sh --all
+```
+
+Or the individual commands:
+
+```bash
+bash .github/scripts/check_dart_format.sh   # or: --fix
 flutter analyze
 flutter test
 ```
+
+`dart format` must cover `lib`, `test`, and `packages/*/lib` + `packages/*/test` (same path set as CI). Skipping format or codegen is the most common way to break main CI.
+
+### Git hooks
+
+Install once per clone so pushes cannot skip the format / codegen gates:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+- [`.githooks/pre-commit`](.githooks/pre-commit) — secret scanner
+- [`.githooks/pre-push`](.githooks/pre-push) — `check_dart_format` + `check_codegen_drift` when Dart sources are in the push range
 
 Release packaging (Android signing, AAB/APK, Windows installer, FFmpeg, **iOS TestFlight**, **macOS notarization**): [docs/packaging.md](docs/packaging.md) and [ADR-0020](docs/decisions/0020-android-windows-release-identity.md).

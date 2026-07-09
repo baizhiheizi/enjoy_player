@@ -4,7 +4,17 @@
 
 - `lib/features/<feature>/{application,data,domain,presentation}/`
 - Shared code: `lib/core`, `lib/data`
-- Generated files: `*.g.dart` (never hand-edit)
+- Generated files: `*.g.dart` / `*.freezed.dart` (never hand-edit; regenerate with `build_runner` and commit)
+
+## Format and codegen (CI)
+
+CI fails on unformatted Dart and on stale generated files. Before push:
+
+```bash
+bash .github/scripts/validate_ci_gates.sh
+```
+
+`dart format` covers `lib`, `test`, and `packages/*/lib` + `packages/*/test`. After Drift / Riverpod / Freezed annotation edits, regenerate and commit — see [AGENTS.md](../AGENTS.md#codegen).
 
 ## Naming
 

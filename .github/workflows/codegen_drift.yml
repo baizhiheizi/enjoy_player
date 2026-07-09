@@ -9,6 +9,8 @@ on:
       - "pubspec.lock"
       - ".github/flutter-version"
       - ".github/actions/setup-flutter/**"
+      - ".github/scripts/check_codegen_drift.sh"
+      - ".github/scripts/validate_ci_gates.sh"
       - ".github/workflows/codegen_drift.yml"
   push:
     branches: [main]
@@ -33,31 +35,5 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Codegen (root)
-        run: dart run build_runner build
-
-      - name: Codegen (path packages)
-        run: |
-          set -euo pipefail
-          for pkg in packages/*/; do
-            [ -f "${pkg}pubspec.yaml" ] || continue
-            if grep -qE '^[[:space:]]*build_runner:' "${pkg}pubspec.yaml"; then
-              (cd "$pkg" && flutter pub get && dart run build_runner build)
-            fi
-          done
-
       - name: Verify no codegen drift
-        run: |
-          set -euo pipefail
-          if ! git diff --exit-code HEAD; then
-            echo "::error::Working tree differs from HEAD after build_runner (regenerate and commit)."
-            git --no-pager diff --stat HEAD
-            git --no-pager diff HEAD
-            exit 1
-          fi
-          untracked=$(git ls-files --others --exclude-standard)
-          if [ -n "$untracked" ]; then
-            echo "::error::Unexpected untracked files after codegen:"
-            echo "$untracked"
-            exit 1
-          fi
+        run: bash .github/scripts/check_codegen_drift.sh

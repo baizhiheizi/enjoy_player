@@ -2,7 +2,19 @@
 
 ## Commands
 
+Cheap CI gates (format + codegen drift) — run before every push that touches Dart:
+
 ```bash
+bash .github/scripts/validate_ci_gates.sh
+bash .github/scripts/validate_ci_gates.sh --fix   # write format + regenerate codegen
+bash .github/scripts/validate_ci_gates.sh --all    # + analyze + test
+```
+
+Individual commands:
+
+```bash
+bash .github/scripts/check_dart_format.sh
+bash .github/scripts/check_codegen_drift.sh
 flutter test
 flutter test --coverage
 flutter analyze
@@ -58,4 +70,4 @@ See [packaging.md](packaging.md) for signing, FFmpeg, Inno Setup installer, and 
 - Add widget or integration tests when navigation, input, localization, platform chrome, or shared UI behavior cannot be proven with unit tests alone.
 - Include a performance verification note for playback, startup, scrolling, transcript rendering, sync, and media import changes.
 - For playback integration, use a dedicated integration harness rather than constructing `media_kit` `Player()` directly in tests.
-- After changing `@DriftDatabase` or `@Riverpod` annotations, run `dart run build_runner build` before tests.
+- After changing `@DriftDatabase` or `@Riverpod` annotations, run `dart run build_runner build` (or `bash .github/scripts/check_codegen_drift.sh --fix`) and **commit** the regenerated files before tests or push.

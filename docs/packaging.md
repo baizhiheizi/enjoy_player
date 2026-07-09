@@ -213,19 +213,23 @@ cp .github/scripts/publish_env.example.sh .github/scripts/publish_env.local.sh
 bash .github/scripts/release.sh --platform apple --publish
 ```
 
-#### Pre-commit secret scanning
+#### Git hooks (secrets + CI gates)
 
-After cloning, enable the local secret scanner so credential-shaped strings
-and the local credential files cannot be committed by accident:
+After cloning, point Git at the repo hooks so credential-shaped strings cannot
+be committed and format / codegen drift cannot be pushed:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-The hook scans staged content for AWS/R2 access key patterns and blocks the
-forbidden local credential / key files outright. Bypass with `git commit --no-verify`
-only for a known-good false positive (e.g. a hex test fixture), and note it in the
-commit message.
+| Hook | What it blocks |
+|------|----------------|
+| [`.githooks/pre-commit`](../.githooks/pre-commit) | AWS/R2 credential patterns and forbidden local credential / key files |
+| [`.githooks/pre-push`](../.githooks/pre-push) | Unformatted Dart and stale `build_runner` outputs (same checks as CI) |
+
+Bypass with `git commit --no-verify` / `git push --no-verify` only for a known-good
+false positive, and note it in the commit message. Prefer fixing with
+`bash .github/scripts/validate_ci_gates.sh --fix` instead.
 
 ---
 

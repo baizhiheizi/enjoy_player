@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Pre-push gate: block pushes that would fail CI Dart format or Codegen drift.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+#
+# Bypass (not recommended):
+#   git push --no-verify
+
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+echo "pre-push: checking Dart format..."
+bash .github/scripts/check_dart_format.sh
+
+# Codegen is slower; only run when Dart/lib/package sources or lockfiles are
+# among commits being pushed, or when generated files themselves changed.
+need_codegen=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    range="$local_sha"
+  else
+    range="${remote_sha}..${local_sha}"
+  fi
+  if git diff --name-only "$range" 2>/dev/null | grep -Eq \
+    '^(lib/|packages/|test/|pubspec\.(yaml|lock))|\.dart$'; then
+    need_codegen=1
+    break
+  fi
+done
+
+if [[ "$need_codegen" -eq 1 ]]; then
+  echo "pre-push: checking codegen drift (build_runner)..."
+  bash .github/scripts/check_codegen_drift.sh
+else
+  echo "pre-push: skipping codegen drift (no Dart/lib/package changes in push range)"
+fi
+
+echo "pre-push: ok"

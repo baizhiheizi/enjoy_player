@@ -9,5 +9,6 @@ alwaysApply: true
 - **Never** call `print`; use `package:logging` via `core/logging/log.dart`.
 - **Never** construct `package:media_kit` `Player()` outside `PlayerController`.
 - Prefer **`package:enjoy_player/...` imports** in presentation layers.
-- Run **`dart run build_runner build`** after editing `@DriftDatabase`, `@DriftAccessor`, or `@Riverpod` annotated APIs.
+- Run **`dart run build_runner build`** after editing `@DriftDatabase`, `@DriftAccessor`, or `@Riverpod` annotated APIs, then **commit** the regenerated `*.g.dart` / `*.freezed.dart` files.
+- Before pushing Dart changes, run **`bash .github/scripts/validate_ci_gates.sh`** (or `--fix`) so **Dart format** and **Codegen drift** CI cannot fail.
 - Match user-visible strings with **`flutter gen-l10n`** ARBs under `lib/l10n/`.

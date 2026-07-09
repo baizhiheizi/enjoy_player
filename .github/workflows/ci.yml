@@ -13,7 +13,9 @@ on:
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/ensure_linux_tooling.sh"
       - ".github/scripts/check_no_new_path_deps.sh"
+      - ".github/scripts/check_dart_format.sh"
       - ".github/scripts/check_coverage_gate.sh"
+      - ".github/scripts/validate_ci_gates.sh"
       - ".github/workflows/ci.yml"
   push:
     branches: main
@@ -45,14 +47,7 @@ jobs:
         run: bash .github/scripts/check_no_new_path_deps.sh
 
       - name: Dart format
-        run: |
-          set -euo pipefail
-          paths=(lib test)
-          for pkg in packages/*/; do
-            [ -d "${pkg}lib" ] && paths+=("${pkg}lib")
-            [ -d "${pkg}test" ] && paths+=("${pkg}test")
-          done
-          dart format --output=none --set-exit-if-changed "${paths[@]}"
+        run: bash .github/scripts/check_dart_format.sh
 
       - name: Flutter analyze
         run: flutter analyze

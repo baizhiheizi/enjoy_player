@@ -22,8 +22,10 @@ Fixes #
 
 ## Checklist
 
+- [ ] `bash .github/scripts/validate_ci_gates.sh` passes (Dart format + codegen drift)
 - [ ] `flutter analyze` is clean
 - [ ] `flutter test` passes for affected areas
+- [ ] If Drift / Riverpod / Freezed annotations changed: regenerated `*.g.dart` / `*.freezed.dart` are committed
 - [ ] No new `print()` calls (use `logNamed` from `lib/core/logging/log.dart`)
 - [ ] No new `kIsWeb` branches (AGENTS.md hard rule)
 - [ ] No new SQL outside Drift DAOs (AGENTS.md hard rule)

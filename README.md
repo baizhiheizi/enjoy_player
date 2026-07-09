@@ -46,10 +46,22 @@ If install fails with `INSTALL_FAILED_VERSION_DOWNGRADE`, uninstall the existing
 
 ## Test / analyze
 
+Before pushing Dart changes, run the same cheap gates as CI (format + codegen drift):
+
+```bash
+bash .github/scripts/validate_ci_gates.sh
+# or auto-fix + regenerate:
+bash .github/scripts/validate_ci_gates.sh --fix
+```
+
+Then analyze / test:
+
 ```bash
 flutter analyze
 flutter test
 ```
+
+Install git hooks once per clone (`git config core.hooksPath .githooks`) so pre-push runs format + codegen checks.
 
 ## Docs
 

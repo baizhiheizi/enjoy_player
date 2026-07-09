@@ -1,28 +1,19 @@
 <!--
 Sync Impact Report
-Version change: template -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
-- PRINCIPLE_1_NAME placeholder -> I. Architecture and Code Quality
-- PRINCIPLE_2_NAME placeholder -> II. Testing Defines the Contract
-- PRINCIPLE_3_NAME placeholder -> III. User Experience Consistency
-- PRINCIPLE_4_NAME placeholder -> IV. Performance Is a Requirement
-- PRINCIPLE_5_NAME placeholder -> V. Documentation and Traceability
+- Flutter Quality Gates: require validate_ci_gates / format + codegen drift before push
 Added sections:
-- Flutter Quality Gates
-- Development Workflow
+- None
 Removed sections:
 - None
 Templates requiring updates:
-- ✅ .specify/templates/plan-template.md
-- ✅ .specify/templates/spec-template.md
-- ✅ .specify/templates/tasks-template.md
-- ✅ .specify/templates/commands/*.md (no command templates present)
-- ✅ README.md
-- ✅ docs/README.md
-- ✅ docs/architecture.md
-- ✅ docs/conventions.md
-- ✅ docs/testing.md
 - ✅ AGENTS.md
+- ✅ README.md
+- ✅ docs/testing.md
+- ✅ docs/conventions.md
+- ✅ .cursor/rules/flutter.mdc
+- ✅ .github/workflows/shared/runtime.md
 Follow-up TODOs:
 - None
 -->
@@ -100,10 +91,12 @@ WebView engine. Logging MUST use `package:logging` through project logging
 helpers, never `print()`.
 
 Every implementation plan MUST identify the relevant verification commands from
-this set: `dart run build_runner build` for Drift or Riverpod annotations,
-`flutter analyze`, `flutter test`, targeted widget/integration tests, and
-platform compile smoke tests for platform-specific changes. Skipping a relevant
-gate requires an explicit risk note in the plan or pull request.
+this set: `bash .github/scripts/validate_ci_gates.sh` (or the underlying
+`check_dart_format` / `check_codegen_drift` scripts) before push, `dart run
+build_runner build` for Drift or Riverpod annotations with generated files
+committed, `flutter analyze`, `flutter test`, targeted widget/integration
+tests, and platform compile smoke tests for platform-specific changes. Skipping
+a relevant gate requires an explicit risk note in the plan or pull request.
 
 ## Development Workflow
 
@@ -136,4 +129,4 @@ Constitution Check in `.specify/templates/plan-template.md` is the planning gate
 and `AGENTS.md`, `docs/conventions.md`, and `docs/testing.md` provide runtime
 development guidance.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-06-30
+**Version**: 1.1.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-07-09

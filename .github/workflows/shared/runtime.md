@@ -23,18 +23,26 @@ This repository is a **Flutter** app (native desktop/mobile only — **no web**)
 
 ### Verification commands (match CI)
 
-After making code changes, run:
+After making code changes, run the shared gate script (preferred):
 
 ```bash
 flutter pub get
-dart format --output=none --set-exit-if-changed lib test
-# Include packages/*/lib and packages/*/test when present
+bash .github/scripts/validate_ci_gates.sh          # format + codegen drift
+# bash .github/scripts/validate_ci_gates.sh --fix  # write format + regenerate
+# bash .github/scripts/validate_ci_gates.sh --all   # + analyze + test
+```
+
+Or the individual CI-equivalent commands:
+
+```bash
+bash .github/scripts/check_dart_format.sh
+bash .github/scripts/check_codegen_drift.sh   # after Drift / Riverpod / Freezed edits (or always before push)
 flutter analyze
 flutter test
 # Path packages: (cd packages/<name> && flutter pub get && flutter test)
 ```
 
-Run `dart run build_runner build` only after editing `@DriftDatabase`, `@DriftAccessor`, or `@Riverpod` annotations.
+Always regenerate and commit codegen after editing `@DriftDatabase`, `@DriftAccessor`, `@Riverpod`, or Freezed annotations — a stale `*.g.dart` hash fails the Codegen drift workflow.
 
 ### Agent rules
 
