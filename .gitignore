@@ -55,6 +55,9 @@ app.*.map.json
 /tool/node_modules/
 .venv-svg/
 
+# Local agentic planning scratch (Claude/Cursor/opencode session notes)
+/.zcode/
+
 # Apple signing
 .apple/
 *.p8
