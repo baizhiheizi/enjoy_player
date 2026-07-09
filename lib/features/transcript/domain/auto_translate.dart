@@ -1,9 +1,14 @@
 /// Domain models and pure helpers for transcript auto-translate.
 library;
 
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
+import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 
 /// Setup / eligibility state for Auto translate (not a media-wide job).
@@ -35,6 +40,7 @@ class AutoTranslateUiState {
     this.blockReason,
     this.aiTranscriptId,
     this.primaryTranscriptId,
+    this.sourceLanguage,
     this.targetLanguage,
     this.inFlightIndexes = const {},
     this.failedLineIndexes = const {},
@@ -44,6 +50,9 @@ class AutoTranslateUiState {
   final AutoTranslateBlockReason? blockReason;
   final String? aiTranscriptId;
   final String? primaryTranscriptId;
+
+  /// Primary track language (BCP-47 / media tag) used as translate source.
+  final String? sourceLanguage;
   final String? targetLanguage;
 
   /// Lines currently calling the translation API.
@@ -67,6 +76,8 @@ class AutoTranslateUiState {
     bool clearAiTranscriptId = false,
     String? primaryTranscriptId,
     bool clearPrimaryTranscriptId = false,
+    String? sourceLanguage,
+    bool clearSourceLanguage = false,
     String? targetLanguage,
     bool clearTargetLanguage = false,
     Set<int>? inFlightIndexes,
@@ -81,6 +92,9 @@ class AutoTranslateUiState {
       primaryTranscriptId: clearPrimaryTranscriptId
           ? null
           : (primaryTranscriptId ?? this.primaryTranscriptId),
+      sourceLanguage: clearSourceLanguage
+          ? null
+          : (sourceLanguage ?? this.sourceLanguage),
       targetLanguage: clearTargetLanguage
           ? null
           : (targetLanguage ?? this.targetLanguage),
@@ -97,6 +111,7 @@ class AutoTranslateUiState {
           other.blockReason == blockReason &&
           other.aiTranscriptId == aiTranscriptId &&
           other.primaryTranscriptId == primaryTranscriptId &&
+          other.sourceLanguage == sourceLanguage &&
           other.targetLanguage == targetLanguage &&
           _setEquals(other.inFlightIndexes, inFlightIndexes) &&
           _setEquals(other.failedLineIndexes, failedLineIndexes);
@@ -107,6 +122,7 @@ class AutoTranslateUiState {
     blockReason,
     aiTranscriptId,
     primaryTranscriptId,
+    sourceLanguage,
     targetLanguage,
     Object.hashAllUnordered(inFlightIndexes),
     Object.hashAllUnordered(failedLineIndexes),
@@ -174,6 +190,74 @@ List<TranscriptLine> buildAutoTranslateSkeleton(List<TranscriptLine> primaryLine
         ),
       )
       .toList();
+}
+
+/// Normalizes primary cue text for auto-translate cache identity.
+String normalizeAutoTranslateSourceText(String raw) {
+  final plain = plainTextFromSubtitleMarkup(raw).trim();
+  if (plain.isEmpty) return '';
+  return plain.replaceAll(RegExp(r'\s+'), ' ');
+}
+
+/// Content key for a primary cue + language pair (truncated SHA-256 hex).
+String autoTranslateSourceKey({
+  required String primaryText,
+  required String sourceLanguage,
+  required String targetLanguage,
+}) {
+  final normalized = normalizeAutoTranslateSourceText(primaryText);
+  final src = workerLanguageBase(sourceLanguage);
+  final tgt = workerLanguageBase(targetLanguage);
+  final payload = '$normalized|$src|$tgt';
+  return sha256.convert(utf8.encode(payload)).toString().substring(0, 32);
+}
+
+/// Secondary text for AI overlay at [lineIndex], or null when empty / soft-stale.
+///
+/// Uses primary index (not time matching). When [sourceLanguage] and
+/// [targetLanguage] are set, requires [TranscriptLine.sourceKey] to match.
+String? resolveAutoTranslateSecondaryText({
+  required List<TranscriptLine> primaryLines,
+  required List<TranscriptLine> aiLines,
+  required int lineIndex,
+  String? sourceLanguage,
+  String? targetLanguage,
+}) {
+  if (lineIndex < 0 || lineIndex >= primaryLines.length) return null;
+  if (lineIndex >= aiLines.length) return null;
+  final slot = aiLines[lineIndex];
+  final text = slot.text.trim();
+  if (text.isEmpty) return null;
+
+  final src = sourceLanguage;
+  final tgt = targetLanguage;
+  if (src != null &&
+      src.isNotEmpty &&
+      tgt != null &&
+      tgt.isNotEmpty) {
+    final expected = autoTranslateSourceKey(
+      primaryText: primaryLines[lineIndex].text,
+      sourceLanguage: src,
+      targetLanguage: tgt,
+    );
+    final stored = slot.sourceKey;
+    if (stored == null || stored != expected) return null;
+  }
+  return slot.text;
+}
+
+/// Finds a non-empty AI cue whose [TranscriptLine.sourceKey] equals [key].
+String? findCachedAutoTranslateText({
+  required List<TranscriptLine> aiLines,
+  required String key,
+}) {
+  for (final line in aiLines) {
+    if (line.sourceKey == key) {
+      final t = line.text.trim();
+      if (t.isNotEmpty) return line.text;
+    }
+  }
+  return null;
 }
 
 /// Orders pending line indexes by distance from [anchorIndex] (ties: lower first).

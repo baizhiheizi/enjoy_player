@@ -969,6 +969,7 @@ class TranscriptRepository {
     required String aiTranscriptId,
     required int lineIndex,
     required String text,
+    String? sourceKey,
   }) async {
     final row = await _db.transcriptDao.getById(aiTranscriptId);
     if (row == null) return;
@@ -978,6 +979,7 @@ class TranscriptRepository {
       text: text,
       startMs: lines[lineIndex].startMs,
       durationMs: lines[lineIndex].durationMs,
+      sourceKey: text.trim().isEmpty ? null : sourceKey,
     );
     final now = DateTime.now();
     await _db.transcriptDao.upsert(

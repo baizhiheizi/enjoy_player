@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
+import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
@@ -81,7 +82,15 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       final line = lines[i];
       final isActive = i == activeCueIndex;
-      final secondaryTextRaw = matcher.match(line)?.text;
+      final secondaryTextRaw = autoTranslateActive
+          ? resolveAutoTranslateSecondaryText(
+              primaryLines: lines,
+              aiLines: secondaryLines,
+              lineIndex: i,
+              sourceLanguage: autoTranslateState.sourceLanguage,
+              targetLanguage: autoTranslateState.targetLanguage,
+            )
+          : matcher.match(line)?.text;
       final secondaryEmpty =
           secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
       final lineFailed =

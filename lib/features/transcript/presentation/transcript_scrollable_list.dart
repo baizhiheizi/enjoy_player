@@ -446,7 +446,15 @@ class _TranscriptScrollableListState
                   echo.active &&
                   lineIndex >= echo.startLineIndex &&
                   lineIndex <= echo.endLineIndex;
-              final secondaryTextRaw = secondaryMatcher.match(line)?.text;
+              final secondaryTextRaw = autoTranslateActive
+                  ? resolveAutoTranslateSecondaryText(
+                      primaryLines: widget.lines,
+                      aiLines: secondaryLines,
+                      lineIndex: lineIndex,
+                      sourceLanguage: autoTranslateState.sourceLanguage,
+                      targetLanguage: autoTranslateState.targetLanguage,
+                    )
+                  : secondaryMatcher.match(line)?.text;
               final secondaryEmpty =
                   secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
               final lineFailed =

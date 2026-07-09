@@ -176,12 +176,131 @@ void main() {
 
       expect(fake.calls, ['Hello']);
       final aiRow = await repo.transcriptRowById(state.aiTranscriptId!);
-      expect(repo.linesForRow(aiRow!)[0].text, 'ZH:Hello');
+      final cue = repo.linesForRow(aiRow!)[0];
+      expect(cue.text, 'ZH:Hello');
+      expect(
+        cue.sourceKey,
+        autoTranslateSourceKey(
+          primaryText: 'Hello',
+          sourceLanguage: 'en',
+          targetLanguage: 'zh-CN',
+        ),
+      );
 
       // Second request is a no-op (cached).
       ctrl.requestTranslateLine(0);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(fake.calls, ['Hello']);
+    });
+
+    test('reuses same-key translation without a second API call', () async {
+      // Fresh media with two identical primary cues.
+      const mediaDup = 'media-at-dup';
+      final now = DateTime.now();
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: mediaDup,
+          vid: 'vid87654321',
+          provider: 'user',
+          title: 'Dup',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 60,
+          language: 'en',
+          source: 'local',
+          localUri: '/tmp/dup.mp4',
+          md5: null,
+          size: null,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final primaryId = enjoyTranscriptId(
+        targetType: 'Video',
+        targetId: mediaDup,
+        language: 'en',
+        source: 'user',
+      );
+      const lines = [
+        TranscriptLine(text: 'Hello', startMs: 0, durationMs: 1000),
+        TranscriptLine(text: 'Hello', startMs: 1000, durationMs: 500),
+      ];
+      await db.transcriptDao.upsert(
+        TranscriptRow(
+          id: primaryId,
+          targetType: 'Video',
+          targetId: mediaDup,
+          language: 'en',
+          source: 'user',
+          timelineJson: jsonEncode(lines.map((e) => e.toJson()).toList()),
+          referenceId: null,
+          label: 'English',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+        'Video',
+        mediaDup,
+        primaryId,
+      );
+
+      final ctrl = container.read(autoTranslateCtrlProvider(mediaDup).notifier);
+      await ctrl.selectAutoTranslate();
+
+      ctrl.requestTranslateLine(0);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(fake.calls, ['Hello']);
+
+      ctrl.requestTranslateLine(1);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(fake.calls, ['Hello']);
+
+      final aiId =
+          container.read(autoTranslateCtrlProvider(mediaDup)).aiTranscriptId!;
+      final aiLines = repo.linesForRow((await repo.transcriptRowById(aiId))!);
+      expect(aiLines[0].text, 'ZH:Hello');
+      expect(aiLines[1].text, 'ZH:Hello');
+      expect(aiLines[0].sourceKey, aiLines[1].sourceKey);
+    });
+
+    test('soft-stale key mismatch re-requests translation', () async {
+      final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
+      await ctrl.selectAutoTranslate();
+      final state = container.read(autoTranslateCtrlProvider(mediaId));
+      final aiId = state.aiTranscriptId!;
+
+      final staleKey = autoTranslateSourceKey(
+        primaryText: 'Old Hello',
+        sourceLanguage: 'en',
+        targetLanguage: 'zh-CN',
+      );
+      await repo.updateAutoTranslateLineText(
+        aiTranscriptId: aiId,
+        lineIndex: 0,
+        text: '旧翻译',
+        sourceKey: staleKey,
+      );
+
+      ctrl.requestTranslateLine(0);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(fake.calls, ['Hello']);
+      final cue = repo.linesForRow((await repo.transcriptRowById(aiId))!)[0];
+      expect(cue.text, 'ZH:Hello');
+      expect(
+        cue.sourceKey,
+        autoTranslateSourceKey(
+          primaryText: 'Hello',
+          sourceLanguage: 'en',
+          targetLanguage: 'zh-CN',
+        ),
+      );
     });
 
     test('in-flight dedupe does not double-call', () async {

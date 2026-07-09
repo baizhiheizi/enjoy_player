@@ -3,7 +3,7 @@
 **Status**: Accepted  
 **Date**: 2026-07-09
 
-**Supersedes**: [ADR-0037](0037-transcript-auto-translate.md) orchestration model (media-wide lazy scheduler). Persistence shape (`source: ai` track, skeleton timeline, picker order, per-line re-translate) from ADR-0037 remains.
+**Supersedes**: [ADR-0037](0037-transcript-auto-translate.md) orchestration model (media-wide lazy scheduler). Persistence shape (`source: ai` track, skeleton timeline, picker order, per-line re-translate) from ADR-0037 remains. Display identity for AI cues is defined in [ADR-0039](0039-auto-translate-primary-text-keyed-overlay.md).
 
 ## Context
 

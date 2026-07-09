@@ -76,11 +76,18 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
 
     final primaryId = ref.read(activeTranscriptIdProvider(mediaId)).value;
     if (!ref.mounted) return;
+    String? sourceLanguage;
+    if (primaryId != null) {
+      final primaryRow = await repo.transcriptRowById(primaryId);
+      sourceLanguage = primaryRow?.language;
+    }
+    if (!ref.mounted) return;
     state = state.copyWith(
       status: AutoTranslateStatus.active,
       clearBlockReason: true,
       aiTranscriptId: row.id,
       primaryTranscriptId: primaryId,
+      sourceLanguage: sourceLanguage,
       targetLanguage: row.language,
     );
   }
@@ -159,6 +166,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       clearBlockReason: true,
       aiTranscriptId: aiId,
       primaryTranscriptId: primaryRow.id,
+      sourceLanguage: primaryRow.language,
       targetLanguage: native,
       failedLineIndexes: state.failedLineIndexes
           .where((i) => i >= 0 && i < primaryLines.length)
@@ -262,6 +270,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       status: AutoTranslateStatus.active,
       clearBlockReason: true,
       primaryTranscriptId: primaryRow.id,
+      sourceLanguage: primaryRow.language,
       failedLineIndexes: const {},
     );
   }
@@ -305,25 +314,52 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           return;
         }
 
+        final primaryLines = repo.linesForRow(primaryRow);
         final aiLines = repo.linesForRow(aiRow);
-        final useForce = forceRefresh || _forceRefreshLines.remove(lineIndex);
-        if (!useForce &&
-            lineIndex < aiLines.length &&
-            aiLines[lineIndex].text.trim().isNotEmpty) {
-          return;
-        }
-
-        final primaryLine = repo.linesForRow(primaryRow)[lineIndex];
+        final sourceLang = primaryRow.language;
+        final primaryLine = primaryLines[lineIndex];
         final plain = plainTextFromSubtitleMarkup(primaryLine.text).trim();
         if (plain.isEmpty) {
           // Nothing to translate — leave empty permanently.
           return;
         }
 
+        final sourceKey = autoTranslateSourceKey(
+          primaryText: primaryLine.text,
+          sourceLanguage: sourceLang,
+          targetLanguage: targetLang,
+        );
+
+        final useForce = forceRefresh || _forceRefreshLines.remove(lineIndex);
+        if (!useForce) {
+          final existing = resolveAutoTranslateSecondaryText(
+            primaryLines: primaryLines,
+            aiLines: aiLines,
+            lineIndex: lineIndex,
+            sourceLanguage: sourceLang,
+            targetLanguage: targetLang,
+          );
+          if (existing != null) return;
+
+          final reused = findCachedAutoTranslateText(
+            aiLines: aiLines,
+            key: sourceKey,
+          );
+          if (reused != null) {
+            await repo.updateAutoTranslateLineText(
+              aiTranscriptId: aiId,
+              lineIndex: lineIndex,
+              text: reused,
+              sourceKey: sourceKey,
+            );
+            return;
+          }
+        }
+
         try {
           final result = await ref.read(translationServiceProvider).translate(
                 text: plain,
-                sourceLanguage: primaryRow.language,
+                sourceLanguage: sourceLang,
                 targetLanguage: targetLang,
                 forceRefresh: useForce,
               );
@@ -337,6 +373,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
             aiTranscriptId: aiId,
             lineIndex: lineIndex,
             text: result.translatedText,
+            sourceKey: sourceKey,
           );
           return;
         } on AuthFailure {

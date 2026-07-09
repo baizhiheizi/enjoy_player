@@ -2,7 +2,9 @@
 
 ## Status
 
-Superseded by [ADR-0038](0038-viewport-per-line-auto-translate.md) for orchestration (viewport per-line requests). Persistence and picker shape below still apply unless ADR-0038 says otherwise.
+Accepted (orchestration superseded by [ADR-0038](0038-viewport-per-line-auto-translate.md); AI display/identity supplemented by [ADR-0039](0039-auto-translate-primary-text-keyed-overlay.md)).
+
+Superseded by [ADR-0038](0038-viewport-per-line-auto-translate.md) for orchestration (viewport per-line requests). Persistence and picker shape below still apply unless ADR-0038 says otherwise. ADR-0039 changes how AI secondary text is **resolved in the UI** (index + `sourceKey` instead of `TranscriptSecondaryMatcher`).
 
 ## Context
 
