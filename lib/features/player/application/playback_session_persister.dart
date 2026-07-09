@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
+import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../domain/playback_session.dart';
 import 'echo_mode_provider.dart';
 
@@ -56,12 +57,29 @@ class PlaybackSessionPersister {
     );
   }
 
+  /// Cancels any pending debounce and writes [session] (+ fresh echo/blur)
+  /// immediately. Used when practice toggles must survive a quick media switch.
+  Future<void> writeNow({
+    required String mediaId,
+    required String dexieTargetType,
+    required PlaybackSession session,
+  }) async {
+    _debounce?.cancel();
+    _debounce = null;
+    await _flush(
+      mediaId: mediaId,
+      dexieTargetType: dexieTargetType,
+      session: session,
+    );
+  }
+
   Future<void> _flush({
     required String mediaId,
     required String dexieTargetType,
     required PlaybackSession session,
   }) async {
     final echo = _ref.read(echoModeProvider);
+    final blurActive = _ref.read(transcriptBlurModeProvider);
     final db = _ref.read(appDatabaseProvider);
     final existing = await db.echoSessionDao.getOrCreateLatestForTarget(
       dexieTargetType,
@@ -81,6 +99,7 @@ class PlaybackSessionPersister {
         echoEndMs: echo.active
             ? Value((echo.endTimeSeconds * 1000).round())
             : const Value(null),
+        blurActive: blurActive,
         lastActiveAt: now,
         updatedAt: now,
         transcriptId: const Value.absent(),

@@ -57,12 +57,6 @@ SettingsSectionVisual settingsSectionVisual(
         title: l10n.settingsSectionRecording,
         hint: l10n.settingsSectionRecordingHint,
       );
-    case SettingsSectionIds.transcriptBlur:
-      return SettingsSectionVisual(
-        icon: Icons.visibility_outlined,
-        title: l10n.transcriptBlurSettingsSectionTitle,
-        hint: l10n.transcriptBlurSettingsSectionHint,
-      );
     case SettingsSectionIds.keyboardShortcuts:
       return SettingsSectionVisual(
         icon: Icons.keyboard_outlined,

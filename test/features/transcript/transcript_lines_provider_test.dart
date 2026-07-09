@@ -113,6 +113,7 @@ void main() {
         echoActive: false,
         echoStartLine: -1,
         echoEndLine: -1,
+        blurActive: false,
         startedAt: now,
         lastActiveAt: now,
         completedAt: null,

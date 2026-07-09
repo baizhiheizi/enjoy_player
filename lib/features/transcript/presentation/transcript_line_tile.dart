@@ -10,12 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_cue_reveal_provider.dart';
 import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
@@ -104,13 +103,12 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
   void _handleTap(BuildContext context) {
     Haptics.selection(context);
-    final prefs = ref.read(transcriptBlurPreferencesCtrlProvider).valueOrNull;
-    if (prefs?.enabled == true) {
+    if (ref.read(transcriptBlurModeProvider)) {
       ref
           .read(tapRevealHoldCtrlProvider(widget.mediaId).notifier)
           .setHold(
             cueId: cueIdFor(widget.line),
-            holdSeconds: prefs!.tapRevealSeconds,
+            holdSeconds: kTapRevealHoldSeconds,
           );
     }
     widget.onTap();
@@ -120,13 +118,12 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
   /// tap-reveal hold without seeking, since selectable cues disable
   /// tap-to-seek. No-op when blur practice is off.
   void _revealHoldOnly() {
-    final prefs = ref.read(transcriptBlurPreferencesCtrlProvider).valueOrNull;
-    if (prefs?.enabled != true) return;
+    if (!ref.read(transcriptBlurModeProvider)) return;
     ref
         .read(tapRevealHoldCtrlProvider(widget.mediaId).notifier)
         .setHold(
           cueId: cueIdFor(widget.line),
-          holdSeconds: prefs!.tapRevealSeconds,
+          holdSeconds: kTapRevealHoldSeconds,
         );
   }
 
@@ -343,8 +340,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
 
     final primaryPlain = transcriptPlainForSelection(widget.line.text);
 
-    final prefs = ref.watch(transcriptBlurPreferencesCtrlProvider).valueOrNull;
-    final blurEnabled = prefs?.enabled ?? false;
+    final blurEnabled = ref.watch(transcriptBlurModeProvider);
     final cueId = cueIdFor(widget.line);
     final providerRevealed = ref.watch(
       transcriptCueRevealProvider(widget.mediaId, cueId),

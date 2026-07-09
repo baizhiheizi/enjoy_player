@@ -4,8 +4,10 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/subtitle/transcript_line.dart';
+import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../../transcript/application/transcript_repository_provider.dart';
 import 'echo_mode_provider.dart';
+import 'playback_session_persister.dart';
 import 'player_controller.dart';
 
 part 'player_interactions.g.dart';
@@ -161,6 +163,32 @@ class PlayerInteractions extends _$PlayerInteractions {
           endLineIndex: idx,
           startTimeSeconds: line.startSeconds,
           endTimeSeconds: line.endSeconds,
+        );
+  }
+
+  /// Toggles listening-focus (transcript blur) practice for the open media.
+  ///
+  /// Allows turning blur off even when there are no transcript lines so the
+  /// user can always exit the mode (same enable rule as the transport button).
+  Future<void> toggleBlur() async {
+    final session = ref.read(playerControllerProvider);
+    if (session == null) return;
+    final blur = ref.read(transcriptBlurModeProvider);
+    if (blur) {
+      ref.read(transcriptBlurModeProvider.notifier).deactivate();
+    } else {
+      final lines = await _lines();
+      if (lines.isEmpty) return;
+      ref.read(transcriptBlurModeProvider.notifier).activate();
+    }
+    // Persist immediately so a quick media switch cannot race a debounced
+    // write against the newly restored blur state for a different target.
+    await ref
+        .read(playbackSessionPersisterProvider)
+        .writeNow(
+          mediaId: session.mediaId,
+          dexieTargetType: session.dexieTargetType,
+          session: session,
         );
   }
 

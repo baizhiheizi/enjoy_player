@@ -18,9 +18,6 @@ abstract final class SettingsSectionIds {
   static const keyboardShortcuts = 'keyboardShortcuts';
   static const developer = 'developer';
   static const about = 'about';
-
-  /// Transcript blur (practice / listening-focus) mode — hold duration.
-  static const transcriptBlur = 'transcriptBlur';
 }
 
 /// Identity of one section header or row, before localization.
@@ -124,11 +121,6 @@ const List<SettingsEntryDescriptor> kSettingsRegistry = [
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.recording,
     rowId: 'micPicker',
-  ),
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.transcriptBlur),
-  SettingsEntryDescriptor(
-    sectionId: SettingsSectionIds.transcriptBlur,
-    rowId: 'holdDuration',
   ),
   SettingsEntryDescriptor(sectionId: SettingsSectionIds.keyboardShortcuts),
   SettingsEntryDescriptor(

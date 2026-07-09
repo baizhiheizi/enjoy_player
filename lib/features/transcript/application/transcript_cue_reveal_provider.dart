@@ -14,13 +14,13 @@ library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 
 part 'transcript_cue_reveal_provider.g.dart';
 
 /// Returns `true` when [cueId] should be rendered without the blur
-/// filter given the current global toggle and tap-reveal hold.
+/// filter given the current per-media toggle and tap-reveal hold.
 ///
 /// Always returns `true` when blur practice mode is OFF — the toggle
 /// off path is the no-blur default.
@@ -32,8 +32,8 @@ part 'transcript_cue_reveal_provider.g.dart';
 /// unrelated cues.
 @riverpod
 bool transcriptCueReveal(Ref ref, String mediaId, String cueId) {
-  final prefs = ref.watch(transcriptBlurPreferencesProvider);
-  if (!prefs.enabled) return true;
+  final blurActive = ref.watch(transcriptBlurModeProvider);
+  if (!blurActive) return true;
 
   final hold = ref.watch(tapRevealHoldProvider(mediaId));
   if (hold == null) return false;

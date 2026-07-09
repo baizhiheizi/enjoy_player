@@ -4719,18 +4719,6 @@ abstract class AppLocalizations {
   /// **'No transcript lines to practice with'**
   String get transcriptBlurEmptyTooltip;
 
-  /// No description provided for @transcriptBlurSettingsHoldDuration.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap-reveal hold duration'**
-  String get transcriptBlurSettingsHoldDuration;
-
-  /// No description provided for @transcriptBlurSettingsHoldDurationHint.
-  ///
-  /// In en, this message translates to:
-  /// **'How long a tapped cue stays unblurred on touch devices'**
-  String get transcriptBlurSettingsHoldDurationHint;
-
   /// No description provided for @transcriptBlurSemanticsOn.
   ///
   /// In en, this message translates to:
@@ -4742,18 +4730,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blur practice off.'**
   String get transcriptBlurSemanticsOff;
-
-  /// No description provided for @transcriptBlurSettingsSectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Listening-focus practice'**
-  String get transcriptBlurSettingsSectionTitle;
-
-  /// No description provided for @transcriptBlurSettingsSectionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Blur every transcript line so you listen first, then peek to check yourself.'**
-  String get transcriptBlurSettingsSectionHint;
 }
 
 class _AppLocalizationsDelegate

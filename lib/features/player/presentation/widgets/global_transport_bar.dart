@@ -24,7 +24,7 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/application/player_ui_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -236,9 +236,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       orElse: () => false,
     );
     final echo = ref.watch(echoModeProvider);
-    final blurEnabled = ref.watch(
-      transcriptBlurPreferencesProvider.select((p) => p.enabled),
-    );
+    final blurEnabled = ref.watch(transcriptBlurModeProvider);
     final playingAsync = ref.watch(playerIsPlayingProvider);
     final bufferingAsync = ref.watch(playerIsBufferingProvider);
     final isPlaying = playingAsync.value ?? false;
@@ -378,9 +376,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       onPressed: blurEnabled || hasTranscriptLines
           ? Haptics.wrapTap(
               context,
-              () => ref
-                  .read(transcriptBlurPreferencesCtrlProvider.notifier)
-                  .setEnabled(!blurEnabled),
+              () => ref.read(playerInteractionsProvider.notifier).toggleBlur(),
             )
           : null,
       icon: Icon(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'player_interactions.dart';
+part of 'transcript_blur_mode_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,52 +9,52 @@ part of 'player_interactions.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(PlayerInteractions)
-final playerInteractionsProvider = PlayerInteractionsProvider._();
+@ProviderFor(TranscriptBlurMode)
+final transcriptBlurModeProvider = TranscriptBlurModeProvider._();
 
-final class PlayerInteractionsProvider
-    extends $NotifierProvider<PlayerInteractions, int> {
-  PlayerInteractionsProvider._()
+final class TranscriptBlurModeProvider
+    extends $NotifierProvider<TranscriptBlurMode, bool> {
+  TranscriptBlurModeProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'playerInteractionsProvider',
+        name: r'transcriptBlurModeProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$playerInteractionsHash();
+  String debugGetCreateSourceHash() => _$transcriptBlurModeHash();
 
   @$internal
   @override
-  PlayerInteractions create() => PlayerInteractions();
+  TranscriptBlurMode create() => TranscriptBlurMode();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(int value) {
+  Override overrideWithValue(bool value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<int>(value),
+      providerOverride: $SyncValueProvider<bool>(value),
     );
   }
 }
 
-String _$playerInteractionsHash() =>
-    r'b38d0e26838280b63f65c44392b4b869e54f0bdd';
+String _$transcriptBlurModeHash() =>
+    r'85be5f11da247c04b7ea8cedeee84e7c8ccf63f4';
 
-abstract class _$PlayerInteractions extends $Notifier<int> {
-  int build();
+abstract class _$TranscriptBlurMode extends $Notifier<bool> {
+  bool build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<int, int>;
+    final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<int, int>,
-              int,
+              AnyNotifier<bool, bool>,
+              bool,
               Object?,
               Object?
             >;

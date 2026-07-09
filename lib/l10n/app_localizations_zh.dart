@@ -2415,25 +2415,11 @@ class AppLocalizationsZh extends AppLocalizations {
       'No transcript lines to practice with';
 
   @override
-  String get transcriptBlurSettingsHoldDuration => 'Tap-reveal hold duration';
-
-  @override
-  String get transcriptBlurSettingsHoldDurationHint =>
-      'How long a tapped cue stays unblurred on touch devices';
-
-  @override
   String get transcriptBlurSemanticsOn =>
       'Blur practice on. Tap or hover to reveal a line.';
 
   @override
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
-
-  @override
-  String get transcriptBlurSettingsSectionTitle => 'Listening-focus practice';
-
-  @override
-  String get transcriptBlurSettingsSectionHint =>
-      'Blur every transcript line so you listen first, then peek to check yourself.';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -4405,20 +4391,8 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get transcriptBlurEmptyTooltip => '当前没有字幕可练习';
 
   @override
-  String get transcriptBlurSettingsHoldDuration => '点按停留时长';
-
-  @override
-  String get transcriptBlurSettingsHoldDurationHint => '在触屏设备上，点按字幕后保持清晰可见的时间';
-
-  @override
   String get transcriptBlurSemanticsOn => '听写练习已开启。点按或悬停以查看一行字幕。';
 
   @override
   String get transcriptBlurSemanticsOff => '听写练习已关闭。';
-
-  @override
-  String get transcriptBlurSettingsSectionTitle => '专注听力练习';
-
-  @override
-  String get transcriptBlurSettingsSectionHint => '将所有字幕行模糊处理，先听后看以检查理解。';
 }

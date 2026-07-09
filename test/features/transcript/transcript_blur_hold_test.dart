@@ -1,6 +1,5 @@
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
-import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -8,31 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
-  _FakeBlurPrefsCtrl(this._initial);
-  final TranscriptBlurPreferences _initial;
-
-  @override
-  Future<TranscriptBlurPreferences> build() async => _initial;
-
-  @override
-  Future<void> setEnabled(bool value) async {}
-
-  @override
-  Future<void> setTapRevealSeconds(int seconds) async {}
-}
-
 void main() {
   Widget harness({
     required TranscriptLine line,
-    required TranscriptBlurPreferences prefs,
+    required bool blurActive,
     String mediaId = 'm1',
     required void Function() onTap,
   }) {
     return ProviderScope(
       overrides: [
-        transcriptBlurPreferencesCtrlProvider.overrideWith(
-          () => _FakeBlurPrefsCtrl(prefs),
+        transcriptBlurModeProvider.overrideWith(
+          () => _BlurMode(blurActive),
         ),
       ],
       child: MaterialApp(
@@ -58,18 +43,10 @@ void main() {
     const line = TranscriptLine(text: 'Tap me', startMs: 0, durationMs: 2000);
     var tapped = 0;
     await tester.pumpWidget(
-      harness(
-        line: line,
-        prefs: const TranscriptBlurPreferences(
-          enabled: true,
-          tapRevealSeconds: 3,
-        ),
-        onTap: () => tapped++,
-      ),
+      harness(line: line, blurActive: true, onTap: () => tapped++),
     );
-    await tester.pumpAndSettle(); // let async ctrl resolve
+    await tester.pumpAndSettle();
 
-    // Initially blurred.
     expect(
       tester
           .widget<TranscriptBlurText>(find.byType(TranscriptBlurText))
@@ -77,7 +54,6 @@ void main() {
       isFalse,
     );
 
-    // Tap reveals.
     await tester.tap(find.byType(InkWell));
     await tester.pump();
     expect(tapped, 1);
@@ -88,7 +64,6 @@ void main() {
       isTrue,
     );
 
-    // Advance past expiry.
     await tester.pump(const Duration(seconds: 4));
     expect(
       tester
@@ -107,14 +82,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          transcriptBlurPreferencesCtrlProvider.overrideWith(
-            () => _FakeBlurPrefsCtrl(
-              const TranscriptBlurPreferences(
-                enabled: true,
-                tapRevealSeconds: 3,
-              ),
-            ),
-          ),
+          transcriptBlurModeProvider.overrideWith(() => _BlurMode(true)),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -150,11 +118,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap A.
     await tester.tap(find.byType(InkWell).first);
     await tester.pump();
 
-    // Tap B before A expires.
     await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.byType(InkWell).last);
     await tester.pump();
@@ -165,18 +131,13 @@ void main() {
     expect(blurs.first.revealed, isFalse, reason: 'A should be re-blurred');
     expect(blurs.last.revealed, isTrue, reason: 'B should be revealed');
 
-    // Clean up: advance past the hold timer so no Timer is pending.
     await tester.pump(const Duration(seconds: 4));
   });
 
   testWidgets('tap when blur OFF does not start a hold', (tester) async {
     const line = TranscriptLine(text: 'Plain', startMs: 0, durationMs: 2000);
     await tester.pumpWidget(
-      harness(
-        line: line,
-        prefs: TranscriptBlurPreferences.defaults,
-        onTap: () {},
-      ),
+      harness(line: line, blurActive: false, onTap: () {}),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byType(InkWell));
@@ -188,4 +149,12 @@ void main() {
       isTrue,
     );
   });
+}
+
+class _BlurMode extends TranscriptBlurMode {
+  _BlurMode(this._initial);
+  final bool _initial;
+
+  @override
+  bool build() => _initial;
 }

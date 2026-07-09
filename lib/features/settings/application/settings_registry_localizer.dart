@@ -55,17 +55,6 @@ _Localized _localize(SettingsEntryDescriptor d, AppLocalizations l10n) {
       return _Localized(l10n.settingsSectionRecording, [
         l10n.settingsSectionRecordingHint,
       ]);
-    case SettingsSectionIds.transcriptBlur:
-      if (d.rowId == 'holdDuration') {
-        return _Localized(l10n.transcriptBlurSettingsHoldDuration, const [
-          'tap-reveal',
-          'blur practice',
-          'listening-focus',
-        ]);
-      }
-      return _Localized(l10n.transcriptBlurSettingsSectionTitle, [
-        l10n.transcriptBlurSettingsSectionHint,
-      ]);
     case SettingsSectionIds.keyboardShortcuts:
       switch (d.rowId) {
         case 'openCheatsheet':

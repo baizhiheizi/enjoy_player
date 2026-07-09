@@ -1,6 +1,5 @@
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
-import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -9,23 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
-  _FakeBlurPrefsCtrl(this._initial);
-  final TranscriptBlurPreferences _initial;
+class _BlurMode extends TranscriptBlurMode {
+  _BlurMode(this._initial);
+  final bool _initial;
 
   @override
-  Future<TranscriptBlurPreferences> build() async => _initial;
-
-  @override
-  Future<void> setEnabled(bool value) async {}
-
-  @override
-  Future<void> setTapRevealSeconds(int seconds) async {}
+  bool build() => _initial;
 }
 
 void main() {
-  // Selectable tiles mirror the active / echo cues (selectable: true).
-  Widget harness(TranscriptBlurPreferences prefs) {
+  Widget harness({required bool blurActive}) {
     const line = TranscriptLine(
       text: 'Echo cue',
       startMs: 0,
@@ -33,9 +25,7 @@ void main() {
     );
     return ProviderScope(
       overrides: [
-        transcriptBlurPreferencesCtrlProvider.overrideWith(
-          () => _FakeBlurPrefsCtrl(prefs),
-        ),
+        transcriptBlurModeProvider.overrideWith(() => _BlurMode(blurActive)),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -59,14 +49,7 @@ void main() {
   testWidgets(
     'hovering a blurred selectable cue reveals it; mouse out re-blurs',
     (tester) async {
-      await tester.pumpWidget(
-        harness(
-          const TranscriptBlurPreferences(
-            enabled: true,
-            tapRevealSeconds: 3,
-          ),
-        ),
-      );
+      await tester.pumpWidget(harness(blurActive: true));
       await tester.pumpAndSettle();
 
       final initial = tester.widget<TranscriptBlurText>(
@@ -100,14 +83,7 @@ void main() {
   testWidgets('tapping a blurred selectable cue reveals it (hold)', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      harness(
-        const TranscriptBlurPreferences(
-          enabled: true,
-          tapRevealSeconds: 3,
-        ),
-      ),
-    );
+    await tester.pumpWidget(harness(blurActive: true));
     await tester.pumpAndSettle();
 
     final initial = tester.widget<TranscriptBlurText>(
@@ -122,5 +98,7 @@ void main() {
       find.byType(TranscriptBlurText),
     );
     expect(revealed.revealed, isTrue);
+
+    await tester.pump(const Duration(seconds: 4));
   });
 }

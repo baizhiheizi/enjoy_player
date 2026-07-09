@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 
 final _openLog = logNamed('PlayerOpenCoordinator');
 
@@ -127,6 +128,9 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   } else {
     ref.read(echoModeProvider.notifier).deactivate();
   }
+  ref
+      .read(transcriptBlurModeProvider.notifier)
+      .restoreFromSession(persisted?.blurActive ?? false);
   if (host.isOpenStale(gen)) return;
 
   final now = DateTime.now();

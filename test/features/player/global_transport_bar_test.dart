@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
@@ -10,10 +13,9 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/global_transport_bar.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/transport/transport_progress_strip.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
-import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -52,12 +54,98 @@ class _SessionPlayerController extends PlayerController {
   PlaybackSession? build() => _session;
 }
 
+class _BlurMode extends TranscriptBlurMode {
+  _BlurMode(this._initial);
+  final bool _initial;
+
+  @override
+  bool build() => _initial;
+}
+
+Future<void> _seedTranscript(AppDatabase db) async {
+  final now = DateTime(2026, 1, 1);
+  const transcriptId = 'tr-transport';
+  await db.audioDao.insertRow(
+    AudioRow(
+      id: _kMediaId,
+      aid: 'f',
+      provider: 'user',
+      title: 't',
+      description: null,
+      thumbnailUrl: null,
+      durationSeconds: 120,
+      language: 'en',
+      translationKey: null,
+      sourceText: null,
+      voice: null,
+      source: null,
+      localUri: 'file:///a.mp3',
+      md5: null,
+      size: 1,
+      mediaUrl: null,
+      syncStatus: null,
+      serverUpdatedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    ),
+  );
+  await db.transcriptDao.upsert(
+    TranscriptRow(
+      id: transcriptId,
+      targetType: 'Audio',
+      targetId: _kMediaId,
+      language: 'en',
+      source: 'user',
+      timelineJson: jsonEncode([
+        const TranscriptLine(text: 'hello', startMs: 0, durationMs: 1000)
+            .toJson(),
+      ]),
+      referenceId: null,
+      label: 'en',
+      trackIndex: null,
+      syncStatus: null,
+      serverUpdatedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    ),
+  );
+  await db.echoSessionDao.upsert(
+    EchoSessionRow(
+      id: 'echo-transport',
+      targetType: 'Audio',
+      targetId: _kMediaId,
+      language: 'und',
+      currentTimeMs: 0,
+      playbackRate: 1,
+      volume: 1,
+      echoStartMs: null,
+      echoEndMs: null,
+      transcriptId: transcriptId,
+      secondaryTranscriptId: null,
+      recordingsCount: 0,
+      recordingsDurationMs: 0,
+      lastRecordingAt: null,
+      currentSegmentIndex: -1,
+      echoActive: false,
+      echoStartLine: -1,
+      echoEndLine: -1,
+      blurActive: false,
+      startedAt: now,
+      lastActiveAt: now,
+      completedAt: null,
+      syncStatus: null,
+      serverUpdatedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    ),
+  );
+}
+
 List<Override> _transportOverrides({
   required FakePlayerEngine fake,
   required AppDatabase db,
   bool hasLines = true,
-  TranscriptBlurPreferences blurPrefs = TranscriptBlurPreferences.defaults,
-  TranscriptBlurPreferencesCtrl? blurCtrl,
+  bool blurActive = false,
 }) {
   return [
     appDatabaseProvider.overrideWithValue(db),
@@ -76,9 +164,7 @@ List<Override> _transportOverrides({
     transcriptFetchCtrlProvider(_kMediaId).overrideWithValue(
       const TranscriptFetchUiState(status: TranscriptFetchStatus.idle),
     ),
-    transcriptBlurPreferencesCtrlProvider.overrideWith(
-      () => blurCtrl ?? _FakeBlurPrefsCtrl(blurPrefs),
-    ),
+    transcriptBlurModeProvider.overrideWith(() => _BlurMode(blurActive)),
   ];
 }
 
@@ -183,9 +269,12 @@ void main() {
     required GoRouter router,
     required double width,
     bool hasLines = true,
-    TranscriptBlurPreferences blurPrefs = TranscriptBlurPreferences.defaults,
-    TranscriptBlurPreferencesCtrl? blurCtrl,
+    bool blurActive = false,
+    bool seedTranscript = false,
   }) async {
+    if (seedTranscript) {
+      await _seedTranscript(db);
+    }
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.binding.setSurfaceSize(Size(width, 800));
     addTearDown(router.dispose);
@@ -196,8 +285,7 @@ void main() {
           fake: fake,
           db: db,
           hasLines: hasLines,
-          blurPrefs: blurPrefs,
-          blurCtrl: blurCtrl,
+          blurActive: blurActive,
         ),
         width: width,
       ),
@@ -359,12 +447,7 @@ void main() {
 
   group('GlobalTransportBar blur toggle', () {
     testWidgets('renders the blur toggle in off state', (tester) async {
-      await pumpTransport(
-        tester,
-        router: _playerRouter(),
-        width: 800,
-        blurPrefs: TranscriptBlurPreferences.defaults,
-      );
+      await pumpTransport(tester, router: _playerRouter(), width: 800);
       expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
     });
 
@@ -373,10 +456,7 @@ void main() {
         tester,
         router: _playerRouter(),
         width: 800,
-        blurPrefs: const TranscriptBlurPreferences(
-          enabled: true,
-          tapRevealSeconds: 3,
-        ),
+        blurActive: true,
       );
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
     });
@@ -398,41 +478,19 @@ void main() {
     });
 
     testWidgets('tap flips the blur enabled state', (tester) async {
-      final ctrl = _RecordingBlurPrefsCtrl(TranscriptBlurPreferences.defaults);
       await pumpTransport(
         tester,
         router: _playerRouter(),
         width: 800,
-        blurCtrl: ctrl,
+        seedTranscript: true,
       );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalTransportBar)),
+      );
+      expect(container.read(transcriptBlurModeProvider), isFalse);
       await tester.tap(find.byIcon(Icons.visibility_outlined));
-      await tester.pump();
-      expect(ctrl.lastSetEnabled, isTrue);
+      await tester.pumpAndSettle();
+      expect(container.read(transcriptBlurModeProvider), isTrue);
     });
   });
-}
-
-class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
-  _FakeBlurPrefsCtrl(this._initial);
-  final TranscriptBlurPreferences _initial;
-
-  @override
-  Future<TranscriptBlurPreferences> build() async => _initial;
-
-  @override
-  Future<void> setEnabled(bool value) async {}
-
-  @override
-  Future<void> setTapRevealSeconds(int seconds) async {}
-}
-
-class _RecordingBlurPrefsCtrl extends _FakeBlurPrefsCtrl {
-  _RecordingBlurPrefsCtrl(super.initial);
-
-  bool? lastSetEnabled;
-
-  @override
-  Future<void> setEnabled(bool value) async {
-    lastSetEnabled = value;
-  }
 }

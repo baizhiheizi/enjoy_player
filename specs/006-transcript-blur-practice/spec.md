@@ -130,8 +130,8 @@ The toggle state and the mobile hold duration are exposed in the user-facing set
 
 ### Key Entities *(include if feature involves data)*
 
-- **TranscriptBlurPreferences**: per-user preference object holding the toggle state (on/off) and the tap-reveal hold duration (seconds, integer, default 3). Persisted through the existing settings/persistence layer.
-- **TranscriptCueBlurState** (derived, not persisted): per-rendered-cue ephemeral state combining (a) the global toggle, (b) hover state, and (c) the active tap-reveal hold (cue id + expiry timestamp). Used only by the cue widget to decide whether to apply the blur filter. Playback position is NOT an input — the active cue has no privileged state.
+- **TranscriptBlurMode** (supersedes the original `TranscriptBlurPreferences`): per-media practice toggle (`active` bool) held in `transcriptBlurModeProvider` and persisted on `echo_sessions.blur_active`. Tap-reveal hold duration is a fixed constant (`kTapRevealHoldSeconds = 3`), not user-configurable. See [docs/features/transcript.md](../../docs/features/transcript.md) § Blur practice for the current contract.
+- **TranscriptCueBlurState** (derived, not persisted): per-rendered-cue ephemeral state combining (a) the per-media toggle, (b) hover state, and (c) the active tap-reveal hold (cue id + expiry timestamp). Used only by the cue widget to decide whether to apply the blur filter. Playback position is NOT an input — the active cue has no privileged state.
 
 ## Success Criteria *(mandatory)*
 
@@ -140,8 +140,8 @@ The toggle state and the mobile hold duration are exposed in the user-facing set
 - **SC-001**: Users can enable blur practice mode and immediately see every cue body blurred within one frame on Android, iOS, macOS, and Windows with no scroll, layout, or playback regression.
 - **SC-002**: On macOS and Windows, hovering a cue reveals that cue within one frame and unhovering re-blurs it within one frame, with no flicker between adjacent cues.
 - **SC-003**: On every platform and in every playback state (playing, paused, seeking, stopped), NO cue is ever auto-revealed by blur practice mode — including the currently active playback cue. The only ways to see a cue's text are hover (desktop) or a tap-reveal hold (every platform).
-- **SC-004**: On every platform, tapping a blurred cue unblurs it immediately, seeks playback to the cue's start, and re-blurs the cue within the configured hold window (default 3 seconds) unless another tap resets the timer.
-- **SC-005**: The toggle state and hold duration persist across a full app restart on every supported platform; users do not need to re-enable the feature each session.
+- **SC-004**: On every platform, tapping a blurred cue unblurs it immediately, seeks playback to the cue's start, and re-blurs the cue within the fixed 3-second hold window unless another tap resets the timer.
+- **SC-005**: The per-media toggle state persists on `echo_sessions.blur_active` across reopen of that media (and app restart); dismissing the player clears in-memory blur like echo. Hold duration is not persisted (fixed constant).
 - **SC-006**: Screen readers (TalkBack / VoiceOver) on a blurred cue still announce the full cue text and timestamp; the feature introduces zero new a11y violations.
 - **SC-007**: Transcript scrolling with blur practice mode on remains smooth (no dropped frames beyond the existing baseline) on the slowest supported target for the largest expected transcript in the user's library.
 
@@ -149,9 +149,9 @@ The toggle state and the mobile hold duration are exposed in the user-facing set
 
 - The "blur" effect is a CSS-style filter (`ImageFilter.blur` in Flutter) applied to the cue body widget only; it is decorative and never affects semantics, lookup, or text selection on revealed lines.
 - Hover is treated as a desktop-only concept. On Android and iOS the hover handler is wired but inert; only tap-reveal is user-facing on those platforms.
-- The default tap-reveal hold duration is **3 seconds**, configurable in transcript preferences. A future revision may add per-platform defaults (e.g. slightly longer for TV / iPad).
+- The tap-reveal hold duration is a fixed **3 seconds** (`kTapRevealHoldSeconds`); it is not user-configurable.
 - The feature's purpose is hearing-focused practice; the active playback cue is deliberately treated like every other cue and is never auto-revealed. There is no preference override that changes this.
-- The toggle is a panel-level control that does not require a separate settings page entry to be useful, but the hold duration lives in the existing transcript settings area for discoverability.
+- The toggle is a player transport control (like echo), not a Settings preference.
 - The blur strength is a fixed visual constant in v1 (no user-facing strength slider); the value is chosen so text is unreadable but line boundaries and punctuation hints remain visible. Strength tuning is owned by the design / UX pass during planning and may be captured in an ADR.
 - The feature does not introduce a new network or sync surface. Cloud sync of the user's listening-progress or quiz outcomes is explicitly out of scope for this spec.
 - The "Blur practice" toggle does not affect the on-video subtitle overlay (which is disabled by default today) — only the transcript panel rendering.

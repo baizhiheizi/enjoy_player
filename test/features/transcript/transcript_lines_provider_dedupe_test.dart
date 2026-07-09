@@ -46,6 +46,7 @@ EchoSessionRow _echoSession({
     echoActive: false,
     echoStartLine: -1,
     echoEndLine: -1,
+    blurActive: false,
     startedAt: now,
     lastActiveAt: lastActiveAt ?? now,
     completedAt: null,

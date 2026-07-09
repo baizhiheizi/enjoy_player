@@ -73,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -119,6 +119,8 @@ class AppDatabase extends _$AppDatabase {
           youtubeChannelSubscriptions,
           youtubeChannelSubscriptions.language,
         );
+      } else if (next == 11) {
+        await _addColumnIfMissing(m, echoSessions, echoSessions.blurActive);
       }
       current = next;
     }
@@ -423,6 +425,7 @@ class EchoSessionDao extends DatabaseAccessor<AppDatabase>
       echoActive: false,
       echoStartLine: -1,
       echoEndLine: -1,
+      blurActive: false,
       startedAt: now,
       lastActiveAt: now,
       completedAt: null,

@@ -15,20 +15,6 @@ abstract final class SettingsKeys {
   static const String prefsRecordingInputDeviceId =
       'prefs.recording_input_device_id';
 
-  /// When `true`, every transcript cue body is rendered with a CSS-style
-  /// `ImageFilter.blur` filter so the user can practice listening without
-  /// reading ahead. Device-local UI preference (NOT synced to the server
-  /// profile). See [ADR-0006] for the sign-in profile scope.
-  static const String prefsTranscriptBlurPracticeEnabled =
-      'prefs.transcript_blur_practice_enabled';
-
-  /// Tap-reveal hold duration in seconds (1..15) for the mobile / touch
-  /// blur-practice flow. While a cue is held, it is rendered without the
-  /// blur filter even if blur practice mode is on. Device-local UI
-  /// preference.
-  static const String prefsTranscriptBlurTapRevealSeconds =
-      'prefs.transcript_blur_tap_reveal_seconds';
-
   /// ISO-8601 cursor for incremental `updatedAfter` downloads.
   static const String syncCursorAudio = 'sync.cursor.audio';
   static const String syncCursorVideo = 'sync.cursor.video';
@@ -78,8 +64,6 @@ abstract final class SettingsKeys {
     prefsLearningLanguage,
     prefsNativeLanguage,
     prefsRecordingInputDeviceId,
-    prefsTranscriptBlurPracticeEnabled,
-    prefsTranscriptBlurTapRevealSeconds,
     syncCursorAudio,
     syncCursorVideo,
     syncCursorRecording,

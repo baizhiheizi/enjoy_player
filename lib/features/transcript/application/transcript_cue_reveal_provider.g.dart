@@ -9,7 +9,7 @@ part of 'transcript_cue_reveal_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Returns `true` when [cueId] should be rendered without the blur
-/// filter given the current global toggle and tap-reveal hold.
+/// filter given the current per-media toggle and tap-reveal hold.
 ///
 /// Always returns `true` when blur practice mode is OFF — the toggle
 /// off path is the no-blur default.
@@ -24,7 +24,7 @@ part of 'transcript_cue_reveal_provider.dart';
 final transcriptCueRevealProvider = TranscriptCueRevealFamily._();
 
 /// Returns `true` when [cueId] should be rendered without the blur
-/// filter given the current global toggle and tap-reveal hold.
+/// filter given the current per-media toggle and tap-reveal hold.
 ///
 /// Always returns `true` when blur practice mode is OFF — the toggle
 /// off path is the no-blur default.
@@ -39,7 +39,7 @@ final class TranscriptCueRevealProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
   /// Returns `true` when [cueId] should be rendered without the blur
-  /// filter given the current global toggle and tap-reveal hold.
+  /// filter given the current per-media toggle and tap-reveal hold.
   ///
   /// Always returns `true` when blur practice mode is OFF — the toggle
   /// off path is the no-blur default.
@@ -101,10 +101,10 @@ final class TranscriptCueRevealProvider
 }
 
 String _$transcriptCueRevealHash() =>
-    r'90230006c8b88cad3653baa5a9e0d26da5a741f2';
+    r'4ef433b31858b5005ee7056c6f2e01dda694cb5c';
 
 /// Returns `true` when [cueId] should be rendered without the blur
-/// filter given the current global toggle and tap-reveal hold.
+/// filter given the current per-media toggle and tap-reveal hold.
 ///
 /// Always returns `true` when blur practice mode is OFF — the toggle
 /// off path is the no-blur default.
@@ -127,7 +127,7 @@ final class TranscriptCueRevealFamily extends $Family
       );
 
   /// Returns `true` when [cueId] should be rendered without the blur
-  /// filter given the current global toggle and tap-reveal hold.
+  /// filter given the current per-media toggle and tap-reveal hold.
   ///
   /// Always returns `true` when blur practice mode is OFF — the toggle
   /// off path is the no-blur default.

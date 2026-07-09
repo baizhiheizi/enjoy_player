@@ -4,10 +4,17 @@
 **Phase**: 1 (design)
 **Date**: 2026-07-08
 
-This feature introduces **no new Drift tables** and **no new Drift
-columns**. It persists exactly two key/value pairs through the
-existing `settings` table via `SettingsDao`. All other state is
-derived (Riverpod) and not persisted.
+> **Superseded (2026-07-09):** Blur is now a **per-media** practice mode
+> like echo. Persistence is `echo_sessions.blur_active` (schema v11),
+> in-memory state is `transcriptBlurModeProvider`, and tap-reveal hold
+> is the fixed constant `kTapRevealHoldSeconds = 3`. The Settings keys
+> and `TranscriptBlurPreferencesCtrl` described below are **retired**.
+> Canonical behavior: [docs/features/transcript.md](../../docs/features/transcript.md)
+> § Blur practice.
+
+This feature originally introduced **no new Drift tables**. The
+superseding design adds one boolean column on `echo_sessions`. The
+historical `settings` key design is retained below for archaeology.
 
 ---
 

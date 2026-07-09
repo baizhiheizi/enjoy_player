@@ -12,60 +12,8 @@ import 'package:meta/meta.dart';
 import 'package:enjoy_player/data/subtitle/subtitle_markup_parser.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 
-/// User-facing preferences for the transcript blur practice mode.
-///
-/// Mirrors the two keys added to [SettingsKeys]:
-/// * `prefs.transcript_blur_practice_enabled`
-/// * `prefs.transcript_blur_tap_reveal_seconds`
-@immutable
-class TranscriptBlurPreferences {
-  const TranscriptBlurPreferences({
-    required this.enabled,
-    required this.tapRevealSeconds,
-  });
-
-  /// Whether every cue body text in the transcript panel is currently
-  /// rendered with a blur filter. When `false` the cue rendering path
-  /// is unchanged (no blur, no per-cue widget overhead).
-  final bool enabled;
-
-  /// How long a tap on a blurred cue keeps the cue revealed before the
-  /// blur returns. Always in `[tapRevealSecondsMin, tapRevealSecondsMax]`.
-  /// Default is [tapRevealSecondsDefault].
-  final int tapRevealSeconds;
-
-  /// Inclusive minimum for [tapRevealSeconds]. Values below this are
-  /// rejected by the notifier and clamped up.
-  static const int tapRevealSecondsMin = 1;
-
-  /// Inclusive maximum for [tapRevealSeconds]. Values above this are
-  /// rejected by the notifier and clamped down.
-  static const int tapRevealSecondsMax = 15;
-
-  /// Default for [tapRevealSeconds] (per spec assumption — 3 seconds).
-  static const int tapRevealSecondsDefault = 3;
-
-  static const TranscriptBlurPreferences defaults = TranscriptBlurPreferences(
-    enabled: false,
-    tapRevealSeconds: tapRevealSecondsDefault,
-  );
-
-  TranscriptBlurPreferences copyWith({bool? enabled, int? tapRevealSeconds}) =>
-      TranscriptBlurPreferences(
-        enabled: enabled ?? this.enabled,
-        tapRevealSeconds: tapRevealSeconds ?? this.tapRevealSeconds,
-      );
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TranscriptBlurPreferences &&
-          other.enabled == enabled &&
-          other.tapRevealSeconds == tapRevealSeconds;
-
-  @override
-  int get hashCode => Object.hash(enabled, tapRevealSeconds);
-}
+/// Fixed tap-reveal hold duration (seconds). Not user-configurable.
+const int kTapRevealHoldSeconds = 3;
 
 /// Ephemeral record describing the currently-tap-revealed cue.
 ///

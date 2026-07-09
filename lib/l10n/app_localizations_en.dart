@@ -2526,23 +2526,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No transcript lines to practice with';
 
   @override
-  String get transcriptBlurSettingsHoldDuration => 'Tap-reveal hold duration';
-
-  @override
-  String get transcriptBlurSettingsHoldDurationHint =>
-      'How long a tapped cue stays unblurred on touch devices';
-
-  @override
   String get transcriptBlurSemanticsOn =>
       'Blur practice on. Tap or hover to reveal a line.';
 
   @override
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
-
-  @override
-  String get transcriptBlurSettingsSectionTitle => 'Listening-focus practice';
-
-  @override
-  String get transcriptBlurSettingsSectionHint =>
-      'Blur every transcript line so you listen first, then peek to check yourself.';
 }

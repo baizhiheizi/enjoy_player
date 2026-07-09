@@ -59,8 +59,9 @@ track). The split is also recorded as
 A "Blur practice" toggle in the bottom transport bar (next to the Echo
 button) renders every transcript cue body text with a CSS-style
 `ImageFilter.blur` filter so the user can practice listening first and
-then peek at the text to check themselves. The mode is deliberately
-hearing-focused:
+then peek at the text to check themselves. Like echo, blur is a
+**per-media player practice mode** (not a Settings preference). The
+mode is deliberately hearing-focused:
 
 - The **active playback cue is never auto-revealed**. Even when
   playback runs through the transcript, every cue — including the
@@ -79,40 +80,34 @@ hearing-focused:
   ([`global_transport_bar.dart`](../../lib/features/player/presentation/widgets/global_transport_bar.dart)).
   It mirrors the Echo button styling (active state tinted with the
   `blurActive` token) and carries a hotkey hint in its tooltip. The
-  same global state is also exposed as a switch in **Settings →
-  Transcript → Listening-focus practice**, and the `H` key toggles it.
+  `H` key toggles it via `PlayerInteractions.toggleBlur()`.
 - On macOS and Windows, **hovering a cue unblurs it**; pointer-out
   re-blurs it within one frame. The hover state is owned by the tile
   widget itself so per-frame hover changes do not invalidate unrelated
   cues. This now applies to active and echo cues too — selectable tiles
   carry the same `MouseRegion` as plain cues.
 - On every platform (including desktop as a fallback), **tapping a
-  blurred cue starts a configurable hold** (default 3 seconds) that
-  reveals it. For plain cues the tap also seeks playback to that cue;
-  for selectable (active / echo) cues the tap reveals without seeking.
-  During the hold the cue is unblurred; when the hold expires it
-  re-blurs. Tapping a different cue replaces the hold (the prior cue
-  re-blurs immediately, the new cue reveals).
+  blurred cue starts a fixed 3-second hold** (`kTapRevealHoldSeconds`)
+  that reveals it. For plain cues the tap also seeks playback to that
+  cue; for selectable (active / echo) cues the tap reveals without
+  seeking. During the hold the cue is unblurred; when the hold expires
+  it re-blurs. Tapping a different cue replaces the hold (the prior cue
+  re-blurs immediately, the new cue reveals). Hold duration is **not**
+  user-configurable.
 
 ### Persistence
 
-Two new Drift `settings` keys (device-local UI preferences, **not**
-synced to the server profile):
+Blur on/off is stored per target on `echo_sessions.blur_active`
+(device-local, same row as echo practice fields — **not** synced to the
+server profile):
 
-- `prefs.transcript_blur_practice_enabled` — boolean (`'true'` /
-  `'false'`, default off).
-- `prefs.transcript_blur_tap_reveal_seconds` — integer `'1'`…`'15'`
-  (default 3).
-
-Both live in
-[`lib/data/db/settings_keys.dart`](../../lib/data/db/settings_keys.dart)
-and are read/written through the existing `SettingsDao` by
-`TranscriptBlurPreferencesCtrl`
-([`lib/features/transcript/application/transcript_blur_preferences_provider.dart`](../../lib/features/transcript/application/transcript_blur_preferences_provider.dart)).
-The hold duration is also editable from **Settings → Transcript →
-Listening-focus practice**, which hosts a slider row in the new
-section
-([`lib/features/settings/presentation/widgets/sections/transcript_blur_section.dart`](../../lib/features/settings/presentation/widgets/sections/transcript_blur_section.dart)).
+- In-memory state: `transcriptBlurModeProvider`
+  ([`transcript_blur_mode_provider.dart`](../../lib/features/transcript/application/transcript_blur_mode_provider.dart)).
+- Written by [`PlaybackSessionPersister`](../../lib/features/player/application/playback_session_persister.dart)
+  (debounced position ticks + immediate `writeNow` on toggle).
+- Restored in [`player_open_coordinator.dart`](../../lib/features/player/application/player_open_coordinator.dart)
+  when opening media; cleared with `deactivate()` in
+  [`PlayerController.clear`](../../lib/features/player/application/player_controller.dart).
 
 ### Rendering
 
@@ -149,15 +144,16 @@ shadow-reading panel are not.
 ### Tests
 
 Coverage lives under
-[`test/features/transcript/`](../../test/features/transcript/):
+[`test/features/transcript/`](../../test/features/transcript/) and
+[`test/features/player/`](../../test/features/player/):
 
-- `transcript_blur_preferences_provider_test.dart` — hydration,
-  default fallbacks, clamping of `tapRevealSeconds`, persistence,
-  read-only projection during loading.
-- `global_transport_bar_test.dart` (under
-  [`test/features/player/`](../../test/features/player/)) — the blur
-  toggle's off/on icon states, disabled state when there are no
-  transcript lines, and that a tap flips `setEnabled`.
+- `transcript_blur_mode_provider_test.dart` — activate / deactivate /
+  toggle / restoreFromSession.
+- `transcript_blur_session_persist_test.dart` — `blur_active` written
+  via `PlaybackSessionPersister.writeNow` and restored.
+- `global_transport_bar_test.dart` — the blur toggle's off/on icon
+  states, disabled state when there are no transcript lines, and that
+  a tap flips `transcriptBlurModeProvider`.
 - `transcript_blur_hover_test.dart` — pointer-enter reveals;
   pointer-out re-blurs; toggle-off bypass.
 - `transcript_blur_selectable_reveal_test.dart` — the active / echo
@@ -167,8 +163,6 @@ Coverage lives under
 - `transcript_blur_active_line_stays_blurred_test.dart` — drives the
   active cue through several indices while blur is on and asserts the
   active cue never auto-reveals (the spec's hard rule).
-- `transcript_blur_settings_test.dart` — settings UI renders ARB
-  strings; slider drag persists.
 - `transcript_blur_long_list_perf_test.dart` — 10 000-line smoke
   under `ImageFiltered`; per-frame budget assertion.
 

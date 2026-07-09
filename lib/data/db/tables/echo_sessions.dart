@@ -34,6 +34,9 @@ class EchoSessions extends Table {
   IntColumn get echoStartLine => integer().withDefault(const Constant(-1))();
   IntColumn get echoEndLine => integer().withDefault(const Constant(-1))();
 
+  /// Listening-focus (transcript blur) practice mode for this target.
+  BoolColumn get blurActive => boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get startedAt => dateTime()();
   DateTimeColumn get lastActiveAt => dateTime()();
   DateTimeColumn get completedAt => dateTime().nullable()();

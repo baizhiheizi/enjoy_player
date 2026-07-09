@@ -3,17 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
-import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 Widget transcriptTileHarness(Widget child) {
   return ProviderScope(
     overrides: [
-      transcriptBlurPreferencesCtrlProvider.overrideWith(
-        () => _FakeBlurPrefsCtrl(TranscriptBlurPreferences.defaults),
-      ),
+      transcriptBlurModeProvider.overrideWith(() => _BlurMode(false)),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -23,18 +20,12 @@ Widget transcriptTileHarness(Widget child) {
   );
 }
 
-class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
-  _FakeBlurPrefsCtrl(this._initial);
-  final TranscriptBlurPreferences _initial;
+class _BlurMode extends TranscriptBlurMode {
+  _BlurMode(this._initial);
+  final bool _initial;
 
   @override
-  Future<TranscriptBlurPreferences> build() async => _initial;
-
-  @override
-  Future<void> setEnabled(bool value) async {}
-
-  @override
-  Future<void> setTapRevealSeconds(int seconds) async {}
+  bool build() => _initial;
 }
 
 void main() {

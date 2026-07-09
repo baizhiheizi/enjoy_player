@@ -1205,10 +1205,6 @@
   "transcriptBlurToggleOn": "Listening-focus mode on",
   "transcriptBlurToggleOff": "Listening-focus mode off",
   "transcriptBlurEmptyTooltip": "No transcript lines to practice with",
-  "transcriptBlurSettingsHoldDuration": "Tap-reveal hold duration",
-  "transcriptBlurSettingsHoldDurationHint": "How long a tapped cue stays unblurred on touch devices",
   "transcriptBlurSemanticsOn": "Blur practice on. Tap or hover to reveal a line.",
-  "transcriptBlurSemanticsOff": "Blur practice off.",
-  "transcriptBlurSettingsSectionTitle": "Listening-focus practice",
-  "transcriptBlurSettingsSectionHint": "Blur every transcript line so you listen first, then peek to check yourself."
+  "transcriptBlurSemanticsOff": "Blur practice off."
 }

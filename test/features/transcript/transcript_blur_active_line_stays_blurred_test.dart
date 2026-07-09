@@ -1,6 +1,5 @@
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
-import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -8,18 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _FakeBlurPrefsCtrl extends TranscriptBlurPreferencesCtrl {
-  _FakeBlurPrefsCtrl(this._initial);
-  final TranscriptBlurPreferences _initial;
+class _BlurMode extends TranscriptBlurMode {
+  _BlurMode(this._initial);
+  final bool _initial;
 
   @override
-  Future<TranscriptBlurPreferences> build() async => _initial;
-
-  @override
-  Future<void> setEnabled(bool value) async {}
-
-  @override
-  Future<void> setTapRevealSeconds(int seconds) async {}
+  bool build() => _initial;
 }
 
 void main() {
@@ -32,17 +25,10 @@ void main() {
         TranscriptLine(text: 'C', startMs: 2000, durationMs: 1000),
       ];
 
-  Widget buildTree(int activeIndex) {
+      Widget buildTree(int activeIndex) {
         return ProviderScope(
           overrides: [
-            transcriptBlurPreferencesCtrlProvider.overrideWith(
-              () => _FakeBlurPrefsCtrl(
-                const TranscriptBlurPreferences(
-                  enabled: true,
-                  tapRevealSeconds: 3,
-                ),
-              ),
-            ),
+            transcriptBlurModeProvider.overrideWith(() => _BlurMode(true)),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -71,9 +57,7 @@ void main() {
 
       for (final activeIndex in [0, 1, 2]) {
         await tester.pumpWidget(buildTree(activeIndex));
-        await tester.pumpAndSettle(); // let async ctrl resolve
-        // Every cue must be blurred while blur practice is on and no
-        // hover/tap-reveal is in flight.
+        await tester.pumpAndSettle();
         for (var i = 0; i < lines.length; i++) {
           final blur = tester.widget<TranscriptBlurText>(
             find

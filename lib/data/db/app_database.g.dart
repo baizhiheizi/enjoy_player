@@ -3459,6 +3459,21 @@ class $EchoSessionsTable extends EchoSessions
     requiredDuringInsert: false,
     defaultValue: const Constant(-1),
   );
+  static const VerificationMeta _blurActiveMeta = const VerificationMeta(
+    'blurActive',
+  );
+  @override
+  late final GeneratedColumn<bool> blurActive = GeneratedColumn<bool>(
+    'blur_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("blur_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _startedAtMeta = const VerificationMeta(
     'startedAt',
   );
@@ -3557,6 +3572,7 @@ class $EchoSessionsTable extends EchoSessions
     echoActive,
     echoStartLine,
     echoEndLine,
+    blurActive,
     startedAt,
     lastActiveAt,
     completedAt,
@@ -3721,6 +3737,12 @@ class $EchoSessionsTable extends EchoSessions
         ),
       );
     }
+    if (data.containsKey('blur_active')) {
+      context.handle(
+        _blurActiveMeta,
+        blurActive.isAcceptableOrUnknown(data['blur_active']!, _blurActiveMeta),
+      );
+    }
     if (data.containsKey('started_at')) {
       context.handle(
         _startedAtMeta,
@@ -3861,6 +3883,10 @@ class $EchoSessionsTable extends EchoSessions
         DriftSqlType.int,
         data['${effectivePrefix}echo_end_line'],
       )!,
+      blurActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}blur_active'],
+      )!,
       startedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}started_at'],
@@ -3919,6 +3945,9 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
   final bool echoActive;
   final int echoStartLine;
   final int echoEndLine;
+
+  /// Listening-focus (transcript blur) practice mode for this target.
+  final bool blurActive;
   final DateTime startedAt;
   final DateTime lastActiveAt;
   final DateTime? completedAt;
@@ -3945,6 +3974,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     required this.echoActive,
     required this.echoStartLine,
     required this.echoEndLine,
+    required this.blurActive,
     required this.startedAt,
     required this.lastActiveAt,
     this.completedAt,
@@ -3984,6 +4014,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     map['echo_active'] = Variable<bool>(echoActive);
     map['echo_start_line'] = Variable<int>(echoStartLine);
     map['echo_end_line'] = Variable<int>(echoEndLine);
+    map['blur_active'] = Variable<bool>(blurActive);
     map['started_at'] = Variable<DateTime>(startedAt);
     map['last_active_at'] = Variable<DateTime>(lastActiveAt);
     if (!nullToAbsent || completedAt != null) {
@@ -4030,6 +4061,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       echoActive: Value(echoActive),
       echoStartLine: Value(echoStartLine),
       echoEndLine: Value(echoEndLine),
+      blurActive: Value(blurActive),
       startedAt: Value(startedAt),
       lastActiveAt: Value(lastActiveAt),
       completedAt: completedAt == null && nullToAbsent
@@ -4076,6 +4108,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       echoActive: serializer.fromJson<bool>(json['echoActive']),
       echoStartLine: serializer.fromJson<int>(json['echoStartLine']),
       echoEndLine: serializer.fromJson<int>(json['echoEndLine']),
+      blurActive: serializer.fromJson<bool>(json['blurActive']),
       startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       lastActiveAt: serializer.fromJson<DateTime>(json['lastActiveAt']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
@@ -4109,6 +4142,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       'echoActive': serializer.toJson<bool>(echoActive),
       'echoStartLine': serializer.toJson<int>(echoStartLine),
       'echoEndLine': serializer.toJson<int>(echoEndLine),
+      'blurActive': serializer.toJson<bool>(blurActive),
       'startedAt': serializer.toJson<DateTime>(startedAt),
       'lastActiveAt': serializer.toJson<DateTime>(lastActiveAt),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
@@ -4138,6 +4172,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     bool? echoActive,
     int? echoStartLine,
     int? echoEndLine,
+    bool? blurActive,
     DateTime? startedAt,
     DateTime? lastActiveAt,
     Value<DateTime?> completedAt = const Value.absent(),
@@ -4168,6 +4203,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     echoActive: echoActive ?? this.echoActive,
     echoStartLine: echoStartLine ?? this.echoStartLine,
     echoEndLine: echoEndLine ?? this.echoEndLine,
+    blurActive: blurActive ?? this.blurActive,
     startedAt: startedAt ?? this.startedAt,
     lastActiveAt: lastActiveAt ?? this.lastActiveAt,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
@@ -4224,6 +4260,9 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       echoEndLine: data.echoEndLine.present
           ? data.echoEndLine.value
           : this.echoEndLine,
+      blurActive: data.blurActive.present
+          ? data.blurActive.value
+          : this.blurActive,
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       lastActiveAt: data.lastActiveAt.present
           ? data.lastActiveAt.value
@@ -4263,6 +4302,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
           ..write('echoActive: $echoActive, ')
           ..write('echoStartLine: $echoStartLine, ')
           ..write('echoEndLine: $echoEndLine, ')
+          ..write('blurActive: $blurActive, ')
           ..write('startedAt: $startedAt, ')
           ..write('lastActiveAt: $lastActiveAt, ')
           ..write('completedAt: $completedAt, ')
@@ -4294,6 +4334,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     echoActive,
     echoStartLine,
     echoEndLine,
+    blurActive,
     startedAt,
     lastActiveAt,
     completedAt,
@@ -4324,6 +4365,7 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
           other.echoActive == this.echoActive &&
           other.echoStartLine == this.echoStartLine &&
           other.echoEndLine == this.echoEndLine &&
+          other.blurActive == this.blurActive &&
           other.startedAt == this.startedAt &&
           other.lastActiveAt == this.lastActiveAt &&
           other.completedAt == this.completedAt &&
@@ -4352,6 +4394,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
   final Value<bool> echoActive;
   final Value<int> echoStartLine;
   final Value<int> echoEndLine;
+  final Value<bool> blurActive;
   final Value<DateTime> startedAt;
   final Value<DateTime> lastActiveAt;
   final Value<DateTime?> completedAt;
@@ -4379,6 +4422,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     this.echoActive = const Value.absent(),
     this.echoStartLine = const Value.absent(),
     this.echoEndLine = const Value.absent(),
+    this.blurActive = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.lastActiveAt = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -4407,6 +4451,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     this.echoActive = const Value.absent(),
     this.echoStartLine = const Value.absent(),
     this.echoEndLine = const Value.absent(),
+    this.blurActive = const Value.absent(),
     required DateTime startedAt,
     required DateTime lastActiveAt,
     this.completedAt = const Value.absent(),
@@ -4441,6 +4486,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     Expression<bool>? echoActive,
     Expression<int>? echoStartLine,
     Expression<int>? echoEndLine,
+    Expression<bool>? blurActive,
     Expression<DateTime>? startedAt,
     Expression<DateTime>? lastActiveAt,
     Expression<DateTime>? completedAt,
@@ -4472,6 +4518,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
       if (echoActive != null) 'echo_active': echoActive,
       if (echoStartLine != null) 'echo_start_line': echoStartLine,
       if (echoEndLine != null) 'echo_end_line': echoEndLine,
+      if (blurActive != null) 'blur_active': blurActive,
       if (startedAt != null) 'started_at': startedAt,
       if (lastActiveAt != null) 'last_active_at': lastActiveAt,
       if (completedAt != null) 'completed_at': completedAt,
@@ -4502,6 +4549,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     Value<bool>? echoActive,
     Value<int>? echoStartLine,
     Value<int>? echoEndLine,
+    Value<bool>? blurActive,
     Value<DateTime>? startedAt,
     Value<DateTime>? lastActiveAt,
     Value<DateTime?>? completedAt,
@@ -4531,6 +4579,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
       echoActive: echoActive ?? this.echoActive,
       echoStartLine: echoStartLine ?? this.echoStartLine,
       echoEndLine: echoEndLine ?? this.echoEndLine,
+      blurActive: blurActive ?? this.blurActive,
       startedAt: startedAt ?? this.startedAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       completedAt: completedAt ?? this.completedAt,
@@ -4601,6 +4650,9 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     if (echoEndLine.present) {
       map['echo_end_line'] = Variable<int>(echoEndLine.value);
     }
+    if (blurActive.present) {
+      map['blur_active'] = Variable<bool>(blurActive.value);
+    }
     if (startedAt.present) {
       map['started_at'] = Variable<DateTime>(startedAt.value);
     }
@@ -4649,6 +4701,7 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
           ..write('echoActive: $echoActive, ')
           ..write('echoStartLine: $echoStartLine, ')
           ..write('echoEndLine: $echoEndLine, ')
+          ..write('blurActive: $blurActive, ')
           ..write('startedAt: $startedAt, ')
           ..write('lastActiveAt: $lastActiveAt, ')
           ..write('completedAt: $completedAt, ')
@@ -9953,6 +10006,7 @@ typedef $$EchoSessionsTableCreateCompanionBuilder =
       Value<bool> echoActive,
       Value<int> echoStartLine,
       Value<int> echoEndLine,
+      Value<bool> blurActive,
       required DateTime startedAt,
       required DateTime lastActiveAt,
       Value<DateTime?> completedAt,
@@ -9982,6 +10036,7 @@ typedef $$EchoSessionsTableUpdateCompanionBuilder =
       Value<bool> echoActive,
       Value<int> echoStartLine,
       Value<int> echoEndLine,
+      Value<bool> blurActive,
       Value<DateTime> startedAt,
       Value<DateTime> lastActiveAt,
       Value<DateTime?> completedAt,
@@ -10088,6 +10143,11 @@ class $$EchoSessionsTableFilterComposer
 
   ColumnFilters<int> get echoEndLine => $composableBuilder(
     column: $table.echoEndLine,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get blurActive => $composableBuilder(
+    column: $table.blurActive,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10226,6 +10286,11 @@ class $$EchoSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get blurActive => $composableBuilder(
+    column: $table.blurActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get startedAt => $composableBuilder(
     column: $table.startedAt,
     builder: (column) => ColumnOrderings(column),
@@ -10351,6 +10416,11 @@ class $$EchoSessionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get blurActive => $composableBuilder(
+    column: $table.blurActive,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get startedAt =>
       $composableBuilder(column: $table.startedAt, builder: (column) => column);
 
@@ -10430,6 +10500,7 @@ class $$EchoSessionsTableTableManager
                 Value<bool> echoActive = const Value.absent(),
                 Value<int> echoStartLine = const Value.absent(),
                 Value<int> echoEndLine = const Value.absent(),
+                Value<bool> blurActive = const Value.absent(),
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime> lastActiveAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -10457,6 +10528,7 @@ class $$EchoSessionsTableTableManager
                 echoActive: echoActive,
                 echoStartLine: echoStartLine,
                 echoEndLine: echoEndLine,
+                blurActive: blurActive,
                 startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
                 completedAt: completedAt,
@@ -10486,6 +10558,7 @@ class $$EchoSessionsTableTableManager
                 Value<bool> echoActive = const Value.absent(),
                 Value<int> echoStartLine = const Value.absent(),
                 Value<int> echoEndLine = const Value.absent(),
+                Value<bool> blurActive = const Value.absent(),
                 required DateTime startedAt,
                 required DateTime lastActiveAt,
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -10513,6 +10586,7 @@ class $$EchoSessionsTableTableManager
                 echoActive: echoActive,
                 echoStartLine: echoStartLine,
                 echoEndLine: echoEndLine,
+                blurActive: blurActive,
                 startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
                 completedAt: completedAt,

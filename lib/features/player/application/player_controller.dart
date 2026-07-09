@@ -16,6 +16,7 @@ import 'package:enjoy_player/features/player/application/player_open_coordinator
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
 
@@ -180,6 +181,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
         ownedEngine is YoutubePlayerEngine;
 
     ref.read(echoModeProvider.notifier).deactivate();
+    ref.read(transcriptBlurModeProvider.notifier).deactivate();
     state = null;
 
     if (isYoutubeEngine) {

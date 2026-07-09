@@ -21,7 +21,6 @@ import 'package:enjoy_player/features/library/application/library_search_focus.d
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
-import 'package:enjoy_player/features/transcript/application/transcript_blur_preferences_provider.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
@@ -212,12 +211,7 @@ class _AppHotkeysKeyboardListenerState
         return true;
       }
       if (_matches(event, ctrl, 'player.toggleBlurPractice')) {
-        final enabled = ref.read(transcriptBlurPreferencesProvider).enabled;
-        unawaited(
-          ref
-              .read(transcriptBlurPreferencesCtrlProvider.notifier)
-              .setEnabled(!enabled),
-        );
+        unawaited(ref.read(playerInteractionsProvider.notifier).toggleBlur());
         return true;
       }
       if (_matches(event, ctrl, 'player.toggleRecording')) {
