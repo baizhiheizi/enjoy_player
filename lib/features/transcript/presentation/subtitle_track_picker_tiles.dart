@@ -106,6 +106,91 @@ class TrackOptionTile<T> extends StatelessWidget {
   }
 }
 
+class AutoTranslateOptionTile extends StatelessWidget {
+  const AutoTranslateOptionTile({
+    super.key,
+    required this.value,
+    required this.selected,
+    required this.padding,
+    required this.targetLanguage,
+    this.enabled = true,
+  });
+
+  final String value;
+  final bool selected;
+  final EdgeInsetsGeometry padding;
+  final String targetLanguage;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final badgeColors = providerBadgeColors(cs, 'ai');
+
+    return Padding(
+      padding: padding,
+      child: Material(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.34)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.28),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusSm),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.42)
+                : cs.outlineVariant.withValues(alpha: 0.14),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: RadioListTile<String?>(
+          value: value,
+          enabled: enabled,
+          selected: selected,
+          contentPadding: EdgeInsets.fromLTRB(
+            t.space8,
+            t.space8,
+            t.space12,
+            t.space8,
+          ),
+          controlAffinity: ListTileControlAffinity.leading,
+          title: Text(
+            l10n.subtitlesAutoTranslate,
+            style: tt.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+            ),
+          ),
+          subtitle: Padding(
+            padding: EdgeInsets.only(top: t.space8),
+            child: Wrap(
+              spacing: t.space8,
+              runSpacing: t.space4,
+              children: [
+                MetaChip(
+                  label: providerLabel(l10n, 'ai'),
+                  background: badgeColors.bg,
+                  foreground: badgeColors.fg,
+                ),
+                if (targetLanguage.isNotEmpty)
+                  MetaChip(
+                    label: l10n.subtitlesAutoTranslateLanguageChip(
+                      targetLanguage.toUpperCase(),
+                    ),
+                    background: cs.surfaceContainerHighest,
+                    foreground: cs.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class NoneOptionTile extends StatelessWidget {
   const NoneOptionTile({
     super.key,

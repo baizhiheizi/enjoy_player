@@ -502,6 +502,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtitlesProviderUser => 'User';
 
   @override
+  String get subtitlesAutoTranslate => 'Auto translate';
+
+  @override
+  String subtitlesAutoTranslateLanguageChip(String language) {
+    return 'To $language';
+  }
+
+  @override
+  String get subtitlesAutoTranslateRetranslateLine => 'Re-translate this line';
+
+  @override
+  String get subtitlesAutoTranslateBlockedStalePrimary =>
+      'The primary subtitle changed. Auto translate will rebuild from the new primary.';
+
+  @override
+  String get subtitlesAutoTranslateBlockedServiceUnavailable =>
+      'Translation service is temporarily unavailable. Tap Retry to try again.';
+
+  @override
+  String get subtitlesAutoTranslateLineFailed => 'Couldn’t translate this line';
+
+  @override
+  String subtitlesAutoTranslateProgress(int ready, int total) {
+    return 'Translating… $ready of $total';
+  }
+
+  @override
+  String get subtitlesAutoTranslatePendingLine => 'Translating…';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSignedOut =>
+      'Sign in to use auto translate.';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSameLanguage =>
+      'Auto translate is not needed when your native language matches the primary subtitle.';
+
+  @override
+  String get subtitlesAutoTranslateBlockedNoPrimary =>
+      'Choose a primary subtitle first.';
+
+  @override
+  String get subtitlesAutoTranslateBlockedCredits =>
+      'Not enough credits to translate. Check your subscription.';
+
+  @override
+  String get subtitlesAutoTranslateFailed =>
+      'Some lines could not be translated.';
+
+  @override
+  String get subtitlesAutoTranslateRetry => 'Retry';
+
+  @override
   String get subtitlesExtractNoTracks =>
       'No embedded subtitle tracks in this file (only video and audio). If you have a separate .srt or .vtt, use Import file.';
 

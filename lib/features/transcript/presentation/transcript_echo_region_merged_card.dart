@@ -1,6 +1,8 @@
 /// Echo segment as one card with controls and optional shadow-reading panel.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,10 +15,13 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
+import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class EchoRegionMergedCard extends ConsumerWidget {
   const EchoRegionMergedCard({
@@ -48,6 +53,11 @@ class EchoRegionMergedCard extends ConsumerWidget {
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(mediaId),
     );
+    final autoTranslateState = ref.watch(autoTranslateCtrlProvider(mediaId));
+    final secondaryId = ref.watch(secondaryTranscriptIdProvider(mediaId)).value;
+    final autoTranslateActive =
+        autoTranslateState.aiTranscriptId != null &&
+        secondaryId == autoTranslateState.aiTranscriptId;
 
     // Neutral surface — no colored background; left rail carries the echo accent.
     final shell = scheme.surfaceContainerLow;
@@ -70,7 +80,19 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       final line = lines[i];
       final isActive = i == activeCueIndex;
-      final secondaryText = matcher.match(line)?.text;
+      final secondaryTextRaw = matcher.match(line)?.text;
+      final secondaryEmpty =
+          secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
+      final lineFailed =
+          autoTranslateActive && autoTranslateState.isLineFailed(i);
+      final l10n = AppLocalizations.of(context);
+      final secondaryText = secondaryEmpty && lineFailed && l10n != null
+          ? l10n.subtitlesAutoTranslateLineFailed
+          : secondaryTextRaw;
+      final canRetranslate =
+          autoTranslateActive &&
+          (lineFailed ||
+              (secondaryText != null && secondaryText.trim().isNotEmpty));
 
       final tile = TranscriptLineTile(
         key: ValueKey<String>('echo-line-$i'),
@@ -88,6 +110,13 @@ class EchoRegionMergedCard extends ConsumerWidget {
           selectedText: t,
           lines: lines,
         ),
+        onRetranslateSecondary: canRetranslate
+            ? () => unawaited(
+                  ref
+                      .read(autoTranslateCtrlProvider(mediaId).notifier)
+                      .retranslateLine(i),
+                )
+            : null,
         onTap: () =>
             ref.read(playerInteractionsProvider.notifier).seekToLine(line, i),
       );

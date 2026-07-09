@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -36,6 +37,7 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
     this.selectable = false,
     this.recordingCount,
     this.onLookupRequested,
+    this.onRetranslateSecondary,
     super.key,
   });
 
@@ -57,6 +59,10 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
   /// Invoked when the user chooses **Look up** in the text selection toolbar
   /// (1–100 characters after trim).
   final ValueChanged<String>? onLookupRequested;
+
+  /// When set (auto-translate active), shows an inline refresh control on the
+  /// secondary translation line.
+  final VoidCallback? onRetranslateSecondary;
 
   final VoidCallback onTap;
 
@@ -451,7 +457,25 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               ),
               child: Padding(
                 padding: EdgeInsets.only(left: tok.space12),
-                child: blurredSecondary,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: blurredSecondary),
+                    if (widget.onRetranslateSecondary != null) ...[
+                      SizedBox(width: tok.space4),
+                      EnjoyTappableIcon(
+                        icon: Icons.refresh_rounded,
+                        tooltip: AppLocalizations.of(context)
+                                ?.subtitlesAutoTranslateRetranslateLine ??
+                            'Re-translate this line',
+                        iconSize: 18,
+                        color: scheme.onSurfaceVariant,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: widget.onRetranslateSecondary,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],

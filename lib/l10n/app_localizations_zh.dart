@@ -482,6 +482,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subtitlesProviderUser => '用户';
 
   @override
+  String get subtitlesAutoTranslate => '自动翻译';
+
+  @override
+  String subtitlesAutoTranslateLanguageChip(String language) {
+    return '译为 $language';
+  }
+
+  @override
+  String get subtitlesAutoTranslateRetranslateLine => '重新翻译此行';
+
+  @override
+  String get subtitlesAutoTranslateBlockedStalePrimary =>
+      '主字幕已更改，自动翻译将根据新的主字幕重建。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedServiceUnavailable =>
+      '翻译服务暂时不可用，请点重试。';
+
+  @override
+  String get subtitlesAutoTranslateLineFailed => '此行未能翻译';
+
+  @override
+  String subtitlesAutoTranslateProgress(int ready, int total) {
+    return '翻译中… $ready/$total';
+  }
+
+  @override
+  String get subtitlesAutoTranslatePendingLine => '翻译中…';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSignedOut => '请登录后使用自动翻译。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSameLanguage => '母语与主字幕相同时无需自动翻译。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedNoPrimary => '请先选择主字幕。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedCredits => '积分不足，无法翻译。请查看订阅。';
+
+  @override
+  String get subtitlesAutoTranslateFailed => '部分行未能翻译。';
+
+  @override
+  String get subtitlesAutoTranslateRetry => '重试';
+
+  @override
   String get subtitlesExtractNoTracks =>
       '此文件中无内嵌字幕轨道（仅有视频与音频）。若有单独的 .srt 或 .vtt，请使用导入文件。';
 
@@ -2879,6 +2927,54 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subtitlesProviderUser => '用户';
+
+  @override
+  String get subtitlesAutoTranslate => '自动翻译';
+
+  @override
+  String subtitlesAutoTranslateLanguageChip(String language) {
+    return '译为 $language';
+  }
+
+  @override
+  String get subtitlesAutoTranslateRetranslateLine => '重新翻译此行';
+
+  @override
+  String get subtitlesAutoTranslateBlockedStalePrimary =>
+      '主字幕已更改，自动翻译将根据新的主字幕重建。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedServiceUnavailable =>
+      '翻译服务暂时不可用，请点重试。';
+
+  @override
+  String get subtitlesAutoTranslateLineFailed => '此行未能翻译';
+
+  @override
+  String subtitlesAutoTranslateProgress(int ready, int total) {
+    return '翻译中… $ready/$total';
+  }
+
+  @override
+  String get subtitlesAutoTranslatePendingLine => '翻译中…';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSignedOut => '请登录后使用自动翻译。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedSameLanguage => '母语与主字幕相同时无需自动翻译。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedNoPrimary => '请先选择主字幕。';
+
+  @override
+  String get subtitlesAutoTranslateBlockedCredits => '积分不足，无法翻译。请查看订阅。';
+
+  @override
+  String get subtitlesAutoTranslateFailed => '部分行未能翻译。';
+
+  @override
+  String get subtitlesAutoTranslateRetry => '重试';
 
   @override
   String get subtitlesExtractNoTracks =>

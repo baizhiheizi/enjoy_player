@@ -7,9 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_fetch_controller.dart';
+import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/transcript/application/video_row_for_media_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
@@ -33,7 +39,7 @@ List<Override> _pickerOverrides({required List<TranscriptTrack> tracks}) => [
   ).overrideWith((ref) => Stream.value(tracks)),
   activeTranscriptIdProvider(
     _mediaId,
-  ).overrideWith((ref) => Stream.value(null)),
+  ).overrideWith((ref) => Stream.value(tracks.isEmpty ? null : tracks.first.id)),
   secondaryTranscriptIdProvider(
     _mediaId,
   ).overrideWith((ref) => Stream.value(null)),
@@ -41,7 +47,35 @@ List<Override> _pickerOverrides({required List<TranscriptTrack> tracks}) => [
   transcriptFetchStatusProvider(_mediaId).overrideWithValue(
     const TranscriptFetchUiState(status: TranscriptFetchStatus.idle),
   ),
+  autoTranslateCtrlProvider(_mediaId).overrideWith(() => _IdleAutoTranslateCtrl()),
+  autoTranslateSelectionIdProvider(_mediaId).overrideWith((ref) async => 'ai-selection-id'),
+  appPreferencesCtrlProvider.overrideWith(() => _ZhNativePrefsCtrl()),
+  authCtrlProvider.overrideWith(() => _SignedInAuthCtrl()),
 ];
+
+class _IdleAutoTranslateCtrl extends AutoTranslateCtrl {
+  @override
+  AutoTranslateUiState build(String mediaId) => const AutoTranslateUiState();
+}
+
+class _SignedInAuthCtrl extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => const AuthSignedIn(
+        profile: UserProfile(
+          id: 'u1',
+          email: 't@example.com',
+          name: 'Test',
+        ),
+      );
+}
+
+class _ZhNativePrefsCtrl extends AppPreferencesCtrl {
+  @override
+  Future<AppPreferencesState> build() async => AppPreferencesState.initial.copyWith(
+        nativeLanguage: 'zh-CN',
+        learningLanguage: 'en-US',
+      );
+}
 
 Widget _harness({required List<Override> overrides}) {
   final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
@@ -122,4 +156,41 @@ void main() {
       expect(find.text(l10n.subtitlesTranslation), findsOneWidget);
     },
   );
+
+  testWidgets('shows Auto translate option and hides ai source tracks', (
+    tester,
+  ) async {
+    const track = TranscriptTrack(
+      id: 't1',
+      targetType: 'Video',
+      targetId: _mediaId,
+      language: 'en',
+      source: 'user',
+      label: 'English',
+      trackIndex: null,
+    );
+    const aiTrack = TranscriptTrack(
+      id: 'ai-track',
+      targetType: 'Video',
+      targetId: _mediaId,
+      language: 'zh-CN',
+      source: 'ai',
+      label: 'Stored AI zh',
+      trackIndex: null,
+    );
+    await tester.pumpWidget(
+      _harness(overrides: _pickerOverrides(tracks: const [track, aiTrack])),
+    );
+    await tester.pump();
+    tester.takeException();
+    await tester.pumpAndSettle();
+
+    final translationHeader = find.text(l10n.subtitlesTranslation);
+    expect(translationHeader, findsOneWidget);
+    await tester.tap(translationHeader);
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.subtitlesAutoTranslate), findsOneWidget);
+    expect(find.text('Stored AI zh'), findsNothing);
+  });
 }

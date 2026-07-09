@@ -178,6 +178,37 @@
   "subtitlesProviderAuto": "Auto",
   "subtitlesProviderAi": "AI",
   "subtitlesProviderUser": "User",
+  "subtitlesAutoTranslate": "Auto translate",
+  "subtitlesAutoTranslateLanguageChip": "To {language}",
+  "@subtitlesAutoTranslateLanguageChip": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "subtitlesAutoTranslateRetranslateLine": "Re-translate this line",
+  "subtitlesAutoTranslateBlockedStalePrimary": "The primary subtitle changed. Auto translate will rebuild from the new primary.",
+  "subtitlesAutoTranslateBlockedServiceUnavailable": "Translation service is temporarily unavailable. Tap Retry to try again.",
+  "subtitlesAutoTranslateLineFailed": "Couldn’t translate this line",
+  "subtitlesAutoTranslateProgress": "Translating… {ready} of {total}",
+  "@subtitlesAutoTranslateProgress": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "subtitlesAutoTranslatePendingLine": "Translating…",
+  "subtitlesAutoTranslateBlockedSignedOut": "Sign in to use auto translate.",
+  "subtitlesAutoTranslateBlockedSameLanguage": "Auto translate is not needed when your native language matches the primary subtitle.",
+  "subtitlesAutoTranslateBlockedNoPrimary": "Choose a primary subtitle first.",
+  "subtitlesAutoTranslateBlockedCredits": "Not enough credits to translate. Check your subscription.",
+  "subtitlesAutoTranslateFailed": "Some lines could not be translated.",
+  "subtitlesAutoTranslateRetry": "Retry",
   "subtitlesExtractNoTracks": "No embedded subtitle tracks in this file (only video and audio). If you have a separate .srt or .vtt, use Import file.",
   "subtitlesExtractedCount": "Extracted {count} subtitle track(s).",
   "@subtitlesExtractedCount": {

@@ -1011,6 +1011,90 @@ abstract class AppLocalizations {
   /// **'User'**
   String get subtitlesProviderUser;
 
+  /// No description provided for @subtitlesAutoTranslate.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto translate'**
+  String get subtitlesAutoTranslate;
+
+  /// No description provided for @subtitlesAutoTranslateLanguageChip.
+  ///
+  /// In en, this message translates to:
+  /// **'To {language}'**
+  String subtitlesAutoTranslateLanguageChip(String language);
+
+  /// No description provided for @subtitlesAutoTranslateRetranslateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-translate this line'**
+  String get subtitlesAutoTranslateRetranslateLine;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedStalePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'The primary subtitle changed. Auto translate will rebuild from the new primary.'**
+  String get subtitlesAutoTranslateBlockedStalePrimary;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation service is temporarily unavailable. Tap Retry to try again.'**
+  String get subtitlesAutoTranslateBlockedServiceUnavailable;
+
+  /// No description provided for @subtitlesAutoTranslateLineFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t translate this line'**
+  String get subtitlesAutoTranslateLineFailed;
+
+  /// No description provided for @subtitlesAutoTranslateProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating… {ready} of {total}'**
+  String subtitlesAutoTranslateProgress(int ready, int total);
+
+  /// No description provided for @subtitlesAutoTranslatePendingLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating…'**
+  String get subtitlesAutoTranslatePendingLine;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use auto translate.'**
+  String get subtitlesAutoTranslateBlockedSignedOut;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedSameLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto translate is not needed when your native language matches the primary subtitle.'**
+  String get subtitlesAutoTranslateBlockedSameLanguage;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedNoPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a primary subtitle first.'**
+  String get subtitlesAutoTranslateBlockedNoPrimary;
+
+  /// No description provided for @subtitlesAutoTranslateBlockedCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough credits to translate. Check your subscription.'**
+  String get subtitlesAutoTranslateBlockedCredits;
+
+  /// No description provided for @subtitlesAutoTranslateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some lines could not be translated.'**
+  String get subtitlesAutoTranslateFailed;
+
+  /// No description provided for @subtitlesAutoTranslateRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get subtitlesAutoTranslateRetry;
+
   /// No description provided for @subtitlesExtractNoTracks.
   ///
   /// In en, this message translates to:

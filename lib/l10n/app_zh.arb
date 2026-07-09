@@ -183,6 +183,37 @@
   "subtitlesProviderAuto": "自动",
   "subtitlesProviderAi": "AI",
   "subtitlesProviderUser": "用户",
+  "subtitlesAutoTranslate": "自动翻译",
+  "subtitlesAutoTranslateLanguageChip": "译为 {language}",
+  "@subtitlesAutoTranslateLanguageChip": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "subtitlesAutoTranslateRetranslateLine": "重新翻译此行",
+  "subtitlesAutoTranslateBlockedStalePrimary": "主字幕已更改，自动翻译将根据新的主字幕重建。",
+  "subtitlesAutoTranslateBlockedServiceUnavailable": "翻译服务暂时不可用，请点重试。",
+  "subtitlesAutoTranslateLineFailed": "此行未能翻译",
+  "subtitlesAutoTranslateProgress": "翻译中… {ready}/{total}",
+  "@subtitlesAutoTranslateProgress": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "subtitlesAutoTranslatePendingLine": "翻译中…",
+  "subtitlesAutoTranslateBlockedSignedOut": "请登录后使用自动翻译。",
+  "subtitlesAutoTranslateBlockedSameLanguage": "母语与主字幕相同时无需自动翻译。",
+  "subtitlesAutoTranslateBlockedNoPrimary": "请先选择主字幕。",
+  "subtitlesAutoTranslateBlockedCredits": "积分不足，无法翻译。请查看订阅。",
+  "subtitlesAutoTranslateFailed": "部分行未能翻译。",
+  "subtitlesAutoTranslateRetry": "重试",
   "subtitlesExtractNoTracks": "此文件中无内嵌字幕轨道（仅有视频与音频）。若有单独的 .srt 或 .vtt，请使用导入文件。",
   "subtitlesExtractedCount": "已提取 {count} 条字幕轨道。",
   "@subtitlesExtractedCount": {

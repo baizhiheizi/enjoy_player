@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -16,7 +17,10 @@ import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+import '../application/auto_translate_controller.dart';
+import '../domain/auto_translate.dart';
 import 'subtitle_track_picker_actions.dart';
 import 'subtitle_track_picker_helpers.dart';
 import 'subtitle_track_picker_sections.dart';
@@ -204,6 +208,48 @@ class _SubtitleTrackPickerSheetState
     }
   }
 
+  Future<void> _onSecondarySelectionChanged(String? id, String? autoSelectionId) async {
+    final ctrl = ref.read(autoTranslateCtrlProvider(widget.mediaId).notifier);
+    if (id == null) {
+      ctrl.pause();
+      await ref
+          .read(transcriptRepositoryProvider)
+          .setSecondaryTranscript(widget.mediaId, null);
+      return;
+    }
+    if (autoSelectionId != null && id == autoSelectionId) {
+      await ctrl.selectAutoTranslate();
+      return;
+    }
+    ctrl.pause();
+    await ref
+        .read(transcriptRepositoryProvider)
+        .setSecondaryTranscript(widget.mediaId, id);
+  }
+
+  String? _autoTranslateBlockedMessage(
+    AppLocalizations l10n,
+    AutoTranslateUiState state,
+  ) {
+    return switch (state.blockReason) {
+      AutoTranslateBlockReason.signedOut =>
+        l10n.subtitlesAutoTranslateBlockedSignedOut,
+      AutoTranslateBlockReason.sameLanguage =>
+        l10n.subtitlesAutoTranslateBlockedSameLanguage,
+      AutoTranslateBlockReason.noPrimary =>
+        l10n.subtitlesAutoTranslateBlockedNoPrimary,
+      AutoTranslateBlockReason.credits =>
+        l10n.subtitlesAutoTranslateBlockedCredits,
+      AutoTranslateBlockReason.auth =>
+        l10n.subtitlesAutoTranslateBlockedSignedOut,
+      AutoTranslateBlockReason.stalePrimary =>
+        l10n.subtitlesAutoTranslateBlockedStalePrimary,
+      AutoTranslateBlockReason.serviceUnavailable =>
+        l10n.subtitlesAutoTranslateBlockedServiceUnavailable,
+      null => null,
+    };
+  }
+
   List<Widget> _buildTrackListBody({
     required BuildContext context,
     required EnjoyThemeTokens t,
@@ -215,8 +261,17 @@ class _SubtitleTrackPickerSheetState
     required bool showImportFile,
     required bool isFetching,
     required bool inlineExpandedLists,
+    required String? autoSelectionId,
+    required String targetLanguage,
+    required AutoTranslateUiState autoTranslateState,
+    required bool signedIn,
   }) {
     final theme = Theme.of(context);
+    final translationTracks =
+        tracks.where((track) => track.source != 'ai').toList();
+    final autoTranslateSelected =
+        autoSelectionId != null && secondaryId == autoSelectionId;
+    final blockedMessage = _autoTranslateBlockedMessage(l10n, autoTranslateState);
 
     return [
       if (isFetching)
@@ -323,22 +378,25 @@ class _SubtitleTrackPickerSheetState
         onToggle: () => _toggleSection(PickerSection.secondary),
         inlineExpandedList: inlineExpandedLists,
         selectionLabel: () {
+          if (autoTranslateSelected) {
+            return targetLanguage.isEmpty
+                ? l10n.subtitlesAutoTranslate
+                : '${l10n.subtitlesAutoTranslate} (${targetLanguage.toUpperCase()})';
+          }
           if (secondaryId == null) return l10n.subtitlesNone;
           final selected = findTrack(tracks, secondaryId);
           return selected == null
               ? l10n.subtitlesNotSelected
               : trackLabel(selected);
         }(),
-        selectedTrack: findTrack(tracks, secondaryId),
+        selectedTrack: autoTranslateSelected
+            ? null
+            : findTrack(tracks, secondaryId),
         child: RadioGroup<String?>(
           groupValue: secondaryId,
           onChanged: (id) {
             _collapseSection();
-            unawaited(
-              ref
-                  .read(transcriptRepositoryProvider)
-                  .setSecondaryTranscript(widget.mediaId, id),
-            );
+            unawaited(_onSecondarySelectionChanged(id, autoSelectionId));
           },
           child: Theme(
             data: trackPickerRadioTheme(context),
@@ -349,7 +407,83 @@ class _SubtitleTrackPickerSheetState
                   label: l10n.subtitlesNone,
                   selected: secondaryId == null,
                 ),
-                ...tracks.map(
+                if (autoSelectionId != null)
+                  AutoTranslateOptionTile(
+                    value: autoSelectionId,
+                    selected: autoTranslateSelected,
+                    padding: trackOptionPadding(t),
+                    targetLanguage: targetLanguage,
+                    enabled: primaryId != null,
+                  ),
+                if (autoTranslateState.status == AutoTranslateJobStatus.running)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      sheetHorizontalPadding(t),
+                      t.space4,
+                      sheetHorizontalPadding(t),
+                      t.space4,
+                    ),
+                    child: Text(
+                      l10n.subtitlesAutoTranslateProgress(
+                        autoTranslateState.readyCount,
+                        autoTranslateState.readyCount +
+                            autoTranslateState.pendingCount,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                if (blockedMessage != null)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      sheetHorizontalPadding(t),
+                      t.space4,
+                      sheetHorizontalPadding(t),
+                      t.space8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          blockedMessage,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                        if (autoTranslateState.blockReason ==
+                                AutoTranslateBlockReason.serviceUnavailable ||
+                            autoTranslateState.failedCount > 0) ...[
+                          SizedBox(height: t.space8),
+                          TextButton(
+                            onPressed: () => unawaited(
+                              ref
+                                  .read(
+                                    autoTranslateCtrlProvider(
+                                      widget.mediaId,
+                                    ).notifier,
+                                  )
+                                  .retryAfterBlock(),
+                            ),
+                            child: Text(l10n.subtitlesAutoTranslateRetry),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                if (!signedIn &&
+                    autoTranslateState.blockReason ==
+                        AutoTranslateBlockReason.signedOut)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: sheetHorizontalPadding(t),
+                      vertical: t.space8,
+                    ),
+                    child: AuthRequiredCallout(
+                      surface: AuthRequiredSurface.lookupTranslation,
+                    ),
+                  ),
+                ...translationTracks.map(
                   (track) => TrackOptionTile<String?>(
                     value: track.id,
                     selected: secondaryId == track.id,
@@ -444,6 +578,10 @@ class _SubtitleTrackPickerSheetState
     required bool isFetching,
     required String? primaryId,
     required String? secondaryId,
+    required String? autoSelectionId,
+    required String targetLanguage,
+    required AutoTranslateUiState autoTranslateState,
+    required bool signedIn,
   }) {
     final cs = Theme.of(context).colorScheme;
 
@@ -459,6 +597,10 @@ class _SubtitleTrackPickerSheetState
         showImportFile: showImportFile,
         isFetching: isFetching,
         inlineExpandedLists: isDialog,
+        autoSelectionId: autoSelectionId,
+        targetLanguage: targetLanguage,
+        autoTranslateState: autoTranslateState,
+        signedIn: signedIn,
       );
 
       if (isDialog) {
@@ -552,6 +694,19 @@ class _SubtitleTrackPickerSheetState
         session != null && session.dexieTargetType == 'Video' && !isYoutube;
     final fetchState = ref.watch(transcriptFetchStatusProvider(widget.mediaId));
     final isFetching = fetchState.status == TranscriptFetchStatus.loading;
+    final autoTranslateState = ref.watch(
+      autoTranslateCtrlProvider(widget.mediaId),
+    );
+    final autoSelectionAsync = ref.watch(
+      autoTranslateSelectionIdProvider(widget.mediaId),
+    );
+    final autoSelectionId = autoSelectionAsync.valueOrNull;
+    final targetLanguage = ref
+            .watch(appPreferencesCtrlProvider)
+            .valueOrNull
+            ?.effectiveNativeLanguage ??
+        '';
+    final signedIn = ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;
 
     Widget columnBody(ScrollController sc) {
       final isDialog =
@@ -574,6 +729,10 @@ class _SubtitleTrackPickerSheetState
         isFetching: isFetching,
         primaryId: primaryId,
         secondaryId: secondaryId,
+        autoSelectionId: autoSelectionId,
+        targetLanguage: targetLanguage,
+        autoTranslateState: autoTranslateState,
+        signedIn: signedIn,
       );
 
       if (isDialog) {

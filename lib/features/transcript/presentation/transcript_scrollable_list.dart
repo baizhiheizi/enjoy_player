@@ -12,6 +12,9 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
+import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
+import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
@@ -343,6 +346,17 @@ class _TranscriptScrollableListState
     );
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
     final secondaryMatcher = _matcherFor(secondaryLines);
+    final autoTranslateState = ref.watch(
+      autoTranslateCtrlProvider(widget.mediaId),
+    );
+    final secondaryId = ref.watch(secondaryTranscriptIdProvider(widget.mediaId)).value;
+    final autoTranslateActive =
+        autoTranslateState.aiTranscriptId != null &&
+        secondaryId == autoTranslateState.aiTranscriptId;
+    final showAutoTranslatePending =
+        autoTranslateActive &&
+        autoTranslateState.status == AutoTranslateJobStatus.running;
+    final l10n = AppLocalizations.of(context);
     final items = _virtualItems(echo);
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(widget.mediaId),
@@ -415,7 +429,23 @@ class _TranscriptScrollableListState
                   echo.active &&
                   lineIndex >= echo.startLineIndex &&
                   lineIndex <= echo.endLineIndex;
-              final secondaryText = secondaryMatcher.match(line)?.text;
+              final secondaryTextRaw = secondaryMatcher.match(line)?.text;
+              final secondaryEmpty =
+                  secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
+              final lineFailed =
+                  autoTranslateActive &&
+                  autoTranslateState.isLineFailed(lineIndex);
+              final secondaryText = secondaryEmpty && l10n != null
+                  ? (lineFailed
+                        ? l10n.subtitlesAutoTranslateLineFailed
+                        : (showAutoTranslatePending
+                              ? l10n.subtitlesAutoTranslatePendingLine
+                              : secondaryTextRaw))
+                  : secondaryTextRaw;
+              final canRetranslateLine =
+                  autoTranslateActive &&
+                  (lineFailed ||
+                      (secondaryText != null && !secondaryEmpty));
 
               final selectable = isActive;
               Widget tile = TranscriptLineTile(
@@ -434,6 +464,17 @@ class _TranscriptScrollableListState
                         selectedText: t,
                         lines: widget.lines,
                       )
+                    : null,
+                onRetranslateSecondary: canRetranslateLine
+                    ? () => unawaited(
+                          ref
+                              .read(
+                                autoTranslateCtrlProvider(
+                                  widget.mediaId,
+                                ).notifier,
+                              )
+                              .retranslateLine(lineIndex),
+                        )
                     : null,
                 onTap: () => ref
                     .read(playerInteractionsProvider.notifier)
