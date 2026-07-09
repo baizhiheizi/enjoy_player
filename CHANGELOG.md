@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **YouTube bilingual transcripts**: when the learner's native language differs
+  from the source, the worker fetch sends a single multi-language
+  `pollTranscripts({ languages: [source, native], waitMs })` request instead of
+  two sequential calls. The original caption is stored as the primary track and
+  the native translation as the secondary; a `partial` response logs the missing
+  languages without inventing a primary from a non-existent row. See
+  [ADR-0036](docs/decisions/0036-youtube-bilingual-transcripts.md) and
+  [docs/features/transcript.md](docs/features/transcript.md#youtube-worker).
+
+### Fixed
+
+- **Lookup source precedence is now chrome-first**: transcript dictionary
+  lookup resolves the source language from the video (chrome) language first,
+  falling back to the active track language, and only then to the learning
+  language — replacing the old "first sibling transcript track" heuristic. The
+  pure helper `resolveLookupSourceLanguage({chromeLanguage, activeTrackLanguage})`
+  is covered by 6 unit tests. See
+  [ADR-0019](docs/decisions/0019-transcript-dictionary-lookup.md),
+  [ADR-0021](docs/decisions/0021-multi-language-lookup-catalog.md), and
+  [docs/features/dictionary-lookup.md](docs/features/dictionary-lookup.md#default-source).
+- **Auto-translate keyed by primary text, not time match**: AI auto-translate
+  tracks are now aligned via an index overlay plus a `sourceKey` content
+  fingerprint (`normalize(plain(primary.text)) | workerLang(src) | workerLang(tgt)`),
+  so a neighbor cue is no longer attached when timings are tight, and an edited
+  cue no longer keeps a stale translation. See
+  [ADR-0039](docs/decisions/0039-auto-translate-primary-text-keyed-overlay.md)
+  and [docs/features/transcript.md](docs/features/transcript.md#auto-translate).
+
 ## [0.4.0] - 2026-07-09
 
 ### Added
