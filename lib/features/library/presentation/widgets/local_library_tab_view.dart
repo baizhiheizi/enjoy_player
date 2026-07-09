@@ -163,7 +163,11 @@ class LocalAudioRow extends ConsumerWidget {
       subtitle: dur,
       badge: focusLanguageLabel(l10n, media.language),
       onBadgeTap: () => editMediaLanguage(context, ref, media),
-      providerBadge: media.provider == 'youtube' ? l10n.youtubeBadge : null,
+      providerBadge: media.provider == 'youtube'
+          ? l10n.youtubeBadge
+          : media.provider == 'craft'
+          ? l10n.libraryProviderCraftBadge
+          : null,
       thumbnailFile: thumb,
       thumbnailNetworkUrl: netThumb,
       coverSeed: media.coverSeed,
@@ -265,7 +269,11 @@ class LocalVideoTile extends ConsumerWidget {
       onBadgeTap: () => editMediaLanguage(context, ref, media),
       durationLabel: media.durationMs > 0 ? dur : null,
       thumbnailFile: thumb,
-      providerBadge: media.provider == 'youtube' ? l10n.youtubeBadge : null,
+      providerBadge: media.provider == 'youtube'
+          ? l10n.youtubeBadge
+          : media.provider == 'craft'
+          ? l10n.libraryProviderCraftBadge
+          : null,
       thumbnailNetworkUrl: netThumb,
       coverSeed: media.coverSeed,
       isVideo: true,

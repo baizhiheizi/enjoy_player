@@ -2531,4 +2531,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
+
+  @override
+  String get importCraftFromText => 'Craft from text…';
+
+  @override
+  String get craftSheetTitle => 'Craft audio from text';
+
+  @override
+  String get craftModeTranslateThenSpeak => 'Translate then speak';
+
+  @override
+  String get craftModeSpeakDirectly => 'Speak directly';
+
+  @override
+  String get craftSourceLanguageLabel => 'Source language';
+
+  @override
+  String get craftTargetLanguageLabel => 'Learning language';
+
+  @override
+  String get craftTextInputHint => 'Paste or type text…';
+
+  @override
+  String get craftPasteFromClipboard => 'Paste from clipboard';
+
+  @override
+  String get craftAction => 'Craft';
+
+  @override
+  String get craftCraftingProgress => 'Crafting your audio…';
+
+  @override
+  String get craftEmptyTextHint => 'Enter at least a sentence to craft.';
+
+  @override
+  String get craftSameLanguageHint =>
+      'Looks like this is already in your learning language.';
+
+  @override
+  String get craftSameLanguageSwitch => 'Speak directly';
+
+  @override
+  String get craftOfflineBanner =>
+      'You\'re offline. Craft needs an internet connection.';
+
+  @override
+  String get craftSignInRequired => 'Sign in to use Craft';
+
+  @override
+  String get craftFailureTts =>
+      'We couldn\'t turn the text into audio. Check your TTS provider settings or try again.';
+
+  @override
+  String get craftFailureTranslate =>
+      'We couldn\'t translate the text. Try again or switch to Speak directly.';
+
+  @override
+  String get craftFailureSave =>
+      'The audio was generated but couldn\'t be saved. Free up space and try again.';
+
+  @override
+  String get craftAlreadyInLibrary => 'Already in your library';
+
+  @override
+  String get craftOpenExisting => 'Open';
+
+  @override
+  String get craftRetry => 'Retry';
+
+  @override
+  String get craftOpenAiSettings => 'Open AI settings';
+
+  @override
+  String get craftLengthCapNotice =>
+      'Crafted the first 5000 characters; the rest was not synthesized.';
+
+  @override
+  String get libraryProviderCraftBadge => 'Craft';
+
+  @override
+  String get craftTtsSettingsHint => 'Craft uses the TTS provider below.';
 }

@@ -2420,6 +2420,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
+
+  @override
+  String get importCraftFromText => '从文本自制…';
+
+  @override
+  String get craftSheetTitle => '从文本合成音频';
+
+  @override
+  String get craftModeTranslateThenSpeak => '先翻译再朗读';
+
+  @override
+  String get craftModeSpeakDirectly => '直接朗读';
+
+  @override
+  String get craftSourceLanguageLabel => '原文语言';
+
+  @override
+  String get craftTargetLanguageLabel => '学习语言';
+
+  @override
+  String get craftTextInputHint => '粘贴或输入文本…';
+
+  @override
+  String get craftPasteFromClipboard => '从剪贴板粘贴';
+
+  @override
+  String get craftAction => '合成';
+
+  @override
+  String get craftCraftingProgress => '正在合成音频…';
+
+  @override
+  String get craftEmptyTextHint => '请至少输入一句话以开始合成。';
+
+  @override
+  String get craftSameLanguageHint => '这段文字已经是学习语言了。';
+
+  @override
+  String get craftSameLanguageSwitch => '直接朗读';
+
+  @override
+  String get craftOfflineBanner => '当前离线，合成需要联网。';
+
+  @override
+  String get craftSignInRequired => '请登录后使用合成';
+
+  @override
+  String get craftFailureTts => '无法将文本转为语音。请检查 TTS 提供商设置或重试。';
+
+  @override
+  String get craftFailureTranslate => '无法翻译文本。请重试或切换到直接朗读。';
+
+  @override
+  String get craftFailureSave => '音频已生成但保存失败。请释放空间后重试。';
+
+  @override
+  String get craftAlreadyInLibrary => '已在你的资料库中';
+
+  @override
+  String get craftOpenExisting => '打开';
+
+  @override
+  String get craftRetry => '重试';
+
+  @override
+  String get craftOpenAiSettings => '打开 AI 设置';
+
+  @override
+  String get craftLengthCapNotice => '仅合成了前 5000 个字符，其余部分未合成。';
+
+  @override
+  String get libraryProviderCraftBadge => '自制';
+
+  @override
+  String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -4395,4 +4470,79 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptBlurSemanticsOff => '听写练习已关闭。';
+
+  @override
+  String get importCraftFromText => '从文本自制…';
+
+  @override
+  String get craftSheetTitle => '从文本合成音频';
+
+  @override
+  String get craftModeTranslateThenSpeak => '先翻译再朗读';
+
+  @override
+  String get craftModeSpeakDirectly => '直接朗读';
+
+  @override
+  String get craftSourceLanguageLabel => '原文语言';
+
+  @override
+  String get craftTargetLanguageLabel => '学习语言';
+
+  @override
+  String get craftTextInputHint => '粘贴或输入文本…';
+
+  @override
+  String get craftPasteFromClipboard => '从剪贴板粘贴';
+
+  @override
+  String get craftAction => '合成';
+
+  @override
+  String get craftCraftingProgress => '正在合成音频…';
+
+  @override
+  String get craftEmptyTextHint => '请至少输入一句话以开始合成。';
+
+  @override
+  String get craftSameLanguageHint => '这段文字已经是学习语言了。';
+
+  @override
+  String get craftSameLanguageSwitch => '直接朗读';
+
+  @override
+  String get craftOfflineBanner => '当前离线，合成需要联网。';
+
+  @override
+  String get craftSignInRequired => '请登录后使用合成';
+
+  @override
+  String get craftFailureTts => '无法将文本转为语音。请检查 TTS 提供商设置或重试。';
+
+  @override
+  String get craftFailureTranslate => '无法翻译文本。请重试或切换到直接朗读。';
+
+  @override
+  String get craftFailureSave => '音频已生成但保存失败。请释放空间后重试。';
+
+  @override
+  String get craftAlreadyInLibrary => '已在你的资料库中';
+
+  @override
+  String get craftOpenExisting => '打开';
+
+  @override
+  String get craftRetry => '重试';
+
+  @override
+  String get craftOpenAiSettings => '打开 AI 设置';
+
+  @override
+  String get craftLengthCapNotice => '仅合成了前 5000 个字符，其余部分未合成。';
+
+  @override
+  String get libraryProviderCraftBadge => '自制';
+
+  @override
+  String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
 }

@@ -251,6 +251,10 @@ class AudioDao extends DatabaseAccessor<AppDatabase> with _$AudioDaoMixin {
   Future<AudioRow?> getById(String id) =>
       (select(audios)..where((t) => t.id.equals(id))).getSingleOrNull();
 
+  /// Dedupe lookup by content hash (used by Craft from text import).
+  Future<AudioRow?> getByMd5(String md5) =>
+      (select(audios)..where((t) => t.md5.equals(md5))).getSingleOrNull();
+
   Future<void> insertRow(AudioRow row) =>
       into(audios).insert(row, mode: InsertMode.insertOrReplace);
 

@@ -20,6 +20,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_sheet.dart'
+    as craft;
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -190,6 +192,14 @@ Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
               onTap: () {
                 Navigator.pop(ctx);
                 unawaited(importYoutubeFromDialog(context, ref));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_awesome_outlined),
+              title: Text(l10n.importCraftFromText),
+              onTap: () {
+                Navigator.pop(ctx);
+                unawaited(craft.showCraftSheet(context, ref));
               },
             ),
           ],

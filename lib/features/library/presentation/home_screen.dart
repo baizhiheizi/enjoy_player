@@ -417,7 +417,11 @@ class _HomeMediaTile extends ConsumerWidget {
       onBadgeTap: () => editMediaLanguage(context, ref, media),
       durationLabel: isVideo && media.durationMs > 0 ? dur : null,
       thumbnailFile: thumb,
-      providerBadge: media.provider == 'youtube' ? l10n.youtubeBadge : null,
+      providerBadge: media.provider == 'youtube'
+          ? l10n.youtubeBadge
+          : media.provider == 'craft'
+          ? l10n.libraryProviderCraftBadge
+          : null,
       thumbnailNetworkUrl: netThumb,
       coverSeed: media.coverSeed,
       isVideo: isVideo,
