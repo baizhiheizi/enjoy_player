@@ -1,25 +1,62 @@
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_player_engine.dart';
+
+class _SessionPlayerController extends PlayerController {
+  _SessionPlayerController(this._session);
+
+  final PlaybackSession _session;
+
+  @override
+  PlaybackSession? build() => _session;
+}
+
+PlaybackSession _testSession() {
+  final now = DateTime(2026, 1, 1);
+  return PlaybackSession(
+    mediaId: 'video-layout-test',
+    dexieTargetType: 'Video',
+    mediaType: 'video',
+    mediaTitle: 'Layout test',
+    durationSeconds: 120,
+    currentTimeSeconds: 0,
+    currentSegmentIndex: 0,
+    language: 'en',
+    startedAt: now,
+    lastActiveAt: now,
+  );
+}
 
 void main() {
   Future<void> pumpLayout(
     WidgetTester tester, {
     required double width,
     required double height,
+    FakePlayerEngine? engine,
+    List<Override> overrides = const [],
   }) async {
-    final fake = FakePlayerEngine();
-    addTearDown(() async {
-      await fake.dispose();
-    });
+    final fake = engine ?? FakePlayerEngine();
+    if (engine == null) {
+      addTearDown(() async {
+        await fake.dispose();
+      });
+    }
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          playerEngineTestDoubleProvider.overrideWithValue(fake),
+          ...overrides,
+        ],
         child: MaterialApp(
           theme: ThemeData(
             colorScheme: scheme,
@@ -88,6 +125,41 @@ void main() {
       );
     },
   );
+
+  testWidgets('tapping local video stage toggles play/pause', (tester) async {
+    final fake = FakePlayerEngine();
+    addTearDown(() async {
+      await fake.dispose();
+    });
+    await pumpLayout(
+      tester,
+      width: 900,
+      height: 600,
+      engine: fake,
+      overrides: [
+        playerControllerProvider.overrideWith(
+          () => _SessionPlayerController(_testSession()),
+        ),
+      ],
+    );
+
+    expect(fake.playOrPauseCallCount, 0);
+    // Stage tap target is the opaque GestureDetector over the video column
+    // (not the transcript resize splitter).
+    final stageTap = find.descendant(
+      of: find.byType(ColoredBox),
+      matching: find.byWidgetPredicate(
+        (w) =>
+            w is GestureDetector &&
+            w.onTap != null &&
+            w.onHorizontalDragUpdate == null,
+      ),
+    );
+    expect(stageTap, findsOneWidget);
+    await tester.tap(stageTap);
+    await tester.pump();
+    expect(fake.playOrPauseCallCount, 1);
+  });
 
   /// Mirrors [ExpandedPlayerChromeBody] narrow video layout: [VideoPlayerLayout]
   /// fills the stack; paused title chrome is an overlay and must not change the

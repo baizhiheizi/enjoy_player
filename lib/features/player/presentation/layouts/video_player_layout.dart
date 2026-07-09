@@ -4,9 +4,12 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -197,7 +200,7 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
   }
 }
 
-class _VideoStageWithChrome extends StatelessWidget {
+class _VideoStageWithChrome extends ConsumerWidget {
   const _VideoStageWithChrome({
     required this.engine,
     required this.maxWidth,
@@ -215,7 +218,11 @@ class _VideoStageWithChrome extends StatelessWidget {
   final bool loginOnTop;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isYoutube = engine is YoutubePlayerEngine;
+    // YouTube tap-to-toggle is handled by the embedded watch page; do not
+    // intercept pointer events for the WebView. Local media_kit video has no
+    // built-in controls, so tap the stage to match that play/pause behavior.
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -224,11 +231,22 @@ class _VideoStageWithChrome extends StatelessWidget {
           maxWidth: maxWidth,
           maxHeight: maxHeight,
         ),
+        if (!isYoutube)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: Haptics.wrapTap(
+                context,
+                () => ref.read(playerControllerProvider.notifier).togglePlay(),
+              ),
+              child: const ColoredBox(color: Colors.transparent),
+            ),
+          ),
         Positioned(
           top: loginOnTop ? 8 : null,
           bottom: loginOnTop ? null : 12,
           right: 8,
-          child: engine is YoutubePlayerEngine
+          child: isYoutube
               ? const YoutubeLoginVideoFrameButton()
               : const SizedBox.shrink(),
         ),

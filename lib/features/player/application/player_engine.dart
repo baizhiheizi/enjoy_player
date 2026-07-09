@@ -189,19 +189,19 @@ class MediaKitPlayerEngine implements PlayerEngine {
             child: SizedBox(
               width: w,
               height: h,
-              child: ExcludeSemantics(
-                child: Video(
-                  controller: controller,
-                  controls: null,
-                  width: w,
-                  height: h,
-                  fit: BoxFit.contain,
-                  fill: Colors.black,
-                  subtitleViewConfiguration: const SubtitleViewConfiguration(
-                    visible: false,
-                  ),
+            child: ExcludeSemantics(
+              child: Video(
+                controller: controller,
+                controls: null,
+                width: w,
+                height: h,
+                fit: BoxFit.contain,
+                fill: Colors.black,
+                subtitleViewConfiguration: const SubtitleViewConfiguration(
+                  visible: false,
                 ),
               ),
+            ),
             ),
           ),
         );

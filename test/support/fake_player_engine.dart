@@ -110,8 +110,12 @@ class FakePlayerEngine implements PlayerEngine {
     lastVolume = volume;
   }
 
+  int playOrPauseCallCount = 0;
+
   @override
-  Future<void> playOrPause() async {}
+  Future<void> playOrPause() async {
+    playOrPauseCallCount++;
+  }
 
   @override
   Future<void> play() async {}
