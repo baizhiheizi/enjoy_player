@@ -13,6 +13,7 @@
 #include <speechapi_cxx.h>
 
 using Microsoft::CognitiveServices::Speech::Audio::AudioConfig;
+using Microsoft::CognitiveServices::Speech::Audio::AudioOutputStream;
 using Microsoft::CognitiveServices::Speech::CancellationDetails;
 using Microsoft::CognitiveServices::Speech::PropertyId;
 using Microsoft::CognitiveServices::Speech::PronunciationAssessmentConfig;
@@ -108,7 +109,14 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
     config->SetSpeechSynthesisVoiceName(voice);
   }
 
-  auto synthesizer = SpeechSynthesizer::FromConfig(config);
+  // Disable auto-playback by routing synthesis to a memory-backed audio
+  // output stream instead of the default speakers. The SDK writes the
+  // synthesized audio into this in-memory pull stream; we retrieve it via
+  // result.GetAudioData() (which reads from the same stream). Without
+  // this, the SDK auto-plays through device speakers.
+  auto audio_output_stream = AudioOutputStream::CreatePullStream();
+  auto audio_config = AudioConfig::FromStreamOutput(audio_output_stream);
+  auto synthesizer = SpeechSynthesizer::FromConfig(config, audio_config);
 
   // Collect word boundary events for transcript timing.
   // MSVC has trouble parsing nested template lambdas with `const T&`

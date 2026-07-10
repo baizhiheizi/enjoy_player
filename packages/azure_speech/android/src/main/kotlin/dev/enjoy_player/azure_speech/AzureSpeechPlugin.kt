@@ -191,7 +191,9 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
       if (!voice.isNullOrBlank()) {
         config.speechSynthesisVoiceName = voice
       }
-      val synthesizer = SpeechSynthesizer(config)
+      // Create synthesizer with null AudioConfig to disable auto-playback
+      // (default behavior auto-plays through the device speaker).
+      val synthesizer = SpeechSynthesizer(config, null as AudioConfig?)
       try {
         // Collect word boundary events for transcript timing.
         val wordBoundaries = org.json.JSONArray()
