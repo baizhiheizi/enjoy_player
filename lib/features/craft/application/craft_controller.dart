@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -28,11 +29,9 @@ final craftSynthesizerProvider = Provider<CraftSynthesizer>((ref) {
   return CraftTtsServiceSynthesizer(ref.read(ttsServiceProvider));
 });
 
-/// Provider for the Craft translator (wraps TranslationService).
+/// Provider for the Craft translator (wraps ChatService / LLM API).
 final craftTranslatorProvider = Provider<CraftTranslator>((ref) {
-  return CraftTranslationServiceTranslator(
-    ref.read(translationServiceProvider),
-  );
+  return CraftTranslationServiceTranslator(ref.read(chatServiceProvider));
 });
 
 /// Two-tool Craft controller for the full-screen Craft route.
@@ -111,7 +110,8 @@ class CraftController extends Notifier<CraftJobState> {
         customPrompt: state.customPrompt,
       );
       state = state.copyWith(translatedText: result, isTranslating: false);
-    } catch (e) {
+    } catch (e, st) {
+      logNamed('craft.translate').warning('Translate failed: $e', e, st);
       state = state.copyWith(
         isTranslating: false,
         failure: const CraftTranslateFailure(),
@@ -174,7 +174,8 @@ class CraftController extends Notifier<CraftJobState> {
         previewFormat: result.format,
         isSynthesizing: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      logNamed('craft.synthesize').warning('Synthesize failed: $e', e, st);
       state = state.copyWith(isSynthesizing: false, failure: _mapTtsFailure(e));
     }
   }
@@ -243,7 +244,8 @@ class CraftController extends Notifier<CraftJobState> {
 
       state = state.copyWith(isSaving: false, resultMediaId: mediaId);
       return mediaId;
-    } catch (e) {
+    } catch (e, st) {
+      logNamed('craft.save').warning('Save failed: $e', e, st);
       state = state.copyWith(
         isSaving: false,
         failure: const CraftSaveFailure(),

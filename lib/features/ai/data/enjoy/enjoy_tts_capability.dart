@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:azure_speech/azure_speech.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_cache.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
@@ -22,6 +23,7 @@ final class EnjoyTtsCapability implements TtsCapability {
 
   @override
   Future<TtsResult> synthesize(TtsRequest request) async {
+    final log = logNamed('ai.enjoy.tts');
     final text = request.text.trim();
     if (text.isEmpty) {
       throw const ApiException(
@@ -32,6 +34,9 @@ final class EnjoyTtsCapability implements TtsCapability {
 
     final azureLanguage = mapTranscriptLanguageToAzure(request.language);
     if (azureLanguage == null) {
+      log.warning(
+        'Language "${request.language}" is not supported by Azure Speech mapper',
+      );
       throw ApiException(
         message:
             'Speech synthesis is not supported for language '
@@ -43,6 +48,12 @@ final class EnjoyTtsCapability implements TtsCapability {
     // Estimate duration for worker cost attribution: ~150 words per minute,
     // ~5 chars per word → ~750 chars per minute → ~12.5 chars per second.
     final estimatedSeconds = max(1, (text.length / 12.5).ceil());
+
+    log.info(
+      'Synthesizing ${text.length} chars in $azureLanguage'
+      '${request.voice != null ? ' voice=${request.voice}' : ''}'
+      ' (~${estimatedSeconds}s estimated)',
+    );
 
     final token = await _tokenCache.getToken(
       durationSeconds: estimatedSeconds,
@@ -60,9 +71,20 @@ final class EnjoyTtsCapability implements TtsCapability {
         ),
       );
 
+      log.info(
+        'Synthesis succeeded: ${outcome.audioBytes.length} bytes, '
+        'format=${outcome.format}',
+      );
+
       return TtsResult(audioBytes: outcome.audioBytes, format: outcome.format);
     } on AzureSpeechException catch (e) {
+      log.warning(
+        'Azure Speech synthesis failed: ${e.message} (code=${e.code})',
+      );
       throw ApiException(message: e.message, statusCode: 502, body: e.code);
+    } catch (e, st) {
+      log.severe('Unexpected TTS error: $e', e, st);
+      rethrow;
     }
   }
 }
