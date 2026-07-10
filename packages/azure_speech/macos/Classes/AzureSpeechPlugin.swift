@@ -224,11 +224,17 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     let synthesizer = try SPXSpeechSynthesizer(
       speechConfiguration: speechConfig, audioConfiguration: nil)
 
+    // SPXSpeechSynthesisWordBoundaryEventArgs exposes audioOffset/duration
+    // as TimeInterval (Double, seconds). Convert to 100-ns ticks to match
+    // the Dart-side JSON parser (1 second = 10,000,000 ticks).
+    let ticksPerSecond: TimeInterval = 10_000_000
     synthesizer.wordBoundary = { _, eventArgs in
+      let audioOffsetTicks = Int64(eventArgs.audioOffset * ticksPerSecond)
+      let durationTicks = Int64(eventArgs.duration * ticksPerSecond)
       wordBoundaries.append([
         "text": eventArgs.text as Any,
-        "audioOffset": eventArgs.audioOffset as Any,
-        "duration": eventArgs.duration as Any,
+        "audioOffset": audioOffsetTicks,
+        "duration": durationTicks,
       ])
     }
 
