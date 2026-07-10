@@ -207,7 +207,7 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     if let key = subscriptionKey, !key.isEmpty {
       speechConfig = try SPXSpeechConfiguration(subscription: key, region: region)
     } else if let authToken = token, !authToken.isEmpty {
-      speechConfig = try SPXSpeechConfiguration(authToken: authToken, region: region)
+      speechConfig = try SPXSpeechConfiguration(authorizationToken: authToken, region: region)
     } else {
       throw NSError(
         domain: "AzureSpeech", code: 1,
@@ -219,23 +219,18 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     }
 
     // Collect word boundary events for transcript timing.
-    // SPXSpeechSynthesisWordBoundaryEventArgs exposes audioOffset/duration
-    // as TimeInterval (Double, seconds). Convert to 100-ns ticks to match
-    // the Dart-side JSON parser (1 second = 10,000,000 ticks).
-    let ticksPerSecond: TimeInterval = 10_000_000
+    // SPXSpeechSynthesizer exposes audioOffset/duration as UInt
+    // (100-ns ticks) on iOS/macOS. Pass through directly.
     var wordBoundaries: [[String: Any]] = []
 
     let synthesizer = try SPXSpeechSynthesizer(
       speechConfiguration: speechConfig, audioConfiguration: nil)
 
-    synthesizer.wordBoundary = {
-      (_, eventArgs: SPXSpeechSynthesisWordBoundaryEventArgs) in
-      let audioOffsetTicks = Int64(eventArgs.audioOffset * ticksPerSecond)
-      let durationTicks = Int64(eventArgs.duration * ticksPerSecond)
+    synthesizer.addWordBoundaryEventHandler { eventArgs in
       wordBoundaries.append([
         "text": eventArgs.text as Any,
-        "audioOffset": audioOffsetTicks,
-        "duration": durationTicks,
+        "audioOffset": eventArgs.audioOffset,
+        "duration": eventArgs.duration,
       ])
     }
 
