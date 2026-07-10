@@ -198,11 +198,21 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
   private static func performSynthesis(args: [String: Any]) throws -> String {
     let text = args["text"] as! String
     let language = args["language"] as! String
-    let subscriptionKey = args["subscriptionKey"] as! String
+    let token = args["token"] as? String
+    let subscriptionKey = args["subscriptionKey"] as? String
     let region = args["region"] as! String
     let voice = args["voice"] as? String
 
-    let speechConfig = try SPXSpeechConfiguration(subscription: subscriptionKey, region: region)
+    let speechConfig: SPXSpeechConfiguration
+    if let key = subscriptionKey, !key.isEmpty {
+      speechConfig = try SPXSpeechConfiguration(subscription: key, region: region)
+    } else if let authToken = token, !authToken.isEmpty {
+      speechConfig = try SPXSpeechConfiguration(authToken: authToken, region: region)
+    } else {
+      throw NSError(
+        domain: "AzureSpeech", code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "Either subscriptionKey or token is required"])
+    }
     speechConfig.speechSynthesisLanguage = language
     if let voice = voice, !voice.isEmpty {
       speechConfig.speechSynthesisVoiceName = voice

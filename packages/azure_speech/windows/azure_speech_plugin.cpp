@@ -91,11 +91,17 @@ std::string Base64Encode(const std::vector<uint8_t>& data) {
 flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   const std::string text = GetString(args, "text");
   const std::string language = GetString(args, "language");
+  const std::string token = GetString(args, "token");
   const std::string subscription_key = GetString(args, "subscriptionKey");
   const std::string region = GetString(args, "region");
   const std::string voice = GetString(args, "voice");
 
-  auto config = SpeechConfig::FromSubscription(subscription_key, region);
+  std::shared_ptr<SpeechConfig> config;
+  if (!subscription_key.empty()) {
+    config = SpeechConfig::FromSubscription(subscription_key, region);
+  } else {
+    config = SpeechConfig::FromAuthorizationToken(token, region);
+  }
   config->SetSpeechSynthesisLanguage(language);
   if (!voice.empty()) {
     config->SetSpeechSynthesisVoiceName(voice);

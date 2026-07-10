@@ -176,11 +176,16 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
   private fun synthesize(args: Map<String, Any?>): String {
     val text = args["text"] as String
     val language = args["language"] as String
-    val subscriptionKey = args["subscriptionKey"] as String
+    val token = args["token"] as? String
+    val subscriptionKey = args["subscriptionKey"] as? String
     val region = args["region"] as String
     val voice = args["voice"] as? String
 
-    val config = SpeechConfig.fromSubscription(subscriptionKey, region)
+    val config = if (!subscriptionKey.isNullOrBlank()) {
+      SpeechConfig.fromSubscription(subscriptionKey, region)
+    } else {
+      SpeechConfig.fromAuthorizationToken(token!!, region)
+    }
     try {
       config.speechSynthesisLanguage = language
       if (!voice.isNullOrBlank()) {

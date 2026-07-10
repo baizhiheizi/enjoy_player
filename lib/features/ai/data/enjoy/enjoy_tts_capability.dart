@@ -65,7 +65,7 @@ final class EnjoyTtsCapability implements TtsCapability {
         AzureSpeechSynthesisParams(
           text: text,
           language: azureLanguage,
-          subscriptionKey: token.token,
+          token: token.token,
           region: token.region,
           voice: request.voice,
         ),
