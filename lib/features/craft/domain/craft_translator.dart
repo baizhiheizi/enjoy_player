@@ -1,6 +1,8 @@
 /// Translation port for the Craft flow (testable abstraction over TranslationService).
 library;
 
+import 'package:enjoy_player/features/craft/domain/translation_style.dart';
+
 /// Abstract translation interface consumed by [CraftController].
 ///
 /// The adapter implementation wraps [TranslationService.translate] so the
@@ -10,5 +12,7 @@ abstract interface class CraftTranslator {
     required String text,
     required String sourceLanguage,
     required String targetLanguage,
+    TranslationStyle style,
+    String? customPrompt,
   });
 }

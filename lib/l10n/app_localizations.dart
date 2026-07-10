@@ -4880,6 +4880,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Craft uses the TTS provider below.'**
   String get craftTtsSettingsHint;
+
+  /// No description provided for @craftScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft'**
+  String get craftScreenTitle;
+
+  /// No description provided for @craftTranslateTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get craftTranslateTool;
+
+  /// No description provided for @craftSynthesizeTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Synthesize'**
+  String get craftSynthesizeTool;
+
+  /// No description provided for @craftStyleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get craftStyleLabel;
+
+  /// No description provided for @craftStyleLiteral.
+  ///
+  /// In en, this message translates to:
+  /// **'Literal'**
+  String get craftStyleLiteral;
+
+  /// No description provided for @craftStyleNatural.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural'**
+  String get craftStyleNatural;
+
+  /// No description provided for @craftStyleCasual.
+  ///
+  /// In en, this message translates to:
+  /// **'Casual'**
+  String get craftStyleCasual;
+
+  /// No description provided for @craftStyleFormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Formal'**
+  String get craftStyleFormal;
+
+  /// No description provided for @craftStyleSimplified.
+  ///
+  /// In en, this message translates to:
+  /// **'Simplified'**
+  String get craftStyleSimplified;
+
+  /// No description provided for @craftStyleDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get craftStyleDetailed;
+
+  /// No description provided for @craftStyleCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get craftStyleCustom;
+
+  /// No description provided for @craftCustomPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your custom translation prompt…'**
+  String get craftCustomPromptHint;
+
+  /// No description provided for @craftSwapLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap languages'**
+  String get craftSwapLanguages;
+
+  /// No description provided for @craftTranslateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get craftTranslateButton;
+
+  /// No description provided for @craftReTranslateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-translate'**
+  String get craftReTranslateButton;
+
+  /// No description provided for @craftCopyTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get craftCopyTranslation;
+
+  /// No description provided for @craftCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get craftCopiedToClipboard;
+
+  /// No description provided for @craftTranslatedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated text'**
+  String get craftTranslatedText;
+
+  /// No description provided for @craftUseTranslatedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Use translated text'**
+  String get craftUseTranslatedText;
+
+  /// No description provided for @craftVoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get craftVoiceLabel;
+
+  /// No description provided for @craftNoVoicesForLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'No voices available for this language.'**
+  String get craftNoVoicesForLanguage;
+
+  /// No description provided for @craftSynthesizeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Synthesize'**
+  String get craftSynthesizeButton;
+
+  /// No description provided for @craftReSynthesizeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-synthesize'**
+  String get craftReSynthesizeButton;
+
+  /// No description provided for @craftSaveToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to library'**
+  String get craftSaveToLibrary;
+
+  /// No description provided for @craftSavingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving to library…'**
+  String get craftSavingProgress;
+
+  /// No description provided for @craftPreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get craftPreviewLabel;
+
+  /// No description provided for @craftSourceText.
+  ///
+  /// In en, this message translates to:
+  /// **'Source text'**
+  String get craftSourceText;
+
+  /// No description provided for @craftSynthText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text to synthesize'**
+  String get craftSynthText;
 }
 
 class _AppLocalizationsDelegate

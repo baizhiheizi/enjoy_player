@@ -13,6 +13,7 @@ import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/sign_in_screen.dart';
@@ -165,6 +166,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/youtube/login',
             builder: (context, state) => const YoutubeLoginScreen(),
+          ),
+          GoRoute(
+            path: '/craft',
+            builder: (context, state) => const CraftScreen(),
           ),
           GoRoute(
             path: '/settings',

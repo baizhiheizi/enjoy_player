@@ -7,6 +7,7 @@
 #include "generated_plugin_registrant.h"
 
 #include <app_links/app_links_plugin_c_api.h>
+#include <audioplayers_windows/audioplayers_windows_plugin.h>
 #include <auto_updater_windows/auto_updater_windows_plugin_c_api.h>
 #include <azure_speech/azure_speech_plugin_c_api.h>
 #include <flutter_inappwebview_windows/flutter_inappwebview_windows_plugin_c_api.h>
@@ -23,6 +24,8 @@
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   AppLinksPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("AppLinksPluginCApi"));
+  AudioplayersWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("AudioplayersWindowsPlugin"));
   AutoUpdaterWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("AutoUpdaterWindowsPluginCApi"));
   AzureSpeechPluginCApiRegisterWithRegistrar(

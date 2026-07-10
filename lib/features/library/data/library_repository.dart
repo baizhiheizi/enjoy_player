@@ -287,10 +287,13 @@ class MediaLibraryRepository {
     String? sourceLanguage,
     required String text,
     required String normalizedText,
+    String? primaryTimelineJson,
+    String? voice,
     required String sourceFlag,
     required String signedInUserId,
   }) async {
-    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText';
+    final voiceKey = voice ?? '';
+    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText|$voiceKey';
     final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
 
     // Dedupe: if the same content hash exists, return the existing id.
@@ -317,10 +320,12 @@ class MediaLibraryRepository {
         ? canonicalMediaLanguageTag(sourceLanguage)
         : null;
 
-    // Build primary transcript timeline (single-line).
-    final primaryTimelineJson = jsonEncode([
-      {'text': normalizedText, 'start': 0, 'duration': 0},
-    ]);
+    // Use caller-provided timeline (timestamped) or fall back to single-line.
+    final effectivePrimaryTimelineJson =
+        primaryTimelineJson ??
+        jsonEncode([
+          {'text': normalizedText, 'start': 0, 'duration': 0},
+        ]);
     final primaryTranscriptId = enjoyTranscriptId(
       targetType: 'Audio',
       targetId: id,
@@ -357,7 +362,7 @@ class MediaLibraryRepository {
         language: canonicalLearning,
         translationKey: canonicalSource ?? canonicalLearning,
         sourceText: text,
-        voice: null,
+        voice: voice,
         source: sourceFlag,
         localUri: importResult.fileUri,
         md5: contentHash,
@@ -376,7 +381,7 @@ class MediaLibraryRepository {
         targetId: id,
         language: canonicalLearning,
         source: 'ai',
-        timelineJson: primaryTimelineJson,
+        timelineJson: effectivePrimaryTimelineJson,
         referenceId: canonicalSource,
         label: '',
         trackIndex: null,
@@ -432,8 +437,10 @@ class MediaLibraryRepository {
     required String learningLanguage,
     required String normalizedText,
     required String sourceFlag,
+    String? voice,
   }) async {
-    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText';
+    final voiceKey = voice ?? '';
+    final dedupeKey = '$sourceFlag|$learningLanguage|$normalizedText|$voiceKey';
     final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
     final existing = await _db.audioDao.getByMd5(contentHash);
     return existing?.id;

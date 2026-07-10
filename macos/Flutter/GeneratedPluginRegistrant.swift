@@ -6,6 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import app_links
+import audioplayers_darwin
 import auto_updater_macos
 import azure_speech
 import ffmpeg_kit_flutter_new
@@ -28,6 +29,7 @@ import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AppLinksMacosPlugin.register(with: registry.registrar(forPlugin: "AppLinksMacosPlugin"))
+  AudioplayersDarwinPlugin.register(with: registry.registrar(forPlugin: "AudioplayersDarwinPlugin"))
   AutoUpdaterMacosPlugin.register(with: registry.registrar(forPlugin: "AutoUpdaterMacosPlugin"))
   AzureSpeechPlugin.register(with: registry.registrar(forPlugin: "AzureSpeechPlugin"))
   FFmpegKitFlutterPlugin.register(with: registry.registrar(forPlugin: "FFmpegKitFlutterPlugin"))

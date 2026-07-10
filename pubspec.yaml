@@ -38,6 +38,7 @@ dependencies:
   media_kit: ^1.2.2
   media_kit_libs_video: ^1.0.7
   media_kit_video: ^2.0.0
+  audioplayers: ^6.1.0
   ffmpeg_kit_flutter_new:
     path: packages/ffmpeg_kit_flutter_new
   path: ^1.9.1

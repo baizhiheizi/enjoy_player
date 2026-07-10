@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  audioplayers_windows
   auto_updater_windows
   azure_speech
   flutter_inappwebview_windows
