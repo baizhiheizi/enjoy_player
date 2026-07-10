@@ -116,6 +116,87 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcriptFetchingSubtitles => 'Fetching subtitles…';
 
   @override
+  String get asrStatusExtracting => 'Extracting audio…';
+
+  @override
+  String get asrLanguageTitle => 'Spoken language';
+
+  @override
+  String get asrLanguageAutoDetect => 'Auto-detect language';
+
+  @override
+  String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusSaving => 'Saving…';
+
+  @override
+  String get asrStatusSuccess => 'Transcript ready';
+
+  @override
+  String get asrStatusCancelled => 'Cancelled';
+
+  @override
+  String get asrErrorGeneric => 'Couldn\'t generate transcript';
+
+  @override
+  String get asrErrorFfmpegUnavailable =>
+      'Audio extraction isn\'t available on this device';
+
+  @override
+  String get asrErrorFfmpegUnavailableHint =>
+      'Install ffmpeg or use a different video file.';
+
+  @override
+  String get asrErrorNoAudioTrack => 'This file has no audio to transcribe';
+
+  @override
+  String get asrErrorExtractionFailed =>
+      'Couldn\'t extract audio. Please try again.';
+
+  @override
+  String get asrErrorFileTooLarge => 'This file is too large to transcribe';
+
+  @override
+  String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorByokMissing =>
+      'Set up your AI provider to generate a transcript';
+
+  @override
+  String get asrErrorByokMissingHint =>
+      'Open Settings → AI Providers to add credentials.';
+
+  @override
+  String get asrErrorCreditsExhausted => 'You\'ve used all your Enjoy credits';
+
+  @override
+  String get asrErrorCreditsExhaustedHint =>
+      'Upgrade your plan to keep generating transcripts.';
+
+  @override
+  String get asrErrorNetwork =>
+      'Network error. Please check your connection and retry.';
+
+  @override
+  String get asrErrorNoSpeech => 'No speech detected in this audio';
+
+  @override
+  String get asrLongMediaConfirmTitle => 'This may take a while';
+
+  @override
+  String asrLongMediaConfirmBody(int minutes) {
+    return 'Generating a transcript for $minutes minutes of audio may take several minutes and consume significant credits. Continue?';
+  }
+
+  @override
+  String get asrLongMediaConfirmContinue => 'Continue';
+
+  @override
+  String get asrLongMediaConfirmCancel => 'Cancel';
+
+  @override
   String get actionOpenFiles => 'Open file(s)';
 
   @override
@@ -472,6 +553,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transcriptEmptyAddSubtitle => 'Add subtitle';
+
+  @override
+  String get transcriptEmptyGenerate => 'Generate transcript';
+
+  @override
+  String get subtitlesGenerate => 'Generate transcript';
+
+  @override
+  String get subtitlesRegenerate => 'Re-generate transcript';
 
   @override
   String get subtitlesExtractEmbedded => 'Extract embedded subtitles';

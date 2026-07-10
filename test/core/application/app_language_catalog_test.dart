@@ -92,6 +92,10 @@ void main() {
   });
 
   group('mapTranscriptLanguageToAzure', () {
+    test('maps a supported ASR catalog language', () {
+      expect(mapTranscriptLanguageToAzure('fr-CA'), 'fr-CA');
+    });
+
     test('does not fall back to en-US for unsupported languages', () {
       expect(mapTranscriptLanguageToAzure('und'), isNull);
       expect(mapTranscriptLanguageToAzure('xx'), isNull);
