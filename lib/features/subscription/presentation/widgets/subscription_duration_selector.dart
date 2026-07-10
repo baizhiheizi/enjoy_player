@@ -78,11 +78,12 @@ class _SubscriptionDurationSelectorState
 
   int _parseCustomMonths() {
     final parsed = int.tryParse(_customController.text.trim());
-    if (parsed == null)
+    if (parsed == null) {
       return widget.months.clamp(
         kSubscriptionMinCustomMonths,
         kSubscriptionMaxCustomMonths,
       );
+    }
     return parsed.clamp(
       kSubscriptionMinCustomMonths,
       kSubscriptionMaxCustomMonths,

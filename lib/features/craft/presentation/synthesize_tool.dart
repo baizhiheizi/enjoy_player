@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -38,7 +37,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
   @override
   void dispose() {
     _textCtrl.dispose();
-    _audioPlayer?.dispose();
+    unawaited(_audioPlayer?.dispose() ?? Future.value());
     super.dispose();
   }
 
@@ -257,7 +256,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
 
     controller.clearResult();
 
-    final l10n = AppLocalizations.of(context)!;
     final state = ref.read(craftControllerProvider);
     if (state.dedupedExistingId != null) {
       // Already in library — open it.

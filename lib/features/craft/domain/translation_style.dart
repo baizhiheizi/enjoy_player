@@ -1,13 +1,10 @@
 /// Translation style presets for the Craft translate tool.
 library;
 
-import 'package:flutter/foundation.dart';
-
 /// Named style presets that map to LLM prompt suffixes.
 ///
 /// Ported from the web app's `TranslationStyle` type
 /// (`apps/web/src/types/db/common.ts`).
-@immutable
 enum TranslationStyle {
   literal,
   natural,

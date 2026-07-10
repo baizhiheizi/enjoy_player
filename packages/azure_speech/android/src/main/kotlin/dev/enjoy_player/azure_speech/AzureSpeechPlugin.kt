@@ -196,12 +196,14 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
       val synthesizer = SpeechSynthesizer(config, null as AudioConfig?)
       try {
         // Collect word boundary events for transcript timing.
+        // Android SDK: getAudioOffset() and getDuration() return long
+        // (100-ns ticks) directly — no .ticks extension needed.
         val wordBoundaries = org.json.JSONArray()
         synthesizer.WordBoundary.addEventListener { _, e ->
           val wb = org.json.JSONObject()
           wb.put("text", e.text)
-          wb.put("audioOffset", e.audioOffset.ticks)
-          wb.put("duration", e.duration.ticks)
+          wb.put("audioOffset", e.audioOffset)
+          wb.put("duration", e.duration)
           wordBoundaries.put(wb)
         }
 

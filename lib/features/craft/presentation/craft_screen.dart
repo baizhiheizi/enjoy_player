@@ -32,12 +32,12 @@ class CraftScreen extends ConsumerWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: isWide
-              ? Row(
+              ? const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(child: TranslateTool()),
-                    const SizedBox(width: 16),
-                    const Expanded(child: SynthesizeTool()),
+                    Expanded(child: TranslateTool()),
+                    SizedBox(width: 16),
+                    Expanded(child: SynthesizeTool()),
                   ],
                 )
               : const Column(

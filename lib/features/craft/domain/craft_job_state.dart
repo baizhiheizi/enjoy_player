@@ -1,12 +1,9 @@
 /// In-memory Craft job state for the two-tool Craft screen.
 library;
 
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 
 import 'craft_failure.dart';
-import 'craft_mode.dart';
 import 'craft_synthesizer.dart';
 import 'translation_style.dart';
 

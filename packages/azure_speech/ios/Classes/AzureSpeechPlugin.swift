@@ -228,7 +228,8 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     let synthesizer = try SPXSpeechSynthesizer(
       speechConfiguration: speechConfig, audioConfiguration: nil)
 
-    synthesizer.wordBoundary = { _, eventArgs in
+    synthesizer.wordBoundary = {
+      (_, eventArgs: SPXSpeechSynthesisWordBoundaryEventArgs) in
       let audioOffsetTicks = Int64(eventArgs.audioOffset * ticksPerSecond)
       let durationTicks = Int64(eventArgs.duration * ticksPerSecond)
       wordBoundaries.append([
