@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -154,6 +155,48 @@ void main() {
     );
   });
 
+  test('maps CreditsFailure to asrErrorCreditsExhausted', () async {
+    final source = File('${tempDir.path}/audio.wav')
+      ..writeAsBytesSync([1, 2, 3]);
+    final container = containerFor(
+      _ThrowingAsrCapability(const CreditsFailure('Daily limit reached')),
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(asrGenerationControllerProvider('audio-1').notifier)
+        .generateTranscript(mediaSourceUri: source.path, kind: MediaKind.audio);
+
+    expect(
+      container
+          .read(asrGenerationControllerProvider('audio-1'))
+          .valueOrNull
+          ?.errorMessage,
+      'asrErrorCreditsExhausted',
+    );
+  });
+
+  test('maps NetworkFailure to asrErrorNetwork', () async {
+    final source = File('${tempDir.path}/audio.wav')
+      ..writeAsBytesSync([1, 2, 3]);
+    final container = containerFor(
+      _ThrowingAsrCapability(const NetworkFailure('timeout')),
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(asrGenerationControllerProvider('audio-1').notifier)
+        .generateTranscript(mediaSourceUri: source.path, kind: MediaKind.audio);
+
+    expect(
+      container
+          .read(asrGenerationControllerProvider('audio-1'))
+          .valueOrNull
+          ?.errorMessage,
+      'asrErrorNetwork',
+    );
+  });
+
   test('uses an explicit language when ASR does not detect one', () async {
     final source = File('${tempDir.path}/audio.wav')
       ..writeAsBytesSync([1, 2, 3]);
@@ -189,5 +232,16 @@ final class _ByokFailureAsrCapability implements AsrCapability {
   @override
   Future<AsrResult> transcribe(AsrRequest request) {
     throw const ByokNotConfiguredFailure(ModalityKind.asr);
+  }
+}
+
+final class _ThrowingAsrCapability implements AsrCapability {
+  _ThrowingAsrCapability(this.error);
+
+  final Object error;
+
+  @override
+  Future<AsrResult> transcribe(AsrRequest request) {
+    throw error;
   }
 }

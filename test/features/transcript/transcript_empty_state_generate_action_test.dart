@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -51,7 +53,7 @@ void main() {
   testWidgets('Generate CTA shows busy spinner while onGenerate runs', (
     tester,
   ) async {
-    final completer = _ManualCompleter<void>();
+    final completer = Completer<void>();
     await tester.pumpWidget(
       _wrap(
         TranscriptEmptyState(
@@ -72,21 +74,4 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
-}
-
-class _ManualCompleter<T> {
-  T? _value;
-  bool _done = false;
-  Future<T> get future {
-    if (_done) return Future.value(_value as T);
-    return Future(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 1));
-      return _value as T;
-    });
-  }
-
-  void complete([T? value]) {
-    _done = true;
-    _value = value;
-  }
 }

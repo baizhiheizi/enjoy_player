@@ -128,6 +128,13 @@ class AsrAudioExtractor {
           'Extracted audio is empty or missing',
         );
       }
+      final extractedSize = out.lengthSync();
+      if (extractedSize > maxBytes) {
+        throw AsrAudioExtractionException(
+          AsrAudioExtractionFailureReason.fileTooLarge,
+          'Extracted audio is $extractedSize bytes (max $maxBytes)',
+        );
+      }
       onProgress?.call(1.0);
       return out.readAsBytes();
     } finally {

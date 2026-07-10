@@ -21,6 +21,7 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -189,6 +190,12 @@ class AsrGenerationController extends _$AsrGenerationController {
         return;
       }
 
+      final audioBytes = audio;
+      if (audioBytes == null) {
+        _setError('asrErrorGeneric');
+        return;
+      }
+
       if (cancel.isCompleted) {
         _setCancelled();
         return;
@@ -198,7 +205,7 @@ class AsrGenerationController extends _$AsrGenerationController {
       _setPhase(AsrGenerationPhase.recognizing);
       final asrService = ref.read(asrServiceProvider);
       final req = AsrRequest(
-        audioBytes: audio,
+        audioBytes: audioBytes,
         filename: 'asr-${mediaId.hashCode}.wav',
         language: requestedLanguage,
         responseFormat: 'json',
@@ -352,13 +359,8 @@ class AsrGenerationController extends _$AsrGenerationController {
   }
 
   String _mapProviderError(Object e) {
-    final s = e.toString().toLowerCase();
-    if (s.contains('credit')) return 'asrErrorCreditsExhausted';
-    if (s.contains('socket') ||
-        s.contains('timeout') ||
-        s.contains('network')) {
-      return 'asrErrorNetwork';
-    }
+    if (e is CreditsFailure) return 'asrErrorCreditsExhausted';
+    if (e is NetworkFailure) return 'asrErrorNetwork';
     return 'asrErrorGeneric';
   }
 }
