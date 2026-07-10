@@ -102,6 +102,39 @@ final class MethodChannelAzureSpeech extends AzureSpeechPlatform {
           message: 'Native layer returned no synthesis audio.',
         );
       }
+
+      // The native side returns a JSON object with audio (base64) and
+      // optionally wordBoundaries array. For backwards compatibility,
+      // a plain base64 string (no JSON) is treated as audio-only.
+      if (raw.startsWith('{')) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        final audioB64 = decoded['audio'] as String? ?? '';
+        if (audioB64.isEmpty) {
+          throw const AzureSpeechException(
+            code: 'empty_result',
+            message: 'Native layer returned no synthesis audio.',
+          );
+        }
+        final bytes = base64Decode(audioB64);
+        final wbList = decoded['wordBoundaries'] as List? ?? [];
+        final wordBoundaries = wbList.map((w) {
+          final m = w as Map<String, dynamic>;
+          // Native side sends ticks (100ns units); convert to ms.
+          final audioOffsetTicks = (m['audioOffset'] as num?)?.toInt() ?? 0;
+          final durationTicks = (m['duration'] as num?)?.toInt() ?? 0;
+          return AzureWordBoundary(
+            text: m['text'] as String? ?? '',
+            audioOffsetMs: (audioOffsetTicks / 10000).round(),
+            durationMs: (durationTicks / 10000).round(),
+          );
+        }).toList();
+        return AzureSpeechSynthesisOutcome(
+          audioBytes: Uint8List.fromList(bytes),
+          wordBoundaries: wordBoundaries,
+        );
+      }
+
+      // Legacy: plain base64 string.
       final bytes = base64Decode(raw);
       return AzureSpeechSynthesisOutcome(audioBytes: Uint8List.fromList(bytes));
     } on PlatformException catch (e, st) {

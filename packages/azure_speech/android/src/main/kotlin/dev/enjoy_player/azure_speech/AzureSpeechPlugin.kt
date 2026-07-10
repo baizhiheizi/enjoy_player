@@ -176,18 +176,37 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
   private fun synthesize(args: Map<String, Any?>): String {
     val text = args["text"] as String
     val language = args["language"] as String
-    val subscriptionKey = args["subscriptionKey"] as String
+    val token = args["token"] as? String
+    val subscriptionKey = args["subscriptionKey"] as? String
     val region = args["region"] as String
     val voice = args["voice"] as? String
 
-    val config = SpeechConfig.fromSubscription(subscriptionKey, region)
+    val config = if (!subscriptionKey.isNullOrBlank()) {
+      SpeechConfig.fromSubscription(subscriptionKey, region)
+    } else {
+      SpeechConfig.fromAuthorizationToken(token!!, region)
+    }
     try {
       config.speechSynthesisLanguage = language
       if (!voice.isNullOrBlank()) {
         config.speechSynthesisVoiceName = voice
       }
-      val synthesizer = SpeechSynthesizer(config)
+      // Create synthesizer with null AudioConfig to disable auto-playback
+      // (default behavior auto-plays through the device speaker).
+      val synthesizer = SpeechSynthesizer(config, null as AudioConfig?)
       try {
+        // Collect word boundary events for transcript timing.
+        // Android SDK: getAudioOffset() and getDuration() return long
+        // (100-ns ticks) directly — no .ticks extension needed.
+        val wordBoundaries = org.json.JSONArray()
+        synthesizer.WordBoundary.addEventListener { _, e ->
+          val wb = org.json.JSONObject()
+          wb.put("text", e.text)
+          wb.put("audioOffset", e.audioOffset)
+          wb.put("duration", e.duration)
+          wordBoundaries.put(wb)
+        }
+
         val speechResult = synthesizer.SpeakTextAsync(text).get()
         when (speechResult.reason) {
           ResultReason.SynthesizingAudioCompleted -> {
@@ -195,7 +214,12 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
             if (audio == null || audio.isEmpty()) {
               throw IllegalStateException("Azure returned empty synthesis audio")
             }
-            return Base64.encodeToString(audio, Base64.NO_WRAP)
+            val audioB64 = Base64.encodeToString(audio, Base64.NO_WRAP)
+            // Return JSON with audio + word boundaries.
+            val result = org.json.JSONObject()
+            result.put("audio", audioB64)
+            result.put("wordBoundaries", wordBoundaries)
+            return result.toString()
           }
           else -> {
             val cancel = SpeechSynthesisCancellationDetails.fromResult(speechResult)

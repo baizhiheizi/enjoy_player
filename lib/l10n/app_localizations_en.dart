@@ -2612,4 +2612,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get craftTtsSettingsHint => 'Craft uses the TTS provider below.';
+
+  @override
+  String get craftScreenTitle => 'Craft';
+
+  @override
+  String get craftTranslateTool => 'Translate';
+
+  @override
+  String get craftSynthesizeTool => 'Synthesize';
+
+  @override
+  String get craftStyleLabel => 'Style';
+
+  @override
+  String get craftStyleLiteral => 'Literal';
+
+  @override
+  String get craftStyleNatural => 'Natural';
+
+  @override
+  String get craftStyleCasual => 'Casual';
+
+  @override
+  String get craftStyleFormal => 'Formal';
+
+  @override
+  String get craftStyleSimplified => 'Simplified';
+
+  @override
+  String get craftStyleDetailed => 'Detailed';
+
+  @override
+  String get craftStyleCustom => 'Custom';
+
+  @override
+  String get craftCustomPromptHint => 'Enter your custom translation prompt…';
+
+  @override
+  String get craftSwapLanguages => 'Swap languages';
+
+  @override
+  String get craftTranslateButton => 'Translate';
+
+  @override
+  String get craftReTranslateButton => 'Re-translate';
+
+  @override
+  String get craftCopyTranslation => 'Copy';
+
+  @override
+  String get craftCopiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get craftTranslatedText => 'Translated text';
+
+  @override
+  String get craftUseTranslatedText => 'Use translated text';
+
+  @override
+  String get craftVoiceLabel => 'Voice';
+
+  @override
+  String get craftNoVoicesForLanguage =>
+      'No voices available for this language.';
+
+  @override
+  String get craftSynthesizeButton => 'Synthesize';
+
+  @override
+  String get craftReSynthesizeButton => 'Re-synthesize';
+
+  @override
+  String get craftSaveToLibrary => 'Save to library';
+
+  @override
+  String get craftSavingProgress => 'Saving to library…';
+
+  @override
+  String get craftPreviewLabel => 'Preview';
+
+  @override
+  String get craftSourceText => 'Source text';
+
+  @override
+  String get craftSynthText => 'Text to synthesize';
 }

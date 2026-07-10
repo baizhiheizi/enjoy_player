@@ -2495,6 +2495,90 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
+
+  @override
+  String get craftScreenTitle => '自制';
+
+  @override
+  String get craftTranslateTool => '翻译';
+
+  @override
+  String get craftSynthesizeTool => '合成';
+
+  @override
+  String get craftStyleLabel => '风格';
+
+  @override
+  String get craftStyleLiteral => '直译';
+
+  @override
+  String get craftStyleNatural => '自然';
+
+  @override
+  String get craftStyleCasual => '口语';
+
+  @override
+  String get craftStyleFormal => '正式';
+
+  @override
+  String get craftStyleSimplified => '简明';
+
+  @override
+  String get craftStyleDetailed => '详尽';
+
+  @override
+  String get craftStyleCustom => '自定义';
+
+  @override
+  String get craftCustomPromptHint => '输入自定义翻译提示…';
+
+  @override
+  String get craftSwapLanguages => '交换语言';
+
+  @override
+  String get craftTranslateButton => '翻译';
+
+  @override
+  String get craftReTranslateButton => '重新翻译';
+
+  @override
+  String get craftCopyTranslation => '复制';
+
+  @override
+  String get craftCopiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get craftTranslatedText => '翻译结果';
+
+  @override
+  String get craftUseTranslatedText => '用于合成';
+
+  @override
+  String get craftVoiceLabel => '语音';
+
+  @override
+  String get craftNoVoicesForLanguage => '该语言暂无可用语音。';
+
+  @override
+  String get craftSynthesizeButton => '合成';
+
+  @override
+  String get craftReSynthesizeButton => '重新合成';
+
+  @override
+  String get craftSaveToLibrary => '保存到资料库';
+
+  @override
+  String get craftSavingProgress => '正在保存…';
+
+  @override
+  String get craftPreviewLabel => '预览';
+
+  @override
+  String get craftSourceText => '原文';
+
+  @override
+  String get craftSynthText => '合成文本';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -4545,4 +4629,88 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
+
+  @override
+  String get craftScreenTitle => '自制';
+
+  @override
+  String get craftTranslateTool => '翻译';
+
+  @override
+  String get craftSynthesizeTool => '合成';
+
+  @override
+  String get craftStyleLabel => '风格';
+
+  @override
+  String get craftStyleLiteral => '直译';
+
+  @override
+  String get craftStyleNatural => '自然';
+
+  @override
+  String get craftStyleCasual => '口语';
+
+  @override
+  String get craftStyleFormal => '正式';
+
+  @override
+  String get craftStyleSimplified => '简明';
+
+  @override
+  String get craftStyleDetailed => '详尽';
+
+  @override
+  String get craftStyleCustom => '自定义';
+
+  @override
+  String get craftCustomPromptHint => '输入自定义翻译提示…';
+
+  @override
+  String get craftSwapLanguages => '交换语言';
+
+  @override
+  String get craftTranslateButton => '翻译';
+
+  @override
+  String get craftReTranslateButton => '重新翻译';
+
+  @override
+  String get craftCopyTranslation => '复制';
+
+  @override
+  String get craftCopiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get craftTranslatedText => '翻译结果';
+
+  @override
+  String get craftUseTranslatedText => '用于合成';
+
+  @override
+  String get craftVoiceLabel => '语音';
+
+  @override
+  String get craftNoVoicesForLanguage => '该语言暂无可用语音。';
+
+  @override
+  String get craftSynthesizeButton => '合成';
+
+  @override
+  String get craftReSynthesizeButton => '重新合成';
+
+  @override
+  String get craftSaveToLibrary => '保存到资料库';
+
+  @override
+  String get craftSavingProgress => '正在保存…';
+
+  @override
+  String get craftPreviewLabel => '预览';
+
+  @override
+  String get craftSourceText => '原文';
+
+  @override
+  String get craftSynthText => '合成文本';
 }

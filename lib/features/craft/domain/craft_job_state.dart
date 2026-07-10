@@ -1,105 +1,121 @@
-/// In-memory Craft job state owned by [CraftController].
+/// In-memory Craft job state for the two-tool Craft screen.
 library;
 
 import 'package:flutter/foundation.dart';
 
 import 'craft_failure.dart';
-import 'craft_job_status.dart';
-import 'craft_mode.dart';
+import 'craft_synthesizer.dart';
+import 'translation_style.dart';
 
-/// The full state of one Craft session.
-///
-/// Owned in-memory by the Craft controller; never persisted to Drift.
+/// The full state of one Craft session — covers both Translate and
+/// Synthesize tools on the same screen.
 @immutable
 class CraftJobState {
   const CraftJobState({
-    this.status = CraftJobStatus.idle,
-    this.mode = CraftMode.speakDirectly,
-    this.text = '',
+    // Translate tool
+    this.sourceText = '',
     this.sourceLanguage,
     this.targetLanguage = 'en',
-    this.failure,
-    this.generation = 0,
+    this.style = TranslationStyle.natural,
+    this.customPrompt,
+    this.translatedText,
+    this.isTranslating = false,
+    // Synthesize tool
+    this.synthText = '',
+    this.synthLanguage = 'en',
+    this.selectedVoice,
+    this.previewAudioBytes,
+    this.previewFormat,
+    this.previewWordBoundaries = const [],
+    this.isSynthesizing = false,
+    this.isSaving = false,
+    // Result
     this.resultMediaId,
     this.dedupedExistingId,
-    this.synthesizedAudioBytes,
-    this.synthesizedFormat,
-    this.translatedText,
+    this.failure,
+    this.generation = 0,
   });
 
-  final CraftJobStatus status;
-  final CraftMode mode;
-  final String text;
-
-  /// Source language for Translate then speak; `null` for Speak directly.
+  // --- Translate tool ---
+  final String sourceText;
   final String? sourceLanguage;
   final String targetLanguage;
+  final TranslationStyle style;
+  final String? customPrompt;
+  final String? translatedText;
+  final bool isTranslating;
+
+  // --- Synthesize tool ---
+  final String synthText;
+  final String synthLanguage;
+  final String? selectedVoice;
+  final Uint8List? previewAudioBytes;
+  final String? previewFormat;
+  final List<CraftWordBoundary> previewWordBoundaries;
+  final bool isSynthesizing;
+  final bool isSaving;
+
+  // --- Result ---
+  final String? resultMediaId;
+  final String? dedupedExistingId;
   final CraftFailure? failure;
   final int generation;
 
-  /// Set when status == completed.
-  final String? resultMediaId;
-
-  /// Set when the same content hash already exists in the library.
-  final String? dedupedExistingId;
-
-  /// In-flight synthesized audio bytes (held until save succeeds).
-  final Uint8List? synthesizedAudioBytes;
-  final String? synthesizedFormat;
-
-  /// In-flight translated text for the learning language (Translate then speak).
-  final String? translatedText;
-
-  /// Whether the text input meets the minimum length requirement.
-  bool get canSubmit =>
-      status == CraftJobStatus.idle || status == CraftJobStatus.failed;
-
-  /// Whether a job is currently running.
-  bool get isRunning =>
-      status == CraftJobStatus.validating ||
-      status == CraftJobStatus.translating ||
-      status == CraftJobStatus.synthesizing ||
-      status == CraftJobStatus.saving;
+  // --- Derived ---
+  bool get isBusy => isTranslating || isSynthesizing || isSaving;
+  bool get hasPreview => previewAudioBytes != null;
+  bool get hasTranslation =>
+      translatedText != null && translatedText!.isNotEmpty;
 
   CraftJobState copyWith({
-    CraftJobStatus? status,
-    CraftMode? mode,
-    String? text,
+    String? sourceText,
     String? sourceLanguage,
     String? targetLanguage,
-    CraftFailure? failure,
-    int? generation,
+    TranslationStyle? style,
+    String? customPrompt,
+    String? translatedText,
+    bool? isTranslating,
+    String? synthText,
+    String? synthLanguage,
+    String? selectedVoice,
+    Uint8List? previewAudioBytes,
+    String? previewFormat,
+    List<CraftWordBoundary>? previewWordBoundaries,
+    bool? isSynthesizing,
+    bool? isSaving,
     String? resultMediaId,
     String? dedupedExistingId,
-    Uint8List? synthesizedAudioBytes,
-    String? synthesizedFormat,
-    String? translatedText,
+    CraftFailure? failure,
+    int? generation,
+    bool clearPreview = false,
+    bool clearFailure = false,
   }) {
     return CraftJobState(
-      status: status ?? this.status,
-      mode: mode ?? this.mode,
-      text: text ?? this.text,
+      sourceText: sourceText ?? this.sourceText,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
-      failure: failure ?? this.failure,
-      generation: generation ?? this.generation,
+      style: style ?? this.style,
+      customPrompt: customPrompt ?? this.customPrompt,
+      translatedText: translatedText ?? this.translatedText,
+      isTranslating: isTranslating ?? this.isTranslating,
+      synthText: synthText ?? this.synthText,
+      synthLanguage: synthLanguage ?? this.synthLanguage,
+      selectedVoice: selectedVoice ?? this.selectedVoice,
+      previewAudioBytes: clearPreview
+          ? null
+          : (previewAudioBytes ?? this.previewAudioBytes),
+      previewFormat: clearPreview
+          ? null
+          : (previewFormat ?? this.previewFormat),
+      previewWordBoundaries: clearPreview
+          ? const []
+          : (previewWordBoundaries ?? this.previewWordBoundaries),
+      isSynthesizing: isSynthesizing ?? this.isSynthesizing,
+      isSaving: isSaving ?? this.isSaving,
       resultMediaId: resultMediaId ?? this.resultMediaId,
       dedupedExistingId: dedupedExistingId ?? this.dedupedExistingId,
-      synthesizedAudioBytes:
-          synthesizedAudioBytes ?? this.synthesizedAudioBytes,
-      synthesizedFormat: synthesizedFormat ?? this.synthesizedFormat,
-      translatedText: translatedText ?? this.translatedText,
+      failure: clearFailure ? null : (failure ?? this.failure),
+      generation: generation ?? this.generation,
     );
   }
-
-  /// Clears failure/result fields for a fresh attempt.
-  CraftJobState clearTransient() => copyWith(
-    status: CraftJobStatus.idle,
-    failure: null,
-    resultMediaId: null,
-    dedupedExistingId: null,
-    synthesizedAudioBytes: null,
-    synthesizedFormat: null,
-    translatedText: null,
-  );
 }

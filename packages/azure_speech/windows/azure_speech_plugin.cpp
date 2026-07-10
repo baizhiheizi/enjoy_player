@@ -4,6 +4,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <chrono>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -12,6 +13,7 @@
 #include <speechapi_cxx.h>
 
 using Microsoft::CognitiveServices::Speech::Audio::AudioConfig;
+using Microsoft::CognitiveServices::Speech::Audio::AudioOutputStream;
 using Microsoft::CognitiveServices::Speech::CancellationDetails;
 using Microsoft::CognitiveServices::Speech::PropertyId;
 using Microsoft::CognitiveServices::Speech::PronunciationAssessmentConfig;
@@ -91,17 +93,58 @@ std::string Base64Encode(const std::vector<uint8_t>& data) {
 flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   const std::string text = GetString(args, "text");
   const std::string language = GetString(args, "language");
+  const std::string token = GetString(args, "token");
   const std::string subscription_key = GetString(args, "subscriptionKey");
   const std::string region = GetString(args, "region");
   const std::string voice = GetString(args, "voice");
 
-  auto config = SpeechConfig::FromSubscription(subscription_key, region);
+  std::shared_ptr<SpeechConfig> config;
+  if (!subscription_key.empty()) {
+    config = SpeechConfig::FromSubscription(subscription_key, region);
+  } else {
+    config = SpeechConfig::FromAuthorizationToken(token, region);
+  }
   config->SetSpeechSynthesisLanguage(language);
   if (!voice.empty()) {
     config->SetSpeechSynthesisVoiceName(voice);
   }
 
-  auto synthesizer = SpeechSynthesizer::FromConfig(config);
+  // Disable auto-playback by routing synthesis to a memory-backed audio
+  // output stream instead of the default speakers. The SDK writes the
+  // synthesized audio into this in-memory pull stream; we retrieve it via
+  // result.GetAudioData() (which reads from the same stream). Without
+  // this, the SDK auto-plays through device speakers.
+  auto audio_output_stream = AudioOutputStream::CreatePullStream();
+  auto audio_config = AudioConfig::FromStreamOutput(audio_output_stream);
+  auto synthesizer = SpeechSynthesizer::FromConfig(config, audio_config);
+
+  // Collect word boundary events for transcript timing.
+  // MSVC has trouble parsing nested template lambdas with `const T&`
+  // capture lists. Move the boundary handler to a free function.
+  struct WordBoundaryInfo {
+    std::string text;
+    int64_t audioOffset;
+    int64_t duration;
+  };
+  std::vector<WordBoundaryInfo> word_boundaries;
+
+  auto boundary_sink =
+      [&word_boundaries](
+          const Microsoft::CognitiveServices::Speech::
+              SpeechSynthesisWordBoundaryEventArgs& args) {
+        // AudioOffset is in 100-nanosecond ticks (uint64_t).
+        // Duration is std::chrono::milliseconds; convert to ticks for
+        // consistency with the Dart-side JSON parser (1 ms = 10000 ticks).
+        const auto duration_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                args.Duration);
+        word_boundaries.push_back(
+            {args.Text,
+             static_cast<int64_t>(args.AudioOffset),
+             duration_ms.count() * 10000});
+      };
+  synthesizer->WordBoundary.Connect(boundary_sink);
+
   auto speech_result = synthesizer->SpeakTextAsync(text).get();
 
   if (speech_result->Reason == ResultReason::SynthesizingAudioCompleted) {
@@ -113,7 +156,26 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
           {flutter::EncodableValue("message"),
            flutter::EncodableValue("Empty synthesis audio")}});
     }
-    return flutter::EncodableValue(Base64Encode(*audio));
+    // Build JSON manually: {"audio":"<base64>","wordBoundaries":[...]}
+    std::string json = "{\"audio\":\"";
+    json += Base64Encode(*audio);
+    json += "\",\"wordBoundaries\":[";
+    for (size_t i = 0; i < word_boundaries.size(); i++) {
+      if (i > 0) json += ",";
+      json += "{\"text\":\"";
+      // Simple escape for quotes/backslashes in text.
+      for (char c : word_boundaries[i].text) {
+        if (c == '"' || c == '\\') json += '\\';
+        json += c;
+      }
+      json += "\",\"audioOffset\":";
+      json += std::to_string(word_boundaries[i].audioOffset);
+      json += ",\"duration\":";
+      json += std::to_string(word_boundaries[i].duration);
+      json += "}";
+    }
+    json += "]}";
+    return flutter::EncodableValue(json);
   }
 
   auto cancel = SpeechSynthesisCancellationDetails::FromResult(speech_result);

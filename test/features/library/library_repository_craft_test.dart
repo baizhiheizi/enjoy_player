@@ -70,7 +70,7 @@ void main() {
     });
 
     test(
-      'Translate then speak writes audio + primary + secondary transcript',
+      'Translate then speak writes only the learning-language transcript',
       () async {
         final audioBytes = Uint8List.fromList([10, 20, 30]);
 
@@ -85,15 +85,17 @@ void main() {
           signedInUserId: _testUserId,
         );
 
-        // Two transcripts: primary (zh) + secondary (en).
+        // Only one transcript: the learning-language (zh) target.
+        // The source-language text is stored on the audio row's sourceText
+        // column but is NOT written as a separate transcript (we don't have
+        // real word-level alignment between source and target).
         final transcripts = await db.transcriptDao.listForTarget('Audio', id);
-        expect(transcripts, hasLength(2));
+        expect(transcripts, hasLength(1));
+        expect(transcripts.first.language.startsWith('zh'), isTrue);
 
-        final langs = transcripts.map((t) => t.language).toSet();
-        expect(langs, hasLength(2));
-        // Canonical tags may expand 'en' to 'en-US' etc.
-        expect(langs.any((l) => l.startsWith('zh')), isTrue);
-        expect(langs.any((l) => l.startsWith('en')), isTrue);
+        // The audio row still carries the source text for reference.
+        final audioRow = await db.audioDao.getById(id);
+        expect(audioRow!.sourceText, 'Hello world this is a test.');
       },
     );
 
