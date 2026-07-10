@@ -219,20 +219,14 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
     }
 
     // Collect word boundary events for transcript timing.
-    // SPXSpeechSynthesizer exposes audioOffset/duration as UInt
-    // (100-ns ticks) on iOS/macOS. Pass through directly.
+    // SPXSpeechSynthesizer on iOS/macOS does not expose a public
+    // addWordBoundaryEventHandler method. Word boundary timestamps
+    // are unavailable on this platform — the Dart side falls back to
+    // sentence-split estimation from WAV duration + character count.
     var wordBoundaries: [[String: Any]] = []
 
     let synthesizer = try SPXSpeechSynthesizer(
       speechConfiguration: speechConfig, audioConfiguration: nil)
-
-    synthesizer.addWordBoundaryEventHandler { eventArgs in
-      wordBoundaries.append([
-        "text": eventArgs.text as Any,
-        "audioOffset": eventArgs.audioOffset,
-        "duration": eventArgs.duration,
-      ])
-    }
 
     let result = try synthesizer.speakText(text)
     if result.reason == SPXResultReason.synthesizingAudioCompleted {
