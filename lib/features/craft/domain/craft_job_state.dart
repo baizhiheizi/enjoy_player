@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'craft_failure.dart';
 import 'craft_mode.dart';
+import 'craft_synthesizer.dart';
 import 'translation_style.dart';
 
 /// The full state of one Craft session — covers both Translate and
@@ -28,6 +29,7 @@ class CraftJobState {
     this.selectedVoice,
     this.previewAudioBytes,
     this.previewFormat,
+    this.previewWordBoundaries = const [],
     this.isSynthesizing = false,
     this.isSaving = false,
     // Result
@@ -52,6 +54,7 @@ class CraftJobState {
   final String? selectedVoice;
   final Uint8List? previewAudioBytes;
   final String? previewFormat;
+  final List<CraftWordBoundary> previewWordBoundaries;
   final bool isSynthesizing;
   final bool isSaving;
 
@@ -80,6 +83,7 @@ class CraftJobState {
     String? selectedVoice,
     Uint8List? previewAudioBytes,
     String? previewFormat,
+    List<CraftWordBoundary>? previewWordBoundaries,
     bool? isSynthesizing,
     bool? isSaving,
     String? resultMediaId,
@@ -106,6 +110,9 @@ class CraftJobState {
       previewFormat: clearPreview
           ? null
           : (previewFormat ?? this.previewFormat),
+      previewWordBoundaries: clearPreview
+          ? const []
+          : (previewWordBoundaries ?? this.previewWordBoundaries),
       isSynthesizing: isSynthesizing ?? this.isSynthesizing,
       isSaving: isSaving ?? this.isSaving,
       resultMediaId: resultMediaId ?? this.resultMediaId,

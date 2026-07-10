@@ -193,6 +193,16 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
       }
       val synthesizer = SpeechSynthesizer(config)
       try {
+        // Collect word boundary events for transcript timing.
+        val wordBoundaries = org.json.JSONArray()
+        synthesizer.WordBoundary.addEventListener { _, e ->
+          val wb = org.json.JSONObject()
+          wb.put("text", e.text)
+          wb.put("audioOffset", e.audioOffset.ticks)
+          wb.put("duration", e.duration.ticks)
+          wordBoundaries.put(wb)
+        }
+
         val speechResult = synthesizer.SpeakTextAsync(text).get()
         when (speechResult.reason) {
           ResultReason.SynthesizingAudioCompleted -> {
@@ -200,7 +210,12 @@ class AzureSpeechPlugin : FlutterPlugin, MethodCallHandler {
             if (audio == null || audio.isEmpty()) {
               throw IllegalStateException("Azure returned empty synthesis audio")
             }
-            return Base64.encodeToString(audio, Base64.NO_WRAP)
+            val audioB64 = Base64.encodeToString(audio, Base64.NO_WRAP)
+            // Return JSON with audio + word boundaries.
+            val result = org.json.JSONObject()
+            result.put("audio", audioB64)
+            result.put("wordBoundaries", wordBoundaries)
+            return result.toString()
           }
           else -> {
             val cancel = SpeechSynthesisCancellationDetails.fromResult(speechResult)

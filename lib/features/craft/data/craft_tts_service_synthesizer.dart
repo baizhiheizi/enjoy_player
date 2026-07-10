@@ -22,6 +22,15 @@ final class CraftTtsServiceSynthesizer implements CraftSynthesizer {
     return CraftSynthesisResult(
       audioBytes: result.audioBytes!,
       format: result.format ?? 'wav',
+      wordBoundaries: result.wordBoundaries
+          .map(
+            (w) => CraftWordBoundary(
+              text: w.text,
+              audioOffsetMs: w.audioOffsetMs,
+              durationMs: w.durationMs,
+            ),
+          )
+          .toList(),
     );
   }
 }

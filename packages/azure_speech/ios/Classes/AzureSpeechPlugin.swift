@@ -218,8 +218,19 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
       speechConfig.speechSynthesisVoiceName = voice
     }
 
+    // Collect word boundary events for transcript timing.
+    var wordBoundaries: [[String: Any]] = []
+
     let synthesizer = try SPXSpeechSynthesizer(
       speechConfiguration: speechConfig, audioConfiguration: nil)
+
+    synthesizer.wordBoundary = { _, eventArgs in
+      wordBoundaries.append([
+        "text": eventArgs.text as Any,
+        "audioOffset": eventArgs.audioOffset as Any,
+        "duration": eventArgs.duration as Any,
+      ])
+    }
 
     let result = try synthesizer.speakText(text)
     if result.reason == SPXResultReason.synthesizingAudioCompleted {
@@ -228,7 +239,14 @@ public class AzureSpeechPlugin: NSObject, FlutterPlugin {
           domain: "AzureSpeech", code: 2,
           userInfo: [NSLocalizedDescriptionKey: "Empty synthesis audio"])
       }
-      return audio.base64EncodedString()
+      let audioB64 = audio.base64EncodedString()
+      // Return JSON with audio + word boundaries.
+      let jsonResponse: [String: Any] = [
+        "audio": audioB64,
+        "wordBoundaries": wordBoundaries,
+      ]
+      let jsonData = try JSONSerialization.data(withJSONObject: jsonResponse)
+      return String(data: jsonData, encoding: .utf8) ?? audioB64
     }
 
     if result.reason == SPXResultReason.canceled {

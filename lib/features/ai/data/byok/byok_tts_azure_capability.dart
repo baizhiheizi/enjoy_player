@@ -71,7 +71,19 @@ final class ByokTtsAzureCapability implements TtsCapability {
         ),
       );
 
-      return TtsResult(audioBytes: outcome.audioBytes, format: outcome.format);
+      return TtsResult(
+        audioBytes: outcome.audioBytes,
+        format: outcome.format,
+        wordBoundaries: outcome.wordBoundaries
+            .map(
+              (w) => TtsWordBoundary(
+                text: w.text,
+                audioOffsetMs: w.audioOffsetMs,
+                durationMs: w.durationMs,
+              ),
+            )
+            .toList(),
+      );
     } on AzureSpeechException catch (e) {
       throw ApiException(message: e.message, statusCode: 502, body: e.code);
     }

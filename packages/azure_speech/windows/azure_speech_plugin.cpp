@@ -108,6 +108,18 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   }
 
   auto synthesizer = SpeechSynthesizer::FromConfig(config);
+
+  // Collect word boundary events for transcript timing.
+  struct WordBoundaryInfo {
+    std::string text;
+    int64_t audioOffset;
+    int64_t duration;
+  };
+  std::vector<WordBoundaryInfo> word_boundaries;
+  synthesizer->WordBoundary.Connect([&word_boundaries](const SpeechSynthesisWordBoundaryEventArgs& e) {
+    word_boundaries.push_back({e.Text, static_cast<int64_t>(e.AudioOffset), static_cast<int64_t>(e.Duration)});
+  });
+
   auto speech_result = synthesizer->SpeakTextAsync(text).get();
 
   if (speech_result->Reason == ResultReason::SynthesizingAudioCompleted) {
@@ -119,7 +131,26 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
           {flutter::EncodableValue("message"),
            flutter::EncodableValue("Empty synthesis audio")}});
     }
-    return flutter::EncodableValue(Base64Encode(*audio));
+    // Build JSON manually: {"audio":"<base64>","wordBoundaries":[...]}
+    std::string json = "{\"audio\":\"";
+    json += Base64Encode(*audio);
+    json += "\",\"wordBoundaries\":[";
+    for (size_t i = 0; i < word_boundaries.size(); i++) {
+      if (i > 0) json += ",";
+      json += "{\"text\":\"";
+      // Simple escape for quotes/backslashes in text.
+      for (char c : word_boundaries[i].text) {
+        if (c == '"' || c == '\\') json += '\\';
+        json += c;
+      }
+      json += "\",\"audioOffset\":";
+      json += std::to_string(word_boundaries[i].audioOffset);
+      json += ",\"duration\":";
+      json += std::to_string(word_boundaries[i].duration);
+      json += "}";
+    }
+    json += "]}";
+    return flutter::EncodableValue(json);
   }
 
   auto cancel = SpeechSynthesisCancellationDetails::FromResult(speech_result);

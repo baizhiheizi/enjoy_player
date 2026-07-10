@@ -23,6 +23,7 @@ import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/transcript_timestamp_estimator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/domain/wav_duration.dart';
+import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 
 /// Provider for the Craft synthesizer (wraps TtsService).
@@ -173,6 +174,7 @@ class CraftController extends Notifier<CraftJobState> {
       state = state.copyWith(
         previewAudioBytes: result.audioBytes,
         previewFormat: result.format,
+        previewWordBoundaries: result.wordBoundaries,
         isSynthesizing: false,
       );
     } catch (e, st) {
@@ -200,14 +202,23 @@ class CraftController extends Notifier<CraftJobState> {
           ? normalized.substring(0, craftMaxTextLength)
           : normalized;
 
-      // Parse actual audio duration from WAV header for accurate timestamps.
-      final audioDurationMs = wavDurationMs(state.previewAudioBytes!);
-      final timelineJson = encodeTimelineJson(
-        text: truncated,
-        totalDurationMs: audioDurationMs > 0
+      // Build timestamped transcript from real Azure word boundaries.
+      // Falls back to WAV duration + sentence-split estimation if Azure did
+      // not fire wordBoundary events (e.g., older SDK or unsupported voice).
+      String timelineJson;
+      if (state.previewWordBoundaries.isNotEmpty) {
+        final segments = segmentWordBoundaries(state.previewWordBoundaries);
+        timelineJson = segmentsToTimelineJson(segments);
+      } else {
+        final audioDurationMs = wavDurationMs(state.previewAudioBytes!);
+        final fallbackDurationMs = audioDurationMs > 0
             ? audioDurationMs
-            : (truncated.length / 12.5 * 1000).round(),
-      );
+            : (truncated.length / 12.5 * 1000).round();
+        timelineJson = encodeTimelineJson(
+          text: truncated,
+          totalDurationMs: fallbackDurationMs,
+        );
+      }
 
       // Determine if this is a translate-then-synthesize or direct synthesize.
       final hasSourceLang =

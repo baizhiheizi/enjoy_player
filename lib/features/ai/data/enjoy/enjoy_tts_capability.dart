@@ -73,10 +73,22 @@ final class EnjoyTtsCapability implements TtsCapability {
 
       log.info(
         'Synthesis succeeded: ${outcome.audioBytes.length} bytes, '
-        'format=${outcome.format}',
+        'format=${outcome.format}, ${outcome.wordBoundaries.length} word boundaries',
       );
 
-      return TtsResult(audioBytes: outcome.audioBytes, format: outcome.format);
+      return TtsResult(
+        audioBytes: outcome.audioBytes,
+        format: outcome.format,
+        wordBoundaries: outcome.wordBoundaries
+            .map(
+              (w) => TtsWordBoundary(
+                text: w.text,
+                audioOffsetMs: w.audioOffsetMs,
+                durationMs: w.durationMs,
+              ),
+            )
+            .toList(),
+      );
     } on AzureSpeechException catch (e) {
       log.warning(
         'Azure Speech synthesis failed: ${e.message} (code=${e.code})',
