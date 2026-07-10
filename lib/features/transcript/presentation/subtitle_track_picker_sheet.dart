@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import '../application/auto_translate_controller.dart';
 import '../domain/auto_translate.dart';
@@ -160,6 +161,9 @@ class _SubtitleTrackPickerSheetState
       mediaId: widget.mediaId,
     );
   }
+
+  Future<void> _generateTranscript() =>
+      launchAsrGeneration(context, ref, mediaId: widget.mediaId);
 
   Future<void> _refreshCloud() async {
     final l10n = AppLocalizations.of(context)!;
@@ -467,6 +471,9 @@ class _SubtitleTrackPickerSheetState
         onExtractEmbedded: _extractEmbedded,
         onRefreshCloud: _refreshCloud,
         onImportFile: _importFile,
+        onGenerate: _generateTranscript,
+        showGenerate: showImportFile,
+        hasGeneratedTrack: tracks.any((track) => track.source == 'ai'),
       ),
     ];
   }

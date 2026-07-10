@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -150,8 +151,12 @@ class TranscriptPanel extends ConsumerWidget {
                     mediaId: mediaId,
                   )
                 : null,
+            onGenerate: showLocalActions
+                ? () => launchAsrGeneration(context, ref, mediaId: mediaId)
+                : null,
             showImportButton: showLocalActions,
             showExtractButton: showExtractButton,
+            showGenerateButton: showLocalActions,
           );
         }
         return TranscriptScrollableList(mediaId: mediaId, lines: lines);

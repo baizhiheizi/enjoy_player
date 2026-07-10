@@ -14,8 +14,10 @@ class TranscriptEmptyState extends StatelessWidget {
   const TranscriptEmptyState({
     required this.onImport,
     this.onExtract,
+    this.onGenerate,
     this.showImportButton = true,
     this.showExtractButton = false,
+    this.showGenerateButton = false,
     super.key,
   });
 
@@ -24,11 +26,17 @@ class TranscriptEmptyState extends StatelessWidget {
   /// Embedded subtitle extract (local video only).
   final Future<void> Function()? onExtract;
 
+  /// ASR transcript generation (local audio/video only).
+  final Future<void> Function()? onGenerate;
+
   /// When false, only cloud/hint copy (e.g. YouTube — no local file to import).
   final bool showImportButton;
 
   /// When true with [onExtract], shows an Extract control next to import.
   final bool showExtractButton;
+
+  /// When true with [onGenerate], shows a Generate transcript control.
+  final bool showGenerateButton;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +81,9 @@ class TranscriptEmptyState extends StatelessWidget {
                         height: 1.35,
                       ),
                     ),
-                    if (showExtractButton || showImportButton) ...[
+                    if (showExtractButton ||
+                        showImportButton ||
+                        showGenerateButton) ...[
                       SizedBox(height: t.space24),
                       Wrap(
                         spacing: t.space8,
@@ -81,6 +91,12 @@ class TranscriptEmptyState extends StatelessWidget {
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
+                          if (showGenerateButton && onGenerate != null)
+                            TranscriptBusyButton(
+                              icon: Icons.graphic_eq_rounded,
+                              label: l10n.transcriptEmptyGenerate,
+                              onPressed: onGenerate!,
+                            ),
                           if (showExtractButton && onExtract != null)
                             TranscriptBusyButton(
                               icon: Icons.subtitles_outlined,

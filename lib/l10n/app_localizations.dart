@@ -285,6 +285,150 @@ abstract class AppLocalizations {
   /// **'Fetching subtitles…'**
   String get transcriptFetchingSubtitles;
 
+  /// No description provided for @asrStatusExtracting.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting audio…'**
+  String get asrStatusExtracting;
+
+  /// No description provided for @asrLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoken language'**
+  String get asrLanguageTitle;
+
+  /// No description provided for @asrLanguageAutoDetect.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-detect language'**
+  String get asrLanguageAutoDetect;
+
+  /// No description provided for @asrStatusRecognizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognizing…'**
+  String get asrStatusRecognizing;
+
+  /// No description provided for @asrStatusSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get asrStatusSaving;
+
+  /// No description provided for @asrStatusSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript ready'**
+  String get asrStatusSuccess;
+
+  /// No description provided for @asrStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get asrStatusCancelled;
+
+  /// No description provided for @asrErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate transcript'**
+  String get asrErrorGeneric;
+
+  /// No description provided for @asrErrorFfmpegUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio extraction isn\'t available on this device'**
+  String get asrErrorFfmpegUnavailable;
+
+  /// No description provided for @asrErrorFfmpegUnavailableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Install ffmpeg or use a different video file.'**
+  String get asrErrorFfmpegUnavailableHint;
+
+  /// No description provided for @asrErrorNoAudioTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'This file has no audio to transcribe'**
+  String get asrErrorNoAudioTrack;
+
+  /// No description provided for @asrErrorExtractionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t extract audio. Please try again.'**
+  String get asrErrorExtractionFailed;
+
+  /// No description provided for @asrErrorFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too large to transcribe'**
+  String get asrErrorFileTooLarge;
+
+  /// No description provided for @asrErrorUnsupportedSource.
+  ///
+  /// In en, this message translates to:
+  /// **'This source isn\'t supported'**
+  String get asrErrorUnsupportedSource;
+
+  /// No description provided for @asrErrorByokMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your AI provider to generate a transcript'**
+  String get asrErrorByokMissing;
+
+  /// No description provided for @asrErrorByokMissingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → AI Providers to add credentials.'**
+  String get asrErrorByokMissingHint;
+
+  /// No description provided for @asrErrorCreditsExhausted.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used all your Enjoy credits'**
+  String get asrErrorCreditsExhausted;
+
+  /// No description provided for @asrErrorCreditsExhaustedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade your plan to keep generating transcripts.'**
+  String get asrErrorCreditsExhaustedHint;
+
+  /// No description provided for @asrErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection and retry.'**
+  String get asrErrorNetwork;
+
+  /// No description provided for @asrErrorNoSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'No speech detected in this audio'**
+  String get asrErrorNoSpeech;
+
+  /// No description provided for @asrLongMediaConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This may take a while'**
+  String get asrLongMediaConfirmTitle;
+
+  /// No description provided for @asrLongMediaConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating a transcript for {minutes} minutes of audio may take several minutes and consume significant credits. Continue?'**
+  String asrLongMediaConfirmBody(int minutes);
+
+  /// No description provided for @asrLongMediaConfirmContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get asrLongMediaConfirmContinue;
+
+  /// No description provided for @asrLongMediaConfirmCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get asrLongMediaConfirmCancel;
+
   /// No description provided for @actionOpenFiles.
   ///
   /// In en, this message translates to:
@@ -956,6 +1100,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add subtitle'**
   String get transcriptEmptyAddSubtitle;
+
+  /// No description provided for @transcriptEmptyGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate transcript'**
+  String get transcriptEmptyGenerate;
+
+  /// No description provided for @subtitlesGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate transcript'**
+  String get subtitlesGenerate;
+
+  /// No description provided for @subtitlesRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-generate transcript'**
+  String get subtitlesRegenerate;
 
   /// No description provided for @subtitlesExtractEmbedded.
   ///

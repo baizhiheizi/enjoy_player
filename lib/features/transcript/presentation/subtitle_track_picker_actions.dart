@@ -17,6 +17,9 @@ class SubtitleActionsSection extends StatelessWidget {
     required this.onExtractEmbedded,
     required this.onRefreshCloud,
     required this.onImportFile,
+    this.onGenerate,
+    this.showGenerate = false,
+    this.hasGeneratedTrack = false,
   });
 
   final double horizontalPadding;
@@ -25,6 +28,9 @@ class SubtitleActionsSection extends StatelessWidget {
   final Future<void> Function() onExtractEmbedded;
   final Future<void> Function() onRefreshCloud;
   final Future<void> Function() onImportFile;
+  final Future<void> Function()? onGenerate;
+  final bool showGenerate;
+  final bool hasGeneratedTrack;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +39,18 @@ class SubtitleActionsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final tiles = <Widget>[
+      if (showGenerate && onGenerate != null)
+        TranscriptBusyListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: t.space12,
+            vertical: t.space4,
+          ),
+          icon: Icons.graphic_eq_rounded,
+          title: hasGeneratedTrack
+              ? l10n.subtitlesRegenerate
+              : l10n.subtitlesGenerate,
+          onTap: onGenerate!,
+        ),
       if (showExtractEmbedded)
         TranscriptBusyListTile(
           contentPadding: EdgeInsets.symmetric(

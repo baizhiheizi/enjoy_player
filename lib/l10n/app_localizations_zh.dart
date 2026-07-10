@@ -112,6 +112,87 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptFetchingSubtitles => '正在获取字幕…';
 
   @override
+  String get asrStatusExtracting => 'Extracting audio…';
+
+  @override
+  String get asrLanguageTitle => 'Spoken language';
+
+  @override
+  String get asrLanguageAutoDetect => 'Auto-detect language';
+
+  @override
+  String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusSaving => 'Saving…';
+
+  @override
+  String get asrStatusSuccess => 'Transcript ready';
+
+  @override
+  String get asrStatusCancelled => 'Cancelled';
+
+  @override
+  String get asrErrorGeneric => 'Couldn\'t generate transcript';
+
+  @override
+  String get asrErrorFfmpegUnavailable =>
+      'Audio extraction isn\'t available on this device';
+
+  @override
+  String get asrErrorFfmpegUnavailableHint =>
+      'Install ffmpeg or use a different video file.';
+
+  @override
+  String get asrErrorNoAudioTrack => 'This file has no audio to transcribe';
+
+  @override
+  String get asrErrorExtractionFailed =>
+      'Couldn\'t extract audio. Please try again.';
+
+  @override
+  String get asrErrorFileTooLarge => 'This file is too large to transcribe';
+
+  @override
+  String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorByokMissing =>
+      'Set up your AI provider to generate a transcript';
+
+  @override
+  String get asrErrorByokMissingHint =>
+      'Open Settings → AI Providers to add credentials.';
+
+  @override
+  String get asrErrorCreditsExhausted => 'You\'ve used all your Enjoy credits';
+
+  @override
+  String get asrErrorCreditsExhaustedHint =>
+      'Upgrade your plan to keep generating transcripts.';
+
+  @override
+  String get asrErrorNetwork =>
+      'Network error. Please check your connection and retry.';
+
+  @override
+  String get asrErrorNoSpeech => 'No speech detected in this audio';
+
+  @override
+  String get asrLongMediaConfirmTitle => 'This may take a while';
+
+  @override
+  String asrLongMediaConfirmBody(int minutes) {
+    return 'Generating a transcript for $minutes minutes of audio may take several minutes and consume significant credits. Continue?';
+  }
+
+  @override
+  String get asrLongMediaConfirmContinue => 'Continue';
+
+  @override
+  String get asrLongMediaConfirmCancel => 'Cancel';
+
+  @override
   String get actionOpenFiles => '打开文件';
 
   @override
@@ -453,6 +534,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transcriptEmptyAddSubtitle => '添加字幕';
+
+  @override
+  String get transcriptEmptyGenerate => 'Generate transcript';
+
+  @override
+  String get subtitlesGenerate => 'Generate transcript';
+
+  @override
+  String get subtitlesRegenerate => 'Re-generate transcript';
 
   @override
   String get subtitlesExtractEmbedded => '提取内嵌字幕';
@@ -2687,6 +2777,80 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get transcriptFetchingSubtitles => '正在获取字幕…';
+
+  @override
+  String get asrStatusExtracting => '正在提取音频…';
+
+  @override
+  String get asrLanguageTitle => '语音语言';
+
+  @override
+  String get asrLanguageAutoDetect => '自动检测语言';
+
+  @override
+  String get asrStatusRecognizing => '正在识别…';
+
+  @override
+  String get asrStatusSaving => '正在保存…';
+
+  @override
+  String get asrStatusSuccess => '字幕已就绪';
+
+  @override
+  String get asrStatusCancelled => '已取消';
+
+  @override
+  String get asrErrorGeneric => '生成字幕失败';
+
+  @override
+  String get asrErrorFfmpegUnavailable => '当前设备无法提取音频';
+
+  @override
+  String get asrErrorFfmpegUnavailableHint => '请安装 ffmpeg 或使用其他视频文件。';
+
+  @override
+  String get asrErrorNoAudioTrack => '此文件没有可识别的音频';
+
+  @override
+  String get asrErrorExtractionFailed => '音频提取失败，请重试。';
+
+  @override
+  String get asrErrorFileTooLarge => '文件过大，无法生成字幕';
+
+  @override
+  String get asrErrorUnsupportedSource => '不支持此来源';
+
+  @override
+  String get asrErrorByokMissing => '请先配置 AI 服务以生成字幕';
+
+  @override
+  String get asrErrorByokMissingHint => '打开 设置 → AI 服务 添加凭据。';
+
+  @override
+  String get asrErrorCreditsExhausted => 'Enjoy 积分已用完';
+
+  @override
+  String get asrErrorCreditsExhaustedHint => '升级套餐以继续生成字幕。';
+
+  @override
+  String get asrErrorNetwork => '网络错误，请检查连接后重试。';
+
+  @override
+  String get asrErrorNoSpeech => '未检测到语音';
+
+  @override
+  String get asrLongMediaConfirmTitle => '这可能需要一些时间';
+
+  @override
+  String asrLongMediaConfirmBody(int minutes) {
+    return '为 $minutes 分钟的音频生成字幕可能需要数分钟，并会消耗较多积分。是否继续？';
+  }
+
+  @override
+  String get asrLongMediaConfirmContinue => '继续';
+
+  @override
+  String get asrLongMediaConfirmCancel => '取消';
 
   @override
   String get actionOpenFiles => '打开文件';

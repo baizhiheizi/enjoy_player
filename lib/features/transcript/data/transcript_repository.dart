@@ -744,6 +744,66 @@ class TranscriptRepository {
     );
   }
 
+  /// Persists a generated `source: 'ai'` transcript for [mediaId] +
+  /// [language] using a deterministic row id so re-generation upserts
+  /// in place (SC-004 / FR-010).
+  ///
+  /// When [activateAsPrimary] is true (default), the new track is set
+  /// as the session primary (FR-021). The prior `label` is preserved
+  /// across re-generations so the user keeps a familiar name (FR-022).
+  /// Returns the row id, or null when the media id cannot be resolved.
+  Future<String?> upsertAsrGeneratedTrack({
+    required String mediaId,
+    required String language,
+    required List<TranscriptLine> lines,
+    String? label,
+    bool activateAsPrimary = true,
+  }) async {
+    final tt = await dexieTargetTypeForId(_db, mediaId);
+    if (tt == null) return null;
+    if (lines.isEmpty) return null;
+
+    const source = 'ai';
+    final id = enjoyTranscriptId(
+      targetType: tt,
+      targetId: mediaId,
+      language: language,
+      source: source,
+    );
+    final existing = await _db.transcriptDao.getById(id);
+    final now = DateTime.now();
+    final resolvedLabel = (label != null && label.isNotEmpty)
+        ? label
+        : (existing?.label.isNotEmpty == true
+              ? existing!.label
+              : 'Generated ($language)');
+    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+
+    await _db.transcriptDao.upsert(
+      TranscriptRow(
+        id: id,
+        targetType: tt,
+        targetId: mediaId,
+        language: language,
+        source: source,
+        timelineJson: timelineJson,
+        referenceId: null,
+        label: resolvedLabel,
+        trackIndex: null,
+        syncStatus: 'local',
+        serverUpdatedAt: null,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      ),
+    );
+    _linesCache.remove(id);
+
+    if (activateAsPrimary) {
+      await setActiveTranscript(mediaId, id);
+    }
+    return id;
+  }
+
   Future<void> importSubtitle({
     required String mediaId,
     required XFile file,

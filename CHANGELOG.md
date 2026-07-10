@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ASR transcript generation**: local audio and video can generate,
+  re-generate, and auto-select a time-aligned `source: ai` transcript through
+  the existing Enjoy, Azure BYOK, or OpenAI-compatible Whisper capability
+  paths. Generated tracks upsert deterministically, propagate a detected
+  language, and use localized failure feedback.
 - **YouTube bilingual transcripts**: when the learner's native language differs
   from the source, the worker fetch sends a single multi-language
   `pollTranscripts({ languages: [source, native], waitMs })` request instead of
