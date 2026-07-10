@@ -22,6 +22,7 @@ import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/transcript_timestamp_estimator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
+import 'package:enjoy_player/features/craft/domain/wav_duration.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 
 /// Provider for the Craft synthesizer (wraps TtsService).
@@ -199,12 +200,13 @@ class CraftController extends Notifier<CraftJobState> {
           ? normalized.substring(0, craftMaxTextLength)
           : normalized;
 
-      // Compute timestamped transcript from proportional character count.
-      // Duration estimate: ~12.5 chars per second for Azure Neural TTS.
-      final estimatedDurationMs = (truncated.length / 12.5 * 1000).round();
+      // Parse actual audio duration from WAV header for accurate timestamps.
+      final audioDurationMs = wavDurationMs(state.previewAudioBytes!);
       final timelineJson = encodeTimelineJson(
         text: truncated,
-        totalDurationMs: estimatedDurationMs,
+        totalDurationMs: audioDurationMs > 0
+            ? audioDurationMs
+            : (truncated.length / 12.5 * 1000).round(),
       );
 
       // Determine if this is a translate-then-synthesize or direct synthesize.

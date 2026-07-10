@@ -1,6 +1,8 @@
 /// Synthesize tool panel for the Craft screen.
 library;
 
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
@@ -101,12 +104,11 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
               child: FilledButton.icon(
                 onPressed:
                     state.isSynthesizing ||
+                        state.isSaving ||
                         normalizeCraftText(state.synthText).length <
                             craftMinTextLength
                     ? null
-                    : () async {
-                        await controller.synthesize();
-                      },
+                    : () => _synthesizeWithOverlay(l10n),
                 icon: state.isSynthesizing
                     ? const SizedBox(
                         width: 16,
@@ -187,6 +189,46 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     if (t != null && t.isNotEmpty) {
       _textCtrl.text = t;
       controller.setSynthText(t);
+    }
+  }
+
+  Future<void> _synthesizeWithOverlay(AppLocalizations l10n) async {
+    final controller = ref.read(craftControllerProvider.notifier);
+
+    // Show a non-dismissible blocking dialog during synthesis — the native
+    // Azure Speech SDK call blocks the platform thread, so we need to show
+    // a spinner before the freeze kicks in.
+    unawaited(
+      showEnjoyDialog<void>(
+        context: context,
+        useRootNavigator: true,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return PopScope(
+            canPop: false,
+            child: AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(l10n.craftCraftingProgress),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    // Let the dialog paint before the platform thread blocks.
+    await WidgetsBinding.instance.endOfFrame;
+
+    await controller.synthesize();
+
+    // Dismiss the blocking dialog.
+    if (mounted) {
+      final nav = Navigator.of(context, rootNavigator: true);
+      if (nav.canPop()) nav.pop();
     }
   }
 
