@@ -19,7 +19,7 @@
 - [x] Success criteria are technology-agnostic
 - [x] All acceptance scenarios are defined
 - [x] Edge cases are identified
-- [x] Scope is clearly bounded (supersedes 010; Azure-only TTS v1; estimated timestamps v1)
+- [x] Scope is clearly bounded (supersedes 010; Azure-only voice picker v1; real Azure word boundaries for timestamps; ChatService for translation; no secondary transcript)
 - [x] Dependencies and assumptions identified
 
 ## Feature Readiness

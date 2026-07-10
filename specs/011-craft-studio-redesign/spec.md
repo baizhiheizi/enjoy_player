@@ -14,12 +14,17 @@
 
 ### In scope
 
-- **A dedicated Craft screen** (not a bottom sheet) reached from the existing import chooser's "Craft from text" entry. The screen provides room for the two tools and the final synthesis + save step.
-- **Translation tool**: a source-text input, source-language picker (MUST include the learner's native language alongside the content language catalog), target-language picker, a **translation style preset** selector (literal, natural, casual, formal, simplified, detailed, custom prompt), translate / re-translate / copy / **edit the result inline** before sending it to synthesis.
-- **Synthesis tool**: a text input (pre-filled from the translation result when the learner taps "Use translated text"), target-language picker, **voice picker** (Azure Neural voices filtered by language, gender, and locale), synthesize / re-synthesize, audio preview player.
-- **Final artifact**: saving the synthesized audio + a **timestamped transcript** (sentence-split with estimated offsets derived from text length + total audio duration) to the library as a `provider = 'craft'` audio media item, ready for echo / shadow-reading mode.
-- **V1 TTS providers**: Azure Speech only — Enjoy AI (worker-issued token, parallel to assessment) and BYOK Azure (user subscription key + region). OpenAI-compatible TTS BYOK remains available through the existing settings but is not surfaced in the Craft voice picker for v1.
-- Reuse the infrastructure from spec 010 (EnjoyTtsCapability wiring, FileStorage.importBytes, AzureTokenCache `purpose: 'tts'`, MediaLibraryRepository.importCraftedFromText).
+- **A dedicated Craft screen** (not a bottom sheet) reached from the existing import chooser's "Craft from text" entry as a pushed GoRouter route at `/craft`. The screen provides room for the two tools and the final synthesis + save step.
+- **Translation tool**: a source-text input, source-language picker (MUST include the learner's native language alongside the content language catalog), target-language picker, a **translation style preset** selector (literal, natural, casual, formal, simplified, detailed, custom prompt), translate / re-translate / copy / **edit the result inline** before sending it to synthesis. Translation is implemented via the **LLM Chat API** (`/chat/completions`, the existing `ChatService`) with style-specific system prompts — NOT the `/translations` worker endpoint.
+- **Synthesis tool**: a text input (pre-filled from the translation result when the learner taps "Use translated text"), target-language picker, **voice picker** (Azure Neural voices filtered by language, gender, and locale), synthesize / re-synthesize, audio preview player. Synthesis uses **Azure Speech SDK** with **real word-boundary events** captured during synthesis (not estimated timestamps).
+- **Final artifact**: saving the synthesized audio + a **word-segmented transcript** (each segment has real start/duration from Azure word-boundary events) to the library as a `provider = 'craft'` audio media item, ready for echo / shadow-reading mode.
+- **V1 TTS**: Azure Speech only for the **voice picker**. The voice picker lists Azure Neural voices (Jenny, Guy, Aria, Davis, Sonia, Ryan, Xiaoxiao, Yunxi, Xiaoyi, Yunjian, Nanami, Keita, Aoi, Sun-Hi, In-Joon, Elvira, Álvaro, Dalia, Jorge, Denise, Henri, Katja, Conrad, Elsa, Diego, Francisca, Antonio, Svetlana, Dmitry) filtered by language. **Both Enjoy AI (worker-issued token) and BYOK Azure (user subscription key + region) are supported.** OpenAI-compatible TTS BYOK remains configurable in AI settings → TTS card but is NOT surfaced in the Craft voice picker for v1 — Craft's synthesis uses the active TTS modality (Enjoy AI by default, or BYOK Azure/Azure Speech if configured).
+- Reuse the spec 010 infrastructure, **extended** for v1:
+  - `EnjoyTtsCapability` — wired via Azure Speech SDK + worker-issued auth token (the worker returns a JWT, not a subscription key; the Azure plugin now supports both auth modes)
+  - `FileStorage.importBytes` — for synthesized audio persistence
+  - `AzureTokenCache` with `purpose: 'tts'` — for worker token attribution
+  - `MediaLibraryRepository.importCraftedFromText` — persists audio + timestamped transcript
+  - **Azure Speech plugin extension**: `AzureSpeechSynthesisParams` supports both `token` and `subscriptionKey`; `AzureSpeechSynthesisOutcome` returns `wordBoundaries: List<AzureWordBoundary>` (text + audioOffsetMs + durationMs) captured from the native plugin's `wordBoundary` events.
 
 ### Out of scope
 
@@ -92,20 +97,19 @@ A learner who has text (either from the Translate area or pasted directly into t
 
 ### User Story 4 - Save to library with timestamped transcript (Priority: P1)
 
-After previewing, the learner taps **Save to library**. The audio + a **timestamped transcript** (sentence-split with estimated offsets) are saved as a `provider = 'craft'` audio media item. The learner is taken to the player where echo / shadow-reading mode works immediately against the timestamped transcript.
+After previewing, the learner taps **Save to library**. The audio + a **word-segmented timestamped transcript** (built from real Azure `wordBoundary` events during synthesis) are saved as a `provider = 'craft'` audio media item. The learner is taken to the player where echo / shadow-reading mode works immediately against the timestamped transcript.
 
 **Why this priority**: This is the final payoff — without saving with a timestamped transcript, the artifact is not usable for shadow reading.
 
-**Independent Test**: Synthesize audio, tap Save, confirm the player opens with a timestamped transcript (sentences visible with time positions) and echo mode works.
+**Independent Test**: Synthesize audio, tap Save, confirm the player opens with a word-segmented transcript (each segment with real start/duration from Azure) and echo mode works.
 
 **Acceptance Scenarios**:
 
 1. **Given** a synthesized audio preview exists, **When** the learner taps Save to library, **Then** the audio file + transcript rows are written and the player opens with the new audio item.
-2. **Given** the saved item, **When** the learner views the transcript, **Then** it is **sentence-split with estimated timestamps** (not a single monolithic line); each sentence has a start time derived from its proportional character count relative to the total audio duration.
+2. **Given** the saved item, **When** the learner views the transcript, **Then** it is **word-segmented with real Azure word-boundary timing** (not estimated) — each segment has `startMs` and `durationMs` derived from the `wordBoundary` events fired during synthesis. Segment size is ~6 words with sentence-end punctuation as break points.
 3. **Given** the saved item in the player, **When** the learner starts echo / shadow-reading mode, **Then** it works immediately against the timestamped transcript — no extra setup.
-4. **Given** a Translate then synthesize flow, **When** the item is saved, **Then** the source-language original text is also available as a secondary transcript for bilingual overlay.
-5. **Given** a direct synthesis flow (no translation), **When** the item is saved, **Then** only the learning-language transcript exists (no secondary).
-6. **Given** the learner saves the same content twice (same text, same voice, same language), **Then** the second save surfaces "Already in your library" with an **Open** action — no duplicate.
+4. **Given** a Craft item (Translate then synthesize or direct synthesis), **When** the item is saved, **Then** only the learning-language transcript exists. **No secondary source-language transcript is written** — the source text is preserved on the audio row's `sourceText` column for reference but never as a separate transcript row.
+5. **Given** the learner saves the same content twice (same text, same voice, same language), **Then** the second save surfaces "Already in your library" with an **Open** action — no duplicate.
 
 ---
 
@@ -167,16 +171,16 @@ Translation failures, synthesis failures, and save failures each surface a calm,
 - **FR-010**: The Synthesize tool MUST produce an **audio preview** that the learner can play / pause inline before saving.
 - **FR-011**: The Synthesize tool MUST allow **re-synthesizing** with a different voice or language; the previous preview is replaced.
 - **FR-012**: The Synthesize tool MUST include a **Save to library** action that persists the audio + a timestamped transcript and opens the player.
-- **FR-013**: The timestamped transcript MUST be **sentence-split with estimated timestamps**: each sentence gets a start time proportional to its character count relative to the total audio duration. Word-level boundary data is a future enhancement.
-- **FR-014**: For Translate then synthesize saves, the source-language original text MUST also be saved as a secondary transcript for bilingual overlay.
-- **FR-015**: For direct synthesis saves (no translation), only the learning-language transcript is saved.
-- **FR-016**: Craft MUST dedupe by content hash (mode + learning language + normalized text + voice). Re-saving the same content returns the existing media id without making AI calls.
-- **FR-017**: V1 TTS MUST use Azure Speech only: Enjoy AI (worker token) or BYOK Azure (user key + region). The voice picker lists Azure Neural voices only.
-- **FR-018**: Translation MUST use the existing LLM / translation capability layer (Enjoy AI or BYOK LLM), including style presets that map to LLM prompts.
-- **FR-019**: All user-facing copy (screen title, tool labels, style names, voice names, action buttons, errors, hints) MUST be localized via ARB files (English + Chinese baseline).
-- **FR-020**: All failure copy MUST be calm and actionable (Retry / Re-translate / Open AI settings / Sign in). Raw exception text MUST NOT be the primary message.
-- **FR-021**: Empty, whitespace-only, or trivially short input MUST disable the corresponding action (Translate or Synthesize) with an inline hint.
-- **FR-022**: Deleting a Craft-generated item MUST remove the audio file and all associated transcripts via the existing `deleteMedia` path.
+- **FR-013**: The timestamped transcript MUST be **word-segmented with real Azure word-boundary data**: each segment groups ~6 words (with sentence-end punctuation as additional break points) and has its `startMs` and `durationMs` from the first/last word's Azure `wordBoundary` event. If Azure does not fire `wordBoundary` events (older SDK or unsupported voice), fall back to sentence-split estimation from WAV duration + character count.
+- **FR-014**: For both Translate then synthesize and direct synthesis saves, only the **learning-language transcript** is saved. **No secondary source-language transcript is written.** A secondary transcript with fabricated timestamps (single line, 0 duration) would be misleading; the source text is preserved on the audio row's `sourceText` column for reference, but no separate transcript row is created.
+- **FR-015**: Craft MUST dedupe by content hash `SHA-256(sourceFlag + learningLanguage + normalizedText + voice)`. Re-saving the same content returns the existing media id without making AI calls.
+- **FR-016**: The Craft voice picker MUST list **Azure Neural voices only**, filtered by the selected target language's base code. Both Enjoy AI (worker-issued auth token via `AzureTokenCache`) and BYOK Azure (user subscription key + region) are supported as auth modes — the active TTS modality determines which mode is used. BYOK OpenAI-compatible TTS configured in AI settings is NOT surfaced in the voice picker; Craft synthesis uses the active TTS modality (Azure by default, OpenAI TTS only if explicitly configured).
+- **FR-017**: Translation MUST use the **LLM Chat API** (`/chat/completions` via `ChatService`), NOT the `/translations` worker endpoint. Each style preset maps to a system-prompt suffix (literal, natural, casual, formal, simplified, detailed, custom) appended to the base translation instruction. The custom style lets the learner supply a free-form prompt that replaces the style suffix entirely.
+- **FR-018**: All user-facing copy (screen title, tool labels, style names, voice names, action buttons, errors, hints) MUST be localized via ARB files (English + Chinese baseline).
+- **FR-019**: All failure copy MUST be calm and actionable (Retry / Re-translate / Open AI settings / Sign in). Raw exception text MUST NOT be the primary message.
+- **FR-020**: Empty, whitespace-only, or trivially short input MUST disable the corresponding action (Translate or Synthesize) with an inline hint.
+- **FR-021**: Deleting a Craft-generated item MUST remove the audio file and all associated transcripts via the existing `deleteMedia` path.
+- **FR-022**: The Craft screen MUST be reachable via the GoRouter route `/craft` (added to `app_router.dart`). The import chooser's "Craft from text" tile pushes this route instead of opening a modal sheet.
 
 ### Quality, UX, and Performance Requirements
 
@@ -192,7 +196,7 @@ Translation failures, synthesis failures, and save failures each surface a calm,
 - **Translation style**: A named preset (literal, natural, casual, formal, simplified, detailed, custom) that maps to an LLM prompt template influencing translation tone and approach.
 - **Craft translation**: The in-session result of a translate call — source text, source language, target language, style, translated text, and edit state. Not persisted as a standalone record in v1 (the edited text is what flows to synthesis).
 - **Craft synthesis**: The in-session result of a synthesize call — text, language, voice id, audio bytes, and estimated duration.
-- **Craft media item**: The persisted artifact (AudioRow, provider `craft`) with a timestamped primary transcript and optional secondary transcript for bilingual overlay.
+- **Craft media item**: The persisted artifact (AudioRow, provider `craft`) with a word-segmented timestamped primary transcript (built from Azure word-boundary events). No secondary transcript. The source text is preserved on the audio row's `sourceText` column for reference but never as a separate transcript row.
 - **Azure voice**: A named Azure Neural voice (e.g., `en-US-JennyNeural`) with a language, gender, and locale. The Craft voice picker lists voices filtered by the selected target language.
 
 ## Success Criteria *(mandatory)*
@@ -202,7 +206,7 @@ Translation failures, synthesis failures, and save failures each surface a calm,
 - **SC-001**: At least **90%** of participants find and open the Craft screen from the import chooser within **15 seconds** on first try.
 - **SC-002**: Translate with a style preset on a ~200-character sample completes within **15 seconds** on a normal connection (Enjoy AI default); the result appears in an editable field.
 - **SC-003**: Synthesize with a selected voice on a ~200-character sample completes within **20 seconds** on a normal connection (Enjoy AI default); the preview player appears.
-- **SC-004**: Save to library produces a timestamped transcript where **≥ 90%** of sentence boundaries fall within **±2 seconds** of the actual spoken boundary (estimated from proportional character count).
+- **SC-004**: Save to library produces a word-segmented transcript where **≥ 99%** of segment boundaries fall within **±200ms** of the actual Azure word boundary (timestamps come directly from Azure's `wordBoundary` events — no estimation drift).
 - **SC-005**: Reopening a saved Craft item shows audio + transcript in under **1 second** with no AI calls.
 - **SC-006**: Craft items show the Craft badge in **100%** of regression checks.
 - **SC-007**: **100%** of failure states surface a localized, actionable message — no raw exception text.
@@ -212,26 +216,30 @@ Translation failures, synthesis failures, and save failures each surface a calm,
 
 ## Assumptions
 
-- The Craft screen is a single full-screen route reached from the import chooser. It is NOT a bottom sheet (user explicitly rejected the bottom sheet approach from spec 010).
-- The two tools (Translate and Synthesize) are visible on the same screen, side-by-side on desktop and stacked or tabbed on mobile. A "Use translated text" button bridges them.
-- Translation style presets map to LLM prompt templates. The existing `TranslationPrompt` or `ContextualTranslationPrompt` infrastructure in `lib/features/ai/domain/prompts/` is the reference for prompt construction.
-- The source-language picker reuses `showContentLanguagePicker` but is extended to include the learner's native language. The content language catalog (`kSupportedNativeLanguageTags` or similar) is the source list.
-- Azure Neural voices are cataloged as a static list in the Flutter app (ported from the web app's `azure-voices.ts`). The list is filtered by the selected target language's base code.
-- Timestamped transcripts are estimated from proportional character count + total audio duration — no word-boundary events from the Azure SDK in v1. Word-level timestamps are a future enhancement.
-- V1 supports Azure TTS only for synthesis. OpenAI-compatible TTS BYOK remains configurable in AI settings but is not surfaced in the Craft voice picker.
-- Title for the new audio item is auto-generated from the first ~40 characters of the primary transcript text.
-- Echo / shadow-reading mode works out of the box because Craft creates a real audio media item with a timestamped transcript.
+- The Craft screen is a single full-screen route reached from the import chooser at the GoRouter path `/craft`. It is NOT a bottom sheet (user explicitly rejected the bottom sheet approach from spec 010).
+- The two tools (Translate and Synthesize) are visible on the same screen, side-by-side on desktop (≥900px wide) and stacked on mobile. A "Use translated text" button bridges them.
+- Translation style presets map to LLM **system-prompt suffixes** appended to the base translation instruction. The implementation uses `ChatService` (`/chat/completions`), NOT `TranslationService` (`/translations`). For BYOK LLM, the same system+user message pair is sent to the configured provider. For `custom`, the learner's free-form prompt replaces the style suffix entirely.
+- The source-language picker reuses `showContentLanguagePicker` but is extended to include the learner's native language (read from `appPreferencesProvider`). The content language catalog (`kSupportedFocusLanguageTags` + native tag) is the source list.
+- Azure Neural voices are cataloged as a static list in `lib/features/craft/domain/azure_voice.dart` (ported from the web app's `azure-voices.ts`). The list is filtered by the selected target language's base code at runtime.
+- Timestamped transcripts use **real Azure word-boundary events** captured by the native plugin during synthesis (Android Kotlin, iOS Swift, macOS Swift, Windows C++ all subscribe to `wordBoundary`). If boundaries are unavailable (older SDK or unsupported voice), fall back to sentence-split estimation from WAV duration + character count. Word-level timestamps are a future enhancement if boundary events are not granular enough.
+- **V1 voice picker is Azure Neural voices only.** OpenAI-compatible TTS BYOK remains configurable in AI settings → TTS card; if configured, Craft synthesis uses it (via `TtsService` capability resolution). The picker just doesn't list OpenAI voices.
+- **No secondary transcript is written.** The source text is preserved on the audio row's `sourceText` column for reference, but a separate transcript row for the source language was dropped because without word-level alignment between source and synthesized target, the timestamps would be fabricated (single line, 0 duration) — worse than no transcript.
+- Title for the new audio item is auto-generated from the first ~40 characters of the primary transcript text (the learning-language text), with an ellipsis if truncated.
+- Echo / shadow-reading mode works out of the box because Craft creates a real audio media item with a real timestamped transcript.
 - Text > 5 000 characters is truncated with a clear notice (no chunked synthesis in v1).
-- The existing infrastructure from spec 010 (EnjoyTtsCapability, FileStorage.importBytes, AzureTokenCache `purpose: 'tts'`, repository import method) is reused unchanged; this spec adds the UI redesign and the timestamped transcript + voice picker + style presets on top.
+- Dedupe hash includes voice so the same text with different voices produces different items.
+- The existing infrastructure from spec 010 is reused and **extended**: `AzureSpeechSynthesisParams` now supports `token` (for Enjoy AI's worker-issued JWT) in addition to `subscriptionKey` (for BYOK Azure); `AzureSpeechSynthesisOutcome` returns `wordBoundaries` alongside audio bytes; `CraftController` uses `ChatService` instead of `TranslationService` for style-driven translation.
 
 ## Dependencies
 
-- Spec 010 infrastructure: `EnjoyTtsCapability` (Azure Speech SDK + worker token), `FileStorage.importBytes`, `AzureTokenCache` (purpose: 'tts'), `MediaLibraryRepository.importCraftedFromText` + `findExistingCrafted`.
-- Existing translation / LLM capability layer (`TranslationService`, `translationCapabilityProvider`).
+- Spec 010 infrastructure (extended for v1): `EnjoyTtsCapability` (Azure Speech SDK + worker token — token support added to `AzureSpeechSynthesisParams`), `FileStorage.importBytes`, `AzureTokenCache` (purpose: 'tts'), `MediaLibraryRepository.importCraftedFromText` + `findExistingCrafted`.
+- `AzureSpeechSynthesisOutcome.wordBoundaries` — real word-level timing from Azure's `wordBoundary` events (captured on Android Kotlin, iOS Swift, macOS Swift, Windows C++).
+- `ChatService` (LLM `/chat/completions`) — used for translation with style-specific system prompts. NOT `TranslationService` (`/translations`).
 - Existing AI settings screen (TTS card, LLM card) — unchanged.
-- Existing import chooser entry (modified to push a full-screen route instead of a sheet).
+- Existing import chooser entry (modified to push the `/craft` route instead of opening a sheet).
 - Existing ARB localization infrastructure.
-- Azure Neural voice catalog (ported from `~/dev/enjoy/packages/ai/src/utils/azure/azure-voices.ts`).
+- Azure Neural voice catalog (`lib/features/craft/domain/azure_voice.dart`, ported from `~/dev/enjoy/packages/ai/src/utils/azure/azure-voices.ts`).
+- `connectivity_plus` is NOT used (per spec 010's reactive offline handling; the offline failure mapper produces a calm error instead of a proactive banner).
 
 ## Reference (Enjoy monorepo)
 
@@ -243,4 +251,4 @@ Translation failures, synthesis failures, and save failures each surface a calm,
 | Voice synthesis route | `apps/web/src/routes/voice-synthesis.tsx` | Adapted as the Synthesize tool on the Craft screen (not a separate route) |
 | Voice selector | `apps/web/src/components/voice-synthesis/voice-selector.tsx`, `packages/ai/src/utils/azure/azure-voices.ts` | Ported as an Azure Neural voice picker filtered by language |
 | Voice synthesis sheet (bridge) | `apps/web/src/components/smart-translation/voice-synthesis-sheet.tsx` | Replaced by "Use translated text" button on the same screen |
-| TTS timestamped transcript | `apps/web/src/routes/voice-synthesis.tsx` lines 120–131 | Estimated timestamps from character proportion + total duration (v1) |
+| TTS word-boundary transcript | `packages/ai/src/utils/azure/azure-tts-core.ts` (subscribes to `synthesizer.wordBoundary`) + `packages/ai/src/utils/transcript-segmentation/index.ts` (`convertToTranscriptFormat`) | Native plugin captures `wordBoundary` events; Dart-side `word_boundary_segmenter.dart` groups words into ~6-word segments with sentence-end break points (simplified port, no Compromise.js dependency) |

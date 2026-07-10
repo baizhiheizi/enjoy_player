@@ -28,7 +28,7 @@ void setTargetLanguage(String lang);
 void setStyle(TranslationStyle style);
 void setCustomPrompt(String? prompt);
 void setTranslatedText(String text); // for inline editing
-Future<void> translate();      // calls TranslationService with style prompt
+Future<void> translate();      // calls ChatService (/chat/completions) with style prompt
 void useTranslatedText();      // copies translatedText → synthText
 
 // Synthesize actions

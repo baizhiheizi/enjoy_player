@@ -4,7 +4,9 @@
 
 **Created**: 2026-07-09
 
-**Status**: Draft
+**Status**: Superseded by [011-craft-studio-redesign](../011-craft-studio-redesign/spec.md)
+
+**Note**: This spec describes the bottom-sheet approach that was implemented and shipped (PR #264) before user feedback required a redesign. The active spec is **011-craft-studio-redesign**, which replaces the bottom sheet with a full-screen Craft Studio with translation style presets, Azure voice picker, and real Azure word-boundary timestamps. This spec is kept for historical reference and to document the delta from the shipped bottom-sheet version.
 
 **Input**: User description: "Now Enjoy Player support using local video/audio and YouTube videos to practices. But some users want to homecook materials. Use AI to translate some text, then use TTS to generate the audio as shadow reading materials. Or they want to use some text to use TTS directly to generate the audio materials. Similar features has been implemented in `~/dev/enjoy` project, `apps/web`, as smart translation and voice synthesis. We need to port them into this flutter project. But we need to redesign the UX. We don't provide the `smart translation` and `voide synthesis` entries directly. When importing, beside `local` and `youtube`, we add another option `homecook`(or any better name you come up with). Then two options, any languages to learning lanuage audio(translate then synthesis; and synthesis the materials of the learning language directly). behind the hook, we use the AI services, and we need to extend the BYOK for more providers, like TTS."
 

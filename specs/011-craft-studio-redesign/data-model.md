@@ -23,17 +23,17 @@ Same as spec 010. One durable row per Craft save.
 
 ### TranscriptRow — Craft primary transcript (`Transcripts`)
 
-**Key change from spec 010**: `timelineJson` contains **multiple entries** (sentence-split with estimated timestamps) instead of a single monolithic line.
+**Key change from spec 010**: `timelineJson` contains **multiple entries** (word-segmented with real Azure word-boundary timing — each segment has `startMs` / `durationMs` from the first / last word's `wordBoundary` event, not estimated). If Azure did not fire boundary events, falls back to sentence-split estimation from WAV duration + character count.
 
 | Field | Craft usage |
 |-------|-------------|
 | `source` | `'ai'` |
 | `language` | Learning language |
-| `timelineJson` | `[{text: sentence1, start: 0, duration: ms1}, {text: sentence2, start: ms1, duration: ms2}, ...]` — sentence-split with proportional timestamps |
+| `timelineJson` | `[{text: segment1, start: ms1, duration: d1}, {text: segment2, start: ms2, duration: d2}, ...]` — word-segmented (≈6 words per segment, sentence-end punctuation as break points) |
 
-### TranscriptRow — Craft secondary transcript (Translate then synthesize only)
+### (No secondary transcript)
 
-Same as spec 010 — single-line timeline with the original source text.
+Craft does NOT write a secondary transcript for the source language. The source text is preserved on `AudioRow.sourceText` for reference, but without word-level alignment between source and synthesized target text, a secondary transcript with fabricated timestamps (single line, 0 duration) would be misleading.
 
 ### TranslationStyle (new domain enum)
 

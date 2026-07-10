@@ -21,7 +21,7 @@
   - `simplified`: "Translate using simple vocabulary and short sentences suitable for beginners."
   - `detailed`: "Translate with additional context and nuance, explaining idioms if needed."
   - `custom`: the learner's free-form prompt replaces the style instruction entirely.
-- **Rationale**: The existing `TranslationService.translate` sends source/target to the Enjoy worker or BYOK LLM. Adding a style suffix is the simplest way to implement presets without changing the service contract. For BYOK LLM, the prompt suffix is appended to the contextual translation prompt.
+- **Rationale**: The existing `ChatService.complete` (LLM `/chat/completions`) sends system + user messages to the Enjoy worker or BYOK LLM. Adding a style suffix to the system prompt is the simplest way to implement presets without changing the service contract. For BYOK LLM, the system prompt is sent to the configured provider. `TranslationService` (`/translations`) is NOT used — it doesn't accept custom system prompts and doesn't support style-driven translation.
 - **Alternatives**: Separate endpoint per style — rejected (over-engineering for v1).
 
 ### D3. Azure voice catalog ported as a static Dart constant
