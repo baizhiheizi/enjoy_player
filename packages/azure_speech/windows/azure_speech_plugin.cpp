@@ -4,6 +4,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <chrono>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -110,15 +111,31 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   auto synthesizer = SpeechSynthesizer::FromConfig(config);
 
   // Collect word boundary events for transcript timing.
+  // MSVC has trouble parsing nested template lambdas with `const T&`
+  // capture lists. Move the boundary handler to a free function.
   struct WordBoundaryInfo {
     std::string text;
     int64_t audioOffset;
     int64_t duration;
   };
   std::vector<WordBoundaryInfo> word_boundaries;
-  synthesizer->WordBoundary.Connect([&word_boundaries](const SpeechSynthesisWordBoundaryEventArgs& e) {
-    word_boundaries.push_back({e.Text, static_cast<int64_t>(e.AudioOffset), static_cast<int64_t>(e.Duration)});
-  });
+
+  auto boundary_sink =
+      [&word_boundaries](
+          const Microsoft::CognitiveServices::Speech::
+              SpeechSynthesisWordBoundaryEventArgs& args) {
+        // AudioOffset is in 100-nanosecond ticks (uint64_t).
+        // Duration is std::chrono::milliseconds; convert to ticks for
+        // consistency with the Dart-side JSON parser (1 ms = 10000 ticks).
+        const auto duration_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                args.Duration);
+        word_boundaries.push_back(
+            {args.Text,
+             static_cast<int64_t>(args.AudioOffset),
+             duration_ms.count() * 10000});
+      };
+  synthesizer->WordBoundary.Connect(boundary_sink);
 
   auto speech_result = synthesizer->SpeakTextAsync(text).get();
 
