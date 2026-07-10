@@ -316,9 +316,6 @@ class MediaLibraryRepository {
     final id = enjoyAudioId(aid: aid);
     final now = DateTime.now();
     final canonicalLearning = canonicalMediaLanguageTag(learningLanguage);
-    final canonicalSource = sourceLanguage != null
-        ? canonicalMediaLanguageTag(sourceLanguage)
-        : null;
 
     // Use caller-provided timeline (timestamped) or fall back to single-line.
     final effectivePrimaryTimelineJson =
@@ -333,23 +330,10 @@ class MediaLibraryRepository {
       source: 'ai',
     );
 
-    // Build secondary transcript timeline (source text) for Translate then speak.
-    final hasSecondary = canonicalSource != null;
-    String? secondaryTranscriptId;
-    String? secondaryTimelineJson;
-    if (hasSecondary) {
-      secondaryTranscriptId = enjoyTranscriptId(
-        targetType: 'Audio',
-        targetId: id,
-        language: canonicalSource,
-        source: 'ai',
-      );
-      secondaryTimelineJson = jsonEncode([
-        {'text': text, 'start': 0, 'duration': 0},
-      ]);
-    }
-
-    // Single transaction: audio row + primary transcript + optional secondary.
+    // Single transaction: audio row + primary transcript only.
+    // We do NOT save a secondary source-text transcript — without word-level
+    // alignment between source and synthesized target text, a secondary
+    // transcript with fabricated timestamps is worse than no secondary.
     await _db.transaction(() async {
       final audioRow = AudioRow(
         id: id,
@@ -360,7 +344,7 @@ class MediaLibraryRepository {
         thumbnailUrl: null,
         durationSeconds: 0,
         language: canonicalLearning,
-        translationKey: canonicalSource ?? canonicalLearning,
+        translationKey: canonicalLearning,
         sourceText: text,
         voice: voice,
         source: sourceFlag,
@@ -382,7 +366,7 @@ class MediaLibraryRepository {
         language: canonicalLearning,
         source: 'ai',
         timelineJson: effectivePrimaryTimelineJson,
-        referenceId: canonicalSource,
+        referenceId: null,
         label: '',
         trackIndex: null,
         syncStatus: 'local',
@@ -391,27 +375,6 @@ class MediaLibraryRepository {
         updatedAt: now,
       );
       await _db.transcriptDao.upsert(primaryRow);
-
-      if (canonicalSource != null &&
-          secondaryTranscriptId != null &&
-          secondaryTimelineJson != null) {
-        final secondaryRow = TranscriptRow(
-          id: secondaryTranscriptId,
-          targetType: 'Audio',
-          targetId: id,
-          language: canonicalSource,
-          source: 'ai',
-          timelineJson: secondaryTimelineJson,
-          referenceId: primaryTranscriptId,
-          label: '',
-          trackIndex: null,
-          syncStatus: 'local',
-          serverUpdatedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        );
-        await _db.transcriptDao.upsert(secondaryRow);
-      }
     });
 
     // Probe duration asynchronously (same path as importMedia).
