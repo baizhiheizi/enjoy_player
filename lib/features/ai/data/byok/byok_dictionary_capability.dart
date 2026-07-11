@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/json/json_from_llm.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/dictionary_capability.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/llm_capability.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
@@ -28,33 +29,11 @@ final class ByokDictionaryCapability implements DictionaryCapability {
       maxTokens: 2048,
     );
 
-    final jsonText = _extractJsonObject(raw);
+    final jsonText = extractJsonObject(raw);
     final map = jsonDecode(jsonText) as Map<String, dynamic>;
     map['sourceLanguage'] ??= workerLanguageBase(sourceLanguage);
     map['targetLanguage'] ??= workerLanguageBase(targetLanguage);
     map['word'] ??= word;
     return DictionaryResult.fromJson(map);
-  }
-
-  String _extractJsonObject(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.startsWith('{')) return trimmed;
-
-    final fenceStart = trimmed.indexOf('```');
-    if (fenceStart >= 0) {
-      final afterFence = trimmed.indexOf('\n', fenceStart);
-      final endFence = trimmed.lastIndexOf('```');
-      if (afterFence >= 0 && endFence > afterFence) {
-        return trimmed.substring(afterFence + 1, endFence).trim();
-      }
-    }
-
-    final start = trimmed.indexOf('{');
-    final end = trimmed.lastIndexOf('}');
-    if (start >= 0 && end > start) {
-      return trimmed.substring(start, end + 1);
-    }
-
-    throw const FormatException('Dictionary BYOK response is not JSON');
   }
 }

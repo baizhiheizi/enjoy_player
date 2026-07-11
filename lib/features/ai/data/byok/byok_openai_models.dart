@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:enjoy_player/core/validation/byok_url_guard.dart';
-import 'package:enjoy_player/data/api/api_exception.dart';
-import 'package:enjoy_player/features/ai/data/byok/byok_llm_model_factory.dart';
+import 'package:enjoy_player/features/ai/data/byok/byok_http_client.dart';
 import 'package:http/http.dart' as http;
 
 /// Lists models from an OpenAI-compatible `GET /models` endpoint.
@@ -10,26 +8,22 @@ Future<List<String>> fetchOpenAiCompatibleModels({
   required String baseUrl,
   required String apiKey,
 }) async {
-  if (!isByokBaseUrlAllowed(baseUrl)) {
-    throw const ApiException(
-      message: 'Invalid base URL for model fetch',
-      statusCode: 400,
-    );
-  }
+  final uri = guardByokBaseUrl(
+    baseUrl: baseUrl,
+    path: 'models',
+    purpose: 'model fetch',
+  );
 
-  final root = normalizeByokBaseUrl(baseUrl);
   final response = await http.get(
-    Uri.parse('$root/models'),
-    headers: {
-      'Authorization': 'Bearer ${apiKey.trim()}',
-      'Accept': 'application/json',
-    },
+    uri,
+    headers: byokBearerHeaders(apiKey: apiKey),
   );
 
   if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw ApiException(
-      message: 'Failed to fetch models (${response.statusCode})',
+    throwByokHttpError(
+      purpose: 'Failed to fetch models',
       statusCode: response.statusCode,
+      body: response.body,
     );
   }
 

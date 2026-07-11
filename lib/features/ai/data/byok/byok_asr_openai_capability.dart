@@ -1,14 +1,12 @@
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
-import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
+import 'package:enjoy_player/features/ai/data/byok/byok_speech_guards.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_whisper_client.dart';
-import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/asr_capability.dart';
 import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
-import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 import 'package:http/http.dart' as http;
 
 /// ASR via user OpenAI-compatible Whisper endpoint.
@@ -25,29 +23,16 @@ final class ByokAsrOpenAiCapability implements AsrCapability {
 
   @override
   Future<AsrResult> transcribe(AsrRequest request) async {
-    if (_config.kind != SpeechByokKind.openAiCompatible) {
-      throw StateError(
-        'OpenAI ASR BYOK requires openAiCompatible configuration',
-      );
-    }
-
-    final baseUrl = _config.baseUrl?.trim();
-    final model = _config.model?.trim();
-    if (baseUrl == null || baseUrl.isEmpty || model == null || model.isEmpty) {
-      throw const ApiException(
-        message: 'ASR BYOK base URL and model are not configured',
-        statusCode: 400,
-      );
-    }
-
-    final apiKey = await _secrets.readApiKey(ModalityKind.asr);
-    if (apiKey == null || apiKey.trim().isEmpty) {
-      throw const ByokNotConfiguredFailure(ModalityKind.asr);
-    }
+    final (:baseUrl, :model, :apiKey) = await guardOpenAiSpeechConfig(
+      config: _config,
+      secrets: _secrets,
+      kind: ModalityKind.asr,
+      capabilityLabel: 'ASR',
+    );
 
     final map = await postWhisperTranscription(
       baseUrl: baseUrl,
-      apiKey: apiKey.trim(),
+      apiKey: apiKey,
       audioBytes: request.audioBytes,
       filename: request.filename,
       model: model,

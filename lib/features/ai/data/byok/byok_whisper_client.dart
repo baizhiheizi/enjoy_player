@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:enjoy_player/core/validation/byok_url_guard.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
-import 'package:enjoy_player/features/ai/data/byok/byok_llm_model_factory.dart';
+import 'package:enjoy_player/features/ai/data/byok/byok_http_client.dart';
 import 'package:http/http.dart' as http;
 
 /// OpenAI-compatible Whisper `POST /audio/transcriptions` with user credentials.
@@ -17,19 +16,14 @@ Future<Map<String, dynamic>> postWhisperTranscription({
   String responseFormat = 'json',
   http.Client? client,
 }) async {
-  if (!isByokBaseUrlAllowed(baseUrl)) {
-    throw const ApiException(
-      message: 'Invalid base URL for Whisper transcription',
-      statusCode: 400,
-    );
-  }
-
-  final root = normalizeByokBaseUrl(baseUrl);
-  final uri = Uri.parse('$root/audio/transcriptions');
+  final uri = guardByokBaseUrl(
+    baseUrl: baseUrl,
+    path: 'audio/transcriptions',
+    purpose: 'Whisper transcription',
+  );
 
   final request = http.MultipartRequest('POST', uri);
-  request.headers['Accept'] = 'application/json';
-  request.headers['Authorization'] = 'Bearer ${apiKey.trim()}';
+  request.headers.addAll(byokBearerHeaders(apiKey: apiKey));
   request.files.add(
     http.MultipartFile.fromBytes('file', audioBytes, filename: filename),
   );
@@ -64,16 +58,10 @@ Future<Map<String, dynamic>> postWhisperTranscription({
       );
     }
 
-    Object? parsed;
-    try {
-      parsed = jsonDecode(body);
-    } catch (_) {
-      parsed = body;
-    }
-    throw ApiException(
-      message: 'Whisper transcription failed (${streamed.statusCode})',
+    throwByokHttpError(
+      purpose: 'Whisper transcription',
       statusCode: streamed.statusCode,
-      body: parsed,
+      body: body,
     );
   } finally {
     if (client == null) {

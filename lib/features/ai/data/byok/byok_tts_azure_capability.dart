@@ -2,13 +2,12 @@ import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
-import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
+import 'package:enjoy_player/features/ai/data/byok/byok_speech_guards.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/tts_capability.dart';
 import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/tts_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/tts_result.dart';
-import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 
 /// TTS via user Azure Speech subscription key + region (native synthesis).
 final class ByokTtsAzureCapability implements TtsCapability {
@@ -24,22 +23,12 @@ final class ByokTtsAzureCapability implements TtsCapability {
 
   @override
   Future<TtsResult> synthesize(TtsRequest request) async {
-    if (_config.kind != SpeechByokKind.azureSpeech) {
-      throw StateError('Azure TTS BYOK requires azureSpeech configuration');
-    }
-
-    final region = _config.region?.trim();
-    if (region == null || region.isEmpty) {
-      throw const ApiException(
-        message: 'Azure region is not configured for TTS BYOK',
-        statusCode: 400,
-      );
-    }
-
-    final subscriptionKey = await _secrets.readApiKey(ModalityKind.tts);
-    if (subscriptionKey == null || subscriptionKey.trim().isEmpty) {
-      throw const ByokNotConfiguredFailure(ModalityKind.tts);
-    }
+    final (:region, apiKey: subscriptionKey) = await guardAzureSpeechConfig(
+      config: _config,
+      secrets: _secrets,
+      kind: ModalityKind.tts,
+      capabilityLabel: 'TTS',
+    );
 
     final text = request.text.trim();
     if (text.isEmpty) {
@@ -65,7 +54,7 @@ final class ByokTtsAzureCapability implements TtsCapability {
         AzureSpeechSynthesisParams(
           text: text,
           language: azureLanguage,
-          subscriptionKey: subscriptionKey.trim(),
+          subscriptionKey: subscriptionKey,
           region: region,
           voice: voice,
         ),
