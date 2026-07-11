@@ -83,13 +83,20 @@ double aspectRatioFromVideoParams(mk.VideoParams vp, mk.PlayerState state) {
 }
 
 /// Single [mk.Player] instance — ADR-0003 / ADR-0015.
+///
+/// The native mpv player is constructed lazily on first access (not in the
+/// constructor) so swapping between YouTube and local media does not stall the
+/// main isolate with an unnecessary native allocation (issue #283, P8).
 class MediaKitPlayerEngine implements PlayerEngine {
-  MediaKitPlayerEngine() : _player = mk.Player();
+  MediaKitPlayerEngine();
 
-  final mk.Player _player;
-  VideoController? _videoController;
+  mk.Player? __player;
+
+  mk.Player get _player => __player ??= mk.Player();
 
   mk.Player get player => _player;
+
+  VideoController? _videoController;
 
   static VideoControllerConfiguration get _videoControllerConfiguration {
     if (Platform.isWindows) {
@@ -260,6 +267,7 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   Future<void> dispose() async {
-    await _player.dispose();
+    await __player?.dispose();
+    __player = null;
   }
 }

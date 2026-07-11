@@ -92,7 +92,16 @@ class PlayerPositionTracker {
         // Echo enforcement runs on every position event — the decision is cheap
         // and this is what keeps pause-and-rewind within ~50 ms of the segment
         // end. Single-flight inside the enforcer drops concurrent ticks.
-        unawaited(_echoEnforcer.enforceTick(seconds));
+        // Guarded so a single engine error cannot surface as an uncaught async
+        // exception and stall enforcement for the rest of the session (M7).
+        unawaited(
+          _echoEnforcer.enforceTick(seconds).catchError((
+            Object e,
+            StackTrace st,
+          ) {
+            _positionLog.warning('echo enforcement tick failed', e, st);
+          }),
+        );
 
         // Heavy session emit + persistence stays on the 400 ms bucket (or fires
         // immediately on a detected seek) so the recorded clip window lines up.

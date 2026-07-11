@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -54,10 +55,16 @@ Future<void> _runTranscriptResolve(
   required bool Function() isStale,
   required bool signedIn,
 }) async {
-  if (isStale()) return;
-  await ref
-      .read(transcriptFetchCtrlProvider(mediaId).notifier)
-      .resolveOnOpen(signedIn: signedIn);
+  try {
+    if (isStale()) return;
+    await ref
+        .read(transcriptFetchCtrlProvider(mediaId).notifier)
+        .resolveOnOpen(signedIn: signedIn);
+  } on Object catch (e, st) {
+    logNamed(
+      'PlayerOpenSideEffects',
+    ).warning('transcript resolve failed for $mediaId', e, st);
+  }
 }
 
 Future<void> _runRecordingPull(
@@ -66,10 +73,19 @@ Future<void> _runRecordingPull(
   required String mediaId,
   required bool Function() isStale,
 }) async {
-  if (isStale()) return;
-  await ref
-      .read(recordingTargetSyncServiceProvider)
-      .pullRecordingsForTarget(targetType: dexieTargetType, targetId: mediaId);
+  try {
+    if (isStale()) return;
+    await ref
+        .read(recordingTargetSyncServiceProvider)
+        .pullRecordingsForTarget(
+          targetType: dexieTargetType,
+          targetId: mediaId,
+        );
+  } on Object catch (e, st) {
+    logNamed(
+      'PlayerOpenSideEffects',
+    ).warning('recording pull failed for $mediaId', e, st);
+  }
 }
 
 /// Lazy oEmbed retry after YouTube WebView reports playback-ready.
