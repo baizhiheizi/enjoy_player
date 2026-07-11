@@ -23,9 +23,10 @@ The recording bus is the single source of truth for "is the user recording right
 
 When the user opts in, the panel runs **pitch contour** analysis on the take:
 
-1. `echo_segment_pcm_extractor.dart` extracts the relevant echo segment as PCM via **FFmpeg**.
-2. `yin_pitch.dart` runs the **YIN** algorithm over the PCM to produce a pitch envelope.
-3. `pitch_contour_chart.dart` renders the envelope; `pitch_contour_section.dart` exposes it as a collapsible section that can be **parent-driven** (`expanded`, `showHeader: false` for chart-only body).
+1. `echo_segment_pcm_extractor.dart` extracts the relevant echo segment to a temp `.raw` via **FFmpeg** (CLI on Windows, FFmpegKit elsewhere). Extraction is **cancellable** (`EchoPcmCancelToken` kills the live FFmpeg process/session) and **bounded** by a per-call timeout; failures surface a typed `EchoPcmExtractionException` (e.g. `ffmpegMissing`) instead of a silent `null`. FFmpeg binary resolution goes through the single shared `FfmpegMediaProbe.resolveFfmpegExecutable()` (memoized for the process lifetime).
+2. The byte→Float32 **decode + YIN** (`yin_pitch.dart`) both run inside **one worker isolate** (`Isolate.run`), so the multi-megabyte PCM buffer never blocks the UI thread and never crosses an isolate port — only the ~520-point analysis result is returned.
+3. `echo_pitch_analysis_service.dart` caches results per region/recording (so re-opening a region reuses the analysis) and **cancels** — not merely discards — an in-flight extraction when the region/recording changes. Exposed as the keep-alive `echoPitchAnalysisServiceProvider`.
+4. `pitch_contour_chart.dart` renders the envelope; `pitch_contour_section.dart` exposes it as a collapsible section that can be **parent-driven** (`expanded`, `showHeader: false` for chart-only body). The merged reference+user series is **memoized** (`EchoMergedSeriesMemo`) so it is built once per (reference, user) pair — identical across playback ticks — and `shouldRepaint` compares the points by content so the painter skips work when only the progress cursor moves.
 
 ## Pronunciation assessment (Azure)
 
