@@ -1,2 +1,2 @@
-- [Run 2026-07-09](notes-2026-07-09.md) — selected tasks 2/3/8: no comment/fix-labelled issue target; selector perf branch `repo-assist/perf-player-session-selectors-2026-07-09` commit `ac0e21f`; #165 monthly summary refreshed with #aw_perfsel
-- [Historical rollup through 2026-07-08](historical-notes.md) — condensed prior Repo Assist runs and stale-action cleanup context
+- [Run 2026-07-11](notes-2026-07-11.md) — selected tasks 3/4/5: ADR ID collision fix (0021 → 0042, 0030 → 0043); 18-file PR-fallback at `aw-repo-assist-fix-adr-id-collisions-2026-07-11.patch`; #165 monthly summary refreshed
+- [Historical rollup through 2026-07-09](historical-notes.md) — condensed prior Repo Assist runs and stale-action cleanup context
