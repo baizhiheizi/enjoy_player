@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
 
+import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
 /// Contract implemented by [MediaKitPlayerEngine] / [YouTubePlayerEngine]; fakes in tests.
@@ -93,14 +94,17 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   static VideoControllerConfiguration get _videoControllerConfiguration {
     if (Platform.isWindows) {
-      return const VideoControllerConfiguration(width: 1920, height: 1080);
+      return const VideoControllerConfiguration(
+        width: kVideoControllerWidth,
+        height: kVideoControllerHeight,
+      );
     }
     if (Platform.isMacOS) {
       // Bind libmpv video output before decode; prefer software GL texture path
       // on recent macOS where deprecated OpenGL HW textures can stay black.
       return const VideoControllerConfiguration(
-        width: 1920,
-        height: 1080,
+        width: kVideoControllerWidth,
+        height: kVideoControllerHeight,
         hwdec: 'auto-safe',
         enableHardwareAcceleration: false,
       );
@@ -159,7 +163,7 @@ class MediaKitPlayerEngine implements PlayerEngine {
   @override
   Stream<double> get videoAspectRatioStream => _player.stream.videoParams
       .map((vp) => aspectRatioFromVideoParams(vp, _player.state))
-      .distinct((a, b) => (a - b).abs() < 0.0001);
+      .distinct((a, b) => (a - b).abs() < kAspectRatioEpsilon);
 
   @override
   Widget buildVideoStage({
@@ -233,7 +237,7 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   Future<void> setVolumeNormalized(double volume) =>
-      _player.setVolume(volume.clamp(0, 1) * 100);
+      _player.setVolume(volume.clamp(0, 1) * kVolumeScale);
 
   @override
   Future<void> playOrPause() => _player.playOrPause();

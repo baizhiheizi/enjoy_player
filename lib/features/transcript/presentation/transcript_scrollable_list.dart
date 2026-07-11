@@ -26,6 +26,15 @@ import 'package:enjoy_player/features/transcript/presentation/transcript_echo_re
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_tile.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+/// Viewport alignment used by [Scrollable.ensureVisible] and the bootstrap
+/// jump estimate so the active cue sits roughly 42 % from the top of the list.
+const double kTranscriptScrollAlignment = 0.42;
+
+/// Fraction of the viewport height subtracted from the jump estimate to avoid
+/// overshoot when the active cue is bootstrapped via raw line index (single-line
+/// tile height) rather than the actual widget height.
+const double kTranscriptScrollEstimateFactor = 0.85;
+
 sealed class _TranscriptVirtualItem {
   const _TranscriptVirtualItem();
 }
@@ -227,7 +236,8 @@ class _TranscriptScrollableListState
     final pos = _scrollController.position;
     final ratio = lineIndex / lineCount;
     final estimated = ratio * pos.maxScrollExtent;
-    final alignmentAdjust = alignment * pos.viewportDimension * 0.85;
+    final alignmentAdjust =
+        alignment * pos.viewportDimension * kTranscriptScrollEstimateFactor;
     _scrollController.jumpTo(
       (estimated - alignmentAdjust).clamp(0.0, pos.maxScrollExtent),
     );
@@ -307,7 +317,7 @@ class _TranscriptScrollableListState
     if (ctx != null) {
       _ensureVisible(
         ctx,
-        alignment: 0.42,
+        alignment: kTranscriptScrollAlignment,
         duration: tok.motionStandard,
         curve: Curves.easeOutCubic,
         generation: generation,
@@ -315,7 +325,7 @@ class _TranscriptScrollableListState
       return;
     }
 
-    _jumpToLineIndexEstimate(active, alignment: 0.42);
+    _jumpToLineIndexEstimate(active, alignment: kTranscriptScrollAlignment);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || generation != _scrollGeneration) return;
@@ -323,7 +333,7 @@ class _TranscriptScrollableListState
       if (ctx2 == null) return;
       _ensureVisible(
         ctx2,
-        alignment: 0.42,
+        alignment: kTranscriptScrollAlignment,
         duration: tok.motionStandard,
         curve: Curves.easeOutCubic,
         generation: generation,
