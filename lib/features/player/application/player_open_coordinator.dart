@@ -97,7 +97,14 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   await host.positionTracker.cancel();
 
   await engine.open(playable);
-  if (host.isOpenStale(gen)) return;
+  if (host.isOpenStale(gen)) {
+    try {
+      await engine.stop();
+    } catch (_) {
+      // Engine may have been disposed by a new open generation; best-effort.
+    }
+    return;
+  }
 
   if (engine.supportsSubtitleDisabling) {
     await engine.disableRenderedSubtitles();
