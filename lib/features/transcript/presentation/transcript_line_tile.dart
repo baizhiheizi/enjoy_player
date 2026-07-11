@@ -1,27 +1,22 @@
 /// Single transcript cue row with timestamp, markup, and tap target.
 library;
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
-import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_cue_reveal_provider.dart';
 import 'package:enjoy_player/features/transcript/application/tap_reveal_hold_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_blur.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_line_recording_badge.dart';
+import 'package:enjoy_player/features/transcript/presentation/transcript_line_selection_toolbar.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_markup.dart';
-import 'package:enjoy_player/features/transcript/presentation/transcript_text_selection_scope.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class TranscriptLineTile extends ConsumerStatefulWidget {
@@ -71,34 +66,10 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
 
 class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
   bool _hover = false;
-  Timer? _selectionToolbarTimer;
-
-  static const _toolbarDebounce = Duration(milliseconds: 200);
 
   @override
   void dispose() {
-    _selectionToolbarTimer?.cancel();
     super.dispose();
-  }
-
-  /// [SelectableText]'s [EditableText] is internal; locate it to open the
-  /// selection toolbar on desktop mouse drag (Flutter otherwise only auto-shows
-  /// the toolbar for touch/stylus or double-tap+drag).
-  static EditableTextState? _findEditableTextState(BuildContext context) {
-    EditableTextState? found;
-    void visit(Element element) {
-      if (found != null) return;
-      if (element is StatefulElement && element.state is EditableTextState) {
-        found = element.state as EditableTextState;
-        return;
-      }
-      element.visitChildren(visit);
-    }
-
-    final element = context as Element?;
-    if (element == null) return null;
-    visit(element);
-    return found;
   }
 
   void _handleTap(BuildContext context) {
@@ -125,177 +96,6 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           cueId: cueIdFor(widget.line),
           holdSeconds: kTapRevealHoldSeconds,
         );
-  }
-
-  void _onSelectableSelectionChanged(
-    BuildContext selectableSubtreeContext,
-    TextSelection selection,
-    SelectionChangedCause? cause,
-  ) {
-    _selectionToolbarTimer?.cancel();
-    _selectionToolbarTimer = null;
-
-    if (!widget.selectable) return;
-    // Match [SelectableText] handle visibility: keyboard-driven selection does
-    // not surface the floating toolbar by default.
-    if (cause == SelectionChangedCause.keyboard) return;
-    if (!selection.isValid || selection.isCollapsed) return;
-
-    if (cause == SelectionChangedCause.drag) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (!selectableSubtreeContext.mounted) return;
-        final editable = _findEditableTextState(selectableSubtreeContext);
-        if (editable == null || !editable.mounted) return;
-        editable.hideToolbar();
-      });
-    }
-
-    _selectionToolbarTimer = Timer(_toolbarDebounce, () {
-      _selectionToolbarTimer = null;
-      if (!mounted) return;
-      if (!selectableSubtreeContext.mounted) return;
-      final editable = _findEditableTextState(selectableSubtreeContext);
-      if (editable == null || !editable.mounted) return;
-      final sel = editable.textEditingValue.selection;
-      if (!sel.isValid || sel.isCollapsed) return;
-      editable.showToolbar();
-    });
-  }
-
-  /// Raw substring for the current [selection] (no trim), or `null` if invalid.
-  static String? _rawSelectedSlice(String plain, TextSelection selection) {
-    if (!selection.isValid || selection.isCollapsed) return null;
-    final max = plain.length;
-    final start = selection.start.clamp(0, max);
-    final end = selection.end.clamp(0, max);
-    if (end <= start) return null;
-    return plain.substring(start, end);
-  }
-
-  /// Trimmed slice suitable for lookup, max 100 characters, or `null`.
-  static String? _lookupSlice(String plain, TextSelection selection) {
-    final raw = _rawSelectedSlice(plain, selection);
-    if (raw == null) return null;
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty || trimmed.length > 100) return null;
-    return trimmed;
-  }
-
-  List<ContextMenuButtonItem> _selectionToolbarItems({
-    required BuildContext menuContext,
-    required EditableTextState editableTextState,
-    required AppLocalizations l10n,
-  }) {
-    final value = editableTextState.textEditingValue;
-    final plain = value.text;
-    final selection = value.selection;
-    final items = <ContextMenuButtonItem>[];
-
-    final lookupText = widget.onLookupRequested == null
-        ? null
-        : _lookupSlice(plain, selection);
-    if (lookupText != null) {
-      items.add(
-        ContextMenuButtonItem(
-          label: l10n.lookupSheetTitle,
-          onPressed: () {
-            Haptics.selection(menuContext);
-            editableTextState.hideToolbar();
-            releasePrimaryFocusForGlobalHotkeys();
-            widget.onLookupRequested!(lookupText);
-          },
-        ),
-      );
-    }
-
-    if (editableTextState.copyEnabled) {
-      items.add(
-        ContextMenuButtonItem(
-          type: ContextMenuButtonType.copy,
-          label: l10n.lookupCopy,
-          onPressed: () async {
-            Haptics.selection(menuContext);
-            final raw = _rawSelectedSlice(
-              plain,
-              editableTextState.textEditingValue.selection,
-            );
-            if (raw != null && raw.isNotEmpty) {
-              await Clipboard.setData(ClipboardData(text: raw));
-            } else {
-              editableTextState.copySelection(SelectionChangedCause.toolbar);
-            }
-            editableTextState.hideToolbar();
-            if (menuContext.mounted) {
-              AppNotice.success(menuContext, l10n.lookupCopySuccess);
-            }
-          },
-        ),
-      );
-    }
-
-    if (editableTextState.selectAllEnabled) {
-      items.add(
-        ContextMenuButtonItem(
-          type: ContextMenuButtonType.selectAll,
-          onPressed: () {
-            Haptics.selection(menuContext);
-            editableTextState.selectAll(SelectionChangedCause.toolbar);
-          },
-        ),
-      );
-    }
-
-    return items;
-  }
-
-  Widget _selectionToolbar(
-    BuildContext menuContext,
-    EditableTextState editableTextState,
-  ) {
-    final l10n = AppLocalizations.of(menuContext);
-    if (l10n == null) {
-      return AdaptiveTextSelectionToolbar.editableText(
-        editableTextState: editableTextState,
-      );
-    }
-    final items = _selectionToolbarItems(
-      menuContext: menuContext,
-      editableTextState: editableTextState,
-      l10n: l10n,
-    );
-    if (items.isEmpty) {
-      return AdaptiveTextSelectionToolbar.editableText(
-        editableTextState: editableTextState,
-      );
-    }
-    return AdaptiveTextSelectionToolbar.buttonItems(
-      anchors: editableTextState.contextMenuAnchors,
-      buttonItems: items,
-    );
-  }
-
-  Widget _richSelectable({required TextSpan span, VoidCallback? onTap}) {
-    return Builder(
-      builder: (selectableSubtreeContext) {
-        return TranscriptTextSelectionScope(
-          child: SelectableText.rich(
-            span,
-            onTap: onTap,
-            contextMenuBuilder: (menuContext, editableTextState) {
-              return _selectionToolbar(menuContext, editableTextState);
-            },
-            onSelectionChanged: (selection, cause) {
-              _onSelectableSelectionChanged(
-                selectableSubtreeContext,
-                selection,
-                cause,
-              );
-            },
-          ),
-        );
-      },
-    );
   }
 
   String _snippet(String plain) {
@@ -375,7 +175,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     }
 
     final primaryWidget = widget.selectable
-        ? _richSelectable(
+        ? TranscriptSelectableRichText(
             span: transcriptMarkupToTextSpan(
               widget.line.text,
               baseBody,
@@ -383,6 +183,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               emphasize: widget.isActive,
             ),
             onTap: _revealHoldOnly,
+            onLookupRequested: widget.onLookupRequested,
           )
         : Text.rich(
             transcriptMarkupToTextSpan(
@@ -396,7 +197,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
     Widget? secondaryWidget;
     if (widget.secondaryText != null) {
       secondaryWidget = widget.selectable
-          ? _richSelectable(
+          ? TranscriptSelectableRichText(
               span: transcriptMarkupToTextSpan(
                 widget.secondaryText!,
                 typography.secondaryStyle,
@@ -404,6 +205,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                 emphasize: false,
               ),
               onTap: _revealHoldOnly,
+              onLookupRequested: widget.onLookupRequested,
             )
           : Text.rich(
               transcriptMarkupToTextSpan(

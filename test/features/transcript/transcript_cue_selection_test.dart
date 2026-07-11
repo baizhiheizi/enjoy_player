@@ -23,6 +23,16 @@ void main() {
       expect(transcriptActiveIndex(lines, 1.5), 0);
     });
 
+    test('returns last cue when t is in a non-empty gap between cues', () {
+      final lines = [
+        cue(0, 1000),
+        cue(1000, 1000),
+        cue(3000, 1000),
+        cue(4000, 1000),
+      ];
+      expect(transcriptActiveIndex(lines, 2.5), 1);
+    });
+
     test('returns -1 when t is before first cue', () {
       final lines = [cue(1000, 500)];
       expect(transcriptActiveIndex(lines, 0.5), -1);

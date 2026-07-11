@@ -120,6 +120,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
           (secondaryText == null || secondaryText.trim().isEmpty) &&
           !lineFailed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!ref.context.mounted) return;
           ref
               .read(autoTranslateCtrlProvider(mediaId).notifier)
               .requestTranslateLine(i);

@@ -26,15 +26,7 @@ int transcriptActiveIndex(List<TranscriptLine> lines, double t) {
     }
   }
 
-  if (rightmost >= 0 && t < lines[rightmost].endSeconds) {
-    return rightmost;
-  }
-
-  // Gap after last matched start, or before first cue: fall back to last cue with start <= t.
-  for (var i = lines.length - 1; i >= 0; i--) {
-    if (t >= lines[i].startSeconds) return i;
-  }
-  return -1;
+  return rightmost;
 }
 
 /// When echo mode is on, only cues inside `[startLineIndex, endLineIndex]` may show
