@@ -1,132 +1,137 @@
 {
   "Home": {
     "sourceFiles": [
-      { "path": "README.md", "size": 3663 },
-      { "path": "pubspec.yaml", "size": 2302 },
-      { "path": "AGENTS.md", "size": 2797 },
+      { "path": "README.md", "size": 4019 },
+      { "path": "pubspec.yaml", "size": 2325 },
+      { "path": "AGENTS.md", "size": 4979 },
       { "path": "docs/architecture.md", "size": 6746 }
     ],
-    "templateHash": "home-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "home-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Getting-Started": {
     "sourceFiles": [
-      { "path": "README.md", "size": 3663 },
+      { "path": "README.md", "size": 4019 },
       { "path": ".github/flutter-version", "size": 7 },
-      { "path": "pubspec.yaml", "size": 2302 }
+      { "path": "pubspec.yaml", "size": 2325 },
+      { "path": "AGENTS.md", "size": 4979 }
     ],
-    "templateHash": "getting-started-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "getting-started-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Architecture": {
     "sourceFiles": [
       { "path": "docs/architecture.md", "size": 6746 },
       { "path": "lib/data/db/app_database.dart", "size": 27863 },
-      { "path": "lib/core/utils/stream_distinct.dart", "size": 1690 }
+      { "path": "lib/core/utils/stream_distinct.dart", "size": 1690 },
+      { "path": "AGENTS.md", "size": 4979 }
     ],
-    "templateHash": "architecture-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "architecture-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Player": {
     "sourceFiles": [
       { "path": "lib/features/player/application/player_engine.dart", "size": 7441 },
       { "path": "lib/features/player/application/player_controller.dart", "size": 6525 },
-      { "path": "lib/features/player/application/echo_mode_provider.dart", "size": 3797 }
+      { "path": "lib/features/player/application/echo_mode_provider.dart", "size": 3797 },
+      { "path": "pubspec.yaml", "size": 2325 }
     ],
-    "templateHash": "player-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "player-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Transcripts": {
     "sourceFiles": [
       { "path": "lib/features/transcript/data/transcript_repository.dart", "size": 23486 },
       { "path": "lib/core/utils/stream_distinct.dart", "size": 1690 }
     ],
-    "templateHash": "transcripts-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "transcripts-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Echo-Mode": {
     "sourceFiles": [
-      { "path": "lib/features/player/application/echo_mode_provider.dart", "size": 3797 }
+      { "path": "lib/features/player/application/echo_mode_provider.dart", "size": 3797 },
+      { "path": "lib/features/shadow_reading/", "size": 0 }
     ],
-    "templateHash": "echo-mode-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "echo-mode-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Library": {
     "sourceFiles": [
       { "path": "lib/features/library/", "size": 0 }
     ],
-    "templateHash": "library-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "library-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Sync": {
     "sourceFiles": [
       { "path": "lib/features/sync/application/sync_controller.dart", "size": 5173 }
     ],
-    "templateHash": "sync-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "sync-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "AI-and-Lookup": {
     "sourceFiles": [
-      { "path": "pubspec.yaml", "size": 2302 }
+      { "path": "pubspec.yaml", "size": 2325 }
     ],
-    "templateHash": "ai-and-lookup-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "ai-and-lookup-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Auth": {
     "sourceFiles": [
-      { "path": "pubspec.yaml", "size": 2302 }
+      { "path": "pubspec.yaml", "size": 2325 }
     ],
-    "templateHash": "auth-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "auth-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Subscription": {
     "sourceFiles": [],
-    "templateHash": "subscription-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "subscription-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Settings": {
     "sourceFiles": [
       { "path": "lib/features/settings/", "size": 0 }
     ],
-    "templateHash": "settings-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "settings-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Discover": {
     "sourceFiles": [
-      { "path": "lib/features/discover/", "size": 0 }
+      { "path": "lib/features/discover/", "size": 0 },
+      { "path": "assets/discover/recommended_channels.json", "size": 0 }
     ],
-    "templateHash": "discover-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "discover-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Community-and-Credits": {
     "sourceFiles": [
       { "path": "lib/features/community/", "size": 0 },
       { "path": "lib/features/credits/", "size": 0 }
     ],
-    "templateHash": "community-and-credits-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "community-and-credits-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Update": {
     "sourceFiles": [
       { "path": "lib/features/update/", "size": 0 },
-      { "path": "pubspec.yaml", "size": 2302 }
+      { "path": "pubspec.yaml", "size": 2325 }
     ],
-    "templateHash": "update-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "update-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Share-Poster": {
     "sourceFiles": [
       { "path": "lib/features/share_poster/", "size": 0 }
     ],
-    "templateHash": "share-poster-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "share-poster-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Hotkeys": {
     "sourceFiles": [
       { "path": "lib/features/hotkeys/", "size": 0 }
     ],
-    "templateHash": "hotkeys-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "hotkeys-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Persistence": {
     "sourceFiles": [
@@ -134,59 +139,59 @@
       { "path": "lib/core/recovery/recovery_actions.dart", "size": 7132 },
       { "path": "lib/core/recovery/recovery_surface.dart", "size": 8405 }
     ],
-    "templateHash": "persistence-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "persistence-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Core-Modules": {
     "sourceFiles": [
       { "path": "lib/core/", "size": 0 }
     ],
-    "templateHash": "core-modules-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "core-modules-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Tech-Stack": {
     "sourceFiles": [
-      { "path": "pubspec.yaml", "size": 2302 }
+      { "path": "pubspec.yaml", "size": 2325 }
     ],
-    "templateHash": "tech-stack-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "tech-stack-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Conventions": {
     "sourceFiles": [
-      { "path": "AGENTS.md", "size": 2797 },
+      { "path": "AGENTS.md", "size": 4979 },
       { "path": "docs/conventions.md", "size": 5000 }
     ],
-    "templateHash": "conventions-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "conventions-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Testing": {
     "sourceFiles": [
       { "path": ".github/workflows/ci.yml", "size": 2000 }
     ],
-    "templateHash": "testing-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "testing-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Release-and-CI": {
     "sourceFiles": [
       { "path": "docs/packaging.md", "size": 7000 },
       { "path": "docs/ci-self-hosted-runners.md", "size": 3000 }
     ],
-    "templateHash": "release-and-ci-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "release-and-ci-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "Local-Packages": {
     "sourceFiles": [
       { "path": "packages/azure_speech/", "size": 0 },
       { "path": "packages/ffmpeg_kit_flutter_new/", "size": 0 }
     ],
-    "templateHash": "local-packages-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "local-packages-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   },
   "For-Agents": {
     "sourceFiles": [
-      { "path": ".github/agentic-wiki/PAGES.md", "size": 17708 }
+      { "path": ".github/agentic-wiki/PAGES.md", "size": 17904 }
     ],
-    "templateHash": "for-agents-2026-07-07",
-    "generatedAt": "2026-07-07T00:00:00Z"
+    "templateHash": "for-agents-2026-07-11",
+    "generatedAt": "2026-07-11T00:00:00Z"
   }
-}
+} "
