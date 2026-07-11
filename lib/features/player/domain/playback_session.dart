@@ -61,6 +61,37 @@ class PlaybackSession {
       transcriptId: transcriptId ?? this.transcriptId,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlaybackSession &&
+          other.mediaId == mediaId &&
+          other.dexieTargetType == dexieTargetType &&
+          other.mediaType == mediaType &&
+          other.mediaTitle == mediaTitle &&
+          other.thumbnailUrl == thumbnailUrl &&
+          other.durationSeconds == durationSeconds &&
+          other.currentTimeSeconds == currentTimeSeconds &&
+          other.currentSegmentIndex == currentSegmentIndex &&
+          other.language == language &&
+          other.startedAt == startedAt &&
+          other.transcriptId == transcriptId;
+
+  @override
+  int get hashCode => Object.hash(
+    mediaId,
+    dexieTargetType,
+    mediaType,
+    mediaTitle,
+    thumbnailUrl,
+    durationSeconds,
+    currentTimeSeconds,
+    currentSegmentIndex,
+    language,
+    startedAt,
+    transcriptId,
+  );
 }
 
 /// Stable subset for navigation chrome and artwork — excludes clock fields so UI

@@ -62,14 +62,29 @@ class PlayerInteractions extends _$PlayerInteractions {
   @override
   int build() => 0;
 
+  String? _cachedLinesMediaId;
+  List<TranscriptLine> _cachedLines = const [];
+
   Future<List<TranscriptLine>> _lines() async {
     final session = ref.read(playerControllerProvider);
     final mediaId = session?.mediaId;
-    if (mediaId == null) return [];
+    if (mediaId == null) {
+      _cachedLines = const [];
+      _cachedLinesMediaId = null;
+      return _cachedLines;
+    }
+    if (mediaId == _cachedLinesMediaId) return _cachedLines;
+
     final repo = ref.read(transcriptRepositoryProvider);
     final row = await repo.primaryTranscriptRowForMedia(mediaId);
-    if (row == null) return [];
-    return repo.linesForRow(row);
+    if (row == null) {
+      _cachedLines = const [];
+      _cachedLinesMediaId = null;
+      return _cachedLines;
+    }
+    _cachedLines = repo.linesForRow(row);
+    _cachedLinesMediaId = mediaId;
+    return _cachedLines;
   }
 
   Future<void> prevLine() async {

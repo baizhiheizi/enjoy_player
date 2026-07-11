@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
 import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
@@ -58,12 +59,6 @@ List<_TranscriptVirtualItem> _buildVirtualItems(
   return out;
 }
 
-bool _echoLayoutEqual(EchoState a, EchoState b) {
-  return a.active == b.active &&
-      a.startLineIndex == b.startLineIndex &&
-      a.endLineIndex == b.endLineIndex;
-}
-
 class TranscriptScrollableList extends ConsumerStatefulWidget {
   const TranscriptScrollableList({
     required this.mediaId,
@@ -95,6 +90,10 @@ class _TranscriptScrollableListState
   (int start, int end)? _echoRegionScrollKeyBounds;
   GlobalKey? _activeLineScrollKey;
   int _activeLineScrollKeyIndex = -1;
+
+  /// When true, the user is manually scrolling and auto-follow should not
+  /// force-scroll the viewport back to the active cue.
+  bool _suppressAutoScroll = false;
 
   List<_TranscriptVirtualItem> _cachedVirtualItems = const [];
   List<TranscriptLine>? _cachedLinesRef;
@@ -154,7 +153,7 @@ class _TranscriptScrollableListState
   List<_TranscriptVirtualItem> _virtualItems(EchoState echo) {
     if (!identical(widget.lines, _cachedLinesRef) ||
         _cachedEchoForItems == null ||
-        !_echoLayoutEqual(echo, _cachedEchoForItems!)) {
+        _cachedEchoForItems! != echo) {
       _cachedLinesRef = widget.lines;
       _cachedEchoForItems = echo;
       _cachedVirtualItems = _buildVirtualItems(widget.lines, echo);
@@ -182,7 +181,32 @@ class _TranscriptScrollableListState
     return (ratio * (lineCount - 1)).round();
   }
 
-  /// Request when near the playback cue (seek) or the scrolled viewport.
+  /// Whether the active cue line is roughly within the visible viewport.
+  bool _isActiveCueVisible(int activeLineIndex) {
+    if (!_scrollController.hasClients) return true;
+    final focus = _scrollFocusLineIndex();
+    return (activeLineIndex - focus).abs() <= 2;
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification is UserScrollNotification) {
+      if (notification.direction == ScrollDirection.idle) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final activeIdx = ref.read(
+            transcriptPlaybackHighlightProvider(widget.mediaId),
+          );
+          if (!_isActiveCueVisible(activeIdx)) {
+            _suppressAutoScroll = false;
+          }
+        });
+      } else {
+        _suppressAutoScroll = true;
+      }
+    }
+    return false;
+  }
+
   bool _shouldRequestAutoTranslate(int lineIndex, int playbackHighlight) {
     final highlight = playbackHighlight >= 0 ? playbackHighlight : 0;
     final scrollFocus = _scrollFocusLineIndex();
@@ -339,6 +363,8 @@ class _TranscriptScrollableListState
       _lastScrolledIndex = activeForUi;
     }
 
+    if (force && _suppressAutoScroll) return;
+
     _scrollGeneration++;
     final generation = _scrollGeneration;
 
@@ -365,16 +391,23 @@ class _TranscriptScrollableListState
     );
     final secondaryLines = secondaryAsync.value ?? <TranscriptLine>[];
     final secondaryMatcher = _matcherFor(secondaryLines);
-    final autoTranslateState = ref.watch(
-      autoTranslateCtrlProvider(widget.mediaId),
+    final autoTranslateMode = ref.watch(
+      autoTranslateCtrlProvider(widget.mediaId).select(
+        (s) => (
+          isActive: s.isActive,
+          aiTranscriptId: s.aiTranscriptId,
+          sourceLanguage: s.sourceLanguage,
+          targetLanguage: s.targetLanguage,
+        ),
+      ),
     );
     final secondaryId = ref
         .watch(secondaryTranscriptIdProvider(widget.mediaId))
         .value;
     final autoTranslateActive =
-        autoTranslateState.isActive &&
-        autoTranslateState.aiTranscriptId != null &&
-        secondaryId == autoTranslateState.aiTranscriptId;
+        autoTranslateMode.isActive &&
+        autoTranslateMode.aiTranscriptId != null &&
+        secondaryId == autoTranslateMode.aiTranscriptId;
     final l10n = AppLocalizations.of(context);
     final items = _virtualItems(echo);
     final lineRecordingCounts = ref.watch(
@@ -391,6 +424,9 @@ class _TranscriptScrollableListState
           (next < echoNow.startLineIndex || next > echoNow.endLineIndex)) {
         return;
       }
+      if (prev == null || (next - prev).abs() > 1) {
+        _suppressAutoScroll = false;
+      }
       _scheduleTranscriptScrollIntoView(force: true);
     });
     ref.listen(playerIsPlayingProvider, (_, _) {
@@ -402,6 +438,7 @@ class _TranscriptScrollableListState
       ),
       (prev, next) {
         if (prev == next) return;
+        _suppressAutoScroll = false;
         _scheduleTranscriptScrollIntoView(force: true);
       },
     );
@@ -411,137 +448,136 @@ class _TranscriptScrollableListState
       label:
           AppLocalizations.of(context)?.transcriptAccessibilityTranscriptList ??
           'Transcript',
-      child: ListView.builder(
-        scrollCacheExtent: const ScrollCacheExtent.pixels(1400),
-        controller: _scrollController,
-        padding: EdgeInsets.symmetric(
-          horizontal: tok.space12,
-          vertical: tok.space8,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          switch (item) {
-            case _VirtualEcho e:
-              return Padding(
-                key: ValueKey<String>(
-                  'echo-${e.startLineIndex}-${e.endLineIndex}',
-                ),
-                padding: EdgeInsets.only(bottom: tok.space8),
-                child: KeyedSubtree(
-                  key: _scrollKeyForEcho(echo),
-                  child: EchoRegionMergedCard(
-                    mediaId: widget.mediaId,
-                    lines: widget.lines,
-                    echo: echo,
-                    activeCueIndex: activeForUi,
-                    secondaryLines: secondaryLines,
-                    secondaryMatcher: secondaryMatcher,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: ListView.builder(
+          scrollCacheExtent: const ScrollCacheExtent.pixels(1400),
+          controller: _scrollController,
+          padding: EdgeInsets.symmetric(
+            horizontal: tok.space12,
+            vertical: tok.space8,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            switch (item) {
+              case _VirtualEcho e:
+                return Padding(
+                  key: ValueKey<String>(
+                    'echo-${e.startLineIndex}-${e.endLineIndex}',
                   ),
-                ),
-              );
-            case _VirtualLine vl:
-              final lineIndex = vl.lineIndex;
-              final line = widget.lines[lineIndex];
-              final isActive = lineIndex == activeForUi;
-              final inEcho =
-                  echo.active &&
-                  lineIndex >= echo.startLineIndex &&
-                  lineIndex <= echo.endLineIndex;
-              final secondaryTextRaw = autoTranslateActive
-                  ? resolveAutoTranslateSecondaryText(
-                      primaryLines: widget.lines,
-                      aiLines: secondaryLines,
-                      lineIndex: lineIndex,
-                      sourceLanguage: autoTranslateState.sourceLanguage,
-                      targetLanguage: autoTranslateState.targetLanguage,
-                    )
-                  : secondaryMatcher.match(line)?.text;
-              final secondaryEmpty =
-                  secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
-              final lineFailed =
-                  autoTranslateActive &&
-                  autoTranslateState.isLineFailed(lineIndex);
-              final lineInFlight =
-                  autoTranslateActive &&
-                  autoTranslateState.isLineInFlight(lineIndex);
-              if (autoTranslateActive &&
-                  secondaryEmpty &&
-                  !lineFailed &&
-                  _shouldRequestAutoTranslate(lineIndex, activeForUi)) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  // Re-check after seek/scroll jumps that happen this frame.
-                  final highlight = ref.read(
-                    transcriptPlaybackHighlightProvider(widget.mediaId),
+                  padding: EdgeInsets.only(bottom: tok.space8),
+                  child: KeyedSubtree(
+                    key: _scrollKeyForEcho(echo),
+                    child: EchoRegionMergedCard(
+                      mediaId: widget.mediaId,
+                      lines: widget.lines,
+                      echo: echo,
+                      activeCueIndex: activeForUi,
+                      secondaryLines: secondaryLines,
+                      secondaryMatcher: secondaryMatcher,
+                    ),
+                  ),
+                );
+              case _VirtualLine vl:
+                final lineIndex = vl.lineIndex;
+                final line = widget.lines[lineIndex];
+                final isActive = lineIndex == activeForUi;
+                final inEcho =
+                    echo.active &&
+                    lineIndex >= echo.startLineIndex &&
+                    lineIndex <= echo.endLineIndex;
+                final resolved = resolveAutoTranslateTextForDisplay(
+                  autoTranslateActive: autoTranslateActive,
+                  primaryLines: widget.lines,
+                  aiLines: secondaryLines,
+                  lineIndex: lineIndex,
+                  sourceLanguage: autoTranslateMode.sourceLanguage,
+                  targetLanguage: autoTranslateMode.targetLanguage,
+                  matcher: secondaryMatcher,
+                  line: line,
+                  isLineFailed: (i) => ref
+                      .read(autoTranslateCtrlProvider(widget.mediaId))
+                      .isLineFailed(i),
+                  isLineInFlight: (i) => ref
+                      .read(autoTranslateCtrlProvider(widget.mediaId))
+                      .isLineInFlight(i),
+                  l10nLineFailed: l10n?.subtitlesAutoTranslateLineFailed,
+                  l10nLinePending: l10n?.subtitlesAutoTranslatePendingLine,
+                );
+                final secondaryText = resolved.secondaryText;
+                final canRetranslateLine = resolved.canRetranslate;
+                final lineFailed = resolved.isFailed;
+
+                if (autoTranslateActive &&
+                    (secondaryText == null || secondaryText.trim().isEmpty) &&
+                    !lineFailed &&
+                    _shouldRequestAutoTranslate(lineIndex, activeForUi)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    final highlight = ref.read(
+                      transcriptPlaybackHighlightProvider(widget.mediaId),
+                    );
+                    if (!_shouldRequestAutoTranslate(lineIndex, highlight)) {
+                      return;
+                    }
+                    ref
+                        .read(
+                          autoTranslateCtrlProvider(widget.mediaId).notifier,
+                        )
+                        .requestTranslateLine(lineIndex);
+                  });
+                }
+
+                final selectable = isActive;
+                Widget tile = TranscriptLineTile(
+                  line: line,
+                  mediaId: widget.mediaId,
+                  secondaryText: secondaryText,
+                  isActive: isActive,
+                  inEcho: inEcho,
+                  groupedInEcho: false,
+                  selectable: selectable,
+                  recordingCount: lineRecordingCounts?[lineIndex],
+                  onLookupRequested: selectable
+                      ? (t) => openTranscriptLookup(
+                          ref: ref,
+                          context: context,
+                          selectedText: t,
+                          lines: widget.lines,
+                        )
+                      : null,
+                  onRetranslateSecondary: canRetranslateLine
+                      ? () => unawaited(
+                          ref
+                              .read(
+                                autoTranslateCtrlProvider(
+                                  widget.mediaId,
+                                ).notifier,
+                              )
+                              .retranslateLine(lineIndex),
+                        )
+                      : null,
+                  onTap: () => ref
+                      .read(playerInteractionsProvider.notifier)
+                      .seekToLine(line, lineIndex),
+                );
+
+                if (isActive) {
+                  tile = KeyedSubtree(
+                    key: _scrollKeyForActiveLine(lineIndex),
+                    child: tile,
                   );
-                  if (!_shouldRequestAutoTranslate(lineIndex, highlight)) {
-                    return;
-                  }
-                  ref
-                      .read(autoTranslateCtrlProvider(widget.mediaId).notifier)
-                      .requestTranslateLine(lineIndex);
-                });
-              }
-              final secondaryText = secondaryEmpty && l10n != null
-                  ? (lineFailed
-                        ? l10n.subtitlesAutoTranslateLineFailed
-                        : (lineInFlight
-                              ? l10n.subtitlesAutoTranslatePendingLine
-                              : secondaryTextRaw))
-                  : secondaryTextRaw;
-              final canRetranslateLine =
-                  autoTranslateActive &&
-                  (lineFailed || (secondaryText != null && !secondaryEmpty));
+                }
 
-              final selectable = isActive;
-              Widget tile = TranscriptLineTile(
-                line: line,
-                mediaId: widget.mediaId,
-                secondaryText: secondaryText,
-                isActive: isActive,
-                inEcho: inEcho,
-                groupedInEcho: false,
-                selectable: selectable,
-                recordingCount: lineRecordingCounts?[lineIndex],
-                onLookupRequested: selectable
-                    ? (t) => openTranscriptLookup(
-                        ref: ref,
-                        context: context,
-                        selectedText: t,
-                        lines: widget.lines,
-                      )
-                    : null,
-                onRetranslateSecondary: canRetranslateLine
-                    ? () => unawaited(
-                        ref
-                            .read(
-                              autoTranslateCtrlProvider(
-                                widget.mediaId,
-                              ).notifier,
-                            )
-                            .retranslateLine(lineIndex),
-                      )
-                    : null,
-                onTap: () => ref
-                    .read(playerInteractionsProvider.notifier)
-                    .seekToLine(line, lineIndex),
-              );
-
-              if (isActive) {
-                tile = KeyedSubtree(
-                  key: _scrollKeyForActiveLine(lineIndex),
+                return Padding(
+                  key: ValueKey<String>('line-$lineIndex'),
+                  padding: EdgeInsets.only(bottom: tok.space8),
                   child: tile,
                 );
-              }
-
-              return Padding(
-                key: ValueKey<String>('line-$lineIndex'),
-                padding: EdgeInsets.only(bottom: tok.space8),
-                child: tile,
-              );
-          }
-        },
+            }
+          },
+        ),
       ),
     );
   }

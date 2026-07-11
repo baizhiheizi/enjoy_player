@@ -23,11 +23,17 @@ class SharePracticePosterButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final session = ref.watch(playerControllerProvider);
+    final sessionInfo = ref.watch(
+      playerControllerProvider.select(
+        (s) => s != null
+            ? (mediaId: s.mediaId, dexieTargetType: s.dexieTargetType)
+            : null,
+      ),
+    );
     final targetTypeAsync = ref.watch(dexieTargetTypeForMediaProvider(mediaId));
 
-    final targetType = session?.mediaId == mediaId
-        ? session!.dexieTargetType
+    final targetType = sessionInfo?.mediaId == mediaId
+        ? sessionInfo!.dexieTargetType
         : targetTypeAsync.value;
     if (targetType == null) return const SizedBox.shrink();
 

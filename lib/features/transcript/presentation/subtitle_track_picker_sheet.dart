@@ -653,14 +653,15 @@ class _SubtitleTrackPickerSheetState
 
     final primaryId = primaryIdAsync.value;
     final secondaryId = secondaryIdAsync.value;
-    final session = ref.watch(playerControllerProvider);
+    final dexieTargetType = ref.watch(
+      playerControllerProvider.select((s) => s?.dexieTargetType),
+    );
     final videoRowAsync = ref.watch(videoRowForMediaProvider(widget.mediaId));
     final isYoutube = videoRowAsync.maybeWhen(
       data: (row) => row?.provider == 'youtube',
       orElse: () => false,
     );
-    final showExtractEmbedded =
-        session != null && session.dexieTargetType == 'Video' && !isYoutube;
+    final showExtractEmbedded = dexieTargetType == 'Video' && !isYoutube;
     final fetchState = ref.watch(transcriptFetchStatusProvider(widget.mediaId));
     final isFetching = fetchState.status == TranscriptFetchStatus.loading;
     final autoTranslateState = ref.watch(

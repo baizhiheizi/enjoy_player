@@ -17,7 +17,7 @@ import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading
 import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
-import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
@@ -54,12 +54,21 @@ class EchoRegionMergedCard extends ConsumerWidget {
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(mediaId),
     );
-    final autoTranslateState = ref.watch(autoTranslateCtrlProvider(mediaId));
+    final autoTranslateMode = ref.watch(
+      autoTranslateCtrlProvider(mediaId).select(
+        (s) => (
+          isActive: s.isActive,
+          aiTranscriptId: s.aiTranscriptId,
+          sourceLanguage: s.sourceLanguage,
+          targetLanguage: s.targetLanguage,
+        ),
+      ),
+    );
     final secondaryId = ref.watch(secondaryTranscriptIdProvider(mediaId)).value;
     final autoTranslateActive =
-        autoTranslateState.isActive &&
-        autoTranslateState.aiTranscriptId != null &&
-        secondaryId == autoTranslateState.aiTranscriptId;
+        autoTranslateMode.isActive &&
+        autoTranslateMode.aiTranscriptId != null &&
+        secondaryId == autoTranslateMode.aiTranscriptId;
 
     // Neutral surface — no colored background; left rail carries the echo accent.
     final shell = scheme.surfaceContainerLow;
@@ -82,41 +91,40 @@ class EchoRegionMergedCard extends ConsumerWidget {
 
       final line = lines[i];
       final isActive = i == activeCueIndex;
-      final secondaryTextRaw = autoTranslateActive
-          ? resolveAutoTranslateSecondaryText(
-              primaryLines: lines,
-              aiLines: secondaryLines,
-              lineIndex: i,
-              sourceLanguage: autoTranslateState.sourceLanguage,
-              targetLanguage: autoTranslateState.targetLanguage,
-            )
-          : matcher.match(line)?.text;
-      final secondaryEmpty =
-          secondaryTextRaw == null || secondaryTextRaw.trim().isEmpty;
-      final lineFailed =
-          autoTranslateActive && autoTranslateState.isLineFailed(i);
-      final lineInFlight =
-          autoTranslateActive && autoTranslateState.isLineInFlight(i);
+      final resolved = resolveAutoTranslateTextForDisplay(
+        autoTranslateActive: autoTranslateActive,
+        primaryLines: lines,
+        aiLines: secondaryLines,
+        lineIndex: i,
+        sourceLanguage: autoTranslateMode.sourceLanguage,
+        targetLanguage: autoTranslateMode.targetLanguage,
+        matcher: matcher,
+        line: line,
+        isLineFailed: (i) =>
+            ref.read(autoTranslateCtrlProvider(mediaId)).isLineFailed(i),
+        isLineInFlight: (i) =>
+            ref.read(autoTranslateCtrlProvider(mediaId)).isLineInFlight(i),
+        l10nLineFailed: AppLocalizations.of(
+          context,
+        )?.subtitlesAutoTranslateLineFailed,
+        l10nLinePending: AppLocalizations.of(
+          context,
+        )?.subtitlesAutoTranslatePendingLine,
+      );
+      final secondaryText = resolved.secondaryText;
+      final canRetranslate = resolved.canRetranslate;
+      final lineFailed = resolved.isFailed;
+
       // Echo block is itself the viewport; request every empty cue in range.
-      if (autoTranslateActive && secondaryEmpty && !lineFailed) {
+      if (autoTranslateActive &&
+          (secondaryText == null || secondaryText.trim().isEmpty) &&
+          !lineFailed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref
               .read(autoTranslateCtrlProvider(mediaId).notifier)
               .requestTranslateLine(i);
         });
       }
-      final l10n = AppLocalizations.of(context);
-      final secondaryText = secondaryEmpty && l10n != null
-          ? (lineFailed
-                ? l10n.subtitlesAutoTranslateLineFailed
-                : (lineInFlight
-                      ? l10n.subtitlesAutoTranslatePendingLine
-                      : secondaryTextRaw))
-          : secondaryTextRaw;
-      final canRetranslate =
-          autoTranslateActive &&
-          (lineFailed ||
-              (secondaryText != null && secondaryText.trim().isNotEmpty));
 
       final tile = TranscriptLineTile(
         key: ValueKey<String>('echo-line-$i'),
