@@ -12,8 +12,18 @@ Signed-in users open **Subscription** from any of:
 
 - Live status from `GET /api/v1/subscriptions` (tier, active/inactive, expiration, daily credits limit).
 - Free vs Pro comparison with feature bullets aligned to the Enjoy web app.
-- Pull-to-refresh and automatic refresh when the app returns to foreground (e.g. after desktop checkout in an external browser).
+- Pull-to-refresh on the subscription screen; automatic tier reconciliation on app resume and cold start (see [ADR-0041](../decisions/0041-unified-tier-reconciliation.md)).
 - AI credits-limit errors (HTTP 402) in lookup translation include **View plans** → `/subscription`.
+
+### Tier source of truth
+
+All tier indicators (sidebar chip, profile hero card, subscription screen) read the single synchronous `currentTierProvider`, which prefers live `subscriptionStatusProvider` and falls back to the cached `UserProfile.subscriptionTier` while the live status is loading on cold start. Never read `UserProfile.subscriptionTier` directly in UI — it is a cache, not the source of truth.
+
+### Reconciliation & celebration
+
+- `TierReconcileHost` (mounted in `RootShell`) is a global `WidgetsBindingObserver`. On `AppLifecycleState.resumed` and on (re)sign-in it runs `TierReconcileCtrl.reconcile()`, which refreshes **both** the live status and the cached profile. This means a Pro upgrade made anywhere — app-initiated desktop checkout, or directly on the web — surfaces on the next resume or cold start without a manual refresh.
+- When a genuine `free → pro` transition is detected, an `AppNotice.success` snackbar ("You're now Pro — enjoy!") is shown. Already-Pro users are never re-celebrated.
+- For app-initiated purchases, `markPurchasePending()` arms an **eager** resume reconcile that polls the status endpoint for fast confirmation, showing a "Verifying your upgrade…" notice and a soft timeout message if confirmation takes longer than ~30 s (the debounced background reconcile still catches it).
 
 ### Desktop (Windows, macOS)
 
@@ -43,6 +53,7 @@ Rails API base URL (`apiClientProvider`); bearer auth required.
 
 ## Related
 
-- Profile tier chip uses cached `UserProfile.subscriptionTier`.
+- Tier UI reads `currentTierProvider` (single source of truth); reconciliation is owned by `TierReconcileCtrl` + `TierReconcileHost`.
 - `SidebarAccountChip` (`lib/features/auth/presentation/widgets/sidebar_account_chip.dart`) — sidebar entry that opens `/profile` on tap and exposes an inline `/subscription` Upgrade pill for Free users.
 - [ADR-0032](../decisions/0032-platform-scoped-subscription-purchase.md) — platform-scoped purchase policy.
+- [ADR-0041](../decisions/0041-unified-tier-reconciliation.md) — unified tier reconciliation.

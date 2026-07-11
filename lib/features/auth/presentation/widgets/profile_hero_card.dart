@@ -2,20 +2,23 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class ProfileHeroCard extends StatelessWidget {
+class ProfileHeroCard extends ConsumerWidget {
   const ProfileHeroCard({required this.profile, super.key});
 
   final UserProfile profile;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tier = ref.watch(currentTierProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
@@ -69,7 +72,7 @@ class ProfileHeroCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: t.space8),
-                        SubscriptionChip(tier: p.subscriptionTier),
+                        SubscriptionChip(tier: tier),
                       ],
                     ),
                     SizedBox(height: t.space4),
@@ -85,7 +88,7 @@ class ProfileHeroCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (p.subscriptionTier != SubscriptionTier.pro) ...[
+              if (tier != SubscriptionTier.pro) ...[
                 SizedBox(width: t.space12),
                 FilledButton.tonal(
                   onPressed: () => context.push('/subscription'),

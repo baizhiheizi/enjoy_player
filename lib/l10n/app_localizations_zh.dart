@@ -1580,6 +1580,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subscriptionViewPlans => '查看方案';
 
   @override
+  String get subscriptionUpgradedToPro => '已升级为专业版，尽情享受吧！';
+
+  @override
+  String get subscriptionVerifyingUpgrade => '正在确认你的升级…';
+
+  @override
+  String get subscriptionVerifyTimeout => '暂时未能确认你的升级，我们会在后台继续检查。';
+
+  @override
   String get creditsUsageTitle => '积分使用';
 
   @override

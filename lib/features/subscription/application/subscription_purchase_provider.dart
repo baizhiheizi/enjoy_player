@@ -4,7 +4,7 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
+import 'package:enjoy_player/features/subscription/application/tier_reconcile_provider.dart';
 import 'package:enjoy_player/features/subscription/data/subscription_repository.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_processor.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_session.dart';
@@ -27,7 +27,6 @@ class SubscriptionPurchaseCtrl extends _$SubscriptionPurchaseCtrl {
       final session = await repo.purchase(
         PurchaseRequest(months: months, processor: processor),
       );
-      ref.invalidate(subscriptionStatusProvider);
       state = const AsyncData(null);
 
       final url = session.payUrl;
@@ -45,6 +44,9 @@ class SubscriptionPurchaseCtrl extends _$SubscriptionPurchaseCtrl {
       if (!launched) {
         throw StateError('launch_failed');
       }
+      // Mark a purchase as pending so the next app resume reconciles eagerly
+      // (polls the status endpoint for fast confirmation). See ADR-0041.
+      ref.read(tierReconcileCtrlProvider.notifier).markPurchasePending();
       return session;
     } catch (e, st) {
       state = AsyncError(e, st);

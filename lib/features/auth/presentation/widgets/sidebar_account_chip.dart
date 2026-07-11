@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SidebarAccountChip extends ConsumerWidget {
@@ -54,7 +55,8 @@ class SidebarAccountChip extends ConsumerWidget {
           if (state is AuthSignedIn) {
             final p = state.profile;
             final avatarUrl = rasterAvatarUrl(p.avatarUrl);
-            final isPro = p.subscriptionTier == SubscriptionTier.pro;
+            final isPro =
+                ref.watch(currentTierProvider) == SubscriptionTier.pro;
             final isFree = !isPro;
             return ListTile(
               dense: true,

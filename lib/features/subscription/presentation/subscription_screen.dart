@@ -24,27 +24,7 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
   ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      ref.invalidate(subscriptionStatusProvider);
-    }
-  }
-
+class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Future<void> _refresh() async {
     ref.invalidate(subscriptionStatusProvider);
     await ref.read(subscriptionStatusProvider.future);
