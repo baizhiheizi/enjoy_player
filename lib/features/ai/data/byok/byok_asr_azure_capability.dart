@@ -5,13 +5,12 @@ import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/features/ai/data/azure_assessment_wav_normalizer.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
-import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
+import 'package:enjoy_player/features/ai/data/byok/byok_speech_guards.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/asr_capability.dart';
 import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
-import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -29,22 +28,12 @@ final class ByokAsrAzureCapability implements AsrCapability {
 
   @override
   Future<AsrResult> transcribe(AsrRequest request) async {
-    if (_config.kind != SpeechByokKind.azureSpeech) {
-      throw StateError('Azure ASR BYOK requires azureSpeech configuration');
-    }
-
-    final region = _config.region?.trim();
-    if (region == null || region.isEmpty) {
-      throw const ApiException(
-        message: 'Azure region is not configured for ASR BYOK',
-        statusCode: 400,
-      );
-    }
-
-    final subscriptionKey = await _secrets.readApiKey(ModalityKind.asr);
-    if (subscriptionKey == null || subscriptionKey.trim().isEmpty) {
-      throw const ByokNotConfiguredFailure(ModalityKind.asr);
-    }
+    final (:region, apiKey: subscriptionKey) = await guardAzureSpeechConfig(
+      config: _config,
+      secrets: _secrets,
+      kind: ModalityKind.asr,
+      capabilityLabel: 'ASR',
+    );
 
     final azureLanguage = mapTranscriptLanguageToAzure(request.language);
     if (azureLanguage == null) {
@@ -66,7 +55,7 @@ final class ByokAsrAzureCapability implements AsrCapability {
         AzureSpeechTranscriptionParams(
           audioPath: audioPath,
           language: azureLanguage,
-          subscriptionKey: subscriptionKey.trim(),
+          subscriptionKey: subscriptionKey,
           region: region,
         ),
       );
