@@ -587,6 +587,48 @@
       }
     }
   },
+  "shadowRecordingElapsedSemantics": "{elapsed} seconds elapsed of {target} seconds target",
+  "@shadowRecordingElapsedSemantics": {
+    "description": "Accessibility label for the live recording progress while shadow-reading against a target duration.",
+    "placeholders": {
+      "elapsed": {
+        "type": "String",
+        "example": "1.2"
+      },
+      "target": {
+        "type": "String",
+        "example": "3.0"
+      }
+    }
+  },
+  "shadowRecordingElapsedCountdown": "{elapsed} s / {target} s",
+  "@shadowRecordingElapsedCountdown": {
+    "description": "Visible live recording progress against a target duration (elapsed / target).",
+    "placeholders": {
+      "elapsed": {
+        "type": "String",
+        "example": "1.2"
+      },
+      "target": {
+        "type": "String",
+        "example": "3.0"
+      }
+    }
+  },
+  "shadowRecordingElapsedSeconds": "{elapsed} s",
+  "@shadowRecordingElapsedSeconds": {
+    "description": "Visible live recording progress with no target duration.",
+    "placeholders": {
+      "elapsed": {
+        "type": "String",
+        "example": "1.2"
+      }
+    }
+  },
+  "shadowRecordingFileNotFound": "Recording file was not found.",
+  "@shadowRecordingFileNotFound": {
+    "description": "Reason shown when a just-recorded file is missing from disk after stopping."
+  },
   "hotkeysTitle": "Keyboard shortcuts",
   "hotkeysHintFooter": "Press Shift+/ (?) to open this list.",
   "hotkeysCustomizedBadge": "Custom",
@@ -688,6 +730,10 @@
     }
   },
   "authOtpLabel": "6-digit code",
+  "authOtpInputSemantics": "One-time passcode",
+  "@authOtpInputSemantics": {
+    "description": "Accessibility label for the 6-digit OTP input field."
+  },
   "authVerifyOtp": "Verify",
   "authOtpResend": "Resend code",
   "authOtpResendIn": "Resend in {seconds}s",
@@ -1293,5 +1339,9 @@
   "craftSavingProgress": "Saving to library…",
   "craftPreviewLabel": "Preview",
   "craftSourceText": "Source text",
-  "craftSynthText": "Text to synthesize"
+  "craftSynthText": "Text to synthesize",
+  "errorGenericLoadFailed": "Something went wrong. Please try again.",
+  "@errorGenericLoadFailed": {
+    "description": "Generic fallback message when loading data fails in an unexpected way."
+  }
 }

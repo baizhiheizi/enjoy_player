@@ -975,6 +975,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String shadowRecordingElapsedSemantics(String elapsed, String target) {
+    return '$elapsed seconds elapsed of $target seconds target';
+  }
+
+  @override
+  String shadowRecordingElapsedCountdown(String elapsed, String target) {
+    return '$elapsed s / $target s';
+  }
+
+  @override
+  String shadowRecordingElapsedSeconds(String elapsed) {
+    return '$elapsed s';
+  }
+
+  @override
+  String get shadowRecordingFileNotFound => 'Recording file was not found.';
+
+  @override
   String get hotkeysTitle => 'Keyboard shortcuts';
 
   @override
@@ -1251,6 +1269,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authOtpLabel => '6-digit code';
+
+  @override
+  String get authOtpInputSemantics => 'One-time passcode';
 
   @override
   String get authVerifyOtp => 'Verify';
@@ -2787,4 +2808,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get craftSynthText => 'Text to synthesize';
+
+  @override
+  String get errorGenericLoadFailed =>
+      'Something went wrong. Please try again.';
 }

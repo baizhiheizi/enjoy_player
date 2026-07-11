@@ -402,7 +402,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
         if (mounted) {
           AppNotice.error(
             context,
-            l10n.shadowRecordingSaveFailed('Recorded file was not found.'),
+            l10n.shadowRecordingSaveFailed(l10n.shadowRecordingFileNotFound),
           );
         }
         return;

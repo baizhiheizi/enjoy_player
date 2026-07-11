@@ -1851,6 +1851,30 @@ abstract class AppLocalizations {
   /// **'+{seconds}s over target'**
   String shadowRecordingOverTarget(String seconds);
 
+  /// Accessibility label for the live recording progress while shadow-reading against a target duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} seconds elapsed of {target} seconds target'**
+  String shadowRecordingElapsedSemantics(String elapsed, String target);
+
+  /// Visible live recording progress against a target duration (elapsed / target).
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} s / {target} s'**
+  String shadowRecordingElapsedCountdown(String elapsed, String target);
+
+  /// Visible live recording progress with no target duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} s'**
+  String shadowRecordingElapsedSeconds(String elapsed);
+
+  /// Reason shown when a just-recorded file is missing from disk after stopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording file was not found.'**
+  String get shadowRecordingFileNotFound;
+
   /// No description provided for @hotkeysTitle.
   ///
   /// In en, this message translates to:
@@ -2372,6 +2396,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'6-digit code'**
   String get authOtpLabel;
+
+  /// Accessibility label for the 6-digit OTP input field.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time passcode'**
+  String get authOtpInputSemantics;
 
   /// No description provided for @authVerifyOtp.
   ///
@@ -5210,6 +5240,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Text to synthesize'**
   String get craftSynthText;
+
+  /// Generic fallback message when loading data fails in an unexpected way.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errorGenericLoadFailed;
 }
 
 class _AppLocalizationsDelegate

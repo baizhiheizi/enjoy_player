@@ -416,7 +416,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         );
       },
       loading: () => const SkeletonProfile(),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
     );
   }
 }

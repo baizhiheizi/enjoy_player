@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class OtpPinField extends StatefulWidget {
   const OtpPinField({
@@ -82,9 +83,10 @@ class OtpPinFieldState extends State<OtpPinField> {
     final fillColor = widget.enabled
         ? cs.surfaceContainerHighest.withValues(alpha: 0.65)
         : cs.surfaceContainerHighest.withValues(alpha: 0.35);
+    final l10n = AppLocalizations.of(context)!;
 
     return Semantics(
-      label: 'OTP',
+      label: l10n.authOtpInputSemantics,
       textField: true,
       enabled: widget.enabled,
       child: GestureDetector(

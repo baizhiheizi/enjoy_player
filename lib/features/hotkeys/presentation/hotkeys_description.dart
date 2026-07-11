@@ -53,7 +53,7 @@ String hotkeyDescription(AppLocalizations l10n, HotkeyDefinition d) {
     case 'closeModal':
       return l10n.hotkeysDescCloseModal;
     default:
-      return d.description;
+      return d.description ?? d.id;
   }
 }
 

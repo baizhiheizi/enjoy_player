@@ -37,17 +37,20 @@ class ShadowRecordingCaptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     if (targetSec > 0) {
       return Semantics(
-        label:
-            '${_formatSecsOneDecimal(elapsedSec)} seconds elapsed of '
-            '${_formatSecsOneDecimal(targetSec)} seconds target',
+        label: l10n.shadowRecordingElapsedSemantics(
+          _formatSecsOneDecimal(elapsedSec),
+          _formatSecsOneDecimal(targetSec),
+        ),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: tok.space8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${_formatSecsOneDecimal(elapsedSec)} s / '
-                '${_formatSecsOneDecimal(targetSec)} s',
+                l10n.shadowRecordingElapsedCountdown(
+                  _formatSecsOneDecimal(elapsedSec),
+                  _formatSecsOneDecimal(targetSec),
+                ),
                 style: tt.labelMedium?.copyWith(
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -75,7 +78,7 @@ class ShadowRecordingCaptionRow extends StatelessWidget {
 
     return Center(
       child: Text(
-        '${_formatSecsOneDecimal(elapsedSec)} s',
+        l10n.shadowRecordingElapsedSeconds(_formatSecsOneDecimal(elapsedSec)),
         style: tt.labelMedium?.copyWith(
           fontFeatures: const [FontFeature.tabularFigures()],
         ),

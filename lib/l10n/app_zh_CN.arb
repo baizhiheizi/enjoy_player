@@ -205,6 +205,7 @@
   "transcriptEmptyAddSubtitle": "添加字幕",
   "subtitlesExtractEmbedded": "提取内嵌字幕",
   "subtitlesRefreshCloud": "从云端刷新字幕稿",
+  "subtitlesRegenerate": "重新生成字幕",
   "subtitlesImportLanguageTitle": "字幕语言",
   "subtitlesImportLanguageHint": "BCP-47 代码（如 en、zh-TW）。未知请填 und。",
   "subtitlesImportLanguageFieldLabel": "语言代码",
@@ -336,6 +337,10 @@
       }
     }
   },
+  "shadowRecordingElapsedSemantics": "已录制 {elapsed} 秒，目标 {target} 秒",
+  "shadowRecordingElapsedCountdown": "{elapsed} 秒 / {target} 秒",
+  "shadowRecordingElapsedSeconds": "{elapsed} 秒",
+  "shadowRecordingFileNotFound": "未找到录音文件。",
   "hotkeysTitle": "键盘快捷键",
   "hotkeysHintFooter": "按 Shift+/（?）打开此列表。",
   "hotkeysCustomizedBadge": "已自定义",
@@ -430,6 +435,7 @@
   "authOtpTitle": "输入验证码",
   "authOtpSentTo": "验证码已发送至 {email}",
   "authOtpLabel": "6 位验证码",
+  "authOtpInputSemantics": "一次性验证码",
   "authVerifyOtp": "验证",
   "authOtpResend": "重新发送",
   "authOtpResendIn": "{seconds} 秒后可重新发送",
@@ -914,5 +920,6 @@
   "craftSavingProgress": "正在保存…",
   "craftPreviewLabel": "预览",
   "craftSourceText": "原文",
-  "craftSynthText": "合成文本"
+  "craftSynthText": "合成文本",
+  "errorGenericLoadFailed": "加载失败，请重试。"
 }

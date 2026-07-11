@@ -70,7 +70,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen>
           return _SubscriptionBody(onRefresh: _refresh);
         },
         loading: () => const SkeletonSettingsList(rowCount: 6),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
       ),
     );
   }
@@ -118,7 +118,7 @@ class _SubscriptionBody extends ConsumerWidget {
           children: [
             Text(l10n.subscriptionErrorLoading),
             SizedBox(height: t.space8),
-            Text('$e'),
+            Text(l10n.errorGenericLoadFailed),
             SizedBox(height: t.space16),
             EnjoyButton.primary(
               onPressed: () => ref.invalidate(subscriptionStatusProvider),

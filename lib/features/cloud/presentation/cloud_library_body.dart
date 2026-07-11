@@ -136,6 +136,7 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final auth = ref.watch(authCtrlProvider);
 
     return auth.when(
@@ -169,7 +170,7 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
         );
       },
       loading: () => const SkeletonMediaList(),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
     );
   }
 }

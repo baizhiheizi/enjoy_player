@@ -53,7 +53,8 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
           );
         },
         loading: () => const SkeletonSettingsList(rowCount: 6),
-        error: (Object e, StackTrace s) => Center(child: Text('$e')),
+        error: (Object e, StackTrace s) =>
+            Center(child: Text(l10n.errorGenericLoadFailed)),
       ),
     );
   }
@@ -288,7 +289,7 @@ class _SignedInBody extends ConsumerWidget {
             );
           },
           loading: () => const SkeletonSettingsList(rowCount: 5),
-          error: (e, _) => Text('$e'),
+          error: (e, _) => Text(l10n.errorGenericLoadFailed),
         ),
       ],
     );

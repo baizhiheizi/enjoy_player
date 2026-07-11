@@ -542,7 +542,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subtitlesGenerate => 'Generate transcript';
 
   @override
-  String get subtitlesRegenerate => 'Re-generate transcript';
+  String get subtitlesRegenerate => '重新生成字幕';
 
   @override
   String get subtitlesExtractEmbedded => '提取内嵌字幕';
@@ -931,6 +931,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String shadowRecordingElapsedSemantics(String elapsed, String target) {
+    return '已录制 $elapsed 秒，目标 $target 秒';
+  }
+
+  @override
+  String shadowRecordingElapsedCountdown(String elapsed, String target) {
+    return '$elapsed 秒 / $target 秒';
+  }
+
+  @override
+  String shadowRecordingElapsedSeconds(String elapsed) {
+    return '$elapsed 秒';
+  }
+
+  @override
+  String get shadowRecordingFileNotFound => '未找到录音文件。';
+
+  @override
   String get hotkeysTitle => '键盘快捷键';
 
   @override
@@ -1194,6 +1212,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authOtpLabel => '6 位验证码';
+
+  @override
+  String get authOtpInputSemantics => '一次性验证码';
 
   @override
   String get authVerifyOtp => '验证';
@@ -2669,6 +2690,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get craftSynthText => '合成文本';
+
+  @override
+  String get errorGenericLoadFailed => '加载失败，请重试。';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -3196,6 +3220,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get transcriptEmptyAddSubtitle => '添加字幕';
 
   @override
+  String get subtitlesRegenerate => '重新生成字幕';
+
+  @override
   String get subtitlesExtractEmbedded => '提取内嵌字幕';
 
   @override
@@ -3388,6 +3415,24 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String shadowRecordingOverTarget(String seconds) {
     return '超出目标 +$seconds 秒';
   }
+
+  @override
+  String shadowRecordingElapsedSemantics(String elapsed, String target) {
+    return '已录制 $elapsed 秒，目标 $target 秒';
+  }
+
+  @override
+  String shadowRecordingElapsedCountdown(String elapsed, String target) {
+    return '$elapsed 秒 / $target 秒';
+  }
+
+  @override
+  String shadowRecordingElapsedSeconds(String elapsed) {
+    return '$elapsed 秒';
+  }
+
+  @override
+  String get shadowRecordingFileNotFound => '未找到录音文件。';
 
   @override
   String get hotkeysTitle => '键盘快捷键';
@@ -3653,6 +3698,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get authOtpLabel => '6 位验证码';
+
+  @override
+  String get authOtpInputSemantics => '一次性验证码';
 
   @override
   String get authVerifyOtp => '验证';
@@ -4877,4 +4925,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get craftSynthText => '合成文本';
+
+  @override
+  String get errorGenericLoadFailed => '加载失败，请重试。';
 }

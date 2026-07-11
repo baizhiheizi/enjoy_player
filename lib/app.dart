@@ -179,7 +179,13 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp> {
               },
             )
           : ConstrainedAppViewport(
-              child: Scaffold(body: Center(child: Text('$error'))),
+              child: Scaffold(
+                body: Center(
+                  child: Text(
+                    AppLocalizations.of(context)!.errorGenericLoadFailed,
+                  ),
+                ),
+              ),
             ),
     );
   }
