@@ -191,7 +191,10 @@ class AsrGenerationController extends _$AsrGenerationController {
       }
 
       final audioBytes = audio;
-      if (audioBytes == null) {
+      // extractAudio returns a non-null [Uint8List], so guard against an empty
+      // payload (the only real runtime risk here) — the prior null check was
+      // dead code that tripped `flutter analyze`.
+      if (audioBytes.isEmpty) {
         _setError('asrErrorGeneric');
         return;
       }
