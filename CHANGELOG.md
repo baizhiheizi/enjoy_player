@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Echo enforcement coordinator (`EchoEnforcer`)**: the reactive per-tick
+  echo correction and the proactive seek clamp are now serialized through one
+  single-flight coordinator, so concurrent seeks can't interleave into an
+  audible stutter at segment edges. Enforcement runs on every position event,
+  so pause-and-rewind fires within ~50 ms of the segment end (previously up to
+  ~360 ms late, sampled on a 400 ms grid). The in-memory session + DB write
+  stay on the 400 ms grid so the recorded clip window still lines up. Covered
+  by boundary-timing and single-flight serialization tests. See
+  [docs/features/echo-mode.md](docs/features/echo-mode.md) and issue #280.
+
+### Changed
+
+- **Position is now durably written mid-playback**: `PlaybackSessionPersister`
+  coalesces updates on a 450 ms debounce but forces a flush once pending data
+  is older than ~2 s. The 400 ms emit cadence previously re-armed the 450 ms
+  debounce forever, so a crash/kill lost all progress since the last pause; the
+  max-age bound makes loss rate-independent (works at 1× and 2×). Background
+  flush errors are now caught + logged instead of surfacing as uncaught async
+  exceptions.
+- **Echo window source of truth**: enforcement re-derives start/end seconds
+  from the line indices + current transcript at enforcement time (falling back
+  to the cached value), so a re-segmented transcript yields fresh boundaries
+  instead of stale ones. Echo-path magic numbers and s/ms conversions were
+  extracted to named constants/helpers.
+- **Guarded mpv teardown**: `PlayerController` disposal is now reentrancy-guarded
+  and its teardown future is captured/observable, reducing the latent double-mpv
+  race on a future `ref.invalidate` (Riverpod still does not await `onDispose`).
+
+### Added
+
 - **ASR transcript generation**: local audio and video can generate,
   re-generate, and auto-select a time-aligned `source: ai` transcript through
   the existing Enjoy, Azure BYOK, or OpenAI-compatible Whisper capability

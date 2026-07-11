@@ -21,6 +21,13 @@ class FakePlayerEngine implements PlayerEngine {
   final List<String> openUris = <String>[];
   final List<Duration> seekCalls = <Duration>[];
   int screenshotCalls = 0;
+  int pauseCallCount = 0;
+
+  /// When set, the next [seek] awaits this completer before resolving — used to
+  /// hold an echo enforcement op in flight so tests can observe single-flight
+  /// serialization. Captured and cleared on the first awaiting [seek], so the
+  /// test completes its own [Completer] reference to release it.
+  Completer<void>? seekGate;
 
   Uint8List? screenshotReturnValue;
 
@@ -98,6 +105,11 @@ class FakePlayerEngine implements PlayerEngine {
   @override
   Future<void> seek(Duration target) async {
     seekCalls.add(target);
+    final gate = seekGate;
+    if (gate != null) {
+      seekGate = null;
+      await gate.future;
+    }
   }
 
   @override
@@ -121,7 +133,9 @@ class FakePlayerEngine implements PlayerEngine {
   Future<void> play() async {}
 
   @override
-  Future<void> pause() async {}
+  Future<void> pause() async {
+    pauseCallCount++;
+  }
 
   @override
   Future<void> stop() async {

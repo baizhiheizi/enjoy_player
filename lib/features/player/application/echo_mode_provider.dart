@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'echo_mode_provider.g.dart';
@@ -80,8 +81,8 @@ class EchoMode extends _$EchoMode {
       active: true,
       startLineIndex: startLine,
       endLineIndex: endLine,
-      startTimeSeconds: echoStartMs / 1000.0,
-      endTimeSeconds: echoEndMs / 1000.0,
+      startTimeSeconds: secondsFromMs(echoStartMs),
+      endTimeSeconds: secondsFromMs(echoEndMs),
     );
   }
 

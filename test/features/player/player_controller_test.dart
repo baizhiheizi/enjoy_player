@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -227,6 +228,174 @@ void main() {
       expect(fake.seekCalls, isNotEmpty);
       expect(fake.seekCalls.last, const Duration(milliseconds: 2000));
     });
+
+    test(
+      'echo pause-and-rewind fires on the boundary tick, not the next bucket',
+      () async {
+        // P1: enforcement runs on every position event, so the segment-end pause
+        // must fire the instant the end guard is crossed (within ~40 ms of end),
+        // not be deferred ~360 ms to the next 400 ms session-emit bucket.
+        final id = await insertMedia(id: 'echo-boundary');
+        final n = container.read(playerControllerProvider.notifier);
+        await n.openMedia(id);
+
+        container
+            .read(echoModeProvider.notifier)
+            .activate(
+              startLineIndex: 0,
+              endLineIndex: 1,
+              startTimeSeconds: 2,
+              endTimeSeconds: 5,
+            );
+
+        // 4.95s is below the end guard (5.0 - defaultEchoEndGuardSeconds 0.04);
+        // 4.97s crosses it. Both land between 400 ms buckets.
+        fake.emitPosition(const Duration(milliseconds: 4950));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(
+          fake.pauseCallCount,
+          0,
+          reason: 'below end guard must not pause',
+        );
+
+        fake.emitPosition(const Duration(milliseconds: 4970));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(fake.pauseCallCount, greaterThanOrEqualTo(1));
+        expect(fake.seekCalls.last, const Duration(milliseconds: 2000));
+      },
+    );
+
+    test(
+      'echo enforcement fires within the same 400ms bucket at the boundary',
+      () async {
+        // P1 core regression: all three positions fall in the SAME 400 ms
+        // session-emit bucket (12). Under the old bucket-gated enforcement only
+        // the first would be evaluated (4.85s, below the end guard -> no pause),
+        // so the 4.96s boundary would be missed until the next bucket (~5.2s) —
+        // ~240 ms late. Per-tick enforcement must catch it on the 4.96s tick.
+        final id = await insertMedia(id: 'echo-fine');
+        final n = container.read(playerControllerProvider.notifier);
+        await n.openMedia(id);
+
+        container
+            .read(echoModeProvider.notifier)
+            .activate(
+              startLineIndex: 0,
+              endLineIndex: 1,
+              startTimeSeconds: 2,
+              endTimeSeconds: 5,
+            );
+
+        fake.emitPosition(const Duration(milliseconds: 4850));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(fake.pauseCallCount, 0);
+
+        fake.emitPosition(const Duration(milliseconds: 4900));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(fake.pauseCallCount, 0);
+
+        // 4.96s crosses the end guard (5.0 - 0.04); pause-and-rewind fires now,
+        // not deferred to the next 400 ms bucket.
+        fake.emitPosition(const Duration(milliseconds: 4960));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(fake.pauseCallCount, greaterThanOrEqualTo(1));
+        expect(fake.seekCalls.last, const Duration(milliseconds: 2000));
+      },
+    );
+
+    test(
+      'echo enforcement is single-flight: concurrent seeks do not interleave',
+      () async {
+        // P6: a reactive tick (pause-and-rewind) and a proactive user seek must
+        // serialize through one gate so they can't interleave overlapping seeks.
+        final id = await insertMedia(id: 'echo-serial');
+        final n = container.read(playerControllerProvider.notifier);
+        await n.openMedia(id);
+
+        container
+            .read(echoModeProvider.notifier)
+            .activate(
+              startLineIndex: 0,
+              endLineIndex: 1,
+              startTimeSeconds: 2,
+              endTimeSeconds: 5,
+            );
+
+        // Hold the rewind seek in flight.
+        final gate = Completer<void>();
+        fake.seekGate = gate;
+
+        // Cross the end guard -> pause + rewind-seek starts and blocks on gate.
+        fake.emitPosition(const Duration(milliseconds: 4970));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(fake.pauseCallCount, 1);
+        expect(fake.seekCalls.last, const Duration(milliseconds: 2000));
+        final seeksWhileRewinding = fake.seekCalls.length;
+
+        // While that op is in flight, more boundary ticks arrive and a user seek
+        // (clampAndSeek) is requested. None may start a second overlapping seek.
+        fake.emitPosition(const Duration(milliseconds: 4980));
+        fake.emitPosition(const Duration(milliseconds: 4990));
+        final clampFuture = n.seekToSeconds(2.5);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(
+          fake.pauseCallCount,
+          1,
+          reason: 'no concurrent pause while in flight',
+        );
+        expect(
+          fake.seekCalls.length,
+          seeksWhileRewinding,
+          reason: 'no overlapping seek while the rewind is in flight',
+        );
+
+        // Release the in-flight rewind; the queued user clamp proceeds (serialized).
+        gate.complete();
+        await clampFuture;
+        expect(fake.seekCalls.last, const Duration(milliseconds: 2500));
+      },
+    );
+
+    test(
+      'position is durably written mid-playback (survives a simulated crash)',
+      () async {
+        // P9: under continuous playback the 450 ms debounce is re-armed every
+        // 400 ms and would never fire; the max-age flush must write within ~2 s
+        // so a crash never loses more than that.
+        final id = await insertMedia(id: 'echo-crash');
+        final n = container.read(playerControllerProvider.notifier);
+        await n.openMedia(id);
+        fake.emitDuration(const Duration(seconds: 120));
+
+        // Emit on the 400 ms playback grid for clearly more than 2 s, re-arming
+        // the debounce each time so only the max-age path can land a write.
+        for (var ms = 400; ms <= 2800; ms += 400) {
+          fake.emitPosition(Duration(milliseconds: ms));
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+        }
+
+        // Poll for the write (the max-age flush is async against Drift).
+        int? persistedMs;
+        final deadline = DateTime.now().add(const Duration(seconds: 2));
+        while (DateTime.now().isBefore(deadline)) {
+          final row = await db.echoSessionDao.getLatestForTarget('Audio', id);
+          if (row != null && row.currentTimeMs > 0) {
+            persistedMs = row.currentTimeMs;
+            break;
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+
+        expect(
+          persistedMs,
+          isNotNull,
+          reason: 'max-age flush must write mid-playback',
+        );
+        expect(persistedMs!, greaterThan(1500));
+        expect(persistedMs, lessThanOrEqualTo(2800));
+      },
+    );
 
     test(
       'openMedia throws MediaNeedsRelocateException when local missing and hash set',

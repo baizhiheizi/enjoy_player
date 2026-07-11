@@ -38,6 +38,16 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
   /// Incremented on each [openMedia] call; stale async work bails out.
   int _openGeneration = 0;
 
+  bool _disposed = false;
+
+  /// Native (mpv) teardown future, captured so an explicit caller (tests, a
+  /// future logout flow) can await disposal. Riverpod's `ref.onDispose` is
+  /// synchronous and does NOT await it, so the keepAlive provider must not be
+  /// invalidated without coordinating teardown (ADR-0003 / ADR-0015).
+  Future<void> _teardown = Future<void>.value();
+
+  Future<void> get teardown => _teardown;
+
   @override
   int get openGeneration => _openGeneration;
 
@@ -80,15 +90,28 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
 
   @override
   PlaybackSession? build() {
+    // Captured here (not read inside onDispose) — Riverpod forbids Ref use
+    // during life-cycles.
     final persister = ref.read(playbackSessionPersisterProvider);
-
-    ref.onDispose(() async {
-      persister.cancel();
-      await _positionTracker.cancel();
-      await _ownedEngine?.dispose();
+    ref.onDispose(() {
+      // Captured so [teardown] can be awaited; Riverpod itself does not await
+      // onDispose, but the [_disposed] guard makes re-entrant disposal a no-op
+      // and the sequenced awaits keep mpv teardown off the hot path.
+      _teardown = _disposeResources(persister);
     });
 
     return null;
+  }
+
+  /// Sequenced, reentrancy-guarded teardown: cancel persistence, the position
+  /// tracker (which resets echo enforcement), then the owned engine. Safe to
+  /// call more than once.
+  Future<void> _disposeResources(PlaybackSessionPersister persister) async {
+    if (_disposed) return;
+    _disposed = true;
+    persister.cancel();
+    await _positionTracker.cancel();
+    await _ownedEngine?.dispose();
   }
 
   Future<void> relocateAndOpen(String mediaId, XFile picked) async {
@@ -118,33 +141,28 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
 
   Future<void> seekTo(
     Duration target, {
-    ({double start, double end})? echoWindowForSeekClamp,
+    EchoWindow? echoWindowForSeekClamp,
   }) async {
     final echo = ref.read(echoModeProvider);
-    var seconds = target.inMilliseconds / 1000.0;
+    final seconds = secondsFromDuration(target);
     if (echo.active) {
-      final dur = state?.durationSeconds;
-      final startT = echoWindowForSeekClamp?.start ?? echo.startTimeSeconds;
-      final endT = echoWindowForSeekClamp?.end ?? echo.endTimeSeconds;
-      final window = normalizeEchoWindow((
-        active: true,
-        startTimeSeconds: startT,
-        endTimeSeconds: endT,
-        durationSeconds: dur != null && dur > 0 ? dur : null,
-      ));
-      if (window != null) {
-        seconds = clampSeekTimeToEchoWindow(seconds, window);
-      }
+      // Clamp + seek through the single-flight enforcer so a user seek can't
+      // interleave with a reactive per-tick enforcement (no double-seek).
+      await _positionTracker.echoEnforcer.clampAndSeek(
+        seconds,
+        override: echoWindowForSeekClamp,
+      );
+    } else {
+      await activeEngine.seek(durationFromSeconds(seconds));
     }
-    await activeEngine.seek(Duration(milliseconds: (seconds * 1000).round()));
   }
 
   Future<void> seekToSeconds(
     double seconds, {
-    ({double start, double end})? echoWindowForSeekClamp,
+    EchoWindow? echoWindowForSeekClamp,
   }) async {
     await seekTo(
-      Duration(milliseconds: (seconds * 1000).round()),
+      durationFromSeconds(seconds),
       echoWindowForSeekClamp: echoWindowForSeekClamp,
     );
   }

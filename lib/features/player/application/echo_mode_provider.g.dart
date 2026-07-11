@@ -40,7 +40,7 @@ final class EchoModeProvider extends $NotifierProvider<EchoMode, EchoState> {
   }
 }
 
-String _$echoModeHash() => r'b99c3785a60965445b1d6c7e2de27fbfb83446cd';
+String _$echoModeHash() => r'ec062e1ba5b5e71353ea1590a01804473a36435c';
 
 abstract class _$EchoMode extends $Notifier<EchoState> {
   EchoState build();

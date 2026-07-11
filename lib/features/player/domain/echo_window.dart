@@ -42,6 +42,22 @@ const double defaultEchoSeekEpsilonSeconds = 0.02;
 const double defaultEchoEndGuardSeconds = 0.04;
 const double defaultEchoStartGuardSeconds = 0.02;
 
+/// Converts seconds to the millisecond integer used by persistence / engine
+/// seeks. Centralized so the s/ms boundary lives in one place (the DB stores
+/// ms; echo state + decisions work in seconds).
+Duration durationFromSeconds(double seconds) =>
+    Duration(milliseconds: (seconds * 1000).round());
+
+/// Inverse of [durationFromSeconds].
+double secondsFromDuration(Duration duration) =>
+    duration.inMilliseconds / 1000.0;
+
+/// Converts a millisecond integer (DB column) to seconds.
+double secondsFromMs(int milliseconds) => milliseconds / 1000.0;
+
+/// Converts seconds to a millisecond integer (DB column).
+int msFromSeconds(double seconds) => (seconds * 1000).round();
+
 double _clamp(double value, double min, double max) =>
     value < min ? min : (value > max ? max : value);
 
