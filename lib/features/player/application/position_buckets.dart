@@ -1,4 +1,5 @@
-/// Single source of truth for player position quantization buckets.
+/// Single source of truth for player position quantization buckets and the
+/// position-stream tuning constants that must stay coherent with them.
 ///
 /// See [lib/features/player/application/quantized_position.dart] for the
 /// dedup behavior and the rationale for per-bucket tuning. The transport
@@ -7,8 +8,24 @@
 /// that flood the Windows accessibility bridge (flutter/flutter#182444).
 library;
 
-const int kPositionBucketEchoApplyMs = 400;
+/// Session emit + persistence cadence. The in-memory [PlaybackSession] and
+/// the debounced DB write are updated once per 400 ms bucket so the recorded
+/// clip window lines up across runs. Echo *enforcement* itself runs on every
+/// position event (see `EchoEnforcer`); only the heavy session emit is gated
+/// to this bucket.
+const int kPositionBucketSessionEmitMs = 400;
 
 const int kPositionBucketDisplayMs = 400;
 
 const int kPositionBucketScrubberMs = 50;
+
+/// A position jump larger than this between two ticks is treated as a user /
+/// programmatic seek (not linear playback) and forces an immediate echo
+/// re-evaluation + session emit regardless of the [kPositionBucketSessionEmitMs]
+/// bucket. Kept just under the 400 ms bucket so a seek that lands inside the
+/// same bucket still triggers enforcement.
+const double kLikelySeekDeltaSeconds = 0.35;
+
+/// Two durations within this many seconds are considered equal (dedup guard
+/// for the engine duration stream, which can re-emit near-identical values).
+const double kDurationEpsilonSeconds = 0.001;

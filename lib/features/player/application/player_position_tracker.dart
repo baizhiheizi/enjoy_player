@@ -1,4 +1,4 @@
-/// Position/duration stream subscriptions, echo clamping, and session persistence.
+/// Position/duration stream subscriptions, echo enforcement, and session persistence.
 library;
 
 import 'dart:async';
@@ -9,16 +9,20 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
-import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/echo_enforcer.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/position_buckets.dart';
-import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
 import 'playback_session_persister.dart';
 
 final _positionLog = logNamed('PlayerPositionTracker');
 
 /// Manages engine position/duration listeners for one open generation.
+///
+/// Echo *enforcement* runs on every position event via [_echoEnforcer]
+/// (single-flight inside); the heavy session emit + persistence stays on the
+/// 400 ms bucket so the recorded clip window lines up across runs.
 class PlayerPositionTracker {
   PlayerPositionTracker({
     required this.ref,
@@ -34,12 +38,27 @@ class PlayerPositionTracker {
   final void Function(PlaybackSession? next) setSession;
   final int Function() currentOpenGeneration;
 
+  late final EchoEnforcer _echoEnforcer = EchoEnforcer(
+    ref: ref,
+    getEngine: getEngine,
+    getSession: getSession,
+    getLines: () {
+      final mediaId = getSession()?.mediaId;
+      if (mediaId == null) return null;
+      return ref.read(transcriptLinesForMediaProvider(mediaId)).value;
+    },
+  );
+
+  /// The single-flight echo enforcement coordinator. [PlayerController.seekTo]
+  /// routes the proactive seek clamp through here so it serializes against the
+  /// reactive per-tick path.
+  EchoEnforcer get echoEnforcer => _echoEnforcer;
+
   int? _subscribedGeneration;
 
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration>? _durationSub;
   int? _lastPositionEmitBucket;
-  int? _lastEchoApplyBucket;
 
   Future<void> cancel() async {
     await _positionSub?.cancel();
@@ -47,7 +66,10 @@ class PlayerPositionTracker {
     _positionSub = null;
     _durationSub = null;
     _lastPositionEmitBucket = null;
-    _lastEchoApplyBucket = null;
+    // Release the enforcement slot and neutralize any in-flight op so a
+    // pending pause-and-rewind can't seek a stale engine or block the next
+    // media's enforcement.
+    _echoEnforcer.reset();
   }
 
   void subscribe({
@@ -60,22 +82,25 @@ class PlayerPositionTracker {
   }) {
     _subscribedGeneration = openGeneration;
     _lastPositionEmitBucket = null;
-    _lastEchoApplyBucket = null;
 
-    const positionBucketMs = kPositionBucketEchoApplyMs;
+    const positionBucketMs = kPositionBucketSessionEmitMs;
     _positionSub = getEngine().position.listen(
       (pos) {
         if (_subscribedGeneration != currentOpenGeneration()) return;
         final seconds = pos.inMilliseconds / 1000.0;
 
+        // Echo enforcement runs on every position event — the decision is cheap
+        // and this is what keeps pause-and-rewind within ~50 ms of the segment
+        // end. Single-flight inside the enforcer drops concurrent ticks.
+        unawaited(_echoEnforcer.enforceTick(seconds));
+
+        // Heavy session emit + persistence stays on the 400 ms bucket (or fires
+        // immediately on a detected seek) so the recorded clip window lines up.
         final bucket = pos.inMilliseconds ~/ positionBucketMs;
         final prevSec = getSession()?.currentTimeSeconds;
-        final likelySeek = prevSec != null && (seconds - prevSec).abs() > 0.35;
-        if (likelySeek || bucket != _lastEchoApplyBucket) {
-          _lastEchoApplyBucket = bucket;
-          unawaited(_applyEcho(seconds));
-        }
-
+        final likelySeek =
+            prevSec != null &&
+            (seconds - prevSec).abs() > kLikelySeekDeltaSeconds;
         if (!likelySeek && bucket == _lastPositionEmitBucket) {
           return;
         }
@@ -109,7 +134,8 @@ class PlayerPositionTracker {
         if (d <= Duration.zero) return;
         final newSec = d.inMilliseconds / 1000.0;
         final prevSec = getSession()?.durationSeconds;
-        if (prevSec != null && (newSec - prevSec).abs() < 0.001) {
+        if (prevSec != null &&
+            (newSec - prevSec).abs() < kDurationEpsilonSeconds) {
           return;
         }
         final sec = d.inMilliseconds ~/ 1000;
@@ -133,32 +159,5 @@ class PlayerPositionTracker {
         _positionLog.warning('engine duration stream errored', e, st);
       },
     );
-  }
-
-  Future<void> _applyEcho(double positionSeconds) async {
-    final echo = ref.read(echoModeProvider);
-    if (!echo.active) return;
-    final dur = getSession()?.durationSeconds;
-    final window = normalizeEchoWindow((
-      active: true,
-      startTimeSeconds: echo.startTimeSeconds,
-      endTimeSeconds: echo.endTimeSeconds,
-      durationSeconds: dur != null && dur > 0 ? dur : null,
-    ));
-    if (window == null) return;
-    final decision = decideEchoPlaybackTime(positionSeconds, window);
-    switch (decision) {
-      case EchoOk():
-        return;
-      case EchoClamp(:final timeSeconds):
-        await getEngine().seek(
-          Duration(milliseconds: (timeSeconds * 1000).round()),
-        );
-      case EchoPauseAndRewind(:final timeSeconds):
-        await getEngine().pause();
-        await getEngine().seek(
-          Duration(milliseconds: (timeSeconds * 1000).round()),
-        );
-    }
   }
 }
