@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import '../application/echo_region_pitch_analyzer.dart';
+import '../application/echo_pitch_analysis_service.dart';
 import '../application/shadow_reading_hotkey_bus.dart';
 import '../domain/echo_region_analysis.dart';
 import 'pitch_contour_chart.dart';
@@ -64,6 +64,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
   int _referenceRequestGen = 0;
   int _userRequestGen = 0;
   PitchContourVisibility _vis = const PitchContourVisibility();
+  final _mergedMemo = EchoMergedSeriesMemo();
 
   bool get _effectiveExpanded => widget.expanded ?? _expanded;
 
@@ -130,23 +131,20 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       _error = null;
     });
     try {
-      final r = await analyzeMediaTimeRange(
-        mediaPath: widget.mediaPath,
-        startSec: widget.startSec,
-        endSec: widget.endSec,
-      );
+      final r = await ref
+          .read(echoPitchAnalysisServiceProvider)
+          .analyzeReference(
+            mediaPath: widget.mediaPath,
+            startSec: widget.startSec,
+            endSec: widget.endSec,
+          );
       if (!mounted || gen != _referenceRequestGen) return;
-      if (r == null) {
-        setState(() {
-          _reference = null;
-          _loading = false;
-          _error = StateError('pcm');
-        });
-        return;
-      }
+      // null => superseded/cancelled by a newer request: leave state as-is.
+      if (r == null) return;
       setState(() {
         _reference = r;
         _loading = false;
+        _mergedMemo.invalidate();
       });
       if (widget.selectedRecordingPath != null) {
         unawaited(_loadUser());
@@ -154,8 +152,10 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     } catch (e) {
       if (!mounted || gen != _referenceRequestGen) return;
       setState(() {
+        _reference = null;
         _error = e;
         _loading = false;
+        _mergedMemo.invalidate();
       });
     }
   }
@@ -167,6 +167,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
       setState(() {
         _user = null;
         _loadingUser = false;
+        _mergedMemo.invalidate();
       });
       return;
     }
@@ -174,34 +175,34 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     if (!mounted) return;
     setState(() => _loadingUser = true);
     try {
-      final u = await analyzeMediaFileFull(mediaPath: path);
+      final u = await ref
+          .read(echoPitchAnalysisServiceProvider)
+          .analyzeUser(mediaPath: path);
       if (!mounted || gen != _userRequestGen) return;
+      // null => superseded/cancelled: leave state as-is.
+      if (u == null) return;
       setState(() {
         _user = u;
         _loadingUser = false;
+        _mergedMemo.invalidate();
       });
     } catch (_) {
       if (!mounted || gen != _userRequestGen) return;
       setState(() {
         _user = null;
         _loadingUser = false;
+        _mergedMemo.invalidate();
       });
     }
   }
 
   List<EchoRegionSeriesPoint> _merged() {
-    final ref = _reference;
-    if (ref == null) return [];
-    final user = _user;
     final durMs = widget.selectedRecordingDurationMs;
-    if (user == null || durMs == null || durMs <= 0) return ref.points;
-    final refDur = widget.endSec - widget.startSec;
-    final userDur = durMs / 1000.0;
-    return mergeUserPitchOntoReference(
-      referencePoints: ref.points,
-      userPoints: user.points,
-      referenceDurationSec: refDur,
-      userDurationSec: userDur,
+    return _mergedMemo.resolve(
+      reference: _reference,
+      user: _user,
+      referenceDurationSec: widget.endSec - widget.startSec,
+      userDurationSec: durMs == null ? 0 : durMs / 1000.0,
     );
   }
 

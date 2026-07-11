@@ -4,15 +4,27 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 /// Shared helpers for `ffmpeg -hide_banner -i …` stderr parsing.
 class FfmpegMediaProbe {
   FfmpegMediaProbe._();
 
+  /// Cached resolution so repeated callers don't each spawn `ffmpeg -version`.
+  /// The bundled binary location / PATH result is stable for the process
+  /// lifetime, so this is safe to memoize. Concurrent first callers share the
+  /// same in-flight [Future].
+  static Future<String?>? _resolvedFuture;
+
   /// Bundled `ffmpeg.exe` next to the app, or `ffmpeg` on PATH (Windows),
-  /// or `ffmpeg` on PATH elsewhere.
-  static Future<String?> resolveFfmpegExecutable() async {
+  /// or `ffmpeg` on PATH elsewhere. The result is memoized for the process
+  /// lifetime (see [_resolvedFuture]).
+  static Future<String?> resolveFfmpegExecutable() {
+    return _resolvedFuture ??= _resolveFfmpegExecutableUncached();
+  }
+
+  static Future<String?> _resolveFfmpegExecutableUncached() async {
     if (Platform.isWindows) {
       final bundled = p.join(
         p.dirname(Platform.resolvedExecutable),
@@ -30,6 +42,12 @@ class FfmpegMediaProbe {
       if (r.exitCode == 0) return 'ffmpeg';
     } on Object catch (_) {}
     return null;
+  }
+
+  /// Test seam: clears the memoized resolution so the next call re-probes.
+  @visibleForTesting
+  static void debugResetFfmpegExecutableCache() {
+    _resolvedFuture = null;
   }
 
   /// Path for local `file:` URIs; otherwise returns [mediaSourceUri] (e.g. https).

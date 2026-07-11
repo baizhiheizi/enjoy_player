@@ -3,6 +3,7 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../domain/echo_region_analysis.dart';
@@ -246,7 +247,10 @@ class _PitchContourPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PitchContourPainter oldDelegate) {
-    return oldDelegate.points != points ||
+    // Compare the points by content (length + element equality via
+    // [EchoRegionSeriesPoint.==]) rather than list identity, so a memoized
+    // series that is stable across playback ticks lets the painter skip work.
+    return !listEquals(oldDelegate.points, points) ||
         oldDelegate.progress != progress ||
         oldDelegate.progressColor != progressColor ||
         oldDelegate.visibility != visibility ||

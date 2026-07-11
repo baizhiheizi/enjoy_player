@@ -33,5 +33,94 @@ void main() {
       expect(merged.length, 2);
       expect(merged[0].pitchUserHz, 90);
     });
+
+    test('EchoRegionSeriesPoint has value equality', () {
+      const a = EchoRegionSeriesPoint(
+        t: 1,
+        ampRef: 0.5,
+        pitchRefHz: 100,
+        ampUser: 0.3,
+        pitchUserHz: 90,
+      );
+      const b = EchoRegionSeriesPoint(
+        t: 1,
+        ampRef: 0.5,
+        pitchRefHz: 100,
+        ampUser: 0.3,
+        pitchUserHz: 90,
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+  });
+
+  group('EchoMergedSeriesMemo', () {
+    final ref = const EchoRegionAnalysisResult(
+      points: [
+        EchoRegionSeriesPoint(t: 0, ampRef: 0.5, pitchRefHz: 100),
+        EchoRegionSeriesPoint(t: 1, ampRef: 0.5, pitchRefHz: 110),
+      ],
+      durationSeconds: 2,
+      sampleRate: 44100,
+    );
+    final user = const EchoRegionAnalysisResult(
+      points: [EchoRegionSeriesPoint(t: 0, ampRef: 0.3, pitchRefHz: 90)],
+      durationSeconds: 1.5,
+      sampleRate: 44100,
+    );
+
+    test('returns the same list instance across ticks (built once)', () {
+      final memo = EchoMergedSeriesMemo();
+      final first = memo.resolve(
+        reference: ref,
+        user: user,
+        referenceDurationSec: 2,
+        userDurationSec: 1.5,
+      );
+      // A playback tick only changes the progress cursor — not the merge
+      // inputs — so the merged series must be the identical list instance.
+      final second = memo.resolve(
+        reference: ref,
+        user: user,
+        referenceDurationSec: 2,
+        userDurationSec: 1.5,
+      );
+      expect(identical(first, second), isTrue);
+    });
+
+    test('recomputes when the reference or user result changes', () {
+      final memo = EchoMergedSeriesMemo();
+      final a = memo.resolve(
+        reference: ref,
+        user: null,
+        referenceDurationSec: 2,
+        userDurationSec: 0,
+      );
+      final b = memo.resolve(
+        reference: ref,
+        user: user,
+        referenceDurationSec: 2,
+        userDurationSec: 1.5,
+      );
+      expect(identical(a, b), isFalse);
+    });
+
+    test('invalidate forces a rebuild on the next resolve', () {
+      final memo = EchoMergedSeriesMemo();
+      final first = memo.resolve(
+        reference: ref,
+        user: user,
+        referenceDurationSec: 2,
+        userDurationSec: 1.5,
+      );
+      memo.invalidate();
+      final second = memo.resolve(
+        reference: ref,
+        user: user,
+        referenceDurationSec: 2,
+        userDurationSec: 1.5,
+      );
+      expect(identical(first, second), isFalse);
+    });
   });
 }
