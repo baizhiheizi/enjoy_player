@@ -39,6 +39,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/share-poster.md](features/share-poster.md) | Product + dev | Shareable practice poster (echo-tailored cover + quote) behavior changes |
 | [features/player.md](features/player.md) | Product + dev | Player engine binding, expand/collapse, transport, echo enforcement, or wide-layout behavior changes |
 | [features/transcript.md](features/transcript.md) | Product + dev | Transcript loading, line navigation, auto-scroll, or cloud fetch behavior changes |
+| [features/asr.md](features/asr.md) | Product + dev | Local-file ASR generation pipeline, audio extraction (FFmpegKit / isolate), failure reasons, or `source: ai` upsert behavior changes |
 | [features/echo-mode.md](features/echo-mode.md) | Product + dev | Echo region, shadow-reading, pronunciation assessment, or share practice poster behavior changes |
 | [features/local-database-recovery.md](features/local-database-recovery.md) | Product + dev | Stale/malformed local-DB detection, the recovery surface, or the reset-local-library flow changes |
 

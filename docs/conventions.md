@@ -39,7 +39,7 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 - Prefer **`EnjoyTappableSurface` / `EnjoyTappableIcon`** (or **`EnjoyButton`**) for new tappable UI instead of ad-hoc `InkWell` + `GestureDetector` combinations — see [ADR-0018](decisions/0018-shared-interactive-primitives.md).
 - Route light user feedback through **`Haptics`** (`selection`, `impactMedium`, `success`, `warning`) rather than calling `HapticFeedback` directly; it honors reduced motion / platform.
 - Icon-only controls should still expose **`Tooltip`** (and keyboard hints via `kbd_chip` / hotkey helpers where applicable).
-- User-visible strings live in ARB localization files under `lib/l10n/`.
+- User-visible strings live in ARB localization files under `lib/l10n/`. Every ARB key must be filled for all shipped locales (validated by `flutter gen-l10n`). No non-localized English (or other source-language) fallbacks, no `Text('$error')` exception dumps, no hardcoded accessibility labels.
 
 ## Logging
 

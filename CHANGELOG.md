@@ -87,6 +87,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cue no longer keeps a stale translation. See
   [ADR-0039](docs/decisions/0039-auto-translate-primary-text-keyed-overlay.md)
   and [docs/features/transcript.md](docs/features/transcript.md#auto-translate).
+- **i18n: localize remaining hardcoded user-facing strings**: removed
+  hidden-English hotkey fallbacks, localized shadow-reading captions and the
+  file-not-found reason, replaced raw `Text('$error')` dumps with
+  `errorGenericLoadFailed`, added the `authOtpInputSemantics` OTP a11y label,
+  filled the missing `subtitlesRegenerate` zh translation. See
+  [docs/features/auth.md](docs/features/auth.md),
+  [docs/features/transcript.md](docs/features/transcript.md),
+  [docs/features/shadow-reading.md](docs/features/shadow-reading.md),
+  [docs/features/hotkeys.md](docs/features/hotkeys.md), and
+  [docs/conventions.md](docs/conventions.md).
 
 ## [0.4.0] - 2026-07-09
 
@@ -211,7 +221,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NotFoundScreen fallback route for unknown go_router locations (en/zh/zh-CN localized).
 - GitHub issue templates (`bug`, `feature`, `chore`) and a PR template at `.github/`.
 - `PlayerEngine.supportsSubtitleDisabling` to skip the no-op `disableRenderedSubtitles` await on YouTube opens.
-- `kPositionBucketEchoApplyMs`, `kPositionBucketDisplayMs`, `kPositionBucketScrubberMs` constants in `lib/features/player/application/position_buckets.dart` consolidating three previously inline quantization values.
+- `kPositionBucketSessionEmitMs`, `kPositionBucketDisplayMs`, `kPositionBucketScrubberMs` constants in `lib/features/player/application/position_buckets.dart` consolidating three previously inline quantization values.
 - `SyncMissingUpdatedAtError` thrown by `SyncUploadService` when the server omits `updatedAt`, preserving local `serverUpdatedAt` instead of silently bumping it to `DateTime.now()`.
 - Redesigned **Settings** hub with search, a two-pane layout, and default-collapsed sections; inline Account profile card in the two-pane layout.
 - Developer contact bottom sheet from the About section.
