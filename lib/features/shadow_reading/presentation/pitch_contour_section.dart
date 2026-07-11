@@ -152,8 +152,10 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
     } catch (e) {
       if (!mounted || gen != _referenceRequestGen) return;
       setState(() {
+        _reference = null;
         _error = e;
         _loading = false;
+        _mergedMemo.invalidate();
       });
     }
   }

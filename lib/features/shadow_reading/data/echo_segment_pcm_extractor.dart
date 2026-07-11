@@ -339,6 +339,9 @@ Future<void> _runFfmpegWindowsProcess({
       throw const EchoPcmExtractionException(EchoPcmFailureReason.timeout);
     },
   );
+  if (token?.isCancelled ?? false) {
+    throw const EchoPcmExtractionException(EchoPcmFailureReason.cancelled);
+  }
   if (exitCode != 0) {
     final stderr = systemEncoding.decode(stderrBuf.expand((l) => l).toList());
     _log.fine('echo ffmpeg $failLabel failed (exit $exitCode): $stderr');
@@ -411,6 +414,9 @@ Future<void> _runFfmpegKit({
     await completer.future.timeout(
       timeout,
       onTimeout: () {
+        if (sessionId != null) {
+          unawaited(FFmpegKit.cancel(sessionId));
+        }
         throw const EchoPcmExtractionException(EchoPcmFailureReason.timeout);
       },
     );
