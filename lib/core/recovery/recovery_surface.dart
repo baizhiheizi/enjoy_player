@@ -152,14 +152,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
 
   Future<void> _onCopy() => runBusyAction<bool>(
     () => copyErrorToClipboard(widget.error, widget.stack),
-    (ctx, ok) async {
-      final l10n = AppLocalizations.of(ctx)!;
-      if (ok) {
-        AppNotice.success(ctx, l10n.recoveryCopiedToClipboard);
-      } else {
-        AppNotice.error(ctx, l10n.recoveryCopiedToClipboard);
-      }
-    },
+    copyErrorShowNotice,
   );
 
   Future<void> _onOpenLogs() =>

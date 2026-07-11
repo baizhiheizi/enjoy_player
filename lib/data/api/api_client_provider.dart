@@ -98,36 +98,44 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   }
 }
 
-@Riverpod(keepAlive: true)
-ApiClient authApiClient(Ref ref) {
+ApiClient _makeApiClient(
+  Ref ref, {
+  required Future<String> Function() getBaseUrl,
+  bool refreshOn401 = false,
+}) {
   final httpClient = ref.watch(httpClientProvider);
   final tokens = ref.watch(secureTokenStoreProvider);
   return ApiClient(
     httpClient: httpClient,
-    getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
+    getBaseUrl: getBaseUrl,
     getAccessToken: tokens.readAccessToken,
+    refreshAccessToken: refreshOn401
+        ? () => ref.read(authRepositoryProvider).refreshSession()
+        : null,
+  );
+}
+
+@Riverpod(keepAlive: true)
+ApiClient authApiClient(Ref ref) {
+  return _makeApiClient(
+    ref,
+    getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
   );
 }
 
 @Riverpod(keepAlive: true)
 ApiClient apiClient(Ref ref) {
-  final httpClient = ref.watch(httpClientProvider);
-  final tokens = ref.watch(secureTokenStoreProvider);
-  return ApiClient(
-    httpClient: httpClient,
+  return _makeApiClient(
+    ref,
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
-    getAccessToken: tokens.readAccessToken,
-    refreshAccessToken: () => ref.read(authRepositoryProvider).refreshSession(),
+    refreshOn401: true,
   );
 }
 
 @Riverpod(keepAlive: true)
 ApiClient aiApiClient(Ref ref) {
-  final httpClient = ref.watch(httpClientProvider);
-  final tokens = ref.watch(secureTokenStoreProvider);
-  return ApiClient(
-    httpClient: httpClient,
+  return _makeApiClient(
+    ref,
     getBaseUrl: () => ref.read(aiApiBaseUrlProvider.future),
-    getAccessToken: tokens.readAccessToken,
   );
 }

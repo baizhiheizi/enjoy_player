@@ -6,12 +6,15 @@ library;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/logging/log_file_sink.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final _log = logNamed('RecoveryActions');
 
@@ -63,6 +66,17 @@ Future<bool> copyErrorToClipboard(Object error, StackTrace? stack) =>
       await Clipboard.setData(ClipboardData(text: buf.toString()));
       return true;
     });
+
+/// Shared clipboard-copy success / failure notice used by both
+/// [WidgetErrorSurface] and [RecoverySurface].
+Future<void> copyErrorShowNotice(BuildContext context, bool ok) async {
+  final l10n = AppLocalizations.of(context)!;
+  if (ok) {
+    AppNotice.success(context, l10n.recoveryCopiedToClipboard);
+  } else {
+    AppNotice.error(context, l10n.recoveryCopiedToClipboard);
+  }
+}
 
 /// Opens the rotating log directory in the platform file explorer.
 ///

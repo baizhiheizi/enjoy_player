@@ -3,7 +3,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -99,14 +98,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
 
   Future<void> _onCopy() => runBusyAction<bool>(
     () => copyErrorToClipboard(widget.details.exception, widget.details.stack),
-    (ctx, ok) async {
-      final l10n = AppLocalizations.of(ctx)!;
-      if (ok) {
-        AppNotice.success(ctx, l10n.recoveryCopiedToClipboard);
-      } else {
-        AppNotice.error(ctx, l10n.recoveryCopiedToClipboard);
-      }
-    },
+    copyErrorShowNotice,
   );
 }
 
