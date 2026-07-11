@@ -10,9 +10,14 @@ Azure Speech or an OpenAI-compatible Whisper endpoint.
 `launchAsrGeneration` accepts only local library files. For video, it confirms
 long media, extracts a temporary 16 kHz mono WAV through FFmpeg, then delegates
 recognition to `AsrGenerationController`. Audio files are sent without an
-extraction step. The controller converts the `AsrResult` through
-`buildAsrTranscriptLines`, persists the result through
-`TranscriptRepository.upsertAsrGeneratedTrack`, and makes it primary.
+extraction step. The controller includes the known media duration in the
+`AsrRequest.durationSeconds` field; the Enjoy worker uses it to route short
+audio to Whisper and longer audio to Azure Speech continuous recognition.
+Whisper-compatible paths normalize the user-selected BCP-47 language tag
+(e.g. `en-US`) to the base subtag (`en`) before sending it to the provider.
+The controller converts the `AsrResult` through `buildAsrTranscriptLines`,
+persists the result through `TranscriptRepository.upsertAsrGeneratedTrack`,
+and makes it primary.
 
 Re-generation uses the deterministic `enjoyTranscriptId` for
 `(targetType, mediaId, language, source: ai)`, so it updates one row in place.

@@ -11,6 +11,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+class _RecordingClient extends http.BaseClient {
+  http.BaseRequest? captured;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    captured = request;
+    return http.StreamedResponse(
+      Stream.fromIterable([
+        utf8.encode(jsonEncode({'text': 'Hello world'})),
+      ]),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
 class _FakeSecretStore implements ByokSecretStoreBase {
   _FakeSecretStore(this._key);
 
@@ -62,6 +78,37 @@ void main() {
     );
 
     expect(result.text, 'Hello world');
+    client.close();
+  });
+
+  test('normalizes BCP-47 language tag to Whisper base tag', () async {
+    final client = _RecordingClient();
+
+    final cap = ByokAsrOpenAiCapability(
+      config: const SpeechByokConfig(
+        kind: SpeechByokKind.openAiCompatible,
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'whisper-1',
+      ),
+      secrets: _FakeSecretStore('sk-test'),
+      httpClient: client,
+    );
+
+    final result = await cap.transcribe(
+      AsrRequest(
+        audioBytes: Uint8List.fromList([1, 2, 3]),
+        filename: 'sample.wav',
+        language: 'en-US',
+      ),
+    );
+
+    expect(result.text, 'Hello world');
+    expect(client.captured, isA<http.MultipartRequest>());
+    final multipart = client.captured! as http.MultipartRequest;
+    expect(multipart.method, 'POST');
+    expect(multipart.url.path, '/v1/audio/transcriptions');
+    expect(multipart.headers['Authorization'], 'Bearer sk-test');
+    expect(multipart.fields['language'], 'en');
     client.close();
   });
 

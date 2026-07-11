@@ -1,5 +1,6 @@
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
+import 'package:http/http.dart' as http;
 
 AppFailure mapApiExceptionToAppFailure(ApiException e) {
   if (e.isUnauthorized) {
@@ -28,5 +29,7 @@ Future<T> guardAiCall<T>(Future<T> Function() op) async {
     return await op();
   } on ApiException catch (e) {
     throw mapApiExceptionToAppFailure(e);
+  } on http.ClientException catch (e) {
+    throw NetworkFailure(e.message);
   }
 }

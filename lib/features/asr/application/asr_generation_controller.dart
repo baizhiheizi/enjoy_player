@@ -204,11 +204,16 @@ class AsrGenerationController extends _$AsrGenerationController {
       // 2. Recognition.
       _setPhase(AsrGenerationPhase.recognizing);
       final asrService = ref.read(asrServiceProvider);
+      final mediaDurationMs = await _resolveMediaDurationMs(mediaSourceUri);
+      final durationSeconds = mediaDurationMs > 0
+          ? mediaDurationMs / 1000
+          : null;
       final req = AsrRequest(
         audioBytes: audioBytes,
         filename: 'asr-${mediaId.hashCode}.wav',
         language: requestedLanguage,
         responseFormat: 'json',
+        durationSeconds: durationSeconds,
       );
       final AsrResult result;
       try {
@@ -228,7 +233,6 @@ class AsrGenerationController extends _$AsrGenerationController {
       }
 
       // 3. Build the timeline.
-      final mediaDurationMs = await _resolveMediaDurationMs(mediaSourceUri);
       final lines = buildAsrTranscriptLines(
         result: result,
         mediaDurationMs: mediaDurationMs,

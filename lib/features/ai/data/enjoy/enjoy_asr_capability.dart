@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/ai/asr_api.dart';
 import 'package:enjoy_player/features/ai/domain/capabilities/asr_capability.dart';
@@ -12,11 +13,12 @@ final class EnjoyAsrCapability implements AsrCapability {
   @override
   Future<AsrResult> transcribe(AsrRequest request) async {
     try {
+      final language = request.language;
       final map = await _api.transcribe(
         audioBytes: request.audioBytes.toList(),
         filename: request.filename,
         model: request.model,
-        language: request.language,
+        language: language == null ? null : workerLanguageBase(language),
         prompt: request.prompt,
         responseFormat: request.responseFormat,
         durationSeconds: request.durationSeconds,

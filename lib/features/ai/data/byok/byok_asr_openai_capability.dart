@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_whisper_client.dart';
@@ -50,7 +51,9 @@ final class ByokAsrOpenAiCapability implements AsrCapability {
       audioBytes: request.audioBytes,
       filename: request.filename,
       model: model,
-      language: request.language,
+      language: request.language == null
+          ? null
+          : workerLanguageBase(request.language!),
       prompt: request.prompt,
       responseFormat: request.responseFormat,
       client: _httpClient,

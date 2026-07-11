@@ -110,6 +110,23 @@ void main() {
     },
   );
 
+  test('forwards media duration to the ASR request', () async {
+    final source = File('${tempDir.path}/audio.wav')
+      ..writeAsBytesSync([1, 2, 3]);
+    final capability = _RecordingAsrCapability(
+      const AsrResult(text: 'Hola.', language: 'es'),
+    );
+    final container = containerFor(capability);
+    addTearDown(container.dispose);
+
+    await container
+        .read(asrGenerationControllerProvider('audio-1').notifier)
+        .generateTranscript(mediaSourceUri: source.path, kind: MediaKind.audio);
+
+    expect(capability.lastRequest, isNotNull);
+    expect(capability.lastRequest!.durationSeconds, 10.0);
+  });
+
   test(
     'maps an empty recognition result to no-speech without persistence',
     () async {
@@ -226,6 +243,19 @@ final class _ResultAsrCapability implements AsrCapability {
 
   @override
   Future<AsrResult> transcribe(AsrRequest request) async => result;
+}
+
+final class _RecordingAsrCapability implements AsrCapability {
+  _RecordingAsrCapability(this.result);
+
+  final AsrResult result;
+  AsrRequest? lastRequest;
+
+  @override
+  Future<AsrResult> transcribe(AsrRequest request) async {
+    lastRequest = request;
+    return result;
+  }
 }
 
 final class _ByokFailureAsrCapability implements AsrCapability {
