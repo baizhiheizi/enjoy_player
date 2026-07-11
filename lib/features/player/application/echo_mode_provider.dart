@@ -45,6 +45,25 @@ class EchoState {
       endTimeSeconds: endTimeSeconds ?? this.endTimeSeconds,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EchoState &&
+          other.active == active &&
+          other.startLineIndex == startLineIndex &&
+          other.endLineIndex == endLineIndex &&
+          other.startTimeSeconds == startTimeSeconds &&
+          other.endTimeSeconds == endTimeSeconds;
+
+  @override
+  int get hashCode => Object.hash(
+    active,
+    startLineIndex,
+    endLineIndex,
+    startTimeSeconds,
+    endTimeSeconds,
+  );
 }
 
 @Riverpod(keepAlive: true)

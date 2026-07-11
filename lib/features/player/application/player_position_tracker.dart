@@ -89,44 +89,44 @@ class PlayerPositionTracker {
         if (_subscribedGeneration != currentOpenGeneration()) return;
         final seconds = pos.inMilliseconds / 1000.0;
 
-        // Echo enforcement runs on every position event — the decision is cheap
-        // and this is what keeps pause-and-rewind within ~50 ms of the segment
-        // end. Single-flight inside the enforcer drops concurrent ticks.
-        unawaited(_echoEnforcer.enforceTick(seconds));
+            // Echo enforcement runs on every position event — the decision is cheap
+            // and this is what keeps pause-and-rewind within ~50 ms of the segment
+            // end. Single-flight inside the enforcer drops concurrent ticks.
+            unawaited(_echoEnforcer.enforceTick(seconds));
 
-        // Heavy session emit + persistence stays on the 400 ms bucket (or fires
-        // immediately on a detected seek) so the recorded clip window lines up.
-        final bucket = pos.inMilliseconds ~/ positionBucketMs;
-        final prevSec = getSession()?.currentTimeSeconds;
-        final likelySeek =
-            prevSec != null &&
-            (seconds - prevSec).abs() > kLikelySeekDeltaSeconds;
-        if (!likelySeek && bucket == _lastPositionEmitBucket) {
-          return;
-        }
-        _lastPositionEmitBucket = bucket;
+            // Heavy session emit + persistence stays on the 400 ms bucket (or fires
+            // immediately on a detected seek) so the recorded clip window lines up.
+            final bucket = pos.inMilliseconds ~/ positionBucketMs;
+            final prevSec = getSession()?.currentTimeSeconds;
+            final likelySeek =
+                prevSec != null &&
+                (seconds - prevSec).abs() > kLikelySeekDeltaSeconds;
+            if (!likelySeek && bucket == _lastPositionEmitBucket) {
+              return;
+            }
+            _lastPositionEmitBucket = bucket;
 
-        setSession(
-          getSession()?.copyWith(
-            currentTimeSeconds: seconds,
-            lastActiveAt: DateTime.now(),
-          ),
+            setSession(
+              getSession()?.copyWith(
+                currentTimeSeconds: seconds,
+                lastActiveAt: DateTime.now(),
+              ),
+            );
+            final s = getSession();
+            if (s != null) {
+              ref
+                  .read(playbackSessionPersisterProvider)
+                  .schedule(
+                    mediaId: mediaId,
+                    dexieTargetType: dexieTargetType,
+                    session: s,
+                  );
+            }
+          },
+          onError: (Object e, StackTrace st) {
+            _positionLog.warning('engine position stream errored', e, st);
+          },
         );
-        final s = getSession();
-        if (s != null) {
-          ref
-              .read(playbackSessionPersisterProvider)
-              .schedule(
-                mediaId: mediaId,
-                dexieTargetType: dexieTargetType,
-                session: s,
-              );
-        }
-      },
-      onError: (Object e, StackTrace st) {
-        _positionLog.warning('engine position stream errored', e, st);
-      },
-    );
 
     _durationSub = getEngine().duration.listen(
       (d) async {

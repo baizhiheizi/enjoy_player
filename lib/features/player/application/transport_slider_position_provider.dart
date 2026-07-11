@@ -3,14 +3,14 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'player_engine_provider.dart';
 import 'position_buckets.dart';
 import 'quantized_position.dart';
+import 'raw_engine_position_stream_provider.dart';
 
 final transportSliderPositionProvider = StreamProvider<Duration>((ref) {
-  final engine = ref.watch(playerEngineProvider);
+  final rawStream = ref.watch(rawEnginePositionStreamProvider);
   return quantizedPositionStream(
-    engine.position,
+    rawStream,
     bucketMs: kPositionBucketScrubberMs,
   );
 });

@@ -75,11 +75,10 @@ class TranscriptPanel extends ConsumerWidget {
       orElse: () => false,
     );
     final showLocalActions = !isYoutube;
-    final session = ref.watch(playerControllerProvider);
-    final showExtractButton =
-        session != null &&
-        session.dexieTargetType == 'Video' &&
-        showLocalActions;
+    final dexieTargetType = ref.watch(
+      playerControllerProvider.select((s) => s?.dexieTargetType),
+    );
+    final showExtractButton = dexieTargetType == 'Video' && showLocalActions;
 
     final signedIn = ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;
 
