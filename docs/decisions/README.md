@@ -63,3 +63,5 @@ Trade-offs, follow-up work, risks.
 | [0037](0037-transcript-auto-translate.md) | Transcript auto-translate (AI secondary track + lazy scheduler; superseded by 0038 for orchestration; display/identity supplemented by 0039) |
 | [0038](0038-viewport-per-line-auto-translate.md) | Viewport-driven per-line auto-translate (supersedes 0037 orchestration) |
 | [0039](0039-auto-translate-primary-text-keyed-overlay.md) | Auto-translate as primary-text keyed overlay (index display + sourceKey; supplements 0037/0038) |
+| [0040](0040-asr-transcript-generation.md) | ASR transcript generation |
+| [0041](0041-unified-tier-reconciliation.md) | Unified tier reconciliation — single source of truth + global resume/cold-start reconcile |

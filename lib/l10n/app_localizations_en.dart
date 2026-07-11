@@ -1646,6 +1646,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionViewPlans => 'View plans';
 
   @override
+  String get subscriptionUpgradedToPro => 'You\'re now Pro — enjoy!';
+
+  @override
+  String get subscriptionVerifyingUpgrade => 'Verifying your upgrade…';
+
+  @override
+  String get subscriptionVerifyTimeout =>
+      'Couldn\'t confirm your upgrade yet — we\'ll keep checking in the background.';
+
+  @override
   String get creditsUsageTitle => 'Credits usage';
 
   @override

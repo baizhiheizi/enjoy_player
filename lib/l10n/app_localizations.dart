@@ -3099,6 +3099,24 @@ abstract class AppLocalizations {
   /// **'View plans'**
   String get subscriptionViewPlans;
 
+  /// Celebration snackbar shown when the tier flips from Free to Pro.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re now Pro — enjoy!'**
+  String get subscriptionUpgradedToPro;
+
+  /// Snackbars shown while polling for payment confirmation after returning from external checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying your upgrade…'**
+  String get subscriptionVerifyingUpgrade;
+
+  /// Shown when eager purchase polling times out without confirming Pro.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm your upgrade yet — we\'ll keep checking in the background.'**
+  String get subscriptionVerifyTimeout;
+
   /// No description provided for @creditsUsageTitle.
   ///
   /// In en, this message translates to:

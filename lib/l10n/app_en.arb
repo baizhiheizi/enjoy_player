@@ -891,6 +891,18 @@
   "subscriptionMobilePurchaseMessage": "In-app purchase on iOS and Android is not available yet. If you already have Pro from the web or desktop app, your status appears above.",
   "subscriptionCreditsLimitMessage": "AI credits limit reached. Upgrade for higher limits.",
   "subscriptionViewPlans": "View plans",
+  "subscriptionUpgradedToPro": "You're now Pro — enjoy!",
+  "@subscriptionUpgradedToPro": {
+    "description": "Celebration snackbar shown when the tier flips from Free to Pro."
+  },
+  "subscriptionVerifyingUpgrade": "Verifying your upgrade…",
+  "@subscriptionVerifyingUpgrade": {
+    "description": "Snackbars shown while polling for payment confirmation after returning from external checkout."
+  },
+  "subscriptionVerifyTimeout": "Couldn't confirm your upgrade yet — we'll keep checking in the background.",
+  "@subscriptionVerifyTimeout": {
+    "description": "Shown when eager purchase polling times out without confirming Pro."
+  },
   "creditsUsageTitle": "Credits usage",
   "creditsUsageDescription": "Records of credits checks on the Enjoy AI worker (UTC dates).",
   "creditsUsageStartDate": "Start date",
