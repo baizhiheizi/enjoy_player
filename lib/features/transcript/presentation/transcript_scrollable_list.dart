@@ -424,7 +424,7 @@ class _TranscriptScrollableListState
           (next < echoNow.startLineIndex || next > echoNow.endLineIndex)) {
         return;
       }
-      if (prev == null || next == null || (next - prev).abs() > 1) {
+      if (prev == null || (next - prev).abs() > 1) {
         _suppressAutoScroll = false;
       }
       _scheduleTranscriptScrollIntoView(force: true);

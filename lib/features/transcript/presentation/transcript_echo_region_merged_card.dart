@@ -18,7 +18,6 @@ import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
-import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
