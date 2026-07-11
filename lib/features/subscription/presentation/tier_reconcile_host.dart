@@ -60,16 +60,21 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
   /// signed in at mount (auth resolved during bootstrap, before this widget's
   /// listeners attached). Also covers the cold-start case where the live tier
   /// has already advanced past the cached baseline by the time we mount.
+  ///
+  /// Uses [??=] so the [authCtrlProvider] listener (registered in [build]) can
+  /// seed [_lastEmittedTier] first when auth resolves before the post-frame
+  /// callback fires. Without this guard both paths can detect the same
+  /// free→Pro transition independently, causing a double celebration.
   void _onFirstFrame() {
     if (!mounted) return;
     final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) return;
-    final cachedTier = auth.profile.subscriptionTier ?? SubscriptionTier.free;
-    _lastEmittedTier = cachedTier;
+    _lastEmittedTier ??=
+        auth.profile.subscriptionTier ?? SubscriptionTier.free;
     unawaited(ref.read(tierReconcileCtrlProvider.notifier).reconcile());
     final liveTier = ref.read(currentTierProvider);
     if (liveTier == SubscriptionTier.pro &&
-        cachedTier != SubscriptionTier.pro) {
+        _lastEmittedTier != SubscriptionTier.pro) {
       _lastEmittedTier = liveTier;
       _celebrate();
     }
