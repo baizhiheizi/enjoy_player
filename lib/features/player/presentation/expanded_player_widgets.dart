@@ -11,7 +11,6 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
-import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
@@ -104,8 +103,6 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final isVideo = chrome.mediaType == 'video';
-    final isBuffering = ref.watch(playerIsBufferingProvider).value ?? false;
-    final showVideoTitleChrome = isVideo && (!isPlaying || isBuffering);
     final engine = ref.read(playerEngineProvider);
     final splitPx = ref.watch(
       playerPreferencesCtrlProvider.select(
@@ -167,17 +164,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (isVideo)
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  mediaBody,
-                  if (showVideoTitleChrome)
-                    _VideoTitleChromeOverlay(mediaTitle: chrome.mediaTitle),
-                ],
-              )
-            else
-              mediaBody,
+            mediaBody,
             Positioned(
               top: 0,
               right: 0,
@@ -219,67 +206,6 @@ class _VideoCollapseOnlyOverlay extends ConsumerWidget {
               size: 28,
             ),
             onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Floating title row over video when paused or buffering (does not affect layout).
-class _VideoTitleChromeOverlay extends ConsumerWidget {
-  const _VideoTitleChromeOverlay({required this.mediaTitle});
-
-  final String mediaTitle;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Align(
-      alignment: Alignment.topCenter,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black.withValues(alpha: 0.55),
-              Colors.black.withValues(alpha: 0.0),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          left: false,
-          right: false,
-          child: SizedBox(
-            height: kToolbarHeight,
-            child: Row(
-              children: [
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: () =>
-                      unawaited(collapseExpandedPlayer(ref, context)),
-                ),
-                Expanded(
-                  child: Text(
-                    mediaTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),

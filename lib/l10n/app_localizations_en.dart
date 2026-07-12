@@ -347,6 +347,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get youtubeLoginTooltip => 'YouTube account';
 
   @override
+  String get youtubeOpenInBrowser => 'Open in browser';
+
+  @override
   String get youtubeLoginClose => 'Close';
 
   @override

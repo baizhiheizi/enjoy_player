@@ -332,7 +332,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get youtubeLoginTooltip => 'YouTube 账号';
 
   @override
-  String get youtubeLoginClose => '关闭';
+  String get youtubeOpenInBrowser => '在瀏覽器中開啟';
+
+  @override
+  String get youtubeLoginClose => '關閉';
 
   @override
   String get youtubeLoginScreenTitle => 'YouTube 登录';
@@ -3023,6 +3026,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get youtubeLoginTooltip => 'YouTube 账号';
+
+  @override
+  String get youtubeOpenInBrowser => '在浏览器中打开';
 
   @override
   String get youtubeLoginClose => '关闭';

@@ -1,6 +1,7 @@
 /// Video surface + transcript side panel (desktop-friendly split).
 library;
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,9 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_state_providers.dart';
+import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class VideoPlayerLayout extends StatefulWidget {
@@ -57,7 +62,7 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
     }
   }
 
-  /// Transcript may use at most this fraction of total width (video keeps ≥50%).
+  /// Transcript may use at most this fraction of total width (video keeps >=50%).
   static const double _kMaxTranscriptFraction = 0.5;
 
   /// Initial transcript width as a fraction of total (before first drag).
@@ -75,6 +80,9 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
 
   /// Hover on splitter (desktop) for a faint affordance — no hard divider line.
   bool _splitterHovered = false;
+
+  /// Whether the mouse hovers the video column (desktop side-by-side only).
+  bool _videoColumnHovered = false;
 
   double _transcriptWidthForTotal(double totalWidth) {
     final maxW = totalWidth * _kMaxTranscriptFraction;
@@ -113,22 +121,20 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
             children: [
               SizedBox(
                 width: vw,
-                child: SafeArea(
-                  top: true,
-                  bottom: false,
-                  left: false,
-                  right: false,
-                  child: ColoredBox(
-                    color: Colors.black,
-                    child: LayoutBuilder(
-                      builder: (context, c) {
-                        return _VideoStageWithChrome(
-                          engine: widget.engine,
-                          maxWidth: c.maxWidth,
-                          maxHeight: c.maxHeight,
-                          loginOnTop: true,
-                        );
-                      },
+                child: MouseRegion(
+                  onEnter: (_) =>
+                      setState(() => _videoColumnHovered = true),
+                  onExit: (_) =>
+                      setState(() => _videoColumnHovered = false),
+                  child: SafeArea(
+                    top: true,
+                    bottom: false,
+                    left: false,
+                    right: false,
+                    child: _VideoColumn(
+                      engine: widget.engine,
+                      isHovered: _videoColumnHovered,
+                      showButtonsInTitleBar: true,
                     ),
                   ),
                 ),
@@ -175,18 +181,10 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
               child: AspectRatio(
                 aspectRatio:
                     _kMobileVideoAspectWidth / _kMobileVideoAspectHeight,
-                child: ColoredBox(
-                  color: Colors.black,
-                  child: LayoutBuilder(
-                    builder: (context, c) {
-                      return _VideoStageWithChrome(
-                        engine: widget.engine,
-                        maxWidth: c.maxWidth,
-                        maxHeight: c.maxHeight,
-                        loginOnTop: false,
-                      );
-                    },
-                  ),
+                child: _VideoColumn(
+                  engine: widget.engine,
+                  isHovered: false,
+                  showButtonsInTitleBar: false,
                 ),
               ),
             ),
@@ -200,12 +198,143 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
   }
 }
 
+/// Wraps the video stage with an optional title-bar overlay.
+///
+/// On desktop (side-by-side) the title bar contains the YT control buttons;
+/// on mobile the YT buttons stay at the bottom-right inside the stage.
+class _VideoColumn extends StatelessWidget {
+  const _VideoColumn({
+    required this.engine,
+    required this.isHovered,
+    required this.showButtonsInTitleBar,
+  });
+
+  final PlayerEngine engine;
+  final bool isHovered;
+  final bool showButtonsInTitleBar;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black,
+      child: LayoutBuilder(
+        builder: (context, c) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              _VideoStageWithChrome(
+                engine: engine,
+                maxWidth: c.maxWidth,
+                maxHeight: c.maxHeight,
+                showButtons: !showButtonsInTitleBar,
+                loginOnTop: showButtonsInTitleBar,
+              ),
+              _VideoTitleBar(
+                isHovered: isHovered,
+                showYtButtons: showButtonsInTitleBar,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Title bar overlaid at the top of the video column.
+///
+/// Visible when paused, buffering, or the mouse hovers the video column
+/// (desktop only — [isHovered] is always `false` on mobile).
+class _VideoTitleBar extends ConsumerWidget {
+  const _VideoTitleBar({
+    required this.isHovered,
+    required this.showYtButtons,
+  });
+
+  final bool isHovered;
+  final bool showYtButtons;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPlaying = ref.watch(playerIsPlayingProvider).value ?? false;
+    final isBuffering = ref.watch(playerIsBufferingProvider).value ?? false;
+    final chrome =
+        ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final isVisible = (!isPlaying || isBuffering) || isHovered;
+
+    return AnimatedOpacity(
+      opacity: isVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: IgnorePointer(
+          ignoring: !isVisible,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.55),
+                  Colors.black.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              left: false,
+              right: false,
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip:
+                          MaterialLocalizations.of(context).backButtonTooltip,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      onPressed: () =>
+                          unawaited(collapseExpandedPlayer(ref, context)),
+                    ),
+                    Expanded(
+                      child: Text(
+                        chrome?.mediaTitle ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                      ),
+                    ),
+                    if (showYtButtons) ...[
+                      const YoutubeOpenInBrowserButton(),
+                      const SizedBox(width: 6),
+                      const YoutubeLoginVideoFrameButton(),
+                      const SizedBox(width: 12),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _VideoStageWithChrome extends ConsumerWidget {
   const _VideoStageWithChrome({
     required this.engine,
     required this.maxWidth,
     required this.maxHeight,
     required this.loginOnTop,
+    this.showButtons = true,
   });
 
   final PlayerEngine engine;
@@ -217,12 +346,14 @@ class _VideoStageWithChrome extends ConsumerWidget {
   /// the share button over the video top edge.
   final bool loginOnTop;
 
+  /// Whether to render YouTube control buttons inside this stage.
+  ///
+  /// Should be `false` when the buttons are rendered in [\_VideoTitleBar].
+  final bool showButtons;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isYoutube = engine is YoutubePlayerEngine;
-    // YouTube tap-to-toggle is handled by the embedded watch page; do not
-    // intercept pointer events for the WebView. Local media_kit video has no
-    // built-in controls, so tap the stage to match that play/pause behavior.
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -242,14 +373,22 @@ class _VideoStageWithChrome extends ConsumerWidget {
               child: const ColoredBox(color: Colors.transparent),
             ),
           ),
-        Positioned(
-          top: loginOnTop ? 8 : null,
-          bottom: loginOnTop ? null : 12,
-          right: 8,
-          child: isYoutube
-              ? const YoutubeLoginVideoFrameButton()
-              : const SizedBox.shrink(),
-        ),
+        if (showButtons)
+          Positioned(
+            top: loginOnTop ? 8 : null,
+            bottom: loginOnTop ? null : 12,
+            right: 8,
+            child: isYoutube
+                ? const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      YoutubeOpenInBrowserButton(),
+                      SizedBox(width: 6),
+                      YoutubeLoginVideoFrameButton(),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
       ],
     );
   }

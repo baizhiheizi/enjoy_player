@@ -699,6 +699,12 @@ abstract class AppLocalizations {
   /// **'YouTube account'**
   String get youtubeLoginTooltip;
 
+  /// No description provided for @youtubeOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get youtubeOpenInBrowser;
+
   /// No description provided for @youtubeLoginClose.
   ///
   /// In en, this message translates to:
