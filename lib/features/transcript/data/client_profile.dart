@@ -17,13 +17,6 @@ class ClientProfile {
     required this.context,
   });
 
-  final String name;
-  final String clientName;
-  final String clientVersion;
-  final String clientNameHeader;
-  final String userAgent;
-  final Map<String, String> context;
-
   factory ClientProfile.fromJson(Map<String, dynamic> json) {
     return ClientProfile(
       name: json['name'] as String? ?? '',
@@ -38,6 +31,13 @@ class ClientProfile {
           <String, String>{},
     );
   }
+
+  final String name;
+  final String clientName;
+  final String clientVersion;
+  final String clientNameHeader;
+  final String userAgent;
+  final Map<String, String> context;
 
   Map<String, dynamic> toJson() => {
     'name': name,

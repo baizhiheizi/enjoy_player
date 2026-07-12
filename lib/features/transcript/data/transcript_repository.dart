@@ -1,6 +1,7 @@
 /// Persist imported subtitles for a media item.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cross_file/cross_file.dart';
@@ -568,9 +569,7 @@ class TranscriptRepository {
       );
       storedCount++;
 
-      if (primaryRowId == null) {
-        primaryRowId = id;
-      }
+      primaryRowId ??= id;
 
       _uploadToWorkerAfterDirectFetch(
         videoId: workerVideoId,
@@ -621,19 +620,21 @@ class TranscriptRepository {
     final client = _youtubeTranscripts;
     if (client == null) return;
     // Unawaited — never blocks the user
-    client.uploadTranscript(
-      videoId: videoId,
-      language: language,
-      source: source,
-      timeline: lines
-          .map(
-            (l) => {
-              'text': l.text,
-              'start': l.startMs,
-              'duration': l.durationMs,
-            },
-          )
-          .toList(),
+    unawaited(
+      client.uploadTranscript(
+        videoId: videoId,
+        language: language,
+        source: source,
+        timeline: lines
+            .map(
+              (l) => {
+                'text': l.text,
+                'start': l.startMs,
+                'duration': l.durationMs,
+              },
+            )
+            .toList(),
+      ),
     );
   }
 

@@ -27,11 +27,6 @@ class CaptionTrack {
     this.kind,
   });
 
-  final String baseUrl;
-  final String? vssId;
-  final String? languageCode;
-  final String? kind;
-
   factory CaptionTrack.fromJson(Map<String, dynamic> json) {
     return CaptionTrack(
       baseUrl: json['baseUrl'] as String? ?? '',
@@ -40,6 +35,11 @@ class CaptionTrack {
       kind: json['kind'] as String?,
     );
   }
+
+  final String baseUrl;
+  final String? vssId;
+  final String? languageCode;
+  final String? kind;
 }
 
 /// Outcome of a direct YouTube caption fetch attempt.
