@@ -11,6 +11,7 @@ part of 'translation_result.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$TranslationResult {
 
@@ -21,6 +22,8 @@ mixin _$TranslationResult {
 @pragma('vm:prefer-inline')
 $TranslationResultCopyWith<TranslationResult> get copyWith => _$TranslationResultCopyWithImpl<TranslationResult>(this as TranslationResult, _$identity);
 
+  /// Serializes this TranslationResult to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is TranslationResult&&(identical(other.translatedText, translatedText) || other.translatedText == translatedText)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,translatedText,sourceLanguage,targetLanguage);
 
@@ -205,11 +208,11 @@ return $default(_that.translatedText,_that.sourceLanguage,_that.targetLanguage);
 }
 
 /// @nodoc
+@JsonSerializable()
 
-
-class _TranslationResult implements TranslationResult {
-  const _TranslationResult({required this.translatedText, this.sourceLanguage, required this.targetLanguage});
-  
+class _TranslationResult extends TranslationResult {
+  const _TranslationResult({required this.translatedText, this.sourceLanguage, required this.targetLanguage}): super._();
+  factory _TranslationResult.fromJson(Map<String, dynamic> json) => _$TranslationResultFromJson(json);
 
 @override final  String translatedText;
 @override final  String? sourceLanguage;
@@ -221,14 +224,17 @@ class _TranslationResult implements TranslationResult {
 @pragma('vm:prefer-inline')
 _$TranslationResultCopyWith<_TranslationResult> get copyWith => __$TranslationResultCopyWithImpl<_TranslationResult>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$TranslationResultToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _TranslationResult&&(identical(other.translatedText, translatedText) || other.translatedText == translatedText)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,translatedText,sourceLanguage,targetLanguage);
 

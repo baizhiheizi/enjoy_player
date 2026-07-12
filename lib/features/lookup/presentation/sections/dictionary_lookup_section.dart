@@ -11,7 +11,6 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_providers.dart';
-import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
@@ -43,7 +42,6 @@ class DictionaryLookupSection extends ConsumerWidget {
         child: Builder(
           builder: (_) {
             void forceRefresh() {
-              ref.read(lookupSheetResultCacheProvider).evictDictionary(params);
               ref.invalidate(lookupSheetDictionaryProvider(params));
             }
 

@@ -8414,6 +8414,333 @@ class YoutubeFeedEntriesCompanion extends UpdateCompanion<YoutubeFeedEntryRow> {
   }
 }
 
+class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [kind, key, payloadJson, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {kind, key};
+  @override
+  AiCacheRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiCacheRow(
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AiCacheTable createAlias(String alias) {
+    return $AiCacheTable(attachedDatabase, alias);
+  }
+}
+
+class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
+  /// Discriminator that prevents cross-modality collisions. One of
+  /// `AiKind.wire` (`translation`, `dictionary`, `contextual_translation`,
+  /// `auto_translate_line`).
+  final String kind;
+
+  /// 32-char lowercase hex SHA-256 prefix produced by
+  /// `AiCacheFingerprint.fingerprint(...)`.
+  final String key;
+
+  /// JSON-encoded result payload. Decoded back to the concrete Dart type
+  /// by the cache layer.
+  final String payloadJson;
+
+  /// Last-write timestamp (milliseconds since epoch). Used by
+  /// `evictOldestExcept` and `pruneOlderThan`.
+  final int updatedAt;
+  const AiCacheRow({
+    required this.kind,
+    required this.key,
+    required this.payloadJson,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['kind'] = Variable<String>(kind);
+    map['key'] = Variable<String>(key);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  AiCacheCompanion toCompanion(bool nullToAbsent) {
+    return AiCacheCompanion(
+      kind: Value(kind),
+      key: Value(key),
+      payloadJson: Value(payloadJson),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AiCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiCacheRow(
+      kind: serializer.fromJson<String>(json['kind']),
+      key: serializer.fromJson<String>(json['key']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'kind': serializer.toJson<String>(kind),
+      'key': serializer.toJson<String>(key),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  AiCacheRow copyWith({
+    String? kind,
+    String? key,
+    String? payloadJson,
+    int? updatedAt,
+  }) => AiCacheRow(
+    kind: kind ?? this.kind,
+    key: key ?? this.key,
+    payloadJson: payloadJson ?? this.payloadJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AiCacheRow copyWithCompanion(AiCacheCompanion data) {
+    return AiCacheRow(
+      kind: data.kind.present ? data.kind.value : this.kind,
+      key: data.key.present ? data.key.value : this.key,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiCacheRow(')
+          ..write('kind: $kind, ')
+          ..write('key: $key, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(kind, key, payloadJson, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiCacheRow &&
+          other.kind == this.kind &&
+          other.key == this.key &&
+          other.payloadJson == this.payloadJson &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
+  final Value<String> kind;
+  final Value<String> key;
+  final Value<String> payloadJson;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const AiCacheCompanion({
+    this.kind = const Value.absent(),
+    this.key = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiCacheCompanion.insert({
+    required String kind,
+    required String key,
+    required String payloadJson,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : kind = Value(kind),
+       key = Value(key),
+       payloadJson = Value(payloadJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<AiCacheRow> custom({
+    Expression<String>? kind,
+    Expression<String>? key,
+    Expression<String>? payloadJson,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (kind != null) 'kind': kind,
+      if (key != null) 'key': key,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiCacheCompanion copyWith({
+    Value<String>? kind,
+    Value<String>? key,
+    Value<String>? payloadJson,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AiCacheCompanion(
+      kind: kind ?? this.kind,
+      key: key ?? this.key,
+      payloadJson: payloadJson ?? this.payloadJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiCacheCompanion(')
+          ..write('kind: $kind, ')
+          ..write('key: $key, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8431,6 +8758,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $YoutubeChannelSubscriptionsTable(this);
   late final $YoutubeFeedEntriesTable youtubeFeedEntries =
       $YoutubeFeedEntriesTable(this);
+  late final $AiCacheTable aiCache = $AiCacheTable(this);
   late final Index idxTranscriptFetchStatesTarget = Index(
     'idx_transcript_fetch_states_target',
     'CREATE INDEX idx_transcript_fetch_states_target ON transcript_fetch_states (target_type, target_id)',
@@ -8452,6 +8780,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final YoutubeFeedEntryDao youtubeFeedEntryDao = YoutubeFeedEntryDao(
     this as AppDatabase,
   );
+  late final AiCacheDao aiCacheDao = AiCacheDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8468,6 +8797,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     settingsKv,
     youtubeChannelSubscriptions,
     youtubeFeedEntries,
+    aiCache,
     idxTranscriptFetchStatesTarget,
   ];
 }
@@ -12434,6 +12764,186 @@ typedef $$YoutubeFeedEntriesTableProcessedTableManager =
       YoutubeFeedEntryRow,
       PrefetchHooks Function()
     >;
+typedef $$AiCacheTableCreateCompanionBuilder =
+    AiCacheCompanion Function({
+      required String kind,
+      required String key,
+      required String payloadJson,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$AiCacheTableUpdateCompanionBuilder =
+    AiCacheCompanion Function({
+      Value<String> kind,
+      Value<String> key,
+      Value<String> payloadJson,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$AiCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $AiCacheTable> {
+  $$AiCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AiCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $AiCacheTable> {
+  $$AiCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AiCacheTable> {
+  $$AiCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AiCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AiCacheTable,
+          AiCacheRow,
+          $$AiCacheTableFilterComposer,
+          $$AiCacheTableOrderingComposer,
+          $$AiCacheTableAnnotationComposer,
+          $$AiCacheTableCreateCompanionBuilder,
+          $$AiCacheTableUpdateCompanionBuilder,
+          (
+            AiCacheRow,
+            BaseReferences<_$AppDatabase, $AiCacheTable, AiCacheRow>,
+          ),
+          AiCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$AiCacheTableTableManager(_$AppDatabase db, $AiCacheTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiCacheTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiCacheTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiCacheTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> kind = const Value.absent(),
+                Value<String> key = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiCacheCompanion(
+                kind: kind,
+                key: key,
+                payloadJson: payloadJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String kind,
+                required String key,
+                required String payloadJson,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AiCacheCompanion.insert(
+                kind: kind,
+                key: key,
+                payloadJson: payloadJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AiCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AiCacheTable,
+      AiCacheRow,
+      $$AiCacheTableFilterComposer,
+      $$AiCacheTableOrderingComposer,
+      $$AiCacheTableAnnotationComposer,
+      $$AiCacheTableCreateCompanionBuilder,
+      $$AiCacheTableUpdateCompanionBuilder,
+      (AiCacheRow, BaseReferences<_$AppDatabase, $AiCacheTable, AiCacheRow>),
+      AiCacheRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12464,6 +12974,8 @@ class $AppDatabaseManager {
       );
   $$YoutubeFeedEntriesTableTableManager get youtubeFeedEntries =>
       $$YoutubeFeedEntriesTableTableManager(_db, _db.youtubeFeedEntries);
+  $$AiCacheTableTableManager get aiCache =>
+      $$AiCacheTableTableManager(_db, _db.aiCache);
 }
 
 mixin _$VideoDaoMixin on DatabaseAccessor<AppDatabase> {
@@ -12611,4 +13123,16 @@ class YoutubeFeedEntryDaoManager {
         _db.attachedDatabase,
         _db.youtubeFeedEntries,
       );
+}
+
+mixin _$AiCacheDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AiCacheTable get aiCache => attachedDatabase.aiCache;
+  AiCacheDaoManager get managers => AiCacheDaoManager(this);
+}
+
+class AiCacheDaoManager {
+  final _$AiCacheDaoMixin _db;
+  AiCacheDaoManager(this._db);
+  $$AiCacheTableTableManager get aiCache =>
+      $$AiCacheTableTableManager(_db.attachedDatabase, _db.aiCache);
 }
