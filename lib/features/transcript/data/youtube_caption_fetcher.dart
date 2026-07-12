@@ -105,9 +105,7 @@ class YoutubeCaptionFetcher {
       return CaptionFetchResult(error: result.error);
     }
     if (result.results.isEmpty) {
-      return const CaptionFetchResult(
-        error: 'No caption tracks available',
-      );
+      return const CaptionFetchResult(error: 'No caption tracks available');
     }
     return result.results.first;
   }
@@ -155,8 +153,7 @@ class YoutubeCaptionFetcher {
         }
 
         if (bestByLang.isEmpty) {
-          failures
-              .add('${profile.name}: no tracks with valid language codes');
+          failures.add('${profile.name}: no tracks with valid language codes');
           continue;
         }
 
@@ -189,10 +186,7 @@ class YoutubeCaptionFetcher {
           return a.language.compareTo(b.language);
         });
 
-        return AllCaptionsResult(
-          results: sorted,
-          fetchProfile: profile.name,
-        );
+        return AllCaptionsResult(results: sorted, fetchProfile: profile.name);
       } on Object catch (e) {
         failures.add('${profile.name}: $e');
       }

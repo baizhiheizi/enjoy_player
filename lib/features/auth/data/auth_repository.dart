@@ -217,11 +217,7 @@ class AuthRepository {
         }
       }
     } on PlatformException catch (e, st) {
-      _log.warning(
-        'loadInitialAuthState: token expiry check failed',
-        e,
-        st,
-      );
+      _log.warning('loadInitialAuthState: token expiry check failed', e, st);
       return const AuthSignedOut();
     }
 
@@ -278,8 +274,9 @@ class AuthRepository {
   Future<void> _persistTokens(AuthTokenResponse tokens) async {
     await _tokenStore.writeAccessToken(tokens.accessToken);
     await _tokenStore.writeRefreshToken(tokens.refreshToken);
-    final expiresAt =
-        DateTime.now().add(Duration(seconds: tokens.expiresIn)).toUtc();
+    final expiresAt = DateTime.now()
+        .add(Duration(seconds: tokens.expiresIn))
+        .toUtc();
     await _tokenStore.writeTokenExpiresAt(expiresAt.toIso8601String());
   }
 

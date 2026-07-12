@@ -545,8 +545,9 @@ class TranscriptRepository {
         language: trackResult.language,
         source: source,
       );
-      final timelineJson =
-          jsonEncode(trackResult.subtitles.map((e) => e.toJson()).toList());
+      final timelineJson = jsonEncode(
+        trackResult.subtitles.map((e) => e.toJson()).toList(),
+      );
 
       await _db.transcriptDao.upsert(
         TranscriptRow(
@@ -635,7 +636,6 @@ class TranscriptRepository {
           .toList(),
     );
   }
-
 
   TranscriptRow? _transcriptRowFromServerMap(
     Map<String, dynamic> json, {

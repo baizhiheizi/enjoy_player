@@ -78,8 +78,7 @@ class SecureTokenStore {
   Future<void> writeTokenExpiresAt(String expiresAt) =>
       _writeResilient(_kTokenExpiresAtKey, expiresAt);
 
-  Future<void> clearTokenExpiresAt() =>
-      _deleteBestEffort(_kTokenExpiresAtKey);
+  Future<void> clearTokenExpiresAt() => _deleteBestEffort(_kTokenExpiresAtKey);
 
   /// Clears bearer token, refresh token, cached profile, and token expiry (sign out / invalid session).
   Future<void> clearAllAuthSecrets() async {

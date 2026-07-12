@@ -69,8 +69,7 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
     if (!mounted) return;
     final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) return;
-    _lastEmittedTier ??=
-        auth.profile.subscriptionTier ?? SubscriptionTier.free;
+    _lastEmittedTier ??= auth.profile.subscriptionTier ?? SubscriptionTier.free;
     unawaited(ref.read(tierReconcileCtrlProvider.notifier).reconcile());
     final liveTier = ref.read(currentTierProvider);
     if (liveTier == SubscriptionTier.pro &&
