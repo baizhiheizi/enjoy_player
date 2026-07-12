@@ -1,0 +1,560 @@
+import 'dart:convert';
+
+import 'package:enjoy_player/features/transcript/data/client_profile.dart';
+import 'package:enjoy_player/features/transcript/data/youtube_caption_fetcher.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+/// Returns canned InnerTube /player JSON for a video with caption tracks.
+Map<String, dynamic> _cannedPlayerResponse({
+  String status = 'OK',
+  List<Map<String, dynamic>> tracks = const [],
+}) {
+  return {
+    'playabilityStatus': {'status': status},
+    'captions': {
+      'playerCaptionsTracklistRenderer': {'captionTracks': tracks},
+    },
+  };
+}
+
+/// Returns canned json3 caption track data.
+String _cannedJson3Response(List<Map<String, dynamic>> events) {
+  return jsonEncode({'events': events});
+}
+
+void main() {
+  late http.Client mockClient;
+
+  setUp(() {
+    mockClient = MockClient((request) async {
+      return http.Response('', 500);
+    });
+  });
+
+  group('YoutubeCaptionFetcher', () {
+    test('fetchSubtitles returns captions for a valid video', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
+      var callCount = 0;
+      mockClient = MockClient((request) async {
+        callCount++;
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.url.toString().startsWith(captionUrl)) {
+          return http.Response(
+            _cannedJson3Response([
+              {
+                'tStartMs': 0,
+                'dDurationMs': 3000,
+                'segs': [
+                  {'utf8': 'Hello world'},
+                ],
+                'aAppend': 0,
+              },
+              {
+                'tStartMs': 3000,
+                'dDurationMs': 2500,
+                'segs': [
+                  {'utf8': 'How are you?'},
+                ],
+                'aAppend': 0,
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('', 404);
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'dQw4w9WgXcQ',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.error, isNull);
+      expect(result.subtitles.length, 2);
+      expect(result.subtitles[0].text, 'Hello world');
+      expect(result.subtitles[0].startMs, 0);
+      expect(result.subtitles[0].durationMs, 3000);
+      expect(result.subtitles[1].text, 'How are you?');
+      expect(result.source, 'official');
+      expect(result.fetchProfile, 'ios');
+      expect(callCount, 2);
+    });
+
+    test('fetchSubtitles falls back through client profiles', () async {
+      var attempts = <String>[];
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          final ua = request.headers['user-agent'] ?? '';
+          attempts.add(
+            'POST with ${ua.substring(0, ua.length > 30 ? 30 : ua.length)}...',
+          );
+        }
+        if (request.url.toString().contains(captionUrl)) {
+          return http.Response(
+            _cannedJson3Response([
+              {
+                'tStartMs': 0,
+                'dDurationMs': 1000,
+                'segs': [
+                  {'utf8': 'Hello from fallback'},
+                ],
+                'aAppend': 0,
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('', 500);
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      // Expect that with all-500 mock, the fetcher tries multiple profiles
+      // and eventually returns an error (relying on all failing)
+      expect(
+        attempts.length,
+        greaterThanOrEqualTo(2),
+        reason: 'Should have tried at least 2 profiles',
+      );
+      expect(result.isSuccess, isFalse);
+    });
+
+    test('fetchSubtitles returns error when all profiles fail', () async {
+      mockClient = MockClient((request) async {
+        return http.Response('Forbidden', 403);
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isFalse);
+      expect(result.error, isNotNull);
+      expect(result.error!.contains('All profiles failed'), isTrue);
+    });
+
+    test('fetchSubtitles returns error for unplayable video', () async {
+      mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode(_cannedPlayerResponse(status: 'ERROR')),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isFalse);
+    });
+
+    test('fetchSubtitles selects manual captions over auto', () async {
+      const manualUrl =
+          'https://www.youtube.com/api/timedtext?v=test&lang=en&kind=';
+      const autoUrl =
+          'https://www.youtube.com/api/timedtext?v=test&lang=en&kind=asr';
+      String? fetchedUrl;
+
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {
+                    'baseUrl': autoUrl,
+                    'vssId': 'a.en',
+                    'languageCode': 'en',
+                    'kind': 'asr',
+                  },
+                  {'baseUrl': manualUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        fetchedUrl = request.url.toString();
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': 'manual'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.source, 'official');
+      expect(fetchedUrl, isNotNull);
+      expect(fetchedUrl!.contains(manualUrl), isTrue);
+    });
+
+    test('fetchSubtitles handles auto-generated captions', () async {
+      const autoUrl =
+          'https://www.youtube.com/api/timedtext?v=test&lang=en&kind=asr';
+
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {
+                    'baseUrl': autoUrl,
+                    'vssId': 'a.en',
+                    'languageCode': 'en',
+                    'kind': 'asr',
+                  },
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': 'auto generated'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.source, 'auto');
+    });
+
+    test('fetchSubtitles decodes HTML entities in captions', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': 'We&#39;re no strangers to &amp; love'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.subtitles[0].text, "We're no strangers to & love");
+    });
+
+    test('fetchSubtitles strips HTML tags from captions', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': '<b>bold</b> text <i>italic</i>'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.subtitles[0].text, 'bold text italic');
+    });
+
+    test('fetchSubtitles skips aAppend events', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 3000,
+              'segs': [
+                {'utf8': 'First part'},
+              ],
+              'aAppend': 0,
+            },
+            {
+              'tStartMs': 3000,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': ' - continued part'},
+              ],
+              'aAppend': 1,
+            },
+            {
+              'tStartMs': 4000,
+              'dDurationMs': 2000,
+              'segs': [
+                {'utf8': 'New segment'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.subtitles.length, 2);
+      expect(result.subtitles[0].text, 'First part');
+      expect(result.subtitles[1].text, 'New segment');
+    });
+
+    test('fetchSubtitles skips events with no segs', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {'tStartMs': 0, 'dDurationMs': 1000, 'segs': [], 'aAppend': 0},
+            {
+              'tStartMs': 1000,
+              'dDurationMs': 2000,
+              'segs': [
+                {'utf8': 'Valid segment'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.subtitles.length, 1);
+      expect(result.subtitles[0].text, 'Valid segment');
+    });
+
+    test('fetchSubtitles handles empty caption tracks gracefully', () async {
+      mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode(_cannedPlayerResponse(tracks: [])),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isFalse);
+      expect(result.error, isNotNull);
+    });
+
+    test('fetchSubtitles handles caption track 404', () async {
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': captionUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final result = await fetcher.fetchSubtitles(
+        videoId: 'test1234567',
+        lang: 'en',
+      );
+
+      expect(result.isSuccess, isFalse);
+    });
+
+    test(
+      'fetchSubtitles returns empty result for empty json3 response',
+      () async {
+        const captionUrl = 'https://www.youtube.com/api/timedtext?v=test';
+        mockClient = MockClient((request) async {
+          if (request.method == 'POST') {
+            return http.Response(
+              jsonEncode(
+                _cannedPlayerResponse(
+                  tracks: [
+                    {
+                      'baseUrl': captionUrl,
+                      'vssId': '.en',
+                      'languageCode': 'en',
+                    },
+                  ],
+                ),
+              ),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            jsonEncode({'events': <Map<String, dynamic>>[]}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+
+        final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+        final result = await fetcher.fetchSubtitles(
+          videoId: 'test1234567',
+          lang: 'en',
+        );
+
+        expect(result.isSuccess, isFalse);
+        expect(result.subtitles, isEmpty);
+        expect(result.error, isNull);
+      },
+    );
+  });
+}

@@ -57,6 +57,10 @@ abstract final class SettingsKeys {
   /// JSON blob: per-modality AI provider config (BYOK non-secrets only).
   static const String aiModalityConfigsV1 = 'ai.modality_configs_v1';
 
+  /// JSON array: cached YouTube InnerTube client profiles from worker
+  /// `GET /youtube/client-profiles`. Fall back to built-in defaults when absent.
+  static const String youtubeClientProfilesV1 = 'youtube.client_profiles_v1';
+
   static const _staticKeys = {
     apiBaseUrl,
     apiAiBaseUrl,
@@ -75,6 +79,7 @@ abstract final class SettingsKeys {
     playerPreferencesV1,
     hotkeysCustomBindings,
     aiModalityConfigsV1,
+    youtubeClientProfilesV1,
   };
 
   /// Whether [key] is a known static or dynamic settings key.
