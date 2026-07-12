@@ -21,6 +21,16 @@ abstract class PlayerEngine {
 
   Stream<bool> get buffering;
 
+  /// Fires when the current media reaches the end (ADR-0044).
+  ///
+  /// - **MediaKit**: forwards `media_kit`'s `Player.stream.completed`.
+  /// - **YouTube**: synthesized from the HTML5 `<video>` `ended` event / poll
+  ///   loop at ~250 ms resolution (ADR-0015).
+  ///
+  /// May fire duplicate or late events across seeks; callers must guard with a
+  /// generation counter (see `PlayerController._playbackGen`).
+  Stream<void> get completed;
+
   /// libmpv / media_kit subtitle tracks; `null` when unsupported (e.g. WebView).
   Stream<mk.Tracks>? get mkTracksStream;
 
@@ -153,6 +163,9 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   Stream<bool> get buffering => _player.stream.buffering;
+
+  @override
+  Stream<void> get completed => _player.stream.completed;
 
   @override
   Stream<mk.Tracks>? get mkTracksStream => _player.stream.tracks;

@@ -69,7 +69,7 @@ class YoutubeWebViewPollLoop {
             }
             if (jsEnded && !session.playbackCompleted) {
               session.pausedPollStreak = 0;
-              session.playbackCompleted = true;
+              session.markCompleted();
               stop();
               session.emitPlaying(false);
             } else if (jsPaused && session.playing && !jsEnded) {

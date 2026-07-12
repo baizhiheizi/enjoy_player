@@ -53,6 +53,9 @@ class YoutubePlayerEngine implements PlayerEngine {
   Stream<bool> get buffering => _session.bufferingStream;
 
   @override
+  Stream<void> get completed => _session.completed;
+
+  @override
   Stream<mk.Tracks>? get mkTracksStream => null;
 
   @override
@@ -69,6 +72,12 @@ class YoutubePlayerEngine implements PlayerEngine {
   Stream<double> get videoAspectRatioStream => _session.aspectStream;
 
   void setPosterUrl(String? url) => _session.setPosterUrl(url);
+
+  /// Clears the internal [YoutubeSession.playbackCompleted] flag so the next
+  /// [play] call drives the `<video>` directly instead of reloading the watch
+  /// page. Used by the deterministic completion loop (ADR-0044) to seek + play
+  /// from an arbitrary position after end-of-media.
+  void resetCompletionFlag() => _session.playbackCompleted = false;
 
   void markOpenTimingStart() => _webView.markOpenTimingStart();
 
