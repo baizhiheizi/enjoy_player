@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -72,8 +71,6 @@ void main() {
 
     test('clears L2 entries matching (sourceLanguage, targetLanguage)', () async {
       const pairA = ('ko-KR', 'ja-JP');
-      const pairB = ('ko-KR', 'es-ES');
-      const pairC = ('ja-JP', 'ko-KR');
 
       // Seed L2 directly with payloads that contain sourceLanguage/targetLanguage.
       await db.aiCacheDao.upsert(
