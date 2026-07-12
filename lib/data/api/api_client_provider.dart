@@ -112,8 +112,7 @@ ApiClient _makeApiClient(
     getAccessToken: tokens.readAccessToken,
     refreshAccessToken: refreshOn401
         ? () async {
-            final ok =
-                await ref.read(authRepositoryProvider).refreshSession();
+            final ok = await ref.read(authRepositoryProvider).refreshSession();
             if (!ok) {
               final hasToken = await ref
                   .read(authRepositoryProvider)

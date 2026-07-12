@@ -27,11 +27,6 @@ class CaptionTrack {
     this.kind,
   });
 
-  final String baseUrl;
-  final String? vssId;
-  final String? languageCode;
-  final String? kind;
-
   factory CaptionTrack.fromJson(Map<String, dynamic> json) {
     return CaptionTrack(
       baseUrl: json['baseUrl'] as String? ?? '',
@@ -40,6 +35,11 @@ class CaptionTrack {
       kind: json['kind'] as String?,
     );
   }
+
+  final String baseUrl;
+  final String? vssId;
+  final String? languageCode;
+  final String? kind;
 }
 
 /// Outcome of a direct YouTube caption fetch attempt.
@@ -105,9 +105,7 @@ class YoutubeCaptionFetcher {
       return CaptionFetchResult(error: result.error);
     }
     if (result.results.isEmpty) {
-      return const CaptionFetchResult(
-        error: 'No caption tracks available',
-      );
+      return const CaptionFetchResult(error: 'No caption tracks available');
     }
     return result.results.first;
   }
@@ -155,8 +153,7 @@ class YoutubeCaptionFetcher {
         }
 
         if (bestByLang.isEmpty) {
-          failures
-              .add('${profile.name}: no tracks with valid language codes');
+          failures.add('${profile.name}: no tracks with valid language codes');
           continue;
         }
 
@@ -189,10 +186,7 @@ class YoutubeCaptionFetcher {
           return a.language.compareTo(b.language);
         });
 
-        return AllCaptionsResult(
-          results: sorted,
-          fetchProfile: profile.name,
-        );
+        return AllCaptionsResult(results: sorted, fetchProfile: profile.name);
       } on Object catch (e) {
         failures.add('${profile.name}: $e');
       }
@@ -270,27 +264,6 @@ class YoutubeCaptionFetcher {
         .map(CaptionTrack.fromJson)
         .where((t) => t.baseUrl.isNotEmpty)
         .toList();
-  }
-
-  /// Selects the best caption track for [lang].
-  ///
-  /// Precedence: manual captions > auto-generated > language code match >
-  /// partial vssId match > first available.
-  CaptionTrack? _selectCaptionTrack(List<CaptionTrack> tracks, String lang) {
-    if (tracks.isEmpty) return null;
-    return tracks.firstWhere(
-      (t) => t.vssId == '.$lang',
-      orElse: () => tracks.firstWhere(
-        (t) => t.vssId == 'a.$lang',
-        orElse: () => tracks.firstWhere(
-          (t) => t.languageCode == lang,
-          orElse: () => tracks.firstWhere(
-            (t) => t.vssId?.contains('.$lang') ?? false,
-            orElse: () => tracks.first,
-          ),
-        ),
-      ),
-    );
   }
 
   /// Determines source label from the selected track's kind.

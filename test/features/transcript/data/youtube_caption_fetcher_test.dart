@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:enjoy_player/features/transcript/data/client_profile.dart';
 import 'package:enjoy_player/features/transcript/data/youtube_caption_fetcher.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -560,34 +559,27 @@ void main() {
 
   group('fetchAllSubtitles', () {
     test('returns all available language tracks', () async {
-      const enUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=en';
-      const esUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=es';
-      const jaUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=ja';
+      const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
+      const esUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=es';
+      const jaUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=ja';
 
       mockClient = MockClient((request) async {
         if (request.method == 'POST') {
           return http.Response(
-            jsonEncode(_cannedPlayerResponse(tracks: [
-              {
-                'baseUrl': enUrl,
-                'vssId': '.en',
-                'languageCode': 'en',
-              },
-              {
-                'baseUrl': esUrl,
-                'vssId': '.es',
-                'languageCode': 'es',
-              },
-              {
-                'baseUrl': jaUrl,
-                'vssId': 'a.ja',
-                'languageCode': 'ja',
-                'kind': 'asr',
-              },
-            ])),
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': enUrl, 'vssId': '.en', 'languageCode': 'en'},
+                  {'baseUrl': esUrl, 'vssId': '.es', 'languageCode': 'es'},
+                  {
+                    'baseUrl': jaUrl,
+                    'vssId': 'a.ja',
+                    'languageCode': 'ja',
+                    'kind': 'asr',
+                  },
+                ],
+              ),
+            ),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -599,8 +591,13 @@ void main() {
               'tStartMs': 0,
               'dDurationMs': 1000,
               'segs': [
-                {'utf8': url.contains('lang=en') ? 'English' : 
-                        url.contains('lang=es') ? 'Español' : '日本語'}
+                {
+                  'utf8': url.contains('lang=en')
+                      ? 'English'
+                      : url.contains('lang=es')
+                      ? 'Español'
+                      : '日本語',
+                },
               ],
               'aAppend': 0,
             },
@@ -611,9 +608,7 @@ void main() {
       });
 
       final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
-      final result = await fetcher.fetchAllSubtitles(
-        videoId: 'test1234567',
-      );
+      final result = await fetcher.fetchAllSubtitles(videoId: 'test1234567');
 
       expect(result.isSuccess, isTrue);
       expect(result.results.length, 3);
@@ -623,26 +618,20 @@ void main() {
     });
 
     test('preferred language is sorted first', () async {
-      const enUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=en';
-      const esUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=es';
+      const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
+      const esUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=es';
 
       mockClient = MockClient((request) async {
         if (request.method == 'POST') {
           return http.Response(
-            jsonEncode(_cannedPlayerResponse(tracks: [
-              {
-                'baseUrl': enUrl,
-                'vssId': '.en',
-                'languageCode': 'en',
-              },
-              {
-                'baseUrl': esUrl,
-                'vssId': '.es',
-                'languageCode': 'es',
-              },
-            ])),
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': enUrl, 'vssId': '.en', 'languageCode': 'en'},
+                  {'baseUrl': esUrl, 'vssId': '.es', 'languageCode': 'es'},
+                ],
+              ),
+            ),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -652,7 +641,9 @@ void main() {
             {
               'tStartMs': 0,
               'dDurationMs': 1000,
-              'segs': [{'utf8': 'text'}],
+              'segs': [
+                {'utf8': 'text'},
+              ],
               'aAppend': 0,
             },
           ]),
@@ -682,19 +673,19 @@ void main() {
       mockClient = MockClient((request) async {
         if (request.method == 'POST') {
           return http.Response(
-            jsonEncode(_cannedPlayerResponse(tracks: [
-              {
-                'baseUrl': autoUrl,
-                'vssId': 'a.en',
-                'languageCode': 'en',
-                'kind': 'asr',
-              },
-              {
-                'baseUrl': manualUrl,
-                'vssId': '.en',
-                'languageCode': 'en',
-              },
-            ])),
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {
+                    'baseUrl': autoUrl,
+                    'vssId': 'a.en',
+                    'languageCode': 'en',
+                    'kind': 'asr',
+                  },
+                  {'baseUrl': manualUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -707,7 +698,7 @@ void main() {
               'tStartMs': 0,
               'dDurationMs': 1000,
               'segs': [
-                {'utf8': isManual ? 'manual text' : 'auto text'}
+                {'utf8': isManual ? 'manual text' : 'auto text'},
               ],
               'aAppend': 0,
             },
@@ -730,23 +721,22 @@ void main() {
     });
 
     test('skip tracks without language code', () async {
-      const enUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=en';
+      const enUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
 
       mockClient = MockClient((request) async {
         if (request.method == 'POST') {
           return http.Response(
-            jsonEncode(_cannedPlayerResponse(tracks: [
-              {
-                'baseUrl': 'https://www.youtube.com/api/timedtext?v=nolang',
-                'vssId': '.en',
-              },
-              {
-                'baseUrl': enUrl,
-                'vssId': '.en',
-                'languageCode': 'en',
-              },
-            ])),
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {
+                    'baseUrl': 'https://www.youtube.com/api/timedtext?v=nolang',
+                    'vssId': '.en',
+                  },
+                  {'baseUrl': enUrl, 'vssId': '.en', 'languageCode': 'en'},
+                ],
+              ),
+            ),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -756,7 +746,9 @@ void main() {
             {
               'tStartMs': 0,
               'dDurationMs': 1000,
-              'segs': [{'utf8': 'text'}],
+              'segs': [
+                {'utf8': 'text'},
+              ],
               'aAppend': 0,
             },
           ]),
@@ -766,9 +758,7 @@ void main() {
       });
 
       final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
-      final result = await fetcher.fetchAllSubtitles(
-        videoId: 'test1234567',
-      );
+      final result = await fetcher.fetchAllSubtitles(videoId: 'test1234567');
 
       expect(result.isSuccess, isTrue);
       expect(result.results.length, 1);
@@ -776,26 +766,20 @@ void main() {
     });
 
     test('handles individual track fetch failures gracefully', () async {
-      const okUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=en';
-      const badUrl =
-          'https://www.youtube.com/api/timedtext?v=test&lang=es';
+      const okUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=en';
+      const badUrl = 'https://www.youtube.com/api/timedtext?v=test&lang=es';
 
       mockClient = MockClient((request) async {
         if (request.method == 'POST') {
           return http.Response(
-            jsonEncode(_cannedPlayerResponse(tracks: [
-              {
-                'baseUrl': okUrl,
-                'vssId': '.en',
-                'languageCode': 'en',
-              },
-              {
-                'baseUrl': badUrl,
-                'vssId': '.es',
-                'languageCode': 'es',
-              },
-            ])),
+            jsonEncode(
+              _cannedPlayerResponse(
+                tracks: [
+                  {'baseUrl': okUrl, 'vssId': '.en', 'languageCode': 'en'},
+                  {'baseUrl': badUrl, 'vssId': '.es', 'languageCode': 'es'},
+                ],
+              ),
+            ),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -808,7 +792,9 @@ void main() {
             {
               'tStartMs': 0,
               'dDurationMs': 1000,
-              'segs': [{'utf8': 'ok text'}],
+              'segs': [
+                {'utf8': 'ok text'},
+              ],
               'aAppend': 0,
             },
           ]),

@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../../transcript/application/transcript_repository_provider.dart';
+import '../domain/transport_decisions.dart';
 import 'echo_mode_provider.dart';
 import 'playback_session_persister.dart';
 import 'player_controller.dart';
@@ -120,13 +121,19 @@ class PlayerInteractions extends _$PlayerInteractions {
     final session = ref.read(playerControllerProvider);
     if (session == null || lines.isEmpty) return;
     final echo = ref.read(echoModeProvider);
-    final seconds = echo.active
-        ? echo.startTimeSeconds
-        : () {
-            final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
-            if (idx < 0) return session.currentTimeSeconds;
-            return lines[idx].startSeconds;
-          }();
+    final idx = indexOfActiveLine(lines, session.currentTimeSeconds);
+    final activeLineStart = idx >= 0
+        ? lines[idx].startSeconds
+        : session.currentTimeSeconds;
+    final target = decideReplayTarget(
+      echoActive: echo.active,
+      echoStartTimeSeconds: echo.startTimeSeconds,
+      activeLineStartSeconds: activeLineStart,
+    );
+    final seconds = switch (target) {
+      ReplayToEchoStart(:final timeSeconds) => timeSeconds,
+      ReplayToLineStart(:final timeSeconds) => timeSeconds,
+    };
     await ref.read(playerControllerProvider.notifier).seekToSeconds(seconds);
     await ref.read(playerControllerProvider.notifier).play();
   }
@@ -242,11 +249,17 @@ class PlayerInteractions extends _$PlayerInteractions {
   Future<void> seekToProgressFraction(double fraction) async {
     final session = ref.read(playerControllerProvider);
     if (session == null) return;
-    final d = session.durationSeconds;
-    if (d <= 0) return;
-    final clamped = fraction.clamp(0.0, 1.0);
-    final target = (d * clamped).clamp(0.0, d).toDouble();
-    await ref.read(playerControllerProvider.notifier).seekToSeconds(target);
+    final decision = decideProgressSeekTime(
+      fraction: fraction,
+      durationSeconds: session.durationSeconds,
+    );
+    switch (decision) {
+      case ProgressSeekValid(:final timeSeconds):
+        await ref
+            .read(playerControllerProvider.notifier)
+            .seekToSeconds(timeSeconds);
+      case ProgressSeekInvalid():
+    }
   }
 
   Future<void> seekToLine(TranscriptLine line, int index) async {

@@ -5,7 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:media_kit/media_kit.dart' as mk;
@@ -14,6 +14,8 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
+import 'package:enjoy_player/features/player/domain/player_settings.dart';
+import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'youtube_session.dart';
 import 'youtube_webview_controller.dart';
@@ -24,12 +26,25 @@ final _logYoutube = logNamed('YouTubePlayerEngine');
 
 /// See [YoutubeWebViewBridge.watchUri] — not iframe embed.
 class YoutubePlayerEngine implements PlayerEngine {
-  YoutubePlayerEngine() : _session = YoutubeSession() {
+  YoutubePlayerEngine({this.repeatMode}) : _session = YoutubeSession() {
     _webView = YoutubeWebViewController(
       session: _session,
       onStallRecovery: () => _webView.recoverStalledPlayback(),
       onLogInitPhase: (phase) => _session.logInitPhase(phase, _logYoutube.info),
+      repeatMode: repeatMode,
+      onMediaEnd: _onMediaLoop,
     );
+  }
+
+  /// Resolve the current [RepeatMode] at media-end time so the poll loop can
+  /// decide whether to stop, loop, or segment-loop.
+  final RepeatMode Function()? repeatMode;
+
+  void _onMediaLoop() {
+    _webView.prepareWatchReload(resetFirstPlaying: true);
+    _session.emitBuffering(true);
+    _session.emitPlaying(false);
+    unawaited(_webView.loadCurrentVideoIfAttached());
   }
 
   final YoutubeSession _session;
@@ -188,14 +203,18 @@ class YoutubePlayerEngine implements PlayerEngine {
 
   @override
   Future<void> play() async {
-    if (_session.playbackCompleted) {
-      _webView.prepareWatchReload(resetFirstPlaying: true);
-      _session.emitBuffering(true);
-      _session.emitPlaying(false);
-      await _webView.loadCurrentVideoIfAttached();
-      return;
+    final restart = decideYouTubePlayRestart(
+      playbackCompleted: _session.playbackCompleted,
+    );
+    switch (restart) {
+      case RestartFromBeginning():
+        _webView.prepareWatchReload(resetFirstPlaying: true);
+        _session.emitBuffering(true);
+        _session.emitPlaying(false);
+        await _webView.loadCurrentVideoIfAttached();
+      case ResumePlayback():
+        await YoutubeWebViewBridge.play(_webView.webController);
     }
-    await YoutubeWebViewBridge.play(_webView.webController);
   }
 
   @override

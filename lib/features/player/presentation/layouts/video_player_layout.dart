@@ -122,10 +122,8 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
               SizedBox(
                 width: vw,
                 child: MouseRegion(
-                  onEnter: (_) =>
-                      setState(() => _videoColumnHovered = true),
-                  onExit: (_) =>
-                      setState(() => _videoColumnHovered = false),
+                  onEnter: (_) => setState(() => _videoColumnHovered = true),
+                  onExit: (_) => setState(() => _videoColumnHovered = false),
                   child: SafeArea(
                     top: true,
                     bottom: false,
@@ -246,10 +244,7 @@ class _VideoColumn extends StatelessWidget {
 /// Visible when paused, buffering, or the mouse hovers the video column
 /// (desktop only — [isHovered] is always `false` on mobile).
 class _VideoTitleBar extends ConsumerWidget {
-  const _VideoTitleBar({
-    required this.isHovered,
-    required this.showYtButtons,
-  });
+  const _VideoTitleBar({required this.isHovered, required this.showYtButtons});
 
   final bool isHovered;
   final bool showYtButtons;
@@ -258,8 +253,7 @@ class _VideoTitleBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isPlaying = ref.watch(playerIsPlayingProvider).value ?? false;
     final isBuffering = ref.watch(playerIsBufferingProvider).value ?? false;
-    final chrome =
-        ref.watch(playerControllerProvider.select(playbackChromeOf));
+    final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
     final isVisible = (!isPlaying || isBuffering) || isHovered;
 
     return AnimatedOpacity(
@@ -289,8 +283,9 @@ class _VideoTitleBar extends ConsumerWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      tooltip:
-                          MaterialLocalizations.of(context).backButtonTooltip,
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).backButtonTooltip,
                       icon: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         color: Colors.white,
@@ -304,11 +299,11 @@ class _VideoTitleBar extends ConsumerWidget {
                         chrome?.mediaTitle ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                       ),
                     ),
                     if (showYtButtons) ...[

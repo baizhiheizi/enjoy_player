@@ -61,7 +61,7 @@ void main() {
     });
 
     test('isValid returns false when name is empty', () {
-      final profile = ClientProfile(
+      const profile = ClientProfile(
         name: '',
         clientName: 'IOS',
         clientVersion: '1.0',
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('isValid returns false when clientName is empty', () {
-      final profile = ClientProfile(
+      const profile = ClientProfile(
         name: 'ios',
         clientName: '',
         clientVersion: '1.0',
@@ -85,7 +85,7 @@ void main() {
     });
 
     test('isValid returns false when userAgent is empty', () {
-      final profile = ClientProfile(
+      const profile = ClientProfile(
         name: 'ios',
         clientName: 'IOS',
         clientVersion: '1.0',
