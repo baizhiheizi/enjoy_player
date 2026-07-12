@@ -8,12 +8,33 @@ part of 'player_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Deterministic end-of-media completion loop (ADR-0044).
+///
+/// Mirrors the generation-counter + single-flight pattern from
+/// [EchoEnforcer._epoch] / [_openGeneration]: the transport drives itself off
+/// `await`ed completion futures instead of polling the position stream, and
+/// every in-flight await captures a generation id so a stale completion from a
+/// previous media (or a duplicate `completed` event from mpv) is a no-op.
 
 @ProviderFor(PlayerController)
 final playerControllerProvider = PlayerControllerProvider._();
 
+/// Deterministic end-of-media completion loop (ADR-0044).
+///
+/// Mirrors the generation-counter + single-flight pattern from
+/// [EchoEnforcer._epoch] / [_openGeneration]: the transport drives itself off
+/// `await`ed completion futures instead of polling the position stream, and
+/// every in-flight await captures a generation id so a stale completion from a
+/// previous media (or a duplicate `completed` event from mpv) is a no-op.
 final class PlayerControllerProvider
     extends $NotifierProvider<PlayerController, PlaybackSession?> {
+  /// Deterministic end-of-media completion loop (ADR-0044).
+  ///
+  /// Mirrors the generation-counter + single-flight pattern from
+  /// [EchoEnforcer._epoch] / [_openGeneration]: the transport drives itself off
+  /// `await`ed completion futures instead of polling the position stream, and
+  /// every in-flight await captures a generation id so a stale completion from a
+  /// previous media (or a duplicate `completed` event from mpv) is a no-op.
   PlayerControllerProvider._()
     : super(
         from: null,
@@ -41,7 +62,15 @@ final class PlayerControllerProvider
   }
 }
 
-String _$playerControllerHash() => r'70c946de8105057d49c0dbeb80e45903a5d2d4a6';
+String _$playerControllerHash() => r'bd31854427396669d64413b25591c13f25b2abfd';
+
+/// Deterministic end-of-media completion loop (ADR-0044).
+///
+/// Mirrors the generation-counter + single-flight pattern from
+/// [EchoEnforcer._epoch] / [_openGeneration]: the transport drives itself off
+/// `await`ed completion futures instead of polling the position stream, and
+/// every in-flight await captures a generation id so a stale completion from a
+/// previous media (or a duplicate `completed` event from mpv) is a no-op.
 
 abstract class _$PlayerController extends $Notifier<PlaybackSession?> {
   PlaybackSession? build();

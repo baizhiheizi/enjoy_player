@@ -91,7 +91,7 @@ class YoutubeWebViewPollLoop {
             switch (transition) {
               case MediaJustEnded():
                 session.pausedPollStreak = 0;
-                session.playbackCompleted = true;
+                session.markCompleted();
                 final endDecision = decideOnMediaEnd(
                   repeatMode: repeatMode?.call() ?? RepeatMode.none,
                 );

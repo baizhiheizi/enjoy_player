@@ -17,6 +17,7 @@ class FakePlayerEngine implements PlayerEngine {
       StreamController<Duration>.broadcast();
   final StreamController<bool> _playing = StreamController<bool>.broadcast();
   final StreamController<bool> _buffering = StreamController<bool>.broadcast();
+  final StreamController<void> _completed = StreamController<void>.broadcast();
 
   final List<String> openUris = <String>[];
   final List<Duration> seekCalls = <Duration>[];
@@ -44,6 +45,11 @@ class FakePlayerEngine implements PlayerEngine {
     if (!_duration.isClosed) _duration.add(d);
   }
 
+  /// Simulates end-of-media (fires the [completed] stream once).
+  void emitCompleted() {
+    if (!_completed.isClosed) _completed.add(null);
+  }
+
   @override
   Stream<Duration> get position => _position.stream;
 
@@ -55,6 +61,9 @@ class FakePlayerEngine implements PlayerEngine {
 
   @override
   Stream<bool> get buffering => _buffering.stream;
+
+  @override
+  Stream<void> get completed => _completed.stream;
 
   @override
   Stream<mk.Tracks>? get mkTracksStream => null;
@@ -129,8 +138,12 @@ class FakePlayerEngine implements PlayerEngine {
     playOrPauseCallCount++;
   }
 
+  int playCallCount = 0;
+
   @override
-  Future<void> play() async {}
+  Future<void> play() async {
+    playCallCount++;
+  }
 
   @override
   Future<void> pause() async {
@@ -159,5 +172,6 @@ class FakePlayerEngine implements PlayerEngine {
     await _duration.close();
     await _playing.close();
     await _buffering.close();
+    await _completed.close();
   }
 }
