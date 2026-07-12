@@ -16,6 +16,8 @@ class YoutubeSession {
   final StreamController<bool> playingCtrl = StreamController<bool>.broadcast();
   final StreamController<bool> bufferingCtrl =
       StreamController<bool>.broadcast();
+  final StreamController<void> completedCtrl =
+      StreamController<void>.broadcast();
 
   final GlobalKey webViewHostKey = GlobalKey();
   final ValueNotifier<int> mountTick = ValueNotifier(0);
@@ -55,6 +57,7 @@ class YoutubeSession {
   Stream<Duration> get duration => durationCtrl.stream;
   Stream<bool> get playingStream => playingCtrl.stream;
   Stream<bool> get bufferingStream => bufferingCtrl.stream;
+  Stream<void> get completed => completedCtrl.stream;
 
   bool get shouldMountWebView => mountRequested && !disposed;
 
@@ -62,6 +65,18 @@ class YoutubeSession {
       (playing: playing, buffering: buffering);
 
   void setPosterUrl(String? url) => posterUrl = url;
+
+  /// Transitions [playbackCompleted] to true and emits a [completed] event.
+  /// Idempotent — only the first call emits; subsequent calls are a no-op.
+  /// Callers that reset [playbackCompleted] to false (e.g. [resetForOpen])
+  /// re-arm the emission for the next end-of-media.
+  void markCompleted() {
+    if (playbackCompleted) return;
+    playbackCompleted = true;
+    if (!disposed && !completedCtrl.isClosed) {
+      completedCtrl.add(null);
+    }
+  }
 
   void resetForOpen(String newVideoId) {
     _cancelHint();
@@ -183,5 +198,6 @@ class YoutubeSession {
     await durationCtrl.close();
     await playingCtrl.close();
     await bufferingCtrl.close();
+    await completedCtrl.close();
   }
 }

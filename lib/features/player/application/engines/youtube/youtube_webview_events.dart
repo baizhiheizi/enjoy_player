@@ -57,7 +57,7 @@ class YoutubeWebViewEvents {
         break;
       case 'ended':
         session.pausedPollStreak = 0;
-        session.playbackCompleted = true;
+        session.markCompleted();
         stopPolling();
         session.emitPlaying(false);
         unawaited(YoutubeWebViewBridge.pauseVideoElement(webController()));

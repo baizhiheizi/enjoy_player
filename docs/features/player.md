@@ -17,6 +17,10 @@
 - **Wide layout** (`VideoPlayerLayout`): when width **>** `breakpointTranscriptSideBySide` (720), video and transcript are **side-by-side** (portrait-wide tablets included). Below that breakpoint, **stacked** video (16:9 stage) over transcript. Draggable split: transcript column min **360** logical px (capped at 50% width); split width is **persisted** in player preferences (`splitPx`). Transcript panel uses a subtle **1px** left border on the zinc surface; video stage is letterboxed on black with **top SafeArea** padding on the narrow stacked layout. **Tap the local video stage** to toggle play/pause (same affordance as YouTube’s embedded player); YouTube taps stay on the WebView and are not intercepted.
 - **Expanded video (narrow)**: while actively playing (not buffering), there is no reserved `AppBar` height; when **paused or buffering**, back/title/YouTube login chrome is drawn in a **top overlay** (same gradient as before) so the 16:9 stage does not shift. Audio still uses a normal `AppBar` when paused (title + back).
 - Echo enforcement uses `lib/features/player/domain/echo_window.dart` (ported from web). The two enforcement paths — the reactive per-tick correction and the proactive seek clamp — are serialized through a single [`EchoEnforcer`](../../lib/features/player/application/echo_enforcer.dart) coordinator (one in-flight seek/pause at a time, so they can't interleave into a stutter). Enforcement runs on every position event so the segment-end pause-and-rewind fires within ~50 ms of the boundary; the in-memory session + DB write stay on the 400 ms bucket.
+- **Deterministic end-of-media handling (ADR-0044)**: `PlayerEngine.completed` is surfaced through both engines (MediaKit forwards mpv's `completed`; YouTube synthesizes from the `<video>` `ended` event / poll loop at ~250 ms resolution). `PlayerController` runs a deterministic await-completion loop guarded by a `_playbackGen` counter (same pattern as `EchoEnforcer._epoch` / `_openGeneration`) so duplicate, late, or stale `completed` events are no-ops. The loop applies the persisted `RepeatMode`:
+  - `none` — stop (media is at the end; user can press play to restart).
+  - `single` — seek to zero, play, re-await (loops the whole file).
+  - `segment` — seek to echo window start, play, re-await (only when echo is active; falls back to `none`).
 
 ## Presentation
 
@@ -38,7 +42,7 @@
 
 ## Future
 
-- Repeat modes (`RepeatMode` persisted — wiring to playback end events).
+- Fold echo boundary (segment-end pause-and-rewind) into the deterministic completion loop so mid-file segment boundaries use `await until segment end` instead of tick heuristics (ADR-0044 follow-up).
 - Keyboard shortcuts / desktop menu integration.
 
 ## Position quantization (single source of truth)

@@ -67,3 +67,4 @@ Trade-offs, follow-up work, risks.
 | [0041](0041-unified-tier-reconciliation.md) | Unified tier reconciliation — single source of truth + global resume/cold-start reconcile |
 | [0042](0042-multi-language-lookup-catalog.md) | Multi-language lookup catalog — decoupled source / target language pickers for transcript dictionary lookup |
 | [0043](0043-craft-from-text-import.md) | Craft from text import — single entry, two modes, BYOK parity for TTS |
+| [0044](0044-deterministic-end-of-media-completion-loop.md) | Deterministic end-of-media handling with generation-guarded completion loop |
