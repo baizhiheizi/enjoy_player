@@ -7,8 +7,11 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_state_poller.dart';
+import 'package:enjoy_player/features/player/domain/player_settings.dart';
+import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 
 typedef YoutubeFirstPlayingFn = void Function();
+typedef YoutubeMediaEndFn = void Function();
 
 /// Periodic DOM poll for `<video>` play state (see [YoutubeStatePoller]).
 class YoutubeWebViewPollLoop {
@@ -16,11 +19,21 @@ class YoutubeWebViewPollLoop {
     required this.session,
     required this.webController,
     required this.onFirstPlaying,
+    this.repeatMode,
+    this.onMediaEnd,
   });
 
   final YoutubeSession session;
   final InAppWebViewController? Function() webController;
   final YoutubeFirstPlayingFn onFirstPlaying;
+
+  /// Resolve the current repeat mode so [decideOnMediaEnd] can choose between
+  /// stop, loop, and segment-loop when the video finishes.
+  final RepeatMode Function()? repeatMode;
+
+  /// Called when [decideOnMediaEnd] requests a loop — the consumer (engine)
+  /// reloads the watch page so playback restarts from the beginning.
+  final YoutubeMediaEndFn? onMediaEnd;
 
   Timer? _pollTimer;
   Timer? _pollKickTimer;
@@ -67,29 +80,49 @@ class YoutubeWebViewPollLoop {
                 newDuration != session.lastDuration) {
               session.emitDuration(newDuration);
             }
-            if (jsEnded && !session.playbackCompleted) {
-              session.pausedPollStreak = 0;
-              session.playbackCompleted = true;
-              stop();
-              session.emitPlaying(false);
-            } else if (jsPaused && session.playing && !jsEnded) {
-              session.pausedPollStreak++;
-              if (session.pausedPollStreak >=
-                  YoutubeSession.pauseConfirmPollTicks) {
+            final transition = decidePollTransition(
+              jsEnded: jsEnded,
+              jsPaused: jsPaused,
+              playing: session.playing,
+              pausedPollStreak: session.pausedPollStreak,
+              pauseConfirmThreshold: YoutubeSession.pauseConfirmPollTicks,
+              playbackCompleted: session.playbackCompleted,
+            );
+            switch (transition) {
+              case MediaJustEnded():
                 session.pausedPollStreak = 0;
-                session.emitPlaying(false);
-                stop();
-              }
-            } else {
-              session.pausedPollStreak = 0;
-              if (!jsPaused && !jsEnded) {
+                session.playbackCompleted = true;
+                final endDecision = decideOnMediaEnd(
+                  repeatMode: repeatMode?.call() ?? RepeatMode.none,
+                );
+                switch (endDecision) {
+                  case StopAtEnd():
+                    stop();
+                    session.emitPlaying(false);
+                  case LoopMedia():
+                    session.emitPlaying(false);
+                    onMediaEnd?.call();
+                  case LoopSegment():
+                    session.emitPlaying(false);
+                    onMediaEnd?.call();
+                }
+              case PauseStreaking(:final confirmed, :final newStreak):
+                session.pausedPollStreak = newStreak;
+                if (confirmed) {
+                  session.pausedPollStreak = 0;
+                  session.emitPlaying(false);
+                  stop();
+                }
+              case PollPlaying():
+                session.pausedPollStreak = 0;
                 session.playbackCompleted = false;
                 session.emitPlaying(true);
                 onFirstPlaying();
                 if (session.buffering) {
                   session.emitBuffering(false);
                 }
-              }
+              case PollIdleTick():
+                session.pausedPollStreak = 0;
             }
           },
     );

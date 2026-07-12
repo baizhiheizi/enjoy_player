@@ -16,9 +16,11 @@ import 'package:enjoy_player/features/player/application/player_open_coordinator
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
+import 'player_preferences_provider.dart';
 
 part 'player_controller.g.dart';
 
@@ -145,15 +147,15 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
   }) async {
     final echo = ref.read(echoModeProvider);
     final seconds = secondsFromDuration(target);
-    if (echo.active) {
-      // Clamp + seek through the single-flight enforcer so a user seek can't
-      // interleave with a reactive per-tick enforcement (no double-seek).
-      await _positionTracker.echoEnforcer.clampAndSeek(
-        seconds,
-        override: echoWindowForSeekClamp,
-      );
-    } else {
-      await activeEngine.seek(durationFromSeconds(seconds));
+    final routing = decideSeekRouting(echoActive: echo.active);
+    switch (routing) {
+      case SeekThroughEcho():
+        await _positionTracker.echoEnforcer.clampAndSeek(
+          seconds,
+          override: echoWindowForSeekClamp,
+        );
+      case SeekDirect():
+        await activeEngine.seek(durationFromSeconds(seconds));
     }
   }
 
@@ -202,10 +204,13 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     ref.read(transcriptBlurModeProvider.notifier).deactivate();
     state = null;
 
-    if (isYoutubeEngine) {
-      await ownedEngine.idleAfterClear();
-    } else {
-      await engine.stop();
+    final teardown = decideTeardownPath(isYoutubeEngine: isYoutubeEngine);
+    final ytEngine = ownedEngine is YoutubePlayerEngine ? ownedEngine : null;
+    switch (teardown) {
+      case TeardownIdle():
+        await ytEngine!.idleAfterClear();
+      case TeardownStop():
+        await engine.stop();
     }
   }
 
@@ -219,7 +224,9 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     if (owned != null) {
       unawaited(owned.dispose());
     }
-    _ownedEngine = YoutubePlayerEngine();
+    _ownedEngine = YoutubePlayerEngine(
+      repeatMode: () => ref.read(playerPreferencesCtrlProvider).repeatMode,
+    );
     ref.read(playerEngineRevProvider.notifier).bump();
     _ownedEngine!.warmVideoSurface();
   }

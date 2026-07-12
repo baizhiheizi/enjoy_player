@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_events.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_navigation.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_poll_loop.dart';
+import 'package:enjoy_player/features/player/domain/player_settings.dart';
 
 final _logWebView = logNamed('YoutubeWebViewController');
 
@@ -23,6 +24,8 @@ class YoutubeWebViewController {
     required this.session,
     required this.onStallRecovery,
     required this.onLogInitPhase,
+    this.repeatMode,
+    this.onMediaEnd,
   }) : _stallWatchdog = YoutubePlaybackStallWatchdog(
          timeout: const Duration(seconds: 12),
          onStall: (videoId) {
@@ -49,6 +52,8 @@ class YoutubeWebViewController {
       session: session,
       webController: () => _webController,
       onFirstPlaying: onFirstPlayingFromSession,
+      repeatMode: repeatMode,
+      onMediaEnd: onMediaEnd,
     );
     _navigation = YoutubeWebViewNavigation(
       session: session,
@@ -69,6 +74,8 @@ class YoutubeWebViewController {
   final YoutubeSession session;
   final Future<void> Function() onStallRecovery;
   final void Function(String phase) onLogInitPhase;
+  final RepeatMode Function()? repeatMode;
+  final void Function()? onMediaEnd;
 
   static const int maxStallRecoveries = 1;
 
