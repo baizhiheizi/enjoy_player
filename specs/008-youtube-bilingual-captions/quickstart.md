@@ -111,6 +111,6 @@ multi-language `ready` handling and data-model primary/secondary assignment.
 
 ## References
 
-- Worker contract: [contracts/youtube-transcripts-api.md](./contracts/youtube-transcripts-api.md)
+- Worker contract (now superseded by the cache-only API): [specs/013-client-yt-transcripts/contracts/worker-cache-api.md](../../013-client-yt-transcripts/contracts/worker-cache-api.md) — see issue #320.
 - Entities & state transitions: [data-model.md](./data-model.md)
 - Design decisions: [research.md](./research.md)

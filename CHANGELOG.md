@@ -80,6 +80,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **YouTube transcript upload payload now passes worker validation (#318)**.
+  `YoutubeTranscriptsApi.uploadTranscript()` now sends the full
+  worker-required body: `format: "enjoy"`, the worker-side
+  `caption_fetch` derived from `source` (`official` → `official`, anything
+  else → `auto`), and a `generatedAt` ISO 8601 UTC timestamp. Without these
+  fields the worker's `parseTranscriptUpload()` rejects every upload, so
+  client-side fetch results never populated the R2 cache. See
+  [docs/features/transcript.md](docs/features/transcript.md) and
+  [specs/013-client-yt-transcripts/contracts/worker-cache-api.md](specs/013-client-yt-transcripts/contracts/worker-cache-api.md).
+- **`fetchClientProfiles()` now reads the worker's `profiles` envelope (#319)**.
+  The client previously called `getJsonList()`, which threw on any
+  non-array body; the worker actually returns `{"version", "profiles"}`.
+  The client now calls `getJson()` and extracts the `profiles` list
+  defensively, so `YoutubeCaptionFetcher` reaches the published client
+  profiles instead of always falling back to built-in defaults.
+- **Removed the dead poll-based YouTube transcript client API and the
+  outdated spec 008 worker contract (#320)**. The worker has retired
+  `POST /youtube/transcripts` as a poll/generate endpoint in favor of a
+  cache-only contract; the legacy `pollTranscript` / `pollTranscripts`
+  methods on `YoutubeTranscriptsClient` were never called by any
+  production code (`TranscriptRepository` only uses `getCachedTranscript`
+  and `uploadTranscript`) and are now deleted along with their unit
+  tests. The 008 contract doc
+  (`specs/008-youtube-bilingual-captions/contracts/youtube-transcripts-api.md`)
+  is removed; in-tree references are updated to
+  [`specs/013-client-yt-transcripts/contracts/worker-cache-api.md`](specs/013-client-yt-transcripts/contracts/worker-cache-api.md)
+  and the same contract is now documented as the source of truth in
+  [ADR-0036](docs/decisions/0036-youtube-bilingual-transcripts.md).
+  `docs/features/transcript.md` is updated to describe the supported
+  cache + profile endpoints rather than the retired poll path.
+
 - **Lookup source precedence is now chrome-first**: transcript dictionary
   lookup resolves the source language from the video (chrome) language first,
   falling back to the active track language, and only then to the learning
