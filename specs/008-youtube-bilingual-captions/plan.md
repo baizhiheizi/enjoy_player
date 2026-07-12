@@ -166,8 +166,6 @@ specs/008-youtube-bilingual-captions/
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output
 ├── quickstart.md        # Phase 1 output
-├── contracts/
-│   └── youtube-transcripts-api.md   # Phase 1 output (worker contract)
 └── tasks.md             # Phase 2 output (/speckit-tasks — NOT created here)
 ```
 

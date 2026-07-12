@@ -167,26 +167,25 @@ Reuses the existing response format that the client already knows how to parse. 
 
 ### Decision
 
-The old `POST /youtube/transcripts` (poll-based fetch + translate) remains functional but the **client no longer calls it** for transcript fetching. The `YoutubeTranscriptsClient` interface gets new methods:
+The old `POST /youtube/transcripts` (poll-based fetch + translate) was ultimately removed on the worker side (see issue #320), so the previous `pollTranscript` / `pollTranscripts` methods on `YoutubeTranscriptsClient` were deleted along with their unit tests. The supported interface today is:
 
 ```dart
 abstract class YoutubeTranscriptsClient {
-  // Existing (deprecated but kept for backward compat)
-  Future<Map<String, dynamic>> pollTranscript({...});
-  Future<Map<String, dynamic>> pollTranscripts({...});
-  
-  // New
   Future<Map<String, dynamic>?> getCachedTranscript({required String videoId, required String language});
-  Future<void> uploadTranscript({required Map<String, dynamic> transcript});
-  Future<List<ClientProfile>> fetchClientProfiles();
+  Future<bool> uploadTranscript({required String videoId, required String language, required String source, required List<Map<String, dynamic>> timeline, Map<String, dynamic>? metadata});
+  Future<List<Map<String, dynamic>>> fetchClientProfiles();
 }
 ```
+
+`uploadTranscript` always sends the full worker-validated body: `format: "enjoy"`, `videoId`, `language`, `captionFetch` (derived from `source`), `source`, `timeline`, optional `metadata`, `generatedAt` (ISO 8601 UTC).
+
+`fetchClientProfiles` reads `profiles` out of the worker's `{"version", "profiles"}` envelope (it previously mistook the envelope for a JSON array — see issue #319).
 
 A new implementation `YoutubeDirectClient` handles the direct YouTube fetch (not through `YoutubeTranscriptsClient` — it's a separate concern).
 
 ### Rationale
 
-Keeps the interface extensible and the old methods available for compatibility. The `TranscriptRepository` is the orchestrator that chooses which path to use.
+The poll-based interface was deleted rather than kept around: there were no production callers (only the spec's example and the original 008 contract referenced it), the worker endpoint was already gone, and the new contract is small enough that one interface per concern suffices. The `TranscriptRepository` is the orchestrator that chooses which path to use.
 
 ---
 

@@ -49,23 +49,29 @@ Upload a client-fetched transcript for caching.
 
 ```json
 {
+  "format": "enjoy",
   "videoId": "dQw4w9WgXcQ",
   "language": "en",
+  "captionFetch": "official",
   "source": "official",
   "timeline": [
     { "text": "We're no strangers to love", "start": 0, "duration": 3000 }
   ],
-  "metadata": { "title": "Rick Astley - Never Gonna Give You Up" }
+  "metadata": { "title": "Rick Astley - Never Gonna Give You Up" },
+  "generatedAt": "2026-07-13T12:34:56.789Z"
 }
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `format` | string | **yes** | Must be `"enjoy"` (validated server-side; reject otherwise). |
 | `videoId` | string | **yes** | 11-character YouTube video ID |
 | `language` | string | **yes** | BCP-47 language code |
-| `source` | string | **yes** | `"official"` or `"auto"` |
-| `timeline` | array | **yes** | Array of `{ text, start, duration }` objects |
-| `metadata` | object | no | `{ title, channel, durationMs }` |
+| `captionFetch` | string | **yes** | `"auto"` \| `"official"` — caption selection strategy on the worker side. For client-driven uploads this is derived from `source`: `source == "official"` → `"official"`, otherwise `"auto"`. |
+| `source` | string | **yes** | `"official"` \| `"auto"` \| `"ai"` \| `"user"` — provenance of the timeline being uploaded. |
+| `timeline` | array | **yes** | Array of `{ text, start, duration }` objects (must be non-empty). |
+| `metadata` | object | no | `{ title, channel, durationMs }`. `translated_from` / `translated_to` are not allowed on uploads. |
+| `generatedAt` | string | **yes** | ISO 8601 UTC timestamp recorded when the client produced this payload. |
 
 ### Responses
 
@@ -73,7 +79,7 @@ Upload a client-fetched transcript for caching.
 |------|------|---------|
 | 201 | `{ videoId, language, cached: true }` | Uploaded successfully |
 | 409 | `{ videoId, language, cached: true, message: "already_exists" }` | Already cached (idempotent — treated as success) |
-| 400 | `{ error: "..." }` | Malformed request |
+| 400 | `{ error: "..." }` | Malformed request (any required field missing or out of range returns 400). |
 | 401 | `{ error: "unauthorized" }` | Missing/invalid bearer token |
 
 ### Client Behavior
@@ -82,6 +88,9 @@ Upload a client-fetched transcript for caching.
 - Client does NOT wait for upload completion before displaying the transcript.
 - Upload failure is logged but never surfaced to the user.
 - Client sends the bearer token (via `ApiClient` / `aiApiClient`).
+- `captionFetch` is currently derived from `source` server-side at
+  `_validation.ts`; clients may pass `"auto"` or `"official"` based on
+  whether the upstream `source` was the official caption track.
 
 ---
 
@@ -93,14 +102,13 @@ Return the current set of YouTube InnerTube client profiles. No auth required.
 
 ```json
 {
-  "version": 1,
+  "version": "2026-07-12",
   "profiles": [
     {
-      "name": "ios",
-      "clientName": "IOS",
-      "clientVersion": "20.10.4",
-      "clientNameHeader": "5",
-      "userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+      "name": "IOS",
+      "version": "20.12.1",
+      "client_name_header": "5",
+      "user_agent": "com.google.ios.youtube/20.12.1 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
       "context": {
         "deviceMake": "Apple",
         "deviceModel": "iPhone16,2",
@@ -110,35 +118,18 @@ Return the current set of YouTube InnerTube client profiles. No auth required.
       }
     },
     {
-      "name": "android_vr",
-      "clientName": "ANDROID_VR",
-      "clientVersion": "1.62.20",
-      "clientNameHeader": "28",
-      "userAgent": "com.google.android.apps.youtube.vr.oculus/1.62.20 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
-      "context": {
-        "deviceMake": "Oculus",
-        "deviceModel": "Quest 3",
-        "platform": "MOBILE",
-        "osName": "Android",
-        "osVersion": "12L",
-        "androidSdkVersion": 32
-      }
-    },
-    {
-      "name": "mweb",
-      "clientName": "MWEB",
-      "clientVersion": "2.20251209.01.00",
-      "clientNameHeader": "2",
-      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
-      "context": {
-        "platform": "MOBILE",
-        "osName": "iOS",
-        "osVersion": "17.5.1"
-      }
+      "name": "WEB",
+      "version": "2.20250709.00.00",
+      "client_name_header": "1",
+      "user_agent": "...",
+      "context": { ... }
     }
   ]
 }
 ```
+
+The body is wrapped in a `{"version", "profiles"}` envelope (not a bare
+array). Clients must read `response.profiles`.
 
 ### Client Behavior
 

@@ -85,6 +85,6 @@ and both primary/secondary DAO setters already exist.
 ## References
 
 - Feature spec: `specs/008-youtube-bilingual-captions/spec.md`
-- Worker contract: `specs/008-youtube-bilingual-captions/contracts/youtube-transcripts-api.md`
+- Worker contract: `specs/013-client-yt-transcripts/contracts/worker-cache-api.md` (the poll-based contract described here is retired — the worker now exposes a cache-only `POST /youtube/transcripts` accepting `format`, `video_id`, `language`, `caption_fetch`, `source`, `timeline`, `metadata`, `generated_at`; see issue #320)
 - YouTube playback: [ADR-0015](0015-youtube-playback.md), [docs/features/youtube.md](../features/youtube.md)
 - Transcripts: [docs/features/transcript.md](../features/transcript.md)
