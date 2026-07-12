@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:enjoy_player/features/transcript/data/client_profile.dart';
 import 'package:enjoy_player/features/transcript/data/youtube_caption_fetcher.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

@@ -266,27 +266,6 @@ class YoutubeCaptionFetcher {
         .toList();
   }
 
-  /// Selects the best caption track for [lang].
-  ///
-  /// Precedence: manual captions > auto-generated > language code match >
-  /// partial vssId match > first available.
-  CaptionTrack? _selectCaptionTrack(List<CaptionTrack> tracks, String lang) {
-    if (tracks.isEmpty) return null;
-    return tracks.firstWhere(
-      (t) => t.vssId == '.$lang',
-      orElse: () => tracks.firstWhere(
-        (t) => t.vssId == 'a.$lang',
-        orElse: () => tracks.firstWhere(
-          (t) => t.languageCode == lang,
-          orElse: () => tracks.firstWhere(
-            (t) => t.vssId?.contains('.$lang') ?? false,
-            orElse: () => tracks.first,
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Determines source label from the selected track's kind.
   String _determineSource(CaptionTrack track) {
     if (track.vssId != null && track.vssId!.startsWith('a.')) return 'auto';
