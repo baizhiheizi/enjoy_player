@@ -38,6 +38,7 @@ class YoutubePlayerEngine implements PlayerEngine {
   String? get posterUrl => _session.posterUrl;
   bool get webViewMounted => _session.webViewMounted;
   bool get shouldMountWebView => _session.shouldMountWebView;
+  bool get tapToPlayHintActive => _session.tapToPlayHintActive;
 
   @override
   Stream<Duration> get position => _session.position;
@@ -110,16 +111,23 @@ class YoutubePlayerEngine implements PlayerEngine {
       initialData: _session.buffering,
       builder: (context, snapshot) {
         final showPoster = snapshot.data ?? _session.buffering;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            const ColoredBox(color: Colors.black),
-            if (shouldMountWebView) buildWebViewHost(),
-            YoutubeVideoPoster(
-              primaryUrl: _session.posterUrl,
-              visible: showPoster,
-            ),
-          ],
+        return ValueListenableBuilder<int>(
+          valueListenable: mountTick,
+          builder: (context, _, _) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                const ColoredBox(color: Colors.black),
+                if (shouldMountWebView) buildWebViewHost(),
+                if (_session.tapToPlayHintActive && !showPoster)
+                  const _YoutubeTapToPlayHint(),
+                YoutubeVideoPoster(
+                  primaryUrl: _session.posterUrl,
+                  visible: showPoster,
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -246,5 +254,32 @@ class YoutubePlayerEngine implements PlayerEngine {
 
   void _logInitPhase(String phase) {
     _session.logInitPhase(phase, (m) => _logYoutube.fine(m));
+  }
+}
+
+class _YoutubeTapToPlayHint extends StatelessWidget {
+  const _YoutubeTapToPlayHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IgnorePointer(
+      ignoring: true,
+      child: ColoredBox(
+        color: Colors.black45,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.play_circle_outline, size: 64, color: Colors.white70),
+              SizedBox(height: 12),
+              Text(
+                'Tap to play',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

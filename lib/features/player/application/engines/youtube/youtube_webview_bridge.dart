@@ -60,7 +60,9 @@ class YoutubeWebViewBridge {
           var p=document.querySelector('.html5-video-player');
           var v=p?p.querySelector('video'):null;
           if(!v) v=document.querySelector('video');
-          if(v) v.play();
+          if(!v) return;
+          v.muted=true;
+          v.play();
         })();
       ''',
     );

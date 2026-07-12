@@ -35,6 +35,10 @@ class YoutubeSession {
 
   bool playing = false;
   bool buffering = true;
+  bool tapToPlayHintActive = false;
+
+  Timer? _tapToPlayHintTimer;
+  static const Duration _tapToPlayHintDelay = Duration(milliseconds: 1200);
 
   Duration lastPosition = Duration.zero;
   Duration lastDuration = Duration.zero;
@@ -60,6 +64,8 @@ class YoutubeSession {
   void setPosterUrl(String? url) => posterUrl = url;
 
   void resetForOpen(String newVideoId) {
+    _cancelHint();
+    tapToPlayHintActive = false;
     loggedFirstPlaying = false;
     watchPageLoadStopReceived = false;
     awaitingColdInitialNavigation = false;
@@ -74,6 +80,8 @@ class YoutubeSession {
   }
 
   void resetForClear() {
+    _cancelHint();
+    tapToPlayHintActive = false;
     videoId = '';
     mountRequested = false;
     playbackCompleted = false;
@@ -111,6 +119,13 @@ class YoutubeSession {
     if (v == playing) return;
     playing = v;
     playingCtrl.add(v);
+    if (v) {
+      _cancelHint();
+      if (tapToPlayHintActive) {
+        tapToPlayHintActive = false;
+        mountTick.value++;
+      }
+    }
   }
 
   void emitBuffering(bool v) {
@@ -122,6 +137,33 @@ class YoutubeSession {
       firstBufferingOffReceived = true;
       mountTick.value++;
     }
+    if (v) {
+      _cancelHint();
+      if (tapToPlayHintActive) {
+        tapToPlayHintActive = false;
+        mountTick.value++;
+      }
+    } else {
+      _scheduleHint();
+    }
+  }
+
+  void _scheduleHint() {
+    if (loggedFirstPlaying || disposed) return;
+    _tapToPlayHintTimer?.cancel();
+    _tapToPlayHintTimer = Timer(_tapToPlayHintDelay, () {
+      _tapToPlayHintTimer = null;
+      if (disposed || loggedFirstPlaying || playing || buffering) return;
+      if (!tapToPlayHintActive) {
+        tapToPlayHintActive = true;
+        mountTick.value++;
+      }
+    });
+  }
+
+  void _cancelHint() {
+    _tapToPlayHintTimer?.cancel();
+    _tapToPlayHintTimer = null;
   }
 
   void logInitPhase(String phase, void Function(String message) log) {
@@ -133,6 +175,7 @@ class YoutubeSession {
   }
 
   Future<void> closeStreams() async {
+    _cancelHint();
     disposed = true;
     mountRequested = false;
     mountTick.value++;
