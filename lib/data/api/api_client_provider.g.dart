@@ -177,7 +177,7 @@ final class AuthApiClientProvider
   }
 }
 
-String _$authApiClientHash() => r'0b150101c34b51340427d05b683b24424bd95c71';
+String _$authApiClientHash() => r'b455fc7cd17ee09a9e8d5432f4df9bb8f52d2f84';
 
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
@@ -218,7 +218,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'639f6035b7421b086667de4d7ea917db1c39f91a';
+String _$apiClientHash() => r'acc2099594dbad555e76774034b3dfde3226eb45';
 
 @ProviderFor(aiApiClient)
 final aiApiClientProvider = AiApiClientProvider._();
@@ -259,4 +259,4 @@ final class AiApiClientProvider
   }
 }
 
-String _$aiApiClientHash() => r'd10fd97a8380e7ac300798f36710f8979b61f1fa';
+String _$aiApiClientHash() => r'0b84dd6663113e853199c7b5896ab99e50d01d90';

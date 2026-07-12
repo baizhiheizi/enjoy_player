@@ -1,6 +1,7 @@
 /// Strategy interface + dispatcher for subtitle formats.
 library;
 
+import 'package:enjoy_player/core/utils/duration_parsing.dart';
 import 'transcript_line.dart';
 
 abstract class SubtitleParser {
@@ -82,17 +83,8 @@ class SrtParser implements SubtitleParser {
     return cues;
   }
 
-  static int _parseTs(String raw) {
-    final normalized = raw.replaceAll(',', '.');
-    final parts = normalized.split(':');
-    if (parts.length != 3) return 0;
-    final h = int.tryParse(parts[0]) ?? 0;
-    final m = int.tryParse(parts[1]) ?? 0;
-    final secParts = parts[2].split('.');
-    final s = int.tryParse(secParts[0]) ?? 0;
-    final ms = secParts.length > 1 ? int.tryParse(secParts[1]) ?? 0 : 0;
-    return ((h * 3600 + m * 60 + s) * 1000 + ms);
-  }
+  static int _parseTs(String raw) =>
+      tryParseHmsDuration(raw)?.inMilliseconds ?? 0;
 }
 
 /// Minimal WebVTT cue parser (skips headers and NOTE regions).
@@ -188,9 +180,6 @@ class VttParser implements SubtitleParser {
 
   static int _parseVttTs(String? hOpt, String mm, String ss, String ms) {
     final h = hOpt != null ? int.tryParse(hOpt.replaceAll(':', '')) ?? 0 : 0;
-    final m = int.tryParse(mm) ?? 0;
-    final s = int.tryParse(ss) ?? 0;
-    final milli = int.tryParse(ms) ?? 0;
-    return (h * 3600 + m * 60 + s) * 1000 + milli;
+    return tryParseHmsDuration('$h:$mm:$ss.$ms')?.inMilliseconds ?? 0;
   }
 }

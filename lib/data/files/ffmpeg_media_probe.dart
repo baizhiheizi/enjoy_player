@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:enjoy_player/core/utils/duration_parsing.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
@@ -65,10 +66,9 @@ class FfmpegMediaProbe {
       r'Duration:\s*(\d+):(\d+):(\d+)\.(\d+)',
     ).firstMatch(stderr);
     if (m == null) return null;
-    final h = int.parse(m.group(1)!);
-    final min = int.parse(m.group(2)!);
-    final s = int.parse(m.group(3)!);
-    return h * 3600 + min * 60 + s;
+    return tryParseHmsDuration(
+      '${m.group(1)!}:${m.group(2)!}:${m.group(3)!}.${m.group(4)!}',
+    )?.inSeconds;
   }
 
   /// ffmpeg stderr lines, e.g.
