@@ -505,7 +505,7 @@ class TranscriptRepository {
       );
     }
 
-    // Tier 2: Client-side direct YouTube fetch
+    // Tier 2: Client-side direct YouTube fetch — download all tracks
     final fetcher = _youtubeFetcher;
     if (fetcher == null) {
       return const TranscriptCloudFetchResult(
@@ -513,68 +513,77 @@ class TranscriptRepository {
       );
     }
 
-    final captionResult = await fetcher.fetchSubtitles(
+    final allResult = await fetcher.fetchAllSubtitles(
       videoId: workerVideoId,
-      lang: language,
+      preferredLang: language,
     );
 
-    if (!captionResult.isSuccess) {
-      _log.info('Direct YouTube fetch failed: ${captionResult.error}');
+    if (!allResult.isSuccess) {
+      _log.info('Direct YouTube fetch failed: ${allResult.error}');
       return TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.error,
-        errorMessage: captionResult.error ?? 'No captions available',
+        errorMessage: allResult.error ?? 'No captions available',
       );
     }
 
-    final source = _normalizeSource(captionResult.source);
-    final lines = captionResult.subtitles;
-    if (lines.isEmpty) {
+    final now = DateTime.now();
+    var storedCount = 0;
+    String? primaryRowId;
+
+    for (final trackResult in allResult.results) {
+      if (!trackResult.isSuccess || trackResult.subtitles.isEmpty) continue;
+      if (trackResult.language.isEmpty) continue;
+
+      final source = _normalizeSource(trackResult.source);
+      final id = enjoyTranscriptId(
+        targetType: 'Video',
+        targetId: mediaId,
+        language: trackResult.language,
+        source: source,
+      );
+      final timelineJson =
+          jsonEncode(trackResult.subtitles.map((e) => e.toJson()).toList());
+
+      await _db.transcriptDao.upsert(
+        TranscriptRow(
+          id: id,
+          targetType: 'Video',
+          targetId: mediaId,
+          language: trackResult.language,
+          source: source,
+          timelineJson: timelineJson,
+          referenceId: null,
+          label: 'YouTube captions (${trackResult.language})',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      storedCount++;
+
+      if (primaryRowId == null) {
+        primaryRowId = id;
+      }
+
+      _uploadToWorkerAfterDirectFetch(
+        videoId: workerVideoId,
+        language: trackResult.language,
+        source: source,
+        lines: trackResult.subtitles,
+      );
+    }
+
+    if (storedCount == 0) {
       return const TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.empty,
       );
     }
 
-    final resolvedLanguage = captionResult.language.isNotEmpty
-        ? captionResult.language
-        : language;
-    final id = enjoyTranscriptId(
-      targetType: 'Video',
-      targetId: mediaId,
-      language: resolvedLanguage,
-      source: source,
-    );
-    final label = 'YouTube captions ($language)';
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
-    final now = DateTime.now();
-
-    await _db.transcriptDao.upsert(
-      TranscriptRow(
-        id: id,
-        targetType: 'Video',
-        targetId: mediaId,
-        language: resolvedLanguage,
-        source: source,
-        timelineJson: timelineJson,
-        referenceId: null,
-        label: label,
-        trackIndex: null,
-        syncStatus: 'local',
-        serverUpdatedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-
-    _uploadToWorkerAfterDirectFetch(
-      videoId: workerVideoId,
-      language: resolvedLanguage,
-      source: source,
-      lines: lines,
-    );
-
-    return const TranscriptCloudFetchResult(
+    return TranscriptCloudFetchResult(
       status: TranscriptCloudFetchStatus.success,
-      storedCount: 1,
+      storedCount: storedCount,
     );
   }
 

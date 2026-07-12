@@ -61,6 +61,21 @@ class CaptionFetchResult {
   bool get isSuccess => error == null && subtitles.isNotEmpty;
 }
 
+/// Outcome of fetching all available caption tracks for a video.
+class AllCaptionsResult {
+  const AllCaptionsResult({
+    this.results = const [],
+    this.fetchProfile = '',
+    this.error,
+  });
+
+  final List<CaptionFetchResult> results;
+  final String fetchProfile;
+  final String? error;
+
+  bool get isSuccess => error == null && results.isNotEmpty;
+}
+
 /// Fetches YouTube captions directly using the InnerTube API.
 class YoutubeCaptionFetcher {
   YoutubeCaptionFetcher({
@@ -82,9 +97,35 @@ class YoutubeCaptionFetcher {
     required String videoId,
     String lang = 'en',
   }) async {
+    final result = await fetchAllSubtitles(
+      videoId: videoId,
+      preferredLang: lang,
+    );
+    if (result.error != null) {
+      return CaptionFetchResult(error: result.error);
+    }
+    if (result.results.isEmpty) {
+      return const CaptionFetchResult(
+        error: 'No caption tracks available',
+      );
+    }
+    return result.results.first;
+  }
+
+  /// Fetches all available caption tracks for [videoId], returning them as a
+  /// list with the [preferredLang] match first. Fetches player data once and
+  /// downloads all tracks in parallel.
+  ///
+  /// For each language, prefers manual captions (`.lang`) over auto-generated
+  /// (`a.lang`). Returns an [AllCaptionsResult] with the deduplicated results
+  /// list plus combined error/failure information.
+  Future<AllCaptionsResult> fetchAllSubtitles({
+    required String videoId,
+    String preferredLang = 'en',
+  }) async {
     final chain = _profileChain;
     if (chain.isEmpty) {
-      return const CaptionFetchResult(error: 'No valid client profiles');
+      return const AllCaptionsResult(error: 'No valid client profiles');
     }
 
     final failures = <String>[];
@@ -95,25 +136,61 @@ class YoutubeCaptionFetcher {
           profile: profile,
         );
 
-        final tracks = _extractCaptionTracks(playerData);
-        if (tracks.isEmpty) {
+        final allTracks = _extractCaptionTracks(playerData);
+        if (allTracks.isEmpty) {
           failures.add('${profile.name}: OK but no caption tracks');
           continue;
         }
 
-        final track = _selectCaptionTrack(tracks, lang);
-        if (track == null) {
-          return CaptionFetchResult(
-            error: 'No caption track matching language "$lang"',
-          );
+        // Deduplicate: for each language, prefer manual over auto
+        final bestByLang = <String, CaptionTrack>{};
+        for (final track in allTracks) {
+          final code = track.languageCode;
+          if (code == null || code.isEmpty) continue;
+          final existing = bestByLang[code];
+          if (existing == null ||
+              _isBetterMatch(track, existing, preferredLang: preferredLang)) {
+            bestByLang[code] = track;
+          }
         }
 
-        final source = _determineSource(track);
-        final subtitles = await _fetchCaptionTrack(track);
-        return CaptionFetchResult(
-          subtitles: subtitles,
-          source: source,
-          language: track.languageCode ?? lang,
+        if (bestByLang.isEmpty) {
+          failures
+              .add('${profile.name}: no tracks with valid language codes');
+          continue;
+        }
+
+        // Fetch all tracks in parallel
+        final futures = bestByLang.values.map((track) async {
+          try {
+            final source = _determineSource(track);
+            final subtitles = await _fetchCaptionTrack(track);
+            return CaptionFetchResult(
+              subtitles: subtitles,
+              source: source,
+              language: track.languageCode ?? '',
+              fetchProfile: profile.name,
+            );
+          } on Object catch (e) {
+            return CaptionFetchResult(
+              error: '${track.languageCode}: $e',
+              language: track.languageCode ?? '',
+            );
+          }
+        });
+
+        final allResults = await Future.wait(futures);
+
+        // Sort: preferred language first, then alphabetical
+        final sorted = [...allResults];
+        sorted.sort((a, b) {
+          if (a.language == preferredLang) return -1;
+          if (b.language == preferredLang) return 1;
+          return a.language.compareTo(b.language);
+        });
+
+        return AllCaptionsResult(
+          results: sorted,
           fetchProfile: profile.name,
         );
       } on Object catch (e) {
@@ -121,7 +198,7 @@ class YoutubeCaptionFetcher {
       }
     }
 
-    return CaptionFetchResult(
+    return AllCaptionsResult(
       error: 'All profiles failed:\n${failures.join('\n')}',
     );
   }
@@ -221,6 +298,28 @@ class YoutubeCaptionFetcher {
     if (track.vssId != null && track.vssId!.startsWith('a.')) return 'auto';
     if (track.kind == 'asr') return 'auto';
     return 'official';
+  }
+
+  /// Returns true when [candidate] is a better choice than [current] for a
+  /// given language. Prefers manual captions over auto, and prefers tracks
+  /// matching [preferredLang].
+  bool _isBetterMatch(
+    CaptionTrack candidate,
+    CaptionTrack current, {
+    String preferredLang = 'en',
+  }) {
+    final cVss = candidate.vssId ?? '';
+    final curVss = current.vssId ?? '';
+    final cIsManual = cVss.startsWith('.');
+    final curIsManual = curVss.startsWith('.');
+    if (cIsManual && !curIsManual) return true;
+    if (!cIsManual && curIsManual) return false;
+    final cIsPref =
+        candidate.languageCode == preferredLang || cVss == '.$preferredLang';
+    final curIsPref =
+        current.languageCode == preferredLang || curVss == '.$preferredLang';
+    if (cIsPref && !curIsPref) return true;
+    return false;
   }
 
   /// Fetches the caption track data in json3 format and parses to segments.
