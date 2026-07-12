@@ -76,9 +76,9 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Independent Test**: Drive `lookupSheetTranslationProvider(params)` once (waits for translation); drive it again with the same params and assert the underlying `TranslationService.translate(...)` is NOT called a second time. Then construct a fresh `ProviderContainer` (simulating a kill-and-relaunch) and assert the second container's `lookupSheetTranslationProvider(params)` reads from L2 and still doesn't call `TranslationService.translate(...)`.
 
-- [ ] T017 [P] [US1] Refactor `lookupSheetTranslationProvider` in `lib/features/lookup/application/lookup_section_providers.dart` to call `aiCache.lookup(kind: AiKind.translation, key: ..., loader: () => translationService.translate(...), forceRefresh: ...)`. Remove the direct `ref.read(translationServiceProvider).translate(...)` call. The `forceRefresh` parameter is plumbed from the provider argument (not yet wired to the UI; that's a later phase).
-- [ ] T018 [US1] Add `test/features/lookup/lookup_translation_cache_test.dart` covering: warm L1 hit (no service call), cold L1 + warm L2 (no service call, returns persisted), cold L1 + cold L2 (service called, writes both), `forceRefresh: true` busts both tiers (service called again), `forceRefresh: false` does not bust. Use a fake `TranslationService` that counts calls.
-- [ ] T019 [US1] Update `docs/features/dictionary-lookup.md` to add a "Cache hierarchy" section with a small diagram showing L1 + L2 + keying + eviction policy + the new `AiKind` enum
+- [X] T017 [P] [US1] Refactor `lookupSheetTranslationProvider` in `lib/features/lookup/application/lookup_section_providers.dart` to call `aiCache.lookup(kind: AiKind.translation, key: ..., loader: () => translationService.translate(...), forceRefresh: ...)`. Remove the direct `ref.read(translationServiceProvider).translate(...)` call. The `forceRefresh` parameter is plumbed from the provider argument (not yet wired to the UI; that's a later phase).
+- [X] T018 [US1] Add `test/features/lookup/lookup_translation_cache_test.dart` covering: warm L1 hit (no service call), cold L1 + warm L2 (no service call, returns persisted), cold L1 + cold L2 (service called, writes both), `forceRefresh: true` busts both tiers (service called again), `forceRefresh: false` does not bust. Use a fake `TranslationService` that counts calls.
+- [X] T019 [US1] Update `docs/features/dictionary-lookup.md` to add a "Cache hierarchy" section with a small diagram showing L1 + L2 + keying + eviction policy + the new `AiKind` enum
 
 **Checkpoint**: US1 verified — Translation re-open is instant after a successful lookup, and survives app restart.
 
@@ -90,8 +90,8 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Independent Test**: Drive the lookup sheet dictionary provider repeatedly with > 256 distinct `(word, src, tgt)` triples and assert the L1 store never exceeds 256 entries and the LRU tail evicts on overflow. Add a test that fills L2 past the per-kind cap and asserts `evictOldestExcept` keeps the cap.
 
-- [ ] T020 [US2] Add an integration test in `test/features/ai/ai_result_cache_lifecycle_test.dart` covering: 1000 distinct lookups → L1 size = 256, LRU eviction order is preserved (MRU-1, MRU-2, ..., LRU-N), TTL expiry frees space, L2 row cap = 4096 per kind, age cutoff prunes rows older than `now - policy.l2AgeCutoff`
-- [ ] T021 [P] [US2] Verify `LookupSheetResultCache.evictForPair(sourceLanguage, targetLanguage)` still works after the slim-down (delegates to `AiResultCache.evictForPair`); the existing test in `test/features/lookup/lookup_sheet_result_cache_test.dart` is updated to use the new internal state but the public API behavior is preserved
+- [X] T020 [US2] Add an integration test in `test/features/ai/ai_result_cache_lifecycle_test.dart` covering: 1000 distinct lookups → L1 size = 256, LRU eviction order is preserved (MRU-1, MRU-2, ..., LRU-N), TTL expiry frees space, L2 row cap = 4096 per kind, age cutoff prunes rows older than `now - policy.l2AgeCutoff`
+- [X] T021 [P] [US2] Verify `LookupSheetResultCache.evictForPair(sourceLanguage, targetLanguage)` still works after the slim-down (delegates to `AiResultCache.evictForPair`); the existing test in `test/features/lookup/lookup_sheet_result_cache_test.dart` is updated to use the new internal state but the public API behavior is preserved
 
 **Checkpoint**: US2 verified — cache size is bounded by capacity and TTL; L2 row cap and age cutoff enforced.
 
@@ -103,10 +103,10 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Independent Test**: Override `translationCapabilityProvider` with a fake that records every call. Drive `TranslationService.translate(forceRefresh: true)` after a previous cached call; assert the fake was called again. Conversely, drive `TranslationService.translate(forceRefresh: false)` after a previous cached call; assert the fake was NOT called again.
 
-- [ ] T022 [US3] Update `contextual_translation_lookup_section.dart` to read `aiResultCacheProvider` directly (no longer via `LookupSheetResultCache`) and call `aiCache.invalidate(kind: AiKind.contextualTranslation, key: fingerprint(params))` on `forceRefresh: true` before invoking the loader. The `loader` is now a closure around `contextualTranslationServiceProvider.translate(...)`.
-- [ ] T023 [US3] Add `test/features/lookup/lookup_contextual_force_refresh_test.dart` covering: a fake `ContextualTranslationService` that counts calls; first call → 1 service call; `forceRefresh: true` → 2 service calls; `forceRefresh: false` after cached → 1 service call (no re-call)
-- [ ] T024 [US3] Add `test/features/ai/byok_force_refresh_test.dart` covering: `TranslationService.translate(forceRefresh: true)` with a BYOK override (a `ByokTranslationCapability` wrapping a fake `LlmCapability`) calls the LLM; `TranslationService.translate(forceRefresh: false)` after a cached call does not call the LLM
-- [ ] T025 [US3] Add a widget test for the contextual translation section's refresh icon: tap → loader invoked, cache invalidated, fresh result rendered
+- [X] T022 [US3] Update `contextual_translation_lookup_section.dart` to read `aiResultCacheProvider` directly (no longer via `LookupSheetResultCache`) and call `aiCache.invalidate(kind: AiKind.contextualTranslation, key: fingerprint(params))` on `forceRefresh: true` before invoking the loader. The `loader` is now a closure around `contextualTranslationServiceProvider.translate(...)`.
+- [X] T023 [US3] Add `test/features/lookup/lookup_contextual_force_refresh_test.dart` covering: a fake `ContextualTranslationService` that counts calls; first call → 1 service call; `forceRefresh: true` → 2 service calls; `forceRefresh: false` after cached → 1 service call (no re-call)
+- [X] T024 [US3] Add `test/features/ai/byok_force_refresh_test.dart` covering: `TranslationService.translate(forceRefresh: true)` with a BYOK override (a `ByokTranslationCapability` wrapping a fake `LlmCapability`) calls the LLM; `TranslationService.translate(forceRefresh: false)` after a cached call does not call the LLM
+- [X] T025 [US3] Add a widget test for the contextual translation section's refresh icon: tap → loader invoked, cache invalidated, fresh result rendered
 
 **Checkpoint**: US3 verified — `forceRefresh` busts both L1 and L2 on every provider (Enjoy and BYOK alike).
 
@@ -118,9 +118,9 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Independent Test**: Construct two fake "modalities" backed by the cache with the same `(text, src, tgt)` payload but different `kind`; assert their cache keys differ. Add a synthetic modality (e.g. `AiKind.ttsPrompt`) and verify it can be added by registering a new `AiKind` value + a policy, with no changes to `AiResultCache` or its LRU / TTL / Drift schema.
 
-- [ ] T026 [US4] Update `autoTranslateSourceKey` in `lib/features/transcript/domain/auto_translate.dart` to be a wrapper around `AiCacheFingerprint.fingerprint(kind: AiKind.autoTranslateLine.wire, payload: {...})` per D2 in plan.md. The wrapper preserves the existing test contract (`auto_translate_request_test.dart:175-183`).
-- [ ] T027 [US4] Add `test/features/ai/kind_discrimination_test.dart` covering: two `AiKind` values with the same payload produce different fingerprints; same `AiKind` value with reordered payload keys produces the same fingerprint; the synthetic `ttsPrompt` modality can be added by registering a new enum value + policy without touching `AiResultCache`
-- [ ] T028 [US4] Run the existing `auto_translate_request_test.dart` and `auto_translate_repository_test.dart` suites end-to-end to confirm SC-005 (the auto-translate semantics are preserved). If any test asserts a *specific* hex value of `cue.sourceKey`, update it to call `autoTranslateSourceKey(...)` instead of using a frozen hex.
+- [X] T026 [US4] Update `autoTranslateSourceKey` in `lib/features/transcript/domain/auto_translate.dart` to be a wrapper around `AiCacheFingerprint.fingerprint(kind: AiKind.autoTranslateLine.wire, payload: {...})` per D2 in plan.md. The wrapper preserves the existing test contract (`auto_translate_request_test.dart:175-183`).
+- [X] T027 [US4] Add `test/features/ai/kind_discrimination_test.dart` covering: two `AiKind` values with the same payload produce different fingerprints; same `AiKind` value with reordered payload keys produces the same fingerprint; the synthetic `ttsPrompt` modality can be added by registering a new enum value + policy without touching `AiResultCache`
+- [X] T028 [US4] Run the existing `auto_translate_request_test.dart` and `auto_translate_repository_test.dart` suites end-to-end to confirm SC-005 (the auto-translate semantics are preserved). If any test asserts a *specific* hex value of `cue.sourceKey`, update it to call `autoTranslateSourceKey(...)` instead of using a frozen hex.
 
 **Checkpoint**: US4 verified — unified keying; auto-translate semantics preserved.
 
@@ -132,8 +132,8 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Independent Test**: Decode a `TranscriptRow` once via `linesForRow(row)`; bump `row.updatedAt` without changing `timelineJson`; call `linesForRow(row)` again; assert the second call returns the same list instance (no re-decode). Then mutate `timelineJson` and assert a re-decode happens.
 
-- [ ] T029 [P] [US5] Update `_LinesCacheEntry` in `lib/features/transcript/data/transcript_repository.dart` to store `timelineJsonHash` (first 16 hex chars of SHA-1 of `row.timelineJson`) instead of `updatedAt`. Update `linesForRow` to compare the hash instead of `updatedAt`. Add a private helper `_timelineJsonHash(String)` that computes the hash.
-- [ ] T030 [P] [US5] Add `test/features/transcript/transcript_repository_lines_cache_test.dart` covering: same `timelineJson` + different `updatedAt` returns cached (no re-decode); different `timelineJson` re-decodes; empty `timelineJson` returns empty list (no cache entry, edge case); large `timelineJson` (>10 KB) is hashed efficiently (test asserts the decode is O(n) and not O(n²))
+- [X] T029 [P] [US5] Update `_LinesCacheEntry` in `lib/features/transcript/data/transcript_repository.dart` to store `timelineJsonHash` (first 16 hex chars of SHA-1 of `row.timelineJson`) instead of `updatedAt`. Update `linesForRow` to compare the hash instead of `updatedAt`. Add a private helper `_timelineJsonHash(String)` that computes the hash.
+- [X] T030 [P] [US5] Add `test/features/transcript/transcript_repository_lines_cache_test.dart` covering: same `timelineJson` + different `updatedAt` returns cached (no re-decode); different `timelineJson` re-decodes; empty `timelineJson` returns empty list (no cache entry, edge case); large `timelineJson` (>10 KB) is hashed efficiently (test asserts the decode is O(n) and not O(n²))
 
 **Checkpoint**: US5 verified — decode memo survives unrelated `updatedAt` bumps.
 
@@ -143,10 +143,10 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Purpose**: Traceability for the change. The ADR cites issue #311; the docs describe the new cache hierarchy for users, contributors, and future maintainers.
 
-- [ ] T031 [P] Create `docs/decisions/0045-ai-result-cache-hierarchy.md` per the ADR template in `.specify/templates/constitution-template.md` (problem, decision, alternatives, consequences; cite issue #311; partially supersede ADR-0039's scope)
-- [ ] T032 [P] Update `docs/features/transcript.md` (auto-translate section) to describe the new unified cache participation; add a small diagram showing the L1 + L2 + keying + auto-translate `sourceKey` flow
-- [ ] T033 [P] Update `docs/features/ai.md` (or `docs/features/dictionary-lookup.md` if a separate `ai.md` section is overkill) to list the new `AiKind` enum, the per-kind policies, the `AiResultCache` public API, and the `AiCacheFingerprint` helper
-- [ ] T034 [P] Update `CHANGELOG.md` with the cache hierarchy entry: "Unified ad-hoc AI result caches (translation / dictionary / contextual / auto-translate line) into a bounded two-tier cache hierarchy; closes issue #311"
+- [X] T031 [P] Create `docs/decisions/0045-ai-result-cache-hierarchy.md` per the ADR template in `.specify/templates/constitution-template.md` (problem, decision, alternatives, consequences; cite issue #311; partially supersede ADR-0039's scope)
+- [X] T032 [P] Update `docs/features/transcript.md` (auto-translate section) to describe the new unified cache participation; add a small diagram showing the L1 + L2 + keying + auto-translate `sourceKey` flow
+- [X] T033 [P] Update `docs/features/ai.md` (or `docs/features/dictionary-lookup.md` if a separate `ai.md` section is overkill) to list the new `AiKind` enum, the per-kind policies, the `AiResultCache` public API, and the `AiCacheFingerprint` helper
+- [X] T034 [P] Update `CHANGELOG.md` with the cache hierarchy entry: "Unified ad-hoc AI result caches (translation / dictionary / contextual / auto-translate line) into a bounded two-tier cache hierarchy; closes issue #311"
 
 **Checkpoint**: ADR + docs + CHANGELOG updated.
 
@@ -156,11 +156,11 @@ description: "Task list for AI Result Cache Hierarchy (issue #311)"
 
 **Purpose**: Run the same cheap gates CI uses to ensure the change is green.
 
-- [ ] T035 Run `bash .github/scripts/check_dart_format.sh --fix` to format the new files
-- [ ] T036 Run `flutter analyze` and resolve every warning
-- [ ] T037 Run `bash .github/scripts/check_codegen_drift.sh` (fails if any `*.g.dart` is out of date)
-- [ ] T038 Run `flutter test` and resolve every failure
-- [ ] T039 Run `bash .github/scripts/validate_ci_gates.sh --all` to mirror the full CI pipeline locally (slower, optional)
+- [X] T035 Run `bash .github/scripts/check_dart_format.sh --fix` to format the new files
+- [X] T036 Run `flutter analyze` and resolve every warning
+- [X] T037 Run `bash .github/scripts/check_codegen_drift.sh` (fails if any `*.g.dart` is out of date)
+- [X] T038 Run `flutter test` and resolve every failure
+- [X] T039 Run `bash .github/scripts/validate_ci_gates.sh --all` to mirror the full CI pipeline locally (slower, optional)
 
 **Checkpoint**: All gates green. PR is ready to open.
 
