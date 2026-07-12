@@ -97,8 +97,8 @@ void main() {
         // Phase 4: verify the new index exists.
         final indexRows = await db
             .customSelect(
-              "SELECT name FROM sqlite_master "
-              "WHERE type = 'index' AND name = 'idx_ai_cache_kind_updated_at'",
+              'SELECT name FROM sqlite_master '
+              'WHERE type = \'index\' AND name = \'idx_ai_cache_kind_updated_at\'',
             )
             .get();
         expect(indexRows.length, 1);

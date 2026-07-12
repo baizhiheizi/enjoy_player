@@ -51,6 +51,8 @@ class AiCacheStats {
   String toString() => 'AiCacheStats(l1=$l1Size/$l1Capacity, l2=$l2RowCounts)';
 }
 
+// ignore_for_file: prefer_initializing_formals
+
 /// Two-tier AI result cache.
 ///
 /// Constructed by [aiResultCacheProvider] in production. Tests construct
