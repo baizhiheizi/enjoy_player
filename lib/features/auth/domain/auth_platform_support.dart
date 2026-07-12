@@ -4,16 +4,22 @@ library;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 
+import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/release/distribution_channel.dart';
 import 'package:enjoy_player/features/auth/domain/google_auth_config.dart';
 
-/// Google native SDK is unreliable on Windows desktop. On iOS/macOS it is
-/// additionally gated on [kGoogleNativeSignInConfiguredOnApple]: those
-/// platforms crash the process (uncatchable native `NSException`) if
-/// `GIDSignIn.signIn()` is invoked before Info.plist has a real OAuth client
-/// configured, so the button must stay hidden until that setup is done.
+/// Google native SDK is unreliable on Windows desktop and not yet tested on
+/// Linux at scale. On iOS/macOS it is additionally gated on
+/// [kGoogleNativeSignInConfiguredOnApple]: those platforms crash the process
+/// (uncatchable native `NSException`) if `GIDSignIn.signIn()` is invoked before
+/// Info.plist has a real OAuth client configured, so the button must stay
+/// hidden until that setup is done. Linux uses the `googleSignInAvailableOnLinux`
+/// flag from the centralized platform-availability module (ADR-0044).
 bool get nativeGoogleSignInSupported {
   if (defaultTargetPlatform == TargetPlatform.windows) return false;
+  if (defaultTargetPlatform == TargetPlatform.linux) {
+    return googleSignInAvailableOnLinux;
+  }
   if (defaultTargetPlatform == TargetPlatform.iOS ||
       defaultTargetPlatform == TargetPlatform.macOS) {
     return kGoogleNativeSignInConfiguredOnApple;

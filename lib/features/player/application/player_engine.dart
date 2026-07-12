@@ -116,6 +116,16 @@ class MediaKitPlayerEngine implements PlayerEngine {
         enableHardwareAcceleration: false,
       );
     }
+    if (Platform.isLinux) {
+      // Same conservative path as macOS: avoid green-screen / EGL_BAD_DISPLAY
+      // on Linux + Wayland with NVIDIA / AMD hybrid GPUs (ADR-0044, R2).
+      return const VideoControllerConfiguration(
+        width: kVideoControllerWidth,
+        height: kVideoControllerHeight,
+        hwdec: 'auto-safe',
+        enableHardwareAcceleration: false,
+      );
+    }
     return const VideoControllerConfiguration();
   }
 

@@ -147,6 +147,7 @@ Windows workflows run `windows/scripts/fetch_ffmpeg.ps1`, `ensure_nuget_feed.ps1
 | [ci.yml](../.github/workflows/ci.yml) | Linux | PR/push touching `lib/`, `test/`, `packages/`, pubspec, or CI setup + manual | analyze, format, test |
 | [codegen_drift.yml](../.github/workflows/codegen_drift.yml) | Linux | PR/push touching `lib/`, `packages/`, pubspec + manual | build_runner drift check |
 | [android_apk_smoke.yml](../.github/workflows/android_apk_smoke.yml) | Linux | PR/push touching `lib/`, `packages/`, `android/`, pubspec + manual | APK + AAB compile smoke |
+| [build_linux.yml](../.github/workflows/build_linux.yml) | Linux | PR/push touching `lib/`, `packages/`, `linux/`, pubspec, or CI setup + manual | Linux desktop build smoke (debug + release) |
 | [build_windows.yml](../.github/workflows/build_windows.yml) | self-hosted Windows | PR/push touching `lib/`, `packages/`, `windows/`, pubspec + manual | debug + release smoke |
 | [build_apple.yml](../.github/workflows/build_apple.yml) | macOS | PR/push touching `lib/`, `packages/`, `ios/`, `macos/`, pubspec + manual | iOS + macOS compile smoke |
 | [release_apple.yml](../.github/workflows/release_apple.yml) | macOS | manual only (`workflow_dispatch`) | signed IPA, TestFlight, notarized macOS |

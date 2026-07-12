@@ -1,0 +1,128 @@
+# Linux Platform
+
+Linux is a **first-class supported desktop platform** since v0.5.0 (ADR-0044). The Linux build produces an AppImage that runs on Ubuntu 22.04 LTS, Fedora 39, and Debian 12 without `apt install` of project-specific dependencies.
+
+## Supported distributions
+
+| Distribution | Status |
+|-------------|--------|
+| Ubuntu 22.04 LTS (jammy) | Supported (x86_64) |
+| Ubuntu 24.04 LTS (noble) | Supported (x86_64) |
+| Fedora 39+ | Supported (x86_64) |
+| Debian 12 (bookworm) | Supported (x86_64) |
+| Arch Linux | Best-effort (x86_64) |
+| Other x86_64 distros with glibc 2.35+ and GTK 3 | Should work; not regularly tested |
+
+AArch64 (ARM64) Linux is **not supported** for v1. A follow-up ADR will add multi-arch support.
+
+## Download and install
+
+1. Go to **[https://get.enjoy.bot](https://get.enjoy.bot)** on your Linux machine.
+2. Download the AppImage (`enjoy-player-<version>-x86_64.AppImage`).
+3. Make it executable:
+   ```bash
+   chmod +x enjoy-player-*.AppImage
+   ```
+4. Run it:
+   ```bash
+   ./enjoy-player-*.AppImage
+   ```
+
+No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage is self-contained and includes the Flutter runtime, `media_kit`'s bundled `libmpv`, and a bundled `ffmpeg` from `media_kit_libs_video`.
+
+## What works
+
+| Feature | Linux status |
+|---------|-------------|
+| Local audio/video playback | Full support (same engine as Windows/macOS) |
+| Transcripts (SRT/VTT) | Full support |
+| Echo mode (shadow reading) | Works; recording via `record: ^7.0.0` is enabled. Disabled gracefully if the PulseAudio/PipeWire backend is unavailable. |
+| Dictionary lookup | Full support |
+| Library management | Full support (import, delete, sort, tag) |
+| Cloud sync (Enjoy account) | Full support (metadata sync, re-download manifests) |
+| Recording uploads | Upload `client_platform=linux` to the existing endpoint |
+| Keyboard hotkeys | Full support (desktop shortcuts) |
+| Settings / preferences | Full support (libsecret / GNOME Keyring backed secure storage) |
+
+## What is not yet available
+
+| Feature | Linux status |
+|---------|-------------|
+| **YouTube import / playback** | **Not available** (coming soon). The YouTube engine depends on `flutter_inappwebview`'s Linux backend, which requires `webkit2gtk-4.0` — not present on a default Ubuntu install. When you try to open a YouTube video on Linux, the app shows "YouTube is not yet available on Linux — coming soon." |
+| **In-app auto-update** | **Not available.** The `auto_updater: 0.2.1` plugin is Windows/macOS-only. To update, download a new AppImage from the landing page. AppImageUpdate integration is planned for a future release. |
+| **Package manager installs (.deb / .rpm / Flatpak / snap)** | Not available. Only AppImage for v1. |
+
+## Developer setup (build from source)
+
+Install the full set of Linux build packages:
+
+```bash
+sudo apt-get install -y \
+  clang cmake curl git jq ninja-build pkg-config unzip xz-utils zip \
+  libgtk-3-dev liblzma-dev libsqlite3-dev \
+  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  libsecret-1-dev libmpv-dev ffmpeg
+```
+
+Then follow the standard README build instructions:
+
+```bash
+flutter pub get
+flutter build linux --debug   # debug build
+flutter build linux --release # release build
+```
+
+The binary is produced at `build/linux/x64/release/bundle/enjoy_player`.
+
+## Release packaging
+
+The release pipeline produces a single AppImage:
+
+```bash
+bash .github/scripts/release.sh --platform linux
+```
+
+The AppImage is published at `dl.enjoy.bot/player/v<version>/enjoy-player-<version>-x86_64.AppImage` and listed in the release manifest `dl.enjoy.bot/player/latest.json` under the `"linux"` key.
+
+## Performance
+
+| Metric | Target | Measured (v0.5.0, Ubuntu 22.04 LTS) |
+|--------|--------|--------------------------------------|
+| Cold-start to window | ≤ 6 s (median) | TBD — first release |
+| CI Linux build wall time | ≤ 15 min | TBD — first CI run |
+
+Performance budgets for playback, scrolling, and transcript rendering are identical to Windows/macOS — the same engine (`media_kit`), the same widget tree, and the same Drift queries are used on all desktops.
+
+## Troubleshooting
+
+### "YouTube is not yet available on Linux — coming soon"
+
+This is expected. YouTube will be enabled in a future release. In the meantime, download the video locally (e.g., with `yt-dlp`) and import the local file — the transcript and everything else work.
+
+### AppImage won't run: "Permission denied"
+
+Run `chmod +x enjoy-player-*.AppImage` first.
+
+### Black video screen / EGL_BAD_DISPLAY on Wayland
+
+The app uses `hwdec: 'auto-safe'` and `enableHardwareAcceleration: false` for the `media_kit` video output on Linux — the same conservative settings as the macOS build. If the screen is still black, try running:
+
+```bash
+__GLX_VENDOR_LIBRARY_NAME=mesa ./enjoy-player-*.AppImage
+```
+
+If the issue persists, open a GitHub issue with your distribution, GPU model, and windowing system (X11 / Wayland).
+
+### Echo recording doesn't work
+
+Recording may fail if PulseAudio/PipeWire is not running or the microphone permission is denied. The echo practice flow will still work without recording (shadow reading without feedback). Check your sound settings.
+
+### Database won't open ("corrupt local database")
+
+The recovery surface works on Linux — it uses `xdg-open` to reveal the database directory (same code path as macOS uses `open` and Windows uses `explorer`). Tap "Copy error" or "Open logs folder" as needed.
+
+## See also
+
+- [ADR-0044: Linux as a first-class supported desktop platform](../decisions/0044-linux-platform-support.md)
+- [Packaging — Linux AppImage](../packaging.md#linux-appimage)
+- [CI — build_linux.yml and the self-hosted Linux runner](../ci-self-hosted-runners.md)

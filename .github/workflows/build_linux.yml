@@ -1,0 +1,54 @@
+name: Build Linux
+
+on:
+  pull_request:
+    paths: &build_linux_paths
+      - "lib/**"
+      - "packages/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - "linux/**"
+      - ".github/flutter-version"
+      - ".github/actions/setup-flutter/**"
+      - ".github/scripts/ensure_linux_tooling.sh"
+      - ".github/workflows/build_linux.yml"
+  push:
+    branches: [main, master]
+    paths: *build_linux_paths
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    runs-on: [self-hosted, Linux]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Ensure Linux tooling
+        run: bash .github/scripts/ensure_linux_tooling.sh
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Flutter build linux (debug)
+        run: flutter build linux --debug
+
+      - name: Flutter build linux (release)
+        run: flutter build linux --release
+
+      - name: Upload debug bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enjoy-player-linux-debug-${{ github.sha }}
+          path: build/linux/x64/debug/bundle
+          retention-days: 1

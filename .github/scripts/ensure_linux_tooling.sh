@@ -22,6 +22,10 @@ packages=(
   libgtk-3-dev
   liblzma-dev
   libsqlite3-dev
+  libgstreamer1.0-dev
+  libgstreamer-plugins-base1.0-dev
+  libsecret-1-dev
+  libmpv-dev
 )
 
 missing=()

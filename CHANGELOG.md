@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Linux platform support (AppImage)**. Linux is now a first-class supported desktop platform. (ADR-0044) [#PR]
+  - `linux/` Flutter desktop scaffold, `.github/workflows/build_linux.yml` CI, `release_linux.sh`, AppImage packager
+  - Centralized `lib/core/platform/linux_platform_availability.dart` predicates
+  - Landing page `#card-linux` with localized strings (en + zh)
+  - YouTube engine gracefully opts out on Linux (WebViewGTK not ready for v1)
+  - Constitution amendment 1.1.0 → 1.2.0 (Linux added to supported targets)
+  - New `docs/features/linux-platform.md`, `docs/decisions/0044-linux-platform-support.md`
+  - `AGENTS.md` and `README.md` updated for Linux first-class support
+
 - **Echo enforcement coordinator (`EchoEnforcer`)**: the reactive per-tick
   echo correction and the proactive seek clamp are now serialized through one
   single-flight coordinator, so concurrent seeks can't interleave into an

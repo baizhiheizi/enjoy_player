@@ -1,6 +1,6 @@
 # Enjoy Player
 
-Cross-platform **language-learning player** (Android, iOS, Windows, macOS; Linux experimental) built with Flutter. **Flutter web is not supported.** MVP focuses on **local** audio/video, **transcripts** (SRT/VTT), and **echo mode** (line-bounded shadow reading), aligned with the Enjoy web app player concepts.
+Cross-platform **language-learning player** (Android, iOS, Windows, macOS, Linux) built with Flutter. **Flutter web is not supported.**
 
 ## Prerequisites
 
@@ -9,9 +9,15 @@ Cross-platform **language-learning player** (Android, iOS, Windows, macOS; Linux
 - **Apple (iOS + macOS)**: **Xcode**, **CocoaPods**, Apple Developer Program access for team **`46X685R747`**. See [packaging.md](docs/packaging.md#one-time-setup) for signing, TestFlight, and notarization.
 - **macOS desktop builds**: [Homebrew](https://brew.sh) plus FFmpeg kit deps — `brew bundle install --file=macos/Brewfile` (see [packaging.md](docs/packaging.md#troubleshooting)). Without this, `flutter run -d macos` can fail at launch with a missing `libz.1.dylib` / DYLD error.
 - **Windows desktop builds**: [NuGet CLI](https://learn.microsoft.com/en-us/nuget/install-nuget-client-tools?tabs=windows#nugetexe-cli) on your `PATH` (`nuget` / `nuget.exe`). Required by [`flutter_inappwebview`](https://inappwebview.dev/docs/intro#setup-windows) to pull WebView2 native dependencies during CMake/MSBuild. After installing, open a **new** terminal and run `nuget` to verify.
-  - NuGet must have **at least one package source** (normally `nuget.org`). If `nuget sources list` is empty or MSBuild fails with `primarySources` / “Feeds used:” and then an error, add it once:  
+  - NuGet must have **at least one package source** (normally `nuget.org`). If `nuget sources list` is empty or MSBuild fails with `primarySources` / "Feeds used:" and then an error, add it once:  
     `nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json"`
   - **FFmpeg** (embedded subtitles, duration probe, echo PCM): run `pwsh windows/scripts/fetch_ffmpeg.ps1` before release builds — see [windows/ffmpeg/README.md](windows/ffmpeg/README.md).
+- **Linux desktop builds**: Install the Flutter Linux build packages (clang, cmake, ninja-build, GTK 3, libsqlite3):
+  ```bash
+  sudo apt-get install -y clang cmake curl git ninja-build pkg-config xz-utils zip \
+    libgtk-3-dev liblzma-dev libsqlite3-dev ffmpeg
+  ```
+  The Linux build uses the system `ffmpeg` (no separate fetch script). The CI workflow reuses `.github/scripts/ensure_linux_tooling.sh` for the same packages. See [docs/features/linux-platform.md](docs/features/linux-platform.md) for the full Linux support story.
 
 ## Setup
 
@@ -72,6 +78,7 @@ Install git hooks once per clone (`git config core.hooksPath .githooks`) so pre-
 | [docs/architecture.md](docs/architecture.md) | Structure & flows |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records |
 | [docs/features/](docs/features/) | Feature specs |
+| [docs/features/linux-platform.md](docs/features/linux-platform.md) | Linux install, format, and support matrix |
 
 ## Tech highlights
 

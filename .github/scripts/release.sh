@@ -31,12 +31,13 @@ while [[ $# -gt 0 ]]; do
 Enjoy Player release (shared local + CI logic)
 See docs/packaging.md for the full runbook.
 
-  bash .github/scripts/release.sh --platform <windows|android|apple|all> [options]
+  bash .github/scripts/release.sh --platform <windows|android|apple|linux|all> [options]
 
 Host matrix:
   Windows host  → --platform windows   (or: pwsh ./release.ps1)
   Windows/Linux → --platform android   (or: pwsh ./release.ps1 -Platform android)
   macOS host    → --platform apple     (requires macOS)
+  Linux host    → --platform linux     (requires Linux with flutter build deps)
   Any host      → --platform all --publish-only --publish  (upload every built artifact)
 
 Common options (forwarded to the platform script):
@@ -71,7 +72,7 @@ EOF
 done
 
 if [[ -z "${PLATFORM}" ]]; then
-  echo "Missing --platform (windows|android|apple|all). Try --help." >&2
+  echo "Missing --platform (windows|android|apple|linux|all). Try --help." >&2
   exit 1
 fi
 
@@ -88,8 +89,11 @@ case "${PLATFORM}" in
   apple)
     exec bash "${scripts}/release_apple.sh" "${ARGS[@]}"
     ;;
+  linux)
+    exec bash "${scripts}/release_linux.sh" "${ARGS[@]}"
+    ;;
   *)
     echo "Unknown platform: ${PLATFORM}" >&2
     exit 1
     ;;
-esac
+  esac

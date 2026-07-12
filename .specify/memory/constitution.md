@@ -1,8 +1,9 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 1.1.0
+Version change: 1.0.0 -> 1.2.0
 Modified principles:
 - Flutter Quality Gates: require validate_ci_gates / format + codegen drift before push
+- Flutter Quality Gates: promote Linux to a first-class supported desktop platform (ADR-0044)
 Added sections:
 - None
 Removed sections:
@@ -14,6 +15,10 @@ Templates requiring updates:
 - ✅ docs/conventions.md
 - ✅ .cursor/rules/flutter.mdc
 - ✅ .github/workflows/shared/runtime.md
+- ✅ docs/ci-self-hosted-runners.md (add build_linux.yml row)
+- ✅ docs/packaging.md (add Linux rows)
+- ✅ docs/features/linux-platform.md (new)
+- ✅ docs/decisions/0044-linux-platform-support.md (new)
 Follow-up TODOs:
 - None
 -->
@@ -83,7 +88,7 @@ coordinate native platforms and local-first data behavior.
 
 ## Flutter Quality Gates
 
-Supported targets are Android, iOS, macOS, and Windows. Flutter web targets,
+Supported targets are Android, iOS, macOS, Windows, and Linux. Flutter web targets,
 `web/` scaffolding, and `kIsWeb` branches are out of scope unless a superseding
 ADR changes platform support. `media_kit` `Player` instances MUST be owned only
 by `MediaKitPlayerEngine` or `PlayerController`; YouTube playback uses the
@@ -129,4 +134,4 @@ Constitution Check in `.specify/templates/plan-template.md` is the planning gate
 and `AGENTS.md`, `docs/conventions.md`, and `docs/testing.md` provide runtime
 development guidance.
 
-**Version**: 1.1.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-07-09
+**Version**: 1.2.0 | **Ratified**: 2026-06-30 | **Last Amended**: 2026-07-12

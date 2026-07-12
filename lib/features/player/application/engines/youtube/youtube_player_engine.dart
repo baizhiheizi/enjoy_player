@@ -3,12 +3,15 @@ library;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
@@ -83,6 +86,13 @@ class YoutubePlayerEngine implements PlayerEngine {
 
   @override
   Future<void> open(PlayableSource source) async {
+    if (!youtubeEngineAvailableOnLinux &&
+        defaultTargetPlatform == TargetPlatform.linux) {
+      throw UnsupportedError(
+        'YouTube is not yet available on Linux — coming soon '
+        '(ADR-0044, R1 / R6: webview2gtk-4.0 dependency).',
+      );
+    }
     if (source is! YoutubePlayableSource) {
       throw UnsupportedError(
         'YoutubePlayerEngine requires YoutubePlayableSource',

@@ -19,7 +19,7 @@ const translations = {
     'features.dictionary.title': 'Dictionary Lookup',
     'features.dictionary.desc': 'Instant definitions and translations without leaving the player. Build your vocabulary seamlessly.',
     'features.sync.title': 'Cross-Platform Sync',
-    'features.sync.desc': 'Your progress, library, and settings sync across Windows, macOS, Android, and iOS.',
+    'features.sync.desc': 'Your progress, library, and settings sync across Windows, macOS, Linux, Android, and iOS.',
     
     'download.title': 'Download',
     'download.windows.title': 'Windows',
@@ -43,12 +43,17 @@ const translations = {
     
     'download.comingSoon': 'Coming soon',
     
+    'download.linux.title': 'Linux',
+    'download.linux.subtitle': 'Ubuntu 22.04 LTS · x86_64',
+    'download.linux.btn': 'Download for Linux',
+    'download.linux.note': 'AppImage: <code>chmod +x enjoy-player-*.AppImage && ./enjoy-player-*.AppImage</code>',
+    
     'recommended': 'Recommended',
     'footer.copyright': '© 2026 Enjoy Player'
   },
   zh: {
     'meta.title': 'Enjoy Player — 跨平台音视频语言学习播放器',
-    'meta.desc': 'Enjoy Player 是一款跨平台音视频语言学习播放器，支持交互式字幕、跟读模式和 YouTube 播放。支持 Windows、macOS、Android 和 iOS。',
+    'meta.desc': 'Enjoy Player 是一款跨平台音视频语言学习播放器，支持交互式字幕、跟读模式和 YouTube 播放。支持 Windows、macOS、Linux、Android 和 iOS。',
     
     'hero.title': 'Enjoy Player',
     'hero.tagline': '跨平台音视频语言学习播放器',
@@ -66,7 +71,7 @@ const translations = {
     'features.dictionary.title': '划词翻译',
     'features.dictionary.desc': '无需离开播放器即可获得即时释义和翻译，无缝积累词汇量。',
     'features.sync.title': '跨平台同步',
-    'features.sync.desc': '你的学习进度、媒体库和设置会在 Windows、macOS、Android 和 iOS 之间无缝同步。',
+    'features.sync.desc': '你的学习进度、媒体库和设置会在 Windows、macOS、Linux、Android 和 iOS 之间无缝同步。',
     
     'download.title': '下载',
     'download.windows.title': 'Windows',
@@ -89,6 +94,11 @@ const translations = {
     'download.ios.note': 'App Store 与 TestFlight 版本即将推出。',
     
     'download.comingSoon': '即将推出',
+    
+    'download.linux.title': 'Linux',
+    'download.linux.subtitle': 'Ubuntu 22.04 LTS · x86_64',
+    'download.linux.btn': '下载 Linux 版',
+    'download.linux.note': 'AppImage: <code>chmod +x enjoy-player-*.AppImage && ./enjoy-player-*.AppImage</code>',
     
     'recommended': '推荐',
     'footer.copyright': '© 2026 Enjoy Player'

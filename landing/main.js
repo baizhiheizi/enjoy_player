@@ -13,6 +13,7 @@ function detectOS() {
   if (/mac/i.test(plat) || /macintosh/i.test(ua)) return 'macos';
   if (/win/i.test(plat) || /windows/i.test(ua)) return 'windows';
   if (/android/i.test(ua)) return 'android';
+  if (/linux/i.test(ua) || /linux/i.test(plat)) return 'linux';
 
   return null;
 }
@@ -52,6 +53,7 @@ function applyManifest(manifest) {
     'btn-windows':  assets.windows?.url,
     'btn-macos':    assets.macos?.url,
     'btn-android':  assets.android_arm64_v8a?.url,
+    'btn-linux':    assets.linux?.url,
   };
 
   for (const [id, url] of Object.entries(urlMap)) {
