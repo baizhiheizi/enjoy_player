@@ -343,6 +343,7 @@ class TranscriptRepository {
             return await _fetchYoutubeTranscriptsWithFallback(
               mediaId: mediaId,
               video: video,
+              force: force,
             );
           } on Object catch (e, st) {
             _log.warning(
@@ -468,12 +469,13 @@ class TranscriptRepository {
 
   /// Three-tier fallback chain for YouTube transcript fetching.
   ///
-  /// Tier 1: Worker GET cache (fast, cached results).
+  /// Tier 1: Worker GET cache (skipped when [force] is true).
   /// Tier 2: Client-side direct YouTube fetch (bypasses worker).
-  /// On success via Tier 2, uploads result to worker asynchronously.
+  /// Every direct fetch uploads all tracks to the worker for caching.
   Future<TranscriptCloudFetchResult> _fetchYoutubeTranscriptsWithFallback({
     required String mediaId,
     required VideoRow video,
+    required bool force,
   }) async {
     final workerVideoId = _workerYoutubeVideoId(video);
     final language = _workerCaptionLanguage(video);
@@ -483,26 +485,28 @@ class TranscriptRepository {
       );
     }
 
-    // Tier 1: Worker GET cache
-    final cached = await _fetchWorkerCachedTranscript(
-      videoId: workerVideoId,
-      language: language,
-    );
-    if (cached != null) {
-      final result = await _upsertWorkerCachedTranscript(
-        mediaId: mediaId,
-        response: cached,
-        fallbackNow: DateTime.now(),
+    // Tier 1: Worker GET cache (skip when forcing a refresh)
+    if (!force) {
+      final cached = await _fetchWorkerCachedTranscript(
+        videoId: workerVideoId,
+        language: language,
       );
-      if (result) {
+      if (cached != null) {
+        final result = await _upsertWorkerCachedTranscript(
+          mediaId: mediaId,
+          response: cached,
+          fallbackNow: DateTime.now(),
+        );
+        if (result) {
+          return const TranscriptCloudFetchResult(
+            status: TranscriptCloudFetchStatus.success,
+            storedCount: 1,
+          );
+        }
         return const TranscriptCloudFetchResult(
-          status: TranscriptCloudFetchStatus.success,
-          storedCount: 1,
+          status: TranscriptCloudFetchStatus.empty,
         );
       }
-      return const TranscriptCloudFetchResult(
-        status: TranscriptCloudFetchStatus.empty,
-      );
     }
 
     // Tier 2: Client-side direct YouTube fetch — download all tracks
