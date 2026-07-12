@@ -8,6 +8,7 @@ import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 
 part 'api_client_provider.g.dart';
@@ -110,7 +111,19 @@ ApiClient _makeApiClient(
     getBaseUrl: getBaseUrl,
     getAccessToken: tokens.readAccessToken,
     refreshAccessToken: refreshOn401
-        ? () => ref.read(authRepositoryProvider).refreshSession()
+        ? () async {
+            final ok =
+                await ref.read(authRepositoryProvider).refreshSession();
+            if (!ok) {
+              final hasToken = await ref
+                  .read(authRepositoryProvider)
+                  .hasAccessToken();
+              if (!hasToken) {
+                ref.invalidate(authCtrlProvider);
+              }
+            }
+            return ok;
+          }
         : null,
   );
 }
@@ -137,5 +150,6 @@ ApiClient aiApiClient(Ref ref) {
   return _makeApiClient(
     ref,
     getBaseUrl: () => ref.read(aiApiBaseUrlProvider.future),
+    refreshOn401: true,
   );
 }

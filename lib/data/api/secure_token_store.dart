@@ -15,6 +15,7 @@ final Logger _log = logNamed('secureTokenStore');
 const _kAccessTokenKey = 'enjoy_player.access_token';
 const _kRefreshTokenKey = 'enjoy_player.refresh_token';
 const _kCachedProfileJsonKey = 'enjoy_player.cached_profile_json';
+const _kTokenExpiresAtKey = 'enjoy_player.token_expires_at';
 
 /// Pin Android to the v10 default RSA-OAEP / AES-GCM ciphers (migrates from
 /// the deprecated Jetpack Security `encryptedSharedPreferences` on first read)
@@ -70,11 +71,22 @@ class SecureTokenStore {
   Future<void> clearCachedProfile() =>
       _deleteBestEffort(_kCachedProfileJsonKey);
 
-  /// Clears bearer token, refresh token, and cached profile (sign out / invalid session).
+  /// ISO 8601 UTC timestamp when the stored access token expires.
+  Future<String?> readTokenExpiresAt() =>
+      _storage.read(key: _kTokenExpiresAtKey);
+
+  Future<void> writeTokenExpiresAt(String expiresAt) =>
+      _writeResilient(_kTokenExpiresAtKey, expiresAt);
+
+  Future<void> clearTokenExpiresAt() =>
+      _deleteBestEffort(_kTokenExpiresAtKey);
+
+  /// Clears bearer token, refresh token, cached profile, and token expiry (sign out / invalid session).
   Future<void> clearAllAuthSecrets() async {
     await _deleteBestEffort(_kAccessTokenKey);
     await _deleteBestEffort(_kRefreshTokenKey);
     await _deleteBestEffort(_kCachedProfileJsonKey);
+    await _deleteBestEffort(_kTokenExpiresAtKey);
   }
 
   Future<void> _deleteBestEffort(String key) async {

@@ -139,9 +139,21 @@ class ApiClient {
     if (sendAuthHeader && requireAuth) {
       final token = await getAccessToken();
       if (token == null || token.isEmpty) {
+        if (refreshAccessToken != null) {
+          final ok = await refreshAccessToken!();
+          if (ok) {
+            final newToken = await getAccessToken();
+            if (newToken != null && newToken.isNotEmpty) {
+              bearer = newToken;
+            }
+          }
+        }
+      } else {
+        bearer = token;
+      }
+      if (bearer == null) {
         throw const ApiException(message: 'Not authenticated', statusCode: 401);
       }
-      bearer = token;
     }
 
     final request = http.MultipartRequest('POST', merged);
@@ -356,9 +368,21 @@ class ApiClient {
     if (sendAuthHeader && requireAuth) {
       final token = await getAccessToken();
       if (token == null || token.isEmpty) {
+        if (refreshAccessToken != null) {
+          final ok = await refreshAccessToken!();
+          if (ok) {
+            final newToken = await getAccessToken();
+            if (newToken != null && newToken.isNotEmpty) {
+              headers['Authorization'] = 'Bearer $newToken';
+            }
+          }
+        }
+      } else {
+        headers['Authorization'] = 'Bearer $token';
+      }
+      if (!headers.containsKey('Authorization')) {
         throw const ApiException(message: 'Not authenticated', statusCode: 401);
       }
-      headers['Authorization'] = 'Bearer $token';
     }
 
     final bodyBytes = body == null

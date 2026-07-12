@@ -208,6 +208,23 @@ class AuthRepository {
       return const AuthSignedOut();
     }
 
+    try {
+      final tokenExpired = await _isTokenExpired();
+      if (tokenExpired) {
+        final refreshed = await refreshSession();
+        if (!refreshed) {
+          return const AuthSignedOut();
+        }
+      }
+    } on PlatformException catch (e, st) {
+      _log.warning(
+        'loadInitialAuthState: token expiry check failed',
+        e,
+        st,
+      );
+      return const AuthSignedOut();
+    }
+
     final cached = await readCachedProfile();
     if (cached != null) {
       return AuthSignedIn(profile: cached);
@@ -225,6 +242,14 @@ class AuthRepository {
       _log.warning('loadInitialAuthState: profile fetch failed', e, st);
       return const AuthSignedOut();
     }
+  }
+
+  Future<bool> _isTokenExpired() async {
+    final raw = await _tokenStore.readTokenExpiresAt();
+    if (raw == null || raw.isEmpty) return false;
+    final expiresAt = DateTime.tryParse(raw);
+    if (expiresAt == null) return false;
+    return DateTime.now().toUtc().isAfter(expiresAt);
   }
 
   Future<void> clearSession() async {
@@ -253,6 +278,9 @@ class AuthRepository {
   Future<void> _persistTokens(AuthTokenResponse tokens) async {
     await _tokenStore.writeAccessToken(tokens.accessToken);
     await _tokenStore.writeRefreshToken(tokens.refreshToken);
+    final expiresAt =
+        DateTime.now().add(Duration(seconds: tokens.expiresIn)).toUtc();
+    await _tokenStore.writeTokenExpiresAt(expiresAt.toIso8601String());
   }
 
   Future<void> _cacheProfile(UserProfile profile) async {
