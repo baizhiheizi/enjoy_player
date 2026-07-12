@@ -48,7 +48,7 @@ The transcript dictionary lookup sheet currently hard-caps the user's target lan
 - 1 cache helper extended (`lib/features/lookup/application/lookup_sheet_result_cache.dart`).
 - 1 test file extended (`test/features/lookup/lookup_target_languages_test.dart`) + new picker widget test.
 - 2 ARB files updated (`lib/l10n/app_en.arb`, `lib/l10n/app_zh.arb`).
-- 1 ADR added (`docs/decisions/0021-multi-language-lookup-catalog.md`).
+- 1 ADR added (`docs/decisions/0042-multi-language-lookup-catalog.md`).
 - 1 feature doc updated (`docs/features/dictionary-lookup.md`).
 
 ## Constitution Check
@@ -93,7 +93,7 @@ Manual verification rationale: subjective visual polish on the picker bottom-she
 
 ### V. Documentation and Traceability
 
-- New ADR: `docs/decisions/0021-multi-language-lookup-catalog.md` covering catalog separation rationale, first-wave tag list, default-target fallback, no-persistence-per-sheet rule (inherited from ADR-0019), and the worker-contract decision to keep `workerLanguageBase` (FR-007). Required by QR-005 before implementation begins.
+- New ADR: `docs/decisions/0042-multi-language-lookup-catalog.md` covering catalog separation rationale, first-wave tag list, default-target fallback, no-persistence-per-sheet rule (inherited from ADR-0019), and the worker-contract decision to keep `workerLanguageBase` (FR-007). Required by QR-005 before implementation begins.
 - Feature doc: `docs/features/dictionary-lookup.md` updated with the new "Languages" subsection (catalog name, ordering, default-target resolution, swap behaviour, cache key, worker-rejection error handling) — matches QR-005.
 - Agent guidance: `AGENTS.md` updated to call out `kSupportedLookupLanguageTags` next to the existing catalog references, so future lookup changes see the new constant in the same place.
 - No constitution exception required.
@@ -149,7 +149,7 @@ docs/
 ├── features/
 │   └── dictionary-lookup.md                  # Languages section rewrite
 └── decisions/
-    └── 0021-multi-language-lookup-catalog.md # new ADR
+    └── 0042-multi-language-lookup-catalog.md # new ADR
 
 AGENTS.md                                     # +kSupportedLookupLanguageTags reference
 ```

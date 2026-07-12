@@ -1,4 +1,4 @@
-# ADR-0021: Multi-language lookup catalog
+# ADR-0042: Multi-language lookup catalog
 
 ## Status
 

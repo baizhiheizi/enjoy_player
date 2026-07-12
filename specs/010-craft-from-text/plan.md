@@ -95,7 +95,7 @@ Add a third entry — **Craft from text** — to the existing import chooser she
 - ✅ Icon-only actions (paste-from-clipboard, mode toggle, delete-from-sheet) expose localized tooltips.
 - ✅ Keyboard affordances: Enter / Cmd-Enter submits when input is valid (same convention as `importYoutubeFromDialog`).
 - ✅ Haptics route through `Haptics` (no raw vibration calls).
-- ✅ `docs/features/library.md`, `docs/features/ai.md`, `docs/features/transcript.md`, `docs/features/settings.md` are updated in the same change; new ADR `docs/decisions/0030-craft-from-text-import.md` captures the import-flow decision.
+- ✅ `docs/features/library.md`, `docs/features/ai.md`, `docs/features/transcript.md`, `docs/features/settings.md` are updated in the same change; new ADR `docs/decisions/0043-craft-from-text-import.md` captures the import-flow decision.
 - ✅ No new top-level route — UX consistency with the user's "redesign the UX" requirement.
 
 ### IV. Performance Is a Requirement
@@ -109,7 +109,7 @@ Add a third entry — **Craft from text** — to the existing import chooser she
 
 ### V. Documentation and Traceability
 
-- ✅ New ADR `docs/decisions/0030-craft-from-text-import.md` (single Craft entry, two modes, BYOK parity for TTS, provider value `craft`).
+- ✅ New ADR `docs/decisions/0043-craft-from-text-import.md` (single Craft entry, two modes, BYOK parity for TTS, provider value `craft`).
 - ✅ `docs/features/library.md` updated (third import entry + Craft badge).
 - ✅ `docs/features/ai.md` updated (Enjoy TTS now wired; TTS BYOK card now first-class; Craft flow described as the consumer of both).
 - ✅ `docs/features/transcript.md` updated (Craft primary + secondary transcript convention).
@@ -188,7 +188,7 @@ test/
 
 docs/
 ├── decisions/
-│   └── 0030-craft-from-text-import.md        # NEW ADR
+│   └── 0043-craft-from-text-import.md        # NEW ADR
 └── features/
     ├── ai.md                                # updated: Enjoy TTS wired, TTS BYOK first-class, Craft consumer
     ├── library.md                           # updated: third import entry, Craft badge

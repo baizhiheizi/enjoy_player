@@ -45,7 +45,6 @@ Trade-offs, follow-up work, risks.
 | [0019](0019-transcript-dictionary-lookup.md) | Transcript dictionary lookup — selection scope, bottom sheet, worker APIs |
 | [0020](0020-android-windows-release-identity.md) | Android app ID `ai.enjoy.player`, release signing via `key.properties`, Windows release branding + Inno installer |
 | [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions |
-| [0021](0021-multi-language-lookup-catalog.md) | Multi-language lookup catalog — decoupled source / target language pickers for transcript dictionary lookup |
 | [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |
 | [0023](0023-app-update-distribution.md) | App update distribution — store no-op, direct feeds on dl.enjoy.bot |
 | [0024](0024-download-landing-page.md) | Download landing page — static site on Cloudflare Pages at get.enjoy.bot |
@@ -66,3 +65,5 @@ Trade-offs, follow-up work, risks.
 | [0039](0039-auto-translate-primary-text-keyed-overlay.md) | Auto-translate as primary-text keyed overlay (index display + sourceKey; supplements 0037/0038) |
 | [0040](0040-asr-transcript-generation.md) | ASR transcript generation |
 | [0041](0041-unified-tier-reconciliation.md) | Unified tier reconciliation — single source of truth + global resume/cold-start reconcile |
+| [0042](0042-multi-language-lookup-catalog.md) | Multi-language lookup catalog — decoupled source / target language pickers for transcript dictionary lookup |
+| [0043](0043-craft-from-text-import.md) | Craft from text import — single entry, two modes, BYOK parity for TTS |

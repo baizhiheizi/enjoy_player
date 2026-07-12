@@ -20,7 +20,7 @@
 - Persist the result as a normal audio media item in the local library (Drift `AudioRow`, provider `craft`) with a paired primary transcript in the learning language and (for "Translate then speak") an optional original-source secondary transcript, so echo mode and transcript overlay work without extra wiring.
 - Show a clear **Craft** badge in the library grid alongside the existing **YouTube** provider badge.
 - Error, partial-failure, and "service unavailable" UX that follows the same calm, actionable patterns as the existing import flows; never expose raw exception text as the primary message; never burn TTS/translate calls on empty or trivially short input.
-- New ADR for the import-flow decision (`docs/decisions/0030-craft-from-text-import.md`); updates to `docs/features/library.md`, `docs/features/ai.md`, and `docs/features/transcript.md`; setting-surface updates in `docs/features/settings.md`.
+- New ADR for the import-flow decision (`docs/decisions/0043-craft-from-text-import.md`); updates to `docs/features/library.md`, `docs/features/ai.md`, and `docs/features/transcript.md`; setting-surface updates in `docs/features/settings.md`.
 
 ### Out of scope
 
@@ -186,7 +186,7 @@ Things go wrong: the network drops mid-translate, the TTS vendor rejects the tar
 - **QR-004**: The Craft flow MUST remain responsive while translate + synthesize run on supported platforms. Translation + synthesis for ~500 characters of text MUST complete on a normal connection in under **30 seconds** for the headline flow; partial progress must keep the import-blocking dialog cancellable / clearly bounded.
 - **QR-005**: Synthesized audio bytes MUST be written to local storage in a worker isolate or via streaming write so the import-blocking dialog never freezes the UI thread on long inputs.
 - **QR-006**: Re-opening a previously Crafted item MUST be instantaneous (no re-translate, no re-synthesize); results are stored as durable media + transcript rows.
-- **QR-007**: Feature behavior changes MUST update `docs/features/library.md`, `docs/features/ai.md`, `docs/features/transcript.md`, and `docs/features/settings.md` in the same change; a new ADR MUST be added at `docs/decisions/0030-craft-from-text-import.md` capturing the import-flow decision (single entry, two modes, BYOK parity for TTS, provider value `craft`).
+- **QR-007**: Feature behavior changes MUST update `docs/features/library.md`, `docs/features/ai.md`, `docs/features/transcript.md`, and `docs/features/settings.md` in the same change; a new ADR MUST be added at `docs/decisions/0043-craft-from-text-import.md` capturing the import-flow decision (single entry, two modes, BYOK parity for TTS, provider value `craft`).
 - **QR-008**: Tests MUST cover: Translate then speak end-to-end on a stub translation + stub TTS; Speak directly end-to-end; same-language switch affordance; TTS-stage failure discards translation; save-stage failure discards audio; dedupe on repeated input; deletion cleanup; library badge; TTS BYOK vendor routing.
 - **QR-009**: Generated Drift schema changes (if any) MUST regenerate `*.g.dart` via `dart run build_runner build` and the outputs MUST be committed in the same change.
 

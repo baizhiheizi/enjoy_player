@@ -23,4 +23,4 @@ See [spec.md](../../../specs/010-craft-from-text/spec.md) and
 
 ## ADR
 
-See [docs/decisions/0030-craft-from-text-import.md](../../../docs/decisions/0030-craft-from-text-import.md).
+See [docs/decisions/0043-craft-from-text-import.md](../../../docs/decisions/0043-craft-from-text-import.md).

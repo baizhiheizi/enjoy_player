@@ -1,4 +1,4 @@
-# ADR-0030: Craft from Text Import
+# ADR-0043: Craft from Text Import
 
 **Date**: 2026-07-09 · **Status**: Accepted
 

@@ -78,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pure helper `resolveLookupSourceLanguage({chromeLanguage, activeTrackLanguage})`
   is covered by 6 unit tests. See
   [ADR-0019](docs/decisions/0019-transcript-dictionary-lookup.md),
-  [ADR-0021](docs/decisions/0021-multi-language-lookup-catalog.md), and
+  [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md), and
   [docs/features/dictionary-lookup.md](docs/features/dictionary-lookup.md#default-source).
 - **Auto-translate keyed by primary text, not time match**: AI auto-translate
   tracks are now aligned via an index overlay plus a `sourceKey` content

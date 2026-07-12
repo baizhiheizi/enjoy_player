@@ -24,7 +24,7 @@ description: "Task list for Craft from Text (AI-generated audio materials)"
 - **Shared code**: `lib/core/`, `lib/data/`, `lib/features/{library,ai}/`
 - **Tests**: `test/features/craft/`, `test/features/library/`
 - **Feature docs**: `docs/features/{library,ai,settings,transcript}.md`
-- **ADRs**: `docs/decisions/0030-craft-from-text-import.md`
+- **ADRs**: `docs/decisions/0043-craft-from-text-import.md`
 
 ---
 
@@ -220,7 +220,7 @@ description: "Task list for Craft from Text (AI-generated audio materials)"
 
 **Purpose**: Documentation, regression, and quality-gate cleanup that affects multiple user stories.
 
-- [X] T063 [P] Create ADR `docs/decisions/0030-craft-from-text-import.md` capturing the import-flow decision: single entry with two modes (no standalone routes); TTS BYOK promotion from P3 to first-class; provider value `craft`; dedupe-by-content-hash; length-cap 5000 with truncation notice; failure-discard-at-controller-boundary. Link to spec + plan + data-model.
+- [X] T063 [P] Create ADR `docs/decisions/0043-craft-from-text-import.md` capturing the import-flow decision: single entry with two modes (no standalone routes); TTS BYOK promotion from P3 to first-class; provider value `craft`; dedupe-by-content-hash; length-cap 5000 with truncation notice; failure-discard-at-controller-boundary. Link to spec + plan + data-model.
 - [X] T064 [P] Update `docs/features/library.md`: add the third import entry; document the Craft badge; document the dedupe behavior on re-import
 - [X] T065 [P] Update `docs/features/ai.md`: document that `EnjoyTtsCapability` is now wired via Azure Speech SDK + worker-issued token (parallel to assessment); document TTS BYOK as first-class; add a "Craft consumer" callout linking to `library.md`
 - [X] T066 [P] Update `docs/features/transcript.md`: document the Craft primary + optional secondary transcript convention; reference `data-model.md` § TranscriptRow — Craft secondary transcript

@@ -120,4 +120,4 @@ Expected: budgets met; no jank or dropped frames during the picker interactions.
 
 ## Sign-off
 
-All 9 scenarios pass → plan is ready to move to `/speckit-tasks`. Ensure `docs/decisions/0021-multi-language-lookup-catalog.md`, `docs/features/dictionary-lookup.md`, and `AGENTS.md` are updated before closing the feature.
+All 9 scenarios pass → plan is ready to move to `/speckit-tasks`. Ensure `docs/decisions/0042-multi-language-lookup-catalog.md`, `docs/features/dictionary-lookup.md`, and `AGENTS.md` are updated before closing the feature.

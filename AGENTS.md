@@ -25,7 +25,7 @@ Local audio/video files, **YouTube imports** (watch page WebView; transcripts vi
 
 ## Lookup language catalog
 
-The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart) for source / target options (first wave: en-US / en-GB / zh-CN / ja-JP / ko-KR / es-ES / es-MX / fr-FR / fr-CA / de-DE / it-IT / pt-BR / pt-PT / ru-RU). It is decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 8 tags); widening the lookup picker must not regress profile / settings UI. See [ADR-0021](docs/decisions/0021-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
+The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart) for source / target options (first wave: en-US / en-GB / zh-CN / ja-JP / ko-KR / es-ES / es-MX / fr-FR / fr-CA / de-DE / it-IT / pt-BR / pt-PT / ru-RU). It is decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 8 tags); widening the lookup picker must not regress profile / settings UI. See [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
 
 ## Codegen
 

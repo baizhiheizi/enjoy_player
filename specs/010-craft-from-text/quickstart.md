@@ -278,7 +278,7 @@ flutter test
 **Steps**:
 
 ```bash
-ls docs/decisions/0030-craft-from-text-import.md
+ls docs/decisions/0043-craft-from-text-import.md
 grep -E "Craft from text|craft" docs/features/ai.md | head -10
 grep -E "Craft from text|craft" docs/features/library.md | head -10
 grep -E "Craft from text|craft" docs/features/transcript.md | head -10

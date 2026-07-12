@@ -142,7 +142,7 @@
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T035 [P] Revise `docs/decisions/0030-craft-from-text-import.md` to document the full-screen + two-tool + voice-picker + style-preset + timestamped-transcript decision
+- [ ] T035 [P] Revise `docs/decisions/0043-craft-from-text-import.md` to document the full-screen + two-tool + voice-picker + style-preset + timestamped-transcript decision
 - [ ] T036 [P] Update `docs/features/library.md` — Craft screen as full-screen route (not sheet)
 - [ ] T037 [P] Update `docs/features/ai.md` — Craft consumer of translation styles + Azure voice catalog
 - [ ] T038 [P] Update `docs/features/transcript.md` — Craft timestamped transcript convention (sentence-split proportional timestamps)

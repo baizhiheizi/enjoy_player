@@ -30,7 +30,7 @@ description: "Task list for multi-language transcript lookup & translation"
 - **Shared catalog**: `lib/core/application/app_language_catalog.dart`
 - **Tests**: `test/features/lookup/`, `test/core/application/`
 - **Feature docs**: `docs/features/dictionary-lookup.md`
-- **ADRs**: `docs/decisions/0021-multi-language-lookup-catalog.md`
+- **ADRs**: `docs/decisions/0042-multi-language-lookup-catalog.md`
 - **Localization**: `lib/l10n/app_en.arb`, `lib/l10n/app_zh.arb`
 
 ---
@@ -40,7 +40,7 @@ description: "Task list for multi-language transcript lookup & translation"
 **Purpose**: Project initialization, ADR skeleton, localization placeholder keys
 
 - [x] T001 Confirm feature-first paths and change surface per [plan.md § Project Structure](./plan.md#project-structure): `lib/features/lookup/`, `lib/core/application/app_language_catalog.dart`, `lib/l10n/`, `docs/decisions/`, `docs/features/dictionary-lookup.md`, `AGENTS.md`. Verify each path exists before implementation.
-- [x] T002 [P] Draft ADR `docs/decisions/0021-multi-language-lookup-catalog.md` (Status: Draft) covering: catalog separation rationale, first-wave tag list, default-target fallback, no-persistence-per-sheet rule (inherited from ADR-0019), worker contract decision to keep `workerLanguageBase`. Use ADR-0019 as the structural template.
+- [x] T002 [P] Draft ADR `docs/decisions/0042-multi-language-lookup-catalog.md` (Status: Draft) covering: catalog separation rationale, first-wave tag list, default-target fallback, no-persistence-per-sheet rule (inherited from ADR-0019), worker contract decision to keep `workerLanguageBase`. Use ADR-0019 as the structural template.
 - [x] T003 [P] Add lookupLanguage* ARB placeholders to `lib/l10n/app_en.arb` and `lib/l10n/app_zh.arb` — one key per first-wave tag (English, English (UK), 中文, 日本語, 한국어, Español (España), Español (México), Français (France), Français (Canada), Deutsch, Italiano, Português (Brasil), Português (Portugal), Русский) — both en + zh values inline. Existing `lookup*` keys remain unchanged.
 
 ---
@@ -131,7 +131,7 @@ description: "Task list for multi-language transcript lookup & translation"
 
 **Purpose**: Documentation updates, ADR finalization, full quality gates
 
-- [x] T025 [P] Finalize ADR `docs/decisions/0021-multi-language-lookup-catalog.md` (Status: Draft → Accepted) after the implementation lands and Phase 2 + 3 + 4 tests are green. Add a "Consequences" section listing the explicit behavior changes (catalog expanded; picker widened; source overridable; per-pair cache key; no persistence; no worker contract change) and link the spec.md / plan.md / data-model.md / contracts/ artifacts.
+- [x] T025 [P] Finalize ADR `docs/decisions/0042-multi-language-lookup-catalog.md` (Status: Draft → Accepted) after the implementation lands and Phase 2 + 3 + 4 tests are green. Add a "Consequences" section listing the explicit behavior changes (catalog expanded; picker widened; source overridable; per-pair cache key; no persistence; no worker contract change) and link the spec.md / plan.md / data-model.md / contracts/ artifacts.
 - [x] T026 [P] Update `docs/features/dictionary-lookup.md` Languages section per [plan.md § V. Documentation and Traceability](./plan.md#v-documentation-and-traceability) + [contracts/lookup-language-catalog.md](./contracts/lookup-language-catalog.md) + [contracts/lookup-picker-ui.md](./contracts/lookup-picker-ui.md): replace the existing "Languages" subsection with the new catalog name (`kSupportedLookupLanguageTags`), the 14-entry first-wave list, the default-target resolution algorithm (stored native → primary-subtag fallback → first non-equal non-learning entry), swap atomicity + cache key, and worker-rejection error handling. Preserve the rest of the file.
 - [x] T027 [P] Update `AGENTS.md` "Hard rules" / "MVP scope" section to call out `kSupportedLookupLanguageTags` next to the existing catalog references (per [plan.md § Project Structure](./plan.md#project-structure)). One-line addition, no other changes.
 - [x] T028 Run `dart run build_runner build` (final sanity) and `flutter gen-l10n` (re-generate `AppLocalizations` after ARB additions from T003).
