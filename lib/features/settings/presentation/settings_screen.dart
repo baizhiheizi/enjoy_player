@@ -6,6 +6,8 @@
 /// `widgets/settings_layout_two_pane.dart`.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,7 +24,6 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final contentMaxWidth = t.contentMaxWidth + 96;
 
@@ -30,27 +31,59 @@ class SettingsScreen extends ConsumerWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final twoPane = constraints.maxWidth >= t.breakpointRail;
-          return CenteredMaxWidthScrollView(
-            maxWidth: twoPane
-                ? contentMaxWidth + t.sidebarWidth
-                : contentMaxWidth,
-            slivers: [
-              SliverToBoxAdapter(
-                child: EditorialHeader(
-                  title: l10n.settingsTitle,
-                  subtitle: l10n.settingsSubtitle,
+          if (!twoPane) {
+            return CenteredMaxWidthScrollView(
+              maxWidth: contentMaxWidth,
+              slivers: const [
+                SliverToBoxAdapter(child: _EditorialHeaderSlot()),
+                SliverToBoxAdapter(child: SettingsSearchField()),
+                SliverToBoxAdapter(child: SettingsLayoutSingleColumn()),
+              ],
+            );
+          }
+
+          final twoPaneMaxWidth = contentMaxWidth + t.sidebarWidth;
+          final hPad = math.max(
+            0.0,
+            (constraints.maxWidth - twoPaneMaxWidth) / 2,
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: hPad),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [_EditorialHeaderSlot(), SettingsSearchField()],
                 ),
               ),
-              const SliverToBoxAdapter(child: SettingsSearchField()),
-              SliverToBoxAdapter(
-                child: twoPane
-                    ? const SettingsLayoutTwoPane()
-                    : const SettingsLayoutSingleColumn(),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPad),
+                  child: const SettingsLayoutTwoPane(),
+                ),
               ),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+/// Thin slot so [EditorialHeader] can resolve [AppLocalizations] via
+/// [ConsumerWidget] and its own [LayoutBuilder] for centering, even when
+/// used outside of [CenteredMaxWidthScrollView].
+class _EditorialHeaderSlot extends ConsumerWidget {
+  const _EditorialHeaderSlot();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    return EditorialHeader(
+      title: l10n.settingsTitle,
+      subtitle: l10n.settingsSubtitle,
     );
   }
 }

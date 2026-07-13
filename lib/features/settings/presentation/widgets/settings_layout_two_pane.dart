@@ -90,9 +90,11 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
         : allRailIds;
 
     if (railIds.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 8),
-        child: SettingsNoResults(),
+      return Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(top: t.space8),
+          child: const SettingsNoResults(),
+        ),
       );
     }
 
@@ -109,55 +111,35 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
 
     final visual = settingsSectionVisual(effectiveSelected, l10n);
 
-    // A plain Stack (rather than IntrinsicHeight) sizes the divider line to
-    // match the taller of rail/detail: intrinsic-dimension queries can't
-    // cross a LayoutBuilder boundary, and detail-pane content (e.g. the
-    // account hero's loading skeleton) may contain one.
-    return Stack(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: t.sidebarWidth,
-              child: Padding(
-                padding: EdgeInsets.only(top: t.space8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final id in railIds)
-                      SettingsSectionRailItem(
-                        icon: settingsSectionVisual(id, l10n).icon,
-                        label: settingsSectionVisual(id, l10n).title,
-                        selected: id == effectiveSelected,
-                        onTap: () => ref
-                            .read(settingsSelectedSectionProvider.notifier)
-                            .select(id),
-                      ),
-                  ],
-                ),
-              ),
+        SizedBox(
+          width: t.sidebarWidth,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(top: t.space8, bottom: t.space24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final id in railIds)
+                  SettingsSectionRailItem(
+                    icon: settingsSectionVisual(id, l10n).icon,
+                    label: settingsSectionVisual(id, l10n).title,
+                    selected: id == effectiveSelected,
+                    onTap: () => ref
+                        .read(settingsSelectedSectionProvider.notifier)
+                        .select(id),
+                  ),
+              ],
             ),
-            const SizedBox(width: 1),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: t.space24),
-                child: _DetailPane(
-                  sectionId: effectiveSelected,
-                  visual: visual,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-        Positioned(
-          left: t.sidebarWidth,
-          top: 0,
-          bottom: 0,
-          child: Container(
-            width: 1,
-            color: cs.outlineVariant.withValues(alpha: 0.18),
+        Container(width: 1, color: cs.outlineVariant.withValues(alpha: 0.18)),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(left: t.space24, bottom: t.space32),
+            child: _DetailPane(sectionId: effectiveSelected, visual: visual),
           ),
         ),
       ],
