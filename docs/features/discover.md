@@ -52,6 +52,18 @@ Empty Discover state (no subscriptions) prompts **Manage channels** so users can
 
 RSS URL: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`
 
+### Cache semantics (append-only)
+
+The `youtube_feed_entries` cache is **append-only between unsubscribe events** ([ADR-0046](../decisions/0046-discover-feed-append-only.md)). A refresh:
+
+- Inserts feed entries that are new to the cache (new uploads since the last refresh).
+- Updates mutable metadata (`title`, `thumbnailUrl`, `publishedAt`) and `fetchedAt` on entries the source re-presented.
+- **Does not delete** cached entries that fell out of the RSS window. YouTube's RSS endpoint returns only the ~15 most recent uploads per channel, but the cache keeps older entries so users can browse and re-import them.
+
+The user-visible way to bound cache growth is to **unsubscribe** from a channel — `DiscoverRepository.unsubscribe(channelId)` deletes every cached entry for that channel.
+
+`YoutubeFeedEntryRow.fetchedAt` represents the last time the source re-presented the entry. Older rows that fell out of the RSS window keep their original `fetchedAt`. Diagnostic counters that report `youtube_feed_entries` row counts now reflect history, not just the latest RSS window.
+
 ### Scheduler gating
 
 The periodic refresh is intentionally **passive**:
@@ -119,7 +131,9 @@ Failures during avatar fetch are logged at `fine` and surface as
 
 ## Sliver performance
 
-The merged feed grid (main Discover screen) and the channel feed grid (`/discover/channel/:channelId`) both re-render their full entry list on every RSS refresh. Each tile uses a stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart) so a refresh that only prepends new entries reuses existing tile `Element`s instead of rebuilding the whole visible grid. See [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists) for the shared convention.
+The merged feed grid (main Discover screen) and the channel feed grid (`/discover/channel/:channelId`) both re-render their full entry list on every RSS refresh. Each tile uses a stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart) so a refresh that only prepends new entries reuses existing tile `Element`s instead of rebuilding the whole visible grid.
+
+Since the cache became append-only ([ADR-0046](../decisions/0046-discover-feed-append-only.md)), the stable `ValueKey` pattern is even more important: a refresh that only adds a few new entries at the head of the timeline must not rebuild the visible window of older entries. See [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists) for the shared convention.
 
 ## Add to library
 
@@ -131,14 +145,16 @@ No caption availability in RSS. After import, transcript loading follows [`trans
 
 ## Limitations
 
-- ~15 recent videos per channel per RSS fetch
+- Each RSS fetch returns only ~15 most recent videos per channel — this is the per-fetch payload cap, not a cache cap. The cache itself is append-only between unsubscribe events (see [Cache semantics (append-only)](#cache-semantics-append-only)).
 - **YouTube Shorts** are excluded (RSS alternate link uses `/shorts/`)
 - Handle → `channel_id` resolution may fail if YouTube HTML changes
 - Subscriptions and feed cache live in the signed-in per-user SQLite file (`enjoy_player_<userId>`)
 - Avatar LRU cache is per-process (not per-DB); the 256-entry cap evicts
   the least-recently-used channel id on overflow
+- No hard upper bound on per-channel cache size in v1; users bound growth by unsubscribing (see [ADR-0046](../decisions/0046-discover-feed-append-only.md))
 
 ## Related
 
 - [ADR-0021](../decisions/0021-youtube-discover-rss.md)
+- [ADR-0046](../decisions/0046-discover-feed-append-only.md)
 - [youtube.md](youtube.md)

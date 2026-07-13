@@ -201,8 +201,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: 'preferences',
-                builder: (context, state) =>
-                    const ProfilePreferencesScreen(),
+                builder: (context, state) => const ProfilePreferencesScreen(),
               ),
             ],
           ),

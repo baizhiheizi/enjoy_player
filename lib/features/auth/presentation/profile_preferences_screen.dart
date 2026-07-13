@@ -107,123 +107,130 @@ class _ProfilePreferencesScreenState
                     ),
                   ),
                   SizedBox(height: t.space24),
-                  ref.watch(appPreferencesCtrlProvider).when(
-                    data: (pref) {
-                      final displayTag = localeToBcp47(
-                        pref.effectiveDisplayLocale,
-                      );
-                      final learnTag = pref.effectiveLearningLanguage;
-                      final nativeTag = pref.effectiveNativeLanguage;
-                      final nativeAllowed = allowedNativeTags(learnTag);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          DropdownButtonFormField<String>(
-                            key: ValueKey<String>(
-                              'profile-locale-$displayTag',
-                            ),
-                            initialValue: displayTag,
-                            decoration: InputDecoration(
-                              labelText: l10n.profileFieldDisplayLanguage,
-                            ),
-                            items: [
-                              for (final loc in kAppDisplayLocales)
-                                DropdownMenuItem(
-                                  value: localeToBcp47(loc),
-                                  child: Text(
-                                    _languageOptionLabel(
-                                      l10n,
-                                      localeToBcp47(loc),
+                  ref
+                      .watch(appPreferencesCtrlProvider)
+                      .when(
+                        data: (pref) {
+                          final displayTag = localeToBcp47(
+                            pref.effectiveDisplayLocale,
+                          );
+                          final learnTag = pref.effectiveLearningLanguage;
+                          final nativeTag = pref.effectiveNativeLanguage;
+                          final nativeAllowed = allowedNativeTags(learnTag);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              DropdownButtonFormField<String>(
+                                key: ValueKey<String>(
+                                  'profile-locale-$displayTag',
+                                ),
+                                initialValue: displayTag,
+                                decoration: InputDecoration(
+                                  labelText: l10n.profileFieldDisplayLanguage,
+                                ),
+                                items: [
+                                  for (final loc in kAppDisplayLocales)
+                                    DropdownMenuItem(
+                                      value: localeToBcp47(loc),
+                                      child: Text(
+                                        _languageOptionLabel(
+                                          l10n,
+                                          localeToBcp47(loc),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                ],
+                                onChanged: _saving
+                                    ? null
+                                    : (v) async {
+                                        if (v == null) return;
+                                        await ref
+                                            .read(
+                                              appPreferencesCtrlProvider
+                                                  .notifier,
+                                            )
+                                            .setLocale(
+                                              displayLocaleFromRawOrDefault(v),
+                                            );
+                                      },
+                              ),
+                              SizedBox(height: t.space16),
+                              DropdownButtonFormField<String>(
+                                key: ValueKey<String>(
+                                  'profile-learn-$learnTag',
                                 ),
-                            ],
-                            onChanged: _saving
-                                ? null
-                                : (v) async {
-                                    if (v == null) return;
-                                    await ref
-                                        .read(
-                                          appPreferencesCtrlProvider.notifier,
-                                        )
-                                        .setLocale(
-                                          displayLocaleFromRawOrDefault(v),
-                                        );
-                                  },
-                          ),
-                          SizedBox(height: t.space16),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey<String>(
-                              'profile-learn-$learnTag',
-                            ),
-                            initialValue: learnTag,
-                            decoration: InputDecoration(
-                              labelText: l10n.profileFieldLearningLanguage,
-                              helperText: l10n.profileLearningLanguageReadOnly,
-                            ),
-                            items: [
-                              for (final tag in kSupportedFocusLanguageTags)
-                                DropdownMenuItem(
-                                  value: tag,
-                                  child: Text(
-                                    _languageOptionLabel(l10n, tag),
-                                  ),
+                                initialValue: learnTag,
+                                decoration: InputDecoration(
+                                  labelText: l10n.profileFieldLearningLanguage,
+                                  helperText:
+                                      l10n.profileLearningLanguageReadOnly,
                                 ),
-                            ],
-                            onChanged: _saving
-                                ? null
-                                : (v) async {
-                                    if (v == null) return;
-                                    await ref
-                                        .read(
-                                          appPreferencesCtrlProvider.notifier,
-                                        )
-                                        .setLearningLanguage(v);
-                                  },
-                          ),
-                          SizedBox(height: t.space16),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey<String>(
-                              'profile-native-$nativeTag',
-                            ),
-                            initialValue: nativeAllowed.any(
-                              (tag) => tagsEqual(tag, nativeTag),
-                            )
-                                ? nativeTag
-                                : nativeAllowed.first,
-                            decoration: InputDecoration(
-                              labelText: l10n.profileFieldNativeLanguage,
-                              helperText: l10n.settingsNativeMustDifferHint,
-                            ),
-                            items: [
-                              for (final tag in nativeAllowed)
-                                DropdownMenuItem(
-                                  value: tag,
-                                  child: Text(
-                                    _languageOptionLabel(l10n, tag),
-                                  ),
+                                items: [
+                                  for (final tag in kSupportedFocusLanguageTags)
+                                    DropdownMenuItem(
+                                      value: tag,
+                                      child: Text(
+                                        _languageOptionLabel(l10n, tag),
+                                      ),
+                                    ),
+                                ],
+                                onChanged: _saving
+                                    ? null
+                                    : (v) async {
+                                        if (v == null) return;
+                                        await ref
+                                            .read(
+                                              appPreferencesCtrlProvider
+                                                  .notifier,
+                                            )
+                                            .setLearningLanguage(v);
+                                      },
+                              ),
+                              SizedBox(height: t.space16),
+                              DropdownButtonFormField<String>(
+                                key: ValueKey<String>(
+                                  'profile-native-$nativeTag',
                                 ),
+                                initialValue:
+                                    nativeAllowed.any(
+                                      (tag) => tagsEqual(tag, nativeTag),
+                                    )
+                                    ? nativeTag
+                                    : nativeAllowed.first,
+                                decoration: InputDecoration(
+                                  labelText: l10n.profileFieldNativeLanguage,
+                                  helperText: l10n.settingsNativeMustDifferHint,
+                                ),
+                                items: [
+                                  for (final tag in nativeAllowed)
+                                    DropdownMenuItem(
+                                      value: tag,
+                                      child: Text(
+                                        _languageOptionLabel(l10n, tag),
+                                      ),
+                                    ),
+                                ],
+                                onChanged: _saving || nativeAllowed.length <= 1
+                                    ? null
+                                    : (v) async {
+                                        if (v == null) return;
+                                        await ref
+                                            .read(
+                                              appPreferencesCtrlProvider
+                                                  .notifier,
+                                            )
+                                            .setNativeLanguage(v);
+                                      },
+                              ),
                             ],
-                            onChanged: _saving || nativeAllowed.length <= 1
-                                ? null
-                                : (v) async {
-                                    if (v == null) return;
-                                    await ref
-                                        .read(
-                                          appPreferencesCtrlProvider.notifier,
-                                        )
-                                        .setNativeLanguage(v);
-                                  },
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => Padding(
-                      padding: EdgeInsets.only(bottom: t.space16),
-                      child: const LinearProgressIndicator(),
-                    ),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
+                          );
+                        },
+                        loading: () => Padding(
+                          padding: EdgeInsets.only(bottom: t.space16),
+                          child: const LinearProgressIndicator(),
+                        ),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
                   SizedBox(height: t.space32),
                   EnjoyButton.primary(
                     onPressed: _saving
@@ -245,7 +252,9 @@ class _ProfilePreferencesScreenState
                                       goal: goal,
                                     ),
                                   );
-                              final after = ref.read(authCtrlProvider).valueOrNull;
+                              final after = ref
+                                  .read(authCtrlProvider)
+                                  .valueOrNull;
                               if (after is AuthSignedIn) {
                                 _applyProfile(after.profile);
                               }

@@ -37,10 +37,7 @@ class _FakePrefsCtrl extends AppPreferencesCtrl {
   Future<AppPreferencesState> build() async => AppPreferencesState.initial;
 }
 
-Widget _harness(
-  Widget child, {
-  required _FakeAuthCtrl authCtrl,
-}) {
+Widget _harness(Widget child, {required _FakeAuthCtrl authCtrl}) {
   final scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF7B61FF),
     brightness: Brightness.dark,

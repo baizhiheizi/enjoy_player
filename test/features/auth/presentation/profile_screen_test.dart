@@ -78,17 +78,14 @@ void main() {
     },
   );
 
-  testWidgets(
-    'ProfileScreen signed-out state shows sign-in prompt',
-    (tester) async {
-      final authCtrl = _SignedOutAuthCtrl();
-      await tester.pumpWidget(_harness(const ProfileScreen(), authCtrl));
-      await tester.pumpAndSettle();
+  testWidgets('ProfileScreen signed-out state shows sign-in prompt', (
+    tester,
+  ) async {
+    final authCtrl = _SignedOutAuthCtrl();
+    await tester.pumpWidget(_harness(const ProfileScreen(), authCtrl));
+    await tester.pumpAndSettle();
 
-      final l10n = await AppLocalizations.delegate.load(
-        const Locale('en', 'US'),
-      );
-      expect(find.text(l10n.authSignInTitle), findsOneWidget);
-    },
-  );
+    final l10n = await AppLocalizations.delegate.load(const Locale('en', 'US'));
+    expect(find.text(l10n.authSignInTitle), findsOneWidget);
+  });
 }

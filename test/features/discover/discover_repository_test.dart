@@ -27,6 +27,26 @@ const _rss = '''
 </feed>
 ''';
 
+/// Build a minimal YouTube Atom RSS payload from a list of (videoId, publishedAt)
+/// pairs. Used by the append-only cache tests (T004–T006).
+String _rssFor(Iterable<({String videoId, DateTime publishedAt})> entries) {
+  final inner = entries
+      .map(
+        (e) =>
+            '''
+  <entry>
+    <yt:videoId>${e.videoId}</yt:videoId>
+    <title>${e.videoId}</title>
+    <published>${e.publishedAt.toUtc().toIso8601String()}</published>
+  </entry>''',
+      )
+      .join();
+  return '''
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">$inner
+</feed>
+''';
+}
+
 void main() {
   group('DiscoverRepository', () {
     late AppDatabase db;
@@ -99,29 +119,418 @@ void main() {
       },
     );
 
-    test('refresh prunes feed entries missing from RSS', () async {
-      const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
+    test(
+      // Behavior flipped in spec 016-append-only-discover-feed (ADR-0046):
+      // refresh is now append-only; a feed entry that fell out of the latest
+      // RSS window stays in the cache.
+      'refresh keeps cached entries that fell out of the RSS window',
+      () async {
+        const channelId = 'UCAuUUnT6oDeKwE6v1NGQxug';
+        await repo.subscribeChannel(
+          channelId: channelId,
+          displayName: 'TED',
+          source: YoutubeSubscriptionSource.recommended,
+        );
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: 'staleVideo123456',
+            channelId: channelId,
+            title: 'Stale',
+            publishedAt: DateTime.utc(2023, 1, 1),
+            fetchedAt: DateTime.utc(2023, 1, 2),
+          ),
+        );
+
+        await repo.refreshFeeds(force: true);
+
+        final timeline = await repo.watchTimeline().first;
+        expect(timeline.any((e) => e.videoId == 'staleVideo123456'), isTrue);
+        expect(timeline, hasLength(3));
+      },
+    );
+
+    test(
+      'append-only: refresh against identical RSS payload is a no-op for cache size',
+      () async {
+        const channelId = 'UCapptest00000001';
+        await repo.subscribeChannel(
+          channelId: channelId,
+          displayName: 'AppendOnly',
+          source: YoutubeSubscriptionSource.recommended,
+        );
+
+        final entries = List.generate(10, (i) {
+          return (
+            videoId: 'v${i.toString().padLeft(11, '0')}',
+            publishedAt: DateTime.utc(2024, 1, 1 + i),
+          );
+        });
+        for (final e in entries) {
+          await db.youtubeFeedEntryDao.upsertEntry(
+            YoutubeFeedEntryRow(
+              videoId: e.videoId,
+              channelId: channelId,
+              title: e.videoId,
+              publishedAt: e.publishedAt,
+              fetchedAt: DateTime.utc(2024, 1, 2),
+            ),
+          );
+        }
+
+        final localRepo = DiscoverRepository(
+          db,
+          httpClient: MockClient((request) async {
+            if (request.url.toString().contains('feeds/videos.xml')) {
+              return http.Response(_rssFor(entries), 200);
+            }
+            return http.Response('', 404);
+          }),
+          rssParser: const YoutubeRssParser(),
+        );
+
+        await localRepo.refreshFeeds(force: true);
+
+        final timeline = await localRepo.watchTimeline().first;
+        final ours = timeline.where((e) => e.channelId == channelId);
+        expect(ours, hasLength(10));
+      },
+    );
+
+    test('append-only: cache grows only by genuinely new entries', () async {
+      const channelId = 'UCapptest00000002';
       await repo.subscribeChannel(
         channelId: channelId,
-        displayName: 'TED',
+        displayName: 'AppendOnly',
+        source: YoutubeSubscriptionSource.recommended,
+      );
+
+      final initial = List.generate(10, (i) {
+        return (
+          videoId: 'i${i.toString().padLeft(11, '0')}',
+          publishedAt: DateTime.utc(2024, 2, 1 + i),
+        );
+      });
+      for (final e in initial) {
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: e.videoId,
+            channelId: channelId,
+            title: e.videoId,
+            publishedAt: e.publishedAt,
+            fetchedAt: DateTime.utc(2024, 2, 2),
+          ),
+        );
+      }
+
+      final fresh = (
+        videoId: 'n0000000000n',
+        publishedAt: DateTime.utc(2024, 3, 1),
+      );
+      final another = (
+        videoId: 'n0000000001n',
+        publishedAt: DateTime.utc(2024, 3, 2),
+      );
+      final payload = [...initial, fresh, another];
+
+      final localRepo = DiscoverRepository(
+        db,
+        httpClient: MockClient((request) async {
+          if (request.url.toString().contains('feeds/videos.xml')) {
+            return http.Response(_rssFor(payload), 200);
+          }
+          return http.Response('', 404);
+        }),
+        rssParser: const YoutubeRssParser(),
+      );
+
+      await localRepo.refreshFeeds(force: true);
+
+      final timeline = await localRepo.watchTimeline().first;
+      final ours = timeline.where((e) => e.channelId == channelId);
+      expect(ours, hasLength(12));
+      expect(ours.any((e) => e.videoId == fresh.videoId), isTrue);
+      expect(ours.any((e) => e.videoId == another.videoId), isTrue);
+      for (final e in initial) {
+        expect(ours.any((x) => x.videoId == e.videoId), isTrue);
+      }
+    });
+
+    test('append-only: RSS omitting entries does not delete them', () async {
+      const channelId = 'UCapptest00000003';
+      await repo.subscribeChannel(
+        channelId: channelId,
+        displayName: 'AppendOnly',
+        source: YoutubeSubscriptionSource.recommended,
+      );
+
+      final all = List.generate(30, (i) {
+        return (
+          videoId: 'a${i.toString().padLeft(11, '0')}',
+          publishedAt: DateTime.utc(2024, 1, 1 + i),
+        );
+      });
+      for (final e in all) {
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: e.videoId,
+            channelId: channelId,
+            title: e.videoId,
+            publishedAt: e.publishedAt,
+            fetchedAt: DateTime.utc(2024, 1, 2),
+          ),
+        );
+      }
+
+      final newest15 = all.sublist(all.length - 15);
+
+      final localRepo = DiscoverRepository(
+        db,
+        httpClient: MockClient((request) async {
+          if (request.url.toString().contains('feeds/videos.xml')) {
+            return http.Response(_rssFor(newest15), 200);
+          }
+          return http.Response('', 404);
+        }),
+        rssParser: const YoutubeRssParser(),
+      );
+
+      await localRepo.refreshFeeds(force: true);
+
+      final timeline = await localRepo.watchTimeline().first;
+      final ours = timeline.where((e) => e.channelId == channelId);
+      expect(ours, hasLength(30));
+    });
+
+    test('unsubscribe deletes every cached entry for that channel', () async {
+      const channelA = 'UCunsubAAAA000000001';
+      const channelB = 'UCunsubBBBB000000002';
+      await repo.subscribeChannel(
+        channelId: channelA,
+        displayName: 'Channel A',
+        source: YoutubeSubscriptionSource.recommended,
+      );
+      await repo.subscribeChannel(
+        channelId: channelB,
+        displayName: 'Channel B',
+        source: YoutubeSubscriptionSource.recommended,
+      );
+
+      for (var i = 0; i < 10; i++) {
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: 'a${i.toString().padLeft(11, '0')}',
+            channelId: channelA,
+            title: 'A $i',
+            publishedAt: DateTime.utc(2024, 1, 1 + i),
+            fetchedAt: DateTime.utc(2024, 1, 2),
+          ),
+        );
+      }
+      for (var i = 0; i < 5; i++) {
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: 'b${i.toString().padLeft(11, '0')}',
+            channelId: channelB,
+            title: 'B $i',
+            publishedAt: DateTime.utc(2024, 1, 1 + i),
+            fetchedAt: DateTime.utc(2024, 1, 2),
+          ),
+        );
+      }
+
+      await repo.unsubscribe(channelA);
+
+      final aTimeline = await repo.watchChannelFeed(channelA).first;
+      expect(aTimeline, isEmpty);
+      final bTimeline = await repo.watchChannelFeed(channelB).first;
+      expect(bTimeline, hasLength(5));
+      expect(
+        await db.youtubeChannelSubscriptionDao.getByChannelId(channelA),
+        isNull,
+      );
+      expect(
+        await db.youtubeChannelSubscriptionDao.getByChannelId(channelB),
+        isNotNull,
+      );
+    });
+
+    test('periodic refresh skips unsubscribed channels', () async {
+      const channelA = 'UCunsubAAAA000000003';
+      await repo.subscribeChannel(
+        channelId: channelA,
+        displayName: 'Channel A',
+        source: YoutubeSubscriptionSource.recommended,
+      );
+      for (var i = 0; i < 3; i++) {
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: 'p${i.toString().padLeft(11, '0')}',
+            channelId: channelA,
+            title: 'Pre-existing',
+            publishedAt: DateTime.utc(2024, 1, 1 + i),
+            fetchedAt: DateTime.utc(2024, 1, 2),
+          ),
+        );
+      }
+
+      await repo.unsubscribe(channelA);
+
+      var rssHitCount = 0;
+      final localRepo = DiscoverRepository(
+        db,
+        httpClient: MockClient((request) async {
+          if (request.url.toString().contains('feeds/videos.xml')) {
+            rssHitCount += 1;
+            return http.Response(_rss, 200);
+          }
+          return http.Response('', 404);
+        }),
+        rssParser: const YoutubeRssParser(),
+      );
+
+      final result = await localRepo.refreshFeeds(force: true);
+      expect(rssHitCount, 0);
+      expect(result.refreshedChannels, 0);
+      expect(result.failedChannelIds, isEmpty);
+      final timeline = await localRepo.watchTimeline().first;
+      expect(timeline.where((e) => e.channelId == channelA), isEmpty);
+    });
+
+    test(
+      'successful refresh updates lastFetchedAt and appends new entries',
+      () async {
+        const channelId = 'UCidemp000000000001';
+        await repo.subscribeChannel(
+          channelId: channelId,
+          displayName: 'Idempotent',
+          source: YoutubeSubscriptionSource.recommended,
+        );
+
+        final before = await db.youtubeChannelSubscriptionDao.getByChannelId(
+          channelId,
+        );
+        expect(before?.lastFetchedAt, isNull);
+
+        final newPayload = [
+          (videoId: 'n0000000000n', publishedAt: DateTime.utc(2024, 4, 1)),
+        ];
+        final localRepo = DiscoverRepository(
+          db,
+          httpClient: MockClient((request) async {
+            if (request.url.toString().contains('feeds/videos.xml')) {
+              return http.Response(_rssFor(newPayload), 200);
+            }
+            return http.Response('', 404);
+          }),
+          rssParser: const YoutubeRssParser(),
+        );
+
+        await localRepo.refreshFeeds(force: true);
+
+        final after = await db.youtubeChannelSubscriptionDao.getByChannelId(
+          channelId,
+        );
+        expect(after?.lastFetchedAt, isNotNull);
+
+        final timeline = await localRepo.watchTimeline().first;
+        expect(timeline.any((e) => e.videoId == 'n0000000000n'), isTrue);
+      },
+    );
+
+    test('failed refresh leaves cache and lastFetchedAt untouched', () async {
+      const channelId = 'UCidemp000000000002';
+      await repo.subscribeChannel(
+        channelId: channelId,
+        displayName: 'FailThenOk',
         source: YoutubeSubscriptionSource.recommended,
       );
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
-          videoId: 'staleVideo123456',
+          videoId: 'keep00000000k',
           channelId: channelId,
-          title: 'Stale',
-          publishedAt: DateTime.utc(2023, 1, 1),
-          fetchedAt: DateTime.utc(2023, 1, 2),
+          title: 'Keep me',
+          publishedAt: DateTime.utc(2024, 1, 1),
+          fetchedAt: DateTime.utc(2024, 1, 2),
         ),
       );
 
-      await repo.refreshFeeds(force: true);
+      final before = await db.youtubeChannelSubscriptionDao.getByChannelId(
+        channelId,
+      );
+      expect(before?.lastFetchedAt, isNull);
 
-      final timeline = await repo.watchTimeline().first;
-      expect(timeline.every((e) => e.videoId != 'staleVideo123456'), isTrue);
-      expect(timeline, hasLength(2));
+      final failingRepo = DiscoverRepository(
+        db,
+        httpClient: MockClient((request) async {
+          if (request.url.toString().contains('feeds/videos.xml')) {
+            return http.Response('not an atom feed', 500);
+          }
+          return http.Response('', 404);
+        }),
+        rssParser: const YoutubeRssParser(),
+      );
+
+      final result = await failingRepo.refreshFeeds(force: true);
+      expect(result.failedChannelIds, contains(channelId));
+      expect(result.refreshedChannels, 0);
+
+      final after = await db.youtubeChannelSubscriptionDao.getByChannelId(
+        channelId,
+      );
+      expect(after?.lastFetchedAt, isNull);
+
+      final timeline = await failingRepo.watchTimeline().first;
+      expect(timeline.any((e) => e.videoId == 'keep00000000k'), isTrue);
     });
+
+    test(
+      '1-hour cooldown skips re-fetch when lastFetchedAt is fresh',
+      () async {
+        const channelId = 'UCidemp000000000003';
+        final freshFetchedAt = DateTime.now().toUtc().subtract(
+          const Duration(minutes: 30),
+        );
+        await db.youtubeChannelSubscriptionDao.upsert(
+          YoutubeChannelSubscriptionRow(
+            channelId: channelId,
+            displayName: 'Cooldown',
+            source: YoutubeSubscriptionSource.recommended,
+            subscribedAt: DateTime.utc(2024, 1, 1),
+            lastFetchedAt: freshFetchedAt,
+            language: 'und',
+          ),
+        );
+        await db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: 'c0000000000c',
+            channelId: channelId,
+            title: 'Cached',
+            publishedAt: DateTime.utc(2024, 1, 1),
+            fetchedAt: freshFetchedAt,
+          ),
+        );
+
+        var rssHitCount = 0;
+        final localRepo = DiscoverRepository(
+          db,
+          httpClient: MockClient((request) async {
+            if (request.url.toString().contains('feeds/videos.xml')) {
+              rssHitCount += 1;
+              return http.Response(_rss, 200);
+            }
+            return http.Response('', 404);
+          }),
+          rssParser: const YoutubeRssParser(),
+        );
+
+        final result = await localRepo.refreshFeeds(force: false);
+        expect(rssHitCount, 0);
+        expect(result.refreshedChannels, 0);
+
+        final timeline = await localRepo.watchTimeline().first;
+        expect(timeline.any((e) => e.videoId == 'c0000000000c'), isTrue);
+      },
+    );
 
     test('repairs legacy catalog channel ids before refresh', () async {
       const oldId = 'UCsooa4yRKGN_ee_M0Iv4CbQ';

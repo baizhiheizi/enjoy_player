@@ -872,22 +872,6 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
   Future<void> deleteForChannel(String channelId) => (delete(
     youtubeFeedEntries,
   )..where((t) => t.channelId.equals(channelId))).go();
-
-  /// Removes cached entries for [channelId] not present in [keepVideoIds].
-  Future<void> deleteStaleForChannel(
-    String channelId,
-    Set<String> keepVideoIds,
-  ) async {
-    if (keepVideoIds.isEmpty) {
-      await deleteForChannel(channelId);
-      return;
-    }
-    await (delete(youtubeFeedEntries)..where(
-          (t) =>
-              t.channelId.equals(channelId) & t.videoId.isNotIn(keepVideoIds),
-        ))
-        .go();
-  }
 }
 
 /// Element-wise comparison of two `RecordingRow` lists without allocating.

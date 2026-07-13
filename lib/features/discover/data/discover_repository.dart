@@ -364,11 +364,11 @@ class DiscoverRepository {
     }
 
     final entries = _rssParser.parse(body, channelId: channelId);
-    final keepVideoIds = entries.map((e) => e.videoId).toSet();
-    await _db.youtubeFeedEntryDao.deleteStaleForChannel(
-      channelId,
-      keepVideoIds,
-    );
+
+    // Cache is append-only (ADR-0046): RSS entries that fall out of the
+    // ~15-entry RSS window stay in the cache until the user unsubscribes.
+    // We only upsert entries that the RSS source re-presented; we never
+    // delete cached rows based on their absence from this fetch.
 
     // Read and write per-entry work is keyed by (channelId, videoId), so
     // entries do not contend with each other. Fan the reads out, then fan
@@ -415,6 +415,12 @@ class DiscoverRepository {
       );
     }
 
+    // Advance the cooldown clock only on a successful refresh. Reaching this
+    // line means the HTTP fetch, the Atom parse, and the upsert loop all
+    // completed — a thrown YoutubeFeedFetchException or parser error above
+    // skips this write, so the next eligible refresh can retry. This
+    // preserves the 1 h cooldown contract for failed attempts (FR-008).
+    // Do not move this call above the parse/upsert block.
     await _db.youtubeChannelSubscriptionDao.touchLastFetched(
       channelId,
       fetchedAt,

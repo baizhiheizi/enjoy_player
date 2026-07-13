@@ -44,10 +44,7 @@ class SettingsCollapsibleSection extends StatelessWidget {
     return wrapInCard
         ? Padding(
             padding: EdgeInsets.symmetric(horizontal: t.space16),
-            child: EnjoyCard(
-              padding: EdgeInsets.all(t.space16),
-              child: child,
-            ),
+            child: EnjoyCard(padding: EdgeInsets.all(t.space16), child: child),
           )
         : child;
   }

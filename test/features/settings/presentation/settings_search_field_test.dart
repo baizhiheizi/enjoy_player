@@ -106,26 +106,25 @@ void main() {
     return AppLocalizations.delegate.load(const Locale('en'));
   }
 
-  testWidgets(
-    'typing a query filters rows; all sections always expanded',
-    (tester) async {
-      final l10n = await pumpSettingsScreen(tester);
+  testWidgets('typing a query filters rows; all sections always expanded', (
+    tester,
+  ) async {
+    final l10n = await pumpSettingsScreen(tester);
 
-      // Developer is always expanded (no collapse header).
-      expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
-      // Before searching, other sections are also visible.
-      expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
+    // Developer is always expanded (no collapse header).
+    expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
+    // Before searching, other sections are also visible.
+    expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField), 'playground');
-      await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'playground');
+    await tester.pumpAndSettle();
 
-      // "AI playground" matches the query and stays visible.
-      expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
-      // A section with no match is filtered out.
-      expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsNothing);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    // "AI playground" matches the query and stays visible.
+    expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
+    // A section with no match is filtered out.
+    expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'a query matching nothing shows the no-results state with a working '
