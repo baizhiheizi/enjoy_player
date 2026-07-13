@@ -36,15 +36,17 @@ Codegen: `dart run build_runner build` (or `bash .github/scripts/check_codegen_d
 - #188 (2026-07-02) — artwork palette LRU on `(path, size, mtime)`.
 - #208+#238 (2026-07-07) — `TranscriptTrack` `==`/`hashCode` (7 fields) + `TranscriptRepository.watchTracks` ends `.distinctBy(_listEqualsTranscriptTrack)`. Closes #219.
 - #291 (2026-07-11) — `PlaybackSession` `==`/`hashCode` (12 fields, excludes `lastActiveAt`); `EchoState` `==`/`hashCode` (5 fields); new `rawEnginePositionStreamProvider` is the single shared `engine.position` subscription consumed by `display_position_provider.dart:14` + `transport_slider_position_provider.dart:11`; every `playerControllerProvider` consumer uses `.select(playbackChromeOf)`/scope selectors (`root_shell.dart:62`, `global_transport_bar.dart:228/230`, `expanded_player_screen.dart:40`, `transcript_panel.dart:79`, `subtitle_track_picker_sheet.dart:657`, `transcript_echo_region_merged_card.dart:51`); every `autoTranslateCtrlProvider` consumer uses `.select(...)` on stable fields (`transcript_scrollable_list.dart:405`, `transcript_echo_region_merged_card.dart:58`); `PlayerInteractions._lines()` per-session cached (lines 65-85). Closes P5/P7/P10/P11/M6/P12/M8.
+- 2026-07-13 — `DiscoverRepository._avatarUrlCache` swapped from a bespoke `LinkedHashMap`-based LRU onto the shared `L1Store<K, V>` primitive from `lib/core/cache/lru_store.dart` (introduced for the AI result cache hierarchy in #311). `dart:collection` import dropped; ~10 lines removed; 6h TTL added as a defensive bound for long-running sessions. Branch `perf-assist/lru-store-consolidate-2026-07-13`. `dart format` clean, `flutter analyze` clean (full repo), `flutter test test/features/discover/discover_repository_test.dart` 31 pass (28 pre-existing + 3 new), full repo `flutter test` 1332 pass / 2 pre-existing skip. PR draft created.
 
 ### Remaining
 
-1. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off for major bump or hand-rolled quantiser. Home grid routes around it; `expanded_player_screen` + `global_transport_bar` pay the cost. **Reassessed 2026-07-11, deferred.**
+1. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off for major bump or hand-rolled quantiser. Home grid routes around it; `expanded_player_screen` + `global_transport_bar` pay the cost. **Reassessed 2026-07-13, deferred.**
 2. ✅ Artwork palette cache staleness (PR #188).
 3. ✅ Transcript tracks dedupe (PR #208+#238).
-4. **JSON decode concurrency audit** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. `audio_api.audios()` / `transcript_api.transcripts()` are simple one-shots; threshold correct as-is.
-5. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (`app_database.dart:650`; only generated `.g.dart` references it). When hooked up, needs the same `.distinctBy(equals)` treatment.
-6. **Cosmetic** — `recommendedChannelAvatar` redundantly `ref.watch(discoverSubscriptionsProvider)` (`discover_providers.dart:158-180`). Out of scope here.
+4. ✅ LRU consolidation on shared `L1Store<K, V>` primitive (this run).
+5. **JSON decode concurrency audit** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. `audio_api.audios()` / `transcript_api.transcripts()` are simple one-shots; threshold correct as-is.
+6. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (`app_database.dart:650`; only generated `.g.dart` references it). When hooked up, needs the same `.distinctBy(equals)` treatment.
+7. **Cosmetic** — `recommendedChannelAvatar` redundantly `ref.watch(discoverSubscriptionsProvider)` (`discover_providers.dart:158-180`). Out of scope here.
 
 ## Measurement infrastructure status
 
@@ -64,6 +66,7 @@ Codegen: `dart run build_runner build` (or `bash .github/scripts/check_codegen_d
 
 ## Run History
 
+- **2026-07-13** 15:30 UTC — run 29262675978. Drafted LRU consolidation → PR draft on branch `perf-assist/lru-store-consolidate-2026-07-13`. `DiscoverRepository._avatarUrlCache` swapped onto shared `L1Store<K, V>` primitive. ~10 lines removed, 6h TTL added, 3 new unit tests. All gates green.
 - **2026-07-11** 14:30 UTC — run 29155553769. Investigation only. Audited #291 / #292 / #293 / #295. Confirmed `PlaybackSession` + `EchoState` `==`/`hashCode`; every chrome provider consumer uses `.select(...)`; one shared `rawEnginePositionStreamProvider`; `PlayerInteractions._lines()` cached. `transcriptLinesForMediaProvider` still ends `.distinctBy(_listEqualsTranscriptLine)`; `TranscriptRepository.watchTracks` still ends `.distinctBy(_listEqualsTranscriptTrack)`. `DictationDao.watchByTarget` still has no `lib/` consumer. No new `performance`-labeled issues. No new PR. Updated issue #189 + memory.
 - **2026-07-09** 15:51 UTC — run 29030763563. Investigation only. `AutoTranslateUiState` (lib/features/transcript/domain/auto_translate.dart:54) + `TapRevealHold` (lib/features/transcript/domain/transcript_blur.dart:36) ship with `==`/`hashCode`. Dedupe chain still complete.
 - **2026-07-07** 15:30 UTC — run 28878529792. Investigation only. PR #208+#238 shipped. Remaining items out of scope.
