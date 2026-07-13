@@ -156,7 +156,7 @@ class AiCacheFingerprint {
 
 **Public API**: `peek(K)`, `put(K, V)`, `invalidate(K)`, `invalidateAll()`, `clear()`, `size`, `forEach`.
 
-**Eviction**: when `put` exceeds capacity, remove the head of `_order`. When `peek` finds an expired entry (now - createdAt > ttl), remove it and return null.
+**Eviction**: when `put` exceeds capacity, remove the head of `_order`. When `peek` finds an entry whose age is greater than or equal to its TTL (`now - createdAt >= ttl`), remove it and return null. A zero TTL expires immediately on read.
 
 **Module path**: `lib/core/cache/lru_store.dart` — promoted to `core/` because the LRU is a generic primitive reused outside the AI cache (e.g. a future thumbnail LRU could adopt it). Decision recorded in the plan.
 

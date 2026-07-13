@@ -69,6 +69,13 @@ to drop directly inside `CustomScrollView` slivers, `ListView`, or any other
 scrolling parent without causing an "infinite-size" assertion. See
 [Placement rules](#placement-rules).
 
+The subtitle track picker's narrow sheet can use `SkeletonTranscript`, but its
+wide dialog is already inside a `SingleChildScrollView`. The dialog therefore
+uses [`_buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart),
+a bounded `Column` of four track-row placeholders composed from `Skeleton.box`
+and `Skeleton.line`. Do not replace it with the scrollable transcript placeholder;
+that would reintroduce an unbounded nested viewport.
+
 ## Placement rules
 
 A placeholder renders inside whatever parent it is given. Two parent shapes are
@@ -138,6 +145,7 @@ New placeholders should:
 | Skeleton app-bootstrap usage | Library, Home, Discover bootstrap paths |
 | Sliver-safe list placeholders | `SkeletonMediaList`, `SkeletonSettingsList` |
 | Scrollable placeholders | `SkeletonTranscript`, `SkeletonProfile` |
+| Bounded subtitle-picker dialog placeholder | [`_buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) |
 | Grid placeholder | `SkeletonMediaGrid` |
 | Layout regression tests | [`test/core/theme/skeleton_layout_test.dart`](../../test/core/theme/skeleton_layout_test.dart) |
 | Settings loading tests | [`test/features/settings/presentation/sections/settings_loading_states_test.dart`](../../test/features/settings/presentation/sections/settings_loading_states_test.dart) |

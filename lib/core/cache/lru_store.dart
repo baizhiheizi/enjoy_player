@@ -7,8 +7,8 @@
 /// Eviction policy:
 ///   * LRU: when [put] exceeds [capacity], the least-recently touched
 ///     entry is evicted.
-///   * TTL: when [peek] finds an entry older than [ttl] from its
-///     insertion time, the entry is treated as a miss and removed.
+///   * TTL: when [peek] finds an entry whose age is greater than or equal
+///     to [ttl], the entry is treated as a miss and removed.
 library;
 
 import 'dart:collection';
@@ -21,8 +21,8 @@ class L1Store<K, V> {
   /// Maximum number of entries. The LRU tail is evicted on overflow.
   final int capacity;
 
-  /// Per-entry time-to-live. Entries older than this from their insertion
-  /// time are treated as misses.
+  /// Per-entry time-to-live. Entries whose age is greater than or equal to
+  /// this duration are treated as misses.
   final Duration ttl;
 
   final LinkedHashMap<K, _Entry<V>> _map = LinkedHashMap<K, _Entry<V>>();
