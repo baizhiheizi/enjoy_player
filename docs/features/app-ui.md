@@ -35,9 +35,9 @@ Single dark `ThemeData` only (`buildAppTheme()`). No light theme and no Settings
 
 ## Navigation
 
-- **Mobile**: custom `EnjoyBottomNav` (68pt content height + system home-indicator inset via `SafeArea`). **Four** destinations: Home, Discover, Library, Settings. Pill selection, editorial typography, keyboard focus ring on items; haptics on change. Implemented in `lib/core/theme/widgets/enjoy_bottom_nav.dart`, used from `RootShell`.
+- **Mobile**: custom `EnjoyBottomNav` (68pt content height + system home-indicator inset via `SafeArea`). **Four** destinations: Home, Discover, Library, **Profile** (the signed-in profile tab — see [auth.md](auth.md) for the dedicated profile screen; Settings is reached from a tile inside the Profile tab, not as a top-level destination). Pill selection, editorial typography, keyboard focus ring on items; haptics on change. Implemented in `lib/core/theme/widgets/enjoy_bottom_nav.dart`, used from `RootShell`.
 - **Library source switch**: Inside `LibraryScreen`, a compact **Local / Cloud** badge with swap icon sits inline beside the Library title; tap toggles source. Cloud mode uses `/library?source=cloud`; legacy `/cloud` redirects. Import + compact search on Local; Refresh on Cloud.
-- **Desktop (≥ 900 px)**: `AppSidebar` — flat tonal panel (`surfaceContainerLow`), hairline right border, pill nav items with hover/splash/focus, `FocusTraversalGroup` for keyboard order; extra top breathing room on **macOS** desktop for traffic-light clearance. Library nav item covers both local and cloud sources (no separate Cloud row).
+- **Desktop (≥ 900 px)**: `AppSidebar` — flat tonal panel (`surfaceContainerLow`), hairline right border, pill nav items with hover/splash/focus, `FocusTraversalGroup` for keyboard order; extra top breathing room on **macOS** desktop for traffic-light clearance. **Four** destinations mirror the mobile bottom nav: Home, Discover, Library, Profile. Library nav item covers both local and cloud sources (no separate Cloud row). The Settings hub is reached from inside the Profile tab (a tile that pushes `/settings`), not from the sidebar.
 - **No glass on sidebar**: `EnjoyThemeTokens.useGlassOnSidebar = false`.
 - Platform-adaptive transitions: Cupertino on iOS/macOS, ZoomPage on Android, FadeUpwards on Windows/Linux.
 
@@ -60,7 +60,7 @@ Single dark `ThemeData` only (`buildAppTheme()`). No light theme and no Settings
 | `TranscriptPanel` | Source Serif 4 body; editorial left-rail active line; neutral echo card with 8px orange rail |
 | `ShadowReadingPanel` | Idle: three-zone bar (pitch icon, centered 56pt FAB, play + more; delete in menu); recording: centered FAB + countdown |
 | `SettingsScreen` | iOS-style grouped `_SettingsCard`; **Appearance & Language** rows open pickers for display + native language (learning fixed en-US); guest vs signed-in copy for language sync |
-| `ProfileScreen` | Editorial profile hub; tier chip mirrors `UserProfile.subscriptionTier`; opens from sidebar account row or `/profile` |
+| `ProfileScreen` | Editorial profile hub; 4th shell tab on both the bottom nav and the sidebar; tier chip mirrors `UserProfile.subscriptionTier`; chrome-free body (the shell provides page chrome) hosts the hero card, practice stats, credits/subscription nav, Preferences + Settings entry tiles, and sign out. The Preferences tile pushes `/profile/preferences` (`ProfilePreferencesScreen`) for editing name, daily goal, and display / learning / native language. The `SidebarAccountChip` also links here for keyboard / mouse users. |
 | `NotFoundScreen` | `errorBuilder` fallback at the router root for unknown `go_router` locations; localized en / zh / zh-CN, shows the attempted URI, single primary "Back to Home" action to `/` |
 
 ## Design token reference (`EnjoyThemeTokens`)
