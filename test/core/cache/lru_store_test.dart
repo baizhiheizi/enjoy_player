@@ -142,10 +142,8 @@ void main() {
     });
 
     test('zero ttl expires on any subsequent read', () {
-      // With TTL = 0 the expiry condition is `now - createdAt > 0`, which is
-      // true as soon as any time (microsecond or more) has elapsed. The put
-      // and peek calls below necessarily span at least one microsecond, so
-      // the peek is a miss.
+      // With TTL = 0 the expiry condition is `now - createdAt >= 0`, so
+      // even an immediate subsequent read is a miss.
       final store = L1Store<String, int>(capacity: 4, ttl: Duration.zero);
       store.put('a', 1);
       expect(store.peek('a'), isNull);

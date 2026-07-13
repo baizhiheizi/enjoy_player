@@ -12,7 +12,7 @@ This document specifies the in-memory LRU + TTL primitive that backs the L1 tier
 class L1Store<K, V> {
   /// Creates a new store. [capacity] is the maximum number of entries; the
   /// LRU tail is evicted on overflow. [ttl] is the per-entry time-to-live;
-  /// entries older than [ttl] from their insertion time are treated as
+  /// entries whose age is greater than or equal to [ttl] are treated as
   /// misses.
   L1Store({required int capacity, required Duration ttl})
       : assert(capacity > 0, 'capacity must be positive'),
@@ -52,7 +52,7 @@ class L1Store<K, V> {
 
 **LRU**: On `put`, if the store is at capacity, the LRU tail (the entry that has been least-recently touched by `peek` or `put`) is evicted before the new entry is inserted.
 
-**TTL**: On `peek`, if the entry's `createdAt + ttl < now`, the entry is treated as a miss and removed. The TTL clock is `DateTime.now()` at `peek` time.
+**TTL**: On `peek`, if the entry's age is greater than or equal to `ttl` (`now - createdAt >= ttl`), the entry is treated as a miss and removed. The TTL clock is `DateTime.now()` at `peek` time. A zero TTL therefore expires an entry on its first read.
 
 **TTL + capacity interaction**:
 - `put` does NOT pre-check TTL for existing entries (it just overwrites).
@@ -80,7 +80,7 @@ class L1Store<K, V> {
     final entry = _map[key];
     if (entry == null) return null;
     final now = DateTime.now();
-    if (now.difference(entry.createdAt) > ttl) {
+    if (now.difference(entry.createdAt) >= ttl) {
       _map.remove(key);
       return null;
     }
