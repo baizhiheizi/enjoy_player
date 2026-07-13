@@ -22,37 +22,27 @@ Widget _harness(Widget child) {
 }
 
 void main() {
-  testWidgets('tapping the header toggles collapsed state via onToggle', (
+  testWidgets('renders content always visible (no collapse header)', (
     tester,
   ) async {
-    var collapsed = true;
     await tester.pumpWidget(
-      StatefulBuilder(
-        builder: (context, setState) {
-          return _harness(
-            SettingsCollapsibleSection(
-              title: 'Developer',
-              hint: 'Diagnostics and internal tooling',
-              icon: Icons.developer_mode_outlined,
-              collapsed: collapsed,
-              onToggle: () => setState(() => collapsed = !collapsed),
-              child: const Text('developer-content'),
-            ),
-          );
-        },
+      _harness(
+        SettingsCollapsibleSection(
+          title: 'Developer',
+          hint: 'Diagnostics and internal tooling',
+          icon: Icons.developer_mode_outlined,
+          collapsed: true,
+          onToggle: () {},
+          child: const Text('developer-content'),
+        ),
       ),
     );
-
-    expect(find.text('developer-content'), findsNothing);
-
-    await tester.tap(find.text('Developer'));
-    await tester.pumpAndSettle();
 
     expect(find.text('developer-content'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('shows an attention badge only while collapsed with an issue', (
+  testWidgets('renders without attention badge (header removed)', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -70,37 +60,27 @@ void main() {
     );
 
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.settingsSectionNeedsAttention), findsOneWidget);
+    expect(find.text(l10n.settingsSectionNeedsAttention), findsNothing);
+    expect(find.text('developer-content'), findsOneWidget);
   });
 
-  testWidgets('exposes expand/collapse state via Semantics label', (
+  testWidgets('always shows child regardless of collapsed state', (
     tester,
   ) async {
-    final handle = tester.ensureSemantics();
-
     await tester.pumpWidget(
       _harness(
         SettingsCollapsibleSection(
           title: 'About',
           hint: 'Version, licenses, and links',
           icon: Icons.info_outline_rounded,
-          collapsed: true,
+          collapsed: false,
           onToggle: () {},
           child: const Text('about-content'),
         ),
       ),
     );
 
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    // The header's Semantics label merges with the title/hint text nodes
-    // beneath it, so match as a prefix rather than requiring exact equality.
-    expect(
-      find.bySemanticsLabel(
-        RegExp('^${RegExp.escape(l10n.settingsSectionExpandSemantics)}'),
-      ),
-      findsOneWidget,
-    );
-
-    handle.dispose();
+    expect(find.text('about-content'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

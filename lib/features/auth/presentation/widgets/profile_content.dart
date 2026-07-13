@@ -20,7 +20,6 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_account_card.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_section_header.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_sign_out_button.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_stats.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
@@ -105,20 +104,10 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         final children = <Widget>[
           ProfileHeroCard(profile: p),
           SizedBox(height: t.space16),
-          ProfileSectionHeader(
-            title: l10n.profileSectionPractice,
-            hint: l10n.profileSectionPracticeHint,
-            icon: Icons.insights_outlined,
-          ),
           ProfilePracticeSection(
             stats: ref.watch(profilePracticeStatsProvider),
           ),
           SizedBox(height: t.space8),
-          ProfileSectionHeader(
-            title: l10n.profileSectionAccount,
-            hint: l10n.profileSectionAccountHint,
-            icon: Icons.account_balance_wallet_outlined,
-          ),
           ProfileAccountCard(
             creditsUsedToday: creditsUsed,
             dailyLimit: dailyLimit,
@@ -126,11 +115,6 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
             onSubscriptionTap: () => context.push('/subscription'),
           ),
           SizedBox(height: t.space16),
-          ProfileSectionHeader(
-            title: l10n.profileSectionPreferences,
-            hint: l10n.profileSectionPreferencesHint,
-            icon: Icons.tune_rounded,
-          ),
           EnjoyCard(
             padding: EdgeInsets.zero,
             child: ListTile(
@@ -142,11 +126,6 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
             ),
           ),
           SizedBox(height: t.space8),
-          ProfileSectionHeader(
-            title: l10n.settingsTitle,
-            hint: l10n.settingsSubtitle,
-            icon: Icons.settings_outlined,
-          ),
           EnjoyCard(
             padding: EdgeInsets.zero,
             child: ListTile(

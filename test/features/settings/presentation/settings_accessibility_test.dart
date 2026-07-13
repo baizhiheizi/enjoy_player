@@ -116,7 +116,7 @@ void main() {
 
   testWidgets(
     'with reduced motion and the largest text scale, the hub renders with '
-    'no overflow and the About section still expands via its tap target',
+    'no overflow and all section content is visible',
     (tester) async {
       tester.view.physicalSize = const Size(700, 2200);
       tester.view.devicePixelRatio = 1.0;
@@ -126,8 +126,6 @@ void main() {
       await tester.pumpWidget(
         _harness(db: db, disableAnimations: true, textScale: 3.0),
       );
-      // No pumpAndSettle: some rows can still hold in-flight sync/skeleton
-      // work; poll with bounded pumps instead so this test can't hang.
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -136,18 +134,16 @@ void main() {
 
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-      // Collapsed-by-default section still has a real, always-visible tap
-      // target that toggles instantly (no animation dependency) even with
-      // reduced motion — scroll it into view first since 3x text scale
-      // pushes it well below the fold.
-      expect(find.text(l10n.settingsApiBaseUrl), findsNothing);
+      // Developer content is always visible (no collapse header).
+      expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
+
+      // Scroll down to reach About content.
       final scrollable = find.byType(Scrollable).first;
       for (var i = 0; i < 15; i++) {
         await tester.drag(scrollable, const Offset(0, -500));
         await tester.pump();
       }
-      await tester.tap(find.text(l10n.settingsSectionAbout));
-      await tester.pump();
+      // About content is always visible (no collapse header).
       expect(find.text(l10n.appTitle), findsWidgets);
       expect(tester.takeException(), isNull);
     },

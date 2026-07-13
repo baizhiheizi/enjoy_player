@@ -195,9 +195,9 @@ void main() {
     );
   });
 
-  group('SettingsScreen default collapse (single column)', () {
+  group('SettingsScreen sections (single column)', () {
     testWidgets(
-      'Developer and About start collapsed; other sections are expanded',
+      'all sections render content immediately (no collapse headers)',
       (tester) async {
         tester.view.physicalSize = const Size(700, 2400);
         tester.view.devicePixelRatio = 1.0;
@@ -209,21 +209,15 @@ void main() {
 
         final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-        // Always-expanded sections show their bodies immediately.
         expect(
           find.text(l10n.settingsAppearanceDisplayLanguage),
           findsOneWidget,
         );
         expect(find.text(l10n.settingsAiProvidersTileTitle), findsOneWidget);
 
-        // Developer/About default-collapsed: their row content is hidden.
-        expect(find.text(l10n.settingsApiBaseUrl), findsNothing);
-        expect(tester.takeException(), isNull);
-
-        // Expanding About reveals its content.
-        await tester.tap(find.text(l10n.settingsSectionAbout));
-        await tester.pumpAndSettle();
+        expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
         expect(find.text(l10n.appTitle), findsWidgets);
+        expect(tester.takeException(), isNull);
       },
     );
   });

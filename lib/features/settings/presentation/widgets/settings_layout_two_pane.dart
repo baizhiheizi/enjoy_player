@@ -159,19 +159,7 @@ class _DetailPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sectionId == SettingsSectionIds.about) {
-      final t = EnjoyThemeTokens.of(context);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SettingsSectionHeader(
-            title: visual.title,
-            hint: visual.hint,
-            icon: visual.icon,
-          ),
-          SizedBox(height: t.space8),
-          _sectionBody(sectionId),
-        ],
-      );
+      return _sectionBody(sectionId);
     }
     return SettingsSectionCard(
       title: visual.title,

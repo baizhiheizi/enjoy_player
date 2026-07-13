@@ -107,20 +107,19 @@ void main() {
   }
 
   testWidgets(
-    'typing a query filters rows and auto-expands a matching collapsed '
-    'section',
+    'typing a query filters rows; all sections always expanded',
     (tester) async {
       final l10n = await pumpSettingsScreen(tester);
 
-      // Developer starts collapsed — its rows are not shown yet.
-      expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsNothing);
-      // A non-matching always-expanded section is visible before searching.
+      // Developer is always expanded (no collapse header).
+      expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
+      // Before searching, other sections are also visible.
       expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'playground');
       await tester.pumpAndSettle();
 
-      // Developer auto-expands because "AI playground" matches.
+      // "AI playground" matches the query and stays visible.
       expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
       // A section with no match is filtered out.
       expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsNothing);
@@ -148,8 +147,6 @@ void main() {
 
       expect(find.text(l10n.settingsSearchNoResultsTitle), findsNothing);
       expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
-      // Prior collapse state is restored — Developer is collapsed again.
-      expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
