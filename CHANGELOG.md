@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Discover channel refresh uses InnerTube `browse` as primary data source** ([ADR-0047](docs/decisions/0047-youtube-discover-innertube.md)). The per-channel refresh path now tries InnerTube's anonymous `browse` endpoint first (`POST youtubei.googleapis.com/youtubei/v1/browse`) and falls back to the Atom RSS endpoint on failure. InnerTube returns richer metadata (`lengthText`, `viewCountText`, `publishedTimeText`) and is materially less likely to be blocked by YouTube's bot detection. The legacy watch-page HTML duration enrichment is skipped for InnerTube-sourced rows. Client profile rotation (`WEB` → `MWEB`) and continuation pagination (cap 5 pages ≈ 150 entries) match the caption fetcher's posture. See [docs/features/discover.md § Data sources](docs/features/discover.md#data-sources-dual-source).
+
 ## [0.5.0] - 2026-07-13
 
 ### Added

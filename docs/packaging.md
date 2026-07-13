@@ -10,6 +10,7 @@ The public download page is at **[https://get.enjoy.bot](https://get.enjoy.bot)*
 |----------|-------------|
 | Windows | Direct download — `.exe` installer from `dl.enjoy.bot` |
 | macOS | Direct download — notarized `.zip` from `dl.enjoy.bot` |
+| Linux | Direct download — AppImage from `dl.enjoy.bot` (Ubuntu 22.04+, Fedora 39+, Debian 12) |
 | Android | APK sideload from `dl.enjoy.bot` **or** Play Store beta enrollment |
 | iOS | TestFlight beta invitation |
 
@@ -36,11 +37,13 @@ flowchart TD
   WindowsHost["Windows host"] --> WindowsScript["release.ps1"]
   WindowsHost --> AndroidBash["release.sh --platform android"]
   LinuxHost["Linux host"] --> AndroidBash
+  LinuxHost --> LinuxBash["release.sh --platform linux"]
   MacHost["macOS host"] --> AppleScript["release.sh --platform apple"]
   WindowsScript --> Dispatcher["release.sh"]
   AndroidBash --> Dispatcher
+  LinuxBash --> Dispatcher
   AppleScript --> Dispatcher
-  Dispatcher --> PlatformScripts["release_windows / android / apple"]
+  Dispatcher --> PlatformScripts["release_windows / android / linux / apple"]
   PlatformScripts --> Artifacts["Local artifacts"]
   PlatformScripts --> CI["GitHub Actions (same scripts)"]
 ```
@@ -52,6 +55,7 @@ flowchart TD
 | [`.github/scripts/release_windows.sh`](../.github/scripts/release_windows.sh) | Windows build + installer |
 | [`.github/scripts/release_android.sh`](../.github/scripts/release_android.sh) | Play AAB + sideload APKs |
 | [`.github/scripts/release_apple.sh`](../.github/scripts/release_apple.sh) | iOS IPA + macOS zip (macOS host only) |
+| [`linux/packaging/make_appimage.sh`](../linux/packaging/make_appimage.sh) | Bundles the Linux build output into a self-contained AppImage |
 
 ---
 
@@ -62,6 +66,7 @@ flowchart TD
 | **Windows** | Windows installer | `pwsh ./release.ps1` |
 | **Windows** | Android (AAB + APKs) | `pwsh ./release.ps1 -Platform android` |
 | **Linux** | Android (AAB + APKs) | `bash .github/scripts/release.sh --platform android` |
+| **Linux** | Linux (AppImage) | `bash .github/scripts/release.sh --platform linux` |
 | **macOS** | iOS + macOS | `bash .github/scripts/release.sh --platform apple --notarize` |
 | **macOS** | macOS zip only | `bash .github/scripts/release.sh --platform apple --macos-only --notarize` |
 
@@ -105,6 +110,24 @@ flutter test
 
 - **Flutter** + **Android SDK** (Java 17)
 - After `flutter pub get`, run [`tool/patch_agp9_pub_plugins.sh`](../tool/patch_agp9_pub_plugins.sh) (done automatically by release script)
+
+### Linux (AppImage)
+
+- **Flutter** + Linux desktop toolchain:
+  ```bash
+  sudo apt-get install -y \
+    clang cmake curl git jq ninja-build pkg-config unzip xz-utils zip \
+    libgtk-3-dev liblzma-dev libsqlite3-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libsecret-1-dev libmpv-dev ffmpeg
+  ```
+- **`appimagetool`** on `PATH`. Download the latest AppImage from [appimagetool releases](https://github.com/AppImage/AppImageKit/releases), make executable, and place in `PATH`:
+  ```bash
+  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+  chmod +x appimagetool-x86_64.AppImage
+  sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
+  ```
+- No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0044](decisions/0044-linux-platform-support.md)).
 
 ### macOS (Apple)
 
@@ -261,6 +284,15 @@ Builds:
 - **Play AAB**: `flutter build appbundle --release --flavor store`
 - **Sideload APKs**: `flutter build apk --release --split-per-abi --flavor direct --dart-define=DISTRIBUTION_CHANNEL=direct`
 
+### Linux AppImage
+
+```bash
+bash .github/scripts/release.sh --platform linux           # build + AppImage packaging
+bash .github/scripts/release.sh --platform linux --publish # build + upload to dl.enjoy.bot
+```
+
+Builds: `flutter build linux --release`, then wraps the bundle with `linux/packaging/make_appimage.sh`. The resulting AppImage (`enjoy-player-<version>-x86_64.AppImage`) is self-contained — includes the Flutter runtime, `media_kit`'s bundled `libmpv`, and `media_kit_libs_video`'s bundled `ffmpeg`. No `sudo` or package-manager install needed on the target machine.
+
 ### iOS + macOS (macOS host only)
 
 **macOS direct download** (fastest first local test — skips iOS):
@@ -292,6 +324,7 @@ Version comes from `pubspec.yaml` (`version: 0.5.0+1` → `0.5.0` in filenames).
 | Android (sideload) | `build/app/outputs/flutter-apk/EnjoyPlayer-v0.5.0-arm64-v8a.apk` (+ `armeabi-v7a`, `x86_64`) |
 | iOS | `build/ios/ipa/EnjoyPlayer-v0.5.0.ipa` |
 | macOS | `EnjoyPlayer-macOS-v0.5.0.zip` (repo root) |
+| Linux AppImage | `enjoy-player-v0.5.0-x86_64.AppImage` (repo root) |
 
 After a successful run, scripts print artifact paths. For manual rename only:
 
@@ -310,6 +343,7 @@ bash .github/scripts/rename_release_artifacts.sh apple
 | Sideload APK (`direct` flavor) | Direct download | Yes (`ota_update`) |
 | Windows installer | Direct download | Yes (WinSparkle) |
 | macOS zip | Direct download | Yes (Sparkle) |
+| Linux AppImage | Direct download | No (manual update; AppImageUpdate planned per ADR-0044) |
 | iOS IPA | TestFlight / App Store | No |
 
 Direct builds check `https://dl.enjoy.bot/player/latest.json` (ADR-0023). Store builds do not.
@@ -366,6 +400,8 @@ After local verification, enable CI. Each workflow calls the same platform scrip
 | [`release_windows.yml`](../.github/workflows/release_windows.yml) | `windows-latest` | `pwsh ./release.ps1` |
 | [`release_android.yml`](../.github/workflows/release_android.yml) | self-hosted Linux | `bash .github/scripts/release.sh --platform android` |
 | [`release_apple.yml`](../.github/workflows/release_apple.yml) | self-hosted macOS | `bash .github/scripts/release.sh --platform apple --notarize --testflight` |
+
+The [`build_linux.yml`](../.github/workflows/build_linux.yml) workflow covers compile smoke on CI; the release AppImage is produced by maintainers running `release.sh --platform linux [--publish]` locally. Promote it to a dedicated `release_linux.yml` when AppImage auto-update lands.
 
 Trigger: manual only (`workflow_dispatch`) — GitHub → Actions → pick the release workflow → **Run workflow**.
 
@@ -460,6 +496,7 @@ Identity: **`ai.enjoy.player`** everywhere ([ADR-0020](decisions/0020-android-wi
 | iOS | 14.0 | `use_frameworks!` for Azure Speech, FFmpeg |
 | macOS | 10.15 | App Sandbox on; GPL FFmpeg bundled |
 | Windows | x64 | Authenticode signing outside repo |
+| Linux | x86_64 | AppImage; bundled `libmpv` + `ffmpeg`; Ubuntu 22.04+ / Fedora 39+ / Debian 12 |
 
 Further reading: [architecture.md](architecture.md), [testing.md](testing.md), platform folders under `android/`, `ios/`, `macos/`, `windows/`.
 

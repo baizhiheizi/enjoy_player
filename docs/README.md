@@ -42,6 +42,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/asr.md](features/asr.md) | Product + dev | Local-file ASR generation pipeline, audio extraction (FFmpegKit / isolate), failure reasons, or `source: ai` upsert behavior changes |
 | [features/echo-mode.md](features/echo-mode.md) | Product + dev | Echo region, shadow-reading, pronunciation assessment, or share practice poster behavior changes |
 | [features/local-database-recovery.md](features/local-database-recovery.md) | Product + dev | Stale/malformed local-DB detection, the recovery surface, or the reset-local-library flow changes |
+| [features/craft.md](features/craft.md) | Product + dev | Craft from Text import, translate/synthesize modes, voice picker, or failure handling changes |
 
 ## How to add an ADR
 
