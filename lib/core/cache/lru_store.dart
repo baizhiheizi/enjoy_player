@@ -33,7 +33,7 @@ class L1Store<K, V> {
     final entry = _map[key];
     if (entry == null) return null;
     final now = DateTime.now();
-    if (now.difference(entry.createdAt) > ttl) {
+    if (now.difference(entry.createdAt) >= ttl) {
       _map.remove(key);
       return null;
     }

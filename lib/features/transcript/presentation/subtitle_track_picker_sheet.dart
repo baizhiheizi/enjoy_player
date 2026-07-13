@@ -590,10 +590,7 @@ class _SubtitleTrackPickerSheetState
     return tracksAsync.when(
       data: whenData,
       loading: () => isDialog
-          ? Padding(
-              padding: EdgeInsets.all(sheetHorizontalPadding(t)),
-              child: const SkeletonTranscript(lineCount: 4),
-            )
+          ? _buildDialogSkeletonLoading(t)
           : SkeletonTranscript(lineCount: 12, controller: scrollCtrl),
       error: (error, _) {
         final errorBody = [
@@ -634,6 +631,45 @@ class _SubtitleTrackPickerSheetState
           children: errorBody,
         );
       },
+    );
+  }
+
+  Widget _buildDialogSkeletonLoading(EnjoyThemeTokens t) {
+    return Padding(
+      padding: EdgeInsets.all(sheetHorizontalPadding(t)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: List.generate(4, (i) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: t.space12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Skeleton.box(
+                  width: 44,
+                  height: 14,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Skeleton.line(width: double.infinity, height: 14),
+                      SizedBox(height: t.space8),
+                      Skeleton.line(
+                        width: i % 2 == 0 ? double.infinity : 200.0,
+                        height: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 
