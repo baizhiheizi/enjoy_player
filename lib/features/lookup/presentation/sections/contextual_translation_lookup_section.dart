@@ -12,10 +12,12 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
+import 'package:enjoy_player/features/ai/application/ai_cache_fingerprint.dart';
+import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
+import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
 import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
-import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
@@ -66,7 +68,8 @@ class ContextualTranslationLookupSection extends ConsumerWidget {
 /// Riverpod can dispose/cancel an autoDispose future while the HTTP/LLM call is
 /// still running; when the response arrives, state is never applied and the UI
 /// stays on the loading shimmer. This widget keeps a single [Future] tied to
-/// [ConsumerState] instead. Completed values are stored in [LookupSheetResultCache].
+/// [ConsumerState] instead. Completed values are stored in
+/// [AiContextualTranslationCache].
 class _ContextualFetchBody extends ConsumerStatefulWidget {
   const _ContextualFetchBody({
     required this.params,
@@ -143,54 +146,50 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
     _silenceDetachedFuture(_future);
 
     final p = widget.params;
-    final cache = ref.read(lookupSheetResultCacheProvider);
-
-    if (forceRefresh) {
-      cache.evictContextual(p);
-    } else {
-      final hit = cache.peekContextual(p);
-      if (hit != null) {
-        _log.fine(
-          'contextual translation cache hit '
-          'src=${p.sourceLanguage} tgt=${p.targetLanguage}',
-        );
-        _future = Future.value(hit);
-        if (mounted) {
-          setState(() {
-            _staleSuccess = hit;
-            _lastErrorUserMessage = null;
-            _retryInFlight = false;
-          });
-        }
-        return;
-      }
-    }
+    final cache = ref.read(aiContextualTranslationCacheProvider);
+    final key = AiCacheFingerprint.fingerprint(
+      kind: AiKind.contextualTranslation.wire,
+      payload: {
+        'text': p.text,
+        'sourceLanguage': p.sourceLanguage,
+        'targetLanguage': p.targetLanguage,
+        'context': p.context ?? '',
+      },
+    );
 
     _log.info(
       'contextual translation request '
       'src=${p.sourceLanguage} tgt=${p.targetLanguage} '
-      'textLen=${p.text.length} ctxLen=${p.context?.length ?? 0}',
+      'textLen=${p.text.length} ctxLen=${p.context?.length ?? 0} '
+      'forceRefresh=$forceRefresh',
     );
-    final svc = ref.read(contextualTranslationServiceProvider);
+
     _future = () async {
       try {
-        final r = await svc
-            .translate(
-              text: p.text,
-              sourceLanguage: p.sourceLanguage,
-              targetLanguage: p.targetLanguage,
-              context: p.context,
-            )
-            .timeout(
-              _timeout,
-              onTimeout: () {
-                throw TimeoutException(
-                  'Contextual translation timed out after '
-                  '${_timeout.inSeconds}s',
+        final r = await cache.lookup(
+          kind: AiKind.contextualTranslation,
+          key: key,
+          loader: () async {
+            final svc = ref.read(contextualTranslationServiceProvider);
+            return svc
+                .translate(
+                  text: p.text,
+                  sourceLanguage: p.sourceLanguage,
+                  targetLanguage: p.targetLanguage,
+                  context: p.context,
+                )
+                .timeout(
+                  _timeout,
+                  onTimeout: () {
+                    throw TimeoutException(
+                      'Contextual translation timed out after '
+                      '${_timeout.inSeconds}s',
+                    );
+                  },
                 );
-              },
-            );
-        cache.rememberContextual(p, r);
+          },
+          forceRefresh: forceRefresh,
+        );
         _log.info(
           'contextual translation ok outChars=${r.translatedText.length}',
         );

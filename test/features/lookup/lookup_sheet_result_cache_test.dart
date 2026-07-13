@@ -1,91 +1,151 @@
-import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
-import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
-import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
-import 'package:enjoy_player/features/lookup/application/lookup_sheet_result_cache.dart';
+import 'package:drift/native.dart';
+import 'package:enjoy_player/core/cache/lru_store.dart';
+import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/features/ai/application/ai_kind_policies.dart';
+import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
+import 'package:enjoy_player/features/ai/domain/ai_kind.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-ContextualTranslationResult _ctxResult(String tag) =>
-    ContextualTranslationResult(translatedText: 'ctx-$tag');
+class _StringCache extends AiResultCache<String> {
+  _StringCache({
+    required super.dao,
+    required super.l1,
+    required super.policies,
+  });
 
-DictionaryResult _dictResult(String tag) => DictionaryResult(
-  word: tag,
-  sourceLanguage: tag,
-  targetLanguage: tag,
-  senses: const [],
-);
+  @override
+  String fromJson(Map<String, dynamic> json) => json['v'] as String;
+
+  @override
+  Map<String, dynamic> toJson(String value) => {'v': value};
+}
 
 void main() {
-  group('LookupSheetResultCache.evictForPair', () {
-    test('removes only matching pair entries from both maps', () {
-      final cache = LookupSheetResultCache();
-      const pairA = (source: 'ko-KR', target: 'ja-JP');
-      const pairB = (source: 'ko-KR', target: 'es-ES');
-      const pairC = (source: 'ja-JP', target: 'ko-KR');
+  group('AiResultCache evictForPair', () {
+    late AppDatabase db;
+    late _StringCache translationCache;
+    late _StringCache dictCache;
 
-      final ctxA = LookupContextualParams(
-        text: '안녕',
-        sourceLanguage: pairA.source,
-        targetLanguage: pairA.target,
-      );
-      final ctxB = LookupContextualParams(
-        text: '안녕',
-        sourceLanguage: pairB.source,
-        targetLanguage: pairB.target,
-      );
-      final ctxC = LookupContextualParams(
-        text: 'こんにちは',
-        sourceLanguage: pairC.source,
-        targetLanguage: pairC.target,
-      );
-      final dictA = LookupDictionaryParams(
-        text: '안녕',
-        sourceLanguage: pairA.source,
-        targetLanguage: pairA.target,
-      );
-      final dictB = LookupDictionaryParams(
-        text: '안녕',
-        sourceLanguage: pairB.source,
-        targetLanguage: pairB.target,
-      );
-      final dictC = LookupDictionaryParams(
-        text: 'こんにちは',
-        sourceLanguage: pairC.source,
-        targetLanguage: pairC.target,
-      );
+    setUp(() {
+      db = AppDatabase(executor: NativeDatabase.memory());
 
-      cache
-        ..rememberContextual(ctxA, _ctxResult(pairA.target))
-        ..rememberContextual(ctxB, _ctxResult(pairB.target))
-        ..rememberContextual(ctxC, _ctxResult(pairC.target))
-        ..rememberDictionary(dictA, _dictResult(pairA.target))
-        ..rememberDictionary(dictB, _dictResult(pairB.target))
-        ..rememberDictionary(dictC, _dictResult(pairC.target));
-
-      cache.evictForPair(
-        sourceLanguage: pairA.source,
-        targetLanguage: pairA.target,
+      // Use custom payloads to include sourceLanguage/targetLanguage so the
+      // LIKE scan finds them. Our _StringCache encodes values as {"v":"..."}
+      // so we use remember to store entries. For the scan to work, we need
+      // the encoded JSON to contain sourceLanguage/targetLanguage. We do
+      // writes through DAO directly for the scan case, and via the cache for
+      // the normal case.
+      translationCache = _StringCache(
+        dao: db.aiCacheDao,
+        l1: L1Store<String, String>(
+          capacity: 8,
+          ttl: const Duration(seconds: 1),
+        ),
+        policies: {
+          AiKind.translation: const AiKindPolicy(
+            ttl: Duration(minutes: 30),
+            l2RowCap: 4096,
+            l2AgeCutoff: Duration(days: 30),
+          ),
+        },
       );
-
-      expect(cache.peekContextual(ctxA), isNull);
-      expect(cache.peekDictionary(dictA), isNull);
-      expect(cache.peekContextual(ctxB), isNotNull);
-      expect(cache.peekContextual(ctxC), isNotNull);
-      expect(cache.peekDictionary(dictB), isNotNull);
-      expect(cache.peekDictionary(dictC), isNotNull);
+      dictCache = _StringCache(
+        dao: db.aiCacheDao,
+        l1: L1Store<String, String>(
+          capacity: 8,
+          ttl: const Duration(seconds: 1),
+        ),
+        policies: {
+          AiKind.dictionary: const AiKindPolicy(
+            ttl: Duration(minutes: 30),
+            l2RowCap: 4096,
+            l2AgeCutoff: Duration(days: 30),
+          ),
+        },
+      );
     });
 
-    test('is a no-op when no entries match', () {
-      final cache = LookupSheetResultCache();
-      const ctx = LookupContextualParams(
-        text: '안녕',
-        sourceLanguage: 'ko-KR',
-        targetLanguage: 'ja-JP',
+    tearDown(() async {
+      await db.close();
+    });
+
+    test('clears L2 entries matching (sourceLanguage, targetLanguage)', () async {
+      const pairA = ('ko-KR', 'ja-JP');
+
+      // Seed L2 directly with payloads that contain sourceLanguage/targetLanguage.
+      await db.aiCacheDao.upsert(
+        'translation',
+        'a',
+        '{"v":"a","sourceLanguage":"ko-KR","targetLanguage":"ja-JP"}',
+        DateTime.now(),
       );
-      cache.rememberContextual(ctx, _ctxResult('ja-JP'));
+      await db.aiCacheDao.upsert(
+        'translation',
+        'b',
+        '{"v":"b","sourceLanguage":"ko-KR","targetLanguage":"es-ES"}',
+        DateTime.now(),
+      );
+      await db.aiCacheDao.upsert(
+        'translation',
+        'c',
+        '{"v":"c","sourceLanguage":"ja-JP","targetLanguage":"ko-KR"}',
+        DateTime.now(),
+      );
+      await db.aiCacheDao.upsert(
+        'dictionary',
+        'a',
+        '{"v":"a","sourceLanguage":"ko-KR","targetLanguage":"ja-JP"}',
+        DateTime.now(),
+      );
+      await db.aiCacheDao.upsert(
+        'dictionary',
+        'b',
+        '{"v":"b","sourceLanguage":"ko-KR","targetLanguage":"es-ES"}',
+        DateTime.now(),
+      );
+      await db.aiCacheDao.upsert(
+        'dictionary',
+        'c',
+        '{"v":"c","sourceLanguage":"ja-JP","targetLanguage":"ko-KR"}',
+        DateTime.now(),
+      );
 
-      cache.evictForPair(sourceLanguage: 'ko-KR', targetLanguage: 'es-ES');
+      // Evict pair A.
+      await translationCache.evictForPair(
+        sourceLanguage: pairA.$1,
+        targetLanguage: pairA.$2,
+      );
+      await dictCache.evictForPair(
+        sourceLanguage: pairA.$1,
+        targetLanguage: pairA.$2,
+      );
 
-      expect(cache.peekContextual(ctx), isNotNull);
+      // Pair A entries should be gone.
+      expect(await db.aiCacheDao.read('translation', 'a'), isNull);
+      expect(await db.aiCacheDao.read('dictionary', 'a'), isNull);
+
+      // Pair B and C should survive.
+      expect(await db.aiCacheDao.read('translation', 'b'), isNotNull);
+      expect(await db.aiCacheDao.read('translation', 'c'), isNotNull);
+      expect(await db.aiCacheDao.read('dictionary', 'b'), isNotNull);
+      expect(await db.aiCacheDao.read('dictionary', 'c'), isNotNull);
+    });
+
+    test('is a no-op when no entries match', () async {
+      await db.aiCacheDao.upsert(
+        'translation',
+        'unique',
+        '{"v":"unique","sourceLanguage":"ko-KR","targetLanguage":"ja-JP"}',
+        DateTime.now(),
+      );
+
+      await translationCache.evictForPair(
+        sourceLanguage: 'ko-KR',
+        targetLanguage: 'es-ES',
+      );
+
+      // The existing entry should survive.
+      expect(await db.aiCacheDao.read('translation', 'unique'), isNotNull);
     });
   });
 }

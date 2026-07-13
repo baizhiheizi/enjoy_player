@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:logging/logging.dart';
 import 'package:media_kit/media_kit.dart' as mk;
@@ -30,10 +31,13 @@ import 'transcript_timeline_parse.dart';
 import 'youtube_caption_fetcher.dart';
 
 class _LinesCacheEntry {
-  _LinesCacheEntry(this.updatedAt, this.lines);
-  final DateTime updatedAt;
+  _LinesCacheEntry(this.hash, this.lines);
+  final String hash;
   final List<TranscriptLine> lines;
 }
+
+String _timelineJsonHash(String timelineJson) =>
+    sha1.convert(utf8.encode(timelineJson)).toString().substring(0, 16);
 
 List<TranscriptLine> _decodeTimeline(String timelineJson) {
   final decoded = (jsonDecode(timelineJson) as List)
@@ -135,12 +139,16 @@ class TranscriptRepository {
 
   final Map<String, _LinesCacheEntry> _linesCache = {};
 
-  /// Decodes [row.timelineJson] with memoization on `(id, updatedAt)`.
+  /// Decodes [row.timelineJson] with memoization on `(id, timelineJsonHash)`.
+  ///
+  /// The hash-on-content key avoids re-decoding when an unrelated Drift table
+  /// bump shifts the row's `updatedAt` without changing `timelineJson`.
   List<TranscriptLine> linesForRow(TranscriptRow row) {
+    final hash = _timelineJsonHash(row.timelineJson);
     final hit = _linesCache[row.id];
-    if (hit != null && hit.updatedAt == row.updatedAt) return hit.lines;
+    if (hit != null && hit.hash == hash) return hit.lines;
     final decoded = _decodeTimeline(row.timelineJson);
-    _linesCache[row.id] = _LinesCacheEntry(row.updatedAt, decoded);
+    _linesCache[row.id] = _LinesCacheEntry(hash, decoded);
     return decoded;
   }
 

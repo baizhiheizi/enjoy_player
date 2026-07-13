@@ -1,6 +1,7 @@
 /// Bottom sheet or wide dialog: translation, definition (dictionary), contextual translation.
 library;
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -101,9 +102,11 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
   void _evictPriorPair(String source, String target) {
     if (source.isEmpty || target.isEmpty) return;
     if (tagsEqual(source, target)) return;
-    ref
-        .read(lookupSheetResultCacheProvider)
-        .evictForPair(sourceLanguage: source, targetLanguage: target);
+    unawaited(
+      ref
+          .read(lookupSheetResultCacheProvider)
+          .evictForPair(sourceLanguage: source, targetLanguage: target),
+    );
   }
 
   @override

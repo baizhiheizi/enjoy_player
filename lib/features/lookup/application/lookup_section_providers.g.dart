@@ -24,7 +24,7 @@ final class LookupSheetTranslationProvider
         $FutureProvider<TranslationResult> {
   LookupSheetTranslationProvider._({
     required LookupSheetTranslationFamily super.from,
-    required LookupTranslationParams super.argument,
+    required (LookupTranslationParams, {bool forceRefresh}) super.argument,
   }) : super(
          retry: null,
          name: r'lookupSheetTranslationProvider',
@@ -40,7 +40,7 @@ final class LookupSheetTranslationProvider
   String toString() {
     return r'lookupSheetTranslationProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -51,8 +51,13 @@ final class LookupSheetTranslationProvider
 
   @override
   FutureOr<TranslationResult> create(Ref ref) {
-    final argument = this.argument as LookupTranslationParams;
-    return lookupSheetTranslation(ref, argument);
+    final argument =
+        this.argument as (LookupTranslationParams, {bool forceRefresh});
+    return lookupSheetTranslation(
+      ref,
+      argument.$1,
+      forceRefresh: argument.forceRefresh,
+    );
   }
 
   @override
@@ -68,13 +73,13 @@ final class LookupSheetTranslationProvider
 }
 
 String _$lookupSheetTranslationHash() =>
-    r'0be0954bf48bb3991c83b5422726d7fcdd8eca18';
+    r'91577985d90ffb9522239c15a44257187e8489e6';
 
 final class LookupSheetTranslationFamily extends $Family
     with
         $FunctionalFamilyOverride<
           FutureOr<TranslationResult>,
-          LookupTranslationParams
+          (LookupTranslationParams, {bool forceRefresh})
         > {
   LookupSheetTranslationFamily._()
     : super(
@@ -85,8 +90,13 @@ final class LookupSheetTranslationFamily extends $Family
         isAutoDispose: true,
       );
 
-  LookupSheetTranslationProvider call(LookupTranslationParams params) =>
-      LookupSheetTranslationProvider._(argument: params, from: this);
+  LookupSheetTranslationProvider call(
+    LookupTranslationParams params, {
+    bool forceRefresh = false,
+  }) => LookupSheetTranslationProvider._(
+    argument: (params, forceRefresh: forceRefresh),
+    from: this,
+  );
 
   @override
   String toString() => r'lookupSheetTranslationProvider';
@@ -105,7 +115,7 @@ final class LookupSheetDictionaryProvider
     with $FutureModifier<DictionaryResult>, $FutureProvider<DictionaryResult> {
   LookupSheetDictionaryProvider._({
     required LookupSheetDictionaryFamily super.from,
-    required LookupDictionaryParams super.argument,
+    required (LookupDictionaryParams, {bool forceRefresh}) super.argument,
   }) : super(
          retry: null,
          name: r'lookupSheetDictionaryProvider',
@@ -121,7 +131,7 @@ final class LookupSheetDictionaryProvider
   String toString() {
     return r'lookupSheetDictionaryProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -132,8 +142,13 @@ final class LookupSheetDictionaryProvider
 
   @override
   FutureOr<DictionaryResult> create(Ref ref) {
-    final argument = this.argument as LookupDictionaryParams;
-    return lookupSheetDictionary(ref, argument);
+    final argument =
+        this.argument as (LookupDictionaryParams, {bool forceRefresh});
+    return lookupSheetDictionary(
+      ref,
+      argument.$1,
+      forceRefresh: argument.forceRefresh,
+    );
   }
 
   @override
@@ -148,13 +163,13 @@ final class LookupSheetDictionaryProvider
 }
 
 String _$lookupSheetDictionaryHash() =>
-    r'73aab5e1d596f5dd350b3a8a8d28c3f73c411c13';
+    r'5637ea52e0fff500eb2c47f4600875c90e105dd4';
 
 final class LookupSheetDictionaryFamily extends $Family
     with
         $FunctionalFamilyOverride<
           FutureOr<DictionaryResult>,
-          LookupDictionaryParams
+          (LookupDictionaryParams, {bool forceRefresh})
         > {
   LookupSheetDictionaryFamily._()
     : super(
@@ -165,8 +180,13 @@ final class LookupSheetDictionaryFamily extends $Family
         isAutoDispose: true,
       );
 
-  LookupSheetDictionaryProvider call(LookupDictionaryParams params) =>
-      LookupSheetDictionaryProvider._(argument: params, from: this);
+  LookupSheetDictionaryProvider call(
+    LookupDictionaryParams params, {
+    bool forceRefresh = false,
+  }) => LookupSheetDictionaryProvider._(
+    argument: (params, forceRefresh: forceRefresh),
+    from: this,
+  );
 
   @override
   String toString() => r'lookupSheetDictionaryProvider';

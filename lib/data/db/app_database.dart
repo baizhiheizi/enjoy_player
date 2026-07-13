@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'migration_backup.dart';
 import 'settings_keys.dart';
 import 'youtube_subscription_source.dart';
+import 'tables/ai_cache.dart';
 import 'tables/audios.dart';
 import 'tables/dictations.dart';
 import 'tables/echo_sessions.dart';
@@ -37,6 +38,7 @@ part 'app_database.g.dart';
     SettingsKv,
     YoutubeChannelSubscriptions,
     YoutubeFeedEntries,
+    AiCache,
   ],
   daos: [
     VideoDao,
@@ -50,6 +52,7 @@ part 'app_database.g.dart';
     SettingsDao,
     YoutubeChannelSubscriptionDao,
     YoutubeFeedEntryDao,
+    AiCacheDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -73,7 +76,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,6 +124,23 @@ class AppDatabase extends _$AppDatabase {
         );
       } else if (next == 11) {
         await _addColumnIfMissing(m, echoSessions, echoSessions.blurActive);
+      } else if (next == 12) {
+        // Adds the L2 cache table for the AI result cache hierarchy
+        // (issue #311). Uses IF NOT EXISTS so a partial-migration crash
+        // on a previous launch cannot leave the app hanging on a blank
+        // window — mirroring the discipline of `_addColumnIfMissing`.
+        await m.database.customStatement(
+          'CREATE TABLE IF NOT EXISTS ai_cache ('
+          'kind TEXT NOT NULL, '
+          'key TEXT NOT NULL, '
+          'payload_json TEXT NOT NULL, '
+          'updated_at INTEGER NOT NULL, '
+          'PRIMARY KEY (kind, key))',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_ai_cache_kind_updated_at '
+          'ON ai_cache (kind, updated_at DESC)',
+        );
       }
       current = next;
     }
@@ -906,4 +926,149 @@ bool _listEqualsRecordingRow(
     }
   }
   return true;
+}
+
+/// Drift accessor for the L2 tier of the AI result cache hierarchy.
+///
+/// All methods swallow Drift exceptions, log via `logNamed('ai_cache')`,
+/// and return null / no-op on failure. The cache layer never throws.
+@DriftAccessor(tables: [AiCache])
+class AiCacheDao extends DatabaseAccessor<AppDatabase> with _$AiCacheDaoMixin {
+  AiCacheDao(super.db);
+
+  static final _log = logNamed('ai_cache');
+
+  /// Single-row lookup. Returns null on miss or on Drift error.
+  Future<AiCacheRow?> read(String kind, String key) async {
+    try {
+      return await (select(aiCache)
+            ..where((t) => t.kind.equals(kind) & t.key.equals(key)))
+          .getSingleOrNull();
+    } on Object catch (e, st) {
+      _log.warning('ai_cache read failed kind=$kind key=$key', e, st);
+      return null;
+    }
+  }
+
+  /// Insert-or-replace. No-op on Drift error.
+  Future<void> upsert(
+    String kind,
+    String key,
+    String payloadJson,
+    DateTime updatedAt,
+  ) async {
+    try {
+      await into(aiCache).insert(
+        AiCacheRow(
+          kind: kind,
+          key: key,
+          payloadJson: payloadJson,
+          updatedAt: updatedAt.millisecondsSinceEpoch,
+        ),
+        mode: InsertMode.insertOrReplace,
+      );
+    } on Object catch (e, st) {
+      _log.warning('ai_cache upsert failed kind=$kind key=$key', e, st);
+    }
+  }
+
+  /// Single-row delete. No-op if missing or on Drift error.
+  Future<void> deleteRow(String kind, String key) async {
+    try {
+      await (delete(
+        aiCache,
+      )..where((t) => t.kind.equals(kind) & t.key.equals(key))).go();
+    } on Object catch (e, st) {
+      _log.warning('ai_cache deleteRow failed kind=$kind key=$key', e, st);
+    }
+  }
+
+  /// For [kind], keep the [keep] most-recent `updatedAt` rows; delete the
+  /// rest. Returns deleted count (best-effort; -1 on error).
+  Future<int> evictOldestExcept(String kind, int keep) async {
+    if (keep < 0) return 0;
+    try {
+      final total =
+          await (selectOnly(aiCache)
+                ..addColumns([aiCache.key.count()])
+                ..where(aiCache.kind.equals(kind)))
+              .map((row) => row.read<int>(aiCache.key.count()) ?? 0)
+              .getSingle();
+      if (total <= keep) return 0;
+      final toDelete = total - keep;
+      // Delete the oldest `toDelete` rows via a raw SQL DELETE in a
+      // subquery. SQLite supports DELETE ... WHERE key IN (SELECT ...).
+      final beforeKeys = await customSelect(
+        'SELECT key FROM ai_cache WHERE kind = ? '
+        'ORDER BY updated_at ASC LIMIT ?',
+        variables: [Variable.withString(kind), Variable.withInt(toDelete)],
+        readsFrom: {aiCache},
+      ).map((row) => row.read<String>('key')).get();
+      for (final k in beforeKeys) {
+        await (delete(
+          aiCache,
+        )..where((t) => t.kind.equals(kind) & t.key.equals(k))).go();
+      }
+      return beforeKeys.length;
+    } on Object catch (e, st) {
+      _log.warning('ai_cache evictOldestExcept failed kind=$kind', e, st);
+      return -1;
+    }
+  }
+
+  /// For [kind], delete every row whose `updatedAt < cutoff`. Returns
+  /// deleted count (best-effort; -1 on error).
+  Future<int> pruneOlderThan(String kind, DateTime cutoff) async {
+    try {
+      final before =
+          await (selectOnly(aiCache)
+                ..addColumns([aiCache.key.count()])
+                ..where(
+                  aiCache.kind.equals(kind) &
+                      aiCache.updatedAt.isSmallerThanValue(
+                        cutoff.millisecondsSinceEpoch,
+                      ),
+                ))
+              .map((row) => row.read<int>(aiCache.key.count()) ?? 0)
+              .getSingle();
+      await (delete(aiCache)..where(
+            (t) =>
+                t.kind.equals(kind) &
+                t.updatedAt.isSmallerThanValue(cutoff.millisecondsSinceEpoch),
+          ))
+          .go();
+      return before;
+    } on Object catch (e, st) {
+      _log.warning('ai_cache pruneOlderThan failed kind=$kind', e, st);
+      return -1;
+    }
+  }
+
+  /// Drops every row for [kind]. No-op on Drift error.
+  Future<void> deleteForKind(String kind) async {
+    try {
+      await (delete(aiCache)..where((t) => t.kind.equals(kind))).go();
+    } on Object catch (e, st) {
+      _log.warning('ai_cache deleteForKind failed kind=$kind', e, st);
+    }
+  }
+
+  /// Watch helper, used by tests and the diagnostic dump command.
+  Stream<List<AiCacheRow>> readAllForKind(String kind) {
+    return (select(aiCache)..where((t) => t.kind.equals(kind))).watch();
+  }
+
+  /// Synchronous row-count for [kind], used by `AiResultCache.stats()`.
+  Future<int> countForKind(String kind) async {
+    try {
+      return await (selectOnly(aiCache)
+            ..addColumns([aiCache.key.count()])
+            ..where(aiCache.kind.equals(kind)))
+          .map((row) => row.read<int>(aiCache.key.count()) ?? 0)
+          .getSingle();
+    } on Object catch (e, st) {
+      _log.warning('ai_cache countForKind failed kind=$kind', e, st);
+      return 0;
+    }
+  }
 }

@@ -1,70 +1,62 @@
-/// In-memory cache for lookup sheet dictionary + contextual translation results.
+/// Per-pair eviction helper for the lookup sheet's three AI sections.
 ///
-/// Survives sheet close; use [evict*] before forced refetch. Keys are the same
-/// [Lookup*Params] instances used by the lookup UI.
+/// The actual cache hierarchy lives in `AiResultCache` (see issue #311);
+/// this class keeps the historical `evictForPair` API for callers that
+/// need to clear every entry for a `(sourceLanguage, targetLanguage)` pair
+/// on source / target swap.
 library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/features/ai/domain/models/contextual_translation_result.dart';
-import 'package:enjoy_player/features/ai/domain/models/dictionary_result.dart';
-import 'package:enjoy_player/features/lookup/application/lookup_section_params.dart';
+import 'package:enjoy_player/features/ai/application/ai_result_cache.dart';
 
 part 'lookup_sheet_result_cache.g.dart';
 
 final class LookupSheetResultCache {
-  final _contextual = <LookupContextualParams, ContextualTranslationResult>{};
-  final _dictionary = <LookupDictionaryParams, DictionaryResult>{};
+  LookupSheetResultCache(
+    this._translationCache,
+    this._dictionaryCache,
+    this._contextualCache,
+  );
 
-  ContextualTranslationResult? peekContextual(LookupContextualParams params) =>
-      _contextual[params];
+  final AiTranslationCache _translationCache;
+  final AiDictionaryCache _dictionaryCache;
+  final AiContextualTranslationCache _contextualCache;
 
-  void rememberContextual(
-    LookupContextualParams params,
-    ContextualTranslationResult result,
-  ) {
-    _contextual[params] = result;
-  }
-
-  void evictContextual(LookupContextualParams params) {
-    _contextual.remove(params);
-  }
-
-  DictionaryResult? peekDictionary(LookupDictionaryParams params) =>
-      _dictionary[params];
-
-  void rememberDictionary(
-    LookupDictionaryParams params,
-    DictionaryResult result,
-  ) {
-    _dictionary[params] = result;
-  }
-
-  void evictDictionary(LookupDictionaryParams params) {
-    _dictionary.remove(params);
-  }
-
-  /// Removes every cached entry whose params struct's `sourceLanguage` and
-  /// `targetLanguage` match the given pair. Used on swap / source or target
-  /// change so stale results from the prior pair cannot be observed against
-  /// the new pair's loading skeletons.
-  void evictForPair({
+  /// Removes every cached entry whose payload matches the given pair.
+  ///
+  /// Called on source / target change so stale results from the prior
+  /// pair cannot be observed against the new pair's loading skeletons.
+  Future<void> evictForPair({
     required String sourceLanguage,
     required String targetLanguage,
-  }) {
-    _contextual.removeWhere(
-      (k, _) =>
-          k.sourceLanguage == sourceLanguage &&
-          k.targetLanguage == targetLanguage,
+  }) async {
+    await _translationCache.evictForPair(
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
     );
-    _dictionary.removeWhere(
-      (k, _) =>
-          k.sourceLanguage == sourceLanguage &&
-          k.targetLanguage == targetLanguage,
+    await _dictionaryCache.evictForPair(
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
     );
+    await _contextualCache.evictForPair(
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+    );
+  }
+
+  /// Drops every cached entry for the three lookup-sheet modalities.
+  Future<void> clear() async {
+    await _translationCache.clear();
+    await _dictionaryCache.clear();
+    await _contextualCache.clear();
   }
 }
 
 @Riverpod(keepAlive: true)
 LookupSheetResultCache lookupSheetResultCache(Ref ref) =>
-    LookupSheetResultCache();
+    LookupSheetResultCache(
+      ref.watch(aiTranslationCacheProvider),
+      ref.watch(aiDictionaryCacheProvider),
+      ref.watch(aiContextualTranslationCacheProvider),
+    );

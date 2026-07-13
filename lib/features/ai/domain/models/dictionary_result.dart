@@ -16,6 +16,7 @@ final class DictionaryResult {
           .toList(),
     );
   }
+
   const DictionaryResult({
     required this.word,
     required this.sourceLanguage,
@@ -31,6 +32,15 @@ final class DictionaryResult {
   final String? lemma;
   final String? ipa;
   final List<DictionarySense> senses;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'word': word,
+    'sourceLanguage': sourceLanguage,
+    'targetLanguage': targetLanguage,
+    if (lemma != null) 'lemma': lemma,
+    if (ipa != null) 'ipa': ipa,
+    'senses': senses.map((s) => s.toJson()).toList(),
+  };
 }
 
 final class DictionarySense {
@@ -49,6 +59,7 @@ final class DictionarySense {
           .toList(),
     );
   }
+
   const DictionarySense({
     required this.definition,
     this.translation,
@@ -62,6 +73,14 @@ final class DictionarySense {
   final String? partOfSpeech;
   final List<DictionaryExample>? examples;
   final String? notes;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'definition': definition,
+    if (translation != null) 'translation': translation,
+    if (partOfSpeech != null) 'partOfSpeech': partOfSpeech,
+    if (examples != null) 'examples': examples!.map((e) => e.toJson()).toList(),
+    if (notes != null) 'notes': notes,
+  };
 }
 
 final class DictionaryExample {
@@ -71,8 +90,14 @@ final class DictionaryExample {
       target: json['target'] as String?,
     );
   }
+
   const DictionaryExample({required this.source, this.target});
 
   final String source;
   final String? target;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'source': source,
+    if (target != null) 'target': target,
+  };
 }
