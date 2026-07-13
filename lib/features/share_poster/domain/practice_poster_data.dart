@@ -191,15 +191,3 @@ PracticePosterQuote? resolvePracticePosterQuote({
   return PracticePosterQuote(line: _quoteLineFromText(longestRef));
 }
 
-/// @deprecated Use [resolvePracticePosterQuote].
-String? resolvePracticePosterHeroText({
-  required List<TranscriptLine> lines,
-  required List<RecordingRow> recordings,
-}) {
-  final quote = resolvePracticePosterQuote(
-    lines: lines,
-    recordings: recordings,
-  );
-  if (quote == null || quote.isEmpty) return null;
-  return quote.line.displayText;
-}
