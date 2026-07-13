@@ -1,1 +1,1 @@
-- [Test Improver run state](test-improver-state.md) — last run 2026-06-29 (app_failure coverage), backlog + recent runs + monthly issue status
+- [Test Improver run state](test-improver-state.md) — last run 2026-07-13 (LogFileSink coverage), validated coverage pipeline, backlog + monthly issue state
