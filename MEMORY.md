@@ -1,2 +1,3 @@
+- [Run 2026-07-13](notes-2026-07-13.md) — selected tasks 5/3/2: ApiClient bearer-helper dedup (commit `dfdfc7e`, branch `repo-assist/improve-api-client-bearer-helper-2026-07-13`); #310 streaming comment `#aw_3GlnFO3Q`; #165 body at 10 KB ceiling so posted comment-only `#aw_nl48O9eb`
 - [Run 2026-07-11](notes-2026-07-11.md) — selected tasks 3/4/5: ADR ID collision fix (0021 → 0042, 0030 → 0043); 18-file PR-fallback at `aw-repo-assist-fix-adr-id-collisions-2026-07-11.patch`; #165 monthly summary refreshed
 - [Historical rollup through 2026-07-09](historical-notes.md) — condensed prior Repo Assist runs and stale-action cleanup context
