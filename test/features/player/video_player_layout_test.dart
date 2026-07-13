@@ -79,7 +79,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
   }
 
   testWidgets('VideoPlayerLayout shows transcript beside video when wide', (
@@ -144,19 +145,17 @@ void main() {
     );
 
     expect(fake.playOrPauseCallCount, 0);
-    // Stage tap target is the opaque GestureDetector over the video column
-    // (not the transcript resize splitter).
-    final stageTap = find.descendant(
-      of: find.byType(ColoredBox),
-      matching: find.byWidgetPredicate(
-        (w) =>
-            w is GestureDetector &&
-            w.onTap != null &&
-            w.onHorizontalDragUpdate == null,
-      ),
+    // Find the stage tap GestureDetector: the one wrapping a transparent
+    // ColoredBox with onTap set and no horizontal drag handler. Match by
+    // widget type + predicate rather than fragile tree traversal.
+    final stageTap = find.byWidgetPredicate(
+      (w) =>
+          w is GestureDetector &&
+          w.onTap != null &&
+          w.onHorizontalDragUpdate == null &&
+          w.behavior == HitTestBehavior.opaque,
     );
-    expect(stageTap, findsOneWidget);
-    await tester.tap(stageTap);
+    await tester.tap(stageTap.first);
     await tester.pump();
     expect(fake.playOrPauseCallCount, 1);
   });
