@@ -14,6 +14,7 @@ import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
@@ -26,7 +27,7 @@ final Logger _log = logNamed('auth');
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
-  return AuthRepository(
+  final repo = AuthRepository(
     authApi: AuthApi(
       authClient: ref.watch(authApiClientProvider),
       userClient: ref.watch(apiClientProvider),
@@ -34,6 +35,20 @@ AuthRepository authRepository(Ref ref) {
     tokenStore: ref.watch(secureTokenStoreProvider),
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
   );
+
+  registerOn401RefreshCallback(() async {
+    final ok = await repo.refreshSession();
+    if (!ok) {
+      final hasToken = await repo.hasAccessToken();
+      if (!hasToken) {
+        ref.invalidate(authCtrlProvider);
+      }
+    }
+    return ok;
+  });
+  ref.onDispose(clearOn401RefreshCallback);
+
+  return repo;
 }
 
 class AuthRepository {

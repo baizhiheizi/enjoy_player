@@ -8,10 +8,28 @@ import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
-import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 
 part 'api_client_provider.g.dart';
+
+/// Module-level mutable reference for the 401 refresh callback.
+///
+/// [apiClientProvider] and [aiApiClientProvider] cannot read
+/// [authRepositoryProvider] directly because [authRepositoryProvider] depends
+/// on [apiClientProvider] (circular). Instead, [AuthRepository] registers
+/// the callback when it is first built, and the API clients call through this
+/// indirection at runtime when a 401 is encountered.
+RefreshAccessToken? _on401RefreshCallback;
+
+/// Register the callback that [apiClientProvider] / [aiApiClientProvider]
+/// invoke on 401. Only [AuthRepository] should call this.
+void registerOn401RefreshCallback(RefreshAccessToken callback) {
+  _on401RefreshCallback = callback;
+}
+
+/// Clear the callback (called when [AuthRepository] is disposed).
+void clearOn401RefreshCallback() {
+  _on401RefreshCallback = null;
+}
 
 /// Normalizes a user-entered origin; [defaultWhenEmpty] is used when [raw] is blank.
 String normalizeApiBaseUrl(String raw, String defaultWhenEmpty) {
@@ -112,16 +130,9 @@ ApiClient _makeApiClient(
     getAccessToken: tokens.readAccessToken,
     refreshAccessToken: refreshOn401
         ? () async {
-            final ok = await ref.read(authRepositoryProvider).refreshSession();
-            if (!ok) {
-              final hasToken = await ref
-                  .read(authRepositoryProvider)
-                  .hasAccessToken();
-              if (!hasToken) {
-                ref.invalidate(authCtrlProvider);
-              }
-            }
-            return ok;
+            final callback = _on401RefreshCallback;
+            if (callback == null) return false;
+            return callback();
           }
         : null,
   );
