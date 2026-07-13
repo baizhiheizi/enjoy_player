@@ -2,9 +2,9 @@
 library;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -95,11 +95,18 @@ class DiscoverRepository {
   late final YoutubeBrowseClient _browseClient;
   MediaLibraryRepository? _libraryRepository;
 
-  /// Bounded LRU cache for channel avatar URLs. LinkedHashMap preserves
-  /// insertion order; we move-to-end on every hit, and evict from the
-  /// head when the cache is full. Prevents unbounded growth on a
+  /// Bounded LRU cache for channel avatar URLs. TTL is generous: avatar
+  /// URLs change only when the channel owner swaps their photo, which is
+  /// effectively never at app-runtime. Prevents unbounded growth on a
   /// user who subscribes / unsubscribes many channels.
-  final LinkedHashMap<String, String> _avatarUrlCache = LinkedHashMap();
+  // ignore: prefer_const_constructors — L1Store is not const-constructible
+  // because its LinkedHashMap backing is a non-const default value.
+  final L1Store<String, String> _avatarUrlCache = L1Store<String, String>(
+    capacity: _kAvatarCacheCapacity,
+    ttl: _avatarCacheTtl,
+  );
+
+  static const Duration _avatarCacheTtl = Duration(hours: 6);
 
   static const minRefreshInterval = Duration(hours: 1);
   static const rssFeedBase =
@@ -224,20 +231,13 @@ class DiscoverRepository {
 
   /// Channel profile photo from the public channel page — cached in memory.
   Future<String?> fetchChannelAvatarUrl(String channelId) async {
-    final cached = _avatarUrlCache.remove(channelId);
-    if (cached != null) {
-      // Move-to-end on hit; preserves the LRU ordering.
-      _avatarUrlCache[channelId] = cached;
-      return cached;
-    }
+    final cached = _avatarUrlCache.peek(channelId);
+    if (cached != null) return cached;
 
     try {
       final url = await _channelResolver.fetchChannelAvatarUrl(channelId);
       if (url != null && url.isNotEmpty) {
-        _avatarUrlCache[channelId] = url;
-        while (_avatarUrlCache.length > _kAvatarCacheCapacity) {
-          _avatarUrlCache.remove(_avatarUrlCache.keys.first);
-        }
+        _avatarUrlCache.put(channelId, url);
       }
       return url;
     } catch (e, st) {

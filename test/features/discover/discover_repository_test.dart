@@ -1391,5 +1391,105 @@ void main() {
         }
       },
     );
+
+    group('fetchChannelAvatarUrl LRU cache', () {
+      test(
+        'first call hits resolver; subsequent calls return cached URL',
+        () async {
+          var resolverCalls = 0;
+          final localRepo = DiscoverRepository(
+            db,
+            httpClient: MockClient((request) async {
+              if (request.url.path.startsWith('/channel/')) {
+                resolverCalls += 1;
+                return http.Response(
+                  '<html>"avatar":{"thumbnails":[{"url":"https://example.com/a.jpg"}]}</html>',
+                  200,
+                );
+              }
+              return http.Response('', 404);
+            }),
+          );
+
+          const channelId = 'UCaaaaaaaaaaaaaaaaaaaaaa';
+          final first = await localRepo.fetchChannelAvatarUrl(channelId);
+          final second = await localRepo.fetchChannelAvatarUrl(channelId);
+          final third = await localRepo.fetchChannelAvatarUrl(channelId);
+
+          expect(first, 'https://example.com/a.jpg');
+          expect(second, first);
+          expect(third, first);
+          expect(
+            resolverCalls,
+            1,
+            reason: 'cache must short-circuit the resolver',
+          );
+        },
+      );
+
+      test('different channels are cached independently', () async {
+        final visited = <String>[];
+        final localRepo = DiscoverRepository(
+          db,
+          httpClient: MockClient((request) async {
+            if (request.url.path.startsWith('/channel/')) {
+              final id = request.url.pathSegments.last;
+              visited.add(id);
+              return http.Response(
+                '<html>"avatar":{"thumbnails":[{"url":"https://example.com/$id.jpg"}]}</html>',
+                200,
+              );
+            }
+            return http.Response('', 404);
+          }),
+        );
+
+        final a = await localRepo.fetchChannelAvatarUrl(
+          'UCaaaaaaaaaaaaaaaaaaaaaa',
+        );
+        final b = await localRepo.fetchChannelAvatarUrl(
+          'UCbbbbbbbbbbbbbbbbbbbbbb',
+        );
+        // Repeat — must come from cache.
+        final aRepeat = await localRepo.fetchChannelAvatarUrl(
+          'UCaaaaaaaaaaaaaaaaaaaaaa',
+        );
+        final bRepeat = await localRepo.fetchChannelAvatarUrl(
+          'UCbbbbbbbbbbbbbbbbbbbbbb',
+        );
+
+        expect(a, 'https://example.com/UCaaaaaaaaaaaaaaaaaaaaaa.jpg');
+        expect(b, 'https://example.com/UCbbbbbbbbbbbbbbbbbbbbbb.jpg');
+        expect(aRepeat, a);
+        expect(bRepeat, b);
+        expect(visited, [
+          'UCaaaaaaaaaaaaaaaaaaaaaa',
+          'UCbbbbbbbbbbbbbbbbbbbbbb',
+        ], reason: 'each channel resolves at most once');
+      });
+
+      test('failed fetch returns null and is not cached', () async {
+        var resolverCalls = 0;
+        final localRepo = DiscoverRepository(
+          db,
+          httpClient: MockClient((request) async {
+            if (request.url.path.startsWith('/channel/')) {
+              resolverCalls += 1;
+              return http.Response('not found', 404);
+            }
+            return http.Response('', 404);
+          }),
+        );
+
+        const channelId = 'UCcccccccccccccccccccccc';
+        final first = await localRepo.fetchChannelAvatarUrl(channelId);
+        // Second call must hit the resolver again — null is not cached.
+        final second = await localRepo.fetchChannelAvatarUrl(channelId);
+
+        expect(first, isNull);
+        expect(second, isNull);
+        expect(resolverCalls, 2);
+      });
+    });
   });
 }
