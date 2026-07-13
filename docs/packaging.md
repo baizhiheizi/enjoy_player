@@ -283,15 +283,15 @@ The default `release_apple.sh` path always builds **both** iOS and macOS unless 
 
 ## Artifacts
 
-Version comes from `pubspec.yaml` (`version: 0.1.0+1` → `0.1.0` in filenames).
+Version comes from `pubspec.yaml` (`version: 0.5.0+1` → `0.5.0` in filenames).
 
-| Platform | Output (example at `0.1.0`) |
+| Platform | Output (example at `0.5.0`) |
 |----------|-------------------------------|
-| Windows installer | `build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe` |
-| Android (Play) | `build/app/outputs/bundle/release/EnjoyPlayer-v0.1.0.aab` |
-| Android (sideload) | `build/app/outputs/flutter-apk/EnjoyPlayer-v0.1.0-arm64-v8a.apk` (+ `armeabi-v7a`, `x86_64`) |
-| iOS | `build/ios/ipa/EnjoyPlayer-v0.1.0.ipa` |
-| macOS | `EnjoyPlayer-macOS-v0.1.0.zip` (repo root) |
+| Windows installer | `build/windows/installer/EnjoyPlayerSetup-v0.5.0.exe` |
+| Android (Play) | `build/app/outputs/bundle/release/EnjoyPlayer-v0.5.0.aab` |
+| Android (sideload) | `build/app/outputs/flutter-apk/EnjoyPlayer-v0.5.0-arm64-v8a.apk` (+ `armeabi-v7a`, `x86_64`) |
+| iOS | `build/ios/ipa/EnjoyPlayer-v0.5.0.ipa` |
+| macOS | `EnjoyPlayer-macOS-v0.5.0.zip` (repo root) |
 
 After a successful run, scripts print artifact paths. For manual rename only:
 

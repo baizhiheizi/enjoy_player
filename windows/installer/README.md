@@ -14,7 +14,7 @@
    pwsh .github/scripts/sync_windows_installer_version.ps1
    iscc windows\installer\enjoy_player.iss
    ```
-4. Output: `build/windows/installer/EnjoyPlayerSetup-v0.1.0.exe` (version matches `pubspec.yaml`; unsigned unless you add signing).
+4. Output: `build/windows/installer/EnjoyPlayerSetup-v0.5.0.exe` (version matches `pubspec.yaml`; unsigned unless you add signing).
 
 ## Code signing
 
