@@ -12,12 +12,11 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_hero_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_rail_item.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
@@ -142,26 +141,20 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_twoPaneHarness());
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutTwoPane), findsOneWidget);
-      // Account is the default-selected rail item, so its content should
-      // already be visible without tapping anything.
-      expect(find.byType(ProfileContent), findsOneWidget);
-      expect(find.byType(AccountHeroSection), findsNothing);
-
-      // The rest of the hub (rail items) is still on-screen — proof that
-      // selecting Account did not navigate away from Settings. The name
-      // appears twice (hero card + preferences form pre-fill).
+      // Cloud Sync is the default-selected rail item now that Account has
+      // been removed from Settings.
+      expect(find.byType(CloudSyncSectionBody), findsOneWidget);
       expect(find.byType(SettingsSectionRailItem), findsWidgets);
-      expect(find.text(_fakeProfile.name), findsWidgets);
       expect(tester.takeException(), isNull);
     },
   );
 
   testWidgets(
-    'the single-column (mobile) Account section keeps the hero card, not '
-    'the full inline profile',
+    'the single-column (mobile) layout no longer renders Account section',
     (tester) async {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
@@ -172,11 +165,12 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_singleColumnHarness(db));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutSingleColumn), findsOneWidget);
-      expect(find.byType(AccountHeroSection), findsOneWidget);
-      expect(find.byType(ProfileContent), findsNothing);
+      // Cloud Sync should be the first visible section now.
+      expect(find.byType(CloudSyncSectionBody), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

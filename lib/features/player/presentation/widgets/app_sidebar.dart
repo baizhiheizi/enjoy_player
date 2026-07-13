@@ -208,18 +208,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
 
                 const Spacer(),
 
-                // Account + Settings at bottom
+                // Account chip at bottom
                 const SidebarAccountChip(),
-                Padding(
-                  padding: EdgeInsets.only(bottom: t.space8),
-                  child: _SidebarNavItem(
-                    icon: Icons.settings_outlined,
-                    selectedIcon: Icons.settings_rounded,
-                    label: l10n.settingsTitle,
-                    selected: path.startsWith('/settings'),
-                    onTap: () => context.go('/settings'),
-                  ),
-                ),
               ],
             ),
           ),

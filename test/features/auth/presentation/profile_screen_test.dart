@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -21,15 +21,13 @@ const _fakeProfile = UserProfile(
 );
 
 class _FakeAuthCtrl extends AuthCtrl {
-  int refreshCount = 0;
-
   @override
   Future<AuthState> build() async => const AuthSignedIn(profile: _fakeProfile);
+}
 
+class _SignedOutAuthCtrl extends AuthCtrl {
   @override
-  Future<void> refreshProfile() async {
-    refreshCount++;
-  }
+  Future<AuthState> build() async => const AuthSignedOut();
 }
 
 class _FakePrefsCtrl extends AppPreferencesCtrl {
@@ -37,10 +35,7 @@ class _FakePrefsCtrl extends AppPreferencesCtrl {
   Future<AppPreferencesState> build() async => AppPreferencesState.initial;
 }
 
-Widget _harness(
-  Widget child, {
-  required _FakeAuthCtrl authCtrl,
-}) {
+Widget _harness(Widget child, AuthCtrl authCtrl) {
   final scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF7B61FF),
     brightness: Brightness.dark,
@@ -68,61 +63,32 @@ Widget _harness(
   );
 }
 
-/// Scrolls the nearest [Scrollable] until [finder] is on-screen. The profile
-/// list is long enough that the sign-out button starts below the fold.
-Future<void> _scrollUntilVisible(WidgetTester tester, Finder finder) async {
-  final scrollable = find.byType(Scrollable).first;
-  for (var i = 0; i < 20 && finder.evaluate().isEmpty; i++) {
-    await tester.drag(scrollable, const Offset(0, -300));
-    await tester.pump();
-  }
-  await tester.pumpAndSettle();
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'ProfileContent renders with RefreshIndicator and scrollable list, '
-    'suitable for the Profile tab',
+    'ProfileScreen renders without Scaffold or AppBar (tab chrome-free)',
     (tester) async {
       final authCtrl = _FakeAuthCtrl();
-      await tester.pumpWidget(
-        _harness(const ProfileContent(), authCtrl: authCtrl),
-      );
+      await tester.pumpWidget(_harness(const ProfileScreen(), authCtrl));
       await tester.pumpAndSettle();
 
-      final l10n = await AppLocalizations.delegate.load(
-        const Locale('en', 'US'),
-      );
-
-      expect(find.byType(RefreshIndicator), findsOneWidget);
-      expect(find.byType(CenteredMaxWidthListView), findsOneWidget);
-      expect(find.byTooltip(l10n.profileRefreshTooltip), findsNothing);
-
-      await _scrollUntilVisible(tester, find.text(l10n.authSignOut));
-      expect(find.text(l10n.authSignOut), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      expect(find.byType(ProfileContent), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
     },
   );
 
   testWidgets(
-    'ProfileContent shows Settings entry tile with gear icon and navigates '
-    'to /settings',
+    'ProfileScreen signed-out state shows sign-in prompt',
     (tester) async {
-      final authCtrl = _FakeAuthCtrl();
-      await tester.pumpWidget(
-        _harness(const ProfileContent(), authCtrl: authCtrl),
-      );
+      final authCtrl = _SignedOutAuthCtrl();
+      await tester.pumpWidget(_harness(const ProfileScreen(), authCtrl));
       await tester.pumpAndSettle();
 
       final l10n = await AppLocalizations.delegate.load(
         const Locale('en', 'US'),
       );
-
-      await _scrollUntilVisible(tester, find.text(l10n.settingsTitle));
-      expect(find.text(l10n.settingsTitle), findsWidgets);
-      expect(find.byIcon(Icons.settings_outlined), findsWidgets);
+      expect(find.text(l10n.authSignInTitle), findsOneWidget);
     },
   );
 }

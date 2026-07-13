@@ -93,7 +93,6 @@ List<SettingsSearchEntry> filterSettingsEntries(
 /// and [SettingsSectionIds.developer] is hidden on release builds by the
 /// presentation layer (FR-005/FR-006), not by this registry.
 const List<SettingsEntryDescriptor> kSettingsRegistry = [
-  SettingsEntryDescriptor(sectionId: SettingsSectionIds.account),
   SettingsEntryDescriptor(sectionId: SettingsSectionIds.cloudSync),
   SettingsEntryDescriptor(
     sectionId: SettingsSectionIds.cloudSync,

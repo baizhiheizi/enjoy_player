@@ -19,7 +19,6 @@ import 'package:enjoy_player/features/settings/application/settings_registry_loc
 import 'package:enjoy_player/features/settings/application/settings_search_query_provider.dart';
 import 'package:enjoy_player/features/settings/application/settings_selected_section_provider.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
-import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/about_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/ai_providers_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
@@ -37,7 +36,6 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 /// single-column layout gates its sections (FR-005/FR-006).
 List<String> _railSectionIds() {
   return [
-    SettingsSectionIds.account,
     SettingsSectionIds.cloudSync,
     SettingsSectionIds.appearanceLanguage,
     SettingsSectionIds.aiProviders,
@@ -50,8 +48,6 @@ List<String> _railSectionIds() {
 
 Widget _sectionBody(String sectionId) {
   switch (sectionId) {
-    case SettingsSectionIds.account:
-      return const ProfileContent(showRefreshIndicator: false);
     case SettingsSectionIds.cloudSync:
       return const CloudSyncSectionBody();
     case SettingsSectionIds.appearanceLanguage:
@@ -180,8 +176,7 @@ class _DetailPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (sectionId == SettingsSectionIds.account ||
-        sectionId == SettingsSectionIds.about) {
+    if (sectionId == SettingsSectionIds.about) {
       final t = EnjoyThemeTokens.of(context);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

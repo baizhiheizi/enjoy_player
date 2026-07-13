@@ -101,7 +101,7 @@ class SidebarAccountChip extends ConsumerWidget {
                       onPressed: () => context.push('/subscription'),
                     )
                   : null,
-              onTap: () => context.push('/profile'),
+              onTap: () => context.go('/profile'),
             );
           }
           return ListTile(

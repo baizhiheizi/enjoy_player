@@ -42,7 +42,7 @@ class AccountHeroSection extends ConsumerWidget {
             email: state.profile.email,
             signedIn: true,
             primaryActionLabel: l10n.settingsAccountOpenProfile,
-            onPrimaryAction: () => context.push('/profile'),
+            onPrimaryAction: () => context.go('/profile'),
             avatar: CircleAvatar(
               backgroundColor: cs.primaryContainer,
               radius: 28,

@@ -29,7 +29,7 @@ class RootShell extends ConsumerStatefulWidget {
 
 class _RootShellState extends ConsumerState<RootShell> {
   int _navIndexForPath(String path) {
-    if (path.startsWith('/settings')) return 3;
+    if (path.startsWith('/profile') || path.startsWith('/settings')) return 3;
     if (path.startsWith('/library') || path.startsWith('/cloud')) return 2;
     if (path.startsWith('/discover')) return 1;
     return 0;
@@ -47,7 +47,7 @@ class _RootShellState extends ConsumerState<RootShell> {
         context.go('/library');
         return;
       case 3:
-        context.go('/settings');
+        context.go('/profile');
         return;
       default:
         context.go('/');
@@ -94,9 +94,9 @@ class _RootShellState extends ConsumerState<RootShell> {
                         label: l10n.libraryTitle,
                       ),
                       EnjoyBottomNavDestination(
-                        icon: Icons.settings_outlined,
-                        selectedIcon: Icons.settings_rounded,
-                        label: l10n.settingsTitle,
+                        icon: Icons.person_outlined,
+                        selectedIcon: Icons.person_rounded,
+                        label: l10n.profileTitle,
                       ),
                     ],
                   )

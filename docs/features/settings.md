@@ -56,8 +56,8 @@ Cloud metadata sync status (see [`sync.md`](sync.md)). Shows the queue, last syn
 
 Single-column (mobile) and two-pane (desktop) render Account differently:
 
-- **Single-column** → `sections/account_hero_section.dart`: a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton while loading and a retry affordance on load failure. Tapping the card pushes the full `/profile` route (`ProfileScreen`).
-- **Two-pane** → the detail pane renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly, with `showRefreshIndicator: false`. This is the *same* widget that powers the standalone `/profile` route (see [`auth.md`](auth.md#profile)), so wide-screen users see and edit their full profile — practice stats, subscription/credits nav, name/goal/language preferences, sign out — without ever leaving the Settings hub. Pull-to-refresh doesn't make sense inside the hub's own scroll view, so this mode shows a small manual refresh icon button instead (mirrors the `cloudRefreshTooltip` pattern used for the Cloud tab in the library screen).
+- **Single-column** → `sections/account_hero_section.dart`: a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton while loading and a retry affordance on load failure. Tapping the card navigates to the Profile tab (`context.go('/profile')`).
+- **Two-pane** → the detail pane renders a `SettingsRow` showing "View Profile" (using `l10n.settingsAccountOpenProfile`) that navigates to the Profile tab via `context.go('/profile')`. The full `ProfileContent` widget is no longer embedded inline; users visit the Profile tab for profile management.
 
 Both paths share the same signed-in/loading/error states from `authCtrlProvider`. Settings requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-login-only-access.md)); unsigned users are redirected to sign-in before reaching this screen.
 

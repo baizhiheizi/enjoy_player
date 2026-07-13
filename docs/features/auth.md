@@ -19,7 +19,7 @@ YouTube account login remains a separate WebView flow ([features/youtube.md](you
 
 ## Profile
 
-The `/profile` route (`ProfileScreen`) is a thin `Scaffold`/`AppBar` wrapper around `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) — the shared, chrome-free body with the identity hero card, practice stats, subscription/credits nav, name/goal/language preferences form, and sign out. The **same** `ProfileContent` widget is also rendered directly inline by the two-pane Settings Account tab (`showRefreshIndicator: false`; see [`settings.md`](settings.md#account-section)) so desktop users never have to leave Settings to manage their profile. The standalone route (`showRefreshIndicator: true`, the default) keeps pull-to-refresh; the inline embed shows a small manual refresh icon button instead, since it already lives inside the Settings hub's own scroll view.
+The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body contains the identity hero card, practice stats, subscription/credits nav, name/goal/language preferences form, a **Settings entry** that navigates to `/settings`, and sign out. `ProfileContent` is a single-consumer widget (no longer embedded in the Settings two-pane layout); it always uses pull-to-refresh. The Settings Account section now shows a "View Profile" link row instead of embedding the full profile inline.
 
 ## API endpoints (client)
 

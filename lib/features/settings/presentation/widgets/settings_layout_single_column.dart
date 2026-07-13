@@ -18,7 +18,6 @@ import 'package:enjoy_player/features/settings/application/settings_search_query
 import 'package:enjoy_player/features/settings/application/settings_section_collapse_provider.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/about_section.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_hero_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/ai_providers_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
@@ -63,10 +62,6 @@ class SettingsLayoutSingleColumn extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (visible(SettingsSectionIds.account)) ...[
-          const AccountHeroSection(),
-          SizedBox(height: t.space16),
-        ],
         if (visible(SettingsSectionIds.cloudSync)) ...[
           SettingsSectionCard(
             title: visual(SettingsSectionIds.cloudSync).title,

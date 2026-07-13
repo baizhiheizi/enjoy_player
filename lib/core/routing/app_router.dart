@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart'
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
+import 'package:enjoy_player/features/auth/presentation/profile_preferences_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/sign_in_screen.dart';
@@ -173,10 +174,7 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: '/settings',
-            pageBuilder: (context, state) => _shellPage(
-              key: const ValueKey<String>('shell-settings'),
-              child: const SettingsScreen(),
-            ),
+            builder: (context, state) => const SettingsScreen(),
           ),
           GoRoute(
             path: '/settings/sync',
@@ -196,7 +194,17 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => _shellPage(
+              key: const ValueKey<String>('shell-profile'),
+              child: const ProfileScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'preferences',
+                builder: (context, state) =>
+                    const ProfilePreferencesScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/credits',
