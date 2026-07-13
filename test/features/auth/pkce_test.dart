@@ -65,7 +65,7 @@ void main() {
         getAccessToken: store.readAccessToken,
       );
       final repo = AuthRepository(
-        authApi: AuthApi(apiClient),
+        authApi: AuthApi(authClient: apiClient, userClient: apiClient),
         tokenStore: store,
         getBaseUrl: () async => 'https://enjoy.bot',
       );

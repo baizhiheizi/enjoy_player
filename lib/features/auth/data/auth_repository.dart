@@ -1,6 +1,7 @@
 /// Persists session tokens + profile cache; calls [AuthApi].
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show PlatformException;
@@ -26,7 +27,10 @@ final Logger _log = logNamed('auth');
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
   return AuthRepository(
-    authApi: AuthApi(ref.watch(authApiClientProvider)),
+    authApi: AuthApi(
+      authClient: ref.watch(authApiClientProvider),
+      userClient: ref.watch(apiClientProvider),
+    ),
     tokenStore: ref.watch(secureTokenStoreProvider),
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
   );
@@ -42,6 +46,19 @@ class AuthRepository {
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
   final Future<String> Function() _getBaseUrl;
+
+  /// Single-flight guard for [refreshSession].
+  ///
+  /// When multiple concurrent API calls hit a 401 from an expired access
+  /// token, they all enter the 401-retry path at once and would each call
+  /// `POST /api/v1/auth/refresh`. The backend
+  /// ([`RefreshTokenRotator`](https://github.com/baizhiheizi/enjoy_web/blob/main/app/services/native_auth/refresh_token_rotator.rb))
+  /// rotates the refresh token eagerly on first receipt, so the second /
+  /// third / … concurrent calls would see HTTP 401 `Invalid refresh token`
+  /// and [clearSession] would fire — signing the user out. Sharing a single
+  /// in-flight `Future` keeps a burst of parallel 401s down to one refresh
+  /// round-trip.
+  Completer<bool>? _inFlightRefresh;
 
   Future<UserProfile> signInGoogle({required String idToken}) =>
       _completeSignIn(
@@ -114,24 +131,39 @@ class AuthRepository {
   }
 
   Future<bool> refreshSession() async {
-    final refresh = await _tokenStore.readRefreshToken();
-    if (refresh == null || refresh.isEmpty) {
-      return false;
+    final inFlight = _inFlightRefresh;
+    if (inFlight != null) {
+      return inFlight.future;
     }
+
+    final completer = Completer<bool>();
+    _inFlightRefresh = completer;
     try {
-      final m = await _authApi.refresh(refreshToken: refresh);
-      final tokens = AuthTokenResponse.fromJson(m);
-      await _persistTokens(tokens);
-      return true;
-    } on ApiException catch (e) {
-      _log.warning('refresh session failed', e);
-      if (_shouldRevokeSessionOnApiException(e)) {
-        await clearSession();
+      final refresh = await _tokenStore.readRefreshToken();
+      if (refresh == null || refresh.isEmpty) {
+        completer.complete(false);
+        return false;
       }
-      return false;
-    } catch (e, st) {
-      _log.warning('refresh session failed', e, st);
-      return false;
+      try {
+        final m = await _authApi.refresh(refreshToken: refresh);
+        final tokens = AuthTokenResponse.fromJson(m);
+        await _persistTokens(tokens);
+        completer.complete(true);
+        return true;
+      } on ApiException catch (e) {
+        _log.warning('refresh session failed', e);
+        if (_shouldRevokeSessionOnApiException(e)) {
+          await clearSession();
+        }
+        completer.complete(false);
+        return false;
+      } catch (e, st) {
+        _log.warning('refresh session failed', e, st);
+        completer.complete(false);
+        return false;
+      }
+    } finally {
+      _inFlightRefresh = null;
     }
   }
 

@@ -36,13 +36,12 @@ void main() {
     });
 
     AuthRepository build(http.Client client) {
-      final api = AuthApi(
-        ApiClient(
-          httpClient: client,
-          getBaseUrl: () async => 'https://enjoy.bot',
-          getAccessToken: () async => null,
-        ),
+      final sharedClient = ApiClient(
+        httpClient: client,
+        getBaseUrl: () async => 'https://enjoy.bot',
+        getAccessToken: () async => null,
       );
+      final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
       return AuthRepository(
         authApi: api,
         tokenStore: tokenStore,
@@ -151,6 +150,70 @@ void main() {
 
       expect(ok, isFalse);
     });
+
+    test(
+      'concurrent refreshSession calls share a single in-flight refresh '
+      '(single-flight) — backend only sees one POST /api/v1/auth/refresh',
+      () async {
+        var refreshCalls = 0;
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/v1/auth/refresh') {
+            refreshCalls++;
+          }
+          // Slight delay so concurrent callers race into the same completer
+          // before the first call's response is processed.
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          return http.Response(
+            '{"accessToken":"a2","refreshToken":"r2","expiresIn":3600}',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
+        final repo = build(client);
+
+        final results = await Future.wait([
+          repo.refreshSession(),
+          repo.refreshSession(),
+          repo.refreshSession(),
+        ]);
+
+        expect(results, [true, true, true]);
+        // Without single-flight, the backend would have rotated the refresh
+        // token on the first request and rejected the next two with 401,
+        // which `clearSession()` would then treat as a hard auth failure and
+        // sign the user out — see auth_repository.dart single-flight note.
+        expect(refreshCalls, 1);
+        expect(await tokenStore.readAccessToken(), 'a2');
+        expect(await tokenStore.readRefreshToken(), 'r2');
+      },
+    );
+
+    test(
+      'concurrent refreshSession calls share the failure result and do not '
+      'double-clear the session when the backend rejects the refresh token',
+      () async {
+        var refreshCalls = 0;
+        final client = MockClient((request) async {
+          if (request.url.path == '/api/v1/auth/refresh') {
+            refreshCalls++;
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          return http.Response('rotated', 401);
+        });
+        final repo = build(client);
+
+        final results = await Future.wait([
+          repo.refreshSession(),
+          repo.refreshSession(),
+          repo.refreshSession(),
+        ]);
+
+        expect(results, [false, false, false]);
+        expect(refreshCalls, 1);
+        expect(await tokenStore.readAccessToken(), isNull);
+        expect(await tokenStore.readRefreshToken(), isNull);
+      },
+    );
   });
 
   group('AuthRepository.loadInitialAuthState', () {
@@ -162,13 +225,12 @@ void main() {
     });
 
     AuthRepository buildRepo(http.Client client) {
-      final api = AuthApi(
-        ApiClient(
-          httpClient: client,
-          getBaseUrl: () async => 'https://enjoy.bot',
-          getAccessToken: tokenStore.readAccessToken,
-        ),
+      final sharedClient = ApiClient(
+        httpClient: client,
+        getBaseUrl: () async => 'https://enjoy.bot',
+        getAccessToken: tokenStore.readAccessToken,
       );
+      final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
       return AuthRepository(
         authApi: api,
         tokenStore: tokenStore,

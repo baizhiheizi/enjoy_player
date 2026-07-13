@@ -18,13 +18,14 @@ import 'package:http/http.dart' as http;
 class _FakeAuthRepository extends AuthRepository {
   _FakeAuthRepository()
     : super(
-        authApi: AuthApi(
-          ApiClient(
+        authApi: () {
+          final sharedClient = ApiClient(
             httpClient: http.Client(),
             getBaseUrl: () async => 'https://enjoy.bot',
             getAccessToken: () async => null,
-          ),
-        ),
+          );
+          return AuthApi(authClient: sharedClient, userClient: sharedClient);
+        }(),
         tokenStore: SecureTokenStore(const FlutterSecureStorage()),
         getBaseUrl: () async => 'https://enjoy.bot',
       );

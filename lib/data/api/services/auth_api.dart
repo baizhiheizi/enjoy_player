@@ -1,10 +1,28 @@
+// ignore_for_file: prefer_initializing_formals
+
 /// REST client for Enjoy account auth and profile.
 library;
 
+import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
+/// Routes the unauthenticated `/api/v1/auth/*` endpoints through
+/// [authClient] and the authenticated `/api/v1/profile` endpoints through
+/// [userClient].
+///
+/// Why two clients? [authClient] is the no-refresh client used by sign-in,
+/// OTP, PKCE exchange, and the refresh-token rotation itself — calling
+/// `/api/v1/auth/refresh` from inside a 401-retry would recurse forever.
+/// [userClient] is the refresh-enabled client used for normal signed-in
+/// app traffic; routing the profile endpoints through it lets the 401-retry
+/// hook transparently rotate the access token instead of immediately
+/// calling `clearSession()` when the access JWT is past its 1-hour `exp`.
 class AuthApi extends RestApi {
-  AuthApi(super.client);
+  AuthApi({required ApiClient authClient, required ApiClient userClient})
+    : _userClient = userClient,
+      super(authClient);
+
+  final ApiClient _userClient;
 
   static const _authPrefix = '/api/v1/auth';
 
@@ -70,8 +88,9 @@ class AuthApi extends RestApi {
         requireAuth: false,
       );
 
-  Future<Map<String, dynamic>> profile() => client.getJson('/api/v1/profile');
+  Future<Map<String, dynamic>> profile() =>
+      _userClient.getJson('/api/v1/profile');
 
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> user) =>
-      client.patchJson('/api/v1/profile', body: {'user': user});
+      _userClient.patchJson('/api/v1/profile', body: {'user': user});
 }

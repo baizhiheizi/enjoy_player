@@ -88,8 +88,8 @@ the one whose base URL and auth posture matches your endpoint:
 
 | Provider | Base URL | Auth | Use for |
 |----------|----------|------|---------|
-| `authApiClientProvider` | `apiBaseUrlProvider` | sends access token, no refresh hook | Pre-session calls and any service that should never trigger a refresh |
-| `apiClientProvider` | `apiBaseUrlProvider` | sends access token; on 401, calls `authRepository.refreshSession()` once, then retries | Default for signed-in app traffic (profile, library, sync, recordings, subscription, stats, …) |
+| `authApiClientProvider` | `apiBaseUrlProvider` | sends access token, no refresh hook | Pre-session calls and any service that should never trigger a refresh — sign-in, OTP, PKCE exchange, and the refresh-token rotation endpoint itself (recursion guard). Do not route authenticated endpoints through this client or a stale access token will surface as a forced sign-out. |
+| `apiClientProvider` | `apiBaseUrlProvider` | sends access token; on 401, calls `authRepository.refreshSession()` once (single-flight across concurrent callers), then retries | Default for signed-in app traffic — profile (`GET/PATCH /api/v1/profile`), library, sync, recordings, subscription, stats, … |
 | `aiApiClientProvider` | `aiApiBaseUrlProvider` | sends access token, no refresh hook | Worker routes (chat, ASR, translation, YouTube transcripts, Azure token, credits) — these hit a separate origin so they must not inherit the Rails API base |
 
 ## What `ApiClient` gives you for free
@@ -126,7 +126,8 @@ Reference services that already follow this pattern (each is a thin
 `RestApi` subclass returning `JsonMap`):
 
 - [`auth_api.dart`](../../lib/data/api/services/auth_api.dart) — sign-in, OTP,
-  PKCE, refresh, profile.
+  PKCE, refresh (all via the no-refresh `authApiClient`); profile (`GET/PATCH
+  /api/v1/profile`) via the refresh-enabled `apiClient`.
 - [`audio_api.dart`](../../lib/data/api/services/audio_api.dart) —
   `/api/v1/mine/audios` CRUD.
 - [`video_api.dart`](../../lib/data/api/services/video_api.dart) — both the
