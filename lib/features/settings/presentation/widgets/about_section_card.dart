@@ -11,11 +11,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:enjoy_player/core/application/app_links.dart';
 import 'package:enjoy_player/core/diagnostics/diagnostic_export_flow.dart';
 import 'package:enjoy_player/core/diagnostics/diagnostics_verbose_provider.dart';
-import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/developer_contact_sheet.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_host.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -168,62 +168,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                         endIndent: t.space16,
                         color: cs.outlineVariant.withValues(alpha: 0.18),
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: Haptics.wrapTap(
-                            context,
-                            () => runManualUpdateCheck(context, ref),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: t.space16,
-                              vertical: t.space12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.system_update_alt_rounded,
-                                  size: 22,
-                                  color: cs.primary.withValues(alpha: 0.92),
-                                ),
-                                SizedBox(width: t.space12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.settingsCheckForUpdatesTitle,
-                                        style: tt.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space4),
-                                      Text(
-                                        l10n.settingsCheckForUpdatesSubtitle,
-                                        style: tt.bodySmall?.copyWith(
-                                          color: cs.onSurfaceVariant.withValues(
-                                            alpha: 0.86,
-                                          ),
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 22,
-                                  color: cs.onSurfaceVariant.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      SettingsRow(
+                        leadingIcon: Icons.system_update_alt_rounded,
+                        title: l10n.settingsCheckForUpdatesTitle,
+                        subtitle: l10n.settingsCheckForUpdatesSubtitle,
+                        onTap: () => runManualUpdateCheck(context, ref),
+                        responsive: false,
                       ),
                       Divider(
                         height: 1,
@@ -233,7 +183,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       ),
                       Padding(
                         padding: EdgeInsets.fromLTRB(
-                          t.space16,
+                          t.space20,
                           t.space12,
                           t.space8,
                           t.space8,
@@ -244,12 +194,18 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.bug_report_outlined,
-                                  size: 22,
-                                  color: cs.primary.withValues(alpha: 0.92),
+                                SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.bug_report_outlined,
+                                      size: 22,
+                                      color: cs.primary.withValues(alpha: 0.92),
+                                    ),
+                                  ),
                                 ),
-                                SizedBox(width: t.space12),
+                                SizedBox(width: t.space16),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -304,7 +260,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                             ),
                             Padding(
                               padding: EdgeInsets.only(
-                                left: 34 + t.space12,
+                                left: 44 + t.space16 + t.space12,
                                 top: t.space4,
                               ),
                               child: Text(
@@ -326,62 +282,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                         endIndent: t.space16,
                         color: cs.outlineVariant.withValues(alpha: 0.18),
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: Haptics.wrapTap(
-                            context,
-                            () => exportDiagnosticReport(context),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: t.space16,
-                              vertical: t.space12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.archive_outlined,
-                                  size: 22,
-                                  color: cs.primary.withValues(alpha: 0.92),
-                                ),
-                                SizedBox(width: t.space12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.settingsDiagnosticsExportTitle,
-                                        style: tt.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space4),
-                                      Text(
-                                        l10n.settingsDiagnosticsExportSubtitle,
-                                        style: tt.bodySmall?.copyWith(
-                                          color: cs.onSurfaceVariant.withValues(
-                                            alpha: 0.86,
-                                          ),
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 22,
-                                  color: cs.onSurfaceVariant.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      SettingsRow(
+                        leadingIcon: Icons.archive_outlined,
+                        title: l10n.settingsDiagnosticsExportTitle,
+                        subtitle: l10n.settingsDiagnosticsExportSubtitle,
+                        onTap: () => exportDiagnosticReport(context),
+                        responsive: false,
                       ),
                       Divider(
                         height: 1,
@@ -389,62 +295,18 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                         endIndent: t.space16,
                         color: cs.outlineVariant.withValues(alpha: 0.18),
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: Haptics.wrapTap(
-                            context,
-                            () => _openGitHub(context),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: t.space16,
-                              vertical: t.space12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.code_rounded,
-                                  size: 22,
-                                  color: cs.primary.withValues(alpha: 0.92),
-                                ),
-                                SizedBox(width: t.space12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.settingsAboutOpenSourceTitle,
-                                        style: tt.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space4),
-                                      Text(
-                                        l10n.settingsAboutOpenSourceSubtitle,
-                                        style: tt.bodySmall?.copyWith(
-                                          color: cs.onSurfaceVariant.withValues(
-                                            alpha: 0.86,
-                                          ),
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.open_in_new_rounded,
-                                  size: 18,
-                                  color: cs.onSurfaceVariant.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      SettingsRow(
+                        leadingIcon: Icons.code_rounded,
+                        title: l10n.settingsAboutOpenSourceTitle,
+                        subtitle: l10n.settingsAboutOpenSourceSubtitle,
+                        showChevron: false,
+                        trailing: Icon(
+                          Icons.open_in_new_rounded,
+                          size: 18,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.55),
                         ),
+                        onTap: () => _openGitHub(context),
+                        responsive: false,
                       ),
                       Divider(
                         height: 1,
@@ -452,62 +314,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                         endIndent: t.space16,
                         color: cs.outlineVariant.withValues(alpha: 0.18),
                       ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: Haptics.wrapTap(
-                            context,
-                            () => showDeveloperContactSheet(context),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: t.space16,
-                              vertical: t.space12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.forum_outlined,
-                                  size: 22,
-                                  color: cs.primary.withValues(alpha: 0.92),
-                                ),
-                                SizedBox(width: t.space12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.settingsAboutContactTitle,
-                                        style: tt.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                      SizedBox(height: t.space4),
-                                      Text(
-                                        l10n.settingsAboutContactSubtitle,
-                                        style: tt.bodySmall?.copyWith(
-                                          color: cs.onSurfaceVariant.withValues(
-                                            alpha: 0.86,
-                                          ),
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 22,
-                                  color: cs.onSurfaceVariant.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      SettingsRow(
+                        leadingIcon: Icons.forum_outlined,
+                        title: l10n.settingsAboutContactTitle,
+                        subtitle: l10n.settingsAboutContactSubtitle,
+                        onTap: () => showDeveloperContactSheet(context),
+                        responsive: false,
                       ),
                     ],
                   ),

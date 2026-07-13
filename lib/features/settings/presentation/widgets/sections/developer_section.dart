@@ -32,11 +32,11 @@ class DeveloperSectionBody extends StatelessWidget {
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.symmetric(
-              horizontal: t.space16,
+              horizontal: t.space20,
               vertical: t.space8,
             ),
             childrenPadding: EdgeInsets.fromLTRB(
-              t.space16,
+              t.space20,
               t.space16,
               t.space16,
               t.space16,
@@ -58,11 +58,11 @@ class DeveloperSectionBody extends StatelessWidget {
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.symmetric(
-              horizontal: t.space16,
+              horizontal: t.space20,
               vertical: t.space8,
             ),
             childrenPadding: EdgeInsets.fromLTRB(
-              t.space16,
+              t.space20,
               t.space16,
               t.space16,
               t.space16,
@@ -102,7 +102,9 @@ class _ExpansionLeading extends StatelessWidget {
     return SizedBox(
       width: 44,
       height: 44,
-      child: Center(child: Icon(icon, color: cs.onSurfaceVariant, size: 22)),
+      child: Center(
+        child: Icon(icon, color: cs.primary.withValues(alpha: 0.92), size: 22),
+      ),
     );
   }
 }

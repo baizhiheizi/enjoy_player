@@ -3,8 +3,13 @@
 /// Generalized from the pre-redesign `_SettingsTile` in `settings_screen.dart`
 /// so every extracted section (`sections/*.dart`) and the two-pane detail
 /// pane share one row implementation. Behavior-preserving: same layout,
-/// same compact/wide breakpoint (430px), same disabled-row styling when
+/// same compact/wide breakpoint (320px), same disabled-row styling when
 /// [onTap] is null (used for capability-gated rows — FR-007).
+///
+/// Set [responsive] to `false` when this row is placed inside an
+/// [IntrinsicHeight] ancestor — the [LayoutBuilder] would cause layout
+/// exceptions with intrinsic sizing. The row will render in its wide
+/// (side-by-side) layout unconditionally.
 library;
 
 import 'package:flutter/material.dart';
@@ -24,6 +29,7 @@ class SettingsRow extends StatelessWidget {
     this.trailing,
     this.showChevron = true,
     this.onTap,
+    this.responsive = true,
   });
 
   final String title;
@@ -36,8 +42,24 @@ class SettingsRow extends StatelessWidget {
   final bool showChevron;
   final VoidCallback? onTap;
 
+  /// When `true` (default), wraps the row in a [LayoutBuilder] that switches
+  /// to a stacked layout below 320 px.  Set to `false` when the row is
+  /// placed inside an [IntrinsicHeight] ancestor — the [LayoutBuilder] would
+  /// cause layout exceptions with intrinsic sizing.
+  final bool responsive;
+
   @override
   Widget build(BuildContext context) {
+    if (responsive) {
+      return LayoutBuilder(
+        builder: (ctx, constraints) =>
+            _buildRow(ctx, compact: constraints.maxWidth < 320),
+      );
+    }
+    return _buildRow(context, compact: false);
+  }
+
+  Widget _buildRow(BuildContext context, {required bool compact}) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
@@ -59,7 +81,7 @@ class SettingsRow extends StatelessWidget {
           child: Icon(
             leadingIcon,
             color: iconTint.withValues(alpha: interactive ? 0.92 : 0.6),
-            size: 24,
+            size: 22,
           ),
         ),
       );
@@ -171,48 +193,43 @@ class SettingsRow extends StatelessWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 430;
-        return Focus(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap == null ? null : Haptics.wrapTap(context, onTap!),
-              borderRadius: BorderRadius.circular(t.radiusXl),
-              overlayColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.pressed)) {
-                  return cs.primary.withValues(alpha: 0.08);
-                }
-                if (states.contains(WidgetState.hovered) ||
-                    states.contains(WidgetState.focused)) {
-                  return cs.onSurface.withValues(alpha: 0.045);
-                }
-                return null;
-              }),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 76),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: t.space20,
-                    vertical: t.space12,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (leadWidget != null) ...[
-                        leadWidget,
-                        SizedBox(width: t.space16),
-                      ],
-                      Expanded(child: textColumn(compact: compact)),
-                    ],
-                  ),
-                ),
+    return Focus(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap == null ? null : Haptics.wrapTap(context, onTap!),
+          borderRadius: BorderRadius.circular(t.radiusXl),
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return cs.primary.withValues(alpha: 0.08);
+            }
+            if (states.contains(WidgetState.hovered) ||
+                states.contains(WidgetState.focused)) {
+              return cs.onSurface.withValues(alpha: 0.045);
+            }
+            return null;
+          }),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: t.space20,
+                vertical: t.space12,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (leadWidget != null) ...[
+                    leadWidget,
+                    SizedBox(width: t.space16),
+                  ],
+                  Expanded(child: textColumn(compact: compact)),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

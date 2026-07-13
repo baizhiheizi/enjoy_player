@@ -13,6 +13,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
@@ -117,23 +118,23 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           SizedBox(height: t.space16),
           EnjoyCard(
             padding: EdgeInsets.zero,
-            child: ListTile(
-              leading: const Icon(Icons.tune_rounded),
-              title: Text(l10n.profileSectionPreferences),
-              subtitle: Text(l10n.profileSectionPreferencesHint),
-              trailing: const Icon(Icons.chevron_right_rounded),
+            child: SettingsRow(
+              leadingIcon: Icons.tune_rounded,
+              title: l10n.profileSectionPreferences,
+              subtitle: l10n.profileSectionPreferencesHint,
               onTap: () => context.push('/profile/preferences'),
+              responsive: false,
             ),
           ),
           SizedBox(height: t.space8),
           EnjoyCard(
             padding: EdgeInsets.zero,
-            child: ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: Text(l10n.settingsTitle),
-              subtitle: Text(l10n.settingsSubtitle),
-              trailing: const Icon(Icons.chevron_right_rounded),
+            child: SettingsRow(
+              leadingIcon: Icons.settings_outlined,
+              title: l10n.settingsTitle,
+              subtitle: l10n.settingsSubtitle,
               onTap: () => context.push('/settings'),
+              responsive: false,
             ),
           ),
           SizedBox(height: t.space32),
