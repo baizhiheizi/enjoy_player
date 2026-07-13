@@ -19,7 +19,19 @@ YouTube account login remains a separate WebView flow ([features/youtube.md](you
 
 ## Profile
 
-The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body contains the identity hero card, practice stats, subscription/credits nav, name/goal/language preferences form, a **Settings entry** that navigates to `/settings`, and sign out. `ProfileContent` is a single-consumer widget (no longer embedded in the Settings two-pane layout); it always uses pull-to-refresh. The Settings Account section now shows a "View Profile" link row instead of embedding the full profile inline.
+The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body contains the identity hero card, practice stats, subscription/credits nav, a **Preferences** tile that pushes `/profile/preferences`, a **Settings** tile that pushes `/settings`, and the sign-out action. `ProfileContent` is a single-consumer widget (no longer embedded in the Settings two-pane layout) and always uses pull-to-refresh.
+
+### `/profile/preferences` — `ProfilePreferencesScreen`
+
+`ProfilePreferencesScreen` (`lib/features/auth/presentation/profile_preferences_screen.dart`) is the dedicated sub-screen for editing the user's own profile. It is a `Scaffold` with its own `AppBar` and lives **outside** the chrome-free Profile tab body — pushing it from the Profile tab still uses the shell's `/profile/preferences` child route. The screen hosts:
+
+- **Display name** — text field, required (validated against `l10n.profileFieldRequired`); saved via `PATCH /api/v1/profile` (`UpdateProfileRequest(name: …)`).
+- **Daily goal** — numeric text field; parsed with `int.tryParse`; an empty input is sent as `null` (no change to the server-side value).
+- **Display language** — dropdown of `kAppDisplayLocales`; writes to `appPreferencesCtrlProvider.setLocale(...)`.
+- **Learning language** — dropdown of `kSupportedFocusLanguageTags`; writes to `appPreferencesCtrlProvider.setLearningLanguage(...)`. Rendered as a read-only helper (`profileLearningLanguageReadOnly`) because the learning language is server-managed and updated on login / refresh.
+- **Native language** — dropdown restricted to `allowedNativeTags(learnTag)` (excludes the current learning language). Auto-selects the first allowed option when the persisted native tag is no longer valid; disabled (`onChanged: null`) when only one option remains, keeping the explanatory `settingsNativeMustDifferHint` subtitle visible.
+
+A single **Save** button (`EnjoyButton.primary`) submits `UpdateProfileRequest(name, goal)` and shows `l10n.profileSaveSuccess` on success; a `CircularProgressIndicator` replaces the label while `_saving` is true. The form re-hydrates from the current `authCtrlProvider` profile in a post-frame callback whenever the `profile.id` changes (e.g. after sign-in / profile switch).
 
 ## API endpoints (client)
 

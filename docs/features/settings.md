@@ -16,7 +16,7 @@ Section content lives in one file per section under `lib/features/settings/prese
 
 ## Search
 
-`SettingsSearchField` writes to `settingsSearchQueryProvider` (a `@riverpod` string notifier). `filterSettingsEntries(query, entries)` (pure function, `lib/features/settings/domain/settings_search_entry.dart`) matches case-insensitively against each row's title and keywords in the static `SettingsSearchEntry` registry (one entry per section/row — Account, Cloud sync, Appearance & Language ×3, AI providers, Recording, Keyboard shortcuts ×2, Developer ×3, About ×2 — the "Contact the developer" row matches keywords like "email"/"wechat"/"mixin").
+`SettingsSearchField` writes to `settingsSearchQueryProvider` (a `@riverpod` string notifier). `filterSettingsEntries(query, entries)` (pure function, `lib/features/settings/domain/settings_search_entry.dart`) matches case-insensitively against each row's title and keywords in the static `SettingsSearchEntry` registry (one entry per section/row — Cloud sync, Appearance & Language ×3, AI providers, Recording, Keyboard shortcuts ×2, Developer ×3, About ×2 — the "Contact the developer" row matches keywords like "email"/"wechat"/"mixin"). Account is no longer in the registry: account management lives on the Profile tab, so the Settings search index is scoped to non-account surfaces.
 
 - A match inside a currently-collapsed section (Developer/About) auto-expands that section so the match is visible.
 - A query matching nothing shows a "no results" empty state with a clear affordance that restores the prior collapse state.
@@ -27,13 +27,12 @@ Section content lives in one file per section under `lib/features/settings/prese
 `SettingsScreen` uses a `LayoutBuilder` keyed on `EnjoyThemeTokens.breakpointRail`:
 
 - **Below the breakpoint** → `SettingsLayoutSingleColumn`: every section rendered in reading order via `SettingsSectionCard`/`SettingsCollapsibleSection`, applying default-collapse from `settingsSectionCollapseProvider` (`Map<String, bool>`, seeded `true` only for `developer` and `about`).
-- **At/above the breakpoint** → `SettingsLayoutTwoPane`: a rail of `SettingsSectionRailItem`s (selected-state highlight matching `AppSidebar`) plus a detail pane rendering the selected section's rows via the *same* `sections/*.dart` widgets. Selection is tracked by `settingsSelectedSectionProvider` (defaults to `account`) and survives repeated resizing across the breakpoint. The Account rail item is the one exception: instead of a `sections/*.dart` widget, it renders `ProfileContent` (shared with the standalone `/profile` route) directly inline — see [Account section](#account-section) below.
+- **At/above the breakpoint** → `SettingsLayoutTwoPane`: a rail of `SettingsSectionRailItem`s (selected-state highlight matching `AppSidebar`) plus a detail pane rendering the selected section's rows via the *same* `sections/*.dart` widgets. Selection is tracked by `settingsSelectedSectionProvider` (defaults to the first rail entry — `cloudSync` — since Account is no longer in the rail) and survives repeated resizing across the breakpoint. The Account section was moved out of the rail entirely when the Profile tab was introduced; see [Account section](#account-section) below.
 
 Every settings row is a `SettingsRow` (icon, title, subtitle, value badge, optional chevron) — shared by both layouts so a value badge is never clipped in a way that hides the current value, even at narrow widths (a long value wraps below the title instead of disappearing). Capability-gated rows (e.g. native language when the learning language leaves only one native choice) render with `onTap: null` and keep their explanatory subtitle instead of silently omitting the control.
 
 ## Sections
 
-- **Account** — see [Account section](#account-section) below; behavior differs between single-column (hero card + link) and two-pane (full profile inline).
 - **Cloud sync** (`sections/cloud_sync_section.dart`) — status pill (synced / queued / error) read from the sync queue snapshot; links to `/settings/sync`.
 - **Appearance & Language** (`sections/appearance_language_section.dart`) — display, learning, and native language pickers (`language_choice_sheet.dart`). Each pick updates its row's value badge immediately with no need to leave the hub. Native language is capability-gated to the choices that remain after excluding the current learning language.
 - **AI providers** (`sections/ai_providers_section.dart`) — per-modality BYOK provider configuration entry point.
@@ -54,12 +53,14 @@ Cloud metadata sync status (see [`sync.md`](sync.md)). Shows the queue, last syn
 
 ## Account section
 
-Single-column (mobile) and two-pane (desktop) render Account differently:
+Account management **no longer lives inside the Settings hub**. The signed-in profile is the dedicated `/profile` shell tab; Settings is reached from inside the Profile tab via a tile. The Settings hub therefore starts at the first post-account section (Cloud sync) and the previous `sections/account_hero_section.dart` widget — a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton and a retry affordance on load failure — is no longer wired into either layout. The widget is retained in the source tree because `test/features/settings/presentation/sections/settings_loading_states_test.dart` exercises its signed-in / signed-out / loading / error states in isolation; treat it as a **test-only fixture** until a future surface (e.g. an in-shell "switch account" sheet) reuses it.
 
-- **Single-column** → `sections/account_hero_section.dart`: a compact identity card (avatar, name, email) or a sign-in prompt, with a shimmer skeleton while loading and a retry affordance on load failure. Tapping the card navigates to the Profile tab (`context.go('/profile')`).
-- **Two-pane** → the detail pane renders a `SettingsRow` showing "View Profile" (using `l10n.settingsAccountOpenProfile`) that navigates to the Profile tab via `context.go('/profile')`. The full `ProfileContent` widget is no longer embedded inline; users visit the Profile tab for profile management.
+Settings still requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-login-only-access.md)) for the sync / AI / appearance surfaces to make sense; unsigned users are redirected to sign-in before reaching this screen, and the Profile tab's sign-out flow returns them there.
 
-Both paths share the same signed-in/loading/error states from `authCtrlProvider`. Settings requires a signed-in Enjoy account ([ADR-0031](../decisions/0031-login-only-access.md)); unsigned users are redirected to sign-in before reaching this screen.
+### Reach paths
+
+- From the **Profile tab** — `ProfileContent` renders a Settings tile (`Icons.settings_outlined`, `l10n.settingsTitle` / `l10n.settingsSubtitle`) that pushes `/settings`.
+- From the **`SidebarAccountChip`** on desktop — the chip subtitle links to `/profile` (the account row itself is the Profile tab entry, not a Settings shortcut).
 
 ## Sign-out flow
 
@@ -84,7 +85,9 @@ Confirmation dialog explains cloud-side consequences (per-target recordings will
 | Collapsible section | [`lib/features/settings/presentation/widgets/settings_collapsible_section.dart`](../../lib/features/settings/presentation/widgets/settings_collapsible_section.dart) |
 | Section card | [`lib/features/settings/presentation/widgets/settings_section_card.dart`](../../lib/features/settings/presentation/widgets/settings_section_card.dart) |
 | Section content | [`lib/features/settings/presentation/widgets/sections/`](../../lib/features/settings/presentation/widgets/sections/) |
-| Account section (two-pane, inline profile) | [`lib/features/auth/presentation/widgets/profile_content.dart`](../../lib/features/auth/presentation/widgets/profile_content.dart) |
+| Profile tab body (replaces the old in-Settings account section) | [`lib/features/auth/presentation/widgets/profile_content.dart`](../../lib/features/auth/presentation/widgets/profile_content.dart) |
+| Profile preferences sub-screen | [`lib/features/auth/presentation/profile_preferences_screen.dart`](../../lib/features/auth/presentation/profile_preferences_screen.dart) |
+| Account hero widget (test-only — no longer wired into the active UI) | [`lib/features/settings/presentation/widgets/sections/account_hero_section.dart`](../../lib/features/settings/presentation/widgets/sections/account_hero_section.dart) |
 | Search registry + filter | [`lib/features/settings/domain/settings_search_entry.dart`](../../lib/features/settings/domain/settings_search_entry.dart) |
 | Search/selection/collapse providers | [`lib/features/settings/application/`](../../lib/features/settings/application/) |
 | Language picker sheet | [`lib/features/settings/presentation/widgets/language_choice_sheet.dart`](../../lib/features/settings/presentation/widgets/language_choice_sheet.dart) |
