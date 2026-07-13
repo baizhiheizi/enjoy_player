@@ -786,8 +786,9 @@ BrowseVideoEntry? _parseShortsLockupViewModel(
 /// (e.g. "3 days ago", "Streamed live 2 days ago", "Premiered 5 months ago").
 bool _looksLikeRelativeTime(String text) {
   final lower = text.toLowerCase();
-  if (lower.contains('streamed live') || lower.contains('premiered'))
+  if (lower.contains('streamed live') || lower.contains('premiered')) {
     return true;
+  }
   return RegExp(
     r'\d+\s+(second|minute|hour|day|week|month|year)s?\s+ago',
   ).hasMatch(lower);
