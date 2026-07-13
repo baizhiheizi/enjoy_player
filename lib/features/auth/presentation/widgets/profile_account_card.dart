@@ -1,7 +1,8 @@
-/// Profile account card: balance row + Subscription / Credits nav tiles.
+/// Profile account card: credits row + Subscription / Credits nav tiles.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -10,13 +11,15 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class ProfileAccountCard extends StatelessWidget {
   const ProfileAccountCard({
-    required this.balance,
+    required this.creditsUsedToday,
+    required this.dailyLimit,
     required this.onCreditsTap,
     required this.onSubscriptionTap,
     super.key,
   });
 
-  final double? balance;
+  final int? creditsUsedToday;
+  final int dailyLimit;
   final VoidCallback onCreditsTap;
   final VoidCallback onSubscriptionTap;
 
@@ -26,53 +29,52 @@ class ProfileAccountCard extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final balanceText = balance?.toStringAsFixed(2);
-    final isNegative = balance != null && balance! < 0;
+
+    final used = creditsUsedToday ?? 0;
+    final available = (dailyLimit - used).clamp(0, dailyLimit);
+    final fmt = NumberFormat.decimalPattern();
 
     return EnjoyCard(
       padding: EdgeInsets.zero,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (balance != null && balanceText != null)
-            Semantics(
-              label: l10n.profileBalance(balanceText),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: t.space20,
-                  vertical: t.space16,
-                ),
-                child: Row(
-                  children: [
-                    if (isNegative) ...[
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        size: 20,
-                        color: cs.error,
+          Semantics(
+            label: l10n.profileCreditsAvailable(
+              fmt.format(available),
+              fmt.format(dailyLimit),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: t.space20,
+                vertical: t.space16,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.bolt_rounded, size: 20, color: cs.primary),
+                  SizedBox(width: t.space12),
+                  Expanded(
+                    child: Text(
+                      l10n.profileCreditsAvailable(
+                        fmt.format(available),
+                        fmt.format(dailyLimit),
                       ),
-                      SizedBox(width: t.space12),
-                    ],
-                    Expanded(
-                      child: Text(
-                        l10n.profileBalance(balanceText),
-                        style: tt.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isNegative ? cs.error : null,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                      style: tt.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          if (balance != null && balanceText != null)
-            Divider(
-              height: 1,
-              indent: t.space20,
-              endIndent: t.space20,
-              color: cs.outlineVariant.withValues(alpha: 0.18),
-            ),
+          ),
+          Divider(
+            height: 1,
+            indent: t.space20,
+            endIndent: t.space20,
+            color: cs.outlineVariant.withValues(alpha: 0.18),
+          ),
           ProfileNavTile(
             leadingIcon: Icons.workspace_premium_outlined,
             title: l10n.profileSubscriptionTile,

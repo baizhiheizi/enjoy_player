@@ -775,10 +775,13 @@
   "profileSaveSuccess": "Profile saved",
   "profileSubscriptionFree": "Free",
   "profileSubscriptionPro": "Pro",
-  "profileBalance": "Balance: {value}",
-  "@profileBalance": {
+  "profileCreditsAvailable": "Credits today: {available} / {limit}",
+  "@profileCreditsAvailable": {
     "placeholders": {
-      "value": {
+      "available": {
+        "type": "String"
+      },
+      "limit": {
         "type": "String"
       }
     }
@@ -791,7 +794,7 @@
   "profileCreditsUsageTile": "Credits usage",
   "profileCreditsUsageSubtitle": "View AI credits consumption from your account",
   "profileSectionAccount": "Account",
-  "profileSectionAccountHint": "Credits balance and usage history",
+  "profileSectionAccountHint": "Daily credits and usage history",
   "profileSectionPreferences": "Preferences",
   "profileSectionPreferencesHint": "Name, daily goal, and language settings",
   "profileSignOutConfirmTitle": "Sign out?",

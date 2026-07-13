@@ -1302,8 +1302,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSubscriptionPro => '专业版';
 
   @override
-  String profileBalance(String value) {
-    return '余额：$value';
+  String profileCreditsAvailable(String available, String limit) {
+    return '今日积分：$available / $limit';
   }
 
   @override
@@ -1331,7 +1331,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSectionAccount => '账户';
 
   @override
-  String get profileSectionAccountHint => '积分余额与使用记录';
+  String get profileSectionAccountHint => '每日积分与使用记录';
 
   @override
   String get profileSectionPreferences => '偏好设置';
@@ -3800,8 +3800,8 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get profileSubscriptionPro => '专业版';
 
   @override
-  String profileBalance(String value) {
-    return '余额：$value';
+  String profileCreditsAvailable(String available, String limit) {
+    return '今日积分：$available / $limit';
   }
 
   @override
@@ -3829,7 +3829,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get profileSectionAccount => '账户';
 
   @override
-  String get profileSectionAccountHint => '积分余额与使用记录';
+  String get profileSectionAccountHint => '每日积分与使用记录';
 
   @override
   String get profileSectionPreferences => '偏好设置';

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -16,12 +17,15 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_account_card.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_hero_card.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_section_header.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_sign_out_button.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_stats.dart';
+import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
+import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// The profile view body: hero card, practice stats, account nav card,
@@ -42,6 +46,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
   Future<void> _refresh() async {
     ref.invalidate(profilePracticeStatsProvider);
     ref.invalidate(learningStatisticsProvider);
+    ref.invalidate(todaysCreditsUsedProvider);
     await ref.read(authCtrlProvider.notifier).refreshProfile();
   }
 
@@ -91,6 +96,12 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
         }
         final p = state.profile;
 
+        final tier = ref.watch(currentTierProvider);
+        final dailyLimit = tier == SubscriptionTier.pro ? 60000 : 1000;
+
+        final creditsUsedAsync = ref.watch(todaysCreditsUsedProvider);
+        final creditsUsed = creditsUsedAsync.valueOrNull;
+
         final children = <Widget>[
           ProfileHeroCard(profile: p),
           SizedBox(height: t.space16),
@@ -109,7 +120,8 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
             icon: Icons.account_balance_wallet_outlined,
           ),
           ProfileAccountCard(
-            balance: p.balance,
+            creditsUsedToday: creditsUsed,
+            dailyLimit: dailyLimit,
             onCreditsTap: () => context.push('/credits'),
             onSubscriptionTap: () => context.push('/subscription'),
           ),

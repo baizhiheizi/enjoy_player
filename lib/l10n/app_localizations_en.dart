@@ -1359,8 +1359,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSubscriptionPro => 'Pro';
 
   @override
-  String profileBalance(String value) {
-    return 'Balance: $value';
+  String profileCreditsAvailable(String available, String limit) {
+    return 'Credits today: $available / $limit';
   }
 
   @override
@@ -1390,7 +1390,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAccount => 'Account';
 
   @override
-  String get profileSectionAccountHint => 'Credits balance and usage history';
+  String get profileSectionAccountHint => 'Daily credits and usage history';
 
   @override
   String get profileSectionPreferences => 'Preferences';

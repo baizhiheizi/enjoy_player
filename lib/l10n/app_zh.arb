@@ -554,10 +554,13 @@
   "profileSaveSuccess": "资料已保存",
   "profileSubscriptionFree": "免费",
   "profileSubscriptionPro": "专业版",
-  "profileBalance": "余额：{value}",
-  "@profileBalance": {
+  "profileCreditsAvailable": "今日积分：{available} / {limit}",
+  "@profileCreditsAvailable": {
     "placeholders": {
-      "value": {
+      "available": {
+        "type": "String"
+      },
+      "limit": {
         "type": "String"
       }
     }
@@ -570,7 +573,7 @@
   "profileCreditsUsageTile": "积分使用记录",
   "profileCreditsUsageSubtitle": "查看 Enjoy AI Worker 上的积分消耗",
   "profileSectionAccount": "账户",
-  "profileSectionAccountHint": "积分余额与使用记录",
+  "profileSectionAccountHint": "每日积分与使用记录",
   "profileSectionPreferences": "偏好设置",
   "profileSectionPreferencesHint": "姓名、每日目标与语言",
   "profileSignOutConfirmTitle": "退出登录？",

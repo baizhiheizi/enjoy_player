@@ -2565,11 +2565,11 @@ abstract class AppLocalizations {
   /// **'Pro'**
   String get profileSubscriptionPro;
 
-  /// No description provided for @profileBalance.
+  /// No description provided for @profileCreditsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'Balance: {value}'**
-  String profileBalance(String value);
+  /// **'Credits today: {available} / {limit}'**
+  String profileCreditsAvailable(String available, String limit);
 
   /// No description provided for @profileStatTodayTitle.
   ///
@@ -2622,7 +2622,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileSectionAccountHint.
   ///
   /// In en, this message translates to:
-  /// **'Credits balance and usage history'**
+  /// **'Daily credits and usage history'**
   String get profileSectionAccountHint;
 
   /// No description provided for @profileSectionPreferences.
