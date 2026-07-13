@@ -50,7 +50,31 @@ Empty Discover state (no subscriptions) prompts **Manage channels** so users can
 | Periodic (8 h) | Background refresh while app runs |
 | Per-channel skip | Skip if last fetch &lt; 1 h unless forced |
 
-RSS URL: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`
+### Data sources (dual-source)
+
+The per-channel refresh path is **dual-source** ([ADR-0047](../decisions/0047-youtube-discover-innertube.md)):
+
+1. **InnerTube `browse`** (primary) — `POST https://youtubei.googleapis.com/youtubei/v1/browse` with `browseId: "UC<channelId>"`. Returns a richer JSON payload (`videoId`, `title`, `thumbnail`, `lengthText`, `publishedTimeText`, `viewCountText`) and is materially less likely to be blocked by YouTube's bot detection than the public RSS endpoint.
+2. **Atom RSS** (fallback) — `GET https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. Used only when InnerTube fails (transport, shape drift, or HTTP 401/403/5xx across all configured client profiles).
+
+`DiscoverRepository._refreshChannel` tries InnerTube first; on `YoutubeBrowseException` it falls back to RSS. Either source's success counts; both failing reports the channel id in `DiscoverRefreshResult.failedChannelIds` and leaves the cache and `lastFetchedAt` untouched.
+
+#### Client profile rotation
+
+The InnerTube call uses the same shared `ClientProfile` model as the YouTube caption fetcher (`lib/features/transcript/data/client_profile.dart`). The per-channel retry ladder is:
+
+- `WEB` (desktop) — preferred primary
+- `MWEB` (mobile web) — fallback
+
+`IOS` and `ANDROID_VR` remain in `kBuiltInClientProfiles` for the caption fetcher's rotation; they are not used for `browse`. The cold-start fallback reuses the same built-in surface the caption fetcher already has, so no separate storage is required.
+
+#### Pagination and page cap
+
+InnerTube returns ~30 entries per page. When the page ends with a `continuationItemRenderer.continuationEndpoint.continuationCommand.token`, `YoutubeBrowseClient.fetchChannelVideos` follows the token with another POST to the same endpoint (`{ context, continuation }`). The loop is capped at **`kBrowseMaxPages = 5`** (≈ 150 entries per channel) per call, so a single very active channel cannot monopolize the 4-way concurrency budget.
+
+#### Legacy fallback
+
+RSS URL: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. The fallback path is the same path that was the sole source before this feature ([ADR-0021](../decisions/0021-youtube-discover-rss.md)).
 
 ### Cache semantics (append-only)
 
@@ -58,11 +82,23 @@ The `youtube_feed_entries` cache is **append-only between unsubscribe events** (
 
 - Inserts feed entries that are new to the cache (new uploads since the last refresh).
 - Updates mutable metadata (`title`, `thumbnailUrl`, `publishedAt`) and `fetchedAt` on entries the source re-presented.
-- **Does not delete** cached entries that fell out of the RSS window. YouTube's RSS endpoint returns only the ~15 most recent uploads per channel, but the cache keeps older entries so users can browse and re-import them.
+- **Does not delete** cached entries that fell out of the source's most-recent window. Whether the source is the InnerTube `browse` payload (typically ~30 newest per page) or the Atom RSS payload (~15 newest), the cache keeps older entries so users can browse and re-import them.
 
 The user-visible way to bound cache growth is to **unsubscribe** from a channel — `DiscoverRepository.unsubscribe(channelId)` deletes every cached entry for that channel.
 
-`YoutubeFeedEntryRow.fetchedAt` represents the last time the source re-presented the entry. Older rows that fell out of the RSS window keep their original `fetchedAt`. Diagnostic counters that report `youtube_feed_entries` row counts now reflect history, not just the latest RSS window.
+`YoutubeFeedEntryRow.fetchedAt` represents the last time the source re-presented the entry. Older rows that fell out of the source's window keep their original `fetchedAt`. Diagnostic counters that report `youtube_feed_entries` row counts now reflect history, not just the latest snapshot.
+
+### InnerTube-supplied metadata
+
+When the InnerTube primary path returns a `lengthText` for an entry, the parsed `durationSeconds` is written to `YoutubeFeedEntries.durationSeconds` immediately. The legacy watch-page HTML duration enrichment (`YoutubeVideoDuration.fetchSeconds`) is **not** invoked for InnerTube-sourced rows in that tick.
+
+When InnerTube omits `lengthText`, the cache row carries `durationSeconds = null` and the legacy enrichment is still skipped — the row is cached as-is, with whatever metadata the source returned. The legacy enrichment runs only on the RSS fallback path, matching the pre-change behavior on that branch.
+
+Duration preference order per upsert:
+
+1. Library row (`videos.durationSeconds > 0`) — the user's source of truth once the video is imported.
+2. InnerTube-supplied `BrowseVideoEntry.durationSeconds`.
+3. Existing cache row's `durationSeconds` (preserved across refreshes per [ADR-0046](../decisions/0046-discover-feed-append-only.md)).
 
 ### Scheduler gating
 
@@ -145,16 +181,18 @@ No caption availability in RSS. After import, transcript loading follows [`trans
 
 ## Limitations
 
-- Each RSS fetch returns only ~15 most recent videos per channel — this is the per-fetch payload cap, not a cache cap. The cache itself is append-only between unsubscribe events (see [Cache semantics (append-only)](#cache-semantics-append-only)).
+- Each InnerTube `browse` page returns ~30 videos; the page cap is 5 (~150 videos) per channel per refresh tick. The Atom RSS fallback returns ~15 most recent videos per channel — a per-fetch payload cap, not a cache cap. The cache itself is append-only between unsubscribe events (see [Cache semantics (append-only)](#cache-semantics-append-only)).
 - **YouTube Shorts** are excluded (RSS alternate link uses `/shorts/`)
 - Handle → `channel_id` resolution may fail if YouTube HTML changes
 - Subscriptions and feed cache live in the signed-in per-user SQLite file (`enjoy_player_<userId>`)
 - Avatar LRU cache is per-process (not per-DB); the 256-entry cap evicts
   the least-recently-used channel id on overflow
 - No hard upper bound on per-channel cache size in v1; users bound growth by unsubscribing (see [ADR-0046](../decisions/0046-discover-feed-append-only.md))
+- **Playlist import is not yet supported.** Subscribing to a `https://youtube.com/playlist?list=…` URL and surfacing playlist uploads is tracked as a separate follow-up spec; the current feature scopes to channel refresh only.
 
 ## Related
 
 - [ADR-0021](../decisions/0021-youtube-discover-rss.md)
 - [ADR-0046](../decisions/0046-discover-feed-append-only.md)
+- [ADR-0047](../decisions/0047-youtube-discover-innertube.md)
 - [youtube.md](youtube.md)

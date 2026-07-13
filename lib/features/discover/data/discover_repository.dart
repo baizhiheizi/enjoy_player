@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
+import 'package:enjoy_player/features/transcript/data/client_profile.dart';
 import 'package:http/http.dart' as http;
 
 import '../domain/discover_channel.dart';
@@ -17,6 +18,7 @@ import '../domain/feed_entry.dart';
 import '../domain/recommended_channel.dart';
 import 'recommended_channels_loader.dart';
 import 'catalog_channel_ids.dart';
+import 'youtube_browse_client.dart';
 import 'youtube_channel_resolver.dart';
 import 'youtube_fetch.dart';
 import 'youtube_rss_parser.dart';
@@ -65,12 +67,24 @@ class DiscoverRepository {
     RecommendedChannelsLoader? recommendedLoader,
     YoutubeChannelResolver? channelResolver,
     YoutubeRssParser? rssParser,
+    YoutubeBrowseClient? browseClient,
+    List<ClientProfile>? browseProfiles,
     this._libraryRepository,
   }) : _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
        _rssParser = rssParser ?? const YoutubeRssParser() {
     _client = httpClient ?? http.Client();
     _channelResolver =
         channelResolver ?? YoutubeChannelResolver(client: _client);
+    _browseClient =
+        browseClient ??
+        YoutubeBrowseClient(
+          client: _client,
+          profiles:
+              browseProfiles ??
+              kBuiltInClientProfiles
+                  .where((p) => const {'web', 'mweb'}.contains(p.name))
+                  .toList(),
+        );
   }
 
   final AppDatabase _db;
@@ -78,6 +92,7 @@ class DiscoverRepository {
   final RecommendedChannelsLoader _recommendedLoader;
   late final YoutubeChannelResolver _channelResolver;
   final YoutubeRssParser _rssParser;
+  late final YoutubeBrowseClient _browseClient;
   MediaLibraryRepository? _libraryRepository;
 
   /// Bounded LRU cache for channel avatar URLs. LinkedHashMap preserves
@@ -335,13 +350,63 @@ class DiscoverRepository {
     } on YoutubeFeedFetchException catch (e, st) {
       _log.warning('RSS refresh failed for $id: ${e.message}', e, st);
       return _ChannelRefreshOutcome.failure(id);
+    } on YoutubeBrowseException catch (e, st) {
+      // A YoutubeBrowseException reaching this guard means InnerTube failed
+      // AND the RSS fallback also failed. Surface as a channel failure.
+      _log.warning('InnerTube + RSS both failed for $id: ${e.message}', e, st);
+      return _ChannelRefreshOutcome.failure(id);
     } catch (e, st) {
-      _log.warning('RSS refresh failed for $id', e, st);
+      _log.warning('Channel refresh failed for $id', e, st);
       return _ChannelRefreshOutcome.failure(id);
     }
   }
 
   Future<void> _refreshChannel(
+    String channelId, {
+    required DateTime fetchedAt,
+  }) async {
+    // Phase 1: try the InnerTube `browse` endpoint as the primary source.
+    // The client handles per-profile retry (WEB → MWEB) and continuation
+    // pagination internally; it throws YoutubeBrowseException on transport,
+    // parse, or auth errors after all profiles are exhausted.
+    try {
+      final outcome = await _browseClient.fetchChannelVideos(
+        channelId: channelId,
+        fetchedAt: fetchedAt,
+      );
+      await _persistBrowseOutcome(channelId, outcome, fetchedAt);
+      _log.info(
+        'InnerTube browse ok for $channelId: ${outcome.entries.length} '
+        'entries (profile=${outcome.profileUsed}, '
+        'pages=${outcome.pagesFetched}, exhausted=${outcome.exhaustedPages})',
+      );
+      // InnerTube success path — advance cooldown clock and kick off the
+      // avatar refresh. Do NOT run the RSS path; do NOT run the watch-page
+      // HTML duration enrichment (InnerTube supplied durationSeconds inline).
+      await _db.youtubeChannelSubscriptionDao.touchLastFetched(
+        channelId,
+        fetchedAt,
+      );
+      unawaited(_maybeUpdateChannelAvatar(channelId));
+      return;
+    } on YoutubeBrowseException catch (e, st) {
+      _log.fine(
+        'InnerTube browse failed for $channelId; falling back to RSS: '
+        '${e.message}',
+        e,
+        st,
+      );
+      // Fall through to the RSS fallback path.
+    }
+
+    // Phase 2: RSS fallback (unchanged behavior — same upsert loop, same
+    // legacy watch-page HTML duration enrichment, same touchLastFetched on
+    // success). On dual failure, this throws YoutubeFeedFetchException and
+    // `_refreshChannelGuarded` records the channel id in `failedChannelIds`.
+    await _refreshChannelViaRss(channelId, fetchedAt: fetchedAt);
+  }
+
+  Future<void> _refreshChannelViaRss(
     String channelId, {
     required DateTime fetchedAt,
   }) async {
@@ -421,12 +486,66 @@ class DiscoverRepository {
     // skips this write, so the next eligible refresh can retry. This
     // preserves the 1 h cooldown contract for failed attempts (FR-008).
     // Do not move this call above the parse/upsert block.
+    //
+    // The InnerTube primary path (above) calls touchLastFetched from its own
+    // success branch and `return`s before reaching this code, so this call
+    // runs only when the InnerTube path failed AND the RSS fallback
+    // succeeded. Dual failure (InnerTube + RSS) propagates an exception
+    // from `_refreshChannelViaRss` and skips this write entirely.
     await _db.youtubeChannelSubscriptionDao.touchLastFetched(
       channelId,
       fetchedAt,
     );
 
     unawaited(_maybeUpdateChannelAvatar(channelId));
+  }
+
+  /// Persists the result of a successful InnerTube `browse` call into the
+  /// `youtube_feed_entries` table. Duration preference order (US2):
+  /// 1. Library row (`videos.durationSeconds` > 0) — the user's source of truth.
+  /// 2. InnerTube-supplied `BrowseVideoEntry.durationSeconds`.
+  /// 3. Existing cache row's `durationSeconds` (preserved across refreshes).
+  Future<void> _persistBrowseOutcome(
+    String channelId,
+    BrowseFetchOutcome outcome,
+    DateTime fetchedAt,
+  ) async {
+    if (outcome.entries.isEmpty) return;
+
+    final resolved = await Future.wait(
+      outcome.entries.map((entry) async {
+        final existing = await _db.youtubeFeedEntryDao.getEntry(
+          channelId: channelId,
+          videoId: entry.videoId,
+        );
+        final libraryVideo = await _db.videoDao.getYoutubeByVid(entry.videoId);
+        final libraryDuration =
+            libraryVideo != null && libraryVideo.durationSeconds > 0
+            ? libraryVideo.durationSeconds
+            : null;
+        final durationSeconds =
+            libraryDuration ??
+            entry.durationSeconds ??
+            existing?.durationSeconds;
+        return (entry: entry, durationSeconds: durationSeconds);
+      }),
+    );
+
+    await Future.wait(
+      resolved.map(
+        (r) => _db.youtubeFeedEntryDao.upsertEntry(
+          YoutubeFeedEntryRow(
+            videoId: r.entry.videoId,
+            channelId: channelId,
+            title: r.entry.title,
+            thumbnailUrl: r.entry.thumbnailUrl,
+            durationSeconds: r.durationSeconds,
+            publishedAt: r.entry.publishedAt,
+            fetchedAt: fetchedAt,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _enrichMissingDurations(

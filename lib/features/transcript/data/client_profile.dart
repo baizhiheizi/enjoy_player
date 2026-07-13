@@ -111,4 +111,18 @@ const List<ClientProfile> kBuiltInClientProfiles = [
         'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
     context: {'platform': 'MOBILE', 'osName': 'iOS', 'osVersion': '17.5.1'},
   ),
+  ClientProfile(
+    // Desktop WEB profile — primary client for the InnerTube `browse` endpoint
+    // used by Discover channel refresh (ADR-0047). Picked first by
+    // `YoutubeBrowseClient`'s `preferredProfileOrder`. `IOS` and `ANDROID_VR`
+    // remain in this list because the YouTube caption fetcher (`/player`)
+    // rotates through them; they are not used for `browse`.
+    name: 'web',
+    clientName: 'WEB',
+    clientVersion: '2.20240101.00.00',
+    clientNameHeader: '1',
+    userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    context: {'platform': 'DESKTOP', 'osName': 'Windows', 'osVersion': '10.0'},
+  ),
 ];
