@@ -99,6 +99,8 @@ Focus ring: 2px (custom nav / sidebars)
 | `SkeletonSettingsList` | same | Settings hub loading state (sliver-safe) |
 | `SkeletonTranscript` | same | Transcript panel loading state (own `ScrollView`) |
 | `SkeletonProfile` | same | Profile screen loading state |
+| `LoadingIcon` | `core/presentation/loading_icon.dart` | Compact 18×18 `CircularProgressIndicator` placeholder for inline busy affordances (buttons, list rows, chips); replaces 30+ ad-hoc `SizedBox` + `CircularProgressIndicator` pairs across 20 files. Configure via `size`, `strokeWidth`, `color`. |
+| `SectionLabel` | `core/presentation/section_label.dart` | Header row for in-card sections (`Icon` + `space8` + bold `labelLarge` text). Centralizes the heading style used by BYOK forms and other settings surfaces. |
 | `AppSidebar` | `features/player/presentation/widgets/app_sidebar.dart` | Flat tonal sidebar |
 | `SidebarAccountChip` | `features/auth/presentation/widgets/sidebar_account_chip.dart` | Account row at the bottom of `AppSidebar`: signed-out → **Sign in** → `/sign-in`; awaiting OTP → progress + resume → `/sign-in` or `/sign-in/email`; signed-in → avatar + name + Pro badge + **Open profile** subtitle → `/profile`; Free users also get an inline **Upgrade** pill that routes to `/subscription` |
 
