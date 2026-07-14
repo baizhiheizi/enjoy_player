@@ -1,7 +1,26 @@
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_page_inject.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('YoutubeWebViewBridge play script', () {
+    test('starts muted and reports rejected play promises', () {
+      expect(YoutubeWebViewBridge.playScript, contains('v.muted=true'));
+      expect(
+        YoutubeWebViewBridge.playScript,
+        contains("'onVideoEvent','playRejected'"),
+      );
+      expect(YoutubeWebViewBridge.playScript, contains('.catch(rejected)'));
+    });
+  });
+
+  group('kYoutubeMobileWatchInjectScript playback', () {
+    test('does not force unmute before playback is confirmed', () {
+      expect(kYoutubeMobileWatchInjectScript, isNot(contains('muted=false')));
+      expect(kYoutubeMobileWatchInjectScript, isNot(contains('volume=1')));
+    });
+  });
+
   group('kYoutubeMobileWatchInjectScript captions', () {
     test('force-hides YouTube native caption/subtitle DOM via CSS', () {
       expect(

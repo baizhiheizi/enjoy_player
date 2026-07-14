@@ -16,7 +16,7 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_poll_loop.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 
-final _logWebView = logNamed('YoutubeWebViewController');
+final _logWebView = logNamed('YouTubeWebViewController');
 
 /// Manages [InAppWebView] attach/load/poll for one [YoutubeSession].
 class YoutubeWebViewController {
@@ -95,6 +95,7 @@ class YoutubeWebViewController {
   void markOpenTimingStart() {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
+    _events.cancelPendingVolumeRestore();
     _bumpVerifyGeneration();
     session.initStopwatch = Stopwatch()..start();
     session.loggedFirstPlaying = false;
@@ -111,6 +112,7 @@ class YoutubeWebViewController {
   }) {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
+    _events.cancelPendingVolumeRestore();
     _bumpVerifyGeneration();
     session.watchPageLoadStopReceived = false;
     session.awaitingColdInitialNavigation = false;
@@ -135,6 +137,7 @@ class YoutubeWebViewController {
   Future<void> idleAfterClear() async {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
+    _events.cancelPendingVolumeRestore();
     _bumpVerifyGeneration();
     session.resetForClear();
     _pollLoop.stop();
@@ -152,6 +155,7 @@ class YoutubeWebViewController {
   Future<void> dispose() async {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
+    _events.cancelPendingVolumeRestore();
     _bumpVerifyGeneration();
     _pollLoop.stop();
   }
@@ -217,6 +221,7 @@ class YoutubeWebViewController {
       session.webViewMounted = false;
       session.awaitingColdInitialNavigation = false;
       _navigation.cancelNudge();
+      _events.cancelPendingVolumeRestore();
       _bumpVerifyGeneration();
       _pollLoop.stop();
       session.mountTick.value++;

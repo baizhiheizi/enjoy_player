@@ -213,13 +213,41 @@ class YoutubePlayerEngine implements PlayerEngine {
         _session.emitPlaying(false);
         await _webView.loadCurrentVideoIfAttached();
       case ResumePlayback():
-        await YoutubeWebViewBridge.play(_webView.webController);
+        final controller = _webView.webController;
+        if (controller == null) {
+          _logYoutube.warning(
+            'youtube play ignored without WebView vid=${_session.videoId}',
+          );
+          return;
+        }
+        _logYoutube.fine(
+          'youtube play command vid=${_session.videoId} '
+          'buffering=${_session.buffering}',
+        );
+        try {
+          await YoutubeWebViewBridge.play(controller);
+        } on Object catch (error, stackTrace) {
+          _logYoutube.warning(
+            'youtube play command failed vid=${_session.videoId}',
+            error,
+            stackTrace,
+          );
+        }
     }
   }
 
   @override
   Future<void> pause() async {
-    await YoutubeWebViewBridge.pause(_webView.webController);
+    _logYoutube.fine('youtube pause command vid=${_session.videoId}');
+    try {
+      await YoutubeWebViewBridge.pause(_webView.webController);
+    } on Object catch (error, stackTrace) {
+      _logYoutube.warning(
+        'youtube pause command failed vid=${_session.videoId}',
+        error,
+        stackTrace,
+      );
+    }
   }
 
   @override

@@ -146,7 +146,6 @@ const String kYoutubeMobileWatchInjectScript = r'''
       video.addEventListener(e,function(){
         // Ad playback must not drive Dart transport (playing/pause/polling).
         if(isAd()) return;
-        if(e==='play'||e==='playing'){video.muted=false;video.volume=1;}
         var args=[e];
         if(e==='loadedmetadata') args.push(video.duration||0);
         window.flutter_inappwebview.callHandler(
@@ -206,7 +205,6 @@ const String kYoutubeMobileWatchInjectScript = r'''
       hookVideo(v);
       rebuildMids();
       enableInlinePlayback(v);
-      v.muted=false; v.volume=1;
       v.autoplay=false;
       v.removeAttribute('autoplay');
       v.loop=false;
@@ -305,7 +303,6 @@ const String kYoutubeMobileWatchInjectScript = r'''
     enforce();
     setInterval(enforce,300);
 
-    v.muted=false; v.volume=1;
     v.autoplay=false;
     v.removeAttribute('autoplay');
     v.loop=false;

@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_state_poller.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
@@ -12,6 +13,8 @@ import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 
 typedef YoutubeFirstPlayingFn = void Function();
 typedef YoutubeMediaEndFn = void Function();
+
+final _logPoll = logNamed('YouTubeWebViewPollLoop');
 
 /// Periodic DOM poll for `<video>` play state (see [YoutubeStatePoller]).
 class YoutubeWebViewPollLoop {
@@ -109,6 +112,10 @@ class YoutubeWebViewPollLoop {
               case PauseStreaking(:final confirmed, :final newStreak):
                 session.pausedPollStreak = newStreak;
                 if (confirmed) {
+                  _logPoll.fine(
+                    'youtube pause confirmed vid=${session.videoId} '
+                    'positionMs=${position.inMilliseconds}',
+                  );
                   session.pausedPollStreak = 0;
                   session.emitPlaying(false);
                   stop();

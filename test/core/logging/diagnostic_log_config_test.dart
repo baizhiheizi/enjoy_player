@@ -36,6 +36,22 @@ void main() {
         isTrue,
       );
       expect(DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebView'), isTrue);
+      expect(
+        DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebViewController'),
+        isTrue,
+      );
+      expect(
+        DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebViewEvents'),
+        isTrue,
+      );
+      expect(
+        DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebViewNavigation'),
+        isTrue,
+      );
+      expect(
+        DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebViewPollLoop'),
+        isTrue,
+      );
       // Not in the allowlist directly, but the prefix rule covers it.
       expect(
         DiagnosticLogConfig.isAllowlistedLogger('YouTubeSomethingCustom'),
@@ -48,6 +64,10 @@ void main() {
       expect(DiagnosticLogConfig.isAllowlistedLogger('player'), isFalse);
       // Case-sensitive: lowercase 'youtube' prefix is not allowlisted.
       expect(DiagnosticLogConfig.isAllowlistedLogger('youtubePlayer'), isFalse);
+      expect(
+        DiagnosticLogConfig.isAllowlistedLogger('YoutubeWebViewEvents'),
+        isFalse,
+      );
     });
   });
 

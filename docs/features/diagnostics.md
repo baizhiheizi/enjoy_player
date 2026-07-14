@@ -15,8 +15,10 @@ Settings → About → **Diagnostic logging** (off by default).
 
 When enabled, allowlisted loggers also persist **FINE** records:
 
-- `YouTubePlayerEngine`, `YouTubeWebView` (and other `YouTube*` prefixes)
+- `YouTubePlayerEngine`, `YouTubeWebViewController`, `YouTubeWebViewEvents`, `YouTubeWebViewNavigation`, `YouTubeWebViewPollLoop` (all `YouTube*` prefixes)
 - `sync`, `api`, `auth`, `update`
+
+The `YouTube` capitalization is intentional: logger matching is case-sensitive, so `Youtube*` records are not part of the verbose tier.
 
 Root level stays INFO for everything else to limit disk use.
 
@@ -46,9 +48,11 @@ In a diagnostic zip (see **Export diagnostic report** above), look for `severe`-
 
 ## YouTube stall warning
 
-If YouTube page load completes (`load_stop`) but playback never reaches `first_playing` within 30 seconds, one **WARNING** is logged at default tier:
+If YouTube page load completes (`load_stop`) but playback never reaches `first_playing` within 12 seconds, one **WARNING** is logged at default tier:
 
 `youtube playback stalled after load_stop vid=<id>`
+
+With diagnostic logging enabled, YouTube startup also records play/pause commands, authoritative `playing` events, rejected HTML5 `play()` promises, and poll-confirmed pauses. This distinguishes autoplay rejection from a later YouTube pause or a detached WebView.
 
 This surfaces release-only WebView stalls without enabling verbose mode.
 

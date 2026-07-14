@@ -53,19 +53,34 @@ class YoutubeWebViewBridge {
   static WebUri watchUri(String videoId) =>
       WebUri('https://m.youtube.com/watch?v=$videoId');
 
+  static const String playScript = '''
+    (function(){
+      var p=document.querySelector('.html5-video-player');
+      var v=p?p.querySelector('video'):null;
+      if(!v) v=document.querySelector('video');
+      if(!v) return;
+      v.muted=true;
+      var attempt=(window.__enjoyYtPlayAttempt||0)+1;
+      window.__enjoyYtPlayAttempt=attempt;
+      function rejected(error){
+        if(window.__enjoyYtPlayAttempt!==attempt) return;
+        var name=error&&error.name?error.name:'UnknownError';
+        var message=error&&error.message?error.message:'';
+        var bridge=window.flutter_inappwebview;
+        if(bridge&&typeof bridge.callHandler==='function'){
+          bridge.callHandler(
+            'onVideoEvent','playRejected',name+(message?': '+message:''));
+        }
+      }
+      try{
+        var result=v.play();
+        if(result&&typeof result.catch==='function') result.catch(rejected);
+      }catch(error){rejected(error);}
+    })();
+  ''';
+
   static Future<void> play(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(
-      source: '''
-        (function(){
-          var p=document.querySelector('.html5-video-player');
-          var v=p?p.querySelector('video'):null;
-          if(!v) v=document.querySelector('video');
-          if(!v) return;
-          v.muted=true;
-          v.play();
-        })();
-      ''',
-    );
+    await web?.evaluateJavascript(source: playScript);
   }
 
   static Future<void> pause(InAppWebViewController? web) async {
@@ -75,6 +90,7 @@ class YoutubeWebViewBridge {
           var p=document.querySelector('.html5-video-player');
           var v=p?p.querySelector('video'):null;
           if(!v) v=document.querySelector('video');
+          window.__enjoyYtPlayAttempt=(window.__enjoyYtPlayAttempt||0)+1;
           if(v) v.pause();
         })();
       ''',
@@ -88,6 +104,7 @@ class YoutubeWebViewBridge {
           var p=document.querySelector('.html5-video-player');
           var v=p?p.querySelector('video'):null;
           if(!v) v=document.querySelector('video');
+          window.__enjoyYtPlayAttempt=(window.__enjoyYtPlayAttempt||0)+1;
           if(v) v.pause();
         })();
       ''',
@@ -118,6 +135,7 @@ class YoutubeWebViewBridge {
           var p=document.querySelector('.html5-video-player');
           var v=p?p.querySelector('video'):null;
           if(!v) v=document.querySelector('video');
+          window.__enjoyYtPlayAttempt=(window.__enjoyYtPlayAttempt||0)+1;
           if(v){v.pause();v.currentTime=0;}
         })();
       ''',

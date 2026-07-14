@@ -60,6 +60,7 @@ exist or policy changes) without an infinite poll loop. See
 ## Limitations
 
 - **Init speed**: Thumbnail artwork shows during player open and while the WebView buffers. The shared WebView may mount during `openMedia()` (overlapping cold-start with DB work) and is **kept warm** after dismiss until the user opens non-YouTube media or the app exits. Optional pre-warm runs when tapping a YouTube row in Library or Discover. After the watch page loads, the engine nudges `<video>.play()` at ~6s if autoplay has not started; **one** full reload may run at ~12s if playback is still stalled (no reload loop once `first_playing`). Playback still uses the mobile watch page — not embed (Error 153 in native WebViews).
+- **Windows play startup**: `flutter_inappwebview`'s `mediaPlaybackRequiresUserGesture` setting is not implemented by its WebView2 backend. Programmatic play therefore starts muted, waits for the authoritative HTML5 `playing` event, and restores the configured volume after a short initial settle window; later pause/resume cycles restore volume immediately. The earlier flow force-unmuted on the optimistic `play` event, which could make YouTube immediately pause before frames advanced. A `play` event alone no longer marks the app transport as playing; rejected `play()` promises are logged.
 - **iOS inline playback**: the WebView sets `allowsInlineMediaPlayback`, injects `playsinline` on the `<video>`, and hooks iOS native fullscreen to stay inline so the 16:9 frame stays visible for echo / shadow reading. Player and login WebViews share the same Chrome mobile `userAgent` so Google sign-in is not blocked as an insecure browser.
 - Position updates while playing are polled (~250 ms); echo clamp may overshoot slightly vs `media_kit`.
 - Embedded MKV/MP4 subtitle track extraction is unavailable for YouTube (no `media_kit` decode of the stream).
@@ -87,7 +88,7 @@ If YouTube stalls on loading in a **release** or installed build but works in `f
 
 1. Confirm you are on a build that includes the navigation-policy fix (ADR-0025 + subframe/CDN allowlist).
 2. Try **YouTube login** once, then reopen the video (establishes session cookies).
-3. Check diagnostic logs for `youtube init load_stop`, `youtube playback stalled`, or `WebView process terminated`.
+3. Check diagnostic logs for `youtube play command`, `youtube video play requested`, `youtube video playing`, `youtube play rejected`, `youtube pause confirmed`, `youtube init load_stop`, `youtube playback stalled`, or `WebView process terminated`. Enable **Settings → About → Diagnostic logging** before reproduction to include the FINE-level command, event, and poll-transition records.
 4. **Windows only**: compare portable `build\windows\x64\runner\Release\enjoy_player.exe` vs Program Files install. Installed builds require a writable WebView2 user-data folder (not next to the exe); diagnostic logs include `webViewUserData=…` and `exe=…` on each session. Shortcuts from the installer set `WorkingDir` to the install folder.
 
 Policy rules are unit-tested in [`youtube_watch_navigation_policy_test.dart`](../../test/features/player/youtube_watch_navigation_policy_test.dart).

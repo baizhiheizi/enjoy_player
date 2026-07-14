@@ -11,7 +11,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 
-final _logNav = logNamed('YoutubeWebViewNavigation');
+final _logNav = logNamed('YouTubeWebViewNavigation');
 
 /// Load/verify/nudge helpers shared by [YoutubeWebViewController].
 class YoutubeWebViewNavigation {
