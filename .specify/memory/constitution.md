@@ -3,7 +3,7 @@ Sync Impact Report
 Version change: 1.0.0 -> 1.2.0
 Modified principles:
 - Flutter Quality Gates: require validate_ci_gates / format + codegen drift before push
-- Flutter Quality Gates: promote Linux to a first-class supported desktop platform (ADR-0044)
+- Flutter Quality Gates: promote Linux to a first-class supported desktop platform (ADR-0048)
 Added sections:
 - None
 Removed sections:
@@ -18,7 +18,7 @@ Templates requiring updates:
 - ✅ docs/ci-self-hosted-runners.md (add build_linux.yml row)
 - ✅ docs/packaging.md (add Linux rows)
 - ✅ docs/features/linux-platform.md (new)
-- ✅ docs/decisions/0044-linux-platform-support.md (new)
+- ✅ docs/decisions/0048-linux-platform-support.md (new; originally filed as 0044-linux-platform-support.md)
 Follow-up TODOs:
 - None
 -->

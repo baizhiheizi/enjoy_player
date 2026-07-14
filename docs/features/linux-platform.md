@@ -1,6 +1,6 @@
 # Linux Platform
 
-Linux is a **first-class supported desktop platform** since v0.5.0 (ADR-0044). The Linux build produces an AppImage that runs on Ubuntu 22.04 LTS, Fedora 39, and Debian 12 without `apt install` of project-specific dependencies.
+Linux is a **first-class supported desktop platform** since v0.5.0 (ADR-0048). The Linux build produces an AppImage that runs on Ubuntu 22.04 LTS, Fedora 39, and Debian 12 without `apt install` of project-specific dependencies.
 
 ## Supported distributions
 
@@ -123,6 +123,6 @@ The recovery surface works on Linux — it uses `xdg-open` to reveal the databas
 
 ## See also
 
-- [ADR-0044: Linux as a first-class supported desktop platform](../decisions/0044-linux-platform-support.md)
+- [ADR-0048: Linux as a first-class supported desktop platform](../decisions/0048-linux-platform-support.md)
 - [Packaging — Linux AppImage](../packaging.md#linux-appimage)
 - [CI — build_linux.yml and the self-hosted Linux runner](../ci-self-hosted-runners.md)

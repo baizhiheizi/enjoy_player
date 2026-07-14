@@ -12,7 +12,7 @@ Guidance for humans and AI coding agents working in this repository.
 
 ## Hard rules
 
-- **Supported platforms**: Android, iOS, macOS, Windows, Linux. **Do not add Flutter web** targets, `web/` scaffolding, or `kIsWeb` branches — native desktop/mobile only ([ADR-0044](docs/decisions/0044-linux-platform-support.md)).
+- **Supported platforms**: Android, iOS, macOS, Windows, Linux. **Do not add Flutter web** targets, `web/` scaffolding, or `kIsWeb` branches — native desktop/mobile only ([ADR-0048](docs/decisions/0048-linux-platform-support.md)).
 - **Single `media_kit` player**: Only [`MediaKitPlayerEngine`](lib/features/player/application/player_engine.dart) / [`PlayerController`](lib/features/player/application/player_controller.dart) may own a `media_kit` `Player`. Never instantiate `Player()` elsewhere (ADR-0003, ADR-0015). YouTube uses `flutter_inappwebview`, not `media_kit`.
 - **No `print()`**: Use [`logNamed`](lib/core/logging/log.dart) (a one-line wrapper around `package:logging`'s `Logger`) — never `print()`. See [conventions.md § Logging](docs/conventions.md#logging) for the canonical pattern.
 - **Persistence**: All SQLite access goes through Drift [`AppDatabase`](lib/data/db/app_database.dart) DAOs — no raw SQL in UI/feature widgets (ADR-0002).

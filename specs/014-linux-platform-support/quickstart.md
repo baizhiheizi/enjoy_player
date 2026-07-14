@@ -228,7 +228,7 @@ grep -E "Linux" README.md
 - `.specify/memory/constitution.md` shows `Version: 1.2.0`, the `Sync Impact Report` block reflects the bump, and the supported-targets list includes Linux.
 - `AGENTS.md` lists Linux in the supported-platforms line (no "may follow" parenthetical).
 - `README.md` describes Linux as a fully supported platform with a Linux setup section.
-- The new ADR `docs/decisions/0044-linux-platform-support.md` exists and references the constitution version bump.
+- The new ADR `docs/decisions/0048-linux-platform-support.md` (originally filed as `0044-linux-platform-support.md`) exists and references the constitution version bump.
 
 **Test command**: review-time; the new ADR is the spec's "documentation contract" for the amendment.
 

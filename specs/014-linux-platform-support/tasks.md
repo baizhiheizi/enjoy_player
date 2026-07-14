@@ -32,7 +32,7 @@ description: "Task list for Linux Desktop Platform Support"
 - **Shared code**: `lib/core/`, `lib/data/`, `lib/features/`
 - **Tests**: `test/core/`, `test/data/`, `test/features/`
 - **Feature docs**: `docs/features/linux-platform.md`
-- **ADR**: `docs/decisions/0044-linux-platform-support.md`
+- **ADR**: `docs/decisions/0048-linux-platform-support.md` (originally filed as `0044-linux-platform-support.md`)
 - **Constitution**: `.specify/memory/constitution.md`
 - **Agent / README**: `AGENTS.md`, `README.md`
 - **Landing page**: `landing/index.html`, `landing/i18n.js`, `landing/main.js`
@@ -53,7 +53,7 @@ description: "Task list for Linux Desktop Platform Support"
 
 **Purpose**: Constitutional amendment, ADR, and the new platform-predicate module that every user story depends on. **No user story work can begin until this phase is complete.**
 
-- [x] T004 Create the new ADR at `docs/decisions/0044-linux-platform-support.md` documenting the decision to promote Linux from "experimental / may follow" to a first-class supported desktop platform, the v1 distribution format (AppImage), the YouTube opt-out decision (R6), the direct-download update model (R7), the constitutional version bump 1.1.0 → 1.2.0, and the consequences for signing, store distribution, and landing-page publishing
+- [x] T004 Create the new ADR at `docs/decisions/0048-linux-platform-support.md` (originally filed as `0044-linux-platform-support.md`) documenting the decision to promote Linux from "experimental / may follow" to a first-class supported desktop platform, the v1 distribution format (AppImage), the YouTube opt-out decision (R6), the direct-download update model (R7), the constitutional version bump 1.1.0 → 1.2.0, and the consequences for signing, store distribution, and landing-page publishing
 - [x] T005 Amend `.specify/memory/constitution.md`: bump the Sync Impact Report from `1.0.0 -> 1.1.0` to `1.0.0 -> 1.2.0`, update the `**Version**` line to `1.2.0`, update the `Last Amended` date, and change the "Supported targets" sentence in the Flutter Quality Gates section from "Android, iOS, macOS, and Windows" to "Android, iOS, macOS, Windows, and Linux"
 - [x] T006 Update `AGENTS.md`: change the "Supported platforms" line from "Android, iOS, macOS, Windows (Linux may follow)" to "Android, iOS, macOS, Windows, Linux" (no parenthetical), and add `linux/**` to the platform-folder enumerations where `windows/**`, `macos/**`, `ios/**`, `android/**` are listed
 - [x] T007 [P] Update `README.md`: replace "Linux experimental" with full support, add a Linux setup subsection that lists the apt packages from `.github/scripts/ensure_linux_tooling.sh` plus `ffmpeg`, and add a row for the new `build_linux.yml` workflow badge
@@ -295,7 +295,7 @@ With multiple developers:
 
 ## Notes
 
-- The new ADR `0044-linux-platform-support.md` is the documentation contract for the constitutional amendment (T004 → T005). Reviewers should read the ADR first.
+- The new ADR `0048-linux-platform-support.md` (originally filed as `0044-linux-platform-support.md`) is the documentation contract for the constitutional amendment (T004 → T005). Reviewers should read the ADR first.
 - The platform-conditional audit table in `plan.md` is the source of truth for US4. Every row in that table has a corresponding task in Phase 6 (T040..T047) or is explicitly a "no change" in the table.
 - Tasks T015 (the new Linux branch in `MediaKitPlayerEngine._videoControllerConfiguration`) and T040..T047 (the platform-conditional changes) are the only Dart code changes. Everything else is platform enablement, distribution, CI, docs, and one constitutional amendment.
 - The test tasks assume the new tests are written to fail before the corresponding implementation lands. If a test cannot be written first (e.g. because the implementation needs to be present to even compile the test), the test is written immediately after the implementation and is run in the same task.

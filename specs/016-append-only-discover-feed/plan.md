@@ -147,7 +147,7 @@ docs/
 └── decisions/0046-discover-feed-append-only.md   # NEW: ADR for the cache semantics change
 ```
 
-**Structure Decision**: This refactor is contained to a single Drift-backed repository (`discover_repository.dart`), its DAO callers, its tests, and its documentation. No new directories are introduced under `lib/`; no new external contracts are introduced under `contracts/` (the spec scope is internal persistence behavior — see `contracts/README.md` once written). The ADR follows the project's `docs/decisions/NNNN-short-title.md` naming convention; the next available number is `0046` (the most recent ADRs are `0045-ai-result-cache-hierarchy.md` and `0044-linux-platform-support.md`).
+**Structure Decision**: This refactor is contained to a single Drift-backed repository (`discover_repository.dart`), its DAO callers, its tests, and its documentation. No new directories are introduced under `lib/`; no new external contracts are introduced under `contracts/` (the spec scope is internal persistence behavior — see `contracts/README.md` once written). The ADR follows the project's `docs/decisions/NNNN-short-title.md` naming convention; the next available number is `0046` (the most recent ADRs are `0045-ai-result-cache-hierarchy.md` and `0048-linux-platform-support.md`; originally filed as `0044-linux-platform-support.md`).
 
 ## Complexity Tracking
 

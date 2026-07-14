@@ -127,7 +127,7 @@ flutter test
   chmod +x appimagetool-x86_64.AppImage
   sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
   ```
-- No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0044](decisions/0044-linux-platform-support.md)).
+- No signing key required; AppImage auto-update is intentionally out of scope for v1 (see [ADR-0048](decisions/0048-linux-platform-support.md)).
 
 ### macOS (Apple)
 

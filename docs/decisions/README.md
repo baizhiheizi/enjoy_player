@@ -68,7 +68,7 @@ Trade-offs, follow-up work, risks.
 | [0042](0042-multi-language-lookup-catalog.md) | Multi-language lookup catalog — decoupled source / target language pickers for transcript dictionary lookup |
 | [0043](0043-craft-from-text-import.md) | Craft from text import — single entry, two modes, BYOK parity for TTS |
 | [0044](0044-deterministic-end-of-media-completion-loop.md) | Deterministic end-of-media handling with generation-guarded completion loop |
-| [0044 (dup)](0044-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) |
+| [0048](0048-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) (renumbered from 0044) |
 | [0045](0045-ai-result-cache-hierarchy.md) | Unified two-tier AI result cache (L1 LRU+TTL / L2 Drift) and `AiCacheFingerprint` keying |
 | [0046](0046-discover-feed-append-only.md) | Discover feed cache is append-only between unsubscribe events |
 | [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover |

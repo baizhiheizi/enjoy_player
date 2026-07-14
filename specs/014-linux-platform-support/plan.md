@@ -6,7 +6,7 @@
 
 ## Summary
 
-Promote Linux from "experimental / may follow" to a first-class supported desktop platform equal in status to Windows and macOS. The change adds the standard `flutter create --platforms=linux .` Linux desktop folder, introduces a new self-hosted-runner Linux desktop build workflow (`.github/workflows/build_linux.yml`) that mirrors the existing Windows/macOS/Android build smoke workflows, audits every shared `Platform.isX` / `TargetPlatform.x` site in `lib/` so the Linux branch is explicit and graceful, ships an AppImage as the v1 distribution format, updates the public landing page (`landing/index.html`, `landing/i18n.js`, `landing/main.js`) to add a Linux download card backed by a new `linux` entry in the existing release manifest, amends the constitution + AGENTS.md + README.md to reflect Linux as a first-class supported platform, and records the change in a new ADR (`0044-linux-platform-support`) that supersedes the constitution's current platform-support clause. No new Dart features ship in this change; the work is platform enablement, distribution, CI, docs, and one constitutional amendment.
+Promote Linux from "experimental / may follow" to a first-class supported desktop platform equal in status to Windows and macOS. The change adds the standard `flutter create --platforms=linux .` Linux desktop folder, introduces a new self-hosted-runner Linux desktop build workflow (`.github/workflows/build_linux.yml`) that mirrors the existing Windows/macOS/Android build smoke workflows, audits every shared `Platform.isX` / `TargetPlatform.x` site in `lib/` so the Linux branch is explicit and graceful, ships an AppImage as the v1 distribution format, updates the public landing page (`landing/index.html`, `landing/i18n.js`, `landing/main.js`) to add a Linux download card backed by a new `linux` entry in the existing release manifest, amends the constitution + AGENTS.md + README.md to reflect Linux as a first-class supported platform, and records the change in a new ADR (`0048-linux-platform-support`; originally filed as `0044-linux-platform-support`) that supersedes the constitution's current platform-support clause. No new Dart features ship in this change; the work is platform enablement, distribution, CI, docs, and one constitutional amendment.
 
 ## Technical Context
 
@@ -55,7 +55,7 @@ Promote Linux from "experimental / may follow" to a first-class supported deskto
 - 1 new folder: `linux/` (Flutter desktop template + small customizations).
 - 1 new workflow: `.github/workflows/build_linux.yml`.
 - 1 new release-script dispatcher branch: `linux)` in `.github/scripts/release.sh` + a new `.github/scripts/release_linux.sh`.
-- 1 new ADR: `docs/decisions/0044-linux-platform-support.md`.
+- 1 new ADR: `docs/decisions/0048-linux-platform-support.md` (originally filed as `0044-linux-platform-support.md`).
 - 1 new docs page: `docs/features/linux-platform.md`.
 - Amendments: `.specify/memory/constitution.md` (version bump 1.1.0 → 1.2.0), `AGENTS.md`, `README.md`, `landing/index.html`, `landing/i18n.js`, `landing/main.js`, `docs/ci-self-hosted-runners.md`, `docs/packaging.md`.
 - Code-level review: ~14 platform-conditional sites in `lib/` (catalogued in the audit table in this plan).
@@ -120,7 +120,7 @@ Required documentation updates:
 
 | Doc | Action | Why |
 |-----|--------|-----|
-| `docs/decisions/0044-linux-platform-support.md` | **new** | Required by FR-006; supersedes the constitution's platform-support clause and the "may follow" / "experimental" language in AGENTS.md and README.md. |
+| `docs/decisions/0048-linux-platform-support.md` | **new** (originally filed as `0044-linux-platform-support.md`) | Required by FR-006; supersedes the constitution's platform-support clause and the "may follow" / "experimental" language in AGENTS.md and README.md. |
 | `.specify/memory/constitution.md` | **amend** | Add Linux to the supported-targets list; bump version 1.1.0 → 1.2.0 with rationale; per FR-007 and the constitution's own versioning policy (MINOR = adds a principle or materially expands governance). |
 | `AGENTS.md` | **amend** | Replace "Linux may follow" with "Linux is supported"; add `linux/**` to any platform-folder enumerations. Per FR-008. |
 | `README.md` | **amend** | Replace "Linux experimental" with full support; add a Linux setup section; update the supported-platforms line. Per FR-009. |
@@ -227,7 +227,7 @@ docs/
 ├── features/
 │   └── linux-platform.md                     # NEW
 ├── decisions/
-│   └── 0044-linux-platform-support.md        # NEW
+│   └── 0048-linux-platform-support.md        # NEW (originally 0044)
 ├── ci-self-hosted-runners.md                 # EDIT — add build_linux row + Linux desktop smoke line
 ├── packaging.md                              # EDIT — add Linux row to host matrix, AppImage section
 └── (others unchanged)

@@ -1,4 +1,6 @@
-# ADR-0044: Linux as a first-class supported desktop platform
+# ADR-0048: Linux as a first-class supported desktop platform
+
+> **Note:** Originally filed as ADR-0044 (`0044-linux-platform-support.md`). Renumbered to ADR-0048 to resolve an ID collision with `0044-deterministic-end-of-media-completion-loop.md`.
 
 ## Status
 

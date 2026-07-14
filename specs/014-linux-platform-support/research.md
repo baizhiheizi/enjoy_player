@@ -234,7 +234,7 @@ The constitutional amendment is:
 
 ### Rationale
 
-- The amendment is a small, surgical change — one sentence, one list expansion, one version bump — and is justified by the new ADR (`0044-linux-platform-support`).
+- The amendment is a small, surgical change — one sentence, one list expansion, one version bump — and is justified by the new ADR (`0048-linux-platform-support`; originally filed as `0044-linux-platform-support`).
 - The constitution's own "Sync Impact Report" header at the top of the file is updated to reflect the bump.
 - The amendment is part of the same PR as the rest of the change, so reviewers see all moving parts together.
 
