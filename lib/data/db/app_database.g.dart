@@ -7466,6 +7466,30 @@ class $YoutubeChannelSubscriptionsTable extends YoutubeChannelSubscriptions
       ).withConverter<YoutubeSubscriptionSource>(
         $YoutubeChannelSubscriptionsTable.$convertersource,
       );
+  @override
+  late final GeneratedColumnWithTypeConverter<YoutubeSourceType, String>
+  sourceType =
+      GeneratedColumn<String>(
+        'source_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('channel'),
+      ).withConverter<YoutubeSourceType>(
+        $YoutubeChannelSubscriptionsTable.$convertersourceType,
+      );
+  static const VerificationMeta _feedUrlMeta = const VerificationMeta(
+    'feedUrl',
+  );
+  @override
+  late final GeneratedColumn<String> feedUrl = GeneratedColumn<String>(
+    'feed_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _subscribedAtMeta = const VerificationMeta(
     'subscribedAt',
   );
@@ -7507,6 +7531,8 @@ class $YoutubeChannelSubscriptionsTable extends YoutubeChannelSubscriptions
     displayName,
     thumbnailUrl,
     source,
+    sourceType,
+    feedUrl,
     subscribedAt,
     lastFetchedAt,
     language,
@@ -7549,6 +7575,12 @@ class $YoutubeChannelSubscriptionsTable extends YoutubeChannelSubscriptions
           data['thumbnail_url']!,
           _thumbnailUrlMeta,
         ),
+      );
+    }
+    if (data.containsKey('feed_url')) {
+      context.handle(
+        _feedUrlMeta,
+        feedUrl.isAcceptableOrUnknown(data['feed_url']!, _feedUrlMeta),
       );
     }
     if (data.containsKey('subscribed_at')) {
@@ -7607,6 +7639,17 @@ class $YoutubeChannelSubscriptionsTable extends YoutubeChannelSubscriptions
           data['${effectivePrefix}source'],
         )!,
       ),
+      sourceType: $YoutubeChannelSubscriptionsTable.$convertersourceType
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}source_type'],
+            )!,
+          ),
+      feedUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}feed_url'],
+      ),
       subscribedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}subscribed_at'],
@@ -7631,6 +7674,10 @@ class $YoutubeChannelSubscriptionsTable extends YoutubeChannelSubscriptions
   $convertersource = const EnumNameConverter<YoutubeSubscriptionSource>(
     YoutubeSubscriptionSource.values,
   );
+  static JsonTypeConverter2<YoutubeSourceType, String, String>
+  $convertersourceType = const EnumNameConverter<YoutubeSourceType>(
+    YoutubeSourceType.values,
+  );
 }
 
 class YoutubeChannelSubscriptionRow extends DataClass
@@ -7641,6 +7688,13 @@ class YoutubeChannelSubscriptionRow extends DataClass
 
   /// Bundled catalog vs user-initiated subscription.
   final YoutubeSubscriptionSource source;
+
+  /// What kind of source this is: `channel` or `playlist`.
+  final YoutubeSourceType sourceType;
+
+  /// Constructed worker feed URL, e.g.
+  /// `https://worker.enjoy.bot/youtube/channel/UC...?format=json`.
+  final String? feedUrl;
   final DateTime subscribedAt;
   final DateTime? lastFetchedAt;
 
@@ -7651,6 +7705,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
     required this.displayName,
     this.thumbnailUrl,
     required this.source,
+    required this.sourceType,
+    this.feedUrl,
     required this.subscribedAt,
     this.lastFetchedAt,
     required this.language,
@@ -7668,6 +7724,16 @@ class YoutubeChannelSubscriptionRow extends DataClass
         $YoutubeChannelSubscriptionsTable.$convertersource.toSql(source),
       );
     }
+    {
+      map['source_type'] = Variable<String>(
+        $YoutubeChannelSubscriptionsTable.$convertersourceType.toSql(
+          sourceType,
+        ),
+      );
+    }
+    if (!nullToAbsent || feedUrl != null) {
+      map['feed_url'] = Variable<String>(feedUrl);
+    }
     map['subscribed_at'] = Variable<DateTime>(subscribedAt);
     if (!nullToAbsent || lastFetchedAt != null) {
       map['last_fetched_at'] = Variable<DateTime>(lastFetchedAt);
@@ -7684,6 +7750,10 @@ class YoutubeChannelSubscriptionRow extends DataClass
           ? const Value.absent()
           : Value(thumbnailUrl),
       source: Value(source),
+      sourceType: Value(sourceType),
+      feedUrl: feedUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedUrl),
       subscribedAt: Value(subscribedAt),
       lastFetchedAt: lastFetchedAt == null && nullToAbsent
           ? const Value.absent()
@@ -7704,6 +7774,9 @@ class YoutubeChannelSubscriptionRow extends DataClass
       source: $YoutubeChannelSubscriptionsTable.$convertersource.fromJson(
         serializer.fromJson<String>(json['source']),
       ),
+      sourceType: $YoutubeChannelSubscriptionsTable.$convertersourceType
+          .fromJson(serializer.fromJson<String>(json['sourceType'])),
+      feedUrl: serializer.fromJson<String?>(json['feedUrl']),
       subscribedAt: serializer.fromJson<DateTime>(json['subscribedAt']),
       lastFetchedAt: serializer.fromJson<DateTime?>(json['lastFetchedAt']),
       language: serializer.fromJson<String>(json['language']),
@@ -7719,6 +7792,12 @@ class YoutubeChannelSubscriptionRow extends DataClass
       'source': serializer.toJson<String>(
         $YoutubeChannelSubscriptionsTable.$convertersource.toJson(source),
       ),
+      'sourceType': serializer.toJson<String>(
+        $YoutubeChannelSubscriptionsTable.$convertersourceType.toJson(
+          sourceType,
+        ),
+      ),
+      'feedUrl': serializer.toJson<String?>(feedUrl),
       'subscribedAt': serializer.toJson<DateTime>(subscribedAt),
       'lastFetchedAt': serializer.toJson<DateTime?>(lastFetchedAt),
       'language': serializer.toJson<String>(language),
@@ -7730,6 +7809,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
     String? displayName,
     Value<String?> thumbnailUrl = const Value.absent(),
     YoutubeSubscriptionSource? source,
+    YoutubeSourceType? sourceType,
+    Value<String?> feedUrl = const Value.absent(),
     DateTime? subscribedAt,
     Value<DateTime?> lastFetchedAt = const Value.absent(),
     String? language,
@@ -7738,6 +7819,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
     displayName: displayName ?? this.displayName,
     thumbnailUrl: thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
     source: source ?? this.source,
+    sourceType: sourceType ?? this.sourceType,
+    feedUrl: feedUrl.present ? feedUrl.value : this.feedUrl,
     subscribedAt: subscribedAt ?? this.subscribedAt,
     lastFetchedAt: lastFetchedAt.present
         ? lastFetchedAt.value
@@ -7756,6 +7839,10 @@ class YoutubeChannelSubscriptionRow extends DataClass
           ? data.thumbnailUrl.value
           : this.thumbnailUrl,
       source: data.source.present ? data.source.value : this.source,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      feedUrl: data.feedUrl.present ? data.feedUrl.value : this.feedUrl,
       subscribedAt: data.subscribedAt.present
           ? data.subscribedAt.value
           : this.subscribedAt,
@@ -7773,6 +7860,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
           ..write('displayName: $displayName, ')
           ..write('thumbnailUrl: $thumbnailUrl, ')
           ..write('source: $source, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('feedUrl: $feedUrl, ')
           ..write('subscribedAt: $subscribedAt, ')
           ..write('lastFetchedAt: $lastFetchedAt, ')
           ..write('language: $language')
@@ -7786,6 +7875,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
     displayName,
     thumbnailUrl,
     source,
+    sourceType,
+    feedUrl,
     subscribedAt,
     lastFetchedAt,
     language,
@@ -7798,6 +7889,8 @@ class YoutubeChannelSubscriptionRow extends DataClass
           other.displayName == this.displayName &&
           other.thumbnailUrl == this.thumbnailUrl &&
           other.source == this.source &&
+          other.sourceType == this.sourceType &&
+          other.feedUrl == this.feedUrl &&
           other.subscribedAt == this.subscribedAt &&
           other.lastFetchedAt == this.lastFetchedAt &&
           other.language == this.language);
@@ -7809,6 +7902,8 @@ class YoutubeChannelSubscriptionsCompanion
   final Value<String> displayName;
   final Value<String?> thumbnailUrl;
   final Value<YoutubeSubscriptionSource> source;
+  final Value<YoutubeSourceType> sourceType;
+  final Value<String?> feedUrl;
   final Value<DateTime> subscribedAt;
   final Value<DateTime?> lastFetchedAt;
   final Value<String> language;
@@ -7818,6 +7913,8 @@ class YoutubeChannelSubscriptionsCompanion
     this.displayName = const Value.absent(),
     this.thumbnailUrl = const Value.absent(),
     this.source = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.feedUrl = const Value.absent(),
     this.subscribedAt = const Value.absent(),
     this.lastFetchedAt = const Value.absent(),
     this.language = const Value.absent(),
@@ -7828,6 +7925,8 @@ class YoutubeChannelSubscriptionsCompanion
     required String displayName,
     this.thumbnailUrl = const Value.absent(),
     this.source = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.feedUrl = const Value.absent(),
     required DateTime subscribedAt,
     this.lastFetchedAt = const Value.absent(),
     this.language = const Value.absent(),
@@ -7840,6 +7939,8 @@ class YoutubeChannelSubscriptionsCompanion
     Expression<String>? displayName,
     Expression<String>? thumbnailUrl,
     Expression<String>? source,
+    Expression<String>? sourceType,
+    Expression<String>? feedUrl,
     Expression<DateTime>? subscribedAt,
     Expression<DateTime>? lastFetchedAt,
     Expression<String>? language,
@@ -7850,6 +7951,8 @@ class YoutubeChannelSubscriptionsCompanion
       if (displayName != null) 'display_name': displayName,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
       if (source != null) 'source': source,
+      if (sourceType != null) 'source_type': sourceType,
+      if (feedUrl != null) 'feed_url': feedUrl,
       if (subscribedAt != null) 'subscribed_at': subscribedAt,
       if (lastFetchedAt != null) 'last_fetched_at': lastFetchedAt,
       if (language != null) 'language': language,
@@ -7862,6 +7965,8 @@ class YoutubeChannelSubscriptionsCompanion
     Value<String>? displayName,
     Value<String?>? thumbnailUrl,
     Value<YoutubeSubscriptionSource>? source,
+    Value<YoutubeSourceType>? sourceType,
+    Value<String?>? feedUrl,
     Value<DateTime>? subscribedAt,
     Value<DateTime?>? lastFetchedAt,
     Value<String>? language,
@@ -7872,6 +7977,8 @@ class YoutubeChannelSubscriptionsCompanion
       displayName: displayName ?? this.displayName,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       source: source ?? this.source,
+      sourceType: sourceType ?? this.sourceType,
+      feedUrl: feedUrl ?? this.feedUrl,
       subscribedAt: subscribedAt ?? this.subscribedAt,
       lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
       language: language ?? this.language,
@@ -7896,6 +8003,16 @@ class YoutubeChannelSubscriptionsCompanion
         $YoutubeChannelSubscriptionsTable.$convertersource.toSql(source.value),
       );
     }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(
+        $YoutubeChannelSubscriptionsTable.$convertersourceType.toSql(
+          sourceType.value,
+        ),
+      );
+    }
+    if (feedUrl.present) {
+      map['feed_url'] = Variable<String>(feedUrl.value);
+    }
     if (subscribedAt.present) {
       map['subscribed_at'] = Variable<DateTime>(subscribedAt.value);
     }
@@ -7918,6 +8035,8 @@ class YoutubeChannelSubscriptionsCompanion
           ..write('displayName: $displayName, ')
           ..write('thumbnailUrl: $thumbnailUrl, ')
           ..write('source: $source, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('feedUrl: $feedUrl, ')
           ..write('subscribedAt: $subscribedAt, ')
           ..write('lastFetchedAt: $lastFetchedAt, ')
           ..write('language: $language, ')
@@ -12242,6 +12361,8 @@ typedef $$YoutubeChannelSubscriptionsTableCreateCompanionBuilder =
       required String displayName,
       Value<String?> thumbnailUrl,
       Value<YoutubeSubscriptionSource> source,
+      Value<YoutubeSourceType> sourceType,
+      Value<String?> feedUrl,
       required DateTime subscribedAt,
       Value<DateTime?> lastFetchedAt,
       Value<String> language,
@@ -12253,6 +12374,8 @@ typedef $$YoutubeChannelSubscriptionsTableUpdateCompanionBuilder =
       Value<String> displayName,
       Value<String?> thumbnailUrl,
       Value<YoutubeSubscriptionSource> source,
+      Value<YoutubeSourceType> sourceType,
+      Value<String?> feedUrl,
       Value<DateTime> subscribedAt,
       Value<DateTime?> lastFetchedAt,
       Value<String> language,
@@ -12291,6 +12414,17 @@ class $$YoutubeChannelSubscriptionsTableFilterComposer
   get source => $composableBuilder(
     column: $table.source,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<YoutubeSourceType, YoutubeSourceType, String>
+  get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get feedUrl => $composableBuilder(
+    column: $table.feedUrl,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<DateTime> get subscribedAt => $composableBuilder(
@@ -12338,6 +12472,16 @@ class $$YoutubeChannelSubscriptionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get feedUrl => $composableBuilder(
+    column: $table.feedUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get subscribedAt => $composableBuilder(
     column: $table.subscribedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12379,6 +12523,15 @@ class $$YoutubeChannelSubscriptionsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<YoutubeSubscriptionSource, String>
   get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<YoutubeSourceType, String> get sourceType =>
+      $composableBuilder(
+        column: $table.sourceType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get feedUrl =>
+      $composableBuilder(column: $table.feedUrl, builder: (column) => column);
 
   GeneratedColumn<DateTime> get subscribedAt => $composableBuilder(
     column: $table.subscribedAt,
@@ -12444,6 +12597,8 @@ class $$YoutubeChannelSubscriptionsTableTableManager
                 Value<String> displayName = const Value.absent(),
                 Value<String?> thumbnailUrl = const Value.absent(),
                 Value<YoutubeSubscriptionSource> source = const Value.absent(),
+                Value<YoutubeSourceType> sourceType = const Value.absent(),
+                Value<String?> feedUrl = const Value.absent(),
                 Value<DateTime> subscribedAt = const Value.absent(),
                 Value<DateTime?> lastFetchedAt = const Value.absent(),
                 Value<String> language = const Value.absent(),
@@ -12453,6 +12608,8 @@ class $$YoutubeChannelSubscriptionsTableTableManager
                 displayName: displayName,
                 thumbnailUrl: thumbnailUrl,
                 source: source,
+                sourceType: sourceType,
+                feedUrl: feedUrl,
                 subscribedAt: subscribedAt,
                 lastFetchedAt: lastFetchedAt,
                 language: language,
@@ -12464,6 +12621,8 @@ class $$YoutubeChannelSubscriptionsTableTableManager
                 required String displayName,
                 Value<String?> thumbnailUrl = const Value.absent(),
                 Value<YoutubeSubscriptionSource> source = const Value.absent(),
+                Value<YoutubeSourceType> sourceType = const Value.absent(),
+                Value<String?> feedUrl = const Value.absent(),
                 required DateTime subscribedAt,
                 Value<DateTime?> lastFetchedAt = const Value.absent(),
                 Value<String> language = const Value.absent(),
@@ -12473,6 +12632,8 @@ class $$YoutubeChannelSubscriptionsTableTableManager
                 displayName: displayName,
                 thumbnailUrl: thumbnailUrl,
                 source: source,
+                sourceType: sourceType,
+                feedUrl: feedUrl,
                 subscribedAt: subscribedAt,
                 lastFetchedAt: lastFetchedAt,
                 language: language,

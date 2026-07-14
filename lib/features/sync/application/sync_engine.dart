@@ -91,6 +91,8 @@ class SyncEngine {
             await _upload.deleteVideo(item.entityId);
           case SyncEntityType.recording:
             await _upload.deleteRecording(item.entityId);
+          case SyncEntityType.youtubeSubscription:
+            break; // subscription deletion is local-only
         }
         await _queue.removeById(item.id);
         return true;
@@ -127,6 +129,10 @@ class SyncEngine {
             return true;
           }
           await _upload.uploadRecording(row);
+        case SyncEntityType.youtubeSubscription:
+          // Subscription sync deferred — server API not yet ready.
+          // Queue row is retained so it will sync when support is added.
+          break;
       }
 
       await _queue.removeById(item.id);

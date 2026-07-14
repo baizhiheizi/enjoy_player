@@ -1,4 +1,4 @@
-/// Drift table: Enjoy-local YouTube channel subscriptions for Discover feeds.
+/// Drift table: Enjoy-local YouTube channel/playlist subscriptions for Discover feeds.
 library;
 
 import 'package:drift/drift.dart';
@@ -18,6 +18,15 @@ class YoutubeChannelSubscriptions extends Table {
   TextColumn get source => textEnum<YoutubeSubscriptionSource>().withDefault(
     const Constant('user'),
   )();
+
+  /// What kind of source this is: `channel` or `playlist`.
+  TextColumn get sourceType => textEnum<YoutubeSourceType>().withDefault(
+    const Constant('channel'),
+  )();
+
+  /// Constructed worker feed URL, e.g.
+  /// `https://worker.enjoy.bot/youtube/channel/UC...?format=json`.
+  TextColumn get feedUrl => text().nullable()();
 
   DateTimeColumn get subscribedAt => dateTime()();
   DateTimeColumn get lastFetchedAt => dateTime().nullable()();

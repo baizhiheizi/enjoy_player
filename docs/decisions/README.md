@@ -72,3 +72,4 @@ Trade-offs, follow-up work, risks.
 | [0045](0045-ai-result-cache-hierarchy.md) | Unified two-tier AI result cache (L1 LRU+TTL / L2 Drift) and `AiCacheFingerprint` keying |
 | [0046](0046-discover-feed-append-only.md) | Discover feed cache is append-only between unsubscribe events |
 | [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover |
+| [0049](0049-youtube-language-aware-captions.md) | YouTube language-aware caption discovery & primary selection |

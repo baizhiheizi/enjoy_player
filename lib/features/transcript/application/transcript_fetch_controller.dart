@@ -99,22 +99,23 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
     required bool forceCloud,
   }) async {
     final repo = ref.read(transcriptRepositoryProvider);
-    // Read the learner's native language here, in the single shared helper
-    // used by BOTH `resolveOnOpen` (media open) and `refreshFromCloud`
-    // (manual refresh), so the bilingual request path is engaged on refresh
-    // too (FR-010). Kept out of the repository to keep it UI-free.
-    final nativeLanguage = signedIn
-        ? ref
-              .read(appPreferencesCtrlProvider)
-              .valueOrNull
-              ?.effectiveNativeLanguage
+    // Read the learner's native + learning languages here, in the single
+    // shared helper used by BOTH `resolveOnOpen` (media open) and
+    // `refreshFromCloud` (manual refresh), so the language-aware primary
+    // picker engages on refresh too. Kept out of the repository to keep it
+    // UI-free.
+    final prefs = signedIn
+        ? ref.read(appPreferencesCtrlProvider).valueOrNull
         : null;
+    final nativeLanguage = prefs?.effectiveNativeLanguage;
+    final learningLanguage = prefs?.effectiveLearningLanguage;
     try {
       final result = await repo.resolveOnOpen(
         mediaId,
         forceCloud: forceCloud,
         fetchCloud: signedIn,
         nativeLanguage: nativeLanguage,
+        learningLanguage: learningLanguage,
       );
 
       if (!ref.mounted) return;

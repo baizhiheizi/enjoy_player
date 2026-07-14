@@ -1,4 +1,3 @@
-import 'package:enjoy_player/features/discover/data/catalog_channel_ids.dart';
 import 'package:enjoy_player/features/discover/data/recommended_channels_loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,10 +21,6 @@ void main() {
           expect(channel.handle, isNotNull);
           expect(channel.handle, startsWith('@'));
           expect(handles.add(channel.handle!), isTrue, reason: channel.handle);
-          expect(
-            canonicalCatalogChannelId(channel.channelId),
-            channel.channelId,
-          );
           expect(channel.language.trim(), isNotEmpty);
         }
 

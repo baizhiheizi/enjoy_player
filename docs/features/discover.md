@@ -2,9 +2,9 @@
 
 ## Summary
 
-**Discover** helps users find YouTube videos to practice with when they do not already have a URL. Browse **recommended channels** (bundled catalog), **subscribe** to channels locally, view a merged **timeline** of recent uploads (RSS), and **Add to library** to start echo / transcript workflows.
+**Discover** helps users find YouTube videos to practice with when they do not already have a URL. Browse **recommended channels** (bundled catalog), **subscribe** to YouTube channels, handles, and playlists locally, view a merged **timeline** of recent uploads (fetched via a server-side RSSHub proxy), and **Add to library** to start echo / transcript workflows.
 
-Discover feeds are **not** library items until imported. Subscriptions are **Enjoy-local** — not YouTube account subscriptions and not cloud-synced in v1.
+Discover feeds are **not** library items until imported. Subscriptions are **Enjoy-local** — not YouTube account subscriptions. Multi-device sync uses the existing cloud sync infrastructure (ADR-0010, ADR-0013).
 
 ## Navigation
 
@@ -27,7 +27,7 @@ Desktop: header **Refresh** button. No inline subscription or recommended lists 
 
 Opened from the filter strip (bottom sheet on narrow layouts, centered dialog at `breakpointRail` and wider):
 
-- **Subscribe** (paste URL / `@handle`) — same resolver as before
+- **Subscribe** (paste URL / `@handle` / channel ID / playlist ID)
 - **Your channels** — list with **Unsubscribe** (does not navigate away from the modal)
 - **Recommended** — bundled catalog (`assets/discover/recommended_channels.json`) with **Subscribe** / **Subscribed** badges; channels are **language-tagged** (English, Japanese, Korean, Spanish, French in the first wave). The list is filtered to the user's focus learning language by default, with **All languages** to browse everything.
 - **Subscription language** — each subscription stores a channel language (from the catalog or **Unknown** for pasted URLs). Tap the language label on a subscription row to correct it. **Add to library** uses subscription language as the default media content language; unknown-language subscriptions prompt for content language before import.
@@ -44,37 +44,43 @@ Empty Discover state (no subscriptions) prompts **Manage channels** so users can
 
 | Trigger | Behavior |
 |---------|----------|
-| App launch | Debounced refresh for eligible channels |
+| App launch | Debounced refresh for eligible sources |
 | Pull-to-refresh (mobile) | Force refresh all subscriptions |
 | Header refresh button (desktop) | Same as pull-to-refresh |
 | Periodic (8 h) | Background refresh while app runs |
-| Per-channel skip | Skip if last fetch &lt; 1 h unless forced |
+| Per-source skip | Skip if last fetch < 1 h unless forced |
 
-### Data sources (dual-source)
+### Data source (single-source RSSHub proxy)
 
-The per-channel refresh path is **dual-source** ([ADR-0047](../decisions/0047-youtube-discover-innertube.md)):
+The per-source refresh path is **single-source** ([ADR-0049](../decisions/0049-youtube-worker-discovery.md)):
 
-1. **InnerTube `browse`** (primary) — `POST https://youtubei.googleapis.com/youtubei/v1/browse` with `browseId: "UC<channelId>"`. Returns a richer JSON payload (`videoId`, `title`, `thumbnail`, `lengthText`, `publishedTimeText`, `viewCountText`) and is materially less likely to be blocked by YouTube's bot detection than the public RSS endpoint.
-2. **Atom RSS** (fallback) — `GET https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. Used only when InnerTube fails (transport, shape drift, or HTTP 401/403/5xx across all configured client profiles).
+All video discovery requests go through a **server-side RSSHub proxy**, never directly to YouTube. The worker exposes three RSSHub YouTube routes:
 
-`DiscoverRepository._refreshChannel` tries InnerTube first; on `YoutubeBrowseException` it falls back to RSS. Either source's success counts; both failing reports the channel id in `DiscoverRefreshResult.failedChannelIds` and leaves the cache and `lastFetchedAt` untouched.
+| Route | Example | Returns |
+|-------|---------|---------|
+| `GET /youtube/channel/{id}` | `/youtube/channel/UC...` | Channel feed (reverse-chronological) |
+| `GET /youtube/user/{handle}` | `/youtube/user/@TED` | Handle feed (resolves to channel) |
+| `GET /youtube/playlist/{id}` | `/youtube/playlist/PL...` | Playlist feed (playlist order) |
 
-#### Client profile rotation
+The client requests JSON Feed v1.1 format (via `?format=json`). See the [worker feed API contract](../../specs/018-youtube-worker-discovery/contracts/worker-feed-api.md) for the full response schema.
 
-The InnerTube call uses the same shared `ClientProfile` model as the YouTube caption fetcher (`lib/features/transcript/data/client_profile.dart`). The per-channel retry ladder is:
+**Feed-level fields** from JSON Feed v1.1:
+- `title` — source display name (the client strips " - YouTube" suffix)
+- `home_page_url` — YouTube source URL (contains canonical channel/playlist ID)
+- `icon` — avatar URL
 
-- `WEB` (desktop) — preferred primary
-- `MWEB` (mobile web) — fallback
+**Item-level fields** from JSON Feed v1.1:
+- `id` — video ID (extracted from YouTube watch URL)
+- `url` — YouTube watch URL
+- `title` — video title
+- `image` — thumbnail URL
+- `date_published` — published timestamp (ISO 8601)
+- `attachments[].duration_in_seconds` — video duration
 
-`IOS` and `ANDROID_VR` remain in `kBuiltInClientProfiles` for the caption fetcher's rotation; they are not used for `browse`. The cold-start fallback reuses the same built-in surface the caption fetcher already has, so no separate storage is required.
-
-#### Pagination and page cap
-
-InnerTube returns ~30 entries per page. When the page ends with a `continuationItemRenderer.continuationEndpoint.continuationCommand.token`, `YoutubeBrowseClient.fetchChannelVideos` follows the token with another POST to the same endpoint (`{ context, continuation }`). The loop is capped at **`kBrowseMaxPages = 5`** (≈ 150 entries per channel) per call, so a single very active channel cannot monopolize the 4-way concurrency budget.
-
-#### Legacy fallback
-
-RSS URL: `https://www.youtube.com/feeds/videos.xml?channel_id=<id>`. The fallback path is the same path that was the sole source before this feature ([ADR-0021](../decisions/0021-youtube-discover-rss.md)).
+The refresh client (`WorkerFeedClient`) handles:
+- HTTP status codes → typed exceptions (404 → notFound, 410 → sourceUnavailable, 429 → rateLimited, 502 → upstreamFailure)
+- Handle-to-ID canonicalization: when subscribing via @handle, the client extracts the canonical channel ID from `home_page_url` and uses `/youtube/channel/{id}` for subsequent refreshes
+- Network errors → networkError exception
 
 ### Cache semantics (append-only)
 
@@ -82,103 +88,57 @@ The `youtube_feed_entries` cache is **append-only between unsubscribe events** (
 
 - Inserts feed entries that are new to the cache (new uploads since the last refresh).
 - Updates mutable metadata (`title`, `thumbnailUrl`, `publishedAt`) and `fetchedAt` on entries the source re-presented.
-- **Does not delete** cached entries that fell out of the source's most-recent window. Whether the source is the InnerTube `browse` payload (typically ~30 newest per page) or the Atom RSS payload (~15 newest), the cache keeps older entries so users can browse and re-import them.
+- **Does not delete** cached entries that fell out of the source's most-recent window (~15–50 entries).
+- Uses video ID deduplication — if all returned entries are already cached, no changes are made and `lastFetchedAt` is still updated.
 
-The user-visible way to bound cache growth is to **unsubscribe** from a channel — `DiscoverRepository.unsubscribe(channelId)` deletes every cached entry for that channel.
+The user-visible way to bound cache growth is to **unsubscribe** from a source — `DiscoverRepository.unsubscribe(channelId)` deletes every cached entry for that channel.
 
-`YoutubeFeedEntryRow.fetchedAt` represents the last time the source re-presented the entry. Older rows that fell out of the source's window keep their original `fetchedAt`. Diagnostic counters that report `youtube_feed_entries` row counts now reflect history, not just the latest snapshot.
+Duration: Comes from `attachments[].duration_in_seconds` in the JSON Feed response. No legacy watch-page HTML duration enrichment is performed.
 
-### InnerTube-supplied metadata
+### Handle-to-ID canonicalization
 
-When the InnerTube primary path returns a `lengthText` for an entry, the parsed `durationSeconds` is written to `YoutubeFeedEntries.durationSeconds` immediately. The legacy watch-page HTML duration enrichment (`YoutubeVideoDuration.fetchSeconds`) is **not** invoked for InnerTube-sourced rows in that tick.
+When a user subscribes via @handle (e.g., `https://youtube.com/@TED`):
+1. The client fetches `GET /youtube/user/@TED?format=json`
+2. The response `home_page_url` contains the canonical channel URL: `https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug`
+3. The client extracts the channel ID (`UCAuUUnT6oDeKwE6v1NGQxug`) from this URL
+4. All subsequent refreshes use `GET /youtube/channel/UCAuUUnT6oDeKwE6v1NGQxug?format=json`
 
-When InnerTube omits `lengthText`, the cache row carries `durationSeconds = null` and the legacy enrichment is still skipped — the row is cached as-is, with whatever metadata the source returned. The legacy enrichment runs only on the RSS fallback path, matching the pre-change behavior on that branch.
-
-Duration preference order per upsert:
-
-1. Library row (`videos.durationSeconds > 0`) — the user's source of truth once the video is imported.
-2. InnerTube-supplied `BrowseVideoEntry.durationSeconds`.
-3. Existing cache row's `durationSeconds` (preserved across refreshes per [ADR-0046](../decisions/0046-discover-feed-append-only.md)).
+This prevents duplicate subscriptions (handle + channel ID pointing to the same source) and avoids redundant handle resolution on every refresh.
 
 ### Scheduler gating
 
 The periodic refresh is intentionally **passive**:
 
-- **Subscription-gated** — the 8 h `Timer` is only armed while the
-  subscription list is non-empty. An empty list (a fresh install, or a
-  user who unsubscribed from everything) does **not** wake the app.
-  The arm is re-evaluated every time `discoverSubscriptionsProvider`
-  emits, so a re-subscription re-arms the timer without an app restart.
-- **Lifecycle-gated** — periodic ticks and the post-launch initial
-  refresh are skipped while the app is not in the foreground
-  (`WidgetsBinding.instance.lifecycleState != resumed`). A `null`
-  lifecycle state is treated as resumed so headless / desktop contexts
-  without lifecycle callbacks are not silently starved.
-- **Idempotent launch** — only one post-frame launch refresh is
-  scheduled per provider instance; the flag resets when the
-  subscription list becomes empty again.
+- **Subscription-gated** — the 8 h `Timer` is only armed while the subscription list is non-empty.
+- **Lifecycle-gated** — periodic ticks and the post-launch initial refresh are skipped while the app is not in the foreground.
+- **Idempotent launch** — only one post-frame launch refresh is scheduled per provider instance.
 
 ### Concurrency
 
-Per-channel RSS refresh and per-entry duration enrichment both run
-with a bounded concurrency cap, so a user with many subscriptions
-refreshes in roughly `ceil(N / cap)` round-trips instead of `N`:
-
-| Phase | Cap | Implementation |
-|-------|-----|----------------|
-| RSS refresh (per channel) | 4 | Windowed `Future.wait` over the subscription list (`_kRefreshChannelConcurrency`) |
-| Duration enrichment (per entry) | 4 | Counting semaphore with a FIFO waiter queue (`_kEnrichDurationConcurrency`) |
-
-YouTube's RSS endpoints are soft-rate-limited; 4 concurrent keeps us
-well under the threshold while turning a 20-channel refresh from
-~20 RTTs into ~5 RTTs.
+Per-source worker feed fetches run with a bounded concurrency cap of 4 (`_kRefreshChannelConcurrency`), so a user with many subscriptions refreshes in ~`ceil(N / 4)` round-trips instead of N.
 
 ### Partial-failure surfacing
 
-`DiscoverRepository.refreshFeeds` returns
-`DiscoverRefreshResult { refreshedChannels, failedChannelIds }`. The
-UI consults `hasFailures` and surfaces per-channel failures via
-`AppNotice.error`:
+`DiscoverRepository.refreshFeeds` returns `DiscoverRefreshResult { refreshedChannels, failedChannelIds }`. The UI consults `hasFailures` and surfaces per-source failures via `AppNotice.error`:
 
-- One failed channel → `Could not refresh {name}.`
-- Many → `Could not refresh {count} channels: {names}`
+- One failed source → `Could not refresh {name}.`
+- Many → `Could not refresh {count} sources: {names}`
 
-Successful channels keep their updated entries; only the failed
-ones' feed entries are left untouched. The next refresh retry (manual
-or the next 8 h tick) re-attempts them with the standard
-1 h skip-window.
+Successful sources keep their updated entries; only the failed ones' feed entries are left untouched.
 
 ## Channel avatar cache
 
-Recommended row and subscription avatars go through
-`DiscoverRepository.fetchChannelAvatarUrl`, which keeps a bounded
-in-memory cache backed by the shared
-[`L1Store<K, V>`](../../lib/core/cache/lru_store.dart) primitive
-from `lib/core/cache/` (the same primitive used for the AI result
-cache hierarchy, [ADR-0045](../decisions/0045-ai-result-cache-hierarchy.md),
-and `LookupSheetResultCache`):
+Recommended row and subscription avatars are stored in the Drift `youtube_channel_subscriptions.thumbnailUrl` column (set from the feed's `icon` field on subscribe/refresh). An in-memory LRU cache (`L1Store`) provides fast lookup:
 
-- Capacity: **256 entries** (`_kAvatarCacheCapacity`); the LRU tail
-  is evicted on overflow.
-- **TTL: 6 hours** (`_avatarCacheTtl`). A `peek` on an entry older
-  than the TTL treats it as a miss and removes it. Avatar URLs change
-  only when a channel owner swaps their profile photo (a few times
-  per year in practice); a 6-hour window is far longer than the
-  realistic re-fetch cadence while bounding memory of long-running
-  sessions that touch thousands of distinct channels.
+- Capacity: **256 entries**
+- **TTL: 6 hours**
 - Lifecycle: lives for the lifetime of the repository instance
-  (singleton via `discoverRepositoryProvider`).
-- Scope: per-app, not per-user-DB; subscribers moving between
-  accounts will see a cold avatar cache.
 
-Failures during avatar fetch are logged at `fine` and surface as
-`null`, so the caller can fall back to a placeholder.
+Failures during avatar fetch return `null`, so the caller can fall back to a placeholder.
 
 ## Sliver performance
 
-The merged feed grid (main Discover screen) and the channel feed grid (`/discover/channel/:channelId`) both re-render their full entry list on every RSS refresh. Each tile uses a stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via [`findSliverIndexByPrefixedId`](../../lib/core/utils/sliver_key_index.dart) so a refresh that only prepends new entries reuses existing tile `Element`s instead of rebuilding the whole visible grid.
-
-Since the cache became append-only ([ADR-0046](../decisions/0046-discover-feed-append-only.md)), the stable `ValueKey` pattern is even more important: a refresh that only adds a few new entries at the head of the timeline must not rebuild the visible window of older entries. See [conventions.md § Sliver performance](../conventions.md#sliver-performance-long-live-lists) for the shared convention.
+The merged feed grid and the channel feed grid both use stable `ValueKey<String>` — `discover-feed-<videoId>` on the merged feed, `channel-feed-<videoId>` on the channel feed — plus `findChildIndexCallback` via `findSliverIndexByPrefixedId` so a refresh that only prepends new entries reuses existing tile `Element`s.
 
 ## Add to library
 
@@ -186,23 +146,21 @@ Uses the same path as **Import → From YouTube URL**: oEmbed metadata, `videos`
 
 ## Transcripts
 
-No caption availability in RSS. After import, transcript loading follows [`transcript.md`](transcript.md) and [`youtube.md`](youtube.md). Recommended channels are chosen partly for reliable captions, but empty transcript states remain possible.
+No caption availability in the worker feed. After import, transcript loading follows [`transcript.md`](transcript.md) and [`youtube.md`](youtube.md).
 
 ## Limitations
 
-- Each InnerTube `browse` page returns ~30 videos; the page cap is 5 (~150 videos) per channel per refresh tick. The Atom RSS fallback returns ~15 most recent videos per channel — a per-fetch payload cap, not a cache cap. The cache itself is append-only between unsubscribe events (see [Cache semantics (append-only)](#cache-semantics-append-only)).
-- **YouTube Shorts** are excluded (RSS alternate link uses `/shorts/`)
-- Handle → `channel_id` resolution may fail if YouTube HTML changes
+- **Fixed feed size.** The RSSHub proxy returns a fixed set of entries (~15–50 per feed). Pagination and `since`-based incremental refresh are deferred to a follow-up enhancement.
+- **View count not available.** JSON Feed v1.1 does not expose view counts; the client cannot display per-video view counts from the worker feed.
+- **Worker dependency.** Initial subscription requires worker connectivity for feed fetching. Cached entries remain fully browsable offline.
 - Subscriptions and feed cache live in the signed-in per-user SQLite file (`enjoy_player_<userId>`)
-- Avatar URL cache is per-process (not per-DB); the 256-entry LRU cap
-  evicts the least-recently-used channel id on overflow, and entries
-  older than the 6-hour TTL are treated as misses on next read
 - No hard upper bound on per-channel cache size in v1; users bound growth by unsubscribing (see [ADR-0046](../decisions/0046-discover-feed-append-only.md))
-- **Playlist import is not yet supported.** Subscribing to a `https://youtube.com/playlist?list=…` URL and surfacing playlist uploads is tracked as a separate follow-up spec; the current feature scopes to channel refresh only.
 
 ## Related
 
-- [ADR-0021](../decisions/0021-youtube-discover-rss.md)
-- [ADR-0046](../decisions/0046-discover-feed-append-only.md)
-- [ADR-0047](../decisions/0047-youtube-discover-innertube.md)
+- [ADR-0049](../decisions/0049-youtube-worker-discovery.md) — moved YouTube discovery to server-side RSSHub proxy
+- [ADR-0021](../decisions/0021-youtube-discover-rss.md) — original RSS-only discovery (replaced)
+- [ADR-0046](../decisions/0046-discover-feed-append-only.md) — append-only feed cache
+- [ADR-0047](../decisions/0047-youtube-discover-innertube.md) — InnerTube primary source (replaced)
+- [Worker feed API contract](../../specs/018-youtube-worker-discovery/contracts/worker-feed-api.md)
 - [youtube.md](youtube.md)

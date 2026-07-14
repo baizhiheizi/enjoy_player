@@ -6,6 +6,8 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
+import 'package:enjoy_player/features/transcript/data/client_profile.dart';
+import 'package:enjoy_player/features/transcript/data/youtube_profiles_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -136,7 +138,12 @@ void main() {
 
     Future<void> setupContainer() async {
       container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          youtubeProfilesProvider.overrideWith(
+            (ref) async => kBuiltInClientProfiles,
+          ),
+        ],
       );
       addTearDown(container.dispose);
 
@@ -292,7 +299,12 @@ void main() {
       );
 
       final c = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          youtubeProfilesProvider.overrideWith(
+            (ref) async => kBuiltInClientProfiles,
+          ),
+        ],
       );
       addTearDown(c.dispose);
 

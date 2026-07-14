@@ -54,6 +54,10 @@ Future<void> enqueuePendingSync(
           await db.recordingDao.insertRow(
             row.copyWith(syncStatus: const Value('pending')),
           );
+        case SyncEntityType.youtubeSubscription:
+          final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
+          if (sub == null) return;
+          payloadJson = jsonEncode(prepareForSyncSubscriptionMap(sub));
       }
   }
 

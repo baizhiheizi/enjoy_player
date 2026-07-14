@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 
 export 'package:enjoy_player/core/utils/remote_thumbnail_url.dart'
     show isRemoteThumbnailUrl, remoteThumbnailForCard;
@@ -221,4 +222,48 @@ Map<String, dynamic> unwrapEntity(Map<String, dynamic> response, String key) {
   if (inner is Map<String, dynamic>) return inner;
   if (inner is Map) return Map<String, dynamic>.from(inner);
   return response;
+}
+
+/// Serializes a YouTube subscription for cloud sync.
+Map<String, dynamic> prepareForSyncSubscriptionMap(
+  YoutubeChannelSubscriptionRow row,
+) {
+  return <String, dynamic>{
+    'channelId': row.channelId,
+    'displayName': row.displayName,
+    if (row.thumbnailUrl != null) 'thumbnailUrl': row.thumbnailUrl,
+    'source': row.source.name,
+    'sourceType': row.sourceType.name,
+    if (row.feedUrl != null) 'feedUrl': row.feedUrl,
+    'language': row.language,
+    'subscribedAt': row.subscribedAt.toUtc().toIso8601String(),
+    if (row.lastFetchedAt != null)
+      'lastFetchedAt': row.lastFetchedAt!.toUtc().toIso8601String(),
+  };
+}
+
+/// Deserializes a YouTube subscription from server sync JSON.
+YoutubeChannelSubscriptionRow subscriptionRowFromServerJson(
+  Map<String, dynamic> json,
+) {
+  final now = DateTime.now();
+  final subscribedAt = requireIsoDate(json['subscribedAt'], now);
+  final lastFetchedAt = parseIsoDate(json['lastFetchedAt']);
+  return YoutubeChannelSubscriptionRow(
+    channelId: json['channelId'] as String,
+    displayName: json['displayName'] as String? ?? '',
+    thumbnailUrl: json['thumbnailUrl'] as String?,
+    source: YoutubeSubscriptionSource.values.firstWhere(
+      (e) => e.name == json['source'],
+      orElse: () => YoutubeSubscriptionSource.user,
+    ),
+    sourceType: YoutubeSourceType.values.firstWhere(
+      (e) => e.name == json['sourceType'],
+      orElse: () => YoutubeSourceType.channel,
+    ),
+    feedUrl: json['feedUrl'] as String?,
+    language: json['language'] as String? ?? 'und',
+    subscribedAt: subscribedAt,
+    lastFetchedAt: lastFetchedAt,
+  );
 }

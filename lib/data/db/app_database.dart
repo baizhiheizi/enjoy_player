@@ -88,7 +88,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -148,6 +148,21 @@ class AppDatabase extends _$AppDatabase {
         await m.database.customStatement(
           'CREATE INDEX IF NOT EXISTS idx_ai_cache_kind_updated_at '
           'ON ai_cache (kind, updated_at DESC)',
+        );
+      } else if (next == 13) {
+        await _addColumnIfMissing(
+          m,
+          youtubeChannelSubscriptions,
+          youtubeChannelSubscriptions.sourceType,
+        );
+        await _addColumnIfMissing(
+          m,
+          youtubeChannelSubscriptions,
+          youtubeChannelSubscriptions.feedUrl,
+        );
+        await m.database.customStatement(
+          "UPDATE youtube_channel_subscriptions "
+          "SET source_type = 'channel' WHERE source_type IS NULL",
         );
       }
       current = next;

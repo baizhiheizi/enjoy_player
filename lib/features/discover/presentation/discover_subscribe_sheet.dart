@@ -11,7 +11,7 @@ import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
-import 'package:enjoy_player/features/discover/data/youtube_channel_resolver.dart';
+import 'package:enjoy_player/features/discover/data/worker_feed_exception.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 Future<void> showDiscoverSubscribeSheet(BuildContext context) {
@@ -62,9 +62,13 @@ class _DiscoverSubscribeSheetState
       if (!mounted) return;
       Navigator.pop(context);
       AppNotice.success(context, l10n.discoverSubscribed);
-    } on YoutubeChannelResolveException catch (e) {
+    } on FormatException catch (e) {
       if (mounted) {
         AppNotice.error(context, e.message);
+      }
+    } on WorkerFeedException catch (e) {
+      if (mounted && e.message != null) {
+        AppNotice.error(context, e.message!);
       }
     } catch (_) {
       if (mounted) {

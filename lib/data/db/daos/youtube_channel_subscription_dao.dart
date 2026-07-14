@@ -54,4 +54,28 @@ class YoutubeChannelSubscriptionDao extends DatabaseAccessor<AppDatabase>
           ..where((t) => t.channelId.equals(channelId)))
         .write(YoutubeChannelSubscriptionsCompanion(language: Value(language)));
   }
+
+  Future<void> updateSourceType(
+    String channelId,
+    YoutubeSourceType sourceType,
+  ) async {
+    await (update(youtubeChannelSubscriptions)
+          ..where((t) => t.channelId.equals(channelId)))
+        .write(
+          YoutubeChannelSubscriptionsCompanion(
+            sourceType: Value(sourceType),
+          ),
+        );
+  }
+
+  Future<void> updateFeedUrl(
+    String channelId,
+    String? feedUrl,
+  ) async {
+    await (update(youtubeChannelSubscriptions)
+          ..where((t) => t.channelId.equals(channelId)))
+        .write(
+          YoutubeChannelSubscriptionsCompanion(feedUrl: Value(feedUrl)),
+        );
+  }
 }

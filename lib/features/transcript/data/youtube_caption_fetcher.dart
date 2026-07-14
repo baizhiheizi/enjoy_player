@@ -178,7 +178,7 @@ class YoutubeCaptionFetcher {
         final futures = bestByLang.values.map((track) async {
           try {
             final source = _determineSource(track);
-            final subtitles = await _fetchCaptionTrack(track);
+            final subtitles = await _fetchCaptionTrack(track, profile);
             return CaptionFetchResult(
               subtitles: subtitles,
               source: source,
@@ -324,13 +324,25 @@ class YoutubeCaptionFetcher {
   }
 
   /// Fetches the caption track data in json3 format and parses to segments.
-  Future<List<TranscriptLine>> _fetchCaptionTrack(CaptionTrack track) async {
+  ///
+  /// Uses [profile]'s user agent and a matching `Referer` so the timedtext
+  /// endpoint sees a consistent client identity with the `/player` call that
+  /// succeeded. Mixing the iOS UA on a non-iOS profile silently returns
+  /// empty / 403 on real YouTube.
+  Future<List<TranscriptLine>> _fetchCaptionTrack(
+    CaptionTrack track,
+    ClientProfile profile,
+  ) async {
     var url = track.baseUrl.replaceAll(RegExp(r'&fmt=[^&]+'), '');
     url += '&fmt=json3';
 
     final response = await httpClient.get(
       Uri.parse(url),
-      headers: {'User-Agent': kBuiltInClientProfiles.first.userAgent},
+      headers: {
+        'User-Agent': profile.userAgent,
+        'Referer': 'https://m.youtube.com/',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
     );
 
     if (response.statusCode != 200) {

@@ -181,11 +181,17 @@ class TranscriptRepository {
   /// 1. Ensures a primary transcript when tracks exist.
   /// 2. Imports adjacent sidecar `.srt` / `.vtt` for local files.
   /// 3. Optionally fetches cloud / YouTube transcripts when [fetchCloud].
+  ///
+  /// [nativeLanguage] / [learningLanguage] are forwarded to the YouTube
+  /// branch so the post-fetch primary picker can prefer tracks matching the
+  /// video's content language first, then the user's learning language,
+  /// then fall back to source priority.
   Future<TranscriptResolveResult> resolveOnOpen(
     String mediaId, {
     bool forceCloud = false,
     bool fetchCloud = true,
     String? nativeLanguage,
+    String? learningLanguage,
   }) async {
     final tt = await dexieTargetTypeForId(_db, mediaId);
     if (tt == null) {
@@ -208,6 +214,7 @@ class TranscriptRepository {
         mediaId,
         force: forceCloud,
         nativeLanguage: nativeLanguage,
+        learningLanguage: learningLanguage,
       );
       await ensurePrimaryTranscript(mediaId);
     }
@@ -321,6 +328,7 @@ class TranscriptRepository {
     String mediaId, {
     bool force = false,
     String? nativeLanguage,
+    String? learningLanguage,
   }) async {
     final tt = await dexieTargetTypeForId(_db, mediaId);
     if (tt == null) {
@@ -353,6 +361,7 @@ class TranscriptRepository {
               mediaId: mediaId,
               video: video,
               force: force,
+              learningLanguage: learningLanguage,
             );
           } on Object catch (e, st) {
             _log.warning(
@@ -430,7 +439,7 @@ class TranscriptRepository {
 
   String? _workerCaptionLanguage(VideoRow video) {
     final lang = video.language.trim();
-    if (lang.isEmpty || lang == 'und') return null;
+    if (kInvalidLanguageTags.contains(lang)) return null;
     return workerLanguageBase(lang);
   }
 
@@ -478,9 +487,16 @@ class TranscriptRepository {
 
   /// Three-tier fallback chain for YouTube transcript fetching.
   ///
-  /// Tier 1: Worker GET cache (skipped when [force] is true).
+  /// Tier 1: Worker GET cache (skipped when [force] is true; also skipped
+  /// when the video row has no usable content language).
   /// Tier 2: Client-side direct YouTube fetch (bypasses worker).
   /// Every direct fetch uploads all tracks to the worker for caching.
+  ///
+  /// Tier 2 always runs when the row resolves to YouTube playback, even
+  /// when `videos.language` is empty / `und` / unknown — the InnerTube
+  /// fetch itself discovers every available language. The unknown
+  /// language only narrows the Tier 1 lookup and the `preferredLang`
+  /// hint handed to the fetcher.
   ///
   /// Every branch logs its outcome (at INFO or WARNING) so the chain is
   /// observable in production. Without these logs a Windows → worker → Android
@@ -490,30 +506,24 @@ class TranscriptRepository {
     required String mediaId,
     required VideoRow video,
     required bool force,
+    String? learningLanguage,
   }) async {
     final workerVideoId = _workerYoutubeVideoId(video);
-    final language = _workerCaptionLanguage(video);
-    if (language == null) {
-      // Do NOT silently skip: if a YouTube video row was imported without a
-      // content language, the worker cache lookup and the Innertube fallback
-      // both short-circuit. The user sees no captions and no error; this log
-      // is the only breadcrumb that the chain was skipped.
-      _log.warning(
-        'YouTube transcript chain skipped for $mediaId: '
-        'videos.language is missing or "und" '
-        '(set the media content language to enable fetch)',
-      );
-      return const TranscriptCloudFetchResult(
-        status: TranscriptCloudFetchStatus.skipped,
-      );
-    }
+    final videoLanguage = video.language.trim();
+    final workerLanguage = _workerCaptionLanguage(video);
 
-    // Tier 1: Worker GET cache (skip when forcing a refresh)
-    if (!force) {
-      _log.info('YouTube Tier 1 (worker cache) GET $workerVideoId/$language');
+    // Tier 1: Worker GET cache (skip when forcing a refresh OR when the
+    // video has no usable content language to query with). A missing
+    // worker language is *not* a reason to abort the chain — Tier 2 will
+    // still run and discover every available caption language.
+    if (!force && workerLanguage != null) {
+      _log.info(
+        'YouTube Tier 1 (worker cache) GET '
+        '$workerVideoId/$workerLanguage',
+      );
       final cached = await _fetchWorkerCachedTranscript(
         videoId: workerVideoId,
-        language: language,
+        language: workerLanguage,
       );
       if (cached != null) {
         final result = await _upsertWorkerCachedTranscript(
@@ -523,8 +533,13 @@ class TranscriptRepository {
         );
         if (result) {
           _log.info(
-            'YouTube Tier 1 hit for $workerVideoId/$language — '
+            'YouTube Tier 1 hit for $workerVideoId/$workerLanguage — '
             'using cached transcript (skipping InnerTube)',
+          );
+          await _pickYoutubePrimary(
+            mediaId: mediaId,
+            videoLanguage: videoLanguage.isEmpty ? null : videoLanguage,
+            learningLanguage: learningLanguage,
           );
           return const TranscriptCloudFetchResult(
             status: TranscriptCloudFetchStatus.success,
@@ -532,20 +547,23 @@ class TranscriptRepository {
           );
         }
         _log.info(
-          'YouTube Tier 1 returned a body but stored 0 lines — '
-          'falling through to InnerTube',
+          'YouTube Tier 1 returned a body but stored 0 lines for '
+          '$workerVideoId/$workerLanguage — falling through to InnerTube',
         );
-        return const TranscriptCloudFetchResult(
-          status: TranscriptCloudFetchStatus.empty,
+      } else {
+        _log.info(
+          'YouTube Tier 1 miss for $workerVideoId/$workerLanguage — '
+          'falling through to direct InnerTube fetch',
         );
       }
+    } else if (workerLanguage == null) {
       _log.info(
-        'YouTube Tier 1 miss for $workerVideoId/$language — '
-        'falling through to direct InnerTube fetch',
+        'YouTube Tier 1 skipped for $workerVideoId — '
+        'videos.language is empty/"und" (Tier 2 will still discover)',
       );
     }
 
-    // Tier 2: Client-side direct YouTube fetch — download all tracks
+    // Tier 2: Client-side direct YouTube fetch — download all tracks.
     final fetcher = _youtubeFetcher;
     if (fetcher == null) {
       _log.warning(
@@ -556,19 +574,19 @@ class TranscriptRepository {
       );
     }
 
+    // InnerTube always discovers every language. When `videos.language`
+    // is unknown we pass an empty preferredLang so no track is artificially
+    // ranked first and every available language is still returned.
+    final preferredLang = workerLanguage ?? '';
     final allResult = await fetcher.fetchAllSubtitles(
       videoId: workerVideoId,
-      preferredLang: language,
+      preferredLang: preferredLang,
     );
 
     if (!allResult.isSuccess) {
-      // All built-in InnerTube profiles failed — this is the most common
-      // cause of "I see captions on Windows but the Android client shows
-      // nothing" after the cache miss. Bump to WARNING so it surfaces on
-      // logcat / in the rotating log file even at production log levels.
       _log.warning(
         'YouTube Tier 2 (direct InnerTube) failed for '
-        '$workerVideoId/$language: ${allResult.error}',
+        '$workerVideoId/$preferredLang: ${allResult.error}',
       );
       return TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.error,
@@ -578,7 +596,6 @@ class TranscriptRepository {
 
     final now = DateTime.now();
     var storedCount = 0;
-    String? primaryRowId;
 
     for (final trackResult in allResult.results) {
       if (!trackResult.isSuccess || trackResult.subtitles.isEmpty) continue;
@@ -614,8 +631,6 @@ class TranscriptRepository {
       );
       storedCount++;
 
-      primaryRowId ??= id;
-
       _uploadToWorkerAfterDirectFetch(
         videoId: workerVideoId,
         language: trackResult.language,
@@ -627,7 +642,7 @@ class TranscriptRepository {
     if (storedCount == 0) {
       _log.info(
         'YouTube Tier 2 succeeded profile=${allResult.fetchProfile} '
-        'but stored 0 valid tracks for $workerVideoId/$language',
+        'but stored 0 valid tracks for $workerVideoId/$preferredLang',
       );
       return const TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.empty,
@@ -636,13 +651,75 @@ class TranscriptRepository {
 
     _log.info(
       'YouTube Tier 2 stored $storedCount track(s) via '
-      'profile=${allResult.fetchProfile} for $workerVideoId/$language; '
+      'profile=${allResult.fetchProfile} for $workerVideoId/$preferredLang; '
       'uploads dispatched to worker',
     );
+
+    await _pickYoutubePrimary(
+      mediaId: mediaId,
+      videoLanguage: videoLanguage.isEmpty ? null : videoLanguage,
+      learningLanguage: learningLanguage,
+    );
+
     return TranscriptCloudFetchResult(
       status: TranscriptCloudFetchStatus.success,
       storedCount: storedCount,
     );
+  }
+
+  /// Chooses a primary transcript for a YouTube media row based on the
+  /// video's content language, falling back to the user's learning
+  /// language, then to source priority.
+  ///
+  /// Honors an existing user-picked primary: when the session already
+  /// references a row that still exists, it is preserved (mirrors the
+  /// guard in [ensurePrimaryTranscript]).
+  Future<void> _pickYoutubePrimary({
+    required String mediaId,
+    required String? videoLanguage,
+    required String? learningLanguage,
+  }) async {
+    final rows = await _db.transcriptDao.listForTarget('Video', mediaId);
+    if (rows.isEmpty) return;
+
+    final session = await _db.echoSessionDao.getLatestForTarget(
+      'Video',
+      mediaId,
+    );
+    final currentId = session?.transcriptId;
+    if (currentId != null && rows.any((r) => r.id == currentId)) return;
+
+    final videoMatch = _bestByLanguage(rows, videoLanguage);
+    final learningMatch = videoMatch == null
+        ? _bestByLanguage(rows, learningLanguage)
+        : null;
+    final picked =
+        videoMatch ??
+        learningMatch ??
+        () {
+          final sorted = [...rows];
+          _sortTranscriptRows(sorted);
+          return sorted.first;
+        }();
+
+    await _db.echoSessionDao.updatePrimaryTranscriptForTarget(
+      'Video',
+      mediaId,
+      picked.id,
+    );
+  }
+
+  /// Returns the best row whose [TranscriptRow.language] matches [language]
+  /// under [matchesLanguageBroad], ranked by source priority then createdAt.
+  /// Returns null when no row matches.
+  TranscriptRow? _bestByLanguage(List<TranscriptRow> rows, String? language) {
+    if (language == null || language.isEmpty) return null;
+    final filtered = rows
+        .where((r) => matchesLanguageBroad(r.language, language))
+        .toList();
+    if (filtered.isEmpty) return null;
+    _sortTranscriptRows(filtered);
+    return filtered.first;
   }
 
   /// Tries to fetch a cached transcript from the worker's GET endpoint.
@@ -673,6 +750,12 @@ class TranscriptRepository {
   /// was completely invisible: [YoutubeTranscriptsApi.uploadTranscript]
   /// swallows the exception into `return false` and `unawaited(...)` discards
   /// the bool.
+  ///
+  /// On failure the payload is durably enqueued via `sync_queue` (entity
+  /// `video`, action `update`, payload `kind: youtube_upload`) so the next
+  /// [SyncCtrl] periodic drain reattempts the upload. This is the fix for
+  /// the Windows-fetches-but-Android-can't-serve-from-cache mode where the
+  /// one-shot upload was lost on a transient worker failure.
   void _uploadToWorkerAfterDirectFetch({
     required String videoId,
     required String language,
@@ -700,38 +783,71 @@ class TranscriptRepository {
             source: source,
             timeline: timeline,
           )
-          .then((ok) {
+          .then((ok) async {
             if (ok) {
               _log.info(
                 'YouTube worker upload accepted for $videoId/$language '
                 '(source=$source, ${timeline.length} lines)',
               );
-            } else {
-              // `YoutubeTranscriptsApi.uploadTranscript` already logged a
-              // WARNING with the underlying cause; this adds the chain
-              // context (which video/language/source) at INFO so the
-              // operator can correlate client and worker logs.
-              _log.info(
-                'YouTube worker upload returned false for '
-                '$videoId/$language (source=$source, '
-                '${timeline.length} lines) — worker cache will not be '
-                'populated; the next client will re-fetch via InnerTube',
-              );
+              return;
             }
+            _log.info(
+              'YouTube worker upload returned false for '
+              '$videoId/$language (source=$source, '
+              '${timeline.length} lines) — enqueueing durable retry',
+            );
+            await _enqueueYoutubeUploadRetry(
+              videoId: videoId,
+              language: language,
+              source: source,
+              timeline: timeline,
+            );
           })
-          .catchError((Object e, StackTrace st) {
-            // The `try/on Object { return false; }` inside the API client
-            // normally prevents errors from leaking out, but defensively
-            // observe anything else (e.g. a logging misconfiguration) so
-            // an uncaught async error never escapes to the zone.
+          .catchError((Object e, StackTrace st) async {
             _log.warning(
               'YouTube worker upload threw for $videoId/$language '
-              '(source=$source)',
+              '(source=$source) — enqueueing durable retry',
               e,
               st,
             );
+            await _enqueueYoutubeUploadRetry(
+              videoId: videoId,
+              language: language,
+              source: source,
+              timeline: timeline,
+            );
           }),
     );
+  }
+
+  Future<void> _enqueueYoutubeUploadRetry({
+    required String videoId,
+    required String language,
+    required String source,
+    required List<Map<String, dynamic>> timeline,
+  }) async {
+    try {
+      final payload = jsonEncode({
+        'kind': 'youtube_upload',
+        'videoId': videoId,
+        'language': language,
+        'source': source,
+        'timeline': timeline,
+      });
+      await _db.syncQueueDao.enqueue(
+        entityType: 'video',
+        entityId: '$videoId/$language',
+        action: 'update',
+        payloadJson: payload,
+      );
+    } on Object catch (e, st) {
+      _log.warning(
+        'failed to enqueue YouTube worker upload retry for '
+        '$videoId/$language',
+        e,
+        st,
+      );
+    }
   }
 
   TranscriptRow? _transcriptRowFromServerMap(

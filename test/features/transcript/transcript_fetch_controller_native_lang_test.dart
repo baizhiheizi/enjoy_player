@@ -24,7 +24,14 @@ class _NativePrefsCtrl extends AppPreferencesCtrl {
 class _RecordingRepo extends TranscriptRepository {
   _RecordingRepo(super.db);
 
-  final List<({bool forceCloud, bool fetchCloud, String? nativeLanguage})>
+  final List<
+    ({
+      bool forceCloud,
+      bool fetchCloud,
+      String? nativeLanguage,
+      String? learningLanguage,
+    })
+  >
   calls = [];
 
   @override
@@ -33,11 +40,13 @@ class _RecordingRepo extends TranscriptRepository {
     bool forceCloud = false,
     bool fetchCloud = true,
     String? nativeLanguage,
+    String? learningLanguage,
   }) async {
     calls.add((
       forceCloud: forceCloud,
       fetchCloud: fetchCloud,
       nativeLanguage: nativeLanguage,
+      learningLanguage: learningLanguage,
     ));
     return const TranscriptResolveResult(hasTracks: false);
   }
@@ -89,6 +98,7 @@ void main() {
         expect(repo.calls.single.fetchCloud, isTrue);
         expect(repo.calls.single.forceCloud, isFalse);
         expect(repo.calls.single.nativeLanguage, 'zh-CN');
+        expect(repo.calls.single.learningLanguage, 'en-US');
       },
     );
 
@@ -121,6 +131,7 @@ void main() {
       // The refresh path must see the same native language as open — this is
       // the FR-010 gap that reading inside _runResolve closes.
       expect(repo.calls.single.nativeLanguage, 'zh-CN');
+      expect(repo.calls.single.learningLanguage, 'en-US');
     });
   });
 }

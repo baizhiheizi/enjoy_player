@@ -34,28 +34,62 @@ While a video is open, the player WebView [`shouldOverrideUrlLoading`](../../lib
 
 ## Transcripts
 
-Signed-in learners get **bilingual** captions automatically: when the video's
-content language differs from the learner's native language, the app requests
-the **original** caption and a **native-language translation** together in a
-single Enjoy Worker `POST /youtube/transcripts` call (the worker's `languages`
-array), then stores the original as the **primary** subtitle and the translation
-as the **secondary** subtitle so both appear with no extra taps. When the content
-language equals the native language (or the native language is unknown), the app
-uses the existing **single-language** path (`language:` only), preserving the
-worker's Apify fallback. Source language `und`/empty skips cloud entirely.
+Captions are fetched **directly from YouTube** (InnerTube `/player` + `fmt=json3`
+timed text) and cached on the worker. The chain has three tiers:
 
-The worker is **server-side long-polled** (`wait_ms`), so a video typically
-resolves in a handful of POSTs rather than the prior fixed 2 s × 30 loop; a
-`partial` result (some languages missing) is treated as success — every caption
-that *is* ready is stored and shown, never an error. See
-[ADR-0036](../decisions/0036-youtube-bilingual-transcripts.md) and the YouTube
-(Worker) section of [transcript.md](transcript.md). Local subtitle file import
-remains disabled for YouTube rows.
+1. **Worker GET cache** (`GET /youtube/transcripts?videoId&language`) — fast
+   when another client has already fetched this video. Skipped when the video
+   row's content language is missing / `und` / `mul` / `mis` / `zxx` (there is
+   no useful single `language` to query with).
+2. **Client-side InnerTube fetch** — runs through `YoutubeCaptionFetcher`, which
+   rotates through worker-published (or built-in) client profiles and downloads
+   **every** available caption track in parallel. This is the runtime form of
+   spec 013's FR-001 / FR-002 / FR-004.
+3. **Worker upload** — every track downloaded in Tier 2 is fire-and-forget POSTed
+   back to the worker so the next client (or this client on another device)
+   hits Tier 1 instead. Failed uploads are durably enqueued via `sync_queue`
+   (entity `video`, payload `kind: youtube_upload`) and drained on the next
+   [SyncCtrl] periodic drain — see
+   [`transcript_repository.dart`](../../lib/features/transcript/data/transcript_repository.dart).
 
-When the worker poll returns `status: failed`, the app records a **fetched**
-state so the UI does not spin forever; users can retry later (e.g. after captions
-exist or policy changes) without an infinite poll loop. See
-[`transcript_repository.dart`](../../lib/features/transcript/data/transcript_repository.dart).
+**Tier 2 always runs for YouTube rows**, even when `videos.language` is empty
+or `und`. An unknown language only narrows the Tier 1 lookup and the
+`preferredLang` hint passed to the fetcher; the fetcher itself still discovers
+all available languages (spec 013 FR-004) and stores them as separate
+`TranscriptRow`s keyed by `(target, source, language)`.
+
+### Primary selection
+
+When multiple language tracks are present the post-fetch primary picker ranks
+them as:
+
+1. The video's content language (broad subtag match via
+   [`matchesLanguageBroad`](../../lib/core/application/app_language_catalog.dart)).
+2. The user's **learning** language (broad match). Passed down from
+   `AppPreferencesCtrl.effectiveLearningLanguage` through
+   `TranscriptFetchCtrl` → `TranscriptRepository.resolveOnOpen` →
+   `_fetchYoutubeTranscriptsWithFallback`.
+3. Existing source priority (`official` → `auto` → `ai` → `user`, then
+   `createdAt`).
+
+A user-picked primary already on the session is **always preserved** —
+`_pickYoutubePrimary` short-circuits when `echoSessionDao.transcriptId`
+points at a row that still exists. This is the language-aware counterpart
+to the source-only `ensurePrimaryTranscript` used for non-YouTube media.
+
+### Client profiles
+
+The InnerTube rotation uses a `youtubeProfilesProvider` that lazily fetches
+the worker's `GET /youtube/client-profiles` on first YouTube open, caches the
+result in a 24 h `L1Store`, and falls back to the compile-time
+`kBuiltInClientProfiles` (`ios` → `android_vr` → `mweb` → `web`) when the
+worker is unreachable or returns an empty list. This is spec 013's FR-003
+("client profiles MUST be remotely configurable").
+
+The timedtext GET for each track uses the **same** profile's user agent and
+adds `Referer: https://m.youtube.com/` plus `Accept-Language` so the
+`youtubei.googleapis.com` endpoint sees a consistent client identity with the
+`/player` call that succeeded.
 
 ## Limitations
 

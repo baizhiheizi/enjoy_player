@@ -114,9 +114,12 @@ const List<ClientProfile> kBuiltInClientProfiles = [
   ClientProfile(
     // Desktop WEB profile — primary client for the InnerTube `browse` endpoint
     // used by Discover channel refresh (ADR-0047). Picked first by
-    // `YoutubeBrowseClient`'s `preferredProfileOrder`. `IOS` and `ANDROID_VR`
-    // remain in this list because the YouTube caption fetcher (`/player`)
-    // rotates through them; they are not used for `browse`.
+    // `YoutubeBrowseClient`'s `preferredProfileOrder`. `IOS` is also used as a
+    // browse fallback on Android where desktop profiles sometimes return empty
+    // renderer lists (the `ios` profile succeeds on the same
+    // `youtubei.googleapis.com` host for `browse` too — ADR-0049).
+    // `ANDROID_VR` remains in this list because the YouTube caption fetcher
+    // (`/player`) rotates through it; it is not used for `browse`.
     name: 'web',
     clientName: 'WEB',
     clientVersion: '2.20240101.00.00',
