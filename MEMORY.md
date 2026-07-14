@@ -1,1 +1,1 @@
-- [Test Improver run state](test-improver-state.md) — last run 2026-07-13 (LogFileSink coverage), validated coverage pipeline, backlog + monthly issue state
+- [Test Improver run state](test-improver-state.md) — last run 2026-07-14 (ffmpeg_media_probe parser coverage), validated coverage pipeline, backlog + monthly issue state
