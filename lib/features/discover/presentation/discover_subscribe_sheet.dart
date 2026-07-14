@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
@@ -117,11 +118,7 @@ class _DiscoverSubscribeSheetState
               FilledButton(
                 onPressed: _submitting ? null : () => unawaited(_submit()),
                 child: _submitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const LoadingIcon(size: 20)
                     : Text(l10n.discoverSubscribeAction),
               ),
             ],

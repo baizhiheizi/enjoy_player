@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
@@ -347,11 +348,7 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
                     child: EnjoyButton.primary(
                       onPressed: _saving ? null : _save,
                       child: _saving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const LoadingIcon(size: 20)
                           : Text(l10n.settingsAiProvidersSave),
                     ),
                   ),

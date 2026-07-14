@@ -2,6 +2,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Header-area refresh control for lookup sheet sections (cache bust + refetch).
@@ -49,7 +51,6 @@ class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton> {
   @override
   Widget build(BuildContext context) {
     final busy = widget.isRefreshing || _tapLatched;
-    final scheme = Theme.of(context).colorScheme;
 
     return IconButton(
       style: IconButton.styleFrom(
@@ -62,14 +63,7 @@ class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton> {
       tooltip: busy ? null : widget.l10n.lookupRefresh,
       onPressed: busy ? null : _handlePressed,
       icon: busy
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: scheme.primary,
-              ),
-            )
+          ? const LoadingIcon(size: 20)
           : const Icon(Icons.refresh_rounded, size: 20),
     );
   }

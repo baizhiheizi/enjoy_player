@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:enjoy_player/core/application/app_links.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/diagnostics/diagnostic_export_flow.dart';
 import 'package:enjoy_player/core/diagnostics/diagnostics_verbose_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -247,13 +248,8 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                                           );
                                         },
                                       ),
-                                      loading: () => const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
+                                      loading: () =>
+                                          const LoadingIcon(size: 24),
                                       error: (_, _) => const SizedBox.shrink(),
                                     ),
                               ],

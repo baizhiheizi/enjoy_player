@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
@@ -756,13 +757,9 @@ class _Thumbnail extends StatelessWidget {
     return ColoredBox(
       color: cs.surfaceContainerHighest,
       child: Center(
-        child: SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: cs.onSurfaceVariant.withValues(alpha: 0.45),
-          ),
+        child: LoadingIcon(
+          size: 22,
+          color: cs.onSurfaceVariant.withValues(alpha: 0.45),
         ),
       ),
     );

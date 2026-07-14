@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
@@ -107,14 +108,7 @@ class RecordingAssessmentButton extends ConsumerWidget {
                     ),
               child: Center(
                 child: isAssessing
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: scheme.primary,
-                        ),
-                      )
+                    ? const LoadingIcon(size: 18)
                     : score != null
                     ? Text(
                         '$score',

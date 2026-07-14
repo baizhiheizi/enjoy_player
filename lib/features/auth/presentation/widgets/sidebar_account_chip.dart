@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -31,14 +32,7 @@ class SidebarAccountChip extends ConsumerWidget {
           if (authFlowInProgress(state)) {
             return ListTile(
               dense: true,
-              leading: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: cs.primary,
-                ),
-              ),
+              leading: const LoadingIcon(size: 22),
               title: Text(
                 state is AuthAwaitingOtp
                     ? l10n.authOtpTitle
@@ -116,13 +110,7 @@ class SidebarAccountChip extends ConsumerWidget {
         },
         loading: () => const SizedBox(
           height: 40,
-          child: Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
+          child: Center(child: LoadingIcon(size: 20)),
         ),
         error: (Object e, StackTrace s) => const SizedBox.shrink(),
       ),

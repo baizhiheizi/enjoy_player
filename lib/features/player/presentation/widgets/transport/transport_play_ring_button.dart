@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+
 class TransportPlayRingButton extends StatefulWidget {
   const TransportPlayRingButton({
     super.key,
@@ -69,14 +71,7 @@ class _TransportPlayRingButtonState extends State<TransportPlayRingButton> {
                   ),
                   child: Center(
                     child: widget.buffering
-                        ? SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: ringColor,
-                            ),
-                          )
+                        ? LoadingIcon(size: 22, color: ringColor)
                         : AnimatedSwitcher(
                             duration: const Duration(milliseconds: 180),
                             switchInCurve: Curves.easeOutCubic,

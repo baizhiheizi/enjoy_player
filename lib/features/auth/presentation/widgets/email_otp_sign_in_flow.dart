@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
@@ -311,14 +312,7 @@ class _EmailStep extends StatelessWidget {
           EnjoyButton.primary(
             onPressed: busy ? null : onSubmit,
             child: busy
-                ? SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: cs.onPrimary,
-                    ),
-                  )
+                ? const LoadingIcon(size: 22, brightSurface: true)
                 : Text(l10n.authSendOtp),
           ),
         ],
@@ -467,14 +461,7 @@ class _OtpStepState extends State<_OtpStep> {
                 ? null
                 : () => widget.onVerify(_code),
             child: widget.busy
-                ? SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: cs.onPrimary,
-                    ),
-                  )
+                ? const LoadingIcon(size: 22, brightSurface: true)
                 : Text(l10n.authVerifyOtp),
           ),
           SizedBox(height: t.space12),

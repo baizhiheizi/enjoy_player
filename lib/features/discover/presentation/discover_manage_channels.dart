@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -109,7 +110,7 @@ class DiscoverManageChannelsView extends ConsumerWidget {
           recommendedAsync.when(
             loading: () => const SizedBox(
               height: DiscoverRecommendedAvatarStrip.rowHeight,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              child: Center(child: LoadingIcon()),
             ),
             error: (_, _) => Text(
               l10n.discoverRecommendedLoadFailed,
@@ -118,7 +119,7 @@ class DiscoverManageChannelsView extends ConsumerWidget {
             data: (recommended) => subscriptionsAsync.when(
               loading: () => const SizedBox(
                 height: DiscoverRecommendedAvatarStrip.rowHeight,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                child: Center(child: LoadingIcon()),
               ),
               error: (_, _) => const SizedBox.shrink(),
               data: (subs) => DiscoverRecommendedAvatarStrip(

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
@@ -301,13 +302,10 @@ class _VideoThumbnail extends StatelessWidget {
               ColoredBox(
                 color: Colors.black.withValues(alpha: 0.45),
                 child: const Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
+                  child: LoadingIcon(
+                    size: 28,
+                    strokeWidth: 2.5,
+                    color: Colors.white,
                   ),
                 ),
               ),

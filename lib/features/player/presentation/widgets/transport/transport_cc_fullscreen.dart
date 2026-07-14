@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
@@ -34,13 +35,9 @@ class TransportCcButton extends ConsumerWidget {
         IconButton(
           tooltip: l10n.subtitles,
           icon: showSpinner
-              ? SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+              ? LoadingIcon(
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 )
               : const Icon(Icons.closed_caption_outlined),
           onPressed: () => showSubtitleTrackPicker(context, ref, mediaId),

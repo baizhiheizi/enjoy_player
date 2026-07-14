@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/data/files/media_resolver.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -75,11 +76,7 @@ Future<void> importMediaFromPicker(BuildContext context, WidgetRef ref) async {
           child: AlertDialog(
             content: Row(
               children: [
-                const SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(strokeWidth: 3),
-                ),
+                const LoadingIcon(size: 32, strokeWidth: 3),
                 const SizedBox(width: 24),
                 Expanded(child: Text(d.importingMedia)),
               ],
@@ -279,11 +276,7 @@ Future<void> importYoutubeFromDialog(
           child: AlertDialog(
             content: Row(
               children: [
-                const SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(strokeWidth: 3),
-                ),
+                const LoadingIcon(size: 32, strokeWidth: 3),
                 const SizedBox(width: 24),
                 Expanded(child: Text(d.youtubeImporting)),
               ],

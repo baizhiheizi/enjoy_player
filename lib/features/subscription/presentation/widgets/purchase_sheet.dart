@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/platform/subscription_purchase_capability.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -163,11 +164,7 @@ class _PurchaseSheetBodyState extends ConsumerState<_PurchaseSheetBody> {
               EnjoyButton.primary(
                 onPressed: busy ? null : _purchaseExternal,
                 child: busy
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const LoadingIcon(size: 22)
                     : Text(l10n.subscriptionContinueToPayment),
               ),
             ],

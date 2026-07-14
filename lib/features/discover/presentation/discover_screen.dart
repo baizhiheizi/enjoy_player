@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -28,7 +29,6 @@ class DiscoverScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final refreshing = ref.watch(discoverRefreshStateProvider);
     final selectedChannelId = ref.watch(discoverSelectedChannelProvider);
     final subscriptionsAsync = ref.watch(discoverSubscriptionsProvider);
@@ -63,14 +63,7 @@ class DiscoverScreen extends ConsumerWidget {
                             ? null
                             : () => unawaited(onRefresh()),
                         icon: refreshing
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: cs.primary,
-                                ),
-                              )
+                            ? const LoadingIcon(size: 20)
                             : const Icon(Icons.refresh_rounded),
                       )
                     : null,

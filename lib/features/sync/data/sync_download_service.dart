@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
@@ -9,6 +10,12 @@ import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+
+typedef _FetchPage =
+    Future<List<JsonMap>> Function({int? limit, String? updatedAfter});
+
+typedef _UpsertRow =
+    Future<void> Function({required String id, required JsonMap server});
 
 class SyncDownloadService {
   SyncDownloadService({
@@ -34,152 +41,68 @@ class SyncDownloadService {
   Future<SyncResult> downloadRecordings() =>
       _downloadRecordingsInternal(resetCursor: false);
 
-  Future<SyncResult> _downloadAudiosInternal({
-    required bool resetCursor,
-  }) async {
-    final errors = <String>[];
-    var synced = 0;
-    var failed = 0;
-    if (resetCursor) {
-      await _db.settingsDao.setValue(SettingsKeys.syncCursorAudio, '');
-    }
-    var cursor = await _db.settingsDao.getValue(SettingsKeys.syncCursorAudio);
-    if (cursor != null && cursor.isEmpty) cursor = null;
-
-    while (true) {
-      List<Map<String, dynamic>> batch;
-      try {
-        final raw = await _audioApi.audios(
-          limit: _pageSize,
-          updatedAfter: cursor,
-        );
-        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
-      } catch (e) {
-        return SyncResult(
-          success: false,
-          synced: synced,
-          failed: failed + 1,
-          errors: [...errors, '$e'],
-        );
-      }
-
-      if (batch.isEmpty) break;
-
-      for (final m in batch) {
-        try {
-          final id = m['id'] as String?;
-          if (id == null || id.isEmpty) continue;
-          final local = await _db.audioDao.getById(id);
-          final merged = mergeAudioLastWriteWins(local: local, server: m);
-          await _db.audioDao.insertRow(merged);
-          synced++;
-        } catch (e) {
-          failed++;
-          errors.add('$e');
-        }
-      }
-
-      final maxIso = _maxUpdatedAtIso(batch);
-      if (maxIso != null) {
-        cursor = maxIso;
-        await _db.settingsDao.setValue(SettingsKeys.syncCursorAudio, maxIso);
-      }
-
-      if (batch.length < _pageSize) break;
-    }
-
-    return SyncResult(
-      success: failed == 0,
-      synced: synced,
-      failed: failed,
-      errors: errors.isEmpty ? null : errors,
+  Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
+    return _downloadEntityInternal(
+      resetCursor: resetCursor,
+      cursorKey: SettingsKeys.syncCursorAudio,
+      fetch: _audioApi.audios,
+      upsert: ({required String id, required JsonMap server}) async {
+        final local = await _db.audioDao.getById(id);
+        final merged = mergeAudioLastWriteWins(local: local, server: server);
+        await _db.audioDao.insertRow(merged);
+      },
     );
   }
 
-  Future<SyncResult> _downloadVideosInternal({
-    required bool resetCursor,
-  }) async {
-    final errors = <String>[];
-    var synced = 0;
-    var failed = 0;
-    if (resetCursor) {
-      await _db.settingsDao.setValue(SettingsKeys.syncCursorVideo, '');
-    }
-    var cursor = await _db.settingsDao.getValue(SettingsKeys.syncCursorVideo);
-    if (cursor != null && cursor.isEmpty) cursor = null;
-
-    while (true) {
-      List<Map<String, dynamic>> batch;
-      try {
-        final raw = await _videoApi.videos(
-          limit: _pageSize,
-          updatedAfter: cursor,
-        );
-        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
-      } catch (e) {
-        return SyncResult(
-          success: false,
-          synced: synced,
-          failed: failed + 1,
-          errors: [...errors, '$e'],
-        );
-      }
-
-      if (batch.isEmpty) break;
-
-      for (final m in batch) {
-        try {
-          final id = m['id'] as String?;
-          if (id == null || id.isEmpty) continue;
-          final local = await _db.videoDao.getById(id);
-          final merged = mergeVideoLastWriteWins(local: local, server: m);
-          await _db.videoDao.insertRow(merged);
-          synced++;
-        } catch (e) {
-          failed++;
-          errors.add('$e');
-        }
-      }
-
-      final maxIso = _maxUpdatedAtIso(batch);
-      if (maxIso != null) {
-        cursor = maxIso;
-        await _db.settingsDao.setValue(SettingsKeys.syncCursorVideo, maxIso);
-      }
-
-      if (batch.length < _pageSize) break;
-    }
-
-    return SyncResult(
-      success: failed == 0,
-      synced: synced,
-      failed: failed,
-      errors: errors.isEmpty ? null : errors,
+  Future<SyncResult> _downloadVideosInternal({required bool resetCursor}) {
+    return _downloadEntityInternal(
+      resetCursor: resetCursor,
+      cursorKey: SettingsKeys.syncCursorVideo,
+      fetch: _videoApi.videos,
+      upsert: ({required String id, required JsonMap server}) async {
+        final local = await _db.videoDao.getById(id);
+        final merged = mergeVideoLastWriteWins(local: local, server: server);
+        await _db.videoDao.insertRow(merged);
+      },
     );
   }
 
-  Future<SyncResult> _downloadRecordingsInternal({
+  Future<SyncResult> _downloadRecordingsInternal({required bool resetCursor}) {
+    return _downloadEntityInternal(
+      resetCursor: resetCursor,
+      cursorKey: SettingsKeys.syncCursorRecording,
+      fetch: _recordingApi.recordings,
+      upsert: ({required String id, required JsonMap server}) async {
+        final local = await _db.recordingDao.getById(id);
+        final merged = mergeRecordingLastWriteWins(
+          local: local,
+          server: server,
+        );
+        await _db.recordingDao.insertRow(merged);
+      },
+    );
+  }
+
+  Future<SyncResult> _downloadEntityInternal({
     required bool resetCursor,
+    required String cursorKey,
+    required _FetchPage fetch,
+    required _UpsertRow upsert,
   }) async {
     final errors = <String>[];
     var synced = 0;
     var failed = 0;
     if (resetCursor) {
-      await _db.settingsDao.setValue(SettingsKeys.syncCursorRecording, '');
+      await _db.settingsDao.setValue(cursorKey, '');
     }
-    var cursor = await _db.settingsDao.getValue(
-      SettingsKeys.syncCursorRecording,
-    );
+    var cursor = await _db.settingsDao.getValue(cursorKey);
     if (cursor != null && cursor.isEmpty) cursor = null;
 
     while (true) {
-      List<Map<String, dynamic>> batch;
+      List<JsonMap> batch;
       try {
-        final raw = await _recordingApi.recordings(
-          limit: _pageSize,
-          updatedAfter: cursor,
-        );
-        batch = raw.map<Map<String, dynamic>>(castJsonObject).toList();
+        final raw = await fetch(limit: _pageSize, updatedAfter: cursor);
+        batch = raw.map<JsonMap>(castJsonObject).toList();
       } catch (e) {
         return SyncResult(
           success: false,
@@ -195,9 +118,7 @@ class SyncDownloadService {
         try {
           final id = m['id'] as String?;
           if (id == null || id.isEmpty) continue;
-          final local = await _db.recordingDao.getById(id);
-          final merged = mergeRecordingLastWriteWins(local: local, server: m);
-          await _db.recordingDao.insertRow(merged);
+          await upsert(id: id, server: m);
           synced++;
         } catch (e) {
           failed++;
@@ -208,10 +129,7 @@ class SyncDownloadService {
       final maxIso = _maxUpdatedAtIso(batch);
       if (maxIso != null) {
         cursor = maxIso;
-        await _db.settingsDao.setValue(
-          SettingsKeys.syncCursorRecording,
-          maxIso,
-        );
+        await _db.settingsDao.setValue(cursorKey, maxIso);
       }
 
       if (batch.length < _pageSize) break;

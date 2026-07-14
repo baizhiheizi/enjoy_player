@@ -190,4 +190,3 @@ PracticePosterQuote? resolvePracticePosterQuote({
   if (longestRef == null) return null;
   return PracticePosterQuote(line: _quoteLineFromText(longestRef));
 }
-

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/files/media_resolver.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -130,14 +131,7 @@ class _LocateMediaScreenState extends ConsumerState<LocateMediaScreen> {
               FilledButton.icon(
                 onPressed: _working ? null : _onChooseFile,
                 icon: _working
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: cs.onPrimary,
-                        ),
-                      )
+                    ? const LoadingIcon(size: 20, brightSurface: true)
                     : const Icon(Icons.folder_open),
                 label: Text(
                   _working ? l10n.importingMedia : l10n.mediaLocateChooseFile,
