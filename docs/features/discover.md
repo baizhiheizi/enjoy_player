@@ -152,11 +152,20 @@ or the next 8 h tick) re-attempts them with the standard
 
 Recommended row and subscription avatars go through
 `DiscoverRepository.fetchChannelAvatarUrl`, which keeps a bounded
-**in-memory LRU cache**:
+in-memory cache backed by the shared
+[`L1Store<K, V>`](../../lib/core/cache/lru_store.dart) primitive
+from `lib/core/cache/` (the same primitive used for the AI result
+cache hierarchy, [ADR-0045](../decisions/0045-ai-result-cache-hierarchy.md),
+and `LookupSheetResultCache`):
 
-- Backing store: `LinkedHashMap<String, String>` (move-to-end on hit,
-  evict from head on overflow).
-- Capacity: **256 entries** (`_kAvatarCacheCapacity`).
+- Capacity: **256 entries** (`_kAvatarCacheCapacity`); the LRU tail
+  is evicted on overflow.
+- **TTL: 6 hours** (`_avatarCacheTtl`). A `peek` on an entry older
+  than the TTL treats it as a miss and removes it. Avatar URLs change
+  only when a channel owner swaps their profile photo (a few times
+  per year in practice); a 6-hour window is far longer than the
+  realistic re-fetch cadence while bounding memory of long-running
+  sessions that touch thousands of distinct channels.
 - Lifecycle: lives for the lifetime of the repository instance
   (singleton via `discoverRepositoryProvider`).
 - Scope: per-app, not per-user-DB; subscribers moving between
@@ -185,8 +194,9 @@ No caption availability in RSS. After import, transcript loading follows [`trans
 - **YouTube Shorts** are excluded (RSS alternate link uses `/shorts/`)
 - Handle → `channel_id` resolution may fail if YouTube HTML changes
 - Subscriptions and feed cache live in the signed-in per-user SQLite file (`enjoy_player_<userId>`)
-- Avatar LRU cache is per-process (not per-DB); the 256-entry cap evicts
-  the least-recently-used channel id on overflow
+- Avatar URL cache is per-process (not per-DB); the 256-entry LRU cap
+  evicts the least-recently-used channel id on overflow, and entries
+  older than the 6-hour TTL are treated as misses on next read
 - No hard upper bound on per-channel cache size in v1; users bound growth by unsubscribing (see [ADR-0046](../decisions/0046-discover-feed-append-only.md))
 - **Playlist import is not yet supported.** Subscribing to a `https://youtube.com/playlist?list=…` URL and surfacing playlist uploads is tracked as a separate follow-up spec; the current feature scopes to channel refresh only.
 

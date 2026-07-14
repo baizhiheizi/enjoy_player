@@ -156,3 +156,32 @@ Applied to:
 - [`AppDatabase`](../lib/data/db/app_database.dart) — `List<RecordingRow>` for shadow-reading playback state.
 
 Covered by 6 unit tests in `test/core/utils/stream_distinct_test.dart` (first-value forward, drop-on-equal, structural equality, per-subscriber isolation, error propagation) plus per-feature dedupe tests (`transcript_tracks_dedupe_test.dart`, `transcript_lines_provider_dedupe_test.dart`).
+
+## Caching
+
+For new in-memory caches, prefer the shared
+[`L1Store<K, V>`](../lib/core/cache/lru_store.dart) primitive in
+`lib/core/cache/` over a hand-rolled `LinkedHashMap` LRU. It
+encapsulates the boring bookkeeping (move-to-end on hit, evict the
+tail on overflow) and adds an **optional TTL** so entries older than
+the configured lifetime are treated as misses on the next `peek`. The
+primitive is intentionally generic and lives under `lib/core/` because
+several features need the same shape — do not re-implement it
+feature-local.
+
+Current call sites:
+
+- [`AiResultCache` L1 tier](../lib/features/ai/application/ai_result_cache.dart) — 256 entries / 30 min TTL per AI modality, see [ADR-0045](decisions/0045-ai-result-cache-hierarchy.md).
+- `LookupSheetResultCache` — same primitive after ADR-0045 slimmed down its internal maps.
+- [`DiscoverRepository`](../lib/features/discover/data/discover_repository.dart) — channel-avatar URL cache, 256 entries / 6 h TTL, see [features/discover.md § Channel avatar cache](features/discover.md#channel-avatar-cache).
+
+Behavior contract:
+
+- `peek(key)` returns the value and bumps the entry to MRU; on TTL expiry it removes the entry and returns `null`.
+- `put(key, value)` overwrites existing entries and evicts the LRU tail when at capacity.
+- `invalidate(key)` and `clear()` are the only escape hatches — call them on explicit cache busts (`forceRefresh`, sign-out, schema migration).
+
+When a feature also needs persistent caching across restarts, pair
+`L1Store` with a Drift-backed L2 (see `AiResultCache` for the canonical
+two-tier shape). For per-DB scoped caches the L2 table lives in
+`app_database.dart` so its lifetime matches the user-database file.
