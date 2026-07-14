@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
+import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -25,32 +26,11 @@ part 'discover_providers.g.dart';
 
 final _log = logNamed('discover');
 
-/// Filters Discover timeline entries by subscription language vs focus language.
-/// Channels with unknown language remain visible.
-List<FeedEntry> filterDiscoverFeedByFocusLanguage({
-  required List<FeedEntry> entries,
-  required List<DiscoverChannel> subscriptions,
-  required String focusLanguage,
-  required bool showAllLanguages,
-}) {
-  if (showAllLanguages) return entries;
-  final langByChannel = {
-    for (final sub in subscriptions) sub.channelId: sub.language,
-  };
-  final matched = entries
-      .where((entry) {
-        final lang = langByChannel[entry.channelId] ?? kUnknownMediaLanguageTag;
-        if (lang == kUnknownMediaLanguageTag) return true;
-        return matchesLanguageBroad(lang, focusLanguage);
-      })
-      .toList(growable: false);
-  return matched.isEmpty ? entries : matched;
-}
-
 @Riverpod(keepAlive: true)
 DiscoverRepository discoverRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
-  final repo = DiscoverRepository(db);
+  final feedClient = ref.watch(youtubeFeedClientProvider);
+  final repo = DiscoverRepository(db, feedClient: feedClient);
   repo.bindLibraryRepository(ref.watch(mediaLibraryRepositoryProvider));
   return repo;
 }
@@ -108,25 +88,7 @@ Stream<List<FeedEntry>> discoverTimeline(Ref ref) {
 
 @Riverpod(keepAlive: true)
 Stream<List<FeedEntry>> filteredDiscoverTimeline(Ref ref) {
-  final repo = ref.watch(discoverRepositoryProvider);
-  return repo.watchTimeline().map((entries) {
-    final showAll = ref.watch(discoverRecommendedShowAllLanguagesProvider);
-    if (showAll) return entries;
-    final subs =
-        ref.watch(discoverSubscriptionsProvider).valueOrNull ?? const [];
-    final focus =
-        ref
-            .watch(appPreferencesCtrlProvider)
-            .valueOrNull
-            ?.effectiveLearningLanguage ??
-        kDefaultLearningLanguageTag;
-    return filterDiscoverFeedByFocusLanguage(
-      entries: entries,
-      subscriptions: subs,
-      focusLanguage: focus,
-      showAllLanguages: showAll,
-    );
-  });
+  return ref.watch(discoverRepositoryProvider).watchTimeline();
 }
 
 @Riverpod(keepAlive: true)

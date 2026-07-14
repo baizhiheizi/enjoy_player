@@ -7,6 +7,7 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_feed_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
@@ -17,7 +18,6 @@ import '../domain/feed_entry.dart';
 import '../domain/recommended_channel.dart';
 import '../domain/youtube_source.dart';
 import 'recommended_channels_loader.dart';
-import 'worker_feed_client.dart';
 import 'worker_feed_exception.dart';
 import 'youtube_url_parser.dart';
 
@@ -57,16 +57,16 @@ class DiscoverRepository {
     this._db, {
     http.Client? httpClient,
     RecommendedChannelsLoader? recommendedLoader,
-    WorkerFeedClient? feedClient,
+    YoutubeFeedClient? feedClient,
     YoutubeUrlParser? urlParser,
     this._libraryRepository,
   }) : _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
-       _feedClient = feedClient ?? WorkerFeedClient(httpClient: httpClient),
+       _feedClient = feedClient ?? YoutubeFeedClient(httpClient: httpClient),
        _urlParser = urlParser ?? YoutubeUrlParser();
 
   final AppDatabase _db;
   final RecommendedChannelsLoader _recommendedLoader;
-  final WorkerFeedClient _feedClient;
+  final YoutubeFeedClient _feedClient;
   final YoutubeUrlParser _urlParser;
   MediaLibraryRepository? _libraryRepository;
 
@@ -129,14 +129,12 @@ class DiscoverRepository {
       source: YoutubeSubscriptionSource.recommended,
       sourceType: YoutubeSourceType.channel,
       feedUrl: '${_urlParser.workerBaseUrl}/youtube/channel/${channel.channelId}?format=json',
-      language: canonicalMediaLanguageTag(channel.language),
     );
   }
 
   Future<void> subscribeFromUserInput(
-    String rawInput, {
-    String? language,
-  }) async {
+    String rawInput,
+  ) async {
     // 1. Parse URL to get source type and feed URL
     ParsedYoutubeUrl parsed;
     try {
@@ -146,7 +144,9 @@ class DiscoverRepository {
     }
 
     // 2. Fetch the feed to get display name, avatar, and entries
-    final fetchResult = await _feedClient.fetchFeed(parsed.feedUrl);
+    final fetchResult = await _feedClient.fetchFeed(
+      parsed.feedUrl,
+    );
     final feedResult = fetchResult.feedResult;
 
     // 3. Handle-to-ID canonicalization: if subscribed via @handle,
@@ -192,9 +192,7 @@ class DiscoverRepository {
           feedUrl: feedUrl,
           subscribedAt: now,
           lastFetchedAt: now,
-          language: language == null
-              ? kUnknownMediaLanguageTag
-              : canonicalMediaLanguageTag(language),
+          language: 'und',
         ),
       );
     }
@@ -222,7 +220,6 @@ class DiscoverRepository {
     String? thumbnailUrl,
     YoutubeSourceType sourceType = YoutubeSourceType.channel,
     String? feedUrl,
-    String language = kUnknownMediaLanguageTag,
   }) async {
     final existing = await _db.youtubeChannelSubscriptionDao.getByChannelId(
       channelId,
@@ -238,9 +235,7 @@ class DiscoverRepository {
         feedUrl: feedUrl ?? existing?.feedUrl,
         subscribedAt: existing?.subscribedAt ?? now,
         lastFetchedAt: existing?.lastFetchedAt,
-        language: language != kUnknownMediaLanguageTag
-            ? language
-            : (existing?.language ?? kUnknownMediaLanguageTag),
+        language: existing?.language ?? 'und',
       ),
     );
   }
@@ -248,24 +243,6 @@ class DiscoverRepository {
   Future<void> unsubscribe(String channelId) async {
     await _db.youtubeChannelSubscriptionDao.deleteChannelId(channelId);
     await _db.youtubeFeedEntryDao.deleteForChannel(channelId);
-  }
-
-  Future<void> updateSubscriptionLanguage(
-    String channelId,
-    String language,
-  ) async {
-    final canonical = canonicalMediaLanguageTag(language);
-    final row = await _db.youtubeChannelSubscriptionDao.getByChannelId(
-      channelId,
-    );
-    if (row == null) {
-      throw StateError('Subscription not found: $channelId');
-    }
-    if (tagsEqual(row.language, canonical)) return;
-    await _db.youtubeChannelSubscriptionDao.updateLanguage(
-      channelId,
-      canonical,
-    );
   }
 
   Future<bool> isVideoInLibrary(String videoId) async {
@@ -304,22 +281,11 @@ class DiscoverRepository {
     if (library == null) {
       throw StateError('DiscoverRepository library bridge not bound');
     }
-    var lang = contentLanguage;
-    if (lang == null ||
-        lang.trim().isEmpty ||
-        lang == kUnknownMediaLanguageTag) {
-      final sub = await _db.youtubeChannelSubscriptionDao.getByChannelId(
-        entry.channelId,
-      );
-      if (sub != null && sub.language != kUnknownMediaLanguageTag) {
-        lang = sub.language;
-      }
-    }
     return library.importYoutubeVideo(
       entry.videoId,
       prefetchedTitle: entry.title,
       prefetchedThumbnailUrl: entry.thumbnailUrl,
-      contentLanguage: lang ?? kUnknownMediaLanguageTag,
+      contentLanguage: contentLanguage ?? kUnknownMediaLanguageTag,
     );
   }
 
@@ -390,14 +356,20 @@ class DiscoverRepository {
     required DateTime fetchedAt,
   }) async {
     final id = sub.channelId;
-    final feedUrl = sub.feedUrl;
+    var feedUrl = sub.feedUrl;
     if (feedUrl == null || feedUrl.isEmpty) {
-      _log.warning('No feed URL for subscription $id');
-      return _ChannelRefreshOutcome.failure(id);
+      // Repair: generate feed URL from channel ID for legacy subscriptions
+      // that were created before the migration backfilled feed_url.
+      feedUrl =
+          '${_urlParser.workerBaseUrl}/youtube/channel/$id?format=json';
+      _log.info('Repairing missing feed URL for subscription $id');
+      await _db.youtubeChannelSubscriptionDao.updateFeedUrl(id, feedUrl);
     }
 
     try {
-      final result = await _feedClient.fetchFeed(feedUrl);
+      final result = await _feedClient.fetchFeed(
+        feedUrl,
+      );
 
       // Upsert feed entries
       for (final entry in result.feedResult.entries) {
@@ -449,7 +421,6 @@ class DiscoverRepository {
       feedUrl: row.feedUrl,
       subscribedAt: row.subscribedAt,
       lastFetchedAt: row.lastFetchedAt,
-      language: row.language,
     );
   }
 

@@ -663,6 +663,54 @@ abstract class AppLocalizations {
   /// **'You are subscribed to all recommended channels.'**
   String get discoverRecommendedAllSubscribed;
 
+  /// No description provided for @discoverSourceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This YouTube source could not be found.'**
+  String get discoverSourceNotFound;
+
+  /// No description provided for @discoverSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This source is no longer available (deleted or private).'**
+  String get discoverSourceUnavailable;
+
+  /// No description provided for @discoverNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your network and try again.'**
+  String get discoverNetworkError;
+
+  /// No description provided for @discoverWorkerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the feed server. Try again later.'**
+  String get discoverWorkerError;
+
+  /// No description provided for @discoverInvalidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read a valid YouTube URL. Try a channel, @handle, or playlist link.'**
+  String get discoverInvalidUrl;
+
+  /// No description provided for @discoverAlreadySubscribed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already subscribed to this source.'**
+  String get discoverAlreadySubscribed;
+
+  /// No description provided for @discoverSourceTypeChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get discoverSourceTypeChannel;
+
+  /// No description provided for @discoverSourceTypePlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist'**
+  String get discoverSourceTypePlaylist;
+
   /// No description provided for @youtubeImportTitle.
   ///
   /// In en, this message translates to:

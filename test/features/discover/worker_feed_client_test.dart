@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'package:enjoy_player/features/discover/data/worker_feed_client.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_feed_api.dart';
 import 'package:enjoy_player/features/discover/data/worker_feed_exception.dart';
 
 void main() {
@@ -33,9 +33,8 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = WorkerFeedClient(
+      final client = YoutubeFeedClient(
         httpClient: mockClient,
-        baseUrl: 'https://worker.test',
       );
 
       final result = await client.fetchFeed(
@@ -65,9 +64,8 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = WorkerFeedClient(
+      final client = YoutubeFeedClient(
         httpClient: mockClient,
-        baseUrl: 'https://worker.test',
       );
 
       final result = await client.fetchFeed(
@@ -92,9 +90,8 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = WorkerFeedClient(
+      final client = YoutubeFeedClient(
         httpClient: mockClient,
-        baseUrl: 'https://worker.test',
       );
 
       final result = await client.fetchFeed(
@@ -110,7 +107,7 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response('', 404);
       });
-      final client = WorkerFeedClient(httpClient: mockClient);
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
         () => client.fetchFeed('https://worker.test/youtube/channel/unknown?format=json'),
@@ -124,7 +121,7 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response('', 410);
       });
-      final client = WorkerFeedClient(httpClient: mockClient);
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
         () => client.fetchFeed('https://worker.test/youtube/channel/gone?format=json'),
@@ -138,7 +135,7 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response('', 429);
       });
-      final client = WorkerFeedClient(httpClient: mockClient);
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
         () => client.fetchFeed('https://worker.test/youtube/channel/rl?format=json'),
@@ -152,7 +149,7 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response('', 502);
       });
-      final client = WorkerFeedClient(httpClient: mockClient);
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
         () => client.fetchFeed('https://worker.test/youtube/channel/upstream?format=json'),
@@ -166,7 +163,7 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response('', 403);
       });
-      final client = WorkerFeedClient(httpClient: mockClient);
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
         () => client.fetchFeed('https://worker.test/youtube/channel/forbidden?format=json'),

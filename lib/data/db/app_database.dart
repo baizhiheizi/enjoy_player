@@ -164,6 +164,13 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE youtube_channel_subscriptions "
           "SET source_type = 'channel' WHERE source_type IS NULL",
         );
+        // Backfill feed_url for existing subscriptions so the worker-based
+        // refresh pipeline can find them.
+        await m.database.customStatement(
+          "UPDATE youtube_channel_subscriptions SET feed_url = "
+          "'https://worker.enjoy.bot/youtube/channel/' || channelId || '?format=json' "
+          "WHERE feed_url IS NULL",
+        );
       }
       current = next;
     }

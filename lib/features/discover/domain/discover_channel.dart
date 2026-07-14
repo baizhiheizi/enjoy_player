@@ -13,24 +13,16 @@ class DiscoverChannel {
     this.feedUrl,
     required this.subscribedAt,
     this.lastFetchedAt,
-    this.language = 'und',
   });
 
   final String channelId;
   final String displayName;
   final String? thumbnailUrl;
-
-  /// Bundled catalog vs user-initiated subscription.
   final YoutubeSubscriptionSource source;
-
-  /// Channel or playlist.
   final YoutubeSourceType sourceType;
-
-  /// Constructed worker feed URL.
   final String? feedUrl;
   final DateTime subscribedAt;
   final DateTime? lastFetchedAt;
-  final String language;
 
   bool get isSubscribed => true;
 
@@ -45,8 +37,7 @@ class DiscoverChannel {
         other.sourceType == sourceType &&
         other.feedUrl == feedUrl &&
         other.subscribedAt == subscribedAt &&
-        other.lastFetchedAt == lastFetchedAt &&
-        other.language == language;
+        other.lastFetchedAt == lastFetchedAt;
   }
 
   @override
@@ -59,6 +50,5 @@ class DiscoverChannel {
     feedUrl,
     subscribedAt,
     lastFetchedAt,
-    language,
   );
 }

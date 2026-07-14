@@ -343,3 +343,50 @@ final class YoutubeTranscriptsClientProvider
 
 String _$youtubeTranscriptsClientHash() =>
     r'2de255835ddccd89829bfd9eb2c15cb4ede8c5fd';
+
+@ProviderFor(youtubeFeedClient)
+final youtubeFeedClientProvider = YoutubeFeedClientProvider._();
+
+final class YoutubeFeedClientProvider
+    extends
+        $FunctionalProvider<
+          YoutubeFeedClient,
+          YoutubeFeedClient,
+          YoutubeFeedClient
+        >
+    with $Provider<YoutubeFeedClient> {
+  YoutubeFeedClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'youtubeFeedClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$youtubeFeedClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<YoutubeFeedClient> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  YoutubeFeedClient create(Ref ref) {
+    return youtubeFeedClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(YoutubeFeedClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<YoutubeFeedClient>(value),
+    );
+  }
+}
+
+String _$youtubeFeedClientHash() => r'693e82b80ad15d79462d4bc1ee3ad3195ce12818';

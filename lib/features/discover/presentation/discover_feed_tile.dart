@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
@@ -21,7 +20,6 @@ import 'package:enjoy_player/features/discover/application/discover_providers.da
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
-import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Width / height for [SliverGrid] cells (16:9 thumb + metadata only).
@@ -67,21 +65,9 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     setState(() => _adding = true);
     final l10n = AppLocalizations.of(context)!;
     try {
-      final subs =
-          ref.read(discoverSubscriptionsProvider).valueOrNull ?? const [];
-      final sub = _subscriptionForEntry(subs);
-      String? contentLanguage;
-      if (sub != null && sub.language == kUnknownMediaLanguageTag) {
-        contentLanguage = await showContentLanguagePicker(
-          context: context,
-          ref: ref,
-        );
-        if (contentLanguage == null) return false;
-      }
       await addDiscoverFeedEntryToLibrary(
         ref,
         widget.entry,
-        contentLanguage: contentLanguage,
       );
       ref.invalidate(libraryMediaProvider);
       if (!mounted) return false;

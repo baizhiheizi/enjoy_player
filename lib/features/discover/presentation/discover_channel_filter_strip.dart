@@ -78,7 +78,7 @@ class _DiscoverChannelFilterStripState
                   t.space8,
                 ),
                 separatorBuilder: (_, _) => SizedBox(width: t.space8),
-                itemCount: 3 + subs.length,
+                itemCount: 2 + subs.length,
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _AllFilterChip(
@@ -92,26 +92,7 @@ class _DiscoverChannelFilterStripState
                       },
                     );
                   }
-                  if (index == 1) {
-                    final showAll = ref.watch(
-                      discoverRecommendedShowAllLanguagesProvider,
-                    );
-                    return _LanguageScopeFilterChip(
-                      label: showAll
-                          ? l10n.discoverLanguageFilterLabel
-                          : l10n.discoverLanguageFilterAll,
-                      onTap: () {
-                        Haptics.selection(context);
-                        ref
-                            .read(
-                              discoverRecommendedShowAllLanguagesProvider
-                                  .notifier,
-                            )
-                            .setShowAll(!showAll);
-                      },
-                    );
-                  }
-                  if (index == 2 + subs.length) {
+                  if (index == 1 + subs.length) {
                     return _ManageFilterChip(
                       tooltip: l10n.discoverManageChannels,
                       onTap: () {
@@ -120,7 +101,7 @@ class _DiscoverChannelFilterStripState
                       },
                     );
                   }
-                  final channel = subs[index - 2];
+                  final channel = subs[index - 1];
                   return _ChannelFilterChip(
                     channel: channel,
                     selected: selectedId == channel.channelId,
@@ -230,46 +211,6 @@ class _AllFilterChip extends StatelessWidget {
                 style: tt.labelSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: selected ? cs.onPrimaryContainer : cs.onSurface,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LanguageScopeFilterChip extends StatelessWidget {
-  const _LanguageScopeFilterChip({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return Material(
-      color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
-      shape: StadiumBorder(
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.35)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          height: DiscoverChannelFilterStrip.chipSize,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: t.space12),
-            child: Center(
-              child: Text(
-                label,
-                style: tt.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: cs.onSurface,
                 ),
               ),
             ),

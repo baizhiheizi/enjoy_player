@@ -314,6 +314,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get discoverRecommendedAllSubscribed => '你已订阅全部推荐频道。';
 
   @override
+  String get discoverSourceNotFound =>
+      'This YouTube source could not be found.';
+
+  @override
+  String get discoverSourceUnavailable =>
+      'This source is no longer available (deleted or private).';
+
+  @override
+  String get discoverNetworkError =>
+      'No internet connection. Check your network and try again.';
+
+  @override
+  String get discoverWorkerError =>
+      'Could not reach the feed server. Try again later.';
+
+  @override
+  String get discoverInvalidUrl =>
+      'Could not read a valid YouTube URL. Try a channel, @handle, or playlist link.';
+
+  @override
+  String get discoverAlreadySubscribed => 'Already subscribed to this source.';
+
+  @override
+  String get discoverSourceTypeChannel => 'Channel';
+
+  @override
+  String get discoverSourceTypePlaylist => 'Playlist';
+
+  @override
   String get youtubeImportTitle => '导入 YouTube 视频';
 
   @override

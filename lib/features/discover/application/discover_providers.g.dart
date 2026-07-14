@@ -55,7 +55,7 @@ final class DiscoverRepositoryProvider
 }
 
 String _$discoverRepositoryHash() =>
-    r'1ead8aae5925cd92695cd8a41212c6f263a78cb0';
+    r'a43f357194cd59c2f4c15142d44c8229cd38deee';
 
 @ProviderFor(recommendedChannels)
 final recommendedChannelsProvider = RecommendedChannelsProvider._();

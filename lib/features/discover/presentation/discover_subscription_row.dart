@@ -11,10 +11,8 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
-import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
-import 'package:enjoy_player/features/discover/presentation/discover_actions.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_avatar.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -67,23 +65,6 @@ class DiscoverSubscriptionRow extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                SizedBox(height: t.space4),
-                InkWell(
-                  onTap: () => unawaited(
-                    editDiscoverChannelLanguage(context, ref, channel),
-                  ),
-                  borderRadius: BorderRadius.circular(t.radiusSm),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: t.space4),
-                    child: Text(
-                      focusLanguageLabel(l10n, channel.language),
-                      style: tt.labelSmall?.copyWith(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),
