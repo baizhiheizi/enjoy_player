@@ -252,8 +252,7 @@ void main() {
         expect(
           logs.any(
             (r) =>
-                r.level == Level.WARNING &&
-                r.message.contains('profile fetch'),
+                r.level == Level.WARNING && r.message.contains('profile fetch'),
           ),
           isTrue,
         );
