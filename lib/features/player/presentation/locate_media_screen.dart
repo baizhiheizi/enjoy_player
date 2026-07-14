@@ -3,6 +3,7 @@
 library;
 
 import 'package:cross_file/cross_file.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,14 +131,7 @@ class _LocateMediaScreenState extends ConsumerState<LocateMediaScreen> {
               FilledButton.icon(
                 onPressed: _working ? null : _onChooseFile,
                 icon: _working
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: cs.onPrimary,
-                        ),
-                      )
+                    ? LoadingIcon(size: 20, color: cs.onPrimary)
                     : const Icon(Icons.folder_open),
                 label: Text(
                   _working ? l10n.importingMedia : l10n.mediaLocateChooseFile,

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/horizontal_drag_scroll_behavior.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -54,13 +55,7 @@ class _DiscoverChannelFilterStripState
     return subsAsync.when(
       loading: () => const SizedBox(
         height: DiscoverChannelFilterStrip.rowHeight,
-        child: Center(
-          child: SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+        child: Center(child: LoadingIcon(size: 18)),
       ),
       error: (_, _) => const SizedBox.shrink(),
       data: (subs) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/section_label.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/widgets/byok_api_key_field.dart';
@@ -64,7 +65,7 @@ class _SpeechByokFormState extends State<SpeechByokForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.mode == SpeechByokFormMode.speech) ...[
-          _SpeechSectionLabel(
+          SectionLabel(
             icon: Icons.route_outlined,
             text: l10n.settingsAiProvidersSpeechKindLabel,
           ),
@@ -142,34 +143,6 @@ class _SpeechByokFormState extends State<SpeechByokForm> {
             autocorrect: false,
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _SpeechSectionLabel extends StatelessWidget {
-  const _SpeechSectionLabel({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: cs.primary),
-        SizedBox(width: t.space8),
-        Text(
-          text,
-          style: tt.labelLarge?.copyWith(
-            color: cs.onSurface,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ],
     );
   }

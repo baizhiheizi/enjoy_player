@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -147,11 +148,7 @@ class _SignedInBody extends ConsumerWidget {
                 valueBadge: lastSyncAsync.when(
                   data: (iso) =>
                       SettingsValuePill(label: lastSyncLine(l10n, iso)),
-                  loading: () => const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
+                  loading: () => const LoadingIcon(size: 18),
                   error: (e, _) => SettingsValuePill(
                     icon: Icons.error_outline_rounded,
                     label: l10n.error,
@@ -209,11 +206,7 @@ class _SignedInBody extends ConsumerWidget {
                 FilledButton.icon(
                   onPressed: busySync ? null : onSyncNow,
                   icon: busySync
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const LoadingIcon(size: 18)
                       : const Icon(Icons.sync_rounded),
                   label: Text(l10n.syncScreenSyncNow),
                 ),
@@ -223,11 +216,7 @@ class _SignedInBody extends ConsumerWidget {
                       ? null
                       : onRetryFailed,
                   icon: busyRetry
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const LoadingIcon(size: 18)
                       : const Icon(Icons.refresh_rounded),
                   label: Text(l10n.syncScreenRetryFailed),
                 ),

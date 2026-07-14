@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -320,11 +321,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
 
     Widget? trailing;
     if (_busy) {
-      trailing = const SizedBox(
-        width: 22,
-        height: 22,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      trailing = const LoadingIcon(size: 22);
     } else if (_inLibrary == true) {
       trailing = Icon(Icons.check_circle_rounded, color: cs.primary, size: 22);
     } else {
@@ -538,16 +535,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
 
     Widget overlay;
     if (_busy) {
-      overlay = cornerChip(
-        SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: cs.onSurfaceVariant,
-          ),
-        ),
-      );
+      overlay = cornerChip(LoadingIcon(size: 20, color: cs.onSurfaceVariant));
     } else if (_inLibrary == true) {
       overlay = cornerChip(
         Icon(Icons.check_circle_rounded, color: cs.primary, size: 22),

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
@@ -227,14 +228,7 @@ class _PracticePosterPreviewSheetState
                 EnjoyButton.primary(
                   onPressed: _canExport ? _onExport : null,
                   child: _exporting
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: cs.onPrimary,
-                          ),
-                        )
+                      ? LoadingIcon(size: 20, color: cs.onPrimary)
                       : Text(l10n.practicePosterShareAction),
                 ),
               ],

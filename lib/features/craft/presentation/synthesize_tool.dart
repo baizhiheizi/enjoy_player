@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -109,11 +110,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
                     ? null
                     : () => _synthesizeWithOverlay(l10n),
                 icon: state.isSynthesizing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const LoadingIcon(size: 16)
                     : const Icon(Icons.record_voice_over_rounded, size: 18),
                 label: Text(
                   state.hasPreview
@@ -143,11 +140,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
                 child: FilledButton.icon(
                   onPressed: state.isSaving ? null : _save,
                   icon: state.isSaving
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const LoadingIcon(size: 16)
                       : const Icon(Icons.save_rounded, size: 18),
                   label: Text(l10n.craftSaveToLibrary),
                 ),
