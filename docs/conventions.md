@@ -39,6 +39,8 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 - Prefer **`EnjoyTappableSurface` / `EnjoyTappableIcon`** (or **`EnjoyButton`**) for new tappable UI instead of ad-hoc `InkWell` + `GestureDetector` combinations — see [ADR-0018](decisions/0018-shared-interactive-primitives.md).
 - Route light user feedback through **`Haptics`** (`selection`, `impactMedium`, `success`, `warning`) rather than calling `HapticFeedback` directly; it honors reduced motion / platform.
 - Icon-only controls should still expose **`Tooltip`** (and keyboard hints via `kbd_chip` / hotkey helpers where applicable).
+- Use **`LoadingIcon`** ([`core/presentation/loading_icon.dart`](../lib/core/presentation/loading_icon.dart)) for inline busy affordances (button labels, list rows, chips) instead of hand-rolling a `SizedBox` + `CircularProgressIndicator` pair — defaults to a compact 18×18 spinner, configurable via `size` / `strokeWidth` / `color`. See [app-ui.md § Widgets reference](features/app-ui.md#widgets-reference).
+- Use **`SectionLabel`** ([`core/presentation/section_label.dart`](../lib/core/presentation/section_label.dart)) for in-card section headers (icon + bold `labelLarge` text) so BYOK and other settings surfaces share the same heading rhythm. See [app-ui.md § Widgets reference](features/app-ui.md#widgets-reference).
 - User-visible strings live in ARB localization files under `lib/l10n/`. Every ARB key must be filled for all shipped locales (validated by `flutter gen-l10n`). No non-localized English (or other source-language) fallbacks, no `Text('$error')` exception dumps, no hardcoded accessibility labels.
 
 ## Logging
