@@ -2,8 +2,24 @@
 /// (see `specs/013-client-yt-transcripts/contracts/worker-cache-api.md`).
 library;
 
+import 'package:logging/logging.dart';
+
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
+
+/// Module-level logger for worker transit calls.
+///
+/// Every method on [YoutubeTranscriptsApi] is fire-and-forget from the
+/// caller's perspective (see [YoutubeTranscriptsClient]'s contract). That
+/// contract is correct, but it must not silently swallow transport /
+/// validation failures: callers (and operators) need a signal whenever a
+/// cache GET, an upload, or a profile fetch does not reach the worker, or
+/// the video-to-video caption sync silently regresses (issue: Windows
+/// fetch → no worker upload → Android cache miss). All three methods
+/// downgrade the API result on exception but log here at WARNING so the
+/// failure shows up in `debugPrint` / logcat / the rotating log file.
+final Logger _log = logNamed('YouTubeTranscripts');
 
 /// Worker-side caption-fetch strategy. Mirrors
 /// `apps/worker/src/routes/youtube/_validation.ts` (`caption_fetch`).
@@ -67,7 +83,8 @@ class YoutubeTranscriptsApi extends RestApi
         _transcriptsPath,
         queryParameters: {'videoId': videoId, 'language': language},
       );
-    } on Object {
+    } on Object catch (e, st) {
+      _log.warning('worker cache GET failed for $videoId/$language', e, st);
       return null;
     }
   }
@@ -98,7 +115,18 @@ class YoutubeTranscriptsApi extends RestApi
         },
       );
       return true;
-    } on Object {
+    } on Object catch (e, st) {
+      // Fire-and-forget from the caller's perspective, but do NOT silently
+      // disappear here: a failed upload means the next client on a
+      // different machine will re-fetch via InnerTube instead of using
+      // the worker cache (issue: Windows → no worker upload → Android
+      // cache miss). Operators need to see this in production logs.
+      _log.warning(
+        'worker upload failed for $videoId/$language '
+        '(source=$source, ${timeline.length} lines)',
+        e,
+        st,
+      );
       return false;
     }
   }
@@ -114,8 +142,13 @@ class YoutubeTranscriptsApi extends RestApi
             .whereType<Map<String, dynamic>>()
             .toList(growable: false);
       }
+      _log.warning(
+        'worker profile fetch returned a body without a profiles list; '
+        'falling back to built-in defaults',
+      );
       return <Map<String, dynamic>>[];
-    } on Object {
+    } on Object catch (e, st) {
+      _log.warning('worker profile fetch failed', e, st);
       return <Map<String, dynamic>>[];
     }
   }

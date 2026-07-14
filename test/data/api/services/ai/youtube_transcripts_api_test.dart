@@ -5,8 +5,24 @@ import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:logging/logging.dart';
 
 void main() {
+  /// Subscribes to a single named logger for the lifetime of the test and
+  /// returns the recorded-log list. Cancellation is registered through the
+  /// test's tearDown so the helper does not leak an uncancelled
+  /// [StreamSubscription] (lint: `cancel_subscriptions`).
+  ///
+  /// Without this capture the new WARNING/INFO emissions from
+  /// [YoutubeTranscriptsApi] are swallowed by [setupAppLogging] (which is
+  /// not called from unit tests) and we cannot assert observability.
+  List<LogRecord> captureLogs(String name) {
+    final records = <LogRecord>[];
+    final sub = Logger(name).onRecord.listen(records.add);
+    addTearDown(sub.cancel);
+    return records;
+  }
+
   ApiClient apiClient(http.Client client) => ApiClient(
     httpClient: client,
     getBaseUrl: () async => 'https://worker.example.com',
@@ -48,6 +64,8 @@ void main() {
       });
 
       test('returns null on error', () async {
+        final logs = captureLogs('YouTubeTranscripts');
+
         final mock = MockClient((request) async {
           return http.Response('not found', 404);
         });
@@ -59,6 +77,14 @@ void main() {
         );
 
         expect(result, isNull);
+        // Operators need to see the transport failure so they can distinguish
+        // a worker outage from a 404 cache miss.
+        expect(
+          logs.any(
+            (r) => r.level == Level.WARNING && r.message.contains('GET'),
+          ),
+          isTrue,
+        );
       });
     });
 
@@ -129,6 +155,8 @@ void main() {
       });
 
       test('returns false on error', () async {
+        final logs = captureLogs('YouTubeTranscripts');
+
         final mock = MockClient((request) async {
           return http.Response('error', 500);
         });
@@ -144,6 +172,21 @@ void main() {
         );
 
         expect(result, isFalse);
+        // The cache-warming upload must NOT be a silent failure: a warning
+        // carrying the video id + language + line count is what lets an
+        // operator correlate a "no captions on Android" report with a
+        // failed Windows-side worker upload.
+        expect(
+          logs.any(
+            (r) =>
+                r.level == Level.WARNING &&
+                r.message.contains('worker upload failed') &&
+                r.message.contains('abc12345678') &&
+                r.message.contains('en') &&
+                r.message.contains('source=official'),
+          ),
+          isTrue,
+        );
       });
     });
 
@@ -195,6 +238,8 @@ void main() {
       });
 
       test('returns empty list on transport error', () async {
+        final logs = captureLogs('YouTubeTranscripts');
+
         final mock = MockClient((request) async {
           return http.Response('error', 500);
         });
@@ -202,6 +247,16 @@ void main() {
         final api = YoutubeTranscriptsApi(apiClient(mock));
         final profiles = await api.fetchClientProfiles();
         expect(profiles, isEmpty);
+        // Same rationale as the two previous cases: the InnerTube profiles
+        // fallback chain depends on visibility here.
+        expect(
+          logs.any(
+            (r) =>
+                r.level == Level.WARNING &&
+                r.message.contains('profile fetch'),
+          ),
+          isTrue,
+        );
       });
     });
   });

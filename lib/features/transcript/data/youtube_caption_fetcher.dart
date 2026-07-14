@@ -9,10 +9,23 @@ library;
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 
 import 'client_profile.dart';
 import '../../../data/subtitle/transcript_line.dart';
+import '../../../core/logging/log.dart';
 import '../../../core/utils/html_clean.dart';
+
+/// Module-level logger for direct InnerTube fetches.
+///
+/// Each profile attempt logs at INFO; the cumulative "all profiles failed"
+/// path in [YoutubeCaptionFetcher.fetchAllSubtitles] is logged at INFO here,
+/// and the caller ([TranscriptRepository._fetchYoutubeTranscriptsWithFallback])
+/// escalates it to WARNING when surfacing the result. This split keeps
+/// per-profile chatter at INFO (cheap in production) while the user-visible
+/// "I see captions on Windows but not on Android" failure mode still trips
+/// WARNING once per open.
+final Logger _log = logNamed('YoutubeCaptionFetcher');
 
 /// InnerTube API endpoint.
 const _innertubeEndpoint =
@@ -136,7 +149,9 @@ class YoutubeCaptionFetcher {
 
         final allTracks = _extractCaptionTracks(playerData);
         if (allTracks.isEmpty) {
-          failures.add('${profile.name}: OK but no caption tracks');
+          const msg = 'OK but no caption tracks';
+          failures.add('${profile.name}: $msg');
+          _log.info('InnerTube profile=${profile.name} for $videoId: $msg');
           continue;
         }
 
@@ -153,7 +168,9 @@ class YoutubeCaptionFetcher {
         }
 
         if (bestByLang.isEmpty) {
-          failures.add('${profile.name}: no tracks with valid language codes');
+          const msg = 'no tracks with valid language codes';
+          failures.add('${profile.name}: $msg');
+          _log.info('InnerTube profile=${profile.name} for $videoId: $msg');
           continue;
         }
 
@@ -186,12 +203,23 @@ class YoutubeCaptionFetcher {
           return a.language.compareTo(b.language);
         });
 
+        final okCount = sorted.where((r) => r.isSuccess).length;
+        _log.info(
+          'InnerTube profile=${profile.name} for $videoId returned '
+          '${bestByLang.length} track(s) ($okCount fetchable)',
+        );
         return AllCaptionsResult(results: sorted, fetchProfile: profile.name);
       } on Object catch (e) {
-        failures.add('${profile.name}: $e');
+        final msg = '$e';
+        failures.add('${profile.name}: $msg');
+        _log.info('InnerTube profile=${profile.name} for $videoId threw: $msg');
       }
     }
 
+    _log.info(
+      'InnerTube all profiles failed for $videoId (tried: '
+      '${chain.map((p) => p.name).join(', ')})',
+    );
     return AllCaptionsResult(
       error: 'All profiles failed:\n${failures.join('\n')}',
     );

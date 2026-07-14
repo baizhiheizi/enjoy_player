@@ -481,6 +481,11 @@ class TranscriptRepository {
   /// Tier 1: Worker GET cache (skipped when [force] is true).
   /// Tier 2: Client-side direct YouTube fetch (bypasses worker).
   /// Every direct fetch uploads all tracks to the worker for caching.
+  ///
+  /// Every branch logs its outcome (at INFO or WARNING) so the chain is
+  /// observable in production. Without these logs a Windows → worker → Android
+  /// failure mode looks like a true no-op: no server-side upload log, no
+  /// client-side failure, no UI signal.
   Future<TranscriptCloudFetchResult> _fetchYoutubeTranscriptsWithFallback({
     required String mediaId,
     required VideoRow video,
@@ -489,6 +494,15 @@ class TranscriptRepository {
     final workerVideoId = _workerYoutubeVideoId(video);
     final language = _workerCaptionLanguage(video);
     if (language == null) {
+      // Do NOT silently skip: if a YouTube video row was imported without a
+      // content language, the worker cache lookup and the Innertube fallback
+      // both short-circuit. The user sees no captions and no error; this log
+      // is the only breadcrumb that the chain was skipped.
+      _log.warning(
+        'YouTube transcript chain skipped for $mediaId: '
+        'videos.language is missing or "und" '
+        '(set the media content language to enable fetch)',
+      );
       return const TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.skipped,
       );
@@ -496,6 +510,7 @@ class TranscriptRepository {
 
     // Tier 1: Worker GET cache (skip when forcing a refresh)
     if (!force) {
+      _log.info('YouTube Tier 1 (worker cache) GET $workerVideoId/$language');
       final cached = await _fetchWorkerCachedTranscript(
         videoId: workerVideoId,
         language: language,
@@ -507,20 +522,35 @@ class TranscriptRepository {
           fallbackNow: DateTime.now(),
         );
         if (result) {
+          _log.info(
+            'YouTube Tier 1 hit for $workerVideoId/$language — '
+            'using cached transcript (skipping InnerTube)',
+          );
           return const TranscriptCloudFetchResult(
             status: TranscriptCloudFetchStatus.success,
             storedCount: 1,
           );
         }
+        _log.info(
+          'YouTube Tier 1 returned a body but stored 0 lines — '
+          'falling through to InnerTube',
+        );
         return const TranscriptCloudFetchResult(
           status: TranscriptCloudFetchStatus.empty,
         );
       }
+      _log.info(
+        'YouTube Tier 1 miss for $workerVideoId/$language — '
+        'falling through to direct InnerTube fetch',
+      );
     }
 
     // Tier 2: Client-side direct YouTube fetch — download all tracks
     final fetcher = _youtubeFetcher;
     if (fetcher == null) {
+      _log.warning(
+        'YouTube Tier 2 unavailable: YoutubeCaptionFetcher is not wired',
+      );
       return const TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.skipped,
       );
@@ -532,7 +562,14 @@ class TranscriptRepository {
     );
 
     if (!allResult.isSuccess) {
-      _log.info('Direct YouTube fetch failed: ${allResult.error}');
+      // All built-in InnerTube profiles failed — this is the most common
+      // cause of "I see captions on Windows but the Android client shows
+      // nothing" after the cache miss. Bump to WARNING so it surfaces on
+      // logcat / in the rotating log file even at production log levels.
+      _log.warning(
+        'YouTube Tier 2 (direct InnerTube) failed for '
+        '$workerVideoId/$language: ${allResult.error}',
+      );
       return TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.error,
         errorMessage: allResult.error ?? 'No captions available',
@@ -588,11 +625,20 @@ class TranscriptRepository {
     }
 
     if (storedCount == 0) {
+      _log.info(
+        'YouTube Tier 2 succeeded profile=${allResult.fetchProfile} '
+        'but stored 0 valid tracks for $workerVideoId/$language',
+      );
       return const TranscriptCloudFetchResult(
         status: TranscriptCloudFetchStatus.empty,
       );
     }
 
+    _log.info(
+      'YouTube Tier 2 stored $storedCount track(s) via '
+      'profile=${allResult.fetchProfile} for $workerVideoId/$language; '
+      'uploads dispatched to worker',
+    );
     return TranscriptCloudFetchResult(
       status: TranscriptCloudFetchStatus.success,
       storedCount: storedCount,
@@ -619,6 +665,14 @@ class TranscriptRepository {
   }
 
   /// Fire-and-forget upload of a directly-fetched transcript to the worker.
+  ///
+  /// Note: the upload is still **never awaited** — it does not block the UI
+  /// or the local-transcript write path. But the returned [Future] is
+  /// observed (`.then` + `.catchError`) so that an upload failure or
+  /// exception shows up in production logs. Without this hook the failure
+  /// was completely invisible: [YoutubeTranscriptsApi.uploadTranscript]
+  /// swallows the exception into `return false` and `unawaited(...)` discards
+  /// the bool.
   void _uploadToWorkerAfterDirectFetch({
     required String videoId,
     required String language,
@@ -626,23 +680,57 @@ class TranscriptRepository {
     required List<TranscriptLine> lines,
   }) {
     final client = _youtubeTranscripts;
-    if (client == null) return;
-    // Unawaited — never blocks the user
+    if (client == null) {
+      _log.warning(
+        'YouTube worker upload skipped for $videoId/$language '
+        '(source=$source): youtube transcripts client is not wired',
+      );
+      return;
+    }
+    final timeline = lines
+        .map(
+          (l) => {'text': l.text, 'start': l.startMs, 'duration': l.durationMs},
+        )
+        .toList();
     unawaited(
-      client.uploadTranscript(
-        videoId: videoId,
-        language: language,
-        source: source,
-        timeline: lines
-            .map(
-              (l) => {
-                'text': l.text,
-                'start': l.startMs,
-                'duration': l.durationMs,
-              },
-            )
-            .toList(),
-      ),
+      client
+          .uploadTranscript(
+            videoId: videoId,
+            language: language,
+            source: source,
+            timeline: timeline,
+          )
+          .then((ok) {
+            if (ok) {
+              _log.info(
+                'YouTube worker upload accepted for $videoId/$language '
+                '(source=$source, ${timeline.length} lines)',
+              );
+            } else {
+              // `YoutubeTranscriptsApi.uploadTranscript` already logged a
+              // WARNING with the underlying cause; this adds the chain
+              // context (which video/language/source) at INFO so the
+              // operator can correlate client and worker logs.
+              _log.info(
+                'YouTube worker upload returned false for '
+                '$videoId/$language (source=$source, '
+                '${timeline.length} lines) — worker cache will not be '
+                'populated; the next client will re-fetch via InnerTube',
+              );
+            }
+          })
+          .catchError((Object e, StackTrace st) {
+            // The `try/on Object { return false; }` inside the API client
+            // normally prevents errors from leaking out, but defensively
+            // observe anything else (e.g. a logging misconfiguration) so
+            // an uncaught async error never escapes to the zone.
+            _log.warning(
+              'YouTube worker upload threw for $videoId/$language '
+              '(source=$source)',
+              e,
+              st,
+            );
+          }),
     );
   }
 
