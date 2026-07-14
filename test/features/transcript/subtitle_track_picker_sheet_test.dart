@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/transcript/domain/transcript_fetch_status.
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sheet.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_sections.dart';
+import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_tiles.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 const _mediaId = 'media-picker-test';
@@ -190,5 +191,69 @@ void main() {
 
     expect(find.text(l10n.subtitlesAutoTranslate), findsOneWidget);
     expect(find.text('Stored AI zh'), findsNothing);
+  });
+
+  testWidgets('keeps each caption row compact so the picker fits many tracks', (
+    tester,
+  ) async {
+    const tracks = [
+      TranscriptTrack(
+        id: 't1',
+        targetType: 'Video',
+        targetId: _mediaId,
+        language: 'en',
+        source: 'user',
+        label: 'English',
+        trackIndex: null,
+      ),
+      TranscriptTrack(
+        id: 't2',
+        targetType: 'Video',
+        targetId: _mediaId,
+        language: 'zh-CN',
+        source: 'official',
+        label: '简体中文',
+        trackIndex: null,
+      ),
+      TranscriptTrack(
+        id: 't3',
+        targetType: 'Video',
+        targetId: _mediaId,
+        language: 'ja',
+        source: 'auto',
+        label: '日本語 (auto)',
+        trackIndex: null,
+      ),
+      TranscriptTrack(
+        id: 't4',
+        targetType: 'Video',
+        targetId: _mediaId,
+        language: 'ko',
+        source: 'ai',
+        label: '한국어',
+        trackIndex: null,
+      ),
+    ];
+    await tester.pumpWidget(
+      _harness(overrides: _pickerOverrides(tracks: tracks)),
+    );
+    await tester.pump();
+    tester.takeException();
+    await tester.pumpAndSettle();
+
+    final primaryHeader = find.text(l10n.subtitlesPrimary);
+    expect(primaryHeader, findsOneWidget);
+    await tester.tap(primaryHeader);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TrackOptionTile<String>), findsNWidgets(4));
+    final firstTileSize = tester.getSize(
+      find.byType(TrackOptionTile<String>).first,
+    );
+    expect(
+      firstTileSize.height,
+      lessThanOrEqualTo(60),
+      reason: 'compact single-line tile should stay under 60px tall',
+    );
   });
 }

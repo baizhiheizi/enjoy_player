@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 /// Small rounded pill used to show a provider source or language code.
+///
+/// Sized for dense single-line picker rows; do not reuse as a standalone badge.
 class MetaChip extends StatelessWidget {
   const MetaChip({
     super.key,
@@ -22,14 +24,10 @@ class MetaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.space8,
-        vertical: t.space4 - 1,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: background.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(t.radiusFull),
-        border: Border.all(color: foreground.withValues(alpha: 0.14)),
       ),
       child: Text(
         label,
@@ -38,6 +36,7 @@ class MetaChip extends StatelessWidget {
           fontWeight: FontWeight.w600,
           letterSpacing: 0.25,
           height: 1.1,
+          fontSize: 10.5,
         ),
       ),
     );

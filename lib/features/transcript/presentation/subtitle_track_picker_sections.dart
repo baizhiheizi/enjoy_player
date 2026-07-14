@@ -159,11 +159,9 @@ class CollapsibleTrackSection extends StatelessWidget {
                           ),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            t.space8,
-                            t.space8,
-                            t.space8,
-                            t.space12,
+                          padding: EdgeInsets.only(
+                            top: t.space4,
+                            bottom: t.space8,
                           ),
                           child: inlineExpandedList
                               ? child

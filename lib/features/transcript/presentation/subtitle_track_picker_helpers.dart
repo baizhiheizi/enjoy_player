@@ -18,8 +18,11 @@ const double kExpandedTrackListMaxHeight = 280;
 double sheetHorizontalPadding(EnjoyThemeTokens t) => t.space16 + t.space4;
 
 /// Inner padding for track options inside a collapsible card.
+///
+/// Tiles carry their own horizontal padding; this only adds the small vertical
+/// breathing room between stacked rows.
 EdgeInsetsDirectional trackOptionPadding(EnjoyThemeTokens t) =>
-    EdgeInsetsDirectional.fromSTEB(t.space8, t.space4, t.space8, t.space4);
+    const EdgeInsetsDirectional.fromSTEB(0, 2, 0, 2);
 
 ThemeData trackPickerRadioTheme(BuildContext context) {
   final cs = Theme.of(context).colorScheme;
