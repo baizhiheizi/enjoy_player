@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
@@ -173,11 +174,7 @@ class _ApiBaseUrlEditorState extends ConsumerState<_ApiBaseUrlEditor> {
                   }
                 },
           child: _saving
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
+              ? const LoadingIcon(size: 20)
               : Text(l10n.settingsApiBaseUrlSave),
         ),
       ],
@@ -256,11 +253,7 @@ class _AiApiBaseUrlEditorState extends ConsumerState<_AiApiBaseUrlEditor> {
                         }
                       },
                 child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const LoadingIcon(size: 20)
                     : Text(l10n.settingsAiApiBaseUrlSave),
               ),
             ),

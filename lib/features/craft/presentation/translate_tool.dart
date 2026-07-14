@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
@@ -142,11 +143,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                     ? null
                     : controller.translate,
                 icon: state.isTranslating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const LoadingIcon(size: 16)
                     : const Icon(Icons.translate_rounded, size: 18),
                 label: Text(
                   state.translatedText != null

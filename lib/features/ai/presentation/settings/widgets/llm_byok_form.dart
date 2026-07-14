@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/section_label.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_openai_models.dart';
 import 'package:enjoy_player/features/ai/domain/llm_api_spec.dart';
@@ -51,7 +53,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _FormSectionLabel(
+        SectionLabel(
           icon: Icons.hub_outlined,
           text: l10n.settingsAiProvidersLlmSpecLabel,
         ),
@@ -88,7 +90,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
         ),
         SizedBox(height: t.space16),
         if (presets.isNotEmpty) ...[
-          _FormSectionLabel(
+          SectionLabel(
             icon: Icons.bolt_outlined,
             text: l10n.settingsAiProvidersPresetsLabel,
           ),
@@ -168,11 +170,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
                   OutlinedButton.icon(
                     onPressed: _fetchingModels ? null : _fetchModels,
                     icon: _fetchingModels
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                        ? const LoadingIcon(size: 16)
                         : const Icon(Icons.list_outlined),
                     label: Text(l10n.settingsAiProvidersFetchModels),
                   ),
@@ -244,33 +242,5 @@ class _LlmByokFormState extends State<LlmByokForm> {
         setState(() => _fetchingModels = false);
       }
     }
-  }
-}
-
-class _FormSectionLabel extends StatelessWidget {
-  const _FormSectionLabel({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: cs.primary),
-        SizedBox(width: t.space8),
-        Text(
-          text,
-          style: tt.labelLarge?.copyWith(
-            color: cs.onSurface,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
   }
 }

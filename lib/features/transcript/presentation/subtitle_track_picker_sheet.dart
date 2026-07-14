@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -291,14 +292,7 @@ class _SubtitleTrackPickerSheetState
           ),
           child: Row(
             children: [
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+              LoadingIcon(size: 18, color: theme.colorScheme.primary),
               SizedBox(width: t.space12),
               Expanded(
                 child: Text(

@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+
 /// Outlined or filled action button with inline loading spinner.
 class TranscriptBusyButton extends StatefulWidget {
   const TranscriptBusyButton({
@@ -38,15 +40,11 @@ class _TranscriptBusyButtonState extends State<TranscriptBusyButton> {
   @override
   Widget build(BuildContext context) {
     final icon = _busy
-        ? SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: widget.filled
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Theme.of(context).colorScheme.primary,
-            ),
+        ? LoadingIcon(
+            size: 18,
+            color: widget.filled
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.primary,
           )
         : Icon(widget.icon);
 
@@ -103,14 +101,7 @@ class _TranscriptBusyListTileState extends State<TranscriptBusyListTile> {
     return ListTile(
       contentPadding: widget.contentPadding,
       leading: _busy
-          ? SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: cs.primary,
-              ),
-            )
+          ? LoadingIcon(size: 24, color: cs.primary)
           : Icon(widget.icon, size: 24, color: cs.onSurfaceVariant),
       title: Text(widget.title),
       enabled: !_busy,

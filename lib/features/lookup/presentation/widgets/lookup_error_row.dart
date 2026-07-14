@@ -3,6 +3,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -101,14 +102,7 @@ class _LookupErrorRowState extends State<LookupErrorRow> {
               ),
               onPressed: busy ? null : _handleRetry,
               icon: busy
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: scheme.primary,
-                      ),
-                    )
+                  ? LoadingIcon(size: 18, color: scheme.primary)
                   : const Icon(Icons.refresh_rounded, size: 20),
               label: Text(l10n.lookupErrorRetry),
             ),
