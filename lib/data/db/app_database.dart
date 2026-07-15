@@ -168,7 +168,7 @@ class AppDatabase extends _$AppDatabase {
         // refresh pipeline can find them.
         await m.database.customStatement(
           'UPDATE youtube_channel_subscriptions SET feed_url = '
-          "'https://worker.enjoy.bot/youtube/channel/' || channelId || '?format=json' "
+          "'https://worker.enjoy.bot/youtube/channel/' || channel_id || '?format=json' "
           'WHERE feed_url IS NULL',
         );
       }
