@@ -86,9 +86,23 @@ result in a 24 h `L1Store`, and **merges** remote entries with the compile-time
 win on the same InnerTube `clientName`; missing clients (today often
 `ANDROID_VR` / `MWEB` when the worker only ships `IOS` + `WEB`) are gap-filled
 from built-ins. The resolved ladder is always ordered
-`ios → android_vr → (android) → mweb → web` — **not** by Flutter host OS.
-Within a process, the last profile that returned fetchable tracks is tried
-first on subsequent videos (session sticky).
+`ios → android_vr → (android) → mweb → web` (see
+[`kPreferredCaptionClientOrder`](../../lib/features/transcript/data/client_profile.dart))
+— **not** by Flutter host OS. Within a process, the last profile that
+returned fetchable tracks is tried first on subsequent videos (session
+sticky via `YoutubeCaptionFetcher._lastSuccessfulCaptionProfileKey`; tests
+reset it through `resetLastSuccessfulCaptionProfile()`).
+
+**Cold-start fallback.** When the worker is unreachable, the cached 24 h
+profile list is stale-but-cached, or the response envelope is malformed,
+the client falls back to `kBuiltInClientProfiles` alone (resolved through
+the same `resolveCaptionClientProfiles`). These compile-time defaults ship
+with **current 2026 YouTube client versions** (iOS `20.12.1`, Android VR
+`1.62.20`, MWEB `2.20251209.01.00`, WEB `2.20250709.00.00`) so the ladder
+keeps working even on a fully offline cold start — refresh them in
+[`client_profile.dart`](../../lib/features/transcript/data/client_profile.dart)
+when YouTube ships a new client version, before bumping the spec
+contract.
 
 The timedtext GET for each track uses the **same** profile's user agent and
 adds `Referer: https://m.youtube.com/` plus `Accept-Language` so the
