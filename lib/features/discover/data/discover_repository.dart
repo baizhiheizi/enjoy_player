@@ -199,20 +199,18 @@ class DiscoverRepository {
     // instead of N times, and the underlying `feedResult.entries` is small
     // enough to allocate in one go.
     if (feedResult.entries.isNotEmpty) {
-      await _db.youtubeFeedEntryDao.upsertEntries(
-        [
-          for (final entry in feedResult.entries)
-            YoutubeFeedEntryRow(
-              videoId: entry.videoId,
-              channelId: canonicalId,
-              title: entry.title,
-              thumbnailUrl: entry.thumbnailUrl,
-              durationSeconds: entry.durationSeconds,
-              publishedAt: entry.publishedAt,
-              fetchedAt: now,
-            ),
-        ],
-      );
+      await _db.youtubeFeedEntryDao.upsertEntries([
+        for (final entry in feedResult.entries)
+          YoutubeFeedEntryRow(
+            videoId: entry.videoId,
+            channelId: canonicalId,
+            title: entry.title,
+            thumbnailUrl: entry.thumbnailUrl,
+            durationSeconds: entry.durationSeconds,
+            publishedAt: entry.publishedAt,
+            fetchedAt: now,
+          ),
+      ]);
     }
   }
 
@@ -377,20 +375,18 @@ class DiscoverRepository {
       // `.distinctBy(_listEqualsFeedEntry)` upstream — wasted work).
       final entries = result.feedResult.entries;
       if (entries.isNotEmpty) {
-        await _db.youtubeFeedEntryDao.upsertEntries(
-          [
-            for (final entry in entries)
-              YoutubeFeedEntryRow(
-                videoId: entry.videoId,
-                channelId: id,
-                title: entry.title,
-                thumbnailUrl: entry.thumbnailUrl,
-                durationSeconds: entry.durationSeconds,
-                publishedAt: entry.publishedAt,
-                fetchedAt: fetchedAt,
-              ),
-          ],
-        );
+        await _db.youtubeFeedEntryDao.upsertEntries([
+          for (final entry in entries)
+            YoutubeFeedEntryRow(
+              videoId: entry.videoId,
+              channelId: id,
+              title: entry.title,
+              thumbnailUrl: entry.thumbnailUrl,
+              durationSeconds: entry.durationSeconds,
+              publishedAt: entry.publishedAt,
+              fetchedAt: fetchedAt,
+            ),
+        ]);
       }
 
       // Update subscription metadata (display name, avatar may change)

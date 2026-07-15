@@ -397,72 +397,78 @@ void main() {
       await sub.cancel();
     });
 
-    test('per-call upsertEntry loop emits more than batched upsertEntries', () async {
-      const channelId = 'UCAuUUnT6oKwE6v1NGQxug';
+    test(
+      'per-call upsertEntry loop emits more than batched upsertEntries',
+      () async {
+        const channelId = 'UCAuUUnT6oKwE6v1NGQxug';
 
-      // 1) Loop: each upsertEntry is its own Drift transaction + commit, so
-      //    the watcher pushes at least one intermediate row count per call.
-      final loopEmissions = <List<FeedEntry>>[];
-      final loopSub = repo.watchTimeline().listen(loopEmissions.add);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      final loopBaseline = loopEmissions.length;
+        // 1) Loop: each upsertEntry is its own Drift transaction + commit, so
+        //    the watcher pushes at least one intermediate row count per call.
+        final loopEmissions = <List<FeedEntry>>[];
+        final loopSub = repo.watchTimeline().listen(loopEmissions.add);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        final loopBaseline = loopEmissions.length;
 
-      final loopRows = <YoutubeFeedEntryRow>[];
-      for (var i = 0; i < 30; i++) {
-        loopRows.add(
-          YoutubeFeedEntryRow(
-            videoId: 'loopV${i.toString().padLeft(2, '0')}12345',
-            channelId: channelId,
-            title: 'Loop $i',
-            thumbnailUrl: null,
-            durationSeconds: 60 + i,
-            publishedAt: DateTime.utc(2024, 7, 1).add(Duration(hours: i)),
-            fetchedAt: DateTime.utc(2024, 7, 2),
-          ),
-        );
-      }
-      // Sequential per-row upserts via the public DAO API (this is what the
-      // pre-PR refresh path did).
-      for (final row in loopRows) {
-        await db.youtubeFeedEntryDao.upsertEntry(row);
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      await loopSub.cancel();
-      final loopDelta = loopEmissions.length - loopBaseline;
+        final loopRows = <YoutubeFeedEntryRow>[];
+        for (var i = 0; i < 30; i++) {
+          loopRows.add(
+            YoutubeFeedEntryRow(
+              videoId: 'loopV${i.toString().padLeft(2, '0')}12345',
+              channelId: channelId,
+              title: 'Loop $i',
+              thumbnailUrl: null,
+              durationSeconds: 60 + i,
+              publishedAt: DateTime.utc(2024, 7, 1).add(Duration(hours: i)),
+              fetchedAt: DateTime.utc(2024, 7, 2),
+            ),
+          );
+        }
+        // Sequential per-row upserts via the public DAO API (this is what the
+        // pre-PR refresh path did).
+        for (final row in loopRows) {
+          await db.youtubeFeedEntryDao.upsertEntry(row);
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        await loopSub.cancel();
+        final loopDelta = loopEmissions.length - loopBaseline;
 
-      // 2) Batched: same row set, one transaction.
-      final batchEmissions = <List<FeedEntry>>[];
-      final batchSub = repo.watchTimeline().listen(batchEmissions.add);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      final batchBaseline = batchEmissions.length;
+        // 2) Batched: same row set, one transaction.
+        final batchEmissions = <List<FeedEntry>>[];
+        final batchSub = repo.watchTimeline().listen(batchEmissions.add);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        final batchBaseline = batchEmissions.length;
 
-      final batchRows = <YoutubeFeedEntryRow>[];
-      for (var i = 0; i < 30; i++) {
-        batchRows.add(
-          YoutubeFeedEntryRow(
-            videoId: 'batchV${i.toString().padLeft(2, '0')}12345',
-            channelId: channelId,
-            title: 'Batch $i',
-            thumbnailUrl: null,
-            durationSeconds: 60 + i,
-            publishedAt: DateTime.utc(2024, 8, 1).add(Duration(hours: i)),
-            fetchedAt: DateTime.utc(2024, 8, 2),
-          ),
-        );
-      }
-      await db.youtubeFeedEntryDao.upsertEntries(batchRows);
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      await batchSub.cancel();
-      final batchDelta = batchEmissions.length - batchBaseline;
+        final batchRows = <YoutubeFeedEntryRow>[];
+        for (var i = 0; i < 30; i++) {
+          batchRows.add(
+            YoutubeFeedEntryRow(
+              videoId: 'batchV${i.toString().padLeft(2, '0')}12345',
+              channelId: channelId,
+              title: 'Batch $i',
+              thumbnailUrl: null,
+              durationSeconds: 60 + i,
+              publishedAt: DateTime.utc(2024, 8, 1).add(Duration(hours: i)),
+              fetchedAt: DateTime.utc(2024, 8, 2),
+            ),
+          );
+        }
+        await db.youtubeFeedEntryDao.upsertEntries(batchRows);
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        await batchSub.cancel();
+        final batchDelta = batchEmissions.length - batchBaseline;
 
-      // The loop path must produce strictly more emissions than the batched
-      // path. In practice the loop emits 30× intermediate states (each
-      // suppressible by the upstream `.distinctBy` mask but still observable
-      // at the Drift stream); the batched path collapses to one.
-      expect(batchDelta, lessThan(loopDelta));
-      // The final state of each path is the full row set.
-      expect(loopEmissions.last, hasLength(30));
-      expect(batchEmissions.last, hasLength(60)); // 30 from loop + 30 from batch
-    });
+        // The loop path must produce strictly more emissions than the batched
+        // path. In practice the loop emits 30× intermediate states (each
+        // suppressible by the upstream `.distinctBy` mask but still observable
+        // at the Drift stream); the batched path collapses to one.
+        expect(batchDelta, lessThan(loopDelta));
+        // The final state of each path is the full row set.
+        expect(loopEmissions.last, hasLength(30));
+        expect(
+          batchEmissions.last,
+          hasLength(60),
+        ); // 30 from loop + 30 from batch
+      },
+    );
   });
 }
