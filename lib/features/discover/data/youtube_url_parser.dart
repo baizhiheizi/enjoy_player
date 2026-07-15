@@ -17,7 +17,9 @@ class YoutubeUrlParser {
   static final _channelIdRegex = RegExp(r'^UC[a-zA-Z0-9_-]{22}$');
 
   /// Regex for YouTube playlist IDs (PL, OL, FL, RD, UL, etc. followed by 16+ chars).
-  static final _playlistIdRegex = RegExp(r'^(PL|OL|FL|RD|UL|UU|PU|LL)[a-zA-Z0-9_-]{16,}$');
+  static final _playlistIdRegex = RegExp(
+    r'^(PL|OL|FL|RD|UL|UU|PU|LL)[a-zA-Z0-9_-]{16,}$',
+  );
 
   /// Regex for YouTube @handles.
   static final _handleRegex = RegExp(r'^@[a-zA-Z0-9_.-]+$');

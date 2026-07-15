@@ -33,9 +33,7 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = YoutubeFeedClient(
-        httpClient: mockClient,
-      );
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       final result = await client.fetchFeed(
         'https://worker.test/youtube/channel/UC_test?format=json',
@@ -64,9 +62,7 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = YoutubeFeedClient(
-        httpClient: mockClient,
-      );
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       final result = await client.fetchFeed(
         'https://worker.test/youtube/user/@TED?format=json',
@@ -90,9 +86,7 @@ void main() {
         return http.Response(jsonBody, 200);
       });
 
-      final client = YoutubeFeedClient(
-        httpClient: mockClient,
-      );
+      final client = YoutubeFeedClient(httpClient: mockClient);
 
       final result = await client.fetchFeed(
         'https://worker.test/youtube/channel/UC...?format=json',
@@ -110,10 +104,14 @@ void main() {
       final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
-        () => client.fetchFeed('https://worker.test/youtube/channel/unknown?format=json'),
-        throwsA(predicate<WorkerFeedException>(
-          (e) => e.kind == WorkerFeedErrorKind.notFound,
-        )),
+        () => client.fetchFeed(
+          'https://worker.test/youtube/channel/unknown?format=json',
+        ),
+        throwsA(
+          predicate<WorkerFeedException>(
+            (e) => e.kind == WorkerFeedErrorKind.notFound,
+          ),
+        ),
       );
     });
 
@@ -124,10 +122,14 @@ void main() {
       final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
-        () => client.fetchFeed('https://worker.test/youtube/channel/gone?format=json'),
-        throwsA(predicate<WorkerFeedException>(
-          (e) => e.kind == WorkerFeedErrorKind.sourceUnavailable,
-        )),
+        () => client.fetchFeed(
+          'https://worker.test/youtube/channel/gone?format=json',
+        ),
+        throwsA(
+          predicate<WorkerFeedException>(
+            (e) => e.kind == WorkerFeedErrorKind.sourceUnavailable,
+          ),
+        ),
       );
     });
 
@@ -138,10 +140,14 @@ void main() {
       final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
-        () => client.fetchFeed('https://worker.test/youtube/channel/rl?format=json'),
-        throwsA(predicate<WorkerFeedException>(
-          (e) => e.kind == WorkerFeedErrorKind.rateLimited,
-        )),
+        () => client.fetchFeed(
+          'https://worker.test/youtube/channel/rl?format=json',
+        ),
+        throwsA(
+          predicate<WorkerFeedException>(
+            (e) => e.kind == WorkerFeedErrorKind.rateLimited,
+          ),
+        ),
       );
     });
 
@@ -152,10 +158,14 @@ void main() {
       final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
-        () => client.fetchFeed('https://worker.test/youtube/channel/upstream?format=json'),
-        throwsA(predicate<WorkerFeedException>(
-          (e) => e.kind == WorkerFeedErrorKind.upstreamFailure,
-        )),
+        () => client.fetchFeed(
+          'https://worker.test/youtube/channel/upstream?format=json',
+        ),
+        throwsA(
+          predicate<WorkerFeedException>(
+            (e) => e.kind == WorkerFeedErrorKind.upstreamFailure,
+          ),
+        ),
       );
     });
 
@@ -166,10 +176,15 @@ void main() {
       final client = YoutubeFeedClient(httpClient: mockClient);
 
       expect(
-        () => client.fetchFeed('https://worker.test/youtube/channel/forbidden?format=json'),
-        throwsA(predicate<WorkerFeedException>(
-          (e) => e.kind == WorkerFeedErrorKind.httpError && e.statusCode == 403,
-        )),
+        () => client.fetchFeed(
+          'https://worker.test/youtube/channel/forbidden?format=json',
+        ),
+        throwsA(
+          predicate<WorkerFeedException>(
+            (e) =>
+                e.kind == WorkerFeedErrorKind.httpError && e.statusCode == 403,
+          ),
+        ),
       );
     });
   });
@@ -185,17 +200,11 @@ void main() {
     });
 
     test('returns null for non-channel URL', () {
-      expect(
-        extractChannelIdFromUrl('https://www.youtube.com/@TED'),
-        isNull,
-      );
+      expect(extractChannelIdFromUrl('https://www.youtube.com/@TED'), isNull);
     });
 
     test('returns null for non-YouTube URL', () {
-      expect(
-        extractChannelIdFromUrl('https://www.example.com'),
-        isNull,
-      );
+      expect(extractChannelIdFromUrl('https://www.example.com'), isNull);
     });
   });
 }

@@ -64,12 +64,14 @@ class WorkerFeedException implements Exception {
       );
 
   /// Creates a "parse error" error.
-  factory WorkerFeedException.parseError({String? channelId}) =>
-      WorkerFeedException(
-        kind: WorkerFeedErrorKind.parseError,
-        message: 'Could not parse the feed. The worker might be experiencing issues.',
-        channelId: channelId,
-      );
+  factory WorkerFeedException.parseError({
+    String? channelId,
+  }) => WorkerFeedException(
+    kind: WorkerFeedErrorKind.parseError,
+    message:
+        'Could not parse the feed. The worker might be experiencing issues.',
+    channelId: channelId,
+  );
 
   final WorkerFeedErrorKind kind;
   final String? message;

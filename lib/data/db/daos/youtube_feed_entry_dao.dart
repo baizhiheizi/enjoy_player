@@ -15,6 +15,12 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
             ..orderBy([(t) => OrderingTerm.desc(t.publishedAt)]))
           .watch();
 
+  Future<List<YoutubeFeedEntryRow>> getForChannel(String channelId) =>
+      (select(youtubeFeedEntries)
+            ..where((t) => t.channelId.equals(channelId))
+            ..orderBy([(t) => OrderingTerm.desc(t.publishedAt)]))
+          .get();
+
   Future<void> upsertEntry(YoutubeFeedEntryRow row) =>
       into(youtubeFeedEntries).insert(row, mode: InsertMode.insertOrReplace);
 

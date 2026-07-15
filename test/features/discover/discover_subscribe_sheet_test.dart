@@ -69,11 +69,6 @@ Future<void> _openSheet(WidgetTester tester) async {
   }
 }
 
-/// Finds the subscribe sheet by looking for the title text.
-Widget _findSubscribeSheetTitle(WidgetTester tester) {
-  return find.textContaining('Subscribe to').evaluate().first.widget as Text;
-}
-
 void main() {
   group('showDiscoverSubscribeSheet', () {
     late AppDatabase db;
@@ -96,15 +91,18 @@ void main() {
       await db.close();
     });
 
-    testWidgets('opens scroll-controlled sheet with input and subscribe action',
+    testWidgets(
+      'opens scroll-controlled sheet with input and subscribe action',
       (tester) async {
-        await tester.pumpWidget(_wrap(
-          db: db,
-          repo: repo,
-          onOpenSheet: () => showDiscoverSubscribeSheet(
-            tester.element(find.text('Open sheet')),
+        await tester.pumpWidget(
+          _wrap(
+            db: db,
+            repo: repo,
+            onOpenSheet: () => showDiscoverSubscribeSheet(
+              tester.element(find.text('Open sheet')),
+            ),
           ),
-        ));
+        );
         await _openSheet(tester);
 
         expect(find.text('Subscribe to channel'), findsOneWidget);
@@ -114,49 +112,51 @@ void main() {
       },
     );
 
-    testWidgets('subscribe with valid channel id creates subscription',
-      (tester) async {
-        await tester.pumpWidget(_wrap(
+    testWidgets('subscribe with valid channel id creates subscription', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
           db: db,
           repo: repo,
           onOpenSheet: () => showDiscoverSubscribeSheet(
             tester.element(find.text('Open sheet')),
           ),
-        ));
-        await _openSheet(tester);
+        ),
+      );
+      await _openSheet(tester);
 
-        await tester.enterText(find.byType(TextField), _channelId);
-        await tester.tap(find.widgetWithText(FilledButton, 'Subscribe'));
-        for (var i = 0; i < 10; i++) {
-          await tester.pump(const Duration(milliseconds: 200));
-        }
+      await tester.enterText(find.byType(TextField), _channelId);
+      await tester.tap(find.widgetWithText(FilledButton, 'Subscribe'));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
-        // Verify subscription in DB
-        final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
-          _channelId,
-        );
-        expect(row, isNotNull);
-        expect(row!.source, YoutubeSubscriptionSource.user);
-        expect(row.sourceType, YoutubeSourceType.channel);
-        expect(row.feedUrl, isNotNull);
+      // Verify subscription in DB
+      final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
+        _channelId,
+      );
+      expect(row, isNotNull);
+      expect(row!.source, YoutubeSubscriptionSource.user);
+      expect(row.sourceType, YoutubeSourceType.channel);
+      expect(row.feedUrl, isNotNull);
 
-        // Verify feed entries cached
-        final entries = await db.youtubeFeedEntryDao.watchForChannel(
-          _channelId,
-        ).first;
-        expect(entries.length, 1);
-        expect(entries.first.videoId, 'test1234567');
-      },
-    );
+      // Verify feed entries cached
+      final entries = await db.youtubeFeedEntryDao.getForChannel(_channelId);
+      expect(entries.length, 1);
+      expect(entries.first.videoId, 'test1234567');
+    });
 
     testWidgets('subscribe with invalid URL shows error', (tester) async {
-      await tester.pumpWidget(_wrap(
-        db: db,
-        repo: repo,
-        onOpenSheet: () => showDiscoverSubscribeSheet(
-          tester.element(find.text('Open sheet')),
+      await tester.pumpWidget(
+        _wrap(
+          db: db,
+          repo: repo,
+          onOpenSheet: () => showDiscoverSubscribeSheet(
+            tester.element(find.text('Open sheet')),
+          ),
         ),
-      ));
+      );
       await _openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'not a url');

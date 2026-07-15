@@ -28,10 +28,7 @@ void main() {
     });
 
     test('extracts from youtu.be short URL', () {
-      expect(
-        extractVideoId('https://youtu.be/dQw4w9WgXcQ'),
-        'dQw4w9WgXcQ',
-      );
+      expect(extractVideoId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
     });
   });
 
@@ -66,16 +63,20 @@ void main() {
       final result = parser.parse(json);
 
       expect(result.displayName, 'TED');
-      expect(result.homePageUrl,
-          'https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug');
+      expect(
+        result.homePageUrl,
+        'https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug',
+      );
       expect(result.iconUrl, 'https://yt3.ggpht.com/avatar.jpg');
       expect(result.entries.length, 1);
 
       final entry = result.entries.first;
       expect(entry.videoId, 'dQw4w9WgXcQ');
       expect(entry.title, 'Test Video');
-      expect(entry.thumbnailUrl,
-          'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
+      expect(
+        entry.thumbnailUrl,
+        'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+      );
       expect(entry.durationSeconds, 212);
       expect(entry.publishedAt, DateTime.utc(2026, 7, 10, 8, 0, 0));
     });
@@ -177,10 +178,7 @@ void main() {
 
   group('invalid JSON Feed', () {
     test('rejects non-JSON', () {
-      expect(
-        () => parser.parse('not json'),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => parser.parse('not json'), throwsA(isA<FormatException>()));
     });
 
     test('rejects missing version', () {

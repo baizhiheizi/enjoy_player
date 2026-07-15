@@ -323,7 +323,7 @@ final class FilteredDiscoverTimelineProvider
 }
 
 String _$filteredDiscoverTimelineHash() =>
-    r'27a80d0997f03909c1568b35ddbaa62c7dc1141a';
+    r'aade702de97bb2e869f9cbf9eeeded4de3bc80dd';
 
 @ProviderFor(discoverChannelFeed)
 final discoverChannelFeedProvider = DiscoverChannelFeedFamily._();

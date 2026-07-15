@@ -136,14 +136,16 @@ class JsonFeedParser {
       // the caller sets the actual channelId from the subscription context.
       final channelId = ''; // caller fills this in
 
-      entries.add(FeedEntry(
-        videoId: videoId,
-        channelId: channelId,
-        title: entryTitle,
-        thumbnailUrl: image,
-        durationSeconds: durationSeconds,
-        publishedAt: publishedAt ?? now,
-      ));
+      entries.add(
+        FeedEntry(
+          videoId: videoId,
+          channelId: channelId,
+          title: entryTitle,
+          thumbnailUrl: image,
+          durationSeconds: durationSeconds,
+          publishedAt: publishedAt ?? now,
+        ),
+      );
     }
 
     return JsonFeedResult(

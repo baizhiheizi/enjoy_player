@@ -11,7 +11,9 @@ void main() {
 
   group('parse channel URL', () {
     test('parses /channel/UC... URL', () {
-      final result = parser.parse('https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug');
+      final result = parser.parse(
+        'https://www.youtube.com/channel/UCAuUUnT6oDeKwE6v1NGQxug',
+      );
       expect(result.sourceType, YoutubeSourceType.channel);
       expect(result.canonicalId, 'UCAuUUnT6oDeKwE6v1NGQxug');
       expect(
@@ -27,10 +29,7 @@ void main() {
     });
 
     test('rejects invalid channel ID format', () {
-      expect(
-        () => parser.parse('UCshort'),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => parser.parse('UCshort'), throwsA(isA<FormatException>()));
     });
   });
 
@@ -94,10 +93,7 @@ void main() {
     });
 
     test('rejects empty string', () {
-      expect(
-        () => parser.parse(''),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => parser.parse(''), throwsA(isA<FormatException>()));
     });
 
     test('rejects non-YouTube URLs', () {

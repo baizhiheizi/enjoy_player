@@ -20,9 +20,8 @@ class YoutubeChannelSubscriptions extends Table {
   )();
 
   /// What kind of source this is: `channel` or `playlist`.
-  TextColumn get sourceType => textEnum<YoutubeSourceType>().withDefault(
-    const Constant('channel'),
-  )();
+  TextColumn get sourceType =>
+      textEnum<YoutubeSourceType>().withDefault(const Constant('channel'))();
 
   /// Constructed worker feed URL, e.g.
   /// `https://worker.enjoy.bot/youtube/channel/UC...?format=json`.

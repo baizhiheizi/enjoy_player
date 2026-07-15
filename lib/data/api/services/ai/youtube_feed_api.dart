@@ -39,9 +39,7 @@ WorkerFeedException _mapHttpError(int statusCode, {String? channelId}) {
 }
 
 /// Regex to extract channel ID from a YouTube channel URL.
-final _channelIdFromUrl = RegExp(
-  r'youtube\.com/channel/(UC[a-zA-Z0-9_-]{22})',
-);
+final _channelIdFromUrl = RegExp(r'youtube\.com/channel/(UC[a-zA-Z0-9_-]{22})');
 
 /// Extracts the canonical channel ID from a YouTube channel URL.
 /// Returns `null` if the URL doesn't match.
@@ -74,6 +72,7 @@ class YoutubeFeedClient {
     Future<String?> Function()? getToken,
   }) : _client = httpClient ?? http.Client(),
        parser = feedParser ?? JsonFeedParser(),
+       // ignore: prefer_initializing_formals
        _getToken = getToken;
 
   final http.Client _client;

@@ -371,9 +371,9 @@ void main() {
         const mediaId = 'v-empty-t2';
         await db.videoDao.insertRow(_video(id: mediaId, language: 'en-US'));
         final api = _FakeTranscriptsApi(uploadShouldFail: true);
-final fetcher = _StubYoutubeCaptionFetcher(
-        result: const AllCaptionsResult(results: []),
-      );
+        final fetcher = _StubYoutubeCaptionFetcher(
+          result: const AllCaptionsResult(results: []),
+        );
         final repo = TranscriptRepository(db, null, api, fetcher);
 
         await repo.fetchCloudTranscripts(mediaId, force: true);

@@ -128,13 +128,12 @@ class DiscoverRepository {
       displayName: channel.name,
       source: YoutubeSubscriptionSource.recommended,
       sourceType: YoutubeSourceType.channel,
-      feedUrl: '${_urlParser.workerBaseUrl}/youtube/channel/${channel.channelId}?format=json',
+      feedUrl:
+          '${_urlParser.workerBaseUrl}/youtube/channel/${channel.channelId}?format=json',
     );
   }
 
-  Future<void> subscribeFromUserInput(
-    String rawInput,
-  ) async {
+  Future<void> subscribeFromUserInput(String rawInput) async {
     // 1. Parse URL to get source type and feed URL
     ParsedYoutubeUrl parsed;
     try {
@@ -144,9 +143,7 @@ class DiscoverRepository {
     }
 
     // 2. Fetch the feed to get display name, avatar, and entries
-    final fetchResult = await _feedClient.fetchFeed(
-      parsed.feedUrl,
-    );
+    final fetchResult = await _feedClient.fetchFeed(parsed.feedUrl);
     final feedResult = fetchResult.feedResult;
 
     // 3. Handle-to-ID canonicalization: if subscribed via @handle,
@@ -157,7 +154,8 @@ class DiscoverRepository {
     if (fetchResult.canonicalChannelId != null) {
       // Switch from handle URL to channel feed URL
       sourceType = YoutubeSourceType.channel;
-      feedUrl = _urlParser.workerBaseUrl +
+      feedUrl =
+          '${_urlParser.workerBaseUrl}'
           '/youtube/channel/$canonicalId?format=json';
     }
 
@@ -360,16 +358,13 @@ class DiscoverRepository {
     if (feedUrl == null || feedUrl.isEmpty) {
       // Repair: generate feed URL from channel ID for legacy subscriptions
       // that were created before the migration backfilled feed_url.
-      feedUrl =
-          '${_urlParser.workerBaseUrl}/youtube/channel/$id?format=json';
+      feedUrl = '${_urlParser.workerBaseUrl}/youtube/channel/$id?format=json';
       _log.info('Repairing missing feed URL for subscription $id');
       await _db.youtubeChannelSubscriptionDao.updateFeedUrl(id, feedUrl);
     }
 
     try {
-      final result = await _feedClient.fetchFeed(
-        feedUrl,
-      );
+      final result = await _feedClient.fetchFeed(feedUrl);
 
       // Upsert feed entries
       for (final entry in result.feedResult.entries) {
