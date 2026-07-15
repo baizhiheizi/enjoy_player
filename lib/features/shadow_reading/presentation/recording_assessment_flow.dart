@@ -7,11 +7,14 @@ import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/assessment_result_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+final _log = logNamed('RecordingAssessment');
 
 String recordingAssessmentFailureMessage(
   AppLocalizations l10n,
@@ -43,6 +46,11 @@ Future<void> triggerRecordingAssessment({
   required RecordingRow row,
   bool forceRun = false,
 }) async {
+  _log.info(
+    'trigger assessment recording=${row.id} forceRun=$forceRun '
+    'hasStored=${row.assessmentJson?.trim().isNotEmpty == true} '
+    'lang=${row.language} path=${row.localPath}',
+  );
   if (!forceRun) {
     final stored = row.assessmentJson?.trim();
     if (stored != null && stored.isNotEmpty) {

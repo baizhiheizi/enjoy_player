@@ -9,7 +9,9 @@ import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -108,7 +110,15 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
       );
     }
 
-    if (!isAzurePronunciationAssessmentSupported(row.language)) {
+    final learningLanguage = ref
+        .read(appPreferencesCtrlProvider)
+        .valueOrNull
+        ?.effectiveLearningLanguage;
+    final assessmentLocale = resolveAzureAssessmentLocaleForPractice(
+      row.language,
+      learningLanguage: learningLanguage,
+    );
+    if (assessmentLocale == null) {
       return RecordingAssessmentFailure(
         RecordingAssessmentFailureKind.unsupportedLanguage,
       );
@@ -122,7 +132,7 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
             AssessmentRequest(
               audioPath: path,
               referenceText: row.referenceText,
-              language: row.language,
+              language: assessmentLocale,
               durationMs: row.duration,
             ),
           );

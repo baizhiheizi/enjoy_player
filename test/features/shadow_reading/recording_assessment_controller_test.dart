@@ -52,8 +52,11 @@ const _kAssessmentJson = '''
 }''';
 
 final class _FakeAssessmentCapability implements AssessmentCapability {
+  String? lastLanguage;
+
   @override
   Future<AssessmentResult> assess(AssessmentRequest request) async {
+    lastLanguage = request.language;
     final map = jsonDecode(_kAssessmentJson) as Map<String, dynamic>;
     final detail = AzurePronunciationAssessmentResult.fromJson(map);
     return AssessmentResult(detail: detail, rawJson: map);
@@ -95,12 +98,11 @@ void main() {
     );
 
     var enqueued = 0;
+    final fake = _FakeAssessmentCapability();
     final container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
-        assessmentCapabilityProvider.overrideWithValue(
-          _FakeAssessmentCapability(),
-        ),
+        assessmentCapabilityProvider.overrideWithValue(fake),
         syncEnqueueProvider.overrideWithValue((type, entityId, action) async {
           expect(type, SyncEntityType.recording);
           expect(entityId, id);
@@ -121,10 +123,66 @@ void main() {
 
     expect(outcome, isA<RecordingAssessmentSuccess>());
     expect(enqueued, 1);
+    expect(fake.lastLanguage, 'en-US');
 
     final updated = await db.recordingDao.getById(id);
     expect(updated!.pronunciationScore, 91);
     expect(updated.assessmentJson, isNotNull);
     expect(updated.assessmentJson, contains('PronScore'));
+  });
+
+  test('und recording language falls back to default learning locale', () async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final wav = File(
+      '${Directory.systemTemp.path}/rec_assess_und_${DateTime.now().microsecondsSinceEpoch}.wav',
+    );
+    await wav.writeAsBytes(List<int>.filled(120, 7));
+
+    final id = const Uuid().v4();
+    final now = DateTime.now();
+    await db.recordingDao.insertRow(
+      RecordingRow(
+        id: id,
+        targetType: 'Video',
+        targetId: 'yt1',
+        referenceStart: 0,
+        referenceDuration: 5000,
+        referenceText: 'Hi there',
+        language: 'und',
+        duration: 1000,
+        md5: null,
+        audioUrl: null,
+        pronunciationScore: null,
+        assessmentJson: null,
+        localPath: wav.path,
+        syncStatus: 'local',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final fake = _FakeAssessmentCapability();
+    final container = ProviderContainer(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+        assessmentCapabilityProvider.overrideWithValue(fake),
+        syncEnqueueProvider.overrideWithValue(
+          (type, entityId, action) async {},
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final row = (await db.recordingDao.getById(id))!;
+    final outcome = await container
+        .read(recordingAssessmentControllerProvider(id).notifier)
+        .run(row);
+
+    expect(outcome, isA<RecordingAssessmentSuccess>());
+    // YouTube-style und must not hard-fail; default learning locale is en-US.
+    expect(fake.lastLanguage, 'en-US');
   });
 }

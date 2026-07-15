@@ -314,6 +314,46 @@ String? resolveAzureAssessmentLocale(String? tag) {
 bool isAzurePronunciationAssessmentSupported(String? tag) =>
     resolveAzureAssessmentLocale(tag) != null;
 
+/// True for empty / denylisted media tags (`und`, `mul`, …) — not a real
+/// spoken language choice, just "unknown content language".
+bool isUnknownMediaLanguageTag(String? tag) {
+  if (tag == null) return true;
+  final trimmed = tag.trim();
+  if (trimmed.isEmpty) return true;
+  final primary = primaryLanguageSubtag(normalizeLanguageAlias(trimmed));
+  return primary.isEmpty || kInvalidLanguageTags.contains(primary);
+}
+
+/// Azure locale for shadow-reading assessment.
+///
+/// Unknown media tags (`und` / empty — common for YouTube imports) fall back to
+/// [learningLanguage] then [kDefaultLearningLanguageTag]. Real unsupported
+/// languages still return `null` (no silent `en-US` coercion).
+///
+/// Restores pre-[33dace5] practice behavior for unknown media language without
+/// reopening the unsupported-language loophole.
+String? resolveAzureAssessmentLocaleForPractice(
+  String? mediaOrRecordingLanguage, {
+  String? learningLanguage,
+}) {
+  final direct = resolveAzureAssessmentLocale(mediaOrRecordingLanguage);
+  if (direct != null) return direct;
+  if (!isUnknownMediaLanguageTag(mediaOrRecordingLanguage)) return null;
+  final fromLearning = resolveAzureAssessmentLocale(learningLanguage);
+  if (fromLearning != null) return fromLearning;
+  return resolveAzureAssessmentLocale(kDefaultLearningLanguageTag);
+}
+
+bool isAzurePronunciationAssessmentSupportedForPractice(
+  String? mediaOrRecordingLanguage, {
+  String? learningLanguage,
+}) =>
+    resolveAzureAssessmentLocaleForPractice(
+      mediaOrRecordingLanguage,
+      learningLanguage: learningLanguage,
+    ) !=
+    null;
+
 /// Worker / web short language code: first subtag lowercased (`en-US` → `en`).
 String workerLanguageBase(String tag) {
   final t = normalizeLanguageAlias(tag.trim());

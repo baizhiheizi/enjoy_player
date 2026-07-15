@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_assessment_controller.dart';
@@ -54,9 +56,17 @@ class RecordingAssessmentButton extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final lp = row.localPath;
-    final assessmentSupported = isAzurePronunciationAssessmentSupported(
-      row.language,
-    );
+    final learningLanguage = ref
+        .watch(appPreferencesCtrlProvider)
+        .valueOrNull
+        ?.effectiveLearningLanguage;
+    // Unknown media language (`und`, common on YouTube) must not disable the
+    // button — fall back to the learner's focus language (see catalog helper).
+    final assessmentSupported =
+        isAzurePronunciationAssessmentSupportedForPractice(
+          row.language,
+          learningLanguage: learningLanguage,
+        );
     final canInteract =
         echoActive && lp != null && lp.isNotEmpty && assessmentSupported;
 
@@ -82,6 +92,9 @@ class RecordingAssessmentButton extends ConsumerWidget {
         ? assessmentScoreColor(scheme, assessmentScoreLevel(score))
         : scheme.onSurfaceVariant;
 
+    // Use [MaterialType.transparency] when there is no score fill. A
+    // transparent [MaterialType.canvas] (the default) can drop taps on
+    // Android even though the same InkWell works on Windows / desktop.
     return Tooltip(
       message: tooltip,
       child: Semantics(
@@ -93,7 +106,9 @@ class RecordingAssessmentButton extends ConsumerWidget {
           height: 44,
           child: Material(
             color: bg ?? Colors.transparent,
+            type: bg == null ? MaterialType.transparency : MaterialType.canvas,
             shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: !canInteract || isAssessing

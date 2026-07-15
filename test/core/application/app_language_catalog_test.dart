@@ -91,6 +91,53 @@ void main() {
     });
   });
 
+  group('resolveAzureAssessmentLocaleForPractice', () {
+    test('falls back for und / empty via learning language', () {
+      expect(
+        resolveAzureAssessmentLocaleForPractice(
+          'und',
+          learningLanguage: 'ja-JP',
+        ),
+        'ja-JP',
+      );
+      expect(
+        resolveAzureAssessmentLocaleForPractice('', learningLanguage: 'en-GB'),
+        'en-GB',
+      );
+      expect(
+        resolveAzureAssessmentLocaleForPractice(null, learningLanguage: null),
+        'en-US',
+      );
+    });
+
+    test('does not fall back for a real unsupported language', () {
+      expect(
+        resolveAzureAssessmentLocaleForPractice(
+          'xx',
+          learningLanguage: 'en-US',
+        ),
+        isNull,
+      );
+      expect(
+        isAzurePronunciationAssessmentSupportedForPractice(
+          'sw',
+          learningLanguage: 'en-US',
+        ),
+        isFalse,
+      );
+    });
+
+    test('keeps exact supported locales', () {
+      expect(
+        resolveAzureAssessmentLocaleForPractice(
+          'fr-CA',
+          learningLanguage: 'en-US',
+        ),
+        'fr-CA',
+      );
+    });
+  });
+
   group('mapTranscriptLanguageToAzure', () {
     test('maps a supported ASR catalog language', () {
       expect(mapTranscriptLanguageToAzure('fr-CA'), 'fr-CA');

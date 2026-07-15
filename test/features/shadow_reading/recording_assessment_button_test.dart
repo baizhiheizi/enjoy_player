@@ -49,6 +49,34 @@ const _kAssessmentJson = '''
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF1144AA));
+
+  Future<void> pumpButton(
+    WidgetTester tester, {
+    required AppDatabase db,
+    required RecordingRow row,
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        child: MaterialApp(
+          theme: ThemeData(
+            colorScheme: scheme,
+            extensions: [EnjoyThemeTokens.build(scheme)],
+          ),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Center(
+              child: RecordingAssessmentButton(row: row, echoActive: true),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('RecordingAssessmentButton opens dialog when scored', (
     WidgetTester tester,
   ) async {
@@ -82,33 +110,70 @@ void main() {
     );
 
     final row = (await db.recordingDao.getById(id))!;
-
-    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF1144AA));
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
-        child: MaterialApp(
-          theme: ThemeData(
-            colorScheme: scheme,
-            extensions: [EnjoyThemeTokens.build(scheme)],
-          ),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Center(
-              child: RecordingAssessmentButton(row: row, echoActive: true),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await pumpButton(tester, db: db, row: row);
 
     expect(find.text('91'), findsOneWidget);
+    final material = tester.widget<Material>(find.byType(Material).last);
+    expect(material.type, MaterialType.canvas);
 
     await tester.tap(find.byType(InkWell).first);
     await tester.pumpAndSettle();
 
     expect(find.text('Pronunciation assessment'), findsOneWidget);
   });
+
+  testWidgets(
+    'unscored assessment button uses transparency Material so taps hit',
+    (WidgetTester tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final id = const Uuid().v4();
+      final now = DateTime.now();
+      await db.recordingDao.insertRow(
+        RecordingRow(
+          id: id,
+          targetType: 'Audio',
+          targetId: 'm1',
+          referenceStart: 0,
+          referenceDuration: 5000,
+          referenceText: 'Hi',
+          language: 'en',
+          duration: 1000,
+          md5: null,
+          audioUrl: null,
+          pronunciationScore: null,
+          assessmentJson: null,
+          localPath: '/tmp/fake.wav',
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final row = (await db.recordingDao.getById(id))!;
+      await pumpButton(tester, db: db, row: row);
+
+      expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
+      final material = tester.widget<Material>(
+        find.descendant(
+          of: find.byType(RecordingAssessmentButton),
+          matching: find.byType(Material),
+        ),
+      );
+      // Transparent canvas Material drops taps on Android; transparency type
+      // keeps the InkWell hittable (regression for echo-mode assess button).
+      expect(material.type, MaterialType.transparency);
+      expect(material.color, Colors.transparent);
+
+      final inkWell = tester.widget<InkWell>(
+        find.descendant(
+          of: find.byType(RecordingAssessmentButton),
+          matching: find.byType(InkWell),
+        ),
+      );
+      expect(inkWell.onTap, isNotNull);
+    },
+  );
 }

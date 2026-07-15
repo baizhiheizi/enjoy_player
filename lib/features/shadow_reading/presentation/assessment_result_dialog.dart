@@ -164,80 +164,80 @@ class _AssessmentResultSheetState extends State<AssessmentResultSheet> {
     final padH = t.space16 + t.space4;
     final bottomInset = MediaQuery.paddingOf(context).bottom + t.space24;
 
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.58,
-        minChildSize: 0.35,
-        maxChildSize: 0.92,
-        expand: false,
-        builder: (ctx, scrollCtrl) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const PaddedSheetDragHandle(),
-              Padding(
-                padding: EdgeInsets.fromLTRB(padH, t.space8, 8, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l10n.assessmentTitle, style: tt.titleLarge),
-                          SizedBox(height: t.space4),
-                          Text(
-                            l10n.assessmentDescription,
-                            style: tt.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+    // Match dictionary / subtitle pickers: [showEnjoySheet] already passes
+    // useSafeArea: true. Wrapping [DraggableScrollableSheet] in another
+    // [SafeArea] fights the sheet's height fraction math on notched Android
+    // devices and can make the sheet appear to "do nothing".
+    return DraggableScrollableSheet(
+      initialChildSize: 0.58,
+      minChildSize: 0.35,
+      maxChildSize: 0.92,
+      expand: false,
+      builder: (ctx, scrollCtrl) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PaddedSheetDragHandle(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(padH, t.space8, 8, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.assessmentTitle, style: tt.titleLarge),
+                        SizedBox(height: t.space4),
+                        Text(
+                          l10n.assessmentDescription,
+                          style: tt.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).closeButtonLabel,
-                      style: IconButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                        fixedSize: const Size(48, 48),
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView(
-                  controller: scrollCtrl,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    padH,
-                    t.space16,
-                    padH,
-                    bottomInset,
                   ),
-                  children: [
-                    _AssessmentResultInner(
-                      nBest: nBest,
-                      layoutCompact: true,
-                      selected: _selected,
-                      onToggleWord: (w) {
-                        setState(() {
-                          _selected = identical(_selected, w) ? null : w;
-                        });
-                      },
+                  IconButton(
+                    tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      fixedSize: const Size(48, 48),
                     ),
-                  ],
-                ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
-            ],
-          );
-        },
-      ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: scrollCtrl,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  padH,
+                  t.space16,
+                  padH,
+                  bottomInset,
+                ),
+                children: [
+                  _AssessmentResultInner(
+                    nBest: nBest,
+                    layoutCompact: true,
+                    selected: _selected,
+                    onToggleWord: (w) {
+                      setState(() {
+                        _selected = identical(_selected, w) ? null : w;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
