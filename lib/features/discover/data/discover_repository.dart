@@ -155,8 +155,7 @@ class DiscoverRepository {
       // Switch from handle URL to channel feed URL
       sourceType = YoutubeSourceType.channel;
       feedUrl =
-          '${_urlParser.workerBaseUrl}'
-          '/youtube/channel/$canonicalId?format=json';
+          '${_urlParser.workerBaseUrl}/youtube/channel/$canonicalId?format=json';
     }
 
     // 4. Create or update the subscription

@@ -69,15 +69,13 @@ class YoutubeFeedClient {
   YoutubeFeedClient({
     http.Client? httpClient,
     JsonFeedParser? feedParser,
-    Future<String?> Function()? getToken,
+    this.getToken,
   }) : _client = httpClient ?? http.Client(),
-       parser = feedParser ?? JsonFeedParser(),
-       // ignore: prefer_initializing_formals
-       _getToken = getToken;
+       parser = feedParser ?? JsonFeedParser();
 
   final http.Client _client;
   final JsonFeedParser parser;
-  final Future<String?> Function()? _getToken;
+  final Future<String?> Function()? getToken;
 
   /// Fetches a feed from [feedUrl], parses it, and returns a [WorkerFeedFetchResult].
   ///
@@ -97,7 +95,7 @@ class YoutubeFeedClient {
     final request = http.Request('GET', uri);
 
     // Add bearer auth if token provider is available
-    final tokenGetter = _getToken;
+    final tokenGetter = getToken;
     if (tokenGetter != null) {
       final token = await tokenGetter();
       if (token != null && token.isNotEmpty) {
