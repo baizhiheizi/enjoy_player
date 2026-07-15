@@ -12,6 +12,7 @@ Guidance for humans and AI coding agents working in this repository.
 
 ## Hard rules
 
+- **Every edit must be green**: After any code change (adding, removing, or editing files), run `flutter analyze` and `flutter test` and fix everything until both pass with zero errors. A task is not done until the tree is green. If a change removes/renames public API, also delete or update every test that references it. For maximum safety, run the full CI gates: `bash .github/scripts/validate_ci_gates.sh` (or `--fix` / `--all`).
 - **Supported platforms**: Android, iOS, macOS, Windows, Linux. **Do not add Flutter web** targets, `web/` scaffolding, or `kIsWeb` branches — native desktop/mobile only ([ADR-0048](docs/decisions/0048-linux-platform-support.md)).
 - **Single `media_kit` player**: Only [`MediaKitPlayerEngine`](lib/features/player/application/player_engine.dart) / [`PlayerController`](lib/features/player/application/player_controller.dart) may own a `media_kit` `Player`. Never instantiate `Player()` elsewhere (ADR-0003, ADR-0015). YouTube uses `flutter_inappwebview`, not `media_kit`.
 - **No `print()`**: Use [`logNamed`](lib/core/logging/log.dart) (a one-line wrapper around `package:logging`'s `Logger`) — never `print()`. See [conventions.md § Logging](docs/conventions.md#logging) for the canonical pattern.
@@ -19,13 +20,9 @@ Guidance for humans and AI coding agents working in this repository.
 - **Quality gates**: Behavior changes need automated tests or documented manual verification, shared UI patterns, performance evidence for user-visible hot paths, and matching docs updates.
 - **Documentation hygiene**: Architectural decisions → new ADR in [`docs/decisions/`](docs/decisions/). Feature behavior changes → update [`docs/features/<feature>.md`](docs/features/). Shared UI interaction patterns → [ADR-0018](docs/decisions/0018-shared-interactive-primitives.md).
 
-## MVP scope
-
-Local audio/video files, **YouTube imports** (watch page WebView; transcripts via Enjoy API after sync), transcripts via `.srt`/`.vtt` for local files, echo (shadow-reading) mode. **Metadata sync** (local-first queue + optional Cloud index + per-target recording pulls) when signed in ([ADR-0010](docs/decisions/0010-cloud-sync-mvp.md), [ADR-0013](docs/decisions/0013-local-first-sync.md)). Arbitrary URL streaming beyond `mediaUrl` / YouTube and **media file uploads** remain out of scope unless superseded ([ADR-0005](docs/decisions/0005-mvp-scope-local-only.md), [ADR-0015](docs/decisions/0015-youtube-playback.md)).
-
 ## Lookup language catalog
 
-The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart) for source / target options (first wave: en-US / en-GB / zh-CN / ja-JP / ko-KR / es-ES / es-MX / fr-FR / fr-CA / de-DE / it-IT / pt-BR / pt-PT / ru-RU). It is decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 8 tags); widening the lookup picker must not regress profile / settings UI. See [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
+The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog (14 tags) in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart), decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 8 tags). Widening the lookup picker must not regress profile / settings UI. See [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
 
 ## Codegen
 
