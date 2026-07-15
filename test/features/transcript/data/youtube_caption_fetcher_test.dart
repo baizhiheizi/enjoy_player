@@ -27,6 +27,7 @@ void main() {
   late http.Client mockClient;
 
   setUp(() {
+    resetLastSuccessfulCaptionProfile();
     mockClient = MockClient((request) async {
       return http.Response('', 500);
     });
@@ -814,6 +815,93 @@ void main() {
       expect(result.results[0].isSuccess, isTrue);
       expect(result.results[1].isSuccess, isFalse);
       expect(result.results[0].language, 'en');
+    });
+
+    test('prefers last successful profile on subsequent fetches', () async {
+      const iosUa = 'com.google.ios.youtube/';
+      const vrUa = 'com.google.android.apps.youtube.vr';
+      const captionUrl = 'https://www.youtube.com/api/timedtext?v=sticky';
+      final playerAttempts = <String>[];
+
+      mockClient = MockClient((request) async {
+        if (request.method == 'POST') {
+          final ua = request.headers['user-agent'] ?? '';
+          if (ua.contains(iosUa)) {
+            playerAttempts.add('ios');
+            // First video: IOS has no tracks; ANDROID_VR succeeds.
+            if (playerAttempts.where((a) => a == 'ios').length == 1) {
+              return http.Response(
+                jsonEncode(_cannedPlayerResponse(tracks: const [])),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            // Second video: IOS would succeed, but sticky should skip to VR.
+            return http.Response(
+              jsonEncode(
+                _cannedPlayerResponse(
+                  tracks: [
+                    {
+                      'baseUrl': captionUrl,
+                      'vssId': '.en',
+                      'languageCode': 'en',
+                    },
+                  ],
+                ),
+              ),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (ua.contains(vrUa)) {
+            playerAttempts.add('android_vr');
+            return http.Response(
+              jsonEncode(
+                _cannedPlayerResponse(
+                  tracks: [
+                    {
+                      'baseUrl': captionUrl,
+                      'vssId': '.en',
+                      'languageCode': 'en',
+                    },
+                  ],
+                ),
+              ),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          playerAttempts.add('other');
+          return http.Response('Forbidden', 403);
+        }
+        return http.Response(
+          _cannedJson3Response([
+            {
+              'tStartMs': 0,
+              'dDurationMs': 1000,
+              'segs': [
+                {'utf8': 'sticky'},
+              ],
+              'aAppend': 0,
+            },
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
+      final first = await fetcher.fetchAllSubtitles(videoId: 'vid11111111');
+      expect(first.isSuccess, isTrue);
+      expect(first.fetchProfile, 'android_vr');
+      expect(playerAttempts, ['ios', 'android_vr']);
+
+      playerAttempts.clear();
+      final second = await fetcher.fetchAllSubtitles(videoId: 'vid22222222');
+      expect(second.isSuccess, isTrue);
+      expect(second.fetchProfile, 'android_vr');
+      // Sticky puts android_vr first — no ios attempt on the second video.
+      expect(playerAttempts, ['android_vr']);
     });
   });
 }

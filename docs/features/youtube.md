@@ -81,10 +81,14 @@ to the source-only `ensurePrimaryTranscript` used for non-YouTube media.
 
 The InnerTube rotation uses a `youtubeProfilesProvider` that lazily fetches
 the worker's `GET /youtube/client-profiles` on first YouTube open, caches the
-result in a 24 h `L1Store`, and falls back to the compile-time
-`kBuiltInClientProfiles` (`ios` → `android_vr` → `mweb` → `web`) when the
-worker is unreachable or returns an empty list. This is spec 013's FR-003
-("client profiles MUST be remotely configurable").
+result in a 24 h `L1Store`, and **merges** remote entries with the compile-time
+`kBuiltInClientProfiles` via `resolveCaptionClientProfiles`. Remote versions
+win on the same InnerTube `clientName`; missing clients (today often
+`ANDROID_VR` / `MWEB` when the worker only ships `IOS` + `WEB`) are gap-filled
+from built-ins. The resolved ladder is always ordered
+`ios → android_vr → (android) → mweb → web` — **not** by Flutter host OS.
+Within a process, the last profile that returned fetchable tracks is tried
+first on subsequent videos (session sticky).
 
 The timedtext GET for each track uses the **same** profile's user agent and
 adds `Referer: https://m.youtube.com/` plus `Accept-Language` so the

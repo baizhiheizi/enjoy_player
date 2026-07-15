@@ -1,9 +1,13 @@
 /// YouTube InnerTube client profile configuration.
 ///
-/// Each profile spoofs a different YouTube client (IOS, Android VR, Mobile Web)
-/// to avoid rate limiting and bot detection. Profiles are fetched from the
-/// worker's `GET /youtube/client-profiles` endpoint and cached locally, with
-/// built-in compile-time defaults as a cold-start fallback.
+/// Each profile spoofs a different YouTube client (IOS, Android VR, Mobile Web,
+/// WEB) for anti-bot mitigation. Profiles are **not** tied to the Flutter host
+/// OS — the same ladder runs on Android, iOS, and desktop.
+///
+/// Live versions come from the worker's `GET /youtube/client-profiles`
+/// endpoint and are merged with [kBuiltInClientProfiles] via
+/// [resolveCaptionClientProfiles]. Built-ins are the cold-start fallback and
+/// fill gaps when the worker publishes a subset (today often only IOS + WEB).
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
@@ -69,7 +73,22 @@ class ClientProfile {
       clientName.isNotEmpty &&
       clientVersion.isNotEmpty &&
       userAgent.isNotEmpty;
+
+  /// Uppercased InnerTube `clientName` used as the merge key.
+  String get clientKey => clientName.toUpperCase();
 }
+
+/// Preferred caption-fetch ladder. Order is deliberate for 2026 YouTube:
+/// IOS (no PoToken for captions) → ANDROID_VR → optional ANDROID → MWEB → WEB.
+///
+/// Host OS must **not** reorder this list — profiles are spoofed identities.
+const List<String> kPreferredCaptionClientOrder = [
+  'IOS',
+  'ANDROID_VR',
+  'ANDROID',
+  'MWEB',
+  'WEB',
+];
 
 /// Decodes a list of profiles from a JSON array (worker response format).
 List<ClientProfile> clientProfilesFromJson(dynamic json) {
@@ -84,22 +103,60 @@ List<ClientProfile> clientProfilesFromJson(dynamic json) {
   return [];
 }
 
-/// Built-in compile-time defaults matching youtube-caption-extractor v1.10.2.
-/// Used when the worker is unreachable and no cached profiles exist.
+/// Merges [remote] worker profiles with [builtIns] into the caption ladder.
+///
+/// - Remote entries win on the same [ClientProfile.clientKey] (fresher versions).
+/// - Missing preferred clients are filled from [builtIns].
+/// - Result is ordered by [kPreferredCaptionClientOrder], then any extras.
+/// - Empty / all-invalid [remote] yields [builtIns] in preferred order.
+List<ClientProfile> resolveCaptionClientProfiles(
+  List<ClientProfile> remote, {
+  List<ClientProfile> builtIns = kBuiltInClientProfiles,
+}) {
+  final byKey = <String, ClientProfile>{};
+  for (final profile in builtIns) {
+    if (profile.isValid) byKey[profile.clientKey] = profile;
+  }
+  for (final profile in remote) {
+    if (profile.isValid) byKey[profile.clientKey] = profile;
+  }
+  if (byKey.isEmpty) return const [];
+
+  final ordered = <ClientProfile>[];
+  final seen = <String>{};
+  for (final key in kPreferredCaptionClientOrder) {
+    final profile = byKey[key];
+    if (profile == null) continue;
+    ordered.add(profile);
+    seen.add(key);
+  }
+  for (final profile in [...remote, ...builtIns]) {
+    if (!profile.isValid) continue;
+    final key = profile.clientKey;
+    if (seen.contains(key)) continue;
+    ordered.add(byKey[key]!);
+    seen.add(key);
+  }
+  return ordered;
+}
+
+/// Built-in compile-time defaults for cold start and gap-fill.
+/// Used when the worker is unreachable and no cached profiles exist, and to
+/// supply ANDROID_VR / MWEB when the worker still publishes only IOS + WEB.
 const List<ClientProfile> kBuiltInClientProfiles = [
   ClientProfile(
     name: 'ios',
     clientName: 'IOS',
-    clientVersion: '20.10.4',
+    clientVersion: '20.12.1',
     clientNameHeader: '5',
     userAgent:
-        'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)',
+        'com.google.ios.youtube/20.12.1 (iPhone17,1; U; CPU iOS 18_5 like Mac OS X;)',
     context: {
       'deviceMake': 'Apple',
-      'deviceModel': 'iPhone16,2',
+      'deviceModel': 'iPhone17,1',
       'platform': 'MOBILE',
       'osName': 'iOS',
-      'osVersion': '18.3.2.22D82',
+      'osVersion': '18.5.22F5053c',
     },
   ),
   ClientProfile(
@@ -128,17 +185,12 @@ const List<ClientProfile> kBuiltInClientProfiles = [
     context: {'platform': 'MOBILE', 'osName': 'iOS', 'osVersion': '17.5.1'},
   ),
   ClientProfile(
-    // Desktop WEB profile — primary client for the InnerTube `browse` endpoint
-    // used by Discover channel refresh (ADR-0047). Picked first by
-    // `YoutubeBrowseClient`'s `preferredProfileOrder`. `IOS` is also used as a
-    // browse fallback on Android where desktop profiles sometimes return empty
-    // renderer lists (the `ios` profile succeeds on the same
-    // `youtubei.googleapis.com` host for `browse` too — ADR-0049).
-    // `ANDROID_VR` remains in this list because the YouTube caption fetcher
-    // (`/player`) rotates through it; it is not used for `browse`.
+    // Desktop WEB — last-resort caption fallback (often needs PoToken).
+    // Kept for Discover-era compatibility and rare cases where mobile
+    // clients are throttled. Not preferred for captions in 2026.
     name: 'web',
     clientName: 'WEB',
-    clientVersion: '2.20240101.00.00',
+    clientVersion: '2.20250709.00.00',
     clientNameHeader: '1',
     userAgent:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',

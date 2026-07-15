@@ -118,22 +118,42 @@ Return the current set of YouTube InnerTube client profiles. No auth required.
       }
     },
     {
+      "name": "ANDROID_VR",
+      "version": "1.62.20",
+      "client_name_header": "28",
+      "user_agent": "...",
+      "context": { "androidSdkVersion": "32", "...": "..." }
+    },
+    {
+      "name": "MWEB",
+      "version": "2.20251209.01.00",
+      "client_name_header": "2",
+      "user_agent": "...",
+      "context": { "...": "..." }
+    },
+    {
       "name": "WEB",
       "version": "2.20250709.00.00",
       "client_name_header": "1",
       "user_agent": "...",
-      "context": { ... }
+      "context": { "...": "..." }
     }
   ]
 }
 ```
+
+Preferred caption ladder (worker should publish in this relative order):
+`IOS` → `ANDROID_VR` → optional `ANDROID` → `MWEB` → `WEB`.
+See enjoy issue [#843](https://github.com/baizhiheizi/enjoy/issues/843).
+The player merges remote entries with built-ins via `resolveCaptionClientProfiles`
+and does **not** pick profiles from the Flutter host OS.
 
 The body is wrapped in a `{"version", "profiles"}` envelope (not a bare
 array). Clients must read `response.profiles`.
 
 ### Client Behavior
 
-- Fetched at app startup and cached in Drift settings under key `youtube.client_profiles_v1`.
-- Re-fetched periodically (every 24 hours) or on app foreground.
-- On fetch failure: use cached version from settings.
-- On cache miss: use built-in compile-time defaults.
+- Fetched on first YouTube open and cached in an in-memory `L1Store` (24 h TTL).
+- Merged with compile-time built-ins (`resolveCaptionClientProfiles`); remote
+  versions win on the same InnerTube `clientName`.
+- On fetch failure / empty list: use built-in compile-time defaults alone.

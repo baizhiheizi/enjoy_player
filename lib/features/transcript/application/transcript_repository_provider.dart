@@ -21,7 +21,7 @@ TranscriptRepository transcriptRepository(Ref ref) {
   final profilesAsync = ref.watch(youtubeProfilesProvider);
   final profiles = profilesAsync.maybeWhen(
     data: (p) => p,
-    orElse: () => kBuiltInClientProfiles,
+    orElse: () => resolveCaptionClientProfiles(const []),
   );
   final httpClient = http.Client();
   ref.onDispose(httpClient.close);

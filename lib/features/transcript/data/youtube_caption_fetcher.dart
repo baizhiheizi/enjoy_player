@@ -27,6 +27,17 @@ import '../../../core/utils/html_clean.dart';
 /// WARNING once per open.
 final Logger _log = logNamed('YoutubeCaptionFetcher');
 
+/// Session-sticky last profile that returned usable caption tracks.
+///
+/// Survives [YoutubeCaptionFetcher] rebuilds when Riverpod refreshes the
+/// profile list so subsequent videos try the known-good client first.
+String? _lastSuccessfulCaptionProfileKey;
+
+/// Clears the sticky caption profile (tests / forced reset).
+void resetLastSuccessfulCaptionProfile() {
+  _lastSuccessfulCaptionProfileKey = null;
+}
+
 /// InnerTube API endpoint.
 const _innertubeEndpoint =
     'https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false';
@@ -100,8 +111,19 @@ class YoutubeCaptionFetcher {
   final List<ClientProfile> profiles;
 
   /// Returns the fallback chain of profiles to try.
-  List<ClientProfile> get _profileChain =>
-      profiles.where((p) => p.isValid).toList();
+  ///
+  /// When a prior fetch in this process succeeded, that profile is moved to
+  /// the front so later videos skip already-failed clients.
+  List<ClientProfile> get _profileChain {
+    final chain = profiles.where((p) => p.isValid).toList();
+    final sticky = _lastSuccessfulCaptionProfileKey;
+    if (sticky == null || chain.length < 2) return chain;
+    final idx = chain.indexWhere(
+      (p) => p.name == sticky || p.clientKey == sticky.toUpperCase(),
+    );
+    if (idx <= 0) return chain;
+    return [chain[idx], ...chain.sublist(0, idx), ...chain.sublist(idx + 1)];
+  }
 
   /// Fetches subtitles for [videoId] in [lang] by trying each client profile
   /// in sequence, selecting the best matching caption track, and parsing the
@@ -204,6 +226,9 @@ class YoutubeCaptionFetcher {
         });
 
         final okCount = sorted.where((r) => r.isSuccess).length;
+        if (okCount > 0) {
+          _lastSuccessfulCaptionProfileKey = profile.name;
+        }
         _log.info(
           'InnerTube profile=${profile.name} for $videoId returned '
           '${bestByLang.length} track(s) ($okCount fetchable)',

@@ -3,9 +3,10 @@
 /// The worker exposes `GET /youtube/client-profiles` returning a list of
 /// {`name`, `version`, `client_name_header`, `user_agent`, `context`} entries
 /// (snake_case on the wire; camelCase after [ApiClient] decode). We fetch
-/// them once per session (TTL = 24 h) and fall back to the compile-time
-/// [kBuiltInClientProfiles] when the worker is unreachable or returns an
-/// empty / malformed list.
+/// them once per session (TTL = 24 h), merge with [kBuiltInClientProfiles]
+/// via [resolveCaptionClientProfiles] (so IOS/WEB from the worker still keep
+/// ANDROID_VR / MWEB gap-fill), and fall back to built-ins alone when the
+/// worker is unreachable or returns an empty / malformed list.
 ///
 /// This is the runtime form of spec 013's FR-003: client profiles should
 /// be remotely configurable, not hard-coded in the app binary.
@@ -45,16 +46,20 @@ Future<List<ClientProfile>> youtubeProfiles(Ref ref) async {
   final client = ref.watch(youtubeTranscriptsClientProvider);
   try {
     final raw = await client.fetchClientProfiles();
-    final profiles = clientProfilesFromJson(raw);
-    if (profiles.isEmpty) {
+    final remote = clientProfilesFromJson(raw);
+    if (remote.isEmpty) {
       _log.fine('worker returned no usable profiles; using built-in defaults');
-      return kBuiltInClientProfiles;
+      return resolveCaptionClientProfiles(const []);
     }
+    final profiles = resolveCaptionClientProfiles(remote);
     _profileCache.put(_kCacheKey, profiles);
-    _log.info('loaded ${profiles.length} YouTube profile(s) from worker');
+    _log.info(
+      'loaded ${remote.length} YouTube profile(s) from worker '
+      '(ladder=${profiles.map((p) => p.name).join("→")})',
+    );
     return profiles;
   } on Object catch (e, st) {
     _log.warning('worker profile fetch failed; using built-in defaults', e, st);
-    return kBuiltInClientProfiles;
+    return resolveCaptionClientProfiles(const []);
   }
 }

@@ -241,9 +241,94 @@ void main() {
     });
 
     test('profiles are in correct fallback order', () {
-      expect(kBuiltInClientProfiles[0].name, 'ios');
-      expect(kBuiltInClientProfiles[1].name, 'android_vr');
-      expect(kBuiltInClientProfiles[2].name, 'mweb');
+      expect(kBuiltInClientProfiles.map((p) => p.name).toList(), [
+        'ios',
+        'android_vr',
+        'mweb',
+        'web',
+      ]);
+      expect(kBuiltInClientProfiles[0].clientVersion, '20.12.1');
+      expect(kBuiltInClientProfiles[3].clientVersion, '2.20250709.00.00');
+    });
+  });
+
+  group('resolveCaptionClientProfiles', () {
+    test('empty remote returns built-ins in preferred order', () {
+      final resolved = resolveCaptionClientProfiles(const []);
+      expect(resolved.map((p) => p.clientKey).toList(), [
+        'IOS',
+        'ANDROID_VR',
+        'MWEB',
+        'WEB',
+      ]);
+    });
+
+    test('worker IOS+WEB keeps ANDROID_VR and MWEB gap-fill', () {
+      final remote = clientProfilesFromJson([
+        {
+          'name': 'IOS',
+          'version': '20.99.0',
+          'clientNameHeader': '5',
+          'userAgent': 'com.google.ios.youtube/20.99.0',
+          'context': {'platform': 'MOBILE'},
+        },
+        {
+          'name': 'WEB',
+          'version': '2.20259999.00.00',
+          'clientNameHeader': '1',
+          'userAgent': 'Mozilla/5.0',
+          'context': {'platform': 'DESKTOP'},
+        },
+      ]);
+      final resolved = resolveCaptionClientProfiles(remote);
+      expect(resolved.map((p) => p.clientKey).toList(), [
+        'IOS',
+        'ANDROID_VR',
+        'MWEB',
+        'WEB',
+      ]);
+      expect(resolved[0].clientVersion, '20.99.0');
+      expect(resolved[3].clientVersion, '2.20259999.00.00');
+      expect(resolved[1].name, 'android_vr');
+      expect(resolved[2].name, 'mweb');
+    });
+
+    test('remote ANDROID slots between ANDROID_VR and MWEB', () {
+      const android = ClientProfile(
+        name: 'android',
+        clientName: 'ANDROID',
+        clientVersion: '21.02.35',
+        clientNameHeader: '3',
+        userAgent: 'com.google.android.youtube/21.02.35',
+        context: {'platform': 'MOBILE', 'osName': 'Android'},
+      );
+      final resolved = resolveCaptionClientProfiles([android]);
+      expect(resolved.map((p) => p.clientKey).toList(), [
+        'IOS',
+        'ANDROID_VR',
+        'ANDROID',
+        'MWEB',
+        'WEB',
+      ]);
+    });
+
+    test('unknown remote clients append after preferred ladder', () {
+      const tv = ClientProfile(
+        name: 'tv',
+        clientName: 'TVHTML5',
+        clientVersion: '7.20240101',
+        clientNameHeader: '7',
+        userAgent: 'Mozilla/5.0 (SMART-TV)',
+        context: {},
+      );
+      final resolved = resolveCaptionClientProfiles([tv]);
+      expect(resolved.last.clientKey, 'TVHTML5');
+      expect(resolved.map((p) => p.clientKey).take(4).toList(), [
+        'IOS',
+        'ANDROID_VR',
+        'MWEB',
+        'WEB',
+      ]);
     });
   });
 }
