@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
@@ -149,7 +148,6 @@ void main() {
   });
 
   test('per-user databases keep isolated sync queues', () async {
-    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     final deviceGlobalDb = AppDatabase(executor: NativeDatabase.memory());
     addTearDown(deviceGlobalDb.close);
     final userDb = AppDatabase(

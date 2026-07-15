@@ -27,7 +27,7 @@
 
 **Stale-cache note (artwork palette LRU):** `extractArtworkPalette` caches by `(path, size, mtime)` and re-`stat`s on every lookup, so a re-thumbnailed artwork file (e.g. after `VideoPosterCaptureService` overwrites `media_thumbs/<key>.jpg`) invalidates the prior palette automatically — see [ADR-0007](../decisions/0007-dynamic-color-from-artwork.md) and `test/core/theme/artwork_palette_test.dart`.
 
-**Also in tree (supporting, not the freeze root cause):** `driftRuntimeOptions.dontWarnAboutMultipleDatabases` in `lib/main.dart` (device-global + per-user DBs are intentional), and `app_database_provider.dart` caches one `AppDatabase` per session name with `onDispose` cleanup — avoids duplicate instances and Drift’s multi-open warning spam.
+**Also in tree (supporting, not the freeze root cause):** `driftRuntimeOptions.dontWarnAboutMultipleDatabases` in `lib/main.dart` and `test/flutter_test_config.dart` (device-global + per-user DBs are intentional), and `app_database_provider.dart` caches one `AppDatabase` per session name with `onDispose` cleanup — avoids duplicate instances and Drift’s multi-open warning spam.
 
 **Regression checks:** Use Flutter DevTools **CPU profiler** (UI thread) if similar freezes reappear; avoid reintroducing per-item `PaletteGenerator` in large scrollables without an isolate or precomputed palette.
 
