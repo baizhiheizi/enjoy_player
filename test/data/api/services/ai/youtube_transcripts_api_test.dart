@@ -193,24 +193,23 @@ void main() {
     group('fetchClientProfiles', () {
       test('extracts the profiles list from the worker envelope', () async {
         final mock = MockClient((request) async {
+          // Wire format matches worker contracts/api.md (snake_case).
           return http.Response(
             jsonEncode({
               'version': '2026-07-12',
               'profiles': [
                 {
-                  'name': 'ios',
-                  'clientName': 'IOS',
-                  'clientVersion': '20.12.1',
-                  'clientNameHeader': '5',
-                  'userAgent': 'ua',
+                  'name': 'IOS',
+                  'version': '20.12.1',
+                  'client_name_header': '5',
+                  'user_agent': 'ua',
                   'context': <String, String>{},
                 },
                 {
-                  'name': 'web',
-                  'clientName': 'WEB',
-                  'clientVersion': '2.20250709.00.00',
-                  'clientNameHeader': '1',
-                  'userAgent': 'ua',
+                  'name': 'WEB',
+                  'version': '2.20250709.00.00',
+                  'client_name_header': '1',
+                  'user_agent': 'ua',
                   'context': <String, String>{},
                 },
               ],
@@ -223,8 +222,12 @@ void main() {
         final api = YoutubeTranscriptsApi(apiClient(mock));
         final profiles = await api.fetchClientProfiles();
         expect(profiles, hasLength(2));
-        expect(profiles[0]['name'], 'ios');
-        expect(profiles[1]['name'], 'web');
+        // ApiClient converts snake_case → camelCase.
+        expect(profiles[0]['name'], 'IOS');
+        expect(profiles[0]['version'], '20.12.1');
+        expect(profiles[0]['clientNameHeader'], '5');
+        expect(profiles[0]['userAgent'], 'ua');
+        expect(profiles[1]['name'], 'WEB');
       });
 
       test('returns empty list when envelope lacks profiles', () async {

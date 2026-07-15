@@ -6,6 +6,8 @@
 /// built-in compile-time defaults as a cold-start fallback.
 library;
 
+import 'package:enjoy_player/core/json/json_cast.dart';
+
 /// A single client profile for spoofing a YouTube client.
 class ClientProfile {
   const ClientProfile({
@@ -17,19 +19,32 @@ class ClientProfile {
     required this.context,
   });
 
+  /// Parses either the local camelCase shape (`clientName` / `clientVersion`)
+  /// or the worker wire shape after [convertKeysToCamel]
+  /// (`name` + `version`, where `name` is the InnerTube client name like
+  /// `"IOS"`).
   factory ClientProfile.fromJson(Map<String, dynamic> json) {
+    final rawName = json['name'] as String? ?? '';
+    final hasLocalClientName = json['clientName'] is String;
+    final clientName = json['clientName'] as String? ?? rawName;
+    // Local caches store a lowercase slug in `name` plus `clientName`.
+    // The worker publishes `name` as the InnerTube client name only.
+    final name = hasLocalClientName ? rawName : rawName.toLowerCase();
     return ClientProfile(
-      name: json['name'] as String? ?? '',
-      clientName: json['clientName'] as String? ?? '',
-      clientVersion: json['clientVersion'] as String? ?? '',
+      name: name,
+      clientName: clientName,
+      clientVersion:
+          json['clientVersion'] as String? ?? json['version'] as String? ?? '',
       clientNameHeader: json['clientNameHeader'] as String? ?? '',
       userAgent: json['userAgent'] as String? ?? '',
-      context:
-          (json['context'] as Map<String, dynamic>?)?.map(
-            (k, v) => MapEntry(k, v.toString()),
-          ) ??
-          <String, String>{},
+      context: _contextFromJson(json['context']),
     );
+  }
+
+  static Map<String, String> _contextFromJson(Object? value) {
+    final map = castJsonObjectOrNull(value);
+    if (map == null) return <String, String>{};
+    return map.map((k, v) => MapEntry(k, v.toString()));
   }
 
   final String name;
@@ -60,6 +75,7 @@ class ClientProfile {
 List<ClientProfile> clientProfilesFromJson(dynamic json) {
   if (json is List) {
     return json
+        .map(castJsonObjectOrNull)
         .whereType<Map<String, dynamic>>()
         .map(ClientProfile.fromJson)
         .where((p) => p.isValid)

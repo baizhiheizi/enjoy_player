@@ -1,10 +1,11 @@
 /// Lazily fetched YouTube InnerTube client profiles with `L1Store` cache.
 ///
 /// The worker exposes `GET /youtube/client-profiles` returning a list of
-/// {`name`, `clientName`, `clientVersion`, `clientNameHeader`, `userAgent`,
-/// `context`} entries. We fetch them once per session (TTL = 24 h) and
-/// fall back to the compile-time [kBuiltInClientProfiles] when the worker
-/// is unreachable or returns an empty / malformed list.
+/// {`name`, `version`, `client_name_header`, `user_agent`, `context`} entries
+/// (snake_case on the wire; camelCase after [ApiClient] decode). We fetch
+/// them once per session (TTL = 24 h) and fall back to the compile-time
+/// [kBuiltInClientProfiles] when the worker is unreachable or returns an
+/// empty / malformed list.
 ///
 /// This is the runtime form of spec 013's FR-003: client profiles should
 /// be remotely configurable, not hard-coded in the app binary.
