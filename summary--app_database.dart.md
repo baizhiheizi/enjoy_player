@@ -1,10 +1,7 @@
-<size>27863</size>
+<hash>size:7112</hash>
 
 # `lib/data/db/app_database.dart`
 
-- `@DriftDatabase` with tables: `Videos`, `Audios`, `Transcripts`, `TranscriptFetchStates`, `EchoSessions`, `Recordings`, `Dictations`, `SyncQueue`, `SettingsKv`, `YoutubeChannelSubscriptions`, `YoutubeFeedEntries`.
-- DAOs: `VideoDao`, `AudioDao`, `TranscriptDao`, `TranscriptFetchStateDao`, `EchoSessionDao`, `RecordingDao`, `DictationDao`, `SyncQueueDao`, `SettingsDao` + more.
-- `transcripts` — `targetType` + `targetId` timeline JSON.
-- `transcript_fetch_states` — composite index `idx_transcript_fetch_states_target`.
-- Recovery: `_addColumnIfMissing` checks `pragma_table_info` before `ALTER TABLE ADD COLUMN` so half-migrated DBs self-heal.
-- Per-user isolation in `app_database_provider.dart` (bounded `LinkedHashMap`, cap 2).
+- `AppDatabase` is Drift schema version 13 with 12 tables and focused DAO part files.
+- Incremental migrations add Discover, transcript indexing, blur, AI cache, and subscription source/feed fields.
+- `_addColumnIfMissing` makes column migrations retry-safe; `_runMigrations` no-ops when `from >= to`.

@@ -1,9 +1,8 @@
-<size>23486</size>
+<hash>size:39985</hash>
 
 # `lib/features/transcript/data/transcript_repository.dart`
 
-- `_LinesCacheEntry(updatedAt, lines)` — internal cache for lines.
-- `_decodeTimeline(timelineJson)` — deserializes timeline JSON into `List<TranscriptLine>`.
-- `_trackFromRow(row)` — maps a `TranscriptRow` to a `TranscriptTrack`.
-- `_listEqualsTranscriptTrack(previous, current)` — element-wise equality on `TranscriptTrack` lists (`identical`, length, then per-element `==`). Used by `watchTracks` via `Stream.distinctBy` to absorb no-op Drift ticks.
-- Imports `stream_distinct.dart` extension and `youtube_video_identity.dart`.
+- `watchTracks` maps and source-sorts Drift rows, then deduplicates value-equal track lists.
+- `linesForRow` memoizes timeline decoding by transcript ID and timeline hash.
+- YouTube resolution uses Worker cache first when language is known, then direct InnerTube discovery of all tracks and Worker cache upload.
+- Primary selection preserves user choice, then prefers video language, learning language, and source priority.

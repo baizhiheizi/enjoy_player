@@ -1,8 +1,7 @@
-<size>7132</size>
+<hash>size:8547</hash>
 
 # `lib/core/recovery/recovery_actions.dart`
 
-- `Future<bool> copyErrorToClipboard(Object error, StackTrace? stack)` — best-effort copy of error + stack to clipboard.
-- `Future<bool> openLogsFolder()` — opens the rotating log directory in the platform file explorer (returns false on mobile).
-- Looks for DB files in the `Documents` directory (where `drift_flutter` writes them), NOT `ApplicationSupport/databases/`.
-- Broadens `isUnrecoverableDatabaseError` to catch `SqliteException`, `no such column`, `duplicate column name`, `disk image malformed`.
+- Copies bootstrap diagnostics, opens the desktop log directory, backs up local databases, and wipes SQLite/WAL/SHM files.
+- Database files are resolved from the directory used by `drift_flutter`.
+- `isUnrecoverableDatabaseError` recognizes SQLite exceptions, corruption, unsupported schema, and missing/duplicate schema objects.

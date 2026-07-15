@@ -1,8 +1,7 @@
-<size>8405</size>
+<hash>size:7898</hash>
 
 # `lib/core/recovery/recovery_surface.dart`
 
-- `RecoverySurface` — UI shown when `appPreferencesCtrlProvider` fails to resolve.
-- Accepts an injectable `onReset` callback.
-- Two actions: **Copy error** (uses `copyErrorToClipboard`) and **Reset** (invokes `performRecoveryReset`).
-- Localized strings (en / zh / zh-CN) updated to reflect in-place reload on successful reset.
+- Localized full-screen bootstrap recovery UI.
+- Offers copy error, desktop logs, and confirmed local-library reset actions.
+- Reset outcomes are surfaced without requiring a process restart.

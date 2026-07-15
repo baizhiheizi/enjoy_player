@@ -1,4 +1,5 @@
 {
+  "templateHash": "size:17904",
   "pages": [
     { "slug": "Home", "title": "Home", "level": 1, "parent": null },
     { "slug": "Getting-Started", "title": "Getting Started", "level": 1, "parent": null, "sidebarSections": ["Prerequisites", "Install", "Run", "Verify"] },
@@ -26,5 +27,5 @@
     { "slug": "Local-Packages", "title": "Local Packages", "level": 1, "parent": null },
     { "slug": "For-Agents", "title": "For Agents", "level": 1, "parent": null }
   ],
-  "generatedAt": "2026-07-11T00:00:00Z"
+  "generatedAt": "2026-07-15T06:24:00Z"
 }

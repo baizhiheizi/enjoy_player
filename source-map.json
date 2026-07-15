@@ -21,13 +21,13 @@
   },
   "Architecture": {
     "sourceFiles": [
-      { "path": "docs/architecture.md", "size": 6746 },
-      { "path": "lib/data/db/app_database.dart", "size": 27863 },
-      { "path": "lib/core/utils/stream_distinct.dart", "size": 1690 },
-      { "path": "AGENTS.md", "size": 4979 }
+      { "path": "docs/architecture.md", "hash": "size:6746" },
+      { "path": "lib/data/db/app_database.dart", "hash": "size:7112" },
+      { "path": "lib/core/utils/stream_distinct.dart", "hash": "size:1690" },
+      { "path": "AGENTS.md", "hash": "size:5027" }
     ],
     "templateHash": "architecture-2026-07-11",
-    "generatedAt": "2026-07-11T00:00:00Z"
+    "generatedAt": "2026-07-15T06:24:00Z"
   },
   "Player": {
     "sourceFiles": [
@@ -41,11 +41,15 @@
   },
   "Transcripts": {
     "sourceFiles": [
-      { "path": "lib/features/transcript/data/transcript_repository.dart", "size": 23486 },
-      { "path": "lib/core/utils/stream_distinct.dart", "size": 1690 }
+      { "path": "docs/features/transcript.md", "hash": "size:23744" },
+      { "path": "lib/features/transcript/data/transcript_repository.dart", "hash": "size:39985" },
+      { "path": "lib/features/transcript/application/transcript_lines_provider.dart", "hash": "size:3896" },
+      { "path": "lib/features/transcript/domain/transcript_track.dart", "hash": "size:1064" },
+      { "path": "lib/data/subtitle/transcript_line.dart", "hash": "size:1733" },
+      { "path": "lib/core/utils/stream_distinct.dart", "hash": "size:1690" }
     ],
     "templateHash": "transcripts-2026-07-11",
-    "generatedAt": "2026-07-11T00:00:00Z"
+    "generatedAt": "2026-07-15T06:24:00Z"
   },
   "Echo-Mode": {
     "sourceFiles": [
@@ -64,10 +68,15 @@
   },
   "Sync": {
     "sourceFiles": [
-      { "path": "lib/features/sync/application/sync_controller.dart", "size": 5173 }
+      { "path": "docs/features/sync.md", "hash": "size:3939" },
+      { "path": "lib/features/sync/application/sync_controller.dart", "hash": "size:3600" },
+      { "path": "lib/features/sync/application/sync_engine.dart", "hash": "size:4891" },
+      { "path": "lib/features/sync/domain/sync_types.dart", "hash": "size:2036" },
+      { "path": "lib/features/sync/application/queue_for_sync.dart", "hash": "size:2617" },
+      { "path": "lib/features/sync/data/sync_serializers.dart", "hash": "size:9969" }
     ],
     "templateHash": "sync-2026-07-11",
-    "generatedAt": "2026-07-11T00:00:00Z"
+    "generatedAt": "2026-07-15T06:24:00Z"
   },
   "AI-and-Lookup": {
     "sourceFiles": [
@@ -97,11 +106,15 @@
   },
   "Discover": {
     "sourceFiles": [
-      { "path": "lib/features/discover/", "size": 0 },
-      { "path": "assets/discover/recommended_channels.json", "size": 0 }
+      { "path": "docs/features/discover.md", "hash": "size:10164" },
+      { "path": "docs/decisions/0049-youtube-worker-discovery.md", "hash": "size:5738" },
+      { "path": "lib/data/api/services/ai/youtube_feed_api.dart", "hash": "size:4795" },
+      { "path": "lib/features/discover/data/discover_repository.dart", "hash": "size:15674" },
+      { "path": "lib/features/discover/data/youtube_url_parser.dart", "hash": "size:4041" },
+      { "path": "lib/features/discover/data/json_feed_parser.dart", "hash": "size:4743" }
     ],
     "templateHash": "discover-2026-07-11",
-    "generatedAt": "2026-07-11T00:00:00Z"
+    "generatedAt": "2026-07-15T06:24:00Z"
   },
   "Community-and-Credits": {
     "sourceFiles": [
@@ -135,12 +148,13 @@
   },
   "Persistence": {
     "sourceFiles": [
-      { "path": "lib/data/db/app_database.dart", "size": 27863 },
-      { "path": "lib/core/recovery/recovery_actions.dart", "size": 7132 },
-      { "path": "lib/core/recovery/recovery_surface.dart", "size": 8405 }
+      { "path": "lib/data/db/app_database.dart", "hash": "size:7112" },
+      { "path": "docs/features/local-database-recovery.md", "hash": "size:5070" },
+      { "path": "lib/core/recovery/recovery_actions.dart", "hash": "size:8547" },
+      { "path": "lib/core/recovery/recovery_surface.dart", "hash": "size:7898" }
     ],
     "templateHash": "persistence-2026-07-11",
-    "generatedAt": "2026-07-11T00:00:00Z"
+    "generatedAt": "2026-07-15T06:24:00Z"
   },
   "Core-Modules": {
     "sourceFiles": [
@@ -189,9 +203,9 @@
   },
   "For-Agents": {
     "sourceFiles": [
-      { "path": ".github/agentic-wiki/PAGES.md", "size": 17904 }
+      { "path": ".github/agentic-wiki/PAGES.md", "hash": "size:17904" }
     ],
     "templateHash": "for-agents-2026-07-11",
     "generatedAt": "2026-07-11T00:00:00Z"
   }
-} "
+}
