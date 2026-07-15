@@ -194,18 +194,24 @@ class DiscoverRepository {
       );
     }
 
-    // 5. Upsert feed entries
-    for (final entry in feedResult.entries) {
-      await _db.youtubeFeedEntryDao.upsertEntry(
-        YoutubeFeedEntryRow(
-          videoId: entry.videoId,
-          channelId: canonicalId,
-          title: entry.title,
-          thumbnailUrl: entry.thumbnailUrl,
-          durationSeconds: entry.durationSeconds,
-          publishedAt: entry.publishedAt,
-          fetchedAt: now,
-        ),
+    // 5. Upsert feed entries in a single batched transaction. One SQLite
+    // COMMIT replaces N per-entry INSERTs; `watchTimeline` re-emits once
+    // instead of N times, and the underlying `feedResult.entries` is small
+    // enough to allocate in one go.
+    if (feedResult.entries.isNotEmpty) {
+      await _db.youtubeFeedEntryDao.upsertEntries(
+        [
+          for (final entry in feedResult.entries)
+            YoutubeFeedEntryRow(
+              videoId: entry.videoId,
+              channelId: canonicalId,
+              title: entry.title,
+              thumbnailUrl: entry.thumbnailUrl,
+              durationSeconds: entry.durationSeconds,
+              publishedAt: entry.publishedAt,
+              fetchedAt: now,
+            ),
+        ],
       );
     }
   }
@@ -365,18 +371,25 @@ class DiscoverRepository {
     try {
       final result = await _feedClient.fetchFeed(feedUrl);
 
-      // Upsert feed entries
-      for (final entry in result.feedResult.entries) {
-        await _db.youtubeFeedEntryDao.upsertEntry(
-          YoutubeFeedEntryRow(
-            videoId: entry.videoId,
-            channelId: id,
-            title: entry.title,
-            thumbnailUrl: entry.thumbnailUrl,
-            durationSeconds: entry.durationSeconds,
-            publishedAt: entry.publishedAt,
-            fetchedAt: fetchedAt,
-          ),
+      // Batch upsert the parsed entries in a single Drift transaction.
+      // Replaces the previous per-entry loop, which paid N fsyncs and
+      // emitted N intermediate watchTimeline states (each suppressed by
+      // `.distinctBy(_listEqualsFeedEntry)` upstream — wasted work).
+      final entries = result.feedResult.entries;
+      if (entries.isNotEmpty) {
+        await _db.youtubeFeedEntryDao.upsertEntries(
+          [
+            for (final entry in entries)
+              YoutubeFeedEntryRow(
+                videoId: entry.videoId,
+                channelId: id,
+                title: entry.title,
+                thumbnailUrl: entry.thumbnailUrl,
+                durationSeconds: entry.durationSeconds,
+                publishedAt: entry.publishedAt,
+                fetchedAt: fetchedAt,
+              ),
+          ],
         );
       }
 
