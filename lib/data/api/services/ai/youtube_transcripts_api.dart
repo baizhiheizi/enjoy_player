@@ -73,21 +73,32 @@ class YoutubeTranscriptsApi extends RestApi
   static const _transcriptsPath = '/youtube/transcripts';
   static const _profilesPath = '/youtube/client-profiles';
 
+  /// Fire-and-forget: log at WARNING and return [fallback] on any failure.
+  Future<T> _swallow<T>(
+    String description,
+    Future<T> Function() call, {
+    required T fallback,
+  }) async {
+    try {
+      return await call();
+    } on Object catch (e, st) {
+      _log.warning(description, e, st);
+      return fallback;
+    }
+  }
+
   @override
   Future<Map<String, dynamic>?> getCachedTranscript({
     required String videoId,
     required String language,
-  }) async {
-    try {
-      return await client.getJson(
-        _transcriptsPath,
-        queryParameters: {'videoId': videoId, 'language': language},
-      );
-    } on Object catch (e, st) {
-      _log.warning('worker cache GET failed for $videoId/$language', e, st);
-      return null;
-    }
-  }
+  }) => _swallow(
+    'worker cache GET failed for $videoId/$language',
+    () => client.getJson(
+      _transcriptsPath,
+      queryParameters: {'videoId': videoId, 'language': language},
+    ),
+    fallback: null,
+  );
 
   @override
   Future<bool> uploadTranscript({
@@ -96,8 +107,15 @@ class YoutubeTranscriptsApi extends RestApi
     required String source,
     required List<Map<String, dynamic>> timeline,
     Map<String, dynamic>? metadata,
-  }) async {
-    try {
+  }) => _swallow(
+    // Fire-and-forget from the caller's perspective, but do NOT silently
+    // disappear here: a failed upload means the next client on a
+    // different machine will re-fetch via InnerTube instead of using
+    // the worker cache (issue: Windows → no worker upload → Android
+    // cache miss). Operators need to see this in production logs.
+    'worker upload failed for $videoId/$language '
+    '(source=$source, ${timeline.length} lines)',
+    () async {
       final captionFetch = _captionFetchForSource(source);
       await client.postJson(
         _transcriptsPath,
@@ -115,41 +133,25 @@ class YoutubeTranscriptsApi extends RestApi
         },
       );
       return true;
-    } on Object catch (e, st) {
-      // Fire-and-forget from the caller's perspective, but do NOT silently
-      // disappear here: a failed upload means the next client on a
-      // different machine will re-fetch via InnerTube instead of using
-      // the worker cache (issue: Windows → no worker upload → Android
-      // cache miss). Operators need to see this in production logs.
-      _log.warning(
-        'worker upload failed for $videoId/$language '
-        '(source=$source, ${timeline.length} lines)',
-        e,
-        st,
-      );
-      return false;
-    }
-  }
+    },
+    fallback: false,
+  );
 
   @override
-  Future<List<Map<String, dynamic>>> fetchClientProfiles() async {
-    try {
-      final response = await client.getJson(_profilesPath);
-      final list = response['profiles'];
-      if (list is List) {
-        return list
-            .map(castJsonObjectOrNull)
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
-      }
-      _log.warning(
-        'worker profile fetch returned a body without a profiles list; '
-        'falling back to built-in defaults',
-      );
-      return <Map<String, dynamic>>[];
-    } on Object catch (e, st) {
-      _log.warning('worker profile fetch failed', e, st);
-      return <Map<String, dynamic>>[];
-    }
-  }
+  Future<List<Map<String, dynamic>>> fetchClientProfiles() =>
+      _swallow('worker profile fetch failed', () async {
+        final response = await client.getJson(_profilesPath);
+        final list = response['profiles'];
+        if (list is List) {
+          return list
+              .map(castJsonObjectOrNull)
+              .whereType<Map<String, dynamic>>()
+              .toList(growable: false);
+        }
+        _log.warning(
+          'worker profile fetch returned a body without a profiles list; '
+          'falling back to built-in defaults',
+        );
+        return <Map<String, dynamic>>[];
+      }, fallback: const <Map<String, dynamic>>[]);
 }

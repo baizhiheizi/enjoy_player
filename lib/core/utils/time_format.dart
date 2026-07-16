@@ -13,6 +13,17 @@ String formatDurationHms(Duration d) {
 /// Alias for [formatDurationHms] (legacy name).
 String formatDuration(Duration d) => formatDurationHms(d);
 
+/// Player-style `mm:ss` / `h:mm:ss` from a millisecond duration.
+String formatDurationHmsMs(int milliseconds) =>
+    formatDurationHms(Duration(milliseconds: milliseconds));
+
+/// Player-style `mm:ss` / `h:mm:ss` from a (possibly fractional) second count.
+///
+/// Fractional seconds are rounded to the nearest millisecond before formatting
+/// so transport chrome and library tiles stay consistent.
+String formatDurationHmsSeconds(num seconds) =>
+    formatDurationHmsMs((seconds * 1000).round());
+
 /// Compact human-readable practice duration (`15m 30s`, `2h 5m`, `45s`).
 String formatPracticeDurationMs(int ms) {
   if (ms <= 0) return '0m';

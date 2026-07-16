@@ -144,12 +144,7 @@ class _TransportProgressStripState
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            formatDurationHms(
-              Duration(milliseconds: (durationSec * 1000).round()),
-            ),
-            style: timeStyle,
-          ),
+          Text(formatDurationHmsSeconds(durationSec), style: timeStyle),
         ],
       ),
     );

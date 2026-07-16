@@ -52,7 +52,7 @@ class TransportMetaRow extends ConsumerWidget {
             style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           Text(
-            '${formatDurationHms(pos)} / ${formatDurationHms(Duration(milliseconds: (chrome.durationSeconds * 1000).round()))}',
+            '${formatDurationHms(pos)} / ${formatDurationHmsSeconds(chrome.durationSeconds)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: tt.bodySmall?.copyWith(

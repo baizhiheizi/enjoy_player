@@ -106,7 +106,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
   String? _durationLabel(FeedEntry entry) {
     final seconds = entry.durationSeconds;
     if (seconds == null || seconds <= 0) return null;
-    return formatDurationHms(Duration(seconds: seconds));
+    return formatDurationHmsSeconds(seconds);
   }
 
   @override

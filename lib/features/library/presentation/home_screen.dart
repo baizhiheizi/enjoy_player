@@ -399,7 +399,7 @@ class _HomeMediaTile extends ConsumerWidget {
     final isVideo = media.kind == MediaKind.video;
     final thumb = localThumbnailFileForMedia(media);
     final netThumb = networkThumbnailForMedia(media);
-    final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
+    final dur = formatDurationHmsMs(media.durationMs);
     // Grid tiles use the deterministic generative accent — running
     // `PaletteGenerator.fromImageProvider` per tile decodes + analyses pixels
     // on the main isolate (palette_generator 0.3.x predates isolate
