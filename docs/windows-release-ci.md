@@ -65,7 +65,7 @@ Already configured: the workflow's `runs-on: [self-hosted, windows, flutter]` ta
 After obtaining `EnjoyPlayerSetup-vX.Y.Z.exe` (from the runner or dl.enjoy.bot):
 
 ```powershell
-signtool sign /fd SHA256 /a "EnjoyPlayerSetup-v0.5.0.exe"
+signtool sign /fd SHA256 /a "EnjoyPlayerSetup-v0.6.0.exe"
 ```
 
 Configure certificate thumbprint or HSM details per your vendor. See [windows/installer/README.md](../windows/installer/README.md).

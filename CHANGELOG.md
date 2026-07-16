@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-16
+
+### Changed
+
+- **Path-linked local media** — link durable source paths when lasting access exists, fall back to app-managed copies otherwise, and delete shared media only when unreferenced across per-user databases.
+
+### Fixed
+
+- **Practice poster export crash in release mode** — `RenderObject.debugNeedsPaint` throws `LateInitializationError` in release when implemented with `late`+`assert`; use frame settle + retry instead and reset exporting state in `finally`.
+
 ## [0.5.2] - 2026-07-16
 
 ### Added
