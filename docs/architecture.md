@@ -43,26 +43,39 @@ sequenceDiagram
 
 | Table | Purpose |
 |-------|---------|
-| `videos` | Local video URI, `vid` hash, duration (seconds), sync metadata |
-| `audios` | Local audio URI, `aid` hash, duration, optional TTS fields, sync metadata |
+| `videos` | Local / linked media: `localUri`, `md5` content fingerprint, `size`, `localMtimeMs` (cheap open trust check), `vid` hash, duration (seconds), sync metadata ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
+| `audios` | Same path-linked columns as `videos`, plus optional TTS fields and sync metadata |
 | `transcripts` | `targetType` + `targetId` (weapp-style), JSON `timeline`, sync metadata |
 | `echo_sessions` | Playback + echo window + primary/secondary transcript ids per target |
 | `recordings` | Pronunciation recordings (sync-ready); time fields `duration`, `referenceStart`, `referenceDuration` in ms, aligned with API |
 | `dictations` | Dictation attempts (sync-ready) |
 | `sync_queue` | Offline-first outbound sync queue (`SyncCtrl` + [`features/sync.md`](features/sync.md)) |
 | `settings` | Key/value JSON blobs (player prefs, hotkeys, **main API base URL**, **AI/Worker API base URL**, **auth profile cache**, app locale prefs) |
+| `youtube_channel_subscriptions` | Discover subscriptions (`channelId`, `sourceType`, `feedUrl`, optional catalog `language`, fetch timestamps) |
+| `youtube_feed_entries` | Append-only Discover feed cache keyed by video id ([ADR-0046](decisions/0046-discover-feed-append-only.md)) |
+| `transcript_fetch_states` | Per-target transcript fetch bookkeeping; composite index `idx_transcript_fetch_states_target` on `(target_type, target_id)` |
+| `ai_cache` | L2 AI result cache (`kind` + `key` PK, `payload_json`, `updated_at`) ([ADR-0045](decisions/0045-ai-result-cache-hierarchy.md)) |
+
+`localUri` / `md5` / `size` predate schema v14 and store the playable reference plus SHA-256 fingerprint used for re-import / re-link matching. **v13 → v14** adds `localMtimeMs` for the cheap open trust check ([ADR-0050](decisions/0050-path-linked-local-media.md)).
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) uses **destructive** `onUpgrade` for schema versions below 6. **v6 → v7** adds Discover tables incrementally without wiping library data. Older upgrades still drop listed tables and recreate them. Plan releases accordingly.
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 14`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+
+| Step | Change |
+|------|--------|
+| v6 → v7 | Create `youtube_channel_subscriptions` + `youtube_feed_entries` |
+| v7 → v8 | Add `youtube_feed_entries.duration_seconds` |
+| v8 → v9 | `CREATE INDEX IF NOT EXISTS idx_transcript_fetch_states_target` |
+| v9 → v10 | Add `youtube_channel_subscriptions.language` (catalog tag; not used as media content language after YT source-language removal) |
+| v10 → v11 | Add `echo_sessions.blur_active` |
+| v11 → v12 | Create `ai_cache` + `idx_ai_cache_kind_updated_at` ([ADR-0045](decisions/0045-ai-result-cache-hierarchy.md)) |
+| v12 → v13 | Add `source_type` / `feed_url`; backfill `feed_url` using SQL column `channel_id` ([ADR-0051](decisions/0051-youtube-worker-discovery.md)) |
+| v13 → v14 | Add `videos.local_mtime_ms` + `audios.local_mtime_ms` ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
 
 ### Per-user database cache
 
 `app_database_provider.dart` keeps the most recent **two** per-user [`AppDatabase`](../lib/data/db/app_database.dart) instances in a bounded `LinkedHashMap`. On sign-in for a third account, the **oldest** entry is closed (and its Drift connections released) before the new one is inserted — see [ADR-0012](decisions/0012-per-user-sqlite-isolation.md) for the per-user isolation rationale. The cap keeps the file-handle / mmap footprint stable across guest ↔ account churn.
-
-#### `transcript_fetch_states` composite index
-
-The `(target_type, target_id)` lookup on [`TranscriptFetchStates`](../lib/data/db/tables/transcript_fetch_states.dart) is now backed by the composite index `idx_transcript_fetch_states_target`. The index is declared on the table via `@TableIndex` (so new installs get it from `createAll()`) and the **v8 → v9** migration step adds it to existing databases with `CREATE INDEX IF NOT EXISTS` — neither path drops the table or its data.
 
 ## Optional Enjoy account (auth)
 

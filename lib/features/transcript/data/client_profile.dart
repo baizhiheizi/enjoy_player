@@ -186,8 +186,9 @@ const List<ClientProfile> kBuiltInClientProfiles = [
   ),
   ClientProfile(
     // Desktop WEB — last-resort caption fallback (often needs PoToken).
-    // Kept for Discover-era compatibility and rare cases where mobile
-    // clients are throttled. Not preferred for captions in 2026.
+    // Discover feed fetch no longer uses InnerTube browse (ADR-0051);
+    // ClientProfile rotation applies only to the caption `/player` ladder.
+    // Kept for rare cases where mobile clients are throttled.
     name: 'web',
     clientName: 'WEB',
     clientVersion: '2.20250709.00.00',

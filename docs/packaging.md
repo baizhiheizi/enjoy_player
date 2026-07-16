@@ -343,7 +343,7 @@ bash .github/scripts/rename_release_artifacts.sh apple
 | Sideload APK (`direct` flavor) | Direct download | Yes (`ota_update`) |
 | Windows installer | Direct download | Yes (WinSparkle) |
 | macOS zip | Direct download | Yes (Sparkle) |
-| Linux AppImage | Direct download | No (manual update; AppImageUpdate planned per ADR-0044) |
+| Linux AppImage | Direct download | No (manual update; AppImageUpdate planned per ADR-0048) |
 | iOS IPA | TestFlight / App Store | No |
 
 Direct builds check `https://dl.enjoy.bot/player/latest.json` (ADR-0023). Store builds do not.

@@ -10,7 +10,7 @@ void main() {
 
   group('nativeGoogleSignInSupported on Linux', () {
     test('returns true on Linux (google_sign_in is enabled by default per '
-        'ADR-0044)', () {
+        'ADR-0048)', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       expect(
         nativeGoogleSignInSupported,

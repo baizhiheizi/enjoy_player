@@ -35,7 +35,7 @@
 
 **Rationale**: The worker is deployed alongside the existing Enjoy worker at `worker.enjoy.bot`. The existing `aiApiClientProvider` already provides an `ApiClient` pointed at the worker base URL. However, the current feed endpoints don't need bearer auth (they're public RSSHub routes proxied through the worker). A new lightweight HTTP client (using `package:http` directly) is simpler than reusing `ApiClient` with all its JSON response conventions.
 
-Alternative considered: Reuse `ApiClient` from `api_client.dart` — rejected because the RSSHub proxy returns JSON Feed (not the Rails-style snake_case JSON `ApiClient` expects), and feed requests may not always need auth tokens (public route proxy). A dedicated `WorkerFeedClient` with `package:http` is more maintainable.
+Alternative considered: Reuse `ApiClient` from `api_client.dart` — rejected because the RSSHub proxy returns JSON Feed (not the Rails-style snake_case JSON `ApiClient` expects), and feed requests may not always need auth tokens (public route proxy). A dedicated feed client (`YoutubeFeedClient`, originally `WorkerFeedClient`) with `package:http` is more maintainable.
 
 **Configuration**:
 ```dart

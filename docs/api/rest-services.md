@@ -137,6 +137,10 @@ Reference services that already follow this pattern (each is a thin
 - [`services/ai/`](../../lib/data/api/services/ai/) — `AsrApi`, `ChatApi`,
   `TranslationApi`, `DictionaryApi`, `AzureTokenApi`, `CreditsApi`,
   `YoutubeTranscriptsApi`.
+- [`youtube_feed_api.dart`](../../lib/data/api/services/ai/youtube_feed_api.dart)
+  — `YoutubeFeedClient` (JSON Feed over the worker RSSHub proxy; uses
+  `package:http` + bearer auth via `youtubeFeedClientProvider`, not `RestApi` /
+  `ApiClient`, because the response shape is JSON Feed v1.1).
 
 ## Related references
 

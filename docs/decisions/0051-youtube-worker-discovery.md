@@ -1,8 +1,11 @@
-# ADR-0049: YouTube Worker Discovery via RSSHub Proxy
+# ADR-0051: YouTube Worker Discovery via RSSHub Proxy
+
+> **Note:** Originally filed as ADR-0049 (`0049-youtube-worker-discovery.md`). Renumbered to ADR-0051 to resolve an ID collision with `0049-youtube-language-aware-captions.md` (ADR-0050 was already taken by path-linked local media).
 
 **Date**: 2026-07-14  
 **Status**: Accepted  
 **Deciders**: Engineering team  
+**Supersedes**: [ADR-0021](0021-youtube-discover-rss.md), [ADR-0047](0047-youtube-discover-innertube.md)
 
 ## Context
 
@@ -46,7 +49,7 @@ Response: JSON Feed v1.1 (https://www.jsonfeed.org/version/1.1/)
 
 - **Eliminates client-side YouTube scraping completely.** No more InnerTube `browse`, Atom RSS, HTML scraping, or watch-page duration enrichment.
 - **Improved reliability.** RSSHub handles YouTube API communication, rate limiting, and response-shape resilience server-side.
-- **Simplified client architecture.** Replaces 5 data files (YoutubeBrowseClient, YoutubeRssParser, YoutubeChannelResolver, YoutubeFetch, YoutubeVideoDuration) + a legacy ID correction map (~1500 LOC) with 3 new files (YoutubeUrlParser, JsonFeedParser, WorkerFeedClient) (~400 LOC).
+- **Simplified client architecture.** Replaces 5 data files (YoutubeBrowseClient, YoutubeRssParser, YoutubeChannelResolver, YoutubeFetch, YoutubeVideoDuration) + a legacy ID correction map (~1500 LOC) with a small parser/client set (`YoutubeUrlParser`, `JsonFeedParser`, and `YoutubeFeedClient` in `lib/data/api/services/ai/youtube_feed_api.dart`, wired via `youtubeFeedClientProvider` with bearer auth from `SecureTokenStore.readAccessToken`).
 - **Adds playlist subscription support.** Previously deferred as out-of-scope, now a first-class source type alongside channels and handles.
 - **Standard feed format.** JSON Feed v1.1 is a well-defined standard; no custom API schema needed.
 
@@ -60,6 +63,8 @@ Response: JSON Feed v1.1 (https://www.jsonfeed.org/version/1.1/)
 ### Migration
 
 The legacy client-side discovery code is completely removed in this change. No dual-source fallback — the worker feed is the sole source. Existing cached feed entries in the local database remain visible offline.
+
+Schema **v12 → v13** adds `source_type` / `feed_url` on `youtube_channel_subscriptions` and backfills `feed_url` with SQL that uses the snake_case column name `channel_id` (not the Drift accessor `channelId`). A runtime repair step regenerates a missing `feed_url` on refresh when needed.
 
 ## Rejected Alternatives
 

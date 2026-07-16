@@ -12,7 +12,7 @@ void main() {
 
   group('YoutubePlayerEngine on Linux', () {
     test('open throws UnsupportedError on Linux (YouTube not yet available '
-        'per ADR-0044)', () async {
+        'per ADR-0048)', () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       final engine = YoutubePlayerEngine();
 
@@ -33,7 +33,7 @@ void main() {
         youtubeEngineAvailableOnLinux,
         false,
         reason:
-            'YouTube engine is not available on Linux for v1 per ADR-0044 '
+            'YouTube engine is not available on Linux for v1 per ADR-0048 '
             '(webview2gtk-4.0 dependency).',
       );
     });

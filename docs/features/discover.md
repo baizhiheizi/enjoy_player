@@ -16,8 +16,7 @@ Discover feeds are **not** library items until imported. Subscriptions are **Enj
 
 The Discover tab shows a **merged video feed** only (responsive grid of recent uploads). A horizontal **filter strip** sits below the header:
 
-- **All** — timeline across all subscribed channels (optionally filtered to the focus learning language; see below)
-- **Language scope** — toggle between focus-language filtering and **All languages** (recommended strip and merged feed when **All** channel filter is active)
+- **All** — timeline across all subscribed channels
 - **Channel avatars** — filter the feed to one subscription
 - **Manage channels** — opens subscription management (see below)
 
@@ -30,7 +29,6 @@ Opened from the filter strip (bottom sheet on narrow layouts, centered dialog at
 - **Subscribe** (paste URL / `@handle` / channel ID / playlist ID)
 - **Your channels** — list with **Unsubscribe** (does not navigate away from the modal)
 - **Recommended** — bundled catalog (`assets/discover/recommended_channels.json`) with **Subscribe** / **Subscribed** badges; channels are **language-tagged** (English, Japanese, Korean, Spanish, French in the first wave). The list is filtered to the user's focus learning language by default, with **All languages** to browse everything.
-- **Subscription language** — each subscription stores a channel language (from the catalog or **Unknown** for pasted URLs). Tap the language label on a subscription row to correct it. **Add to library** uses subscription language as the default media content language; unknown-language subscriptions prompt for content language before import.
 
 Empty Discover state (no subscriptions) prompts **Manage channels** so users can add recommended channels first.
 
@@ -52,7 +50,7 @@ Empty Discover state (no subscriptions) prompts **Manage channels** so users can
 
 ### Data source (single-source RSSHub proxy)
 
-The per-source refresh path is **single-source** ([ADR-0049](../decisions/0049-youtube-worker-discovery.md)):
+The per-source refresh path is **single-source** ([ADR-0051](../decisions/0051-youtube-worker-discovery.md)):
 
 All video discovery requests go through a **server-side RSSHub proxy**, never directly to YouTube. The worker exposes three RSSHub YouTube routes:
 
@@ -77,10 +75,11 @@ The client requests JSON Feed v1.1 format (via `?format=json`). See the [worker 
 - `date_published` — published timestamp (ISO 8601)
 - `attachments[].duration_in_seconds` — video duration
 
-The refresh client (`WorkerFeedClient`) handles:
+The refresh client ([`YoutubeFeedClient`](../../lib/data/api/services/ai/youtube_feed_api.dart), provided by `youtubeFeedClientProvider` with bearer auth from `SecureTokenStore.readAccessToken`) handles:
 - HTTP status codes → typed exceptions (404 → notFound, 410 → sourceUnavailable, 429 → rateLimited, 502 → upstreamFailure)
 - Handle-to-ID canonicalization: when subscribing via @handle, the client extracts the canonical channel ID from `home_page_url` and uses `/youtube/channel/{id}` for subsequent refreshes
 - Network errors → networkError exception
+- Runtime repair: if a subscription's `feed_url` is missing, regenerate it before fetch (covers pre-v13 rows that missed the backfill)
 
 ### Cache semantics (append-only)
 
@@ -90,6 +89,7 @@ The `youtube_feed_entries` cache is **append-only between unsubscribe events** (
 - Updates mutable metadata (`title`, `thumbnailUrl`, `publishedAt`) and `fetchedAt` on entries the source re-presented.
 - **Does not delete** cached entries that fell out of the source's most-recent window (~15–50 entries).
 - Uses video ID deduplication — if all returned entries are already cached, no changes are made and `lastFetchedAt` is still updated.
+- Writes each source's upserts in **one Drift `batch` / transaction** (`YoutubeFeedEntryDao.upsertEntries`). Non-empty refreshes therefore emit a **single** `watchTimeline` update; empty responses are a no-op (no watcher churn).
 
 The user-visible way to bound cache growth is to **unsubscribe** from a source — `DiscoverRepository.unsubscribe(channelId)` deletes every cached entry for that channel.
 
@@ -104,6 +104,14 @@ When a user subscribes via @handle (e.g., `https://youtube.com/@TED`):
 4. All subsequent refreshes use `GET /youtube/channel/UCAuUUnT6oDeKwE6v1NGQxug?format=json`
 
 This prevents duplicate subscriptions (handle + channel ID pointing to the same source) and avoids redundant handle resolution on every refresh.
+
+### YT source language removal
+
+Subscription rows may still store a catalog `language` column (schema v10) for recommended-channel bookkeeping, but the **DiscoverChannel** domain model and UI no longer expose a per-subscription language:
+
+- There is no **Language scope** toggle on the filter strip and no language label / editor on subscription rows.
+- **Add to library** does not infer media content language from a subscription; callers pass an explicit `contentLanguage` or default to `und` (`kUnknownMediaLanguageTag`).
+- Recommended-catalog filtering by the learner's focus language remains (catalog tags on bundled channels only).
 
 ### Scheduler gating
 
@@ -142,7 +150,7 @@ The merged feed grid and the channel feed grid both use stable `ValueKey<String>
 
 ## Add to library
 
-Uses the same path as **Import → From YouTube URL**: oEmbed metadata, `videos` row with `provider: youtube`, optional sync enqueue when signed in. Duplicate video ids show **In library** instead of add.
+Uses the same path as **Import → From YouTube URL**: oEmbed metadata, `videos` row with `provider: youtube`, optional sync enqueue when signed in. Duplicate video ids show **In library** instead of add. Media content language comes from an explicit import choice (or `und`), not from the subscription row.
 
 ## Transcripts
 
@@ -158,9 +166,9 @@ No caption availability in the worker feed. After import, transcript loading fol
 
 ## Related
 
-- [ADR-0049](../decisions/0049-youtube-worker-discovery.md) — moved YouTube discovery to server-side RSSHub proxy
-- [ADR-0021](../decisions/0021-youtube-discover-rss.md) — original RSS-only discovery (replaced)
+- [ADR-0051](../decisions/0051-youtube-worker-discovery.md) — moved YouTube discovery to server-side RSSHub proxy
+- [ADR-0021](../decisions/0021-youtube-discover-rss.md) — original RSS-only discovery (superseded by 0051)
 - [ADR-0046](../decisions/0046-discover-feed-append-only.md) — append-only feed cache
-- [ADR-0047](../decisions/0047-youtube-discover-innertube.md) — InnerTube primary source (replaced)
+- [ADR-0047](../decisions/0047-youtube-discover-innertube.md) — InnerTube primary source (superseded by 0051)
 - [Worker feed API contract](../../specs/018-youtube-worker-discovery/contracts/worker-feed-api.md)
 - [youtube.md](youtube.md)

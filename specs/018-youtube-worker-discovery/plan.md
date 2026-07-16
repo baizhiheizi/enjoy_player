@@ -62,7 +62,7 @@ This is a redesign from zero — the legacy client-side code (`YoutubeRssParser`
 
 ### V. Documentation and Traceability
 
-- [x] New ADR: `0049-youtube-worker-discovery.md` — PASS
+- [x] New ADR: `0051-youtube-worker-discovery.md` — PASS
 - [x] Updated feature doc: `docs/features/discover.md` — PASS
 - [x] Updated agent guidance if needed — CONFIRM at Phase 1 re-check
 
@@ -155,7 +155,7 @@ test/
 
 docs/
 ├── features/discover.md                       # REWRITE
-└── decisions/0049-youtube-worker-discovery.md # NEW
+└── decisions/0051-youtube-worker-discovery.md # NEW
 ```
 
 **Structure Decision**: All new code stays under `lib/features/discover/data/` following the existing feature-first convention. Worker API contracts go in `specs/018-youtube-worker-discovery/contracts/`. The legacy code removal is part of this feature (not a follow-up), since the redesign replaces it completely.

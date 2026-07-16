@@ -113,4 +113,4 @@ bash .github/scripts/validate_ci_gates.sh
 - `lib/features/discover/data/discover_repository.dart` — rewritten refresh pipeline
 - `lib/data/db/tables/youtube_channel_subscriptions.dart` — schema migration (new columns)
 - `docs/features/discover.md` — updated documentation
-- `docs/decisions/0049-youtube-worker-discovery.md` — new ADR
+- `docs/decisions/0051-youtube-worker-discovery.md` — new ADR

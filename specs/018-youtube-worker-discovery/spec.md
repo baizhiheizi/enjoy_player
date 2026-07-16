@@ -121,7 +121,7 @@ The learner uses Enjoy Player on both their desktop and mobile device, signed in
 - **FR-011**: The client MUST NOT trigger background refreshes while the app is in the background state; refreshes MUST be deferred to the next foreground event.
 - **FR-012**: All logging on the client side MUST use the project's `logNamed` / `package:logging` pattern; the new code MUST NOT introduce `print()` calls.
 - **FR-013**: The client MUST NOT make any direct HTTP requests to YouTube domains (`youtube.com`, `youtubei.googleapis.com`) for discovery or video metadata purposes. All discovery HTTP requests go through the worker (RSSHub proxy).
-- **FR-014**: An `ADR-0049-youtube-worker-discovery.md` MUST be created under `docs/decisions/` documenting the decision to move YouTube video discovery to a server-side RSSHub proxy, the three RSSHub YouTube feed routes, and the local-first subscription model.
+- **FR-014**: An `ADR-0051-youtube-worker-discovery.md` MUST be created under `docs/decisions/` documenting the decision to move YouTube video discovery to a server-side RSSHub proxy, the three RSSHub YouTube feed routes, and the local-first subscription model.
 - **FR-015**: `docs/features/discover.md` MUST be updated to describe the new server-side RSSHub proxy architecture, the three subscribable source types, and the local-first subscription model.
 - **FR-016**: Multi-device subscription sync MUST use the existing cloud sync infrastructure (ADR-0010, ADR-0013). The worker is NOT involved in subscription synchronization between devices.
 

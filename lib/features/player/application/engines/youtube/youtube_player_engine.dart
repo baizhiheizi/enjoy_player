@@ -114,7 +114,7 @@ class YoutubePlayerEngine implements PlayerEngine {
         defaultTargetPlatform == TargetPlatform.linux) {
       throw UnsupportedError(
         'YouTube is not yet available on Linux — coming soon '
-        '(ADR-0044, R1 / R6: webview2gtk-4.0 dependency).',
+        '(ADR-0048, R1 / R6: webview2gtk-4.0 dependency).',
       );
     }
     if (source is! YoutubePlayableSource) {

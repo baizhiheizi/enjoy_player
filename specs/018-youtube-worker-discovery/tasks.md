@@ -20,7 +20,7 @@
 - **Shared code**: `lib/core/`, `lib/data/`
 - **Tests**: `test/features/discover/`, `test/data/`
 - **Feature docs**: `docs/features/discover.md`
-- **ADRs**: `docs/decisions/0049-youtube-worker-discovery.md`
+- **ADRs**: `docs/decisions/0051-youtube-worker-discovery.md`
 
 ---
 
@@ -160,7 +160,7 @@
 
 **Purpose**: Documentation, verification, and cleanup
 
-- [ ] T052 [P] Write ADR `0049-youtube-worker-discovery.md` in `docs/decisions/0049-youtube-worker-discovery.md` — document RSSHub proxy decision, JSON Feed contract, local-first subscriptions, removed legacy code
+- [ ] T052 [P] Write ADR `0051-youtube-worker-discovery.md` in `docs/decisions/0051-youtube-worker-discovery.md` — document RSSHub proxy decision, JSON Feed contract, local-first subscriptions, removed legacy code
 - [ ] T053 [P] Rewrite `docs/features/discover.md` — describe worker RSSHub proxy architecture, three source types, local-first subscriptions, data flow in `docs/features/discover.md`
 - [ ] T054 [P] Remove `YoutubeChannelResolver` and its test — `lib/features/discover/data/youtube_channel_resolver.dart`, `test/features/discover/youtube_channel_resolver_test.dart`
 - [ ] T055 [P] Update `lib/features/discover/data/recommended_channels_loader.dart` — ensure recommended channels use `sourceType: channel` and construct `feedUrl`

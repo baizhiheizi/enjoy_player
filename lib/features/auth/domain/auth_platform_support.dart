@@ -14,7 +14,7 @@ import 'package:enjoy_player/features/auth/domain/google_auth_config.dart';
 /// (uncatchable native `NSException`) if `GIDSignIn.signIn()` is invoked before
 /// Info.plist has a real OAuth client configured, so the button must stay
 /// hidden until that setup is done. Linux uses the `googleSignInAvailableOnLinux`
-/// flag from the centralized platform-availability module (ADR-0044).
+/// flag from the centralized platform-availability module (ADR-0048).
 bool get nativeGoogleSignInSupported {
   if (defaultTargetPlatform == TargetPlatform.windows) return false;
   if (defaultTargetPlatform == TargetPlatform.linux) {

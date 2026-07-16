@@ -44,7 +44,7 @@ Trade-offs, follow-up work, risks.
 | [0018](0018-shared-interactive-primitives.md) | Shared interactive primitives — EnjoyTappable, Haptics, EnjoyButton |
 | [0019](0019-transcript-dictionary-lookup.md) | Transcript dictionary lookup — selection scope, bottom sheet, worker APIs |
 | [0020](0020-android-windows-release-identity.md) | Android app ID `ai.enjoy.player`, release signing via `key.properties`, Windows release branding + Inno installer |
-| [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions |
+| [0021](0021-youtube-discover-rss.md) | YouTube discovery via RSS feeds and local channel subscriptions (superseded by 0051) |
 | [0022](0022-unified-library-navigation.md) | Unified Library navigation — local + cloud source switch |
 | [0023](0023-app-update-distribution.md) | App update distribution — store no-op, direct feeds on dl.enjoy.bot |
 | [0024](0024-download-landing-page.md) | Download landing page — static site on Cloudflare Pages at get.enjoy.bot |
@@ -68,9 +68,10 @@ Trade-offs, follow-up work, risks.
 | [0042](0042-multi-language-lookup-catalog.md) | Multi-language lookup catalog — decoupled source / target language pickers for transcript dictionary lookup |
 | [0043](0043-craft-from-text-import.md) | Craft from text import — single entry, two modes, BYOK parity for TTS |
 | [0044](0044-deterministic-end-of-media-completion-loop.md) | Deterministic end-of-media handling with generation-guarded completion loop |
-| [0048](0048-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) (renumbered from 0044) |
 | [0045](0045-ai-result-cache-hierarchy.md) | Unified two-tier AI result cache (L1 LRU+TTL / L2 Drift) and `AiCacheFingerprint` keying |
 | [0046](0046-discover-feed-append-only.md) | Discover feed cache is append-only between unsubscribe events |
-| [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover |
+| [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover (superseded by 0051) |
+| [0048](0048-linux-platform-support.md) | Linux as a first-class supported desktop platform (AppImage) |
 | [0049](0049-youtube-language-aware-captions.md) | YouTube language-aware caption discovery & primary selection |
 | [0050](0050-path-linked-local-media.md) | Path-linked local media — prefer lasting link, copy fallback (partial supersession of 0005 import storage) |
+| [0051](0051-youtube-worker-discovery.md) | YouTube discovery via server-side RSSHub proxy (supersedes 0021 and 0047) |

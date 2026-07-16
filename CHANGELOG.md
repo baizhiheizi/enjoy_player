@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Practice poster export crash in release mode** — `RenderObject.debugNeedsPaint` throws `LateInitializationError` in release when implemented with `late`+`assert`; use frame settle + retry instead and reset exporting state in `finally`.
+- **Practice poster export crash in release mode** — `RenderObject.debugNeedsPaint` throws `LateInitializationError` in release when implemented with `late`+`assert`; export waits for a settled frame, retries rasterization when needed, and resets exporting state in `finally`. See [docs/features/share-poster.md](docs/features/share-poster.md).
 
 ## [0.5.2] - 2026-07-16
 
@@ -26,29 +26,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Discover channel refresh uses InnerTube `browse` as primary data source** ([ADR-0047](docs/decisions/0047-youtube-discover-innertube.md)). The per-channel refresh path now tries InnerTube's anonymous `browse` endpoint first (`POST youtubei.googleapis.com/youtubei/v1/browse`) and falls back to the Atom RSS endpoint on failure. InnerTube returns richer metadata (`lengthText`, `viewCountText`, `publishedTimeText`) and is materially less likely to be blocked by YouTube's bot detection. The legacy watch-page HTML duration enrichment is skipped for InnerTube-sourced rows. Client profile rotation (`WEB` → `MWEB`) and continuation pagination (cap 5 pages ≈ 150 entries) match the caption fetcher's posture. See [docs/features/discover.md § Data sources](docs/features/discover.md#data-sources-dual-source).
+- **Discover channel refresh uses InnerTube `browse` as primary data source** ([ADR-0047](docs/decisions/0047-youtube-discover-innertube.md)). The per-channel refresh path now tries InnerTube's anonymous `browse` endpoint first (`POST youtubei.googleapis.com/youtubei/v1/browse`) and falls back to the Atom RSS endpoint on failure. InnerTube returns richer metadata (`lengthText`, `viewCountText`, `publishedTimeText`) and is materially less likely to be blocked by YouTube's bot detection. The legacy watch-page HTML duration enrichment is skipped for InnerTube-sourced rows. Client profile rotation (`WEB` → `MWEB`) and continuation pagination (cap 5 pages ≈ 150 entries) match the caption fetcher's posture. See [docs/features/discover.md](docs/features/discover.md). *(Later superseded for feed fetch by [ADR-0051](docs/decisions/0051-youtube-worker-discovery.md) — server-side RSSHub proxy; ADR-0047 remains accurate for that slice of history.)*
 - **Discover avatar URL cache rides the shared `L1Store<K, V>` primitive** ([#335](https://github.com/baizhiheizi/enjoy_player/pull/335)). `DiscoverRepository` no longer carries a hand-rolled `LinkedHashMap` LRU for channel avatars; the cache is now a 256-entry, 6-hour-TTL instance of the same [`L1Store`](lib/core/cache/lru_store.dart) that backs the AI result cache hierarchy ([ADR-0045](docs/decisions/0045-ai-result-cache-hierarchy.md)) and `LookupSheetResultCache`. The 6 h TTL is a strict relaxation of the previous infinite lifetime — avatar URLs change only a few times per year, so the window is far longer than realistic re-fetch cadence while bounding memory of long-running sessions that touch thousands of distinct channels. New cache call sites should use `L1Store` instead of re-implementing LRU bookkeeping; see [docs/conventions.md § Caching](docs/conventions.md#caching) for the behavior contract and current call sites.
 - **`SyncDownloadService` uses a generic `_downloadEntityInternal<E>` helper** ([#336](https://github.com/baizhiheizi/enjoy_player/issues/336), [#341](https://github.com/baizhiheizi/enjoy_player/pull/341)). The three per-entity download paths (audio, video, recording) now share one ~75-line pagination + merge loop instead of duplicating ~200 lines of triplicated cursor-paging logic. Public `downloadAudios` / `downloadVideos` / `downloadRecordings` / `downloadAllEntitiesFresh` entry points and `SyncResult` shape are unchanged — see [docs/features/sync.md](docs/features/sync.md).
-- **Discover feed entry upserts run in a single Drift transaction** for lower write amplification on large channel refreshes.
+- **Discover feed entry upserts run in a single Drift batch transaction per source** for lower write amplification on large channel refreshes — one `watchTimeline` emission for non-empty upserts; empty responses are a no-op. See [docs/features/discover.md § Cache semantics](docs/features/discover.md#cache-semantics-append-only).
 
 ### Fixed
 
 - **Intermittent Windows YouTube play-then-pause startup**: WebView2 ignores `mediaPlaybackRequiresUserGesture`, while the player previously force-unmuted on HTML5's optimistic `play` event. Playback now stays muted until the authoritative `playing` event settles, transport state no longer treats `play` as proof that frames are advancing, and rejected `play()` promises plus command/event/poll transitions are captured by the `YouTube*` diagnostic loggers. The WebView logger names were also corrected from `Youtube*` to the allowlisted, case-sensitive `YouTube*` prefix, fixing pre-existing silent loss of FINE records. See [docs/features/youtube.md](docs/features/youtube.md#limitations).
 - **YouTube InnerTube caption profile ladder hardening** so client-profile rotation and worker cache-only transcript fetches fail closed instead of returning empty or mismatched tracks.
-- **Shadow-reading assessment restored for unknown media language** (assessment no longer skips when language cannot be inferred).
+- **Shadow-reading assessment restored for unknown media language** — unknown / denylisted media tags (`und`, empty) fall back to the learner's `effectiveLearningLanguage` via `resolveAzureAssessmentLocaleForPractice` / `isAzurePronunciationAssessmentSupportedForPractice` instead of disabling Assess while play / take-menu still worked. Genuinely unsupported primaries still disable the control with a tooltip (no silent `en-US` coercion). See [docs/features/shadow-reading.md](docs/features/shadow-reading.md#pronunciation-assessment-azure) and [docs/features/echo-mode.md](docs/features/echo-mode.md).
+- **Discover migration v13 `feed_url` backfill** uses the SQL column name `channel_id` (not the Drift accessor `channelId`), so pre-existing subscriptions get a worker feed URL instead of failing the migration step.
 - **Worker YouTube `client-profiles` wire shape parsing** aligned with the actual response body.
 
 ## [0.5.0] - 2026-07-13
 
 ### Added
 
-- **Linux platform support (AppImage)**. Linux is now a first-class supported desktop platform. (ADR-0044) [#PR]
+- **Linux platform support (AppImage)**. Linux is now a first-class supported desktop platform. ([ADR-0048](docs/decisions/0048-linux-platform-support.md))
   - `linux/` Flutter desktop scaffold, `.github/workflows/build_linux.yml` CI, `release_linux.sh`, AppImage packager
   - Centralized `lib/core/platform/linux_platform_availability.dart` predicates
   - Landing page `#card-linux` with localized strings (en + zh)
   - YouTube engine gracefully opts out on Linux (WebViewGTK not ready for v1)
   - Constitution amendment 1.1.0 → 1.2.0 (Linux added to supported targets)
-  - New `docs/features/linux-platform.md`, `docs/decisions/0044-linux-platform-support.md`
+  - New `docs/features/linux-platform.md`, `docs/decisions/0048-linux-platform-support.md`
   - `AGENTS.md` and `README.md` updated for Linux first-class support
 
 - **Echo enforcement coordinator (`EchoEnforcer`)**: the reactive per-tick
