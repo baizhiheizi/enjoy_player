@@ -50,7 +50,7 @@ while (gen == _playbackGen && !_disposed) {
 
 For the YouTube engine, `YoutubePlayerEngine.resetCompletionFlag()` is called before seek+play so `play()` drives the `<video>` directly instead of reloading the watch page (which would discard the seek position).
 
-The `RepeatMode → next-action` mapping itself is owned by the pure-function reducer [`decideOnMediaEnd`](../../lib/features/player/domain/transport_decisions.dart) (D7 in [features/player.md § Decision reducers](../../features/player.md#decision-reducers-d1d7)). Keeping the decision out of the loop body means every branch is unit-tested without a running engine, and a future repeat mode (or "advance" action once queue semantics land) is a one-line extension to the sealed `MediaEndDecision` rather than a controller edit.
+The `RepeatMode → next-action` mapping itself is owned by the pure-function reducer [`decideOnMediaEnd`](../../lib/features/player/domain/transport_decisions.dart) (D7 in [features/player.md § Decision reducers](../features/player.md#decision-reducers-d1d7)). Keeping the decision out of the loop body means every branch is unit-tested without a running engine, and a future repeat mode (or "advance" action once queue semantics land) is a one-line extension to the sealed `MediaEndDecision` rather than a controller edit.
 
 ## Consequences
 
