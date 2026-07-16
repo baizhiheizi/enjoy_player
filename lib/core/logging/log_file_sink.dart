@@ -21,6 +21,10 @@ class LogFileSink {
   File? _activeFile;
   int _activeSize = 0;
 
+  /// Serializes appends so concurrent [writeRecord] callers cannot interleave
+  /// lines (common under bursty HTTP + sync logging).
+  Future<void> _writeChain = Future<void>.value();
+
   static LogFileSink? _instance;
 
   static LogFileSink? get instance => _instance;
@@ -59,10 +63,7 @@ class LogFileSink {
     }
   }
 
-  Future<void> writeRecord(LogRecord record) async {
-    final file = _activeFile;
-    if (file == null) return;
-
+  Future<void> writeRecord(LogRecord record) {
     final buffer = StringBuffer()
       ..write('[${record.time.toUtc().toIso8601String()}] ')
       ..write('[${record.level.name}] ${record.loggerName}: ${record.message}');
@@ -73,25 +74,31 @@ class LogFileSink {
       buffer.write('\n  stack:\n${record.stackTrace}');
     }
     buffer.write('\n');
+    return _enqueueWrite(redactLogLine(buffer.toString()));
+  }
 
-    final line = redactLogLine(buffer.toString());
+  Future<void> writeRawLine(String line) {
+    return _enqueueWrite(redactLogLine('$line\n'));
+  }
+
+  Future<void> _enqueueWrite(String line) {
+    final done = _writeChain.then((_) => _appendLine(line));
+    // Keep the chain alive even if a write fails.
+    _writeChain = done.catchError((Object error, StackTrace stackTrace) {});
+    return done;
+  }
+
+  Future<void> _appendLine(String line) async {
+    final file = _activeFile;
+    if (file == null) return;
+
     final bytes = line.codeUnits.length; // UTF-16 code units; close enough cap
     if (_activeSize + bytes > kLogFileMaxBytes) {
       await _rotate();
     }
-    await file.writeAsString(line, mode: FileMode.append, flush: true);
-    _activeSize += bytes;
-  }
-
-  Future<void> writeRawLine(String line) async {
-    final file = _activeFile;
-    if (file == null) return;
-    final redacted = redactLogLine('$line\n');
-    final bytes = redacted.codeUnits.length;
-    if (_activeSize + bytes > kLogFileMaxBytes) {
-      await _rotate();
-    }
-    await file.writeAsString(redacted, mode: FileMode.append, flush: true);
+    final active = _activeFile;
+    if (active == null) return;
+    await active.writeAsString(line, mode: FileMode.append, flush: true);
     _activeSize += bytes;
   }
 

@@ -2,14 +2,13 @@ import 'dart:io';
 
 import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
 import 'package:enjoy_player/features/ai/data/azure_assessment_wav_normalizer.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/assessment_result.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
 
 final Logger _log = logNamed('ai.azure.assessment');
 
@@ -123,26 +122,51 @@ Future<AzureSpeechAssessmentOutcome> _assessPath({
   required bool usedNormalizedWav,
   required String attempt,
 }) async {
-  final params = AzurePronunciationAssessmentParams(
-    audioPath: audioPath,
-    referenceText: referenceText,
-    language: language,
-    region: region,
-    token: token,
-    subscriptionKey: subscriptionKey,
+  final (stagedPath, deleteStaged) = await stageWavForAzureAssessment(
+    audioPath,
   );
-  final audioBytes = await File(audioPath).length();
-  final outcome = await sdk.assess(params);
-  _logAzureAssessmentOutcome(
-    outcome: outcome,
-    audioPath: audioPath,
-    audioBytes: audioBytes,
-    usedNormalizedWav: usedNormalizedWav,
-    language: language,
-    referenceChars: referenceText.length,
-    attempt: attempt,
-  );
-  return outcome;
+  if (deleteStaged) {
+    _log.info(
+      'Azure assessment: staging path=$stagedPath '
+      '(source had non-ASCII characters)',
+    );
+  } else {
+    _log.info('Azure assessment: staging path=$stagedPath');
+  }
+  try {
+    final params = AzurePronunciationAssessmentParams(
+      audioPath: stagedPath,
+      referenceText: referenceText,
+      language: language,
+      region: region,
+      token: token,
+      subscriptionKey: subscriptionKey,
+    );
+    final audioBytes = await File(stagedPath).length();
+    _log.info(
+      'Azure assessment: calling native assess attempt=$attempt '
+      'bytes=$audioBytes lang=$language',
+    );
+    final outcome = await sdk.assess(params);
+    _logAzureAssessmentOutcome(
+      outcome: outcome,
+      audioPath: stagedPath,
+      audioBytes: audioBytes,
+      usedNormalizedWav: usedNormalizedWav,
+      language: language,
+      referenceChars: referenceText.length,
+      attempt: attempt,
+    );
+    return outcome;
+  } finally {
+    if (deleteStaged) {
+      try {
+        await File(stagedPath).delete();
+      } catch (e, st) {
+        _log.fine('staged wav cleanup failed: $stagedPath', e, st);
+      }
+    }
+  }
 }
 
 String cleanAssessmentReferenceText(String referenceText) {
@@ -171,8 +195,7 @@ Future<(String, bool)> materializeAssessmentWav(
     throw StateError('No audio bytes and no valid audioPath');
   }
 
-  final dir = await getTemporaryDirectory();
-  final out = p.join(dir.path, 'assess_${const Uuid().v4()}.wav');
+  final out = await newAzureAssessmentStagingWavPath();
   await File(out).writeAsBytes(bytes, flush: true);
   return (out, true);
 }

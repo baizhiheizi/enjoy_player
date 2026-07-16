@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/player/application/player_open_side_effect
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
+import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
@@ -201,6 +202,11 @@ Future<void> runPlayerOpenGuarded(
 }) async {
   try {
     await runPlayerOpen(host, ref, mediaId);
+  } on MediaNeedsRelocateException catch (e, st) {
+    onFailureResetSession();
+    // Expected when a path-linked file moved — UI shows LocateMediaScreen.
+    _openLog.info('openMedia needs relocate for $mediaId', e, st);
+    rethrow;
   } on Object catch (e, st) {
     onFailureResetSession();
     _openLog.severe('openMedia failed for $mediaId', e, st);

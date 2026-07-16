@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:azure_speech/azure_speech.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
+import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
 import 'package:enjoy_player/features/ai/data/azure_assessment_wav_normalizer.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_speech_guards.dart';
@@ -11,8 +13,8 @@ import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
-import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
+
+final _log = logNamed('ai.byok.asr.azure');
 
 /// ASR via user Azure Speech subscription key + region (native recognize-once).
 final class ByokAsrAzureCapability implements AsrCapability {
@@ -42,14 +44,20 @@ final class ByokAsrAzureCapability implements AsrCapability {
       );
     }
 
-    final dir = Directory.systemTemp;
-    final wavPath = p.join(dir.path, 'asr_${const Uuid().v4()}.wav');
+    // Materialize under ASCII-safe staging — Azure FromWavFileInput is brittle
+    // with non-ASCII Windows profile paths (e.g. C:\Users\<中文>\...).
+    final wavPath = await newAzureAssessmentStagingWavPath();
     await File(wavPath).writeAsBytes(request.audioBytes, flush: true);
 
     String? normalizedPath;
+    String? stagedPath;
     try {
       normalizedPath = await tryCreateNormalizedAzureAssessmentWav(wavPath);
-      final audioPath = normalizedPath ?? wavPath;
+      final candidate = normalizedPath ?? wavPath;
+      final staged = await stageWavForAzureAssessment(candidate);
+      stagedPath = staged.$2 ? staged.$1 : null;
+      final audioPath = staged.$1;
+      _log.info('BYOK Azure ASR: staging path=$audioPath');
 
       final outcome = await _sdk.transcribe(
         AzureSpeechTranscriptionParams(
@@ -64,14 +72,12 @@ final class ByokAsrAzureCapability implements AsrCapability {
     } on AzureSpeechException catch (e) {
       throw ApiException(message: e.message, statusCode: 502, body: e.code);
     } finally {
-      if (normalizedPath != null) {
+      for (final path in <String?>[stagedPath, normalizedPath, wavPath]) {
+        if (path == null) continue;
         try {
-          await File(normalizedPath).delete();
+          await File(path).delete();
         } catch (_) {}
       }
-      try {
-        await File(wavPath).delete();
-      } catch (_) {}
     }
   }
 }

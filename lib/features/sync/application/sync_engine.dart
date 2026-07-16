@@ -137,6 +137,15 @@ class SyncEngine {
 
       await _queue.removeById(item.id);
       return true;
+    } on SyncDuplicateMissingError catch (e, st) {
+      _log.warning(
+        'sync permanently failed ${item.entityType}:${item.entityId} '
+        '${item.action} (duplicate create but GET 404)',
+        e,
+        st,
+      );
+      await _queue.markPermanentlyFailed(item.id, error: '$e');
+      return false;
     } catch (e, st) {
       _log.warning(
         'sync failed ${item.entityType}:${item.entityId} ${item.action}',

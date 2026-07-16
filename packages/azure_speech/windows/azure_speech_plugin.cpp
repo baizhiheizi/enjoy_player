@@ -8,6 +8,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <speechapi_cxx.h>
@@ -90,6 +91,13 @@ std::string Base64Encode(const std::vector<uint8_t>& data) {
   return out;
 }
 
+flutter::EncodableValue ErrorValue(const std::string& code,
+                                   const std::string& message) {
+  return flutter::EncodableValue(flutter::EncodableMap{
+      {flutter::EncodableValue("error"), flutter::EncodableValue(code)},
+      {flutter::EncodableValue("message"), flutter::EncodableValue(message)}});
+}
+
 flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   const std::string text = GetString(args, "text");
   const std::string language = GetString(args, "language");
@@ -150,11 +158,7 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   if (speech_result->Reason == ResultReason::SynthesizingAudioCompleted) {
     const auto audio = speech_result->GetAudioData();
     if (!audio || audio->empty()) {
-      return flutter::EncodableValue(flutter::EncodableMap{
-          {flutter::EncodableValue("error"),
-           flutter::EncodableValue("azure_speech_error")},
-          {flutter::EncodableValue("message"),
-           flutter::EncodableValue("Empty synthesis audio")}});
+      return ErrorValue("azure_speech_error", "Empty synthesis audio");
     }
     // Build JSON manually: {"audio":"<base64>","wordBoundaries":[...]}
     std::string json = "{\"audio\":\"";
@@ -181,10 +185,7 @@ flutter::EncodableValue RunSynthesize(const flutter::EncodableMap& args) {
   auto cancel = SpeechSynthesisCancellationDetails::FromResult(speech_result);
   std::ostringstream oss;
   oss << static_cast<int>(cancel->Reason) << ": " << cancel->ErrorDetails;
-  const std::string msg = oss.str();
-  return flutter::EncodableValue(flutter::EncodableMap{
-      {flutter::EncodableValue("error"), flutter::EncodableValue("azure_speech_error")},
-      {flutter::EncodableValue("message"), flutter::EncodableValue(msg)}});
+  return ErrorValue("azure_speech_error", oss.str());
 }
 
 flutter::EncodableValue RunAssess(const flutter::EncodableMap& args) {
@@ -227,28 +228,18 @@ flutter::EncodableValue RunAssess(const flutter::EncodableMap& args) {
     std::string json = speech_result->Properties.GetProperty(
         PropertyId::SpeechServiceResponse_JsonResult);
     if (json.empty()) {
-      return flutter::EncodableValue(flutter::EncodableMap{
-          {flutter::EncodableValue("error"),
-           flutter::EncodableValue("azure_speech_error")},
-          {flutter::EncodableValue("message"),
-           flutter::EncodableValue("Empty JsonResult")}});
+      return ErrorValue("azure_speech_error", "Empty JsonResult");
     }
     return flutter::EncodableValue(json);
   }
   if (speech_result->Reason == ResultReason::NoMatch) {
-    return flutter::EncodableValue(flutter::EncodableMap{
-        {flutter::EncodableValue("error"), flutter::EncodableValue("no_speech")},
-        {flutter::EncodableValue("message"),
-         flutter::EncodableValue("No speech detected")}});
+    return ErrorValue("no_speech", "No speech detected");
   }
 
   auto cancel = CancellationDetails::FromResult(speech_result);
   std::ostringstream oss;
   oss << static_cast<int>(cancel->Reason) << ": " << cancel->ErrorDetails;
-  const std::string msg = oss.str();
-  return flutter::EncodableValue(flutter::EncodableMap{
-      {flutter::EncodableValue("error"), flutter::EncodableValue("azure_speech_error")},
-      {flutter::EncodableValue("message"), flutter::EncodableValue(msg)}});
+  return ErrorValue("azure_speech_error", oss.str());
 }
 
 flutter::EncodableValue RunTranscribe(const flutter::EncodableMap& args) {
@@ -268,19 +259,40 @@ flutter::EncodableValue RunTranscribe(const flutter::EncodableMap& args) {
     return flutter::EncodableValue(speech_result->Text);
   }
   if (speech_result->Reason == ResultReason::NoMatch) {
-    return flutter::EncodableValue(flutter::EncodableMap{
-        {flutter::EncodableValue("error"), flutter::EncodableValue("no_speech")},
-        {flutter::EncodableValue("message"),
-         flutter::EncodableValue("No speech detected")}});
+    return ErrorValue("no_speech", "No speech detected");
   }
 
   auto cancel = CancellationDetails::FromResult(speech_result);
   std::ostringstream oss;
   oss << static_cast<int>(cancel->Reason) << ": " << cancel->ErrorDetails;
-  const std::string msg = oss.str();
-  return flutter::EncodableValue(flutter::EncodableMap{
-      {flutter::EncodableValue("error"), flutter::EncodableValue("azure_speech_error")},
-      {flutter::EncodableValue("message"), flutter::EncodableValue(msg)}});
+  return ErrorValue("azure_speech_error", oss.str());
+}
+
+void DispatchResult(
+    const std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>>&
+        result,
+    flutter::EncodableValue out) {
+  if (const auto* err_map = std::get_if<flutter::EncodableMap>(&out)) {
+    auto e_it = err_map->find(flutter::EncodableValue("error"));
+    if (e_it != err_map->end()) {
+      const auto* code = std::get_if<std::string>(&e_it->second);
+      std::string message;
+      auto m_it = err_map->find(flutter::EncodableValue("message"));
+      if (m_it != err_map->end()) {
+        if (const auto* ms = std::get_if<std::string>(&m_it->second)) {
+          message = *ms;
+        }
+      }
+      result->Error(code ? *code : "azure_speech_error", message,
+                    flutter::EncodableValue());
+      return;
+    }
+  }
+  if (const auto* text = std::get_if<std::string>(&out)) {
+    result->Success(flutter::EncodableValue(*text));
+    return;
+  }
+  result->Error("azure_speech_error", "Unexpected native result shape");
 }
 
 }  // namespace
@@ -313,49 +325,36 @@ void AzureSpeechPlugin::HandleMethodCall(
     return;
   }
 
-  const auto dispatch = [&](flutter::EncodableValue out) {
-    if (const auto* err_map = std::get_if<flutter::EncodableMap>(&out)) {
-      auto e_it = err_map->find(flutter::EncodableValue("error"));
-      if (e_it != err_map->end()) {
-        const auto* code = std::get_if<std::string>(&e_it->second);
-        std::string message;
-        auto m_it = err_map->find(flutter::EncodableValue("message"));
-        if (m_it != err_map->end()) {
-          if (const auto* ms = std::get_if<std::string>(&m_it->second)) {
-            message = *ms;
-          }
-        }
-        result->Error(code ? *code : "azure_speech_error", message,
-                      flutter::EncodableValue());
-        return;
-      }
-    }
-    if (const auto* text = std::get_if<std::string>(&out)) {
-      result->Success(flutter::EncodableValue(*text));
-      return;
-    }
-    result->Error("azure_speech_error", "Unexpected native result shape");
-  };
-
-  try {
-    if (method_call.method_name() == "assess") {
-      dispatch(RunAssess(*args));
-      return;
-    }
-    if (method_call.method_name() == "transcribe") {
-      dispatch(RunTranscribe(*args));
-      return;
-    }
-    if (method_call.method_name() == "synthesize") {
-      dispatch(RunSynthesize(*args));
-      return;
-    }
+  const std::string method = method_call.method_name();
+  if (method != "assess" && method != "transcribe" && method != "synthesize") {
     result->NotImplemented();
-  } catch (const std::exception& e) {
-    result->Error("azure_speech_error", e.what());
-  } catch (...) {
-    result->Error("azure_speech_error", "Unknown native error");
+    return;
   }
+
+  // Run SDK work off the platform thread so RecognizeOnce / SpeakText do not
+  // freeze the Flutter embedder. FlutterDesktopMessengerSend is thread-safe.
+  auto shared_result =
+      std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>>(
+          std::move(result));
+  auto args_copy = *args;
+
+  std::thread([method, args_copy, shared_result]() {
+    try {
+      flutter::EncodableValue out;
+      if (method == "assess") {
+        out = RunAssess(args_copy);
+      } else if (method == "transcribe") {
+        out = RunTranscribe(args_copy);
+      } else {
+        out = RunSynthesize(args_copy);
+      }
+      DispatchResult(shared_result, std::move(out));
+    } catch (const std::exception& e) {
+      shared_result->Error("azure_speech_error", e.what());
+    } catch (...) {
+      shared_result->Error("azure_speech_error", "Unknown native error");
+    }
+  }).detach();
 }
 
 }  // namespace azure_speech

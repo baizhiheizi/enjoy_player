@@ -30,6 +30,22 @@ class SyncMissingUpdatedAtError extends Error {
       'SyncMissingUpdatedAtError($entity $id): server response missing updatedAt';
 }
 
+/// Server reported the entity already exists, but GET-by-id returned 404.
+///
+/// Retries will not recover (create keeps failing as duplicate; fetch keeps
+/// 404). The sync engine marks the queue row permanently failed.
+class SyncDuplicateMissingError extends Error {
+  SyncDuplicateMissingError(this.entity, this.id);
+
+  final String entity;
+  final String id;
+
+  @override
+  String toString() =>
+      'SyncDuplicateMissingError($entity $id): '
+      'create said already exists but GET returned 404';
+}
+
 class SyncUploadService {
   SyncUploadService({
     required this._db,
@@ -51,8 +67,15 @@ class SyncUploadService {
     } on ApiException catch (e) {
       if (!e.isDuplicateEntity) rethrow;
       _log.fine('audio ${row.id} already on server; fetching existing row');
-      final response = await _audioApi.audio(row.id);
-      inner = unwrapEntity(response, 'audio');
+      try {
+        final response = await _audioApi.audio(row.id);
+        inner = unwrapEntity(response, 'audio');
+      } on ApiException catch (fetchError) {
+        if (fetchError.statusCode == 404) {
+          throw SyncDuplicateMissingError('audio', row.id);
+        }
+        rethrow;
+      }
     }
     final serverUpdated = _requireServerUpdated(
       inner,
@@ -81,8 +104,15 @@ class SyncUploadService {
     } on ApiException catch (e) {
       if (!e.isDuplicateEntity) rethrow;
       _log.fine('video ${row.id} already on server; fetching existing row');
-      final response = await _videoApi.video(row.id);
-      return unwrapEntity(response, 'video');
+      try {
+        final response = await _videoApi.video(row.id);
+        return unwrapEntity(response, 'video');
+      } on ApiException catch (fetchError) {
+        if (fetchError.statusCode == 404) {
+          throw SyncDuplicateMissingError('video', row.id);
+        }
+        rethrow;
+      }
     }
   }
 

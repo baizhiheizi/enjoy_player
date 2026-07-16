@@ -112,6 +112,9 @@ class SyncQueueRepository {
   Future<void> markAttempted(int id, {String? error}) =>
       _db.syncQueueDao.markAttempted(id, error: error);
 
+  Future<void> markPermanentlyFailed(int id, {String? error}) =>
+      _db.syncQueueDao.markPermanentlyFailed(id, error: error);
+
   /// Clears error state for permanently failed items so they retry again.
   Future<int> resetFailed() async {
     final failed = await (_db.select(

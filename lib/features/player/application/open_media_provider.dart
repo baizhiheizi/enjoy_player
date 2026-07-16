@@ -9,4 +9,7 @@ final openMediaActionProvider = FutureProvider.autoDispose.family<void, String>(
   (ref, mediaId) async {
     await ref.read(playerControllerProvider.notifier).openMedia(mediaId);
   },
+  // Relocate / missing-file errors are expected UX — do not exponential-retry
+  // (Riverpod 3 default) or LocateMediaScreen never settles.
+  retry: null,
 );

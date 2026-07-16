@@ -11,11 +11,10 @@ import 'dart:isolate';
 import 'package:enjoy_player/core/audio/wav_signal_peak.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
+import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
 
 final _log = logNamed('ai.azure_assessment_wav');
 
@@ -206,10 +205,7 @@ Future<bool> normalizeWavForAzureAssessment({
 /// If FFmpeg succeeds, returns a temp `.wav` path the caller must delete.
 /// On failure returns `null` (caller should pass the original file to Azure).
 Future<String?> tryCreateNormalizedAzureAssessmentWav(String inputPath) async {
-  final out = p.join(
-    Directory.systemTemp.path,
-    'azure_assess_${const Uuid().v4()}.wav',
-  );
+  final out = await newAzureAssessmentStagingWavPath();
   final ok = await normalizeWavForAzureAssessment(
     inputPath: inputPath,
     outputWavPath: out,

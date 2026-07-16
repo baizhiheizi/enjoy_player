@@ -40,6 +40,21 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Sets [retryCount] to 5 so the row is no longer eligible for retry.
+  Future<void> markPermanentlyFailed(int id, {String? error}) async {
+    final existing = await (select(
+      syncQueue,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return;
+    await (update(syncQueue)..where((t) => t.id.equals(id))).write(
+      SyncQueueCompanion(
+        retryCount: const Value(5),
+        lastAttempt: Value(DateTime.now()),
+        error: Value(error),
+      ),
+    );
+  }
+
   Future<void> deleteId(int id) =>
       (delete(syncQueue)..where((t) => t.id.equals(id))).go();
 }

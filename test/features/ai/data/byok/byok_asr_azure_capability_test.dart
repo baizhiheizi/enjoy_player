@@ -1,5 +1,6 @@
 import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
+import 'package:enjoy_player/features/ai/data/azure_assessment_staging_path.dart';
 import 'package:enjoy_player/features/ai/data/byok/byok_asr_azure_capability.dart';
 import 'package:enjoy_player/features/ai/domain/modality_byok_config.dart';
 import 'package:enjoy_player/features/ai/domain/modality_kind.dart';
@@ -47,6 +48,10 @@ void main() {
           expect(args['subscriptionKey'], 'azure-sub-key');
           expect(args['region'], 'eastus');
           expect(args['language'], 'en-US');
+          final audioPath = args['audioPath'] as String;
+          expect(audioPath, isNotEmpty);
+          // Native FromWavFileInput must not see non-ASCII Windows profile paths.
+          expect(pathContainsNonAscii(audioPath), isFalse);
           return 'Hello from Azure';
         });
 
