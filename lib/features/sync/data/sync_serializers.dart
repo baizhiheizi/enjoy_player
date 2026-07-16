@@ -194,7 +194,10 @@ AudioRow mergeAudioLastWriteWins({
   final serverRow = audioRowFromServerJson(server);
   if (local == null) return serverRow;
   if (local.updatedAt.isAfter(serverRow.updatedAt)) return local;
-  return serverRow.copyWith(localUri: Value(local.localUri));
+  return serverRow.copyWith(
+    localUri: Value(local.localUri),
+    localMtimeMs: Value(local.localMtimeMs),
+  );
 }
 
 VideoRow mergeVideoLastWriteWins({
@@ -204,7 +207,10 @@ VideoRow mergeVideoLastWriteWins({
   final serverRow = videoRowFromServerJson(server);
   if (local == null) return serverRow;
   if (local.updatedAt.isAfter(serverRow.updatedAt)) return local;
-  return serverRow.copyWith(localUri: Value(local.localUri));
+  return serverRow.copyWith(
+    localUri: Value(local.localUri),
+    localMtimeMs: Value(local.localMtimeMs),
+  );
 }
 
 RecordingRow mergeRecordingLastWriteWins({

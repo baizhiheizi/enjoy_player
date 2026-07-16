@@ -23,6 +23,10 @@ class Audios extends Table {
   TextColumn get localUri => text().nullable()();
   TextColumn get md5 => text().nullable()();
   IntColumn get size => integer().nullable()();
+
+  /// Last-modified ms of the linked/copied file at import or re-link time.
+  /// Used for cheap open trust checks; device-local (not synced).
+  IntColumn get localMtimeMs => integer().nullable()();
   TextColumn get mediaUrl => text().nullable()();
   TextColumn get syncStatus => text().nullable()();
   DateTimeColumn get serverUpdatedAt => dateTime().nullable()();

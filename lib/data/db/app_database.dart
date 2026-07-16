@@ -84,11 +84,14 @@ class AppDatabase extends _$AppDatabase {
   /// without having to inspect the executor.
   final String _dbName;
 
+  /// Base name passed to [driftDatabase] (no `.sqlite` suffix).
+  String get databaseFileBaseName => _dbName;
+
   /// True when this instance serves the device-global settings file.
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -171,6 +174,9 @@ class AppDatabase extends _$AppDatabase {
           "'https://worker.enjoy.bot/youtube/channel/' || channel_id || '?format=json' "
           'WHERE feed_url IS NULL',
         );
+      } else if (next == 14) {
+        await _addColumnIfMissing(m, videos, videos.localMtimeMs);
+        await _addColumnIfMissing(m, audios, audios.localMtimeMs);
       }
       current = next;
     }

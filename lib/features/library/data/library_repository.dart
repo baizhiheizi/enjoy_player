@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/data/files/media_resolver.dart';
@@ -136,7 +137,7 @@ class MediaLibraryRepository {
       if (!isImportableLocalMediaFileName(file.name)) {
         throw const UnsupportedImportFileFailure();
       }
-      final result = await _storage.importPickedFile(file);
+      final result = await _storage.importOrLinkPickedFile(file);
       final kind = isVideoFileName(file.name)
           ? MediaKind.video
           : MediaKind.audio;
@@ -149,28 +150,38 @@ class MediaLibraryRepository {
           userId: signedInUserId,
         );
         final id = enjoyVideoId(vid: vid);
+        final existing = await _db.videoDao.getById(id);
+        final previousUri = existing?.localUri;
         final row = VideoRow(
           id: id,
           vid: vid,
           provider: 'user',
           title: result.title,
-          description: null,
-          thumbnailUrl: null,
-          durationSeconds: 0,
+          description: existing?.description,
+          thumbnailUrl: existing?.thumbnailUrl,
+          durationSeconds: existing?.durationSeconds ?? 0,
           language: canonicalMediaLanguageTag(contentLanguage),
-          source: null,
+          source: existing?.source,
           localUri: result.fileUri,
           md5: contentHash,
           size: result.fileSize,
-          mediaUrl: null,
+          localMtimeMs: result.mtimeMs,
+          mediaUrl: existing?.mediaUrl,
           syncStatus: 'pending',
-          serverUpdatedAt: null,
-          createdAt: now,
+          serverUpdatedAt: existing?.serverUpdatedAt,
+          createdAt: existing?.createdAt ?? now,
           updatedAt: now,
         );
         await _db.videoDao.insertRow(row);
+        if (previousUri != null && previousUri != result.fileUri) {
+          await _maybeDeleteAppManagedMedia(previousUri);
+        }
         unawaited(_probeAndPatchDuration(id, result.fileUri, video: true));
-        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.create);
+        await _enqueueSync?.call(
+          SyncEntityType.video,
+          id,
+          existing != null ? SyncAction.update : SyncAction.create,
+        );
         return id;
       }
 
@@ -179,31 +190,41 @@ class MediaLibraryRepository {
         userId: signedInUserId,
       );
       final id = enjoyAudioId(aid: aid);
+      final existing = await _db.audioDao.getById(id);
+      final previousUri = existing?.localUri;
       final audioRow = AudioRow(
         id: id,
         aid: aid,
         provider: 'user',
         title: result.title,
-        description: null,
-        thumbnailUrl: null,
-        durationSeconds: 0,
+        description: existing?.description,
+        thumbnailUrl: existing?.thumbnailUrl,
+        durationSeconds: existing?.durationSeconds ?? 0,
         language: canonicalMediaLanguageTag(contentLanguage),
-        translationKey: null,
-        sourceText: null,
-        voice: null,
-        source: null,
+        translationKey: existing?.translationKey,
+        sourceText: existing?.sourceText,
+        voice: existing?.voice,
+        source: existing?.source,
         localUri: result.fileUri,
         md5: contentHash,
         size: result.fileSize,
-        mediaUrl: null,
+        localMtimeMs: result.mtimeMs,
+        mediaUrl: existing?.mediaUrl,
         syncStatus: 'pending',
-        serverUpdatedAt: null,
-        createdAt: now,
+        serverUpdatedAt: existing?.serverUpdatedAt,
+        createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       );
       await _db.audioDao.insertRow(audioRow);
+      if (previousUri != null && previousUri != result.fileUri) {
+        await _maybeDeleteAppManagedMedia(previousUri);
+      }
       unawaited(_probeAndPatchDuration(id, result.fileUri, video: false));
-      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
+      await _enqueueSync?.call(
+        SyncEntityType.audio,
+        id,
+        existing != null ? SyncAction.update : SyncAction.create,
+      );
       return id;
     } on AppFailure {
       rethrow;
@@ -351,6 +372,7 @@ class MediaLibraryRepository {
         localUri: importResult.fileUri,
         md5: contentHash,
         size: importResult.fileSize,
+        localMtimeMs: importResult.mtimeMs,
         mediaUrl: null,
         syncStatus: 'pending',
         serverUpdatedAt: null,
@@ -556,20 +578,32 @@ class MediaLibraryRepository {
     // rolled back and the user can retry; previously, a sync row
     // could be left pointing at a media id that no longer exists
     // locally when the local delete threw between the two calls.
+    String? localUri;
     await _db.transaction(() async {
       final v = await _db.videoDao.getById(id);
       if (v != null) {
+        localUri = v.localUri;
         await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.delete);
         await _db.videoDao.deleteId(id);
         return;
       }
       final a = await _db.audioDao.getById(id);
       if (a != null) {
+        localUri = a.localUri;
         await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.delete);
         await _db.audioDao.deleteId(id);
         return;
       }
     });
+    await _maybeDeleteAppManagedMedia(localUri);
+  }
+
+  Future<void> _maybeDeleteAppManagedMedia(String? fileUri) {
+    return deleteAppManagedMediaIfUnreferenced(
+      db: _db,
+      storage: _storage,
+      fileUri: fileUri,
+    );
   }
 
   Future<Media?> getById(String id) async {
@@ -601,7 +635,7 @@ class MediaLibraryRepository {
     throw const FileFailure('Media not found.');
   }
 
-  /// Copy a user-picked file into app storage only if its chunked SHA-256 matches the
+  /// Link or copy a user-picked file when its chunked SHA-256 matches the
   /// row's `md5` field, then set [localUri] for playback on this device.
   Future<void> relocateLocalFile({
     required String mediaId,
@@ -616,7 +650,8 @@ class MediaLibraryRepository {
             'Cannot locate file: this item has no content fingerprint.',
           );
         }
-        final result = await _storage.importPickedFileExpectingHash(
+        final previousUri = video.localUri;
+        final result = await _storage.importOrLinkPickedFile(
           picked,
           expectedHashHex: hash,
         );
@@ -624,9 +659,13 @@ class MediaLibraryRepository {
           video.copyWith(
             localUri: Value(result.fileUri),
             size: Value(result.fileSize),
+            localMtimeMs: Value(result.mtimeMs),
             updatedAt: DateTime.now(),
           ),
         );
+        if (previousUri != null && previousUri != result.fileUri) {
+          await _maybeDeleteAppManagedMedia(previousUri);
+        }
         await _enqueueSync?.call(
           SyncEntityType.video,
           mediaId,
@@ -643,7 +682,8 @@ class MediaLibraryRepository {
             'Cannot locate file: this item has no content fingerprint.',
           );
         }
-        final result = await _storage.importPickedFileExpectingHash(
+        final previousUri = audio.localUri;
+        final result = await _storage.importOrLinkPickedFile(
           picked,
           expectedHashHex: hash,
         );
@@ -651,9 +691,13 @@ class MediaLibraryRepository {
           audio.copyWith(
             localUri: Value(result.fileUri),
             size: Value(result.fileSize),
+            localMtimeMs: Value(result.mtimeMs),
             updatedAt: DateTime.now(),
           ),
         );
+        if (previousUri != null && previousUri != result.fileUri) {
+          await _maybeDeleteAppManagedMedia(previousUri);
+        }
         await _enqueueSync?.call(
           SyncEntityType.audio,
           mediaId,

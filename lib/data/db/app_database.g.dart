@@ -131,6 +131,17 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _localMtimeMsMeta = const VerificationMeta(
+    'localMtimeMs',
+  );
+  @override
+  late final GeneratedColumn<int> localMtimeMs = GeneratedColumn<int>(
+    'local_mtime_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _mediaUrlMeta = const VerificationMeta(
     'mediaUrl',
   );
@@ -201,6 +212,7 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
     localUri,
     md5,
     size,
+    localMtimeMs,
     mediaUrl,
     syncStatus,
     serverUpdatedAt,
@@ -303,6 +315,15 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
         size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
       );
     }
+    if (data.containsKey('local_mtime_ms')) {
+      context.handle(
+        _localMtimeMsMeta,
+        localMtimeMs.isAcceptableOrUnknown(
+          data['local_mtime_ms']!,
+          _localMtimeMsMeta,
+        ),
+      );
+    }
     if (data.containsKey('media_url')) {
       context.handle(
         _mediaUrlMeta,
@@ -397,6 +418,10 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
         DriftSqlType.int,
         data['${effectivePrefix}size'],
       ),
+      localMtimeMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_mtime_ms'],
+      ),
       mediaUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}media_url'],
@@ -443,6 +468,10 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
   final String? localUri;
   final String? md5;
   final int? size;
+
+  /// Last-modified ms of the linked/copied file at import or re-link time.
+  /// Used for cheap open trust checks; device-local (not synced).
+  final int? localMtimeMs;
   final String? mediaUrl;
   final String? syncStatus;
   final DateTime? serverUpdatedAt;
@@ -461,6 +490,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     this.localUri,
     this.md5,
     this.size,
+    this.localMtimeMs,
     this.mediaUrl,
     this.syncStatus,
     this.serverUpdatedAt,
@@ -493,6 +523,9 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     }
     if (!nullToAbsent || size != null) {
       map['size'] = Variable<int>(size);
+    }
+    if (!nullToAbsent || localMtimeMs != null) {
+      map['local_mtime_ms'] = Variable<int>(localMtimeMs);
     }
     if (!nullToAbsent || mediaUrl != null) {
       map['media_url'] = Variable<String>(mediaUrl);
@@ -530,6 +563,9 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           : Value(localUri),
       md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
       size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      localMtimeMs: localMtimeMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localMtimeMs),
       mediaUrl: mediaUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaUrl),
@@ -562,6 +598,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       localUri: serializer.fromJson<String?>(json['localUri']),
       md5: serializer.fromJson<String?>(json['md5']),
       size: serializer.fromJson<int?>(json['size']),
+      localMtimeMs: serializer.fromJson<int?>(json['localMtimeMs']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
       syncStatus: serializer.fromJson<String?>(json['syncStatus']),
       serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
@@ -585,6 +622,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       'localUri': serializer.toJson<String?>(localUri),
       'md5': serializer.toJson<String?>(md5),
       'size': serializer.toJson<int?>(size),
+      'localMtimeMs': serializer.toJson<int?>(localMtimeMs),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
       'syncStatus': serializer.toJson<String?>(syncStatus),
       'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
@@ -606,6 +644,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     Value<String?> localUri = const Value.absent(),
     Value<String?> md5 = const Value.absent(),
     Value<int?> size = const Value.absent(),
+    Value<int?> localMtimeMs = const Value.absent(),
     Value<String?> mediaUrl = const Value.absent(),
     Value<String?> syncStatus = const Value.absent(),
     Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -624,6 +663,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     localUri: localUri.present ? localUri.value : this.localUri,
     md5: md5.present ? md5.value : this.md5,
     size: size.present ? size.value : this.size,
+    localMtimeMs: localMtimeMs.present ? localMtimeMs.value : this.localMtimeMs,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
     syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
     serverUpdatedAt: serverUpdatedAt.present
@@ -652,6 +692,9 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       localUri: data.localUri.present ? data.localUri.value : this.localUri,
       md5: data.md5.present ? data.md5.value : this.md5,
       size: data.size.present ? data.size.value : this.size,
+      localMtimeMs: data.localMtimeMs.present
+          ? data.localMtimeMs.value
+          : this.localMtimeMs,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
@@ -679,6 +722,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           ..write('localUri: $localUri, ')
           ..write('md5: $md5, ')
           ..write('size: $size, ')
+          ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -702,6 +746,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     localUri,
     md5,
     size,
+    localMtimeMs,
     mediaUrl,
     syncStatus,
     serverUpdatedAt,
@@ -724,6 +769,7 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           other.localUri == this.localUri &&
           other.md5 == this.md5 &&
           other.size == this.size &&
+          other.localMtimeMs == this.localMtimeMs &&
           other.mediaUrl == this.mediaUrl &&
           other.syncStatus == this.syncStatus &&
           other.serverUpdatedAt == this.serverUpdatedAt &&
@@ -744,6 +790,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
   final Value<String?> localUri;
   final Value<String?> md5;
   final Value<int?> size;
+  final Value<int?> localMtimeMs;
   final Value<String?> mediaUrl;
   final Value<String?> syncStatus;
   final Value<DateTime?> serverUpdatedAt;
@@ -763,6 +810,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     this.localUri = const Value.absent(),
     this.md5 = const Value.absent(),
     this.size = const Value.absent(),
+    this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -783,6 +831,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     this.localUri = const Value.absent(),
     this.md5 = const Value.absent(),
     this.size = const Value.absent(),
+    this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -807,6 +856,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     Expression<String>? localUri,
     Expression<String>? md5,
     Expression<int>? size,
+    Expression<int>? localMtimeMs,
     Expression<String>? mediaUrl,
     Expression<String>? syncStatus,
     Expression<DateTime>? serverUpdatedAt,
@@ -827,6 +877,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
       if (localUri != null) 'local_uri': localUri,
       if (md5 != null) 'md5': md5,
       if (size != null) 'size': size,
+      if (localMtimeMs != null) 'local_mtime_ms': localMtimeMs,
       if (mediaUrl != null) 'media_url': mediaUrl,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
@@ -849,6 +900,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     Value<String?>? localUri,
     Value<String?>? md5,
     Value<int?>? size,
+    Value<int?>? localMtimeMs,
     Value<String?>? mediaUrl,
     Value<String?>? syncStatus,
     Value<DateTime?>? serverUpdatedAt,
@@ -869,6 +921,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
       localUri: localUri ?? this.localUri,
       md5: md5 ?? this.md5,
       size: size ?? this.size,
+      localMtimeMs: localMtimeMs ?? this.localMtimeMs,
       mediaUrl: mediaUrl ?? this.mediaUrl,
       syncStatus: syncStatus ?? this.syncStatus,
       serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
@@ -917,6 +970,9 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     if (size.present) {
       map['size'] = Variable<int>(size.value);
     }
+    if (localMtimeMs.present) {
+      map['local_mtime_ms'] = Variable<int>(localMtimeMs.value);
+    }
     if (mediaUrl.present) {
       map['media_url'] = Variable<String>(mediaUrl.value);
     }
@@ -953,6 +1009,7 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
           ..write('localUri: $localUri, ')
           ..write('md5: $md5, ')
           ..write('size: $size, ')
+          ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -1123,6 +1180,17 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _localMtimeMsMeta = const VerificationMeta(
+    'localMtimeMs',
+  );
+  @override
+  late final GeneratedColumn<int> localMtimeMs = GeneratedColumn<int>(
+    'local_mtime_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _mediaUrlMeta = const VerificationMeta(
     'mediaUrl',
   );
@@ -1196,6 +1264,7 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
     localUri,
     md5,
     size,
+    localMtimeMs,
     mediaUrl,
     syncStatus,
     serverUpdatedAt,
@@ -1319,6 +1388,15 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
         size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
       );
     }
+    if (data.containsKey('local_mtime_ms')) {
+      context.handle(
+        _localMtimeMsMeta,
+        localMtimeMs.isAcceptableOrUnknown(
+          data['local_mtime_ms']!,
+          _localMtimeMsMeta,
+        ),
+      );
+    }
     if (data.containsKey('media_url')) {
       context.handle(
         _mediaUrlMeta,
@@ -1425,6 +1503,10 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
         DriftSqlType.int,
         data['${effectivePrefix}size'],
       ),
+      localMtimeMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_mtime_ms'],
+      ),
       mediaUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}media_url'],
@@ -1470,6 +1552,10 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
   final String? localUri;
   final String? md5;
   final int? size;
+
+  /// Last-modified ms of the linked/copied file at import or re-link time.
+  /// Used for cheap open trust checks; device-local (not synced).
+  final int? localMtimeMs;
   final String? mediaUrl;
   final String? syncStatus;
   final DateTime? serverUpdatedAt;
@@ -1491,6 +1577,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     this.localUri,
     this.md5,
     this.size,
+    this.localMtimeMs,
     this.mediaUrl,
     this.syncStatus,
     this.serverUpdatedAt,
@@ -1532,6 +1619,9 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     }
     if (!nullToAbsent || size != null) {
       map['size'] = Variable<int>(size);
+    }
+    if (!nullToAbsent || localMtimeMs != null) {
+      map['local_mtime_ms'] = Variable<int>(localMtimeMs);
     }
     if (!nullToAbsent || mediaUrl != null) {
       map['media_url'] = Variable<String>(mediaUrl);
@@ -1578,6 +1668,9 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           : Value(localUri),
       md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
       size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      localMtimeMs: localMtimeMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localMtimeMs),
       mediaUrl: mediaUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaUrl),
@@ -1613,6 +1706,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       localUri: serializer.fromJson<String?>(json['localUri']),
       md5: serializer.fromJson<String?>(json['md5']),
       size: serializer.fromJson<int?>(json['size']),
+      localMtimeMs: serializer.fromJson<int?>(json['localMtimeMs']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
       syncStatus: serializer.fromJson<String?>(json['syncStatus']),
       serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
@@ -1639,6 +1733,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       'localUri': serializer.toJson<String?>(localUri),
       'md5': serializer.toJson<String?>(md5),
       'size': serializer.toJson<int?>(size),
+      'localMtimeMs': serializer.toJson<int?>(localMtimeMs),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
       'syncStatus': serializer.toJson<String?>(syncStatus),
       'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
@@ -1663,6 +1758,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     Value<String?> localUri = const Value.absent(),
     Value<String?> md5 = const Value.absent(),
     Value<int?> size = const Value.absent(),
+    Value<int?> localMtimeMs = const Value.absent(),
     Value<String?> mediaUrl = const Value.absent(),
     Value<String?> syncStatus = const Value.absent(),
     Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -1686,6 +1782,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     localUri: localUri.present ? localUri.value : this.localUri,
     md5: md5.present ? md5.value : this.md5,
     size: size.present ? size.value : this.size,
+    localMtimeMs: localMtimeMs.present ? localMtimeMs.value : this.localMtimeMs,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
     syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
     serverUpdatedAt: serverUpdatedAt.present
@@ -1721,6 +1818,9 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       localUri: data.localUri.present ? data.localUri.value : this.localUri,
       md5: data.md5.present ? data.md5.value : this.md5,
       size: data.size.present ? data.size.value : this.size,
+      localMtimeMs: data.localMtimeMs.present
+          ? data.localMtimeMs.value
+          : this.localMtimeMs,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
@@ -1751,6 +1851,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           ..write('localUri: $localUri, ')
           ..write('md5: $md5, ')
           ..write('size: $size, ')
+          ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -1761,7 +1862,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     aid,
     provider,
@@ -1777,12 +1878,13 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     localUri,
     md5,
     size,
+    localMtimeMs,
     mediaUrl,
     syncStatus,
     serverUpdatedAt,
     createdAt,
     updatedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1802,6 +1904,7 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           other.localUri == this.localUri &&
           other.md5 == this.md5 &&
           other.size == this.size &&
+          other.localMtimeMs == this.localMtimeMs &&
           other.mediaUrl == this.mediaUrl &&
           other.syncStatus == this.syncStatus &&
           other.serverUpdatedAt == this.serverUpdatedAt &&
@@ -1825,6 +1928,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
   final Value<String?> localUri;
   final Value<String?> md5;
   final Value<int?> size;
+  final Value<int?> localMtimeMs;
   final Value<String?> mediaUrl;
   final Value<String?> syncStatus;
   final Value<DateTime?> serverUpdatedAt;
@@ -1847,6 +1951,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     this.localUri = const Value.absent(),
     this.md5 = const Value.absent(),
     this.size = const Value.absent(),
+    this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -1870,6 +1975,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     this.localUri = const Value.absent(),
     this.md5 = const Value.absent(),
     this.size = const Value.absent(),
+    this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -1897,6 +2003,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     Expression<String>? localUri,
     Expression<String>? md5,
     Expression<int>? size,
+    Expression<int>? localMtimeMs,
     Expression<String>? mediaUrl,
     Expression<String>? syncStatus,
     Expression<DateTime>? serverUpdatedAt,
@@ -1920,6 +2027,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
       if (localUri != null) 'local_uri': localUri,
       if (md5 != null) 'md5': md5,
       if (size != null) 'size': size,
+      if (localMtimeMs != null) 'local_mtime_ms': localMtimeMs,
       if (mediaUrl != null) 'media_url': mediaUrl,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
@@ -1945,6 +2053,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     Value<String?>? localUri,
     Value<String?>? md5,
     Value<int?>? size,
+    Value<int?>? localMtimeMs,
     Value<String?>? mediaUrl,
     Value<String?>? syncStatus,
     Value<DateTime?>? serverUpdatedAt,
@@ -1968,6 +2077,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
       localUri: localUri ?? this.localUri,
       md5: md5 ?? this.md5,
       size: size ?? this.size,
+      localMtimeMs: localMtimeMs ?? this.localMtimeMs,
       mediaUrl: mediaUrl ?? this.mediaUrl,
       syncStatus: syncStatus ?? this.syncStatus,
       serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
@@ -2025,6 +2135,9 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     if (size.present) {
       map['size'] = Variable<int>(size.value);
     }
+    if (localMtimeMs.present) {
+      map['local_mtime_ms'] = Variable<int>(localMtimeMs.value);
+    }
     if (mediaUrl.present) {
       map['media_url'] = Variable<String>(mediaUrl.value);
     }
@@ -2064,6 +2177,7 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
           ..write('localUri: $localUri, ')
           ..write('md5: $md5, ')
           ..write('size: $size, ')
+          ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -8935,6 +9049,7 @@ typedef $$VideosTableCreateCompanionBuilder =
       Value<String?> localUri,
       Value<String?> md5,
       Value<int?> size,
+      Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
@@ -8956,6 +9071,7 @@ typedef $$VideosTableUpdateCompanionBuilder =
       Value<String?> localUri,
       Value<String?> md5,
       Value<int?> size,
+      Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
@@ -9030,6 +9146,11 @@ class $$VideosTableFilterComposer
 
   ColumnFilters<int> get size => $composableBuilder(
     column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9128,6 +9249,11 @@ class $$VideosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get mediaUrl => $composableBuilder(
     column: $table.mediaUrl,
     builder: (column) => ColumnOrderings(column),
@@ -9205,6 +9331,11 @@ class $$VideosTableAnnotationComposer
   GeneratedColumn<int> get size =>
       $composableBuilder(column: $table.size, builder: (column) => column);
 
+  GeneratedColumn<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get mediaUrl =>
       $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
 
@@ -9265,6 +9396,7 @@ class $$VideosTableTableManager
                 Value<String?> localUri = const Value.absent(),
                 Value<String?> md5 = const Value.absent(),
                 Value<int?> size = const Value.absent(),
+                Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -9284,6 +9416,7 @@ class $$VideosTableTableManager
                 localUri: localUri,
                 md5: md5,
                 size: size,
+                localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,
@@ -9305,6 +9438,7 @@ class $$VideosTableTableManager
                 Value<String?> localUri = const Value.absent(),
                 Value<String?> md5 = const Value.absent(),
                 Value<int?> size = const Value.absent(),
+                Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -9324,6 +9458,7 @@ class $$VideosTableTableManager
                 localUri: localUri,
                 md5: md5,
                 size: size,
+                localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,
@@ -9370,6 +9505,7 @@ typedef $$AudiosTableCreateCompanionBuilder =
       Value<String?> localUri,
       Value<String?> md5,
       Value<int?> size,
+      Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
@@ -9394,6 +9530,7 @@ typedef $$AudiosTableUpdateCompanionBuilder =
       Value<String?> localUri,
       Value<String?> md5,
       Value<int?> size,
+      Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
       Value<String?> syncStatus,
       Value<DateTime?> serverUpdatedAt,
@@ -9483,6 +9620,11 @@ class $$AudiosTableFilterComposer
 
   ColumnFilters<int> get size => $composableBuilder(
     column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9596,6 +9738,11 @@ class $$AudiosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get mediaUrl => $composableBuilder(
     column: $table.mediaUrl,
     builder: (column) => ColumnOrderings(column),
@@ -9686,6 +9833,11 @@ class $$AudiosTableAnnotationComposer
   GeneratedColumn<int> get size =>
       $composableBuilder(column: $table.size, builder: (column) => column);
 
+  GeneratedColumn<int> get localMtimeMs => $composableBuilder(
+    column: $table.localMtimeMs,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get mediaUrl =>
       $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
 
@@ -9749,6 +9901,7 @@ class $$AudiosTableTableManager
                 Value<String?> localUri = const Value.absent(),
                 Value<String?> md5 = const Value.absent(),
                 Value<int?> size = const Value.absent(),
+                Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -9771,6 +9924,7 @@ class $$AudiosTableTableManager
                 localUri: localUri,
                 md5: md5,
                 size: size,
+                localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,
@@ -9795,6 +9949,7 @@ class $$AudiosTableTableManager
                 Value<String?> localUri = const Value.absent(),
                 Value<String?> md5 = const Value.absent(),
                 Value<int?> size = const Value.absent(),
+                Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
                 Value<String?> syncStatus = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -9817,6 +9972,7 @@ class $$AudiosTableTableManager
                 localUri: localUri,
                 md5: md5,
                 size: size,
+                localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
                 syncStatus: syncStatus,
                 serverUpdatedAt: serverUpdatedAt,

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted — **import storage superseded in part by [ADR-0050](0050-path-linked-local-media.md)** (prefer lasting link; copy only when lasting access is unavailable). Other MVP scope decisions in this ADR remain in force unless separately superseded.
 
 ## Context
 
@@ -12,7 +12,7 @@ The product vision includes YouTube, URL streaming, and cloud sync (see web app)
 
 MVP **v1** includes:
 
-- Import local media via `file_picker` (copy into app documents).
+- Import local media via `file_picker` (historically copy into app documents; see ADR-0050 for current link-preferring behavior).
 - Transcript import (`.srt` / `.vtt`).
 - Expanded + mini player UX, line navigation, echo mode, persisted position.
 

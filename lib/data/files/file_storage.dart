@@ -1,4 +1,4 @@
-/// Copy picked files into app documents and expose stable file:// paths.
+/// Prefer lasting external links; fall back to copying into app documents.
 library;
 
 import 'dart:async';
@@ -14,6 +14,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'chunked_file_hash.dart';
+import 'lasting_local_access.dart';
 
 class FileImportResult {
   const FileImportResult({
@@ -21,6 +22,7 @@ class FileImportResult {
     required this.contentHashHex,
     required this.fileSize,
     required this.title,
+    this.mtimeMs,
   });
 
   final String localPath;
@@ -29,6 +31,9 @@ class FileImportResult {
   final String contentHashHex;
   final int fileSize;
   final String title;
+
+  /// [File.stat] modified time in ms since epoch when available.
+  final int? mtimeMs;
 
   String get fileUri => Uri.file(localPath).toString();
 }
@@ -40,9 +45,8 @@ typedef _ImportIsolateArgs = ({
   String tempFileName,
   String ext,
   String title,
-
-  /// When set, import fails with [FileFailure] if chunked hash hex does not match.
   String? expectedHashHex,
+  bool linkExternally,
 });
 
 typedef _ImportIsolateResult = ({
@@ -67,18 +71,25 @@ Future<void> _streamCopyFile(String sourcePath, String destPath) async {
 Future<_ImportIsolateResult> _importMediaFileInIsolate(
   _ImportIsolateArgs args,
 ) async {
-  final tempPath = p.join(args.mediaDirPath, args.tempFileName);
-  final tempFile = File(tempPath);
-
   final contentHashHex = chunkedContentSha256HexFromFileSync(args.sourcePath);
 
   final expected = args.expectedHashHex;
   if (expected != null && expected.isNotEmpty && expected != contentHashHex) {
-    if (await tempFile.exists()) {
-      await tempFile.delete();
-    }
     throw 'HASH_MISMATCH';
   }
+
+  if (args.linkExternally) {
+    final length = await File(args.sourcePath).length();
+    return (
+      localPath: args.sourcePath,
+      contentHashHex: contentHashHex,
+      fileSize: length,
+      title: args.title,
+    );
+  }
+
+  final tempPath = p.join(args.mediaDirPath, args.tempFileName);
+  final tempFile = File(tempPath);
 
   await _streamCopyFile(args.sourcePath, tempPath);
   final writtenLength = await tempFile.length();
@@ -105,64 +116,26 @@ Future<_ImportIsolateResult> _importMediaFileInIsolate(
   );
 }
 
+Future<int?> _mtimeMsForPath(String path) async {
+  try {
+    final stat = await File(path).stat();
+    return stat.modified.millisecondsSinceEpoch;
+  } on Object {
+    return null;
+  }
+}
+
 class FileStorage {
   // ignore: prefer_const_constructors
   static final Uuid _uuid = Uuid();
 
-  Future<FileImportResult> importPickedFile(XFile file) async {
-    try {
-      final path = file.path;
-      if (path.isEmpty) {
-        throw const FileFailure('Import failed: no file path');
-      }
-
-      final docs = await getApplicationDocumentsDirectory();
-      final mediaDir = Directory(p.join(docs.path, 'media'));
-      if (!await mediaDir.exists()) {
-        await mediaDir.create(recursive: true);
-      }
-
-      final ext = p.extension(file.name).toLowerCase();
-      final tempFileName = '.tmp_${_uuid.v4()}$ext';
-      final title = p.basenameWithoutExtension(file.name);
-      final mediaDirPath = mediaDir.path;
-
-      final worker = await Isolate.run(
-        () => _importMediaFileInIsolate((
-          sourcePath: path,
-          mediaDirPath: mediaDirPath,
-          tempFileName: tempFileName,
-          ext: ext,
-          title: title,
-          expectedHashHex: null,
-        )),
-      );
-
-      return FileImportResult(
-        localPath: worker.localPath,
-        contentHashHex: worker.contentHashHex,
-        fileSize: worker.fileSize,
-        title: worker.title,
-      );
-    } catch (e, st) {
-      if (e is FileFailure) {
-        Error.throwWithStackTrace(e, st);
-      }
-      if (e == 'HASH_MISMATCH') {
-        Error.throwWithStackTrace(
-          const FileFailure('Hash mismatch: file does not match synced media.'),
-          st,
-        );
-      }
-      Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
-    }
-  }
-
-  /// Like [importPickedFile], but only succeeds when the file's chunked SHA-256
-  /// hex matches [expectedHashHex] (same value stored in Drift `md5` column).
-  Future<FileImportResult> importPickedFileExpectingHash(
+  /// Prefer lasting external link; otherwise copy into app `media/`.
+  ///
+  /// When [expectedHashHex] is set, fails with [FileFailure] if the chunked
+  /// hash does not match (without leaving orphan `.tmp_` files).
+  Future<FileImportResult> importOrLinkPickedFile(
     XFile file, {
-    required String expectedHashHex,
+    String? expectedHashHex,
   }) async {
     try {
       final path = file.path;
@@ -179,16 +152,17 @@ class FileStorage {
       final ext = p.extension(file.name).toLowerCase();
       final tempFileName = '.tmp_${_uuid.v4()}$ext';
       final title = p.basenameWithoutExtension(file.name);
-      final mediaDirPath = mediaDir.path;
+      final linkExternally = await canLinkExternally(path);
 
       final worker = await Isolate.run(
         () => _importMediaFileInIsolate((
           sourcePath: path,
-          mediaDirPath: mediaDirPath,
+          mediaDirPath: mediaDir.path,
           tempFileName: tempFileName,
           ext: ext,
           title: title,
           expectedHashHex: expectedHashHex,
+          linkExternally: linkExternally,
         )),
       );
 
@@ -197,6 +171,7 @@ class FileStorage {
         contentHashHex: worker.contentHashHex,
         fileSize: worker.fileSize,
         title: worker.title,
+        mtimeMs: await _mtimeMsForPath(worker.localPath),
       );
     } catch (e, st) {
       if (e is FileFailure) {
@@ -209,6 +184,31 @@ class FileStorage {
         );
       }
       Error.throwWithStackTrace(FileFailure('Import failed: $e'), st);
+    }
+  }
+
+  Future<FileImportResult> importPickedFile(XFile file) =>
+      importOrLinkPickedFile(file);
+
+  /// Like [importPickedFile], but only succeeds when the file's chunked SHA-256
+  /// hex matches [expectedHashHex] (same value stored in Drift `md5` column).
+  Future<FileImportResult> importPickedFileExpectingHash(
+    XFile file, {
+    required String expectedHashHex,
+  }) => importOrLinkPickedFile(file, expectedHashHex: expectedHashHex);
+
+  /// Best-effort delete when [fileUri] points at app-managed `media/`.
+  /// No-op for external links, null, or missing files.
+  Future<void> deleteAppManagedMedia(String? fileUri) async {
+    if (fileUri == null || fileUri.isEmpty) return;
+    if (!await isAppManagedMediaPath(fileUri)) return;
+    try {
+      final file = File.fromUri(Uri.parse(fileUri));
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } on Object {
+      // Best-effort cleanup only.
     }
   }
 
@@ -254,6 +254,7 @@ class FileStorage {
         contentHashHex: contentHashHex,
         fileSize: bytes.length,
         title: title,
+        mtimeMs: await _mtimeMsForPath(destPath),
       );
     } catch (e, st) {
       if (e is FileFailure) {

@@ -31,4 +31,12 @@ class AudioDao extends DatabaseAccessor<AppDatabase> with _$AudioDaoMixin {
 
   Future<void> deleteId(String id) =>
       (delete(audios)..where((t) => t.id.equals(id))).go();
+
+  /// Rows whose [Audios.localUri] equals [localUri] (exact string match).
+  Future<int> countByLocalUri(String localUri) async {
+    final rows = await (select(
+      audios,
+    )..where((t) => t.localUri.equals(localUri))).get();
+    return rows.length;
+  }
 }

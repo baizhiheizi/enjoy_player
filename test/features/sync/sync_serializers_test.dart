@@ -30,6 +30,7 @@ void main() {
       );
       final m = prepareForSyncAudioMap(row);
       expect(m.containsKey('localUri'), isFalse);
+      expect(m.containsKey('localMtimeMs'), isFalse);
       expect(m.containsKey('syncStatus'), isFalse);
       expect(m['duration'], 10);
     });
@@ -250,6 +251,7 @@ void main() {
         localUri: 'file:///keep-me.mp3',
         md5: 'm',
         size: 1,
+        localMtimeMs: 12345,
         mediaUrl: null,
         syncStatus: 'local',
         serverUpdatedAt: null,
@@ -272,6 +274,7 @@ void main() {
       expect(merged.title, 'Server title');
       expect(merged.durationSeconds, 42);
       expect(merged.localUri, 'file:///keep-me.mp3');
+      expect(merged.localMtimeMs, 12345);
     });
 
     test('local newer keeps local row unchanged', () {

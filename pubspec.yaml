@@ -43,6 +43,7 @@ dependencies:
     path: packages/ffmpeg_kit_flutter_new
   path: ^1.9.1
   path_provider: ^2.1.5
+  sqlite3: ^2.9.4
   package_info_plus: ^10.1.0
   # Pre-release / single-publisher deps (Windows + mobile auto-update flow).
   # Pinned exactly so `pub get` cannot silently upgrade; bump via PR. See

@@ -48,4 +48,4 @@ final class YoutubeProfilesProvider
   }
 }
 
-String _$youtubeProfilesHash() => r'7ade9e166f41d449cd3467fed74bc5a11bba9094';
+String _$youtubeProfilesHash() => r'23dea2b485a34b3c86b22e2ed3c18a530565d539';

@@ -8,7 +8,7 @@
 | Navigation | `go_router` | Shell route for persistent mini player |
 | Playback | `media_kit` + `media_kit_video` + `media_kit_libs_video` | Single `Player` instance |
 | Persistence | `drift` + `drift_flutter` + `sqlite3_flutter_libs` | Native SQLite |
-| Files | `file_picker` + `path_provider` + `cross_file` | Import copies into app documents |
+| Files | `file_picker` + `path_provider` + `cross_file` | Prefer lasting external link; copy into app `media/` when lasting access is unavailable ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
 | IDs | `uuid` | v5 namespaced IDs for media from file hash |
 | Logging | `logging` | Wrapper `logNamed` |
 | Networking | `http` | Enjoy API client under `lib/data/api/` |

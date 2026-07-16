@@ -73,3 +73,4 @@ Trade-offs, follow-up work, risks.
 | [0046](0046-discover-feed-append-only.md) | Discover feed cache is append-only between unsubscribe events |
 | [0047](0047-youtube-discover-innertube.md) | InnerTube `browse` as primary source for YouTube channel discover |
 | [0049](0049-youtube-language-aware-captions.md) | YouTube language-aware caption discovery & primary selection |
+| [0050](0050-path-linked-local-media.md) | Path-linked local media — prefer lasting link, copy fallback (partial supersession of 0005 import storage) |

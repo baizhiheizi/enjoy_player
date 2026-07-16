@@ -1,9 +1,8 @@
 /// Resolve weapp-style `TargetType` from a library item id (video vs audio row).
 library;
 
-import 'dart:io';
-
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
+import 'package:enjoy_player/data/files/local_uri_trust.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
 import 'app_database.dart';
@@ -12,15 +11,6 @@ Future<String?> dexieTargetTypeForId(AppDatabase db, String id) async {
   if (await db.videoDao.getById(id) != null) return 'Video';
   if (await db.audioDao.getById(id) != null) return 'Audio';
   return null;
-}
-
-Future<bool> _localUriPlayable(String? uri) async {
-  if (uri == null || uri.isEmpty) return false;
-  try {
-    return File.fromUri(Uri.parse(uri)).exists();
-  } on Object {
-    return false;
-  }
 }
 
 /// Same resolution as [PlayerController.openMedia] — returns structured source.
@@ -49,7 +39,12 @@ Future<PlayableSource?> resolvePlayableSource(
     return RemoteUrlPlayableSource(netUri);
   }
   final local = video?.localUri ?? audio?.localUri;
-  if (await _localUriPlayable(local)) {
+  final trusted = await localUriTrusted(
+    localUri: local,
+    storedSize: video?.size ?? audio?.size,
+    storedMtimeMs: video?.localMtimeMs ?? audio?.localMtimeMs,
+  );
+  if (trusted) {
     return LocalFilePlayableSource(local!);
   }
   return null;
@@ -78,7 +73,12 @@ Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
     return netUri;
   }
   final local = video?.localUri ?? audio?.localUri;
-  if (await _localUriPlayable(local)) {
+  final trusted = await localUriTrusted(
+    localUri: local,
+    storedSize: video?.size ?? audio?.size,
+    storedMtimeMs: video?.localMtimeMs ?? audio?.localMtimeMs,
+  );
+  if (trusted) {
     return local;
   }
   return null;

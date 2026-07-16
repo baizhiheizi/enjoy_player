@@ -61,4 +61,12 @@ class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
 
   Future<void> deleteId(String id) =>
       (delete(videos)..where((t) => t.id.equals(id))).go();
+
+  /// Rows whose [Videos.localUri] equals [localUri] (exact string match).
+  Future<int> countByLocalUri(String localUri) async {
+    final rows = await (select(
+      videos,
+    )..where((t) => t.localUri.equals(localUri))).get();
+    return rows.length;
+  }
 }

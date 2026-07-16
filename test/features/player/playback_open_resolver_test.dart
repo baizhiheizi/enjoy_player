@@ -63,6 +63,47 @@ void main() {
     },
   );
 
+  test('resolvePlaybackOpen throws when size trust check fails', () async {
+    final now = DateTime.now();
+    const id = 'trust-fail';
+    const fingerprint =
+        'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    final root = Directory.systemTemp.createTempSync('enjoy_open_trust');
+    addTearDown(() {
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+    final file = File(p.join(root.path, 'clip.mp4'));
+    await file.writeAsBytes([1, 2, 3, 4, 5]);
+
+    await db.videoDao.insertRow(
+      VideoRow(
+        id: id,
+        vid: fingerprint,
+        provider: 'user',
+        title: 't',
+        description: null,
+        thumbnailUrl: null,
+        durationSeconds: 1,
+        language: 'en',
+        source: null,
+        localUri: Uri.file(file.path).toString(),
+        md5: fingerprint,
+        size: 999,
+        localMtimeMs: null,
+        mediaUrl: null,
+        syncStatus: null,
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    await expectLater(
+      resolvePlaybackOpen(db, id),
+      throwsA(isA<MediaNeedsRelocateException>()),
+    );
+  });
+
   test(
     'resolvePlaybackOpen uses YouTube when vid is id despite user provider',
     () async {

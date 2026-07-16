@@ -100,7 +100,172 @@ void main() {
       expect(media, isNotNull);
       expect(media!.contentHash, expectedAid);
       expect(media.kind, MediaKind.audio);
+
+      final row = await db.audioDao.getById(id);
+      expect(row!.localUri, Uri.file(src.path).toString());
+      expect(row.localMtimeMs, isNotNull);
     });
+
+    test('importMedia reuses row for same fingerprint', () async {
+      final bytes = utf8.encode('same-bytes-twice');
+      final src = File(p.join(root.path, 'same.mp3'));
+      await src.writeAsBytes(bytes);
+
+      final id1 = await repo.importMedia(
+        XFile(src.path, name: 'same.mp3'),
+        signedInUserId: _testUserId,
+      );
+      final id2 = await repo.importMedia(
+        XFile(src.path, name: 'same.mp3'),
+        signedInUserId: _testUserId,
+      );
+      expect(id1, id2);
+      expect(await db.audioDao.watchAll().first, hasLength(1));
+    });
+
+    test('importMedia copies ephemeral picker path into media/', () async {
+      final tmp = Directory(p.join(root.path, '.os_tmp'))
+        ..createSync(recursive: true);
+      final bytes = utf8.encode('ephemeral-import');
+      final src = File(p.join(tmp.path, 'cache.mp3'));
+      await src.writeAsBytes(bytes);
+
+      final id = await repo.importMedia(
+        XFile(src.path, name: 'cache.mp3'),
+        signedInUserId: _testUserId,
+      );
+      final row = await db.audioDao.getById(id);
+      expect(row!.localUri, contains('/media/'));
+      expect(File.fromUri(Uri.parse(row.localUri!)).existsSync(), isTrue);
+    });
+
+    test(
+      'deleteMedia preserves external file and removes app-managed copy',
+      () async {
+        final externalBytes = utf8.encode('external-keep');
+        final external = File(p.join(root.path, 'keep.mp3'));
+        await external.writeAsBytes(externalBytes);
+
+        final linkedId = await repo.importMedia(
+          XFile(external.path, name: 'keep.mp3'),
+          signedInUserId: _testUserId,
+        );
+        await repo.deleteMedia(linkedId);
+        expect(external.existsSync(), isTrue);
+
+        final tmp = Directory(p.join(root.path, '.os_tmp'))
+          ..createSync(recursive: true);
+        final managedSrc = File(p.join(tmp.path, 'managed.mp3'));
+        await managedSrc.writeAsBytes(utf8.encode('managed-delete'));
+        final managedId = await repo.importMedia(
+          XFile(managedSrc.path, name: 'managed.mp3'),
+          signedInUserId: 'test-user-b',
+        );
+        final managedRow = await db.audioDao.getById(managedId);
+        final managedPath = File.fromUri(Uri.parse(managedRow!.localUri!)).path;
+        expect(File(managedPath).existsSync(), isTrue);
+        await repo.deleteMedia(managedId);
+        expect(File(managedPath).existsSync(), isFalse);
+      },
+    );
+
+    test(
+      'deleteMedia keeps app-managed file when another row still references it',
+      () async {
+        final mediaDir = Directory(p.join(root.path, 'media'))
+          ..createSync(recursive: true);
+        final managed = File(p.join(mediaDir.path, 'shared.mp3'));
+        await managed.writeAsBytes(utf8.encode('shared-bytes'));
+        final uri = Uri.file(managed.path).toString();
+        final now = DateTime.now();
+
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: 'keep-ref',
+            aid: 'a1',
+            provider: 'user',
+            title: 'keep',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'und',
+            translationKey: null,
+            sourceText: null,
+            voice: null,
+            source: null,
+            localUri: uri,
+            md5:
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            size: managed.lengthSync(),
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: 'drop-ref',
+            aid: 'a2',
+            provider: 'user',
+            title: 'drop',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 0,
+            language: 'und',
+            translationKey: null,
+            sourceText: null,
+            voice: null,
+            source: null,
+            localUri: uri,
+            md5:
+                'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            size: managed.lengthSync(),
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        await repo.deleteMedia('drop-ref');
+        expect(managed.existsSync(), isTrue);
+        expect(await db.audioDao.getById('keep-ref'), isNotNull);
+      },
+    );
+
+    test(
+      'importMedia re-link cleans previous unreferenced app-managed copy',
+      () async {
+        final tmp = Directory(p.join(root.path, '.os_tmp'))
+          ..createSync(recursive: true);
+        final bytes = utf8.encode('relink-cleanup-body');
+        final ephemeral = File(p.join(tmp.path, 'ephemeral.mp3'));
+        await ephemeral.writeAsBytes(bytes);
+
+        final id = await repo.importMedia(
+          XFile(ephemeral.path, name: 'ephemeral.mp3'),
+          signedInUserId: _testUserId,
+        );
+        final afterCopy = await db.audioDao.getById(id);
+        final managedPath = File.fromUri(Uri.parse(afterCopy!.localUri!)).path;
+        expect(File(managedPath).existsSync(), isTrue);
+
+        final durable = File(p.join(root.path, 'durable.mp3'));
+        await durable.writeAsBytes(bytes);
+        final id2 = await repo.importMedia(
+          XFile(durable.path, name: 'durable.mp3'),
+          signedInUserId: _testUserId,
+        );
+        expect(id2, id);
+
+        final afterLink = await db.audioDao.getById(id);
+        expect(afterLink!.localUri, Uri.file(durable.path).toString());
+        expect(File(managedPath).existsSync(), isFalse);
+      },
+    );
 
     test('importMedia rejects unsupported image extension', () async {
       final src = File(p.join(root.path, 'photo.jpg'));
@@ -189,9 +354,9 @@ void main() {
 
         final row = await db.videoDao.getById(id);
         expect(row, isNotNull);
-        expect(row!.localUri, isNotNull);
-        expect(row.localUri, contains(hash));
+        expect(row!.localUri, Uri.file(src.path).toString());
         expect(row.size, bytes.length);
+        expect(row.localMtimeMs, isNotNull);
       },
     );
 

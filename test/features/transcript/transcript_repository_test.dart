@@ -541,6 +541,7 @@ void main() {
           ).writeAsString('1\n00:00:00,000 --> 00:00:01,000\nHello');
 
           final now = DateTime.now();
+          final mediaStat = await mediaFile.stat();
           await db.audioDao.insertRow(
             AudioRow(
               id: 'm-sidecar',
@@ -557,7 +558,8 @@ void main() {
               source: null,
               localUri: mediaFile.uri.toString(),
               md5: null,
-              size: 1,
+              size: mediaStat.size,
+              localMtimeMs: mediaStat.modified.millisecondsSinceEpoch,
               mediaUrl: null,
               syncStatus: null,
               serverUpdatedAt: null,

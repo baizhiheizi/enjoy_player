@@ -16,7 +16,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'importPickedFile uses web-aligned partial hash for 4MiB file',
+    'importPickedFile links durable path without copying into media/',
     () async {
       final original = PathProviderPlatform.instance;
       final root = Directory.systemTemp.createTempSync(
@@ -47,10 +47,50 @@ void main() {
 
       expect(result.contentHashHex, expectedHash);
       expect(result.fileSize, size);
+      expect(result.localPath, srcPath);
+      expect(result.mtimeMs, isNotNull);
       expect(File(result.localPath).existsSync(), isTrue);
       expect(await File(result.localPath).readAsBytes(), data);
+
+      final mediaDir = Directory(p.join(root.path, 'media'));
+      if (mediaDir.existsSync()) {
+        final copies = mediaDir.listSync().whereType<File>().where(
+          (f) => !p.basename(f.path).startsWith('.tmp_'),
+        );
+        expect(copies, isEmpty);
+      }
     },
   );
+
+  test('importPickedFile copies ephemeral temp path into media/', () async {
+    final original = PathProviderPlatform.instance;
+    final root = Directory.systemTemp.createTempSync('enjoy_file_storage_test');
+    PathProviderPlatform.instance = TestPathProvider(root.path);
+
+    addTearDown(() {
+      PathProviderPlatform.instance = original;
+      if (root.existsSync()) {
+        root.deleteSync(recursive: true);
+      }
+    });
+
+    final tmpDir = Directory(p.join(root.path, '.os_tmp'))
+      ..createSync(recursive: true);
+    final data = Uint8List.fromList([7, 7, 7, 7]);
+    final srcPath = p.join(tmpDir.path, 'ephemeral.bin');
+    await File(srcPath).writeAsBytes(data, flush: true);
+    final expectedHash = chunkedContentSha256HexFromFileSync(srcPath);
+
+    final storage = FileStorage();
+    final result = await storage.importPickedFile(
+      XFile(srcPath, name: 'ephemeral.bin'),
+    );
+
+    expect(result.contentHashHex, expectedHash);
+    expect(result.localPath, isNot(srcPath));
+    expect(result.localPath, contains(p.join('media', expectedHash)));
+    expect(File(result.localPath).existsSync(), isTrue);
+  });
 
   test('importPickedFileExpectingHash succeeds when hash matches', () async {
     final original = PathProviderPlatform.instance;
@@ -77,6 +117,7 @@ void main() {
 
     expect(result.contentHashHex, expectedHash);
     expect(File(result.localPath).existsSync(), isTrue);
+    expect(result.localPath, srcPath);
   });
 
   test(
@@ -118,4 +159,50 @@ void main() {
       }
     },
   );
+
+  test('importBytes still writes under media/', () async {
+    final original = PathProviderPlatform.instance;
+    final root = Directory.systemTemp.createTempSync('enjoy_file_storage_test');
+    PathProviderPlatform.instance = TestPathProvider(root.path);
+
+    addTearDown(() {
+      PathProviderPlatform.instance = original;
+      if (root.existsSync()) {
+        root.deleteSync(recursive: true);
+      }
+    });
+
+    final bytes = Uint8List.fromList([1, 2, 3]);
+    final storage = FileStorage();
+    final result = await storage.importBytes(bytes, extension: 'mp3');
+    expect(result.localPath, contains('${p.separator}media${p.separator}'));
+    expect(File(result.localPath).existsSync(), isTrue);
+  });
+
+  test('deleteAppManagedMedia removes only media/ files', () async {
+    final original = PathProviderPlatform.instance;
+    final root = Directory.systemTemp.createTempSync('enjoy_file_storage_test');
+    PathProviderPlatform.instance = TestPathProvider(root.path);
+
+    addTearDown(() {
+      PathProviderPlatform.instance = original;
+      if (root.existsSync()) {
+        root.deleteSync(recursive: true);
+      }
+    });
+
+    final media = Directory(p.join(root.path, 'media'))
+      ..createSync(recursive: true);
+    final managed = File(p.join(media.path, 'x.bin'));
+    await managed.writeAsBytes([1]);
+    final external = File(p.join(root.path, 'out.bin'));
+    await external.writeAsBytes([2]);
+
+    final storage = FileStorage();
+    await storage.deleteAppManagedMedia(Uri.file(managed.path).toString());
+    await storage.deleteAppManagedMedia(Uri.file(external.path).toString());
+
+    expect(managed.existsSync(), isFalse);
+    expect(external.existsSync(), isTrue);
+  });
 }
