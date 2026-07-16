@@ -62,6 +62,36 @@ void main() {
     });
   });
 
+  group('formatDurationHmsMs', () {
+    test('matches formatDurationHms for the same millisecond value', () {
+      expect(formatDurationHmsMs(0), '00:00');
+      expect(formatDurationHmsMs(5 * 1000), '00:05');
+      expect(formatDurationHmsMs(75 * 60 * 1000), '01:15:00');
+      expect(
+        formatDurationHmsMs(2 * 60 * 60 * 1000 + 3 * 60 * 1000 + 4 * 1000),
+        formatDurationHms(const Duration(hours: 2, minutes: 3, seconds: 4)),
+      );
+    });
+  });
+
+  group('formatDurationHmsSeconds', () {
+    test('matches integer-second Duration formatting', () {
+      expect(formatDurationHmsSeconds(0), '00:00');
+      expect(formatDurationHmsSeconds(5), '00:05');
+      expect(formatDurationHmsSeconds(62), '01:02');
+      expect(formatDurationHmsSeconds(3600), '01:00:00');
+    });
+
+    test('rounds fractional seconds to the nearest millisecond', () {
+      // Sub-second values still format as 00:00 — Duration.inSeconds truncates.
+      expect(formatDurationHmsSeconds(0.4), '00:00');
+      expect(formatDurationHmsSeconds(0.6), '00:00');
+      // Near a whole second, ms rounding can tip into the next second.
+      expect(formatDurationHmsSeconds(0.9996), '00:01');
+      expect(formatDurationHmsSeconds(1.5), '00:01');
+    });
+  });
+
   group('formatPracticeDurationMs', () {
     test('zero and negative milliseconds render as 0m', () {
       expect(formatPracticeDurationMs(0), '0m');

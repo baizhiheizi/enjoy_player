@@ -155,7 +155,7 @@ class LocalAudioRow extends ConsumerWidget {
     );
     final thumb = localThumbnailFileForCard(media.thumbnailPath);
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
-    final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
+    final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
 
     return MediaCardRow(
@@ -259,7 +259,7 @@ class LocalVideoTile extends ConsumerWidget {
     );
     final thumb = localThumbnailFileForMedia(media);
     final netThumb = networkThumbnailForMedia(media);
-    final dur = formatDurationHms(Duration(milliseconds: media.durationMs));
+    final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
 
     return MediaCardTile(

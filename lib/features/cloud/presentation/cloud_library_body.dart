@@ -312,9 +312,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final add = ref.watch(cloudAddToLibraryProvider);
-    final dur = formatDurationHms(
-      Duration(seconds: widget.item.durationSeconds),
-    );
+    final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
     final seed = _coverSeed(item);
     final accent = generativeAccentForSeed(seed);
@@ -517,9 +515,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final add = ref.watch(cloudAddToLibraryProvider);
-    final dur = formatDurationHms(
-      Duration(seconds: widget.item.durationSeconds),
-    );
+    final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
     final seed = _coverSeed(item);
     final accent = generativeAccentForSeed(seed);
