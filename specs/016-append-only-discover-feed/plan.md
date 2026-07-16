@@ -31,7 +31,7 @@ No new dependencies are introduced. No Drift schema change is required (column s
 
 **Testing**: `flutter test` is the primary gate. The change must add unit tests under `test/features/discover/` covering (a) cache grows on new entries, (b) cache preserved when RSS omits entries, (c) refresh idempotency on identical RSS responses, (d) unsubscribe clears the channel's cache, (e) failed refresh leaves cache and `lastFetchedAt` untouched. The existing `discover_repository_test.dart` and `discover_dedupe_test.dart` may need updates if they assert stale-entry deletion (per spec QR-002 + SC-007).
 
-**Target Platform**: Android, iOS, macOS, Windows, Linux (Flutter web is out of scope per ADR-0044 and the constitution). No platform-specific code; the change is in pure Dart.
+**Target Platform**: Android, iOS, macOS, Windows, Linux (Flutter web is out of scope per ADR-0048 and the constitution). No platform-specific code; the change is in pure Dart.
 
 **Project Type**: Flutter native mobile/desktop app.
 

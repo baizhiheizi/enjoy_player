@@ -11,7 +11,7 @@ void main() {
     });
 
     test(
-      'youtubeEngineAvailableOnLinux is false (v1 opt-out per ADR-0044)',
+      'youtubeEngineAvailableOnLinux is false (v1 opt-out per ADR-0048)',
       () {
         expect(
           linux_avail.youtubeEngineAvailableOnLinux,
@@ -23,7 +23,7 @@ void main() {
       },
     );
 
-    test('googleSignInAvailableOnLinux is true (v1 default per ADR-0044)', () {
+    test('googleSignInAvailableOnLinux is true (v1 default per ADR-0048)', () {
       expect(
         linux_avail.googleSignInAvailableOnLinux,
         true,
@@ -32,7 +32,7 @@ void main() {
     });
 
     test('autoUpdaterAvailableOnLinux is false (auto_updater is Windows/macOS '
-        'only per ADR-0044)', () {
+        'only per ADR-0048)', () {
       expect(
         linux_avail.autoUpdaterAvailableOnLinux,
         false,
@@ -42,7 +42,7 @@ void main() {
       );
     });
 
-    test('echoRecordingAvailableOnLinux is true (v1 default per ADR-0044)', () {
+    test('echoRecordingAvailableOnLinux is true (v1 default per ADR-0048)', () {
       expect(
         linux_avail.echoRecordingAvailableOnLinux,
         true,
@@ -52,7 +52,7 @@ void main() {
       );
     });
 
-    test('nativeLinuxAsrAvailable is true (v1 default per ADR-0044)', () {
+    test('nativeLinuxAsrAvailable is true (v1 default per ADR-0048)', () {
       expect(
         linux_avail.nativeLinuxAsrAvailable,
         true,

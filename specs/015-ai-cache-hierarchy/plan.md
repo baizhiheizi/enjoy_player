@@ -22,7 +22,7 @@ Replace the four ad-hoc AI result caches in `lib/features/lookup/` and `lib/feat
 
 **Testing**: `flutter test` (host VM) against `NativeDatabase.memory()` (the existing pattern in `auto_translate_request_test.dart`). The cache layer is split so the pure-Dart core is testable without Riverpod, the DAO is testable against an in-memory Drift database, and the integration (via `lookup_section_providers.dart` and `auto_translate_controller.dart`) is testable via `ProviderContainer` with overrides — mirroring the existing transcript test suite.
 
-**Target Platform**: Android, iOS, macOS, Windows, Linux (unchanged; per ADR-0044). The cache has no platform-conditional code.
+**Target Platform**: Android, iOS, macOS, Windows, Linux (unchanged; per ADR-0048). The cache has no platform-conditional code.
 
 **Project Type**: Flutter native mobile/desktop app — no new project type.
 

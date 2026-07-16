@@ -36,7 +36,7 @@ No new dependencies are introduced. No Drift schema change is required — `Yout
 
 No widget/integration tests are required; the change is a repository-layer data-source swap with documented observable behavior. Manual verification is described in `quickstart.md`.
 
-**Target Platform**: Android, iOS, macOS, Windows, Linux (Flutter web is out of scope per ADR-0044 and the constitution). No platform-specific code; `package:http` already supports all targets.
+**Target Platform**: Android, iOS, macOS, Windows, Linux (Flutter web is out of scope per ADR-0048 and the constitution). No platform-specific code; `package:http` already supports all targets.
 
 **Project Type**: Flutter native mobile/desktop app.
 

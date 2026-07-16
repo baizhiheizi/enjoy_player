@@ -24,7 +24,7 @@ void main() {
 
   test('recordingClientPlatformValue returns linux when Platform.isLinux', () {
     // When running on a Linux test host, the client_platform string must be
-    // 'linux' so the backend classifies it correctly (ADR-0044, FR-020).
+    // 'linux' so the backend classifies it correctly (ADR-0048, FR-020).
     if (!Platform.isLinux) {
       // The test host is not Linux, so we only verify the IO value is one
       // of the supported platforms (already covered above). This test

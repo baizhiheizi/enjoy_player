@@ -128,7 +128,7 @@ class MediaKitPlayerEngine implements PlayerEngine {
     }
     if (Platform.isLinux) {
       // Same conservative path as macOS: avoid green-screen / EGL_BAD_DISPLAY
-      // on Linux + Wayland with NVIDIA / AMD hybrid GPUs (ADR-0044, R2).
+      // on Linux + Wayland with NVIDIA / AMD hybrid GPUs (ADR-0048, R2).
       return const VideoControllerConfiguration(
         width: kVideoControllerWidth,
         height: kVideoControllerHeight,
