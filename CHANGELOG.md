@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-07-16
+
 ### Added
 
 - **Shared `LoadingIcon` widget** for inline busy affordances ([#338](https://github.com/baizhiheizi/enjoy_player/issues/338), [#341](https://github.com/baizhiheizi/enjoy_player/pull/341)). A compact 18×18 `CircularProgressIndicator` (`size`, `strokeWidth`, `color`) replaces 30+ duplicated `SizedBox` + `CircularProgressIndicator` patterns across 20 files (auth sidebar chip, profile preferences, settings hub, sync status, transcript busy action, subtitle track picker, lookup refresh/error rows, cloud library body, craft translate/synthesize tools, BYOK forms, discover subscribe sheet / screen / channel filter, share poster preview, locate media, shadow-reading assessment button). Documented in [docs/features/app-ui.md § Widgets reference](docs/features/app-ui.md#widgets-reference).
@@ -17,10 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Discover channel refresh uses InnerTube `browse` as primary data source** ([ADR-0047](docs/decisions/0047-youtube-discover-innertube.md)). The per-channel refresh path now tries InnerTube's anonymous `browse` endpoint first (`POST youtubei.googleapis.com/youtubei/v1/browse`) and falls back to the Atom RSS endpoint on failure. InnerTube returns richer metadata (`lengthText`, `viewCountText`, `publishedTimeText`) and is materially less likely to be blocked by YouTube's bot detection. The legacy watch-page HTML duration enrichment is skipped for InnerTube-sourced rows. Client profile rotation (`WEB` → `MWEB`) and continuation pagination (cap 5 pages ≈ 150 entries) match the caption fetcher's posture. See [docs/features/discover.md § Data sources](docs/features/discover.md#data-sources-dual-source).
 - **Discover avatar URL cache rides the shared `L1Store<K, V>` primitive** ([#335](https://github.com/baizhiheizi/enjoy_player/pull/335)). `DiscoverRepository` no longer carries a hand-rolled `LinkedHashMap` LRU for channel avatars; the cache is now a 256-entry, 6-hour-TTL instance of the same [`L1Store`](lib/core/cache/lru_store.dart) that backs the AI result cache hierarchy ([ADR-0045](docs/decisions/0045-ai-result-cache-hierarchy.md)) and `LookupSheetResultCache`. The 6 h TTL is a strict relaxation of the previous infinite lifetime — avatar URLs change only a few times per year, so the window is far longer than realistic re-fetch cadence while bounding memory of long-running sessions that touch thousands of distinct channels. New cache call sites should use `L1Store` instead of re-implementing LRU bookkeeping; see [docs/conventions.md § Caching](docs/conventions.md#caching) for the behavior contract and current call sites.
 - **`SyncDownloadService` uses a generic `_downloadEntityInternal<E>` helper** ([#336](https://github.com/baizhiheizi/enjoy_player/issues/336), [#341](https://github.com/baizhiheizi/enjoy_player/pull/341)). The three per-entity download paths (audio, video, recording) now share one ~75-line pagination + merge loop instead of duplicating ~200 lines of triplicated cursor-paging logic. Public `downloadAudios` / `downloadVideos` / `downloadRecordings` / `downloadAllEntitiesFresh` entry points and `SyncResult` shape are unchanged — see [docs/features/sync.md](docs/features/sync.md).
+- **Discover feed entry upserts run in a single Drift transaction** for lower write amplification on large channel refreshes.
 
 ### Fixed
 
 - **Intermittent Windows YouTube play-then-pause startup**: WebView2 ignores `mediaPlaybackRequiresUserGesture`, while the player previously force-unmuted on HTML5's optimistic `play` event. Playback now stays muted until the authoritative `playing` event settles, transport state no longer treats `play` as proof that frames are advancing, and rejected `play()` promises plus command/event/poll transitions are captured by the `YouTube*` diagnostic loggers. The WebView logger names were also corrected from `Youtube*` to the allowlisted, case-sensitive `YouTube*` prefix, fixing pre-existing silent loss of FINE records. See [docs/features/youtube.md](docs/features/youtube.md#limitations).
+- **YouTube InnerTube caption profile ladder hardening** so client-profile rotation and worker cache-only transcript fetches fail closed instead of returning empty or mismatched tracks.
+- **Shadow-reading assessment restored for unknown media language** (assessment no longer skips when language cannot be inferred).
+- **Worker YouTube `client-profiles` wire shape parsing** aligned with the actual response body.
 
 ## [0.5.0] - 2026-07-13
 
