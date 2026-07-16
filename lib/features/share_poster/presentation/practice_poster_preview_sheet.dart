@@ -110,33 +110,38 @@ class _PracticePosterPreviewSheetState
     if (!_canExport) return;
     setState(() => _exporting = true);
 
-    await WidgetsBinding.instance.endOfFrame;
-    await Future<void>.delayed(const Duration(milliseconds: 120));
-
-    final bytes = await captureRepaintBoundaryPng(_captureKey);
-    if (!mounted) return;
-    setState(() => _exporting = false);
-
     final l10n = AppLocalizations.of(context)!;
-    if (bytes == null) {
-      AppNotice.error(context, l10n.practicePosterExportError);
-      return;
-    }
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      await Future<void>.delayed(const Duration(milliseconds: 120));
 
-    final outcome = await exportPracticePosterPng(bytes);
-    if (!mounted) return;
-
-    switch (outcome) {
-      case PracticePosterExportOutcome.shared:
-        AppNotice.success(context, l10n.practicePosterShareSuccess);
-        Navigator.of(context).pop();
-      case PracticePosterExportOutcome.saved:
-        AppNotice.success(context, l10n.practicePosterSaveSuccess);
-        Navigator.of(context).pop();
-      case PracticePosterExportOutcome.cancelled:
-        break;
-      case PracticePosterExportOutcome.failed:
+      final bytes = await captureRepaintBoundaryPng(_captureKey);
+      if (!mounted) return;
+      if (bytes == null) {
         AppNotice.error(context, l10n.practicePosterExportError);
+        return;
+      }
+
+      final outcome = await exportPracticePosterPng(bytes);
+      if (!mounted) return;
+
+      switch (outcome) {
+        case PracticePosterExportOutcome.shared:
+          AppNotice.success(context, l10n.practicePosterShareSuccess);
+          Navigator.of(context).pop();
+        case PracticePosterExportOutcome.saved:
+          AppNotice.success(context, l10n.practicePosterSaveSuccess);
+          Navigator.of(context).pop();
+        case PracticePosterExportOutcome.cancelled:
+          break;
+        case PracticePosterExportOutcome.failed:
+          AppNotice.error(context, l10n.practicePosterExportError);
+      }
+    } on Object {
+      if (!mounted) return;
+      AppNotice.error(context, l10n.practicePosterExportError);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
     }
   }
 
