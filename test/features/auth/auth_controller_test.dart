@@ -2,6 +2,7 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/data/api/services/direct_uploads_api.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 import 'package:enjoy_player/features/auth/data/google_sign_in_service.dart';
@@ -15,17 +16,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
+ApiClient _testApiClient() => ApiClient(
+  httpClient: http.Client(),
+  getBaseUrl: () async => 'https://enjoy.bot',
+  getAccessToken: () async => null,
+);
+
 class _FakeAuthRepository extends AuthRepository {
   _FakeAuthRepository()
     : super(
         authApi: () {
-          final sharedClient = ApiClient(
-            httpClient: http.Client(),
-            getBaseUrl: () async => 'https://enjoy.bot',
-            getAccessToken: () async => null,
-          );
+          final sharedClient = _testApiClient();
           return AuthApi(authClient: sharedClient, userClient: sharedClient);
         }(),
+        directUploadsApi: DirectUploadsApi(_testApiClient()),
         tokenStore: SecureTokenStore(const FlutterSecureStorage()),
         getBaseUrl: () async => 'https://enjoy.bot',
       );
@@ -85,6 +89,25 @@ void main() {
     final state = container.read(authCtrlProvider).value;
     expect(state, isA<AuthAwaitingOtp>());
     expect((state as AuthAwaitingOtp).email, 'user@example.com');
+  });
+
+  test('updateAvatar throws AuthFailure when not signed in', () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final fake = _FakeAuthRepository();
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(authCtrlProvider.future);
+    expect(container.read(authCtrlProvider).value, isA<AuthSignedOut>());
+
+    await expectLater(
+      container
+          .read(authCtrlProvider.notifier)
+          .updateAvatar(bytes: const [1, 2, 3], filename: 'a.jpg'),
+      throwsA(isA<AuthFailure>()),
+    );
   });
 
   test('signOut stays signed out when Google sign-out throws', () async {

@@ -1358,10 +1358,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileRefreshTooltip => 'Refresh profile';
 
   @override
-  String get profileFieldName => 'Name';
+  String get profileFieldName => 'Username';
 
   @override
   String get profileFieldEmail => 'Email';
+
+  @override
+  String get profileFieldEnjoyId => 'Enjoy ID';
+
+  @override
+  String get profileFieldMixinId => 'Mixin ID';
+
+  @override
+  String get profileMixinNotLinked => 'Not linked';
+
+  @override
+  String get profileEditTitle => 'Edit profile';
+
+  @override
+  String get profileEditEntry => 'Edit profile';
+
+  @override
+  String get profileEditEntryHint => 'Username, avatar, and account IDs';
+
+  @override
+  String get profileChangeAvatar => 'Change avatar';
+
+  @override
+  String get profileAvatarTooLarge => 'Avatar must be 2 MB or smaller';
+
+  @override
+  String get profileAvatarUnsupportedType =>
+      'Avatar must be JPEG, PNG, or WebP';
+
+  @override
+  String get profileAvatarEmpty => 'Choose an image to upload';
+
+  @override
+  String get profileAvatarUploadFailed => 'Could not upload avatar. Try again.';
+
+  @override
+  String get profileCopied => 'Copied';
 
   @override
   String get profileFieldGoal => 'Daily goal (minutes)';
@@ -1426,7 +1463,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSectionPreferencesHint =>
-      'Name, daily goal, and language settings';
+      'Daily goal and language settings';
 
   @override
   String get profileSignOutConfirmTitle => 'Sign out?';

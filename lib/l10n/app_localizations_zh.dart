@@ -1301,10 +1301,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileRefreshTooltip => '刷新个人资料';
 
   @override
-  String get profileFieldName => '姓名';
+  String get profileFieldName => '用户名';
 
   @override
   String get profileFieldEmail => '邮箱';
+
+  @override
+  String get profileFieldEnjoyId => 'Enjoy ID';
+
+  @override
+  String get profileFieldMixinId => 'Mixin ID';
+
+  @override
+  String get profileMixinNotLinked => '未绑定';
+
+  @override
+  String get profileEditTitle => '编辑资料';
+
+  @override
+  String get profileEditEntry => '编辑资料';
+
+  @override
+  String get profileEditEntryHint => '用户名、头像与账号标识';
+
+  @override
+  String get profileChangeAvatar => '更换头像';
+
+  @override
+  String get profileAvatarTooLarge => '头像不能超过 2 MB';
+
+  @override
+  String get profileAvatarUnsupportedType => '头像仅支持 JPEG、PNG 或 WebP';
+
+  @override
+  String get profileAvatarEmpty => '请选择要上传的图片';
+
+  @override
+  String get profileAvatarUploadFailed => '头像上传失败，请重试。';
+
+  @override
+  String get profileCopied => '已复制';
 
   @override
   String get profileFieldGoal => '每日目标（分钟）';
@@ -1366,7 +1402,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSectionPreferences => '偏好设置';
 
   @override
-  String get profileSectionPreferencesHint => '姓名、每日目标与语言';
+  String get profileSectionPreferencesHint => '每日目标与语言设置';
 
   @override
   String get profileSignOutConfirmTitle => '退出登录？';
@@ -3799,10 +3835,46 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get profileRefreshTooltip => '刷新个人资料';
 
   @override
-  String get profileFieldName => '姓名';
+  String get profileFieldName => '用户名';
 
   @override
   String get profileFieldEmail => '邮箱';
+
+  @override
+  String get profileFieldEnjoyId => 'Enjoy ID';
+
+  @override
+  String get profileFieldMixinId => 'Mixin ID';
+
+  @override
+  String get profileMixinNotLinked => '未绑定';
+
+  @override
+  String get profileEditTitle => '编辑资料';
+
+  @override
+  String get profileEditEntry => '编辑资料';
+
+  @override
+  String get profileEditEntryHint => '用户名、头像与账号标识';
+
+  @override
+  String get profileChangeAvatar => '更换头像';
+
+  @override
+  String get profileAvatarTooLarge => '头像不能超过 2 MB';
+
+  @override
+  String get profileAvatarUnsupportedType => '头像仅支持 JPEG、PNG 或 WebP';
+
+  @override
+  String get profileAvatarEmpty => '请选择要上传的图片';
+
+  @override
+  String get profileAvatarUploadFailed => '头像上传失败，请重试。';
+
+  @override
+  String get profileCopied => '已复制';
 
   @override
   String get profileFieldGoal => '每日目标（分钟）';
@@ -3864,7 +3936,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get profileSectionPreferences => '偏好设置';
 
   @override
-  String get profileSectionPreferencesHint => '姓名、每日目标与语言';
+  String get profileSectionPreferencesHint => '每日目标与语言设置';
 
   @override
   String get profileSignOutConfirmTitle => '退出登录？';

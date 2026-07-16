@@ -121,6 +121,46 @@ class ApiClient {
     allowEmptyBody: true,
   );
 
+  /// PUT raw bytes to an absolute URL (e.g. Active Storage direct-upload target).
+  ///
+  /// Does not attach the Enjoy bearer token — storage backends use [headers]
+  /// from the direct-upload create response.
+  Future<void> putBytesAbsolute(
+    Uri url, {
+    required List<int> bytes,
+    Map<String, String> headers = const {},
+  }) async {
+    final request = http.Request('PUT', url)..bodyBytes = bytes;
+    request.headers.addAll(headers);
+
+    final sw = Stopwatch()..start();
+    _apiHttpTrace('HTTP → PUT $url (bytes len=${bytes.length})');
+    try {
+      final streamed = await _client.send(request);
+      final bodyBytes = await streamed.stream.toBytes();
+      sw.stop();
+      _apiHttpTrace(
+        'HTTP ← PUT $url ${streamed.statusCode} '
+        '${sw.elapsedMilliseconds}ms len=${bodyBytes.length}',
+      );
+      if (streamed.statusCode < 200 || streamed.statusCode >= 300) {
+        throw ApiException(
+          message: 'Direct upload failed (${streamed.statusCode})',
+          statusCode: streamed.statusCode,
+          body: utf8.decode(bodyBytes, allowMalformed: true),
+        );
+      }
+    } catch (e, st) {
+      sw.stop();
+      _log.warning(
+        'HTTP ✗ PUT $url after ${sw.elapsedMilliseconds}ms: $e',
+        e,
+        st,
+      );
+      rethrow;
+    }
+  }
+
   /// Multipart POST (e.g. Whisper) returning a JSON object with camelCase keys.
   Future<Map<String, dynamic>> postMultipartJson(
     String path, {

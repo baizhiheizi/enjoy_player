@@ -262,10 +262,37 @@ class AuthCtrl extends _$AuthCtrl {
 
   Future<void> updateProfile(UpdateProfileRequest request) async {
     final cur = state.valueOrNull;
-    if (cur is! AuthSignedIn) return;
+    if (cur is! AuthSignedIn) {
+      throw const AuthFailure(
+        'Not signed in',
+        code: AuthFailureCode.sessionRevoked,
+      );
+    }
     final profile = await ref
         .read(authRepositoryProvider)
         .updateProfile(request);
+    state = AsyncData(AuthSignedIn(profile: profile));
+  }
+
+  Future<void> updateAvatar({
+    required List<int> bytes,
+    required String filename,
+    String? contentType,
+  }) async {
+    final cur = state.valueOrNull;
+    if (cur is! AuthSignedIn) {
+      throw const AuthFailure(
+        'Not signed in',
+        code: AuthFailureCode.sessionRevoked,
+      );
+    }
+    final profile = await ref
+        .read(authRepositoryProvider)
+        .updateAvatar(
+          bytes: bytes,
+          filename: filename,
+          contentType: contentType,
+        );
     state = AsyncData(AuthSignedIn(profile: profile));
   }
 

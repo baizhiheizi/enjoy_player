@@ -119,6 +119,17 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           EnjoyCard(
             padding: EdgeInsets.zero,
             child: SettingsRow(
+              leadingIcon: Icons.manage_accounts_outlined,
+              title: l10n.profileEditEntry,
+              subtitle: l10n.profileEditEntryHint,
+              onTap: () => context.push('/profile/edit'),
+              responsive: false,
+            ),
+          ),
+          SizedBox(height: t.space8),
+          EnjoyCard(
+            padding: EdgeInsets.zero,
+            child: SettingsRow(
               leadingIcon: Icons.tune_rounded,
               title: l10n.profileSectionPreferences,
               subtitle: l10n.profileSectionPreferencesHint,

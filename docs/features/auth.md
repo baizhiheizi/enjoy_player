@@ -19,19 +19,28 @@ YouTube account login remains a separate WebView flow ([features/youtube.md](you
 
 ## Profile
 
-The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body contains the identity hero card, practice stats, subscription/credits nav, a **Preferences** tile that pushes `/profile/preferences`, a **Settings** tile that pushes `/settings`, and the sign-out action. `ProfileContent` is a single-consumer widget (no longer embedded in the Settings two-pane layout) and always uses pull-to-refresh.
+The `/profile` route (`ProfileScreen`) is a top-level shell tab (4th nav destination on both the bottom bar and sidebar). It renders `ProfileContent` (`lib/features/auth/presentation/widgets/profile_content.dart`) directly without its own `Scaffold`/`AppBar` — the shell provides page chrome, consistent with `HomeScreen`/`DiscoverScreen`/`LibraryScreen`. The chrome-free body contains the identity hero card (avatar, name, **Enjoy ID** as the secondary line — not email), practice stats, subscription/credits nav, an **Edit profile** tile (`/profile/edit`), a **Preferences** tile (`/profile/preferences`), a **Settings** tile (`/settings`), and the sign-out action. Tapping the hero card also opens Edit profile. `ProfileContent` is a single-consumer widget and always uses pull-to-refresh.
+
+### `/profile/edit` — `ProfileEditScreen`
+
+Dedicated identity editor (`lib/features/auth/presentation/profile_edit_screen.dart`):
+
+- **Avatar** — pick JPEG/PNG/WebP (max 2 MiB) via `file_picker`; preview locally; persist with Active Storage direct upload (`POST /api/v1/direct_uploads` → PUT bytes → `PATCH /api/v1/profile` with `user.avatar` signed_id).
+- **Username** — required text field; saved as profile `name` via `PATCH /api/v1/profile`.
+- **Read-only** — Enjoy ID (`id`), email, Mixin ID (or “not linked” when `mixinId` is absent). Optional copy affordance.
+
+Successful saves update `authCtrlProvider` and the secure-storage profile cache so the hero and sidebar chip refresh without an app restart.
 
 ### `/profile/preferences` — `ProfilePreferencesScreen`
 
-`ProfilePreferencesScreen` (`lib/features/auth/presentation/profile_preferences_screen.dart`) is the dedicated sub-screen for editing the user's own profile. It is a `Scaffold` with its own `AppBar` and lives **outside** the chrome-free Profile tab body — pushing it from the Profile tab still uses the shell's `/profile/preferences` child route. The screen hosts:
+Learning/display preferences only (username/avatar live on Edit profile):
 
-- **Display name** — text field, required (validated against `l10n.profileFieldRequired`); saved via `PATCH /api/v1/profile` (`UpdateProfileRequest(name: …)`).
-- **Daily goal** — numeric text field; parsed with `int.tryParse`; an empty input is sent as `null` (no change to the server-side value).
-- **Display language** — dropdown of `kAppDisplayLocales`; writes to `appPreferencesCtrlProvider.setLocale(...)`.
-- **Learning language** — dropdown of `kSupportedFocusLanguageTags`; writes to `appPreferencesCtrlProvider.setLearningLanguage(...)`. Rendered as a read-only helper (`profileLearningLanguageReadOnly`) because the learning language is server-managed and updated on login / refresh.
-- **Native language** — dropdown restricted to `allowedNativeTags(learnTag)` (excludes the current learning language). Auto-selects the first allowed option when the persisted native tag is no longer valid; disabled (`onChanged: null`) when only one option remains, keeping the explanatory `settingsNativeMustDifferHint` subtitle visible.
+- **Daily goal** — numeric text field; empty input sends `null`.
+- **Display language** — `kAppDisplayLocales` → `appPreferencesCtrlProvider.setLocale(...)`.
+- **Learning language** — `kSupportedFocusLanguageTags` (read-only helper copy).
+- **Native language** — `allowedNativeTags(learnTag)`.
 
-A single **Save** button (`EnjoyButton.primary`) submits `UpdateProfileRequest(name, goal)` and shows `l10n.profileSaveSuccess` on success; a `CircularProgressIndicator` replaces the label while `_saving` is true. The form re-hydrates from the current `authCtrlProvider` profile in a post-frame callback whenever the `profile.id` changes (e.g. after sign-in / profile switch).
+Save submits `UpdateProfileRequest(goal: …)` (and locale/language prefs via local providers as before).
 
 ## API endpoints (client)
 
@@ -44,6 +53,9 @@ A single **Save** button (`EnjoyButton.primary`) submits `UpdateProfileRequest(n
 | GET | `/api/v1/auth/authorize` | Start PKCE web fallback |
 | POST | `/api/v1/auth/token` | Exchange auth code (PKCE) |
 | POST | `/api/v1/auth/refresh` | Rotate refresh token |
+| GET | `/api/v1/profile` | Current profile (includes `mixinId`) |
+| PATCH | `/api/v1/profile` | Update name / goal / languages / `avatar` signed_id |
+| POST | `/api/v1/direct_uploads` | Active Storage direct-upload create (avatar bytes) |
 
 OpenAPI contract: [native-auth-v2.openapi.yaml](../api/native-auth-v2.openapi.yaml).
 

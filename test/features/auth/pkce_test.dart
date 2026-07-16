@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/data/api/services/direct_uploads_api.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 import 'package:enjoy_player/features/auth/domain/auth_callback.dart';
 import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
@@ -66,6 +67,7 @@ void main() {
       );
       final repo = AuthRepository(
         authApi: AuthApi(authClient: apiClient, userClient: apiClient),
+        directUploadsApi: DirectUploadsApi(apiClient),
         tokenStore: store,
         getBaseUrl: () async => 'https://enjoy.bot',
       );

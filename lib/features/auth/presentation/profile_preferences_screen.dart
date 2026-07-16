@@ -1,4 +1,4 @@
-/// Edit profile preferences: name, daily goal, display/learning/native language.
+/// Edit learning preferences: daily goal, display/learning/native language.
 library;
 
 import 'package:flutter/material.dart';
@@ -29,7 +29,6 @@ class ProfilePreferencesScreen extends ConsumerStatefulWidget {
 class _ProfilePreferencesScreenState
     extends ConsumerState<ProfilePreferencesScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _name;
   late final TextEditingController _goal;
   bool _saving = false;
   String? _hydratedForProfileId;
@@ -37,19 +36,16 @@ class _ProfilePreferencesScreenState
   @override
   void initState() {
     super.initState();
-    _name = TextEditingController();
     _goal = TextEditingController();
   }
 
   @override
   void dispose() {
-    _name.dispose();
     _goal.dispose();
     super.dispose();
   }
 
   void _applyProfile(UserProfile p) {
-    _name.text = p.name;
     _goal.text = p.goal?.toString() ?? '';
   }
 
@@ -90,16 +86,6 @@ class _ProfilePreferencesScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
-                    controller: _name,
-                    decoration: InputDecoration(
-                      labelText: l10n.profileFieldName,
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? l10n.profileFieldRequired
-                        : null,
-                  ),
-                  SizedBox(height: t.space16),
                   TextFormField(
                     controller: _goal,
                     keyboardType: TextInputType.number,
@@ -248,10 +234,7 @@ class _ProfilePreferencesScreenState
                               await ref
                                   .read(authCtrlProvider.notifier)
                                   .updateProfile(
-                                    UpdateProfileRequest(
-                                      name: _name.text.trim(),
-                                      goal: goal,
-                                    ),
+                                    UpdateProfileRequest(goal: goal),
                                   );
                               final after = ref
                                   .read(authCtrlProvider)

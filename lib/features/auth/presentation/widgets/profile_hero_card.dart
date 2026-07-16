@@ -1,10 +1,11 @@
-/// Profile gradient hero card (avatar, name, email, Pro upgrade CTA).
+/// Profile gradient hero card (avatar, name, Enjoy ID, Pro upgrade CTA).
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -25,8 +26,10 @@ class ProfileHeroCard extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final p = profile;
 
-    return ClipRRect(
+    return EnjoyTappableSurface(
       borderRadius: BorderRadius.circular(t.radiusXl),
+      semanticsLabel: l10n.profileEditEntry,
+      onTap: () => context.push('/profile/edit'),
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -38,6 +41,7 @@ class ProfileHeroCard extends ConsumerWidget {
             ],
           ),
           border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
+          borderRadius: BorderRadius.circular(t.radiusXl),
         ),
         child: Padding(
           padding: EdgeInsets.all(t.space20),
@@ -77,10 +81,11 @@ class ProfileHeroCard extends ConsumerWidget {
                     ),
                     SizedBox(height: t.space4),
                     Text(
-                      p.email,
+                      p.id,
                       style: tt.bodyMedium?.copyWith(
                         color: cs.onSurface.withValues(alpha: 0.82),
                         height: 1.35,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

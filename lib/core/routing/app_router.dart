@@ -14,6 +14,7 @@ import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart'
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
+import 'package:enjoy_player/features/auth/presentation/profile_edit_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_preferences_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/credits/presentation/credits_usage_screen.dart';
@@ -199,6 +200,10 @@ GoRouter appRouter(Ref ref) {
               child: const ProfileScreen(),
             ),
             routes: [
+              GoRoute(
+                path: 'edit',
+                builder: (context, state) => const ProfileEditScreen(),
+              ),
               GoRoute(
                 path: 'preferences',
                 builder: (context, state) => const ProfilePreferencesScreen(),

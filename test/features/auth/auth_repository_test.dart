@@ -5,6 +5,7 @@ import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/data/api/services/direct_uploads_api.dart';
 import 'package:enjoy_player/features/auth/data/auth_repository.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -44,6 +45,7 @@ void main() {
       final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
       return AuthRepository(
         authApi: api,
+        directUploadsApi: DirectUploadsApi(sharedClient),
         tokenStore: tokenStore,
         getBaseUrl: () async => 'https://enjoy.bot',
       );
@@ -233,6 +235,7 @@ void main() {
       final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
       return AuthRepository(
         authApi: api,
+        directUploadsApi: DirectUploadsApi(sharedClient),
         tokenStore: tokenStore,
         getBaseUrl: () async => 'https://enjoy.bot',
       );

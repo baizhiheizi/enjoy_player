@@ -14,10 +14,12 @@ import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/auth_api.dart';
+import 'package:enjoy_player/data/api/services/direct_uploads_api.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/auth_token_response.dart';
+import 'package:enjoy_player/features/auth/domain/avatar_pick_constraints.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 
@@ -27,11 +29,13 @@ final Logger _log = logNamed('auth');
 
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
+  final userClient = ref.watch(apiClientProvider);
   final repo = AuthRepository(
     authApi: AuthApi(
       authClient: ref.watch(authApiClientProvider),
-      userClient: ref.watch(apiClientProvider),
+      userClient: userClient,
     ),
+    directUploadsApi: DirectUploadsApi(userClient),
     tokenStore: ref.watch(secureTokenStoreProvider),
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
   );
@@ -54,11 +58,13 @@ AuthRepository authRepository(Ref ref) {
 class AuthRepository {
   AuthRepository({
     required this._authApi,
+    required this._directUploadsApi,
     required this._tokenStore,
     required this._getBaseUrl,
   });
 
   final AuthApi _authApi;
+  final DirectUploadsApi _directUploadsApi;
   final SecureTokenStore _tokenStore;
   final Future<String> Function() _getBaseUrl;
 
@@ -215,6 +221,50 @@ class AuthRepository {
       final profile = UserProfile.fromJson(m);
       await _cacheProfile(profile);
       return profile;
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        await clearSession();
+      }
+      throw AuthFailure(e.message, code: authFailureCodeForApiException(e));
+    }
+  }
+
+  /// Direct-uploads [bytes] then attaches via `user.avatar` signed_id.
+  Future<UserProfile> updateAvatar({
+    required List<int> bytes,
+    required String filename,
+    String? contentType,
+  }) async {
+    final mime = contentType?.trim().isNotEmpty == true
+        ? contentType!.trim().toLowerCase()
+        : avatarContentTypeForFilename(filename);
+    final failure = validateAvatarPick(
+      byteLength: bytes.length,
+      filename: filename,
+      contentType: mime,
+    );
+    if (failure != null) {
+      throw AuthFailure(switch (failure) {
+        AvatarPickFailure.empty => 'Avatar file is empty',
+        AvatarPickFailure.tooLarge => 'Avatar must be 2 MB or smaller',
+        AvatarPickFailure.unsupportedType =>
+          'Avatar must be JPEG, PNG, or WebP',
+      }, code: AuthFailureCode.unknown);
+    }
+    if (mime == null) {
+      throw const AuthFailure(
+        'Avatar must be JPEG, PNG, or WebP',
+        code: AuthFailureCode.unknown,
+      );
+    }
+
+    try {
+      final signedId = await _directUploadsApi.uploadBlob(
+        bytes: bytes,
+        filename: filename,
+        contentType: mime,
+      );
+      return updateProfile(UpdateProfileRequest(avatarSignedId: signedId));
     } on ApiException catch (e) {
       if (e.isUnauthorized) {
         await clearSession();

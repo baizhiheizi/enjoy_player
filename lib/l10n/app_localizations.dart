@@ -2556,7 +2556,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileFieldName.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Username'**
   String get profileFieldName;
 
   /// No description provided for @profileFieldEmail.
@@ -2564,6 +2564,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email'**
   String get profileFieldEmail;
+
+  /// No description provided for @profileFieldEnjoyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy ID'**
+  String get profileFieldEnjoyId;
+
+  /// No description provided for @profileFieldMixinId.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixin ID'**
+  String get profileFieldMixinId;
+
+  /// No description provided for @profileMixinNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get profileMixinNotLinked;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileEditEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditEntry;
+
+  /// No description provided for @profileEditEntryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Username, avatar, and account IDs'**
+  String get profileEditEntryHint;
+
+  /// No description provided for @profileChangeAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Change avatar'**
+  String get profileChangeAvatar;
+
+  /// No description provided for @profileAvatarTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar must be 2 MB or smaller'**
+  String get profileAvatarTooLarge;
+
+  /// No description provided for @profileAvatarUnsupportedType.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar must be JPEG, PNG, or WebP'**
+  String get profileAvatarUnsupportedType;
+
+  /// No description provided for @profileAvatarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an image to upload'**
+  String get profileAvatarEmpty;
+
+  /// No description provided for @profileAvatarUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload avatar. Try again.'**
+  String get profileAvatarUploadFailed;
+
+  /// No description provided for @profileCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get profileCopied;
 
   /// No description provided for @profileFieldGoal.
   ///
@@ -2682,7 +2754,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileSectionPreferencesHint.
   ///
   /// In en, this message translates to:
-  /// **'Name, daily goal, and language settings'**
+  /// **'Daily goal and language settings'**
   String get profileSectionPreferencesHint;
 
   /// No description provided for @profileSignOutConfirmTitle.

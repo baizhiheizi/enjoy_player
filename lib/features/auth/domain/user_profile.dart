@@ -21,6 +21,7 @@ class UserProfile {
       avatarUrl: rasterAvatarUrl(json['avatarUrl'] as String?),
       balance: _doubleFromJson(json['balance']),
       hasMixin: json['hasMixin'] as bool?,
+      mixinId: json['mixinId']?.toString(),
       subscriptionTier: _subscriptionTierFromJson(json['subscriptionTier']),
       subscriptionExpireDate: json['subscriptionExpireDate'] as String?,
       locale: json['locale'] as String?,
@@ -37,6 +38,7 @@ class UserProfile {
     this.avatarUrl,
     this.balance,
     this.hasMixin,
+    this.mixinId,
     this.subscriptionTier,
     this.subscriptionExpireDate,
     this.locale,
@@ -52,6 +54,9 @@ class UserProfile {
   final String? avatarUrl;
   final double? balance;
   final bool? hasMixin;
+
+  /// Linked Mixin number when present; null / empty means not linked.
+  final String? mixinId;
   final SubscriptionTier? subscriptionTier;
   final String? subscriptionExpireDate;
   final String? locale;
@@ -68,6 +73,7 @@ class UserProfile {
       if (avatarUrl != null) 'avatarUrl': avatarUrl,
       if (balance != null) 'balance': balance,
       if (hasMixin != null) 'hasMixin': hasMixin,
+      if (mixinId != null) 'mixinId': mixinId,
       if (subscriptionTier != null) 'subscriptionTier': subscriptionTier!.name,
       if (subscriptionExpireDate != null)
         'subscriptionExpireDate': subscriptionExpireDate,
@@ -86,6 +92,7 @@ class UserProfile {
     String? avatarUrl,
     double? balance,
     bool? hasMixin,
+    String? mixinId,
     SubscriptionTier? subscriptionTier,
     String? subscriptionExpireDate,
     String? locale,
@@ -101,6 +108,7 @@ class UserProfile {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       balance: balance ?? this.balance,
       hasMixin: hasMixin ?? this.hasMixin,
+      mixinId: mixinId ?? this.mixinId,
       subscriptionTier: subscriptionTier ?? this.subscriptionTier,
       subscriptionExpireDate:
           subscriptionExpireDate ?? this.subscriptionExpireDate,
