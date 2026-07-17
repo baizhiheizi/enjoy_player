@@ -22,6 +22,7 @@ import 'package:enjoy_player/features/lookup/presentation/sections/contextual_tr
 import 'package:enjoy_player/features/lookup/presentation/sections/dictionary_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/sections/translation_lookup_section.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_language_picker_row.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/add_to_vocabulary_control.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// [bottomSheet] uses [DraggableScrollableSheet]; [dialog] uses a scroll view with bounded height.
@@ -120,6 +121,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
     sourceLanguage: _sourceLanguage,
     targetLanguage: _targetLanguage,
     contextualContext: widget.request.contextualContext,
+    mediaVocabularyContext: widget.request.mediaVocabularyContext,
   );
 
   Future<void> _copySelection(BuildContext context) async {
@@ -203,6 +205,15 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                     height: 1.15,
                     letterSpacing: -0.3,
                   ),
+                ),
+              ),
+            ),
+            constrain(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(_hPad, 0, _hPad, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: AddToVocabularyControl(request: _effectiveRequest),
                 ),
               ),
             ),

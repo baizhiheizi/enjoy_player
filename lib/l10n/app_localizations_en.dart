@@ -2574,6 +2574,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Source language reset to learning default';
 
   @override
+  String get vocabularyAddToVocabulary => 'Add to Vocabulary';
+
+  @override
+  String get vocabularyAddContext => 'Add Context';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => 'Already in Vocabulary';
+
+  @override
+  String get vocabularyAdding => 'Adding…';
+
+  @override
+  String get vocabularyRemoving => 'Removing…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => 'Remove from vocabulary?';
+
+  @override
+  String get vocabularyConfirmDeleteBody =>
+      'This deletes the word and all of its contexts.';
+
+  @override
+  String get vocabularyCancel => 'Cancel';
+
+  @override
+  String get vocabularyDelete => 'Delete';
+
+  @override
   String get authRequiredCloudFeaturesTitle => 'Account required';
 
   @override

@@ -6,7 +6,7 @@ Vocabulary is Enjoy’s **local-first spaced-repetition (SRS) word book**: save 
 
 This document is the implementation contract for Enjoy Player (Flutter). It describes **what the Enjoy web app actually implements today** (`~/dev/enjoy/apps/web`), not the aspirational marketing copy under `enjoy/apps/docs/**/vocabulary.md`.
 
-**Status in Flutter:** not shipped. Partial building blocks exist (transcript lookup, context-string builder, AI dictionary / contextual translation, UUID namespace, sync queue for media only).
+**Status in Flutter:** foundation shipping (P0). Local Drift schema + SRS domain + add/remove from lookup sheet (media contexts). Vocabulary screen, review UI, sync, and Anki export are not shipped yet.
 
 **Tracking:** [#375](https://github.com/baizhiheizi/enjoy_player/issues/375).
 
@@ -576,11 +576,11 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 
 ### P0 — Domain + Drift + add from lookup
 
-- [ ] Domain models + `normalizeWord` + `enjoyVocabularyItemId` / `enjoyVocabularyContextId`
-- [ ] Pure `calculateNextReview` + unit tests matching web cases
-- [ ] Drift tables + DAOs + `addWithContext` transaction + cascade delete
-- [ ] “Add to vocabulary” CTA on lookup sheet (media contexts only)
-- [ ] Feature docs stay updated as behavior lands
+- [x] Domain models + `normalizeWord` + `enjoyVocabularyItemId` / `enjoyVocabularyContextId`
+- [x] Pure `calculateNextReview` + unit tests matching web cases
+- [x] Drift tables + DAOs + `addWithContext` transaction + cascade delete
+- [x] “Add to vocabulary” CTA on lookup sheet (media contexts only)
+- [x] Feature docs stay updated as behavior lands ([ADR-0052](../decisions/0052-vocabulary-local-first-schema.md))
 
 ### P1 — Vocabulary screen + review
 

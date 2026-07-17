@@ -2467,6 +2467,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
 
   @override
+  String get vocabularyAddToVocabulary => '加入生词本';
+
+  @override
+  String get vocabularyAddContext => '添加语境';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => '已在生词本';
+
+  @override
+  String get vocabularyAdding => '添加中…';
+
+  @override
+  String get vocabularyRemoving => '删除中…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => '从生词本移除？';
+
+  @override
+  String get vocabularyConfirmDeleteBody => '将删除该词及其全部语境。';
+
+  @override
+  String get vocabularyCancel => '取消';
+
+  @override
+  String get vocabularyDelete => '删除';
+
+  @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
 
   @override
@@ -4742,6 +4769,33 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
+
+  @override
+  String get vocabularyAddToVocabulary => '加入生词本';
+
+  @override
+  String get vocabularyAddContext => '添加语境';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => '已在生词本';
+
+  @override
+  String get vocabularyAdding => '添加中…';
+
+  @override
+  String get vocabularyRemoving => '删除中…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => '从生词本移除？';
+
+  @override
+  String get vocabularyConfirmDeleteBody => '将删除该词及其全部语境。';
+
+  @override
+  String get vocabularyCancel => '取消';
+
+  @override
+  String get vocabularyDelete => '删除';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';

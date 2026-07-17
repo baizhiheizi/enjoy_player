@@ -22,6 +22,8 @@ import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/all_transcripts_provider.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
+import 'package:enjoy_player/features/vocabulary/application/media_vocabulary_context_builder.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 final _log = logNamed('Lookup');
 
@@ -63,6 +65,26 @@ void openTranscriptLookup({
     currentTimeSeconds: tSec,
     primaryLanguage: src,
   );
+  MediaVocabularyContext? mediaCtx;
+  final mediaId = chrome?.mediaId;
+  final dexieType = chrome?.dexieTargetType;
+  if (mediaId != null && dexieType != null) {
+    final sourceType = switch (dexieType) {
+      'Audio' => VocabularySourceType.audio,
+      'Video' => VocabularySourceType.video,
+      _ => null,
+    };
+    if (sourceType != null) {
+      mediaCtx = buildMediaVocabularyContext(
+        lines: lines,
+        echo: echo,
+        currentTimeSeconds: tSec,
+        primaryLanguage: src,
+        sourceType: sourceType,
+        sourceId: mediaId,
+      );
+    }
+  }
   final request = LookupRequest(
     selectedText: selectedText,
     sourceLanguage: src,
@@ -72,6 +94,7 @@ void openTranscriptLookup({
       sourceLanguage: src,
     ),
     contextualContext: ctx,
+    mediaVocabularyContext: mediaCtx,
   );
   unawaited(
     ref.read(lookupCoordinatorProvider.notifier).open(context, request),

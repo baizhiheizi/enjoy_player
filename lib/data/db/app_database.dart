@@ -20,6 +20,9 @@ import 'tables/sync_queue.dart';
 import 'tables/transcript_fetch_states.dart';
 import 'tables/transcripts.dart';
 import 'tables/videos.dart';
+import 'tables/vocabulary_contexts.dart';
+import 'tables/vocabulary_items.dart';
+import 'tables/vocabulary_reviews.dart';
 import 'tables/youtube_channel_subscriptions.dart';
 import 'tables/youtube_feed_entries.dart';
 
@@ -34,6 +37,9 @@ part 'daos/sync_queue_dao.dart';
 part 'daos/transcript_dao.dart';
 part 'daos/transcript_fetch_state_dao.dart';
 part 'daos/video_dao.dart';
+part 'daos/vocabulary_context_dao.dart';
+part 'daos/vocabulary_item_dao.dart';
+part 'daos/vocabulary_review_dao.dart';
 part 'daos/youtube_channel_subscription_dao.dart';
 part 'daos/youtube_feed_entry_dao.dart';
 
@@ -51,6 +57,9 @@ part 'daos/youtube_feed_entry_dao.dart';
     YoutubeChannelSubscriptions,
     YoutubeFeedEntries,
     AiCache,
+    VocabularyItems,
+    VocabularyContexts,
+    VocabularyReviews,
   ],
   daos: [
     VideoDao,
@@ -65,6 +74,9 @@ part 'daos/youtube_feed_entry_dao.dart';
     YoutubeChannelSubscriptionDao,
     YoutubeFeedEntryDao,
     AiCacheDao,
+    VocabularyItemDao,
+    VocabularyContextDao,
+    VocabularyReviewDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -91,7 +103,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -177,6 +189,34 @@ class AppDatabase extends _$AppDatabase {
       } else if (next == 14) {
         await _addColumnIfMissing(m, videos, videos.localMtimeMs);
         await _addColumnIfMissing(m, audios, audios.localMtimeMs);
+      } else if (next == 15) {
+        await m.createTable(vocabularyItems);
+        await m.createTable(vocabularyContexts);
+        await m.createTable(vocabularyReviews);
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_items_word_language '
+          'ON vocabulary_items (word, language)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_items_next_review_at '
+          'ON vocabulary_items (next_review_at)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_items_status '
+          'ON vocabulary_items (status)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_contexts_item_id '
+          'ON vocabulary_contexts (vocabulary_item_id)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_contexts_item_source '
+          'ON vocabulary_contexts (vocabulary_item_id, source_type, source_id)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_vocabulary_reviews_item_at '
+          'ON vocabulary_reviews (vocabulary_item_id, at)',
+        );
       }
       current = next;
     }

@@ -4797,6 +4797,60 @@ abstract class AppLocalizations {
   /// **'Source language reset to learning default'**
   String get lookupSourceResetToLearning;
 
+  /// No description provided for @vocabularyAddToVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Vocabulary'**
+  String get vocabularyAddToVocabulary;
+
+  /// No description provided for @vocabularyAddContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Context'**
+  String get vocabularyAddContext;
+
+  /// No description provided for @vocabularyAlreadyInVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in Vocabulary'**
+  String get vocabularyAlreadyInVocabulary;
+
+  /// No description provided for @vocabularyAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding…'**
+  String get vocabularyAdding;
+
+  /// No description provided for @vocabularyRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing…'**
+  String get vocabularyRemoving;
+
+  /// No description provided for @vocabularyConfirmDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from vocabulary?'**
+  String get vocabularyConfirmDeleteTitle;
+
+  /// No description provided for @vocabularyConfirmDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the word and all of its contexts.'**
+  String get vocabularyConfirmDeleteBody;
+
+  /// No description provided for @vocabularyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get vocabularyCancel;
+
+  /// No description provided for @vocabularyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get vocabularyDelete;
+
   /// No description provided for @authRequiredCloudFeaturesTitle.
   ///
   /// In en, this message translates to:

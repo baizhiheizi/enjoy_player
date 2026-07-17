@@ -1,4 +1,4 @@
-/// Builds transcript context string for contextual translation (web parity).
+/// Builds transcript context for lookup AI and vocabulary persistence (web parity).
 library;
 
 import 'dart:math' as math;
@@ -7,6 +7,13 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/lookup/application/sentence_boundaries.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_cue_selection.dart';
+
+/// Resolved context span: joined text plus inclusive line indexes.
+typedef VocabularyContextSpan = ({
+  String text,
+  int startLineIndex,
+  int endLineIndex,
+});
 
 String plainCueText(String raw) {
   return raw
@@ -36,8 +43,21 @@ String plainCueText(String raw) {
   return (startArrayIndex: expandedStart, endArrayIndex: expandedEnd);
 }
 
-/// Returns `null` when no transcript context can be built.
+/// Returns surrounding transcript text for contextual translation (LLM).
 String? buildVocabularyContext({
+  required List<TranscriptLine> lines,
+  required EchoState echo,
+  required double currentTimeSeconds,
+  required String primaryLanguage,
+}) => resolveVocabularyContextSpan(
+  lines: lines,
+  echo: echo,
+  currentTimeSeconds: currentTimeSeconds,
+  primaryLanguage: primaryLanguage,
+)?.text;
+
+/// Resolves context text and the inclusive cue line range used to build it.
+VocabularyContextSpan? resolveVocabularyContextSpan({
   required List<TranscriptLine> lines,
   required EchoState echo,
   required double currentTimeSeconds,
@@ -52,13 +72,13 @@ String? buildVocabularyContext({
       echo.endLineIndex < lines.length) {
     final echoLineCount = echo.endLineIndex - echo.startLineIndex + 1;
     if (echoLineCount >= 2) {
-      final buf = StringBuffer();
-      for (var i = echo.startLineIndex; i <= echo.endLineIndex; i++) {
-        if (i > echo.startLineIndex) buf.write(' ');
-        buf.write(plainCueText(lines[i].text));
-      }
-      final s = buf.toString().trim();
-      return s.isEmpty ? null : s;
+      final text = _joinLines(lines, echo.startLineIndex, echo.endLineIndex);
+      if (text == null) return null;
+      return (
+        text: text,
+        startLineIndex: echo.startLineIndex,
+        endLineIndex: echo.endLineIndex,
+      );
     }
   }
 
@@ -117,7 +137,7 @@ String? buildVocabularyContext({
   final baseEndLineIndex = contextEndArrayIndex - expStart;
 
   if (baseStartLineIndex < 0 || baseEndLineIndex >= lineCharPositions.length) {
-    return _fallbackJoin(lines, contextStartArrayIndex, contextEndArrayIndex);
+    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
   }
 
   final baseStartCharIndex = lineCharPositions[baseStartLineIndex].start;
@@ -190,19 +210,31 @@ String? buildVocabularyContext({
 
   final endExclusive = math.min(contextEndLineIndex + 1, lines.length);
   if (contextStartLineIndex < 0 || contextStartLineIndex >= endExclusive) {
-    return _fallbackJoin(lines, contextStartArrayIndex, contextEndArrayIndex);
+    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
   }
 
-  final contextLines = lines.sublist(contextStartLineIndex, endExclusive);
-
-  final contextText = contextLines.map((l) => plainCueText(l.text)).join(' ');
-  final out = contextText.trim();
-  return out.isEmpty
-      ? _fallbackJoin(lines, contextStartArrayIndex, contextEndArrayIndex)
-      : out;
+  final text = _joinLines(lines, contextStartLineIndex, contextEndLineIndex);
+  if (text == null) {
+    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
+  }
+  return (
+    text: text,
+    startLineIndex: contextStartLineIndex,
+    endLineIndex: contextEndLineIndex,
+  );
 }
 
-String? _fallbackJoin(List<TranscriptLine> lines, int start, int end) {
+VocabularyContextSpan? _fallbackSpan(
+  List<TranscriptLine> lines,
+  int start,
+  int end,
+) {
+  final text = _joinLines(lines, start, end);
+  if (text == null) return null;
+  return (text: text, startLineIndex: start, endLineIndex: end);
+}
+
+String? _joinLines(List<TranscriptLine> lines, int start, int end) {
   if (start < 0 || end >= lines.length || start > end) return null;
   final buf = StringBuffer();
   for (var i = start; i <= end; i++) {

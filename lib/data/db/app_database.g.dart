@@ -8974,6 +8974,2439 @@ class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
   }
 }
 
+class $VocabularyItemsTable extends VocabularyItems
+    with TableInfo<$VocabularyItemsTable, VocabularyItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VocabularyItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wordMeta = const VerificationMeta('word');
+  @override
+  late final GeneratedColumn<String> word = GeneratedColumn<String>(
+    'word',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetLanguageMeta = const VerificationMeta(
+    'targetLanguage',
+  );
+  @override
+  late final GeneratedColumn<String> targetLanguage = GeneratedColumn<String>(
+    'target_language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _easeFactorMeta = const VerificationMeta(
+    'easeFactor',
+  );
+  @override
+  late final GeneratedColumn<double> easeFactor = GeneratedColumn<double>(
+    'ease_factor',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalMeta = const VerificationMeta(
+    'interval',
+  );
+  @override
+  late final GeneratedColumn<int> interval = GeneratedColumn<int>(
+    'interval',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nextReviewAtMeta = const VerificationMeta(
+    'nextReviewAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextReviewAt = GeneratedColumn<DateTime>(
+    'next_review_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewsCountMeta = const VerificationMeta(
+    'reviewsCount',
+  );
+  @override
+  late final GeneratedColumn<int> reviewsCount = GeneratedColumn<int>(
+    'reviews_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastReviewedAtMeta = const VerificationMeta(
+    'lastReviewedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastReviewedAt =
+      GeneratedColumn<DateTime>(
+        'last_reviewed_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _contextsCountMeta = const VerificationMeta(
+    'contextsCount',
+  );
+  @override
+  late final GeneratedColumn<int> contextsCount = GeneratedColumn<int>(
+    'contexts_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _explanationMeta = const VerificationMeta(
+    'explanation',
+  );
+  @override
+  late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
+    'explanation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    word,
+    language,
+    targetLanguage,
+    status,
+    easeFactor,
+    interval,
+    nextReviewAt,
+    reviewsCount,
+    lastReviewedAt,
+    contextsCount,
+    explanation,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vocabulary_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VocabularyItemRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('word')) {
+      context.handle(
+        _wordMeta,
+        word.isAcceptableOrUnknown(data['word']!, _wordMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languageMeta);
+    }
+    if (data.containsKey('target_language')) {
+      context.handle(
+        _targetLanguageMeta,
+        targetLanguage.isAcceptableOrUnknown(
+          data['target_language']!,
+          _targetLanguageMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetLanguageMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('ease_factor')) {
+      context.handle(
+        _easeFactorMeta,
+        easeFactor.isAcceptableOrUnknown(data['ease_factor']!, _easeFactorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_easeFactorMeta);
+    }
+    if (data.containsKey('interval')) {
+      context.handle(
+        _intervalMeta,
+        interval.isAcceptableOrUnknown(data['interval']!, _intervalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalMeta);
+    }
+    if (data.containsKey('next_review_at')) {
+      context.handle(
+        _nextReviewAtMeta,
+        nextReviewAt.isAcceptableOrUnknown(
+          data['next_review_at']!,
+          _nextReviewAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nextReviewAtMeta);
+    }
+    if (data.containsKey('reviews_count')) {
+      context.handle(
+        _reviewsCountMeta,
+        reviewsCount.isAcceptableOrUnknown(
+          data['reviews_count']!,
+          _reviewsCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewsCountMeta);
+    }
+    if (data.containsKey('last_reviewed_at')) {
+      context.handle(
+        _lastReviewedAtMeta,
+        lastReviewedAt.isAcceptableOrUnknown(
+          data['last_reviewed_at']!,
+          _lastReviewedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('contexts_count')) {
+      context.handle(
+        _contextsCountMeta,
+        contextsCount.isAcceptableOrUnknown(
+          data['contexts_count']!,
+          _contextsCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contextsCountMeta);
+    }
+    if (data.containsKey('explanation')) {
+      context.handle(
+        _explanationMeta,
+        explanation.isAcceptableOrUnknown(
+          data['explanation']!,
+          _explanationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VocabularyItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VocabularyItemRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      word: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}word'],
+      )!,
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
+      targetLanguage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_language'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      easeFactor: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ease_factor'],
+      )!,
+      interval: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval'],
+      )!,
+      nextReviewAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_review_at'],
+      )!,
+      reviewsCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviews_count'],
+      )!,
+      lastReviewedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_reviewed_at'],
+      ),
+      contextsCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}contexts_count'],
+      )!,
+      explanation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explanation'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VocabularyItemsTable createAlias(String alias) {
+    return $VocabularyItemsTable(attachedDatabase, alias);
+  }
+}
+
+class VocabularyItemRow extends DataClass
+    implements Insertable<VocabularyItemRow> {
+  final String id;
+  final String word;
+  final String language;
+  final String targetLanguage;
+  final String status;
+  final double easeFactor;
+  final int interval;
+  final DateTime nextReviewAt;
+  final int reviewsCount;
+  final DateTime? lastReviewedAt;
+  final int contextsCount;
+  final String? explanation;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const VocabularyItemRow({
+    required this.id,
+    required this.word,
+    required this.language,
+    required this.targetLanguage,
+    required this.status,
+    required this.easeFactor,
+    required this.interval,
+    required this.nextReviewAt,
+    required this.reviewsCount,
+    this.lastReviewedAt,
+    required this.contextsCount,
+    this.explanation,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['word'] = Variable<String>(word);
+    map['language'] = Variable<String>(language);
+    map['target_language'] = Variable<String>(targetLanguage);
+    map['status'] = Variable<String>(status);
+    map['ease_factor'] = Variable<double>(easeFactor);
+    map['interval'] = Variable<int>(interval);
+    map['next_review_at'] = Variable<DateTime>(nextReviewAt);
+    map['reviews_count'] = Variable<int>(reviewsCount);
+    if (!nullToAbsent || lastReviewedAt != null) {
+      map['last_reviewed_at'] = Variable<DateTime>(lastReviewedAt);
+    }
+    map['contexts_count'] = Variable<int>(contextsCount);
+    if (!nullToAbsent || explanation != null) {
+      map['explanation'] = Variable<String>(explanation);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  VocabularyItemsCompanion toCompanion(bool nullToAbsent) {
+    return VocabularyItemsCompanion(
+      id: Value(id),
+      word: Value(word),
+      language: Value(language),
+      targetLanguage: Value(targetLanguage),
+      status: Value(status),
+      easeFactor: Value(easeFactor),
+      interval: Value(interval),
+      nextReviewAt: Value(nextReviewAt),
+      reviewsCount: Value(reviewsCount),
+      lastReviewedAt: lastReviewedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReviewedAt),
+      contextsCount: Value(contextsCount),
+      explanation: explanation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(explanation),
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory VocabularyItemRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VocabularyItemRow(
+      id: serializer.fromJson<String>(json['id']),
+      word: serializer.fromJson<String>(json['word']),
+      language: serializer.fromJson<String>(json['language']),
+      targetLanguage: serializer.fromJson<String>(json['targetLanguage']),
+      status: serializer.fromJson<String>(json['status']),
+      easeFactor: serializer.fromJson<double>(json['easeFactor']),
+      interval: serializer.fromJson<int>(json['interval']),
+      nextReviewAt: serializer.fromJson<DateTime>(json['nextReviewAt']),
+      reviewsCount: serializer.fromJson<int>(json['reviewsCount']),
+      lastReviewedAt: serializer.fromJson<DateTime?>(json['lastReviewedAt']),
+      contextsCount: serializer.fromJson<int>(json['contextsCount']),
+      explanation: serializer.fromJson<String?>(json['explanation']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'word': serializer.toJson<String>(word),
+      'language': serializer.toJson<String>(language),
+      'targetLanguage': serializer.toJson<String>(targetLanguage),
+      'status': serializer.toJson<String>(status),
+      'easeFactor': serializer.toJson<double>(easeFactor),
+      'interval': serializer.toJson<int>(interval),
+      'nextReviewAt': serializer.toJson<DateTime>(nextReviewAt),
+      'reviewsCount': serializer.toJson<int>(reviewsCount),
+      'lastReviewedAt': serializer.toJson<DateTime?>(lastReviewedAt),
+      'contextsCount': serializer.toJson<int>(contextsCount),
+      'explanation': serializer.toJson<String?>(explanation),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  VocabularyItemRow copyWith({
+    String? id,
+    String? word,
+    String? language,
+    String? targetLanguage,
+    String? status,
+    double? easeFactor,
+    int? interval,
+    DateTime? nextReviewAt,
+    int? reviewsCount,
+    Value<DateTime?> lastReviewedAt = const Value.absent(),
+    int? contextsCount,
+    Value<String?> explanation = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => VocabularyItemRow(
+    id: id ?? this.id,
+    word: word ?? this.word,
+    language: language ?? this.language,
+    targetLanguage: targetLanguage ?? this.targetLanguage,
+    status: status ?? this.status,
+    easeFactor: easeFactor ?? this.easeFactor,
+    interval: interval ?? this.interval,
+    nextReviewAt: nextReviewAt ?? this.nextReviewAt,
+    reviewsCount: reviewsCount ?? this.reviewsCount,
+    lastReviewedAt: lastReviewedAt.present
+        ? lastReviewedAt.value
+        : this.lastReviewedAt,
+    contextsCount: contextsCount ?? this.contextsCount,
+    explanation: explanation.present ? explanation.value : this.explanation,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  VocabularyItemRow copyWithCompanion(VocabularyItemsCompanion data) {
+    return VocabularyItemRow(
+      id: data.id.present ? data.id.value : this.id,
+      word: data.word.present ? data.word.value : this.word,
+      language: data.language.present ? data.language.value : this.language,
+      targetLanguage: data.targetLanguage.present
+          ? data.targetLanguage.value
+          : this.targetLanguage,
+      status: data.status.present ? data.status.value : this.status,
+      easeFactor: data.easeFactor.present
+          ? data.easeFactor.value
+          : this.easeFactor,
+      interval: data.interval.present ? data.interval.value : this.interval,
+      nextReviewAt: data.nextReviewAt.present
+          ? data.nextReviewAt.value
+          : this.nextReviewAt,
+      reviewsCount: data.reviewsCount.present
+          ? data.reviewsCount.value
+          : this.reviewsCount,
+      lastReviewedAt: data.lastReviewedAt.present
+          ? data.lastReviewedAt.value
+          : this.lastReviewedAt,
+      contextsCount: data.contextsCount.present
+          ? data.contextsCount.value
+          : this.contextsCount,
+      explanation: data.explanation.present
+          ? data.explanation.value
+          : this.explanation,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyItemRow(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('language: $language, ')
+          ..write('targetLanguage: $targetLanguage, ')
+          ..write('status: $status, ')
+          ..write('easeFactor: $easeFactor, ')
+          ..write('interval: $interval, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
+          ..write('reviewsCount: $reviewsCount, ')
+          ..write('lastReviewedAt: $lastReviewedAt, ')
+          ..write('contextsCount: $contextsCount, ')
+          ..write('explanation: $explanation, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    word,
+    language,
+    targetLanguage,
+    status,
+    easeFactor,
+    interval,
+    nextReviewAt,
+    reviewsCount,
+    lastReviewedAt,
+    contextsCount,
+    explanation,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VocabularyItemRow &&
+          other.id == this.id &&
+          other.word == this.word &&
+          other.language == this.language &&
+          other.targetLanguage == this.targetLanguage &&
+          other.status == this.status &&
+          other.easeFactor == this.easeFactor &&
+          other.interval == this.interval &&
+          other.nextReviewAt == this.nextReviewAt &&
+          other.reviewsCount == this.reviewsCount &&
+          other.lastReviewedAt == this.lastReviewedAt &&
+          other.contextsCount == this.contextsCount &&
+          other.explanation == this.explanation &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
+  final Value<String> id;
+  final Value<String> word;
+  final Value<String> language;
+  final Value<String> targetLanguage;
+  final Value<String> status;
+  final Value<double> easeFactor;
+  final Value<int> interval;
+  final Value<DateTime> nextReviewAt;
+  final Value<int> reviewsCount;
+  final Value<DateTime?> lastReviewedAt;
+  final Value<int> contextsCount;
+  final Value<String?> explanation;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const VocabularyItemsCompanion({
+    this.id = const Value.absent(),
+    this.word = const Value.absent(),
+    this.language = const Value.absent(),
+    this.targetLanguage = const Value.absent(),
+    this.status = const Value.absent(),
+    this.easeFactor = const Value.absent(),
+    this.interval = const Value.absent(),
+    this.nextReviewAt = const Value.absent(),
+    this.reviewsCount = const Value.absent(),
+    this.lastReviewedAt = const Value.absent(),
+    this.contextsCount = const Value.absent(),
+    this.explanation = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VocabularyItemsCompanion.insert({
+    required String id,
+    required String word,
+    required String language,
+    required String targetLanguage,
+    required String status,
+    required double easeFactor,
+    required int interval,
+    required DateTime nextReviewAt,
+    required int reviewsCount,
+    this.lastReviewedAt = const Value.absent(),
+    required int contextsCount,
+    this.explanation = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       word = Value(word),
+       language = Value(language),
+       targetLanguage = Value(targetLanguage),
+       status = Value(status),
+       easeFactor = Value(easeFactor),
+       interval = Value(interval),
+       nextReviewAt = Value(nextReviewAt),
+       reviewsCount = Value(reviewsCount),
+       contextsCount = Value(contextsCount),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<VocabularyItemRow> custom({
+    Expression<String>? id,
+    Expression<String>? word,
+    Expression<String>? language,
+    Expression<String>? targetLanguage,
+    Expression<String>? status,
+    Expression<double>? easeFactor,
+    Expression<int>? interval,
+    Expression<DateTime>? nextReviewAt,
+    Expression<int>? reviewsCount,
+    Expression<DateTime>? lastReviewedAt,
+    Expression<int>? contextsCount,
+    Expression<String>? explanation,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (word != null) 'word': word,
+      if (language != null) 'language': language,
+      if (targetLanguage != null) 'target_language': targetLanguage,
+      if (status != null) 'status': status,
+      if (easeFactor != null) 'ease_factor': easeFactor,
+      if (interval != null) 'interval': interval,
+      if (nextReviewAt != null) 'next_review_at': nextReviewAt,
+      if (reviewsCount != null) 'reviews_count': reviewsCount,
+      if (lastReviewedAt != null) 'last_reviewed_at': lastReviewedAt,
+      if (contextsCount != null) 'contexts_count': contextsCount,
+      if (explanation != null) 'explanation': explanation,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VocabularyItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? word,
+    Value<String>? language,
+    Value<String>? targetLanguage,
+    Value<String>? status,
+    Value<double>? easeFactor,
+    Value<int>? interval,
+    Value<DateTime>? nextReviewAt,
+    Value<int>? reviewsCount,
+    Value<DateTime?>? lastReviewedAt,
+    Value<int>? contextsCount,
+    Value<String?>? explanation,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return VocabularyItemsCompanion(
+      id: id ?? this.id,
+      word: word ?? this.word,
+      language: language ?? this.language,
+      targetLanguage: targetLanguage ?? this.targetLanguage,
+      status: status ?? this.status,
+      easeFactor: easeFactor ?? this.easeFactor,
+      interval: interval ?? this.interval,
+      nextReviewAt: nextReviewAt ?? this.nextReviewAt,
+      reviewsCount: reviewsCount ?? this.reviewsCount,
+      lastReviewedAt: lastReviewedAt ?? this.lastReviewedAt,
+      contextsCount: contextsCount ?? this.contextsCount,
+      explanation: explanation ?? this.explanation,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (word.present) {
+      map['word'] = Variable<String>(word.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (targetLanguage.present) {
+      map['target_language'] = Variable<String>(targetLanguage.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (easeFactor.present) {
+      map['ease_factor'] = Variable<double>(easeFactor.value);
+    }
+    if (interval.present) {
+      map['interval'] = Variable<int>(interval.value);
+    }
+    if (nextReviewAt.present) {
+      map['next_review_at'] = Variable<DateTime>(nextReviewAt.value);
+    }
+    if (reviewsCount.present) {
+      map['reviews_count'] = Variable<int>(reviewsCount.value);
+    }
+    if (lastReviewedAt.present) {
+      map['last_reviewed_at'] = Variable<DateTime>(lastReviewedAt.value);
+    }
+    if (contextsCount.present) {
+      map['contexts_count'] = Variable<int>(contextsCount.value);
+    }
+    if (explanation.present) {
+      map['explanation'] = Variable<String>(explanation.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('word: $word, ')
+          ..write('language: $language, ')
+          ..write('targetLanguage: $targetLanguage, ')
+          ..write('status: $status, ')
+          ..write('easeFactor: $easeFactor, ')
+          ..write('interval: $interval, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
+          ..write('reviewsCount: $reviewsCount, ')
+          ..write('lastReviewedAt: $lastReviewedAt, ')
+          ..write('contextsCount: $contextsCount, ')
+          ..write('explanation: $explanation, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VocabularyContextsTable extends VocabularyContexts
+    with TableInfo<$VocabularyContextsTable, VocabularyContextRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VocabularyContextsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vocabularyItemIdMeta = const VerificationMeta(
+    'vocabularyItemId',
+  );
+  @override
+  late final GeneratedColumn<String> vocabularyItemId = GeneratedColumn<String>(
+    'vocabulary_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contextTextMeta = const VerificationMeta(
+    'contextText',
+  );
+  @override
+  late final GeneratedColumn<String> contextText = GeneratedColumn<String>(
+    'text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta(
+    'sourceType',
+  );
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _locatorJsonMeta = const VerificationMeta(
+    'locatorJson',
+  );
+  @override
+  late final GeneratedColumn<String> locatorJson = GeneratedColumn<String>(
+    'locator',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _explanationMeta = const VerificationMeta(
+    'explanation',
+  );
+  @override
+  late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
+    'explanation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vocabularyItemId,
+    contextText,
+    sourceType,
+    sourceId,
+    locatorJson,
+    explanation,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vocabulary_contexts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VocabularyContextRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vocabulary_item_id')) {
+      context.handle(
+        _vocabularyItemIdMeta,
+        vocabularyItemId.isAcceptableOrUnknown(
+          data['vocabulary_item_id']!,
+          _vocabularyItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_vocabularyItemIdMeta);
+    }
+    if (data.containsKey('text')) {
+      context.handle(
+        _contextTextMeta,
+        contextText.isAcceptableOrUnknown(data['text']!, _contextTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contextTextMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+        _sourceTypeMeta,
+        sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('locator')) {
+      context.handle(
+        _locatorJsonMeta,
+        locatorJson.isAcceptableOrUnknown(data['locator']!, _locatorJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_locatorJsonMeta);
+    }
+    if (data.containsKey('explanation')) {
+      context.handle(
+        _explanationMeta,
+        explanation.isAcceptableOrUnknown(
+          data['explanation']!,
+          _explanationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VocabularyContextRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VocabularyContextRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vocabularyItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vocabulary_item_id'],
+      )!,
+      contextText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text'],
+      )!,
+      sourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_type'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      locatorJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locator'],
+      )!,
+      explanation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explanation'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VocabularyContextsTable createAlias(String alias) {
+    return $VocabularyContextsTable(attachedDatabase, alias);
+  }
+}
+
+class VocabularyContextRow extends DataClass
+    implements Insertable<VocabularyContextRow> {
+  final String id;
+  final String vocabularyItemId;
+
+  /// Sentence / paragraph context. SQL column name `text` (web field name).
+  /// Getter cannot be `text` — that clashes with Drift's [text] builder.
+  final String contextText;
+  final String sourceType;
+  final String sourceId;
+
+  /// JSON locator (`MediaLocator` or `EbookLocator`).
+  final String locatorJson;
+  final String? explanation;
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const VocabularyContextRow({
+    required this.id,
+    required this.vocabularyItemId,
+    required this.contextText,
+    required this.sourceType,
+    required this.sourceId,
+    required this.locatorJson,
+    this.explanation,
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vocabulary_item_id'] = Variable<String>(vocabularyItemId);
+    map['text'] = Variable<String>(contextText);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
+    map['locator'] = Variable<String>(locatorJson);
+    if (!nullToAbsent || explanation != null) {
+      map['explanation'] = Variable<String>(explanation);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  VocabularyContextsCompanion toCompanion(bool nullToAbsent) {
+    return VocabularyContextsCompanion(
+      id: Value(id),
+      vocabularyItemId: Value(vocabularyItemId),
+      contextText: Value(contextText),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      locatorJson: Value(locatorJson),
+      explanation: explanation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(explanation),
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory VocabularyContextRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VocabularyContextRow(
+      id: serializer.fromJson<String>(json['id']),
+      vocabularyItemId: serializer.fromJson<String>(json['vocabularyItemId']),
+      contextText: serializer.fromJson<String>(json['contextText']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      locatorJson: serializer.fromJson<String>(json['locatorJson']),
+      explanation: serializer.fromJson<String?>(json['explanation']),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vocabularyItemId': serializer.toJson<String>(vocabularyItemId),
+      'contextText': serializer.toJson<String>(contextText),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'locatorJson': serializer.toJson<String>(locatorJson),
+      'explanation': serializer.toJson<String?>(explanation),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  VocabularyContextRow copyWith({
+    String? id,
+    String? vocabularyItemId,
+    String? contextText,
+    String? sourceType,
+    String? sourceId,
+    String? locatorJson,
+    Value<String?> explanation = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => VocabularyContextRow(
+    id: id ?? this.id,
+    vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
+    contextText: contextText ?? this.contextText,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    locatorJson: locatorJson ?? this.locatorJson,
+    explanation: explanation.present ? explanation.value : this.explanation,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  VocabularyContextRow copyWithCompanion(VocabularyContextsCompanion data) {
+    return VocabularyContextRow(
+      id: data.id.present ? data.id.value : this.id,
+      vocabularyItemId: data.vocabularyItemId.present
+          ? data.vocabularyItemId.value
+          : this.vocabularyItemId,
+      contextText: data.contextText.present
+          ? data.contextText.value
+          : this.contextText,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      locatorJson: data.locatorJson.present
+          ? data.locatorJson.value
+          : this.locatorJson,
+      explanation: data.explanation.present
+          ? data.explanation.value
+          : this.explanation,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyContextRow(')
+          ..write('id: $id, ')
+          ..write('vocabularyItemId: $vocabularyItemId, ')
+          ..write('contextText: $contextText, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('locatorJson: $locatorJson, ')
+          ..write('explanation: $explanation, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vocabularyItemId,
+    contextText,
+    sourceType,
+    sourceId,
+    locatorJson,
+    explanation,
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VocabularyContextRow &&
+          other.id == this.id &&
+          other.vocabularyItemId == this.vocabularyItemId &&
+          other.contextText == this.contextText &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.locatorJson == this.locatorJson &&
+          other.explanation == this.explanation &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class VocabularyContextsCompanion
+    extends UpdateCompanion<VocabularyContextRow> {
+  final Value<String> id;
+  final Value<String> vocabularyItemId;
+  final Value<String> contextText;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
+  final Value<String> locatorJson;
+  final Value<String?> explanation;
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const VocabularyContextsCompanion({
+    this.id = const Value.absent(),
+    this.vocabularyItemId = const Value.absent(),
+    this.contextText = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.locatorJson = const Value.absent(),
+    this.explanation = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VocabularyContextsCompanion.insert({
+    required String id,
+    required String vocabularyItemId,
+    required String contextText,
+    required String sourceType,
+    required String sourceId,
+    required String locatorJson,
+    this.explanation = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vocabularyItemId = Value(vocabularyItemId),
+       contextText = Value(contextText),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       locatorJson = Value(locatorJson),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<VocabularyContextRow> custom({
+    Expression<String>? id,
+    Expression<String>? vocabularyItemId,
+    Expression<String>? contextText,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? locatorJson,
+    Expression<String>? explanation,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vocabularyItemId != null) 'vocabulary_item_id': vocabularyItemId,
+      if (contextText != null) 'text': contextText,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (locatorJson != null) 'locator': locatorJson,
+      if (explanation != null) 'explanation': explanation,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VocabularyContextsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vocabularyItemId,
+    Value<String>? contextText,
+    Value<String>? sourceType,
+    Value<String>? sourceId,
+    Value<String>? locatorJson,
+    Value<String?>? explanation,
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return VocabularyContextsCompanion(
+      id: id ?? this.id,
+      vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
+      contextText: contextText ?? this.contextText,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      locatorJson: locatorJson ?? this.locatorJson,
+      explanation: explanation ?? this.explanation,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vocabularyItemId.present) {
+      map['vocabulary_item_id'] = Variable<String>(vocabularyItemId.value);
+    }
+    if (contextText.present) {
+      map['text'] = Variable<String>(contextText.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (locatorJson.present) {
+      map['locator'] = Variable<String>(locatorJson.value);
+    }
+    if (explanation.present) {
+      map['explanation'] = Variable<String>(explanation.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyContextsCompanion(')
+          ..write('id: $id, ')
+          ..write('vocabularyItemId: $vocabularyItemId, ')
+          ..write('contextText: $contextText, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('locatorJson: $locatorJson, ')
+          ..write('explanation: $explanation, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VocabularyReviewsTable extends VocabularyReviews
+    with TableInfo<$VocabularyReviewsTable, VocabularyReviewRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VocabularyReviewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vocabularyItemIdMeta = const VerificationMeta(
+    'vocabularyItemId',
+  );
+  @override
+  late final GeneratedColumn<String> vocabularyItemId = GeneratedColumn<String>(
+    'vocabulary_item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<int> rating = GeneratedColumn<int>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _easeFactorBeforeMeta = const VerificationMeta(
+    'easeFactorBefore',
+  );
+  @override
+  late final GeneratedColumn<double> easeFactorBefore = GeneratedColumn<double>(
+    'ease_factor_before',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalBeforeMeta = const VerificationMeta(
+    'intervalBefore',
+  );
+  @override
+  late final GeneratedColumn<int> intervalBefore = GeneratedColumn<int>(
+    'interval_before',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusBeforeMeta = const VerificationMeta(
+    'statusBefore',
+  );
+  @override
+  late final GeneratedColumn<String> statusBefore = GeneratedColumn<String>(
+    'status_before',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewsCountBeforeMeta =
+      const VerificationMeta('reviewsCountBefore');
+  @override
+  late final GeneratedColumn<int> reviewsCountBefore = GeneratedColumn<int>(
+    'reviews_count_before',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nextReviewAtBeforeMeta =
+      const VerificationMeta('nextReviewAtBefore');
+  @override
+  late final GeneratedColumn<DateTime> nextReviewAtBefore =
+      GeneratedColumn<DateTime>(
+        'next_review_at_before',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _lastReviewedAtBeforeMeta =
+      const VerificationMeta('lastReviewedAtBefore');
+  @override
+  late final GeneratedColumn<DateTime> lastReviewedAtBefore =
+      GeneratedColumn<DateTime>(
+        'last_reviewed_at_before',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vocabularyItemId,
+    rating,
+    at,
+    easeFactorBefore,
+    intervalBefore,
+    statusBefore,
+    reviewsCountBefore,
+    nextReviewAtBefore,
+    lastReviewedAtBefore,
+    syncStatus,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vocabulary_reviews';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VocabularyReviewRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vocabulary_item_id')) {
+      context.handle(
+        _vocabularyItemIdMeta,
+        vocabularyItemId.isAcceptableOrUnknown(
+          data['vocabulary_item_id']!,
+          _vocabularyItemIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_vocabularyItemIdMeta);
+    }
+    if (data.containsKey('rating')) {
+      context.handle(
+        _ratingMeta,
+        rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ratingMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('ease_factor_before')) {
+      context.handle(
+        _easeFactorBeforeMeta,
+        easeFactorBefore.isAcceptableOrUnknown(
+          data['ease_factor_before']!,
+          _easeFactorBeforeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_easeFactorBeforeMeta);
+    }
+    if (data.containsKey('interval_before')) {
+      context.handle(
+        _intervalBeforeMeta,
+        intervalBefore.isAcceptableOrUnknown(
+          data['interval_before']!,
+          _intervalBeforeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalBeforeMeta);
+    }
+    if (data.containsKey('status_before')) {
+      context.handle(
+        _statusBeforeMeta,
+        statusBefore.isAcceptableOrUnknown(
+          data['status_before']!,
+          _statusBeforeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_statusBeforeMeta);
+    }
+    if (data.containsKey('reviews_count_before')) {
+      context.handle(
+        _reviewsCountBeforeMeta,
+        reviewsCountBefore.isAcceptableOrUnknown(
+          data['reviews_count_before']!,
+          _reviewsCountBeforeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewsCountBeforeMeta);
+    }
+    if (data.containsKey('next_review_at_before')) {
+      context.handle(
+        _nextReviewAtBeforeMeta,
+        nextReviewAtBefore.isAcceptableOrUnknown(
+          data['next_review_at_before']!,
+          _nextReviewAtBeforeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nextReviewAtBeforeMeta);
+    }
+    if (data.containsKey('last_reviewed_at_before')) {
+      context.handle(
+        _lastReviewedAtBeforeMeta,
+        lastReviewedAtBefore.isAcceptableOrUnknown(
+          data['last_reviewed_at_before']!,
+          _lastReviewedAtBeforeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VocabularyReviewRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VocabularyReviewRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vocabularyItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vocabulary_item_id'],
+      )!,
+      rating: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rating'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+      easeFactorBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ease_factor_before'],
+      )!,
+      intervalBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_before'],
+      )!,
+      statusBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_before'],
+      )!,
+      reviewsCountBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviews_count_before'],
+      )!,
+      nextReviewAtBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_review_at_before'],
+      )!,
+      lastReviewedAtBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_reviewed_at_before'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VocabularyReviewsTable createAlias(String alias) {
+    return $VocabularyReviewsTable(attachedDatabase, alias);
+  }
+}
+
+class VocabularyReviewRow extends DataClass
+    implements Insertable<VocabularyReviewRow> {
+  final String id;
+  final String vocabularyItemId;
+  final int rating;
+  final DateTime at;
+  final double easeFactorBefore;
+  final int intervalBefore;
+  final String statusBefore;
+  final int reviewsCountBefore;
+  final DateTime nextReviewAtBefore;
+  final DateTime? lastReviewedAtBefore;
+  final String? syncStatus;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const VocabularyReviewRow({
+    required this.id,
+    required this.vocabularyItemId,
+    required this.rating,
+    required this.at,
+    required this.easeFactorBefore,
+    required this.intervalBefore,
+    required this.statusBefore,
+    required this.reviewsCountBefore,
+    required this.nextReviewAtBefore,
+    this.lastReviewedAtBefore,
+    this.syncStatus,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vocabulary_item_id'] = Variable<String>(vocabularyItemId);
+    map['rating'] = Variable<int>(rating);
+    map['at'] = Variable<DateTime>(at);
+    map['ease_factor_before'] = Variable<double>(easeFactorBefore);
+    map['interval_before'] = Variable<int>(intervalBefore);
+    map['status_before'] = Variable<String>(statusBefore);
+    map['reviews_count_before'] = Variable<int>(reviewsCountBefore);
+    map['next_review_at_before'] = Variable<DateTime>(nextReviewAtBefore);
+    if (!nullToAbsent || lastReviewedAtBefore != null) {
+      map['last_reviewed_at_before'] = Variable<DateTime>(lastReviewedAtBefore);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  VocabularyReviewsCompanion toCompanion(bool nullToAbsent) {
+    return VocabularyReviewsCompanion(
+      id: Value(id),
+      vocabularyItemId: Value(vocabularyItemId),
+      rating: Value(rating),
+      at: Value(at),
+      easeFactorBefore: Value(easeFactorBefore),
+      intervalBefore: Value(intervalBefore),
+      statusBefore: Value(statusBefore),
+      reviewsCountBefore: Value(reviewsCountBefore),
+      nextReviewAtBefore: Value(nextReviewAtBefore),
+      lastReviewedAtBefore: lastReviewedAtBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReviewedAtBefore),
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory VocabularyReviewRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VocabularyReviewRow(
+      id: serializer.fromJson<String>(json['id']),
+      vocabularyItemId: serializer.fromJson<String>(json['vocabularyItemId']),
+      rating: serializer.fromJson<int>(json['rating']),
+      at: serializer.fromJson<DateTime>(json['at']),
+      easeFactorBefore: serializer.fromJson<double>(json['easeFactorBefore']),
+      intervalBefore: serializer.fromJson<int>(json['intervalBefore']),
+      statusBefore: serializer.fromJson<String>(json['statusBefore']),
+      reviewsCountBefore: serializer.fromJson<int>(json['reviewsCountBefore']),
+      nextReviewAtBefore: serializer.fromJson<DateTime>(
+        json['nextReviewAtBefore'],
+      ),
+      lastReviewedAtBefore: serializer.fromJson<DateTime?>(
+        json['lastReviewedAtBefore'],
+      ),
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vocabularyItemId': serializer.toJson<String>(vocabularyItemId),
+      'rating': serializer.toJson<int>(rating),
+      'at': serializer.toJson<DateTime>(at),
+      'easeFactorBefore': serializer.toJson<double>(easeFactorBefore),
+      'intervalBefore': serializer.toJson<int>(intervalBefore),
+      'statusBefore': serializer.toJson<String>(statusBefore),
+      'reviewsCountBefore': serializer.toJson<int>(reviewsCountBefore),
+      'nextReviewAtBefore': serializer.toJson<DateTime>(nextReviewAtBefore),
+      'lastReviewedAtBefore': serializer.toJson<DateTime?>(
+        lastReviewedAtBefore,
+      ),
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  VocabularyReviewRow copyWith({
+    String? id,
+    String? vocabularyItemId,
+    int? rating,
+    DateTime? at,
+    double? easeFactorBefore,
+    int? intervalBefore,
+    String? statusBefore,
+    int? reviewsCountBefore,
+    DateTime? nextReviewAtBefore,
+    Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
+    Value<String?> syncStatus = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => VocabularyReviewRow(
+    id: id ?? this.id,
+    vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
+    rating: rating ?? this.rating,
+    at: at ?? this.at,
+    easeFactorBefore: easeFactorBefore ?? this.easeFactorBefore,
+    intervalBefore: intervalBefore ?? this.intervalBefore,
+    statusBefore: statusBefore ?? this.statusBefore,
+    reviewsCountBefore: reviewsCountBefore ?? this.reviewsCountBefore,
+    nextReviewAtBefore: nextReviewAtBefore ?? this.nextReviewAtBefore,
+    lastReviewedAtBefore: lastReviewedAtBefore.present
+        ? lastReviewedAtBefore.value
+        : this.lastReviewedAtBefore,
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  VocabularyReviewRow copyWithCompanion(VocabularyReviewsCompanion data) {
+    return VocabularyReviewRow(
+      id: data.id.present ? data.id.value : this.id,
+      vocabularyItemId: data.vocabularyItemId.present
+          ? data.vocabularyItemId.value
+          : this.vocabularyItemId,
+      rating: data.rating.present ? data.rating.value : this.rating,
+      at: data.at.present ? data.at.value : this.at,
+      easeFactorBefore: data.easeFactorBefore.present
+          ? data.easeFactorBefore.value
+          : this.easeFactorBefore,
+      intervalBefore: data.intervalBefore.present
+          ? data.intervalBefore.value
+          : this.intervalBefore,
+      statusBefore: data.statusBefore.present
+          ? data.statusBefore.value
+          : this.statusBefore,
+      reviewsCountBefore: data.reviewsCountBefore.present
+          ? data.reviewsCountBefore.value
+          : this.reviewsCountBefore,
+      nextReviewAtBefore: data.nextReviewAtBefore.present
+          ? data.nextReviewAtBefore.value
+          : this.nextReviewAtBefore,
+      lastReviewedAtBefore: data.lastReviewedAtBefore.present
+          ? data.lastReviewedAtBefore.value
+          : this.lastReviewedAtBefore,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyReviewRow(')
+          ..write('id: $id, ')
+          ..write('vocabularyItemId: $vocabularyItemId, ')
+          ..write('rating: $rating, ')
+          ..write('at: $at, ')
+          ..write('easeFactorBefore: $easeFactorBefore, ')
+          ..write('intervalBefore: $intervalBefore, ')
+          ..write('statusBefore: $statusBefore, ')
+          ..write('reviewsCountBefore: $reviewsCountBefore, ')
+          ..write('nextReviewAtBefore: $nextReviewAtBefore, ')
+          ..write('lastReviewedAtBefore: $lastReviewedAtBefore, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vocabularyItemId,
+    rating,
+    at,
+    easeFactorBefore,
+    intervalBefore,
+    statusBefore,
+    reviewsCountBefore,
+    nextReviewAtBefore,
+    lastReviewedAtBefore,
+    syncStatus,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VocabularyReviewRow &&
+          other.id == this.id &&
+          other.vocabularyItemId == this.vocabularyItemId &&
+          other.rating == this.rating &&
+          other.at == this.at &&
+          other.easeFactorBefore == this.easeFactorBefore &&
+          other.intervalBefore == this.intervalBefore &&
+          other.statusBefore == this.statusBefore &&
+          other.reviewsCountBefore == this.reviewsCountBefore &&
+          other.nextReviewAtBefore == this.nextReviewAtBefore &&
+          other.lastReviewedAtBefore == this.lastReviewedAtBefore &&
+          other.syncStatus == this.syncStatus &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
+  final Value<String> id;
+  final Value<String> vocabularyItemId;
+  final Value<int> rating;
+  final Value<DateTime> at;
+  final Value<double> easeFactorBefore;
+  final Value<int> intervalBefore;
+  final Value<String> statusBefore;
+  final Value<int> reviewsCountBefore;
+  final Value<DateTime> nextReviewAtBefore;
+  final Value<DateTime?> lastReviewedAtBefore;
+  final Value<String?> syncStatus;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const VocabularyReviewsCompanion({
+    this.id = const Value.absent(),
+    this.vocabularyItemId = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.at = const Value.absent(),
+    this.easeFactorBefore = const Value.absent(),
+    this.intervalBefore = const Value.absent(),
+    this.statusBefore = const Value.absent(),
+    this.reviewsCountBefore = const Value.absent(),
+    this.nextReviewAtBefore = const Value.absent(),
+    this.lastReviewedAtBefore = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VocabularyReviewsCompanion.insert({
+    required String id,
+    required String vocabularyItemId,
+    required int rating,
+    required DateTime at,
+    required double easeFactorBefore,
+    required int intervalBefore,
+    required String statusBefore,
+    required int reviewsCountBefore,
+    required DateTime nextReviewAtBefore,
+    this.lastReviewedAtBefore = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vocabularyItemId = Value(vocabularyItemId),
+       rating = Value(rating),
+       at = Value(at),
+       easeFactorBefore = Value(easeFactorBefore),
+       intervalBefore = Value(intervalBefore),
+       statusBefore = Value(statusBefore),
+       reviewsCountBefore = Value(reviewsCountBefore),
+       nextReviewAtBefore = Value(nextReviewAtBefore),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<VocabularyReviewRow> custom({
+    Expression<String>? id,
+    Expression<String>? vocabularyItemId,
+    Expression<int>? rating,
+    Expression<DateTime>? at,
+    Expression<double>? easeFactorBefore,
+    Expression<int>? intervalBefore,
+    Expression<String>? statusBefore,
+    Expression<int>? reviewsCountBefore,
+    Expression<DateTime>? nextReviewAtBefore,
+    Expression<DateTime>? lastReviewedAtBefore,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vocabularyItemId != null) 'vocabulary_item_id': vocabularyItemId,
+      if (rating != null) 'rating': rating,
+      if (at != null) 'at': at,
+      if (easeFactorBefore != null) 'ease_factor_before': easeFactorBefore,
+      if (intervalBefore != null) 'interval_before': intervalBefore,
+      if (statusBefore != null) 'status_before': statusBefore,
+      if (reviewsCountBefore != null)
+        'reviews_count_before': reviewsCountBefore,
+      if (nextReviewAtBefore != null)
+        'next_review_at_before': nextReviewAtBefore,
+      if (lastReviewedAtBefore != null)
+        'last_reviewed_at_before': lastReviewedAtBefore,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VocabularyReviewsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vocabularyItemId,
+    Value<int>? rating,
+    Value<DateTime>? at,
+    Value<double>? easeFactorBefore,
+    Value<int>? intervalBefore,
+    Value<String>? statusBefore,
+    Value<int>? reviewsCountBefore,
+    Value<DateTime>? nextReviewAtBefore,
+    Value<DateTime?>? lastReviewedAtBefore,
+    Value<String?>? syncStatus,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return VocabularyReviewsCompanion(
+      id: id ?? this.id,
+      vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
+      rating: rating ?? this.rating,
+      at: at ?? this.at,
+      easeFactorBefore: easeFactorBefore ?? this.easeFactorBefore,
+      intervalBefore: intervalBefore ?? this.intervalBefore,
+      statusBefore: statusBefore ?? this.statusBefore,
+      reviewsCountBefore: reviewsCountBefore ?? this.reviewsCountBefore,
+      nextReviewAtBefore: nextReviewAtBefore ?? this.nextReviewAtBefore,
+      lastReviewedAtBefore: lastReviewedAtBefore ?? this.lastReviewedAtBefore,
+      syncStatus: syncStatus ?? this.syncStatus,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vocabularyItemId.present) {
+      map['vocabulary_item_id'] = Variable<String>(vocabularyItemId.value);
+    }
+    if (rating.present) {
+      map['rating'] = Variable<int>(rating.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (easeFactorBefore.present) {
+      map['ease_factor_before'] = Variable<double>(easeFactorBefore.value);
+    }
+    if (intervalBefore.present) {
+      map['interval_before'] = Variable<int>(intervalBefore.value);
+    }
+    if (statusBefore.present) {
+      map['status_before'] = Variable<String>(statusBefore.value);
+    }
+    if (reviewsCountBefore.present) {
+      map['reviews_count_before'] = Variable<int>(reviewsCountBefore.value);
+    }
+    if (nextReviewAtBefore.present) {
+      map['next_review_at_before'] = Variable<DateTime>(
+        nextReviewAtBefore.value,
+      );
+    }
+    if (lastReviewedAtBefore.present) {
+      map['last_reviewed_at_before'] = Variable<DateTime>(
+        lastReviewedAtBefore.value,
+      );
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VocabularyReviewsCompanion(')
+          ..write('id: $id, ')
+          ..write('vocabularyItemId: $vocabularyItemId, ')
+          ..write('rating: $rating, ')
+          ..write('at: $at, ')
+          ..write('easeFactorBefore: $easeFactorBefore, ')
+          ..write('intervalBefore: $intervalBefore, ')
+          ..write('statusBefore: $statusBefore, ')
+          ..write('reviewsCountBefore: $reviewsCountBefore, ')
+          ..write('nextReviewAtBefore: $nextReviewAtBefore, ')
+          ..write('lastReviewedAtBefore: $lastReviewedAtBefore, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8992,9 +11425,40 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $YoutubeFeedEntriesTable youtubeFeedEntries =
       $YoutubeFeedEntriesTable(this);
   late final $AiCacheTable aiCache = $AiCacheTable(this);
+  late final $VocabularyItemsTable vocabularyItems = $VocabularyItemsTable(
+    this,
+  );
+  late final $VocabularyContextsTable vocabularyContexts =
+      $VocabularyContextsTable(this);
+  late final $VocabularyReviewsTable vocabularyReviews =
+      $VocabularyReviewsTable(this);
   late final Index idxTranscriptFetchStatesTarget = Index(
     'idx_transcript_fetch_states_target',
     'CREATE INDEX idx_transcript_fetch_states_target ON transcript_fetch_states (target_type, target_id)',
+  );
+  late final Index idxVocabularyItemsWordLanguage = Index(
+    'idx_vocabulary_items_word_language',
+    'CREATE INDEX idx_vocabulary_items_word_language ON vocabulary_items (word, language)',
+  );
+  late final Index idxVocabularyItemsNextReviewAt = Index(
+    'idx_vocabulary_items_next_review_at',
+    'CREATE INDEX idx_vocabulary_items_next_review_at ON vocabulary_items (next_review_at)',
+  );
+  late final Index idxVocabularyItemsStatus = Index(
+    'idx_vocabulary_items_status',
+    'CREATE INDEX idx_vocabulary_items_status ON vocabulary_items (status)',
+  );
+  late final Index idxVocabularyContextsItemId = Index(
+    'idx_vocabulary_contexts_item_id',
+    'CREATE INDEX idx_vocabulary_contexts_item_id ON vocabulary_contexts (vocabulary_item_id)',
+  );
+  late final Index idxVocabularyContextsItemSource = Index(
+    'idx_vocabulary_contexts_item_source',
+    'CREATE INDEX idx_vocabulary_contexts_item_source ON vocabulary_contexts (vocabulary_item_id, source_type, source_id)',
+  );
+  late final Index idxVocabularyReviewsItemAt = Index(
+    'idx_vocabulary_reviews_item_at',
+    'CREATE INDEX idx_vocabulary_reviews_item_at ON vocabulary_reviews (vocabulary_item_id, at)',
   );
   late final VideoDao videoDao = VideoDao(this as AppDatabase);
   late final AudioDao audioDao = AudioDao(this as AppDatabase);
@@ -9014,6 +11478,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this as AppDatabase,
   );
   late final AiCacheDao aiCacheDao = AiCacheDao(this as AppDatabase);
+  late final VocabularyItemDao vocabularyItemDao = VocabularyItemDao(
+    this as AppDatabase,
+  );
+  late final VocabularyContextDao vocabularyContextDao = VocabularyContextDao(
+    this as AppDatabase,
+  );
+  late final VocabularyReviewDao vocabularyReviewDao = VocabularyReviewDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9031,7 +11504,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     youtubeChannelSubscriptions,
     youtubeFeedEntries,
     aiCache,
+    vocabularyItems,
+    vocabularyContexts,
+    vocabularyReviews,
     idxTranscriptFetchStatesTarget,
+    idxVocabularyItemsWordLanguage,
+    idxVocabularyItemsNextReviewAt,
+    idxVocabularyItemsStatus,
+    idxVocabularyContextsItemId,
+    idxVocabularyContextsItemSource,
+    idxVocabularyReviewsItemAt,
   ];
 }
 
@@ -13261,6 +15743,1161 @@ typedef $$AiCacheTableProcessedTableManager =
       AiCacheRow,
       PrefetchHooks Function()
     >;
+typedef $$VocabularyItemsTableCreateCompanionBuilder =
+    VocabularyItemsCompanion Function({
+      required String id,
+      required String word,
+      required String language,
+      required String targetLanguage,
+      required String status,
+      required double easeFactor,
+      required int interval,
+      required DateTime nextReviewAt,
+      required int reviewsCount,
+      Value<DateTime?> lastReviewedAt,
+      required int contextsCount,
+      Value<String?> explanation,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$VocabularyItemsTableUpdateCompanionBuilder =
+    VocabularyItemsCompanion Function({
+      Value<String> id,
+      Value<String> word,
+      Value<String> language,
+      Value<String> targetLanguage,
+      Value<String> status,
+      Value<double> easeFactor,
+      Value<int> interval,
+      Value<DateTime> nextReviewAt,
+      Value<int> reviewsCount,
+      Value<DateTime?> lastReviewedAt,
+      Value<int> contextsCount,
+      Value<String?> explanation,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$VocabularyItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $VocabularyItemsTable> {
+  $$VocabularyItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetLanguage => $composableBuilder(
+    column: $table.targetLanguage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get interval => $composableBuilder(
+    column: $table.interval,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewsCount => $composableBuilder(
+    column: $table.reviewsCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastReviewedAt => $composableBuilder(
+    column: $table.lastReviewedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get contextsCount => $composableBuilder(
+    column: $table.contextsCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VocabularyItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VocabularyItemsTable> {
+  $$VocabularyItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get word => $composableBuilder(
+    column: $table.word,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetLanguage => $composableBuilder(
+    column: $table.targetLanguage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get interval => $composableBuilder(
+    column: $table.interval,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewsCount => $composableBuilder(
+    column: $table.reviewsCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastReviewedAt => $composableBuilder(
+    column: $table.lastReviewedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get contextsCount => $composableBuilder(
+    column: $table.contextsCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VocabularyItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VocabularyItemsTable> {
+  $$VocabularyItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get word =>
+      $composableBuilder(column: $table.word, builder: (column) => column);
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<String> get targetLanguage => $composableBuilder(
+    column: $table.targetLanguage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get easeFactor => $composableBuilder(
+    column: $table.easeFactor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get interval =>
+      $composableBuilder(column: $table.interval, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextReviewAt => $composableBuilder(
+    column: $table.nextReviewAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewsCount => $composableBuilder(
+    column: $table.reviewsCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastReviewedAt => $composableBuilder(
+    column: $table.lastReviewedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get contextsCount => $composableBuilder(
+    column: $table.contextsCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$VocabularyItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VocabularyItemsTable,
+          VocabularyItemRow,
+          $$VocabularyItemsTableFilterComposer,
+          $$VocabularyItemsTableOrderingComposer,
+          $$VocabularyItemsTableAnnotationComposer,
+          $$VocabularyItemsTableCreateCompanionBuilder,
+          $$VocabularyItemsTableUpdateCompanionBuilder,
+          (
+            VocabularyItemRow,
+            BaseReferences<
+              _$AppDatabase,
+              $VocabularyItemsTable,
+              VocabularyItemRow
+            >,
+          ),
+          VocabularyItemRow,
+          PrefetchHooks Function()
+        > {
+  $$VocabularyItemsTableTableManager(
+    _$AppDatabase db,
+    $VocabularyItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VocabularyItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VocabularyItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VocabularyItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> word = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String> targetLanguage = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<double> easeFactor = const Value.absent(),
+                Value<int> interval = const Value.absent(),
+                Value<DateTime> nextReviewAt = const Value.absent(),
+                Value<int> reviewsCount = const Value.absent(),
+                Value<DateTime?> lastReviewedAt = const Value.absent(),
+                Value<int> contextsCount = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyItemsCompanion(
+                id: id,
+                word: word,
+                language: language,
+                targetLanguage: targetLanguage,
+                status: status,
+                easeFactor: easeFactor,
+                interval: interval,
+                nextReviewAt: nextReviewAt,
+                reviewsCount: reviewsCount,
+                lastReviewedAt: lastReviewedAt,
+                contextsCount: contextsCount,
+                explanation: explanation,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String word,
+                required String language,
+                required String targetLanguage,
+                required String status,
+                required double easeFactor,
+                required int interval,
+                required DateTime nextReviewAt,
+                required int reviewsCount,
+                Value<DateTime?> lastReviewedAt = const Value.absent(),
+                required int contextsCount,
+                Value<String?> explanation = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyItemsCompanion.insert(
+                id: id,
+                word: word,
+                language: language,
+                targetLanguage: targetLanguage,
+                status: status,
+                easeFactor: easeFactor,
+                interval: interval,
+                nextReviewAt: nextReviewAt,
+                reviewsCount: reviewsCount,
+                lastReviewedAt: lastReviewedAt,
+                contextsCount: contextsCount,
+                explanation: explanation,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VocabularyItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VocabularyItemsTable,
+      VocabularyItemRow,
+      $$VocabularyItemsTableFilterComposer,
+      $$VocabularyItemsTableOrderingComposer,
+      $$VocabularyItemsTableAnnotationComposer,
+      $$VocabularyItemsTableCreateCompanionBuilder,
+      $$VocabularyItemsTableUpdateCompanionBuilder,
+      (
+        VocabularyItemRow,
+        BaseReferences<_$AppDatabase, $VocabularyItemsTable, VocabularyItemRow>,
+      ),
+      VocabularyItemRow,
+      PrefetchHooks Function()
+    >;
+typedef $$VocabularyContextsTableCreateCompanionBuilder =
+    VocabularyContextsCompanion Function({
+      required String id,
+      required String vocabularyItemId,
+      required String contextText,
+      required String sourceType,
+      required String sourceId,
+      required String locatorJson,
+      Value<String?> explanation,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$VocabularyContextsTableUpdateCompanionBuilder =
+    VocabularyContextsCompanion Function({
+      Value<String> id,
+      Value<String> vocabularyItemId,
+      Value<String> contextText,
+      Value<String> sourceType,
+      Value<String> sourceId,
+      Value<String> locatorJson,
+      Value<String?> explanation,
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$VocabularyContextsTableFilterComposer
+    extends Composer<_$AppDatabase, $VocabularyContextsTable> {
+  $$VocabularyContextsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contextText => $composableBuilder(
+    column: $table.contextText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locatorJson => $composableBuilder(
+    column: $table.locatorJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VocabularyContextsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VocabularyContextsTable> {
+  $$VocabularyContextsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contextText => $composableBuilder(
+    column: $table.contextText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locatorJson => $composableBuilder(
+    column: $table.locatorJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VocabularyContextsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VocabularyContextsTable> {
+  $$VocabularyContextsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contextText => $composableBuilder(
+    column: $table.contextText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get locatorJson => $composableBuilder(
+    column: $table.locatorJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$VocabularyContextsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VocabularyContextsTable,
+          VocabularyContextRow,
+          $$VocabularyContextsTableFilterComposer,
+          $$VocabularyContextsTableOrderingComposer,
+          $$VocabularyContextsTableAnnotationComposer,
+          $$VocabularyContextsTableCreateCompanionBuilder,
+          $$VocabularyContextsTableUpdateCompanionBuilder,
+          (
+            VocabularyContextRow,
+            BaseReferences<
+              _$AppDatabase,
+              $VocabularyContextsTable,
+              VocabularyContextRow
+            >,
+          ),
+          VocabularyContextRow,
+          PrefetchHooks Function()
+        > {
+  $$VocabularyContextsTableTableManager(
+    _$AppDatabase db,
+    $VocabularyContextsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VocabularyContextsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VocabularyContextsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VocabularyContextsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vocabularyItemId = const Value.absent(),
+                Value<String> contextText = const Value.absent(),
+                Value<String> sourceType = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> locatorJson = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyContextsCompanion(
+                id: id,
+                vocabularyItemId: vocabularyItemId,
+                contextText: contextText,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                locatorJson: locatorJson,
+                explanation: explanation,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vocabularyItemId,
+                required String contextText,
+                required String sourceType,
+                required String sourceId,
+                required String locatorJson,
+                Value<String?> explanation = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyContextsCompanion.insert(
+                id: id,
+                vocabularyItemId: vocabularyItemId,
+                contextText: contextText,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                locatorJson: locatorJson,
+                explanation: explanation,
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VocabularyContextsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VocabularyContextsTable,
+      VocabularyContextRow,
+      $$VocabularyContextsTableFilterComposer,
+      $$VocabularyContextsTableOrderingComposer,
+      $$VocabularyContextsTableAnnotationComposer,
+      $$VocabularyContextsTableCreateCompanionBuilder,
+      $$VocabularyContextsTableUpdateCompanionBuilder,
+      (
+        VocabularyContextRow,
+        BaseReferences<
+          _$AppDatabase,
+          $VocabularyContextsTable,
+          VocabularyContextRow
+        >,
+      ),
+      VocabularyContextRow,
+      PrefetchHooks Function()
+    >;
+typedef $$VocabularyReviewsTableCreateCompanionBuilder =
+    VocabularyReviewsCompanion Function({
+      required String id,
+      required String vocabularyItemId,
+      required int rating,
+      required DateTime at,
+      required double easeFactorBefore,
+      required int intervalBefore,
+      required String statusBefore,
+      required int reviewsCountBefore,
+      required DateTime nextReviewAtBefore,
+      Value<DateTime?> lastReviewedAtBefore,
+      Value<String?> syncStatus,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$VocabularyReviewsTableUpdateCompanionBuilder =
+    VocabularyReviewsCompanion Function({
+      Value<String> id,
+      Value<String> vocabularyItemId,
+      Value<int> rating,
+      Value<DateTime> at,
+      Value<double> easeFactorBefore,
+      Value<int> intervalBefore,
+      Value<String> statusBefore,
+      Value<int> reviewsCountBefore,
+      Value<DateTime> nextReviewAtBefore,
+      Value<DateTime?> lastReviewedAtBefore,
+      Value<String?> syncStatus,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$VocabularyReviewsTableFilterComposer
+    extends Composer<_$AppDatabase, $VocabularyReviewsTable> {
+  $$VocabularyReviewsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get easeFactorBefore => $composableBuilder(
+    column: $table.easeFactorBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalBefore => $composableBuilder(
+    column: $table.intervalBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusBefore => $composableBuilder(
+    column: $table.statusBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewsCountBefore => $composableBuilder(
+    column: $table.reviewsCountBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextReviewAtBefore => $composableBuilder(
+    column: $table.nextReviewAtBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastReviewedAtBefore => $composableBuilder(
+    column: $table.lastReviewedAtBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VocabularyReviewsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VocabularyReviewsTable> {
+  $$VocabularyReviewsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rating => $composableBuilder(
+    column: $table.rating,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get easeFactorBefore => $composableBuilder(
+    column: $table.easeFactorBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalBefore => $composableBuilder(
+    column: $table.intervalBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusBefore => $composableBuilder(
+    column: $table.statusBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewsCountBefore => $composableBuilder(
+    column: $table.reviewsCountBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextReviewAtBefore => $composableBuilder(
+    column: $table.nextReviewAtBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastReviewedAtBefore => $composableBuilder(
+    column: $table.lastReviewedAtBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VocabularyReviewsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VocabularyReviewsTable> {
+  $$VocabularyReviewsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vocabularyItemId => $composableBuilder(
+    column: $table.vocabularyItemId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<double> get easeFactorBefore => $composableBuilder(
+    column: $table.easeFactorBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intervalBefore => $composableBuilder(
+    column: $table.intervalBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get statusBefore => $composableBuilder(
+    column: $table.statusBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewsCountBefore => $composableBuilder(
+    column: $table.reviewsCountBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get nextReviewAtBefore => $composableBuilder(
+    column: $table.nextReviewAtBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastReviewedAtBefore => $composableBuilder(
+    column: $table.lastReviewedAtBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$VocabularyReviewsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VocabularyReviewsTable,
+          VocabularyReviewRow,
+          $$VocabularyReviewsTableFilterComposer,
+          $$VocabularyReviewsTableOrderingComposer,
+          $$VocabularyReviewsTableAnnotationComposer,
+          $$VocabularyReviewsTableCreateCompanionBuilder,
+          $$VocabularyReviewsTableUpdateCompanionBuilder,
+          (
+            VocabularyReviewRow,
+            BaseReferences<
+              _$AppDatabase,
+              $VocabularyReviewsTable,
+              VocabularyReviewRow
+            >,
+          ),
+          VocabularyReviewRow,
+          PrefetchHooks Function()
+        > {
+  $$VocabularyReviewsTableTableManager(
+    _$AppDatabase db,
+    $VocabularyReviewsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VocabularyReviewsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VocabularyReviewsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VocabularyReviewsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vocabularyItemId = const Value.absent(),
+                Value<int> rating = const Value.absent(),
+                Value<DateTime> at = const Value.absent(),
+                Value<double> easeFactorBefore = const Value.absent(),
+                Value<int> intervalBefore = const Value.absent(),
+                Value<String> statusBefore = const Value.absent(),
+                Value<int> reviewsCountBefore = const Value.absent(),
+                Value<DateTime> nextReviewAtBefore = const Value.absent(),
+                Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyReviewsCompanion(
+                id: id,
+                vocabularyItemId: vocabularyItemId,
+                rating: rating,
+                at: at,
+                easeFactorBefore: easeFactorBefore,
+                intervalBefore: intervalBefore,
+                statusBefore: statusBefore,
+                reviewsCountBefore: reviewsCountBefore,
+                nextReviewAtBefore: nextReviewAtBefore,
+                lastReviewedAtBefore: lastReviewedAtBefore,
+                syncStatus: syncStatus,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vocabularyItemId,
+                required int rating,
+                required DateTime at,
+                required double easeFactorBefore,
+                required int intervalBefore,
+                required String statusBefore,
+                required int reviewsCountBefore,
+                required DateTime nextReviewAtBefore,
+                Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
+                Value<String?> syncStatus = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => VocabularyReviewsCompanion.insert(
+                id: id,
+                vocabularyItemId: vocabularyItemId,
+                rating: rating,
+                at: at,
+                easeFactorBefore: easeFactorBefore,
+                intervalBefore: intervalBefore,
+                statusBefore: statusBefore,
+                reviewsCountBefore: reviewsCountBefore,
+                nextReviewAtBefore: nextReviewAtBefore,
+                lastReviewedAtBefore: lastReviewedAtBefore,
+                syncStatus: syncStatus,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VocabularyReviewsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VocabularyReviewsTable,
+      VocabularyReviewRow,
+      $$VocabularyReviewsTableFilterComposer,
+      $$VocabularyReviewsTableOrderingComposer,
+      $$VocabularyReviewsTableAnnotationComposer,
+      $$VocabularyReviewsTableCreateCompanionBuilder,
+      $$VocabularyReviewsTableUpdateCompanionBuilder,
+      (
+        VocabularyReviewRow,
+        BaseReferences<
+          _$AppDatabase,
+          $VocabularyReviewsTable,
+          VocabularyReviewRow
+        >,
+      ),
+      VocabularyReviewRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -13293,6 +16930,12 @@ class $AppDatabaseManager {
       $$YoutubeFeedEntriesTableTableManager(_db, _db.youtubeFeedEntries);
   $$AiCacheTableTableManager get aiCache =>
       $$AiCacheTableTableManager(_db, _db.aiCache);
+  $$VocabularyItemsTableTableManager get vocabularyItems =>
+      $$VocabularyItemsTableTableManager(_db, _db.vocabularyItems);
+  $$VocabularyContextsTableTableManager get vocabularyContexts =>
+      $$VocabularyContextsTableTableManager(_db, _db.vocabularyContexts);
+  $$VocabularyReviewsTableTableManager get vocabularyReviews =>
+      $$VocabularyReviewsTableTableManager(_db, _db.vocabularyReviews);
 }
 
 mixin _$VideoDaoMixin on DatabaseAccessor<AppDatabase> {
@@ -13452,4 +17095,51 @@ class AiCacheDaoManager {
   AiCacheDaoManager(this._db);
   $$AiCacheTableTableManager get aiCache =>
       $$AiCacheTableTableManager(_db.attachedDatabase, _db.aiCache);
+}
+
+mixin _$VocabularyItemDaoMixin on DatabaseAccessor<AppDatabase> {
+  $VocabularyItemsTable get vocabularyItems => attachedDatabase.vocabularyItems;
+  VocabularyItemDaoManager get managers => VocabularyItemDaoManager(this);
+}
+
+class VocabularyItemDaoManager {
+  final _$VocabularyItemDaoMixin _db;
+  VocabularyItemDaoManager(this._db);
+  $$VocabularyItemsTableTableManager get vocabularyItems =>
+      $$VocabularyItemsTableTableManager(
+        _db.attachedDatabase,
+        _db.vocabularyItems,
+      );
+}
+
+mixin _$VocabularyContextDaoMixin on DatabaseAccessor<AppDatabase> {
+  $VocabularyContextsTable get vocabularyContexts =>
+      attachedDatabase.vocabularyContexts;
+  VocabularyContextDaoManager get managers => VocabularyContextDaoManager(this);
+}
+
+class VocabularyContextDaoManager {
+  final _$VocabularyContextDaoMixin _db;
+  VocabularyContextDaoManager(this._db);
+  $$VocabularyContextsTableTableManager get vocabularyContexts =>
+      $$VocabularyContextsTableTableManager(
+        _db.attachedDatabase,
+        _db.vocabularyContexts,
+      );
+}
+
+mixin _$VocabularyReviewDaoMixin on DatabaseAccessor<AppDatabase> {
+  $VocabularyReviewsTable get vocabularyReviews =>
+      attachedDatabase.vocabularyReviews;
+  VocabularyReviewDaoManager get managers => VocabularyReviewDaoManager(this);
+}
+
+class VocabularyReviewDaoManager {
+  final _$VocabularyReviewDaoMixin _db;
+  VocabularyReviewDaoManager(this._db);
+  $$VocabularyReviewsTableTableManager get vocabularyReviews =>
+      $$VocabularyReviewsTableTableManager(
+        _db.attachedDatabase,
+        _db.vocabularyReviews,
+      );
 }

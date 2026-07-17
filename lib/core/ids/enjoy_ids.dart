@@ -45,3 +45,28 @@ String enjoyTranscriptId({
   enjoyUuidNamespaceUrl,
   'transcript:$targetType:$targetId:$language:$source',
 );
+
+/// Web `generateVocabularyItemId`.
+String enjoyVocabularyItemId({
+  required String normalizedWord,
+  required String language,
+  required String targetLanguage,
+}) => _uuid.v5(
+  enjoyUuidNamespaceUrl,
+  'vocabulary-item:$normalizedWord:$language:$targetLanguage',
+);
+
+/// Web `generateVocabularyContextId`.
+///
+/// [stableLocatorJson] must match web `JSON.stringify(locator, sortedKeys)`.
+String enjoyVocabularyContextId({
+  required String vocabularyItemId,
+  required String sourceType, // Video|Audio|Ebook
+  required String sourceId,
+  required String text,
+  required String stableLocatorJson,
+}) => _uuid.v5(
+  enjoyUuidNamespaceUrl,
+  'vocabulary-context:$vocabularyItemId:$sourceType:$sourceId:'
+  '${text.length > 100 ? text.substring(0, 100) : text}:$stableLocatorJson',
+);
