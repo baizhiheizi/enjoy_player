@@ -5043,6 +5043,18 @@ abstract class AppLocalizations {
   /// **'{current} / {total}'**
   String vocabularyProgress(int current, int total);
 
+  /// No description provided for @vocabularyRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remaining'**
+  String vocabularyRemaining(int count);
+
+  /// No description provided for @vocabularyFlipBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip back'**
+  String get vocabularyFlipBack;
+
   /// No description provided for @vocabularyReviewComplete.
   ///
   /// In en, this message translates to:
@@ -5148,7 +5160,7 @@ abstract class AppLocalizations {
   /// No description provided for @vocabularyKeyboardShortcuts.
   ///
   /// In en, this message translates to:
-  /// **'Shortcuts: Space flip · 1/2/3 rate · ← previous · → skip · Esc exit'**
+  /// **'Shortcuts: Space flip/back · 1/2/3 rate · ← previous · → skip · Esc exit'**
   String get vocabularyKeyboardShortcuts;
 
   /// No description provided for @vocabularyContextsCount.
@@ -5264,6 +5276,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source'**
   String get vocabularySourceLabel;
+
+  /// No description provided for @vocabularyUnknownSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown source'**
+  String get vocabularyUnknownSource;
 
   /// No description provided for @vocabularyLocatorLabel.
   ///

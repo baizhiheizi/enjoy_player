@@ -1317,6 +1317,13 @@
       "total": { "type": "int" }
     }
   },
+  "vocabularyRemaining": "{count} remaining",
+  "@vocabularyRemaining": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyFlipBack": "Flip back",
   "vocabularyReviewComplete": "Review complete",
   "vocabularyReviewCompleteDescription": "Nice work. Your ratings are saved.",
   "vocabularyDone": "Done",
@@ -1339,7 +1346,7 @@
       "days": { "type": "int" }
     }
   },
-  "vocabularyKeyboardShortcuts": "Shortcuts: Space flip · 1/2/3 rate · ← previous · → skip · Esc exit",
+  "vocabularyKeyboardShortcuts": "Shortcuts: Space flip/back · 1/2/3 rate · ← previous · → skip · Esc exit",
   "vocabularyContextsCount": "{count} contexts",
   "@vocabularyContextsCount": {
     "placeholders": {
@@ -1369,6 +1376,7 @@
   "vocabularyMediaOpenFailed": "Could not open this media",
   "vocabularyConfirmContinue": "Continue",
   "vocabularySourceLabel": "Source",
+  "vocabularyUnknownSource": "Unknown source",
   "vocabularyLocatorLabel": "{start}s · {duration}s",
   "@vocabularyLocatorLabel": {
     "placeholders": {

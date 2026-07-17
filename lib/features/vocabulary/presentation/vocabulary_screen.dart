@@ -74,26 +74,47 @@ class _ReviewTab extends ConsumerWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.all(t.space24),
+      padding: EdgeInsets.fromLTRB(t.space24, t.space16, t.space24, t.space24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (due == 0)
-            const Expanded(
-              child: VocabularyEmptyState(kind: VocabularyEmptyKind.noDue),
-            )
-          else
-            Expanded(
-              child: Center(
-                child: Text(
-                  l10n.vocabularyDue,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+          Expanded(
+            child: due == 0
+                ? const VocabularyEmptyState(kind: VocabularyEmptyKind.noDue)
+                : Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 360),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$due',
+                            style: Theme.of(context).textTheme.displaySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -1,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                          SizedBox(height: t.space8),
+                          Text(
+                            l10n.vocabularyDue,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: SizedBox(
+              width: double.infinity,
+              child: EnjoyButton.primary(
+                onPressed: () => _startReview(context, ref),
+                child: Text(l10n.vocabularyStartReview),
               ),
             ),
-          EnjoyButton.primary(
-            onPressed: () => _startReview(context, ref),
-            child: Text(l10n.vocabularyStartReview),
           ),
         ],
       ),

@@ -76,6 +76,9 @@ final class ReviewSessionState {
 
   int get displayCurrent => completed ? total : (index + 1).clamp(1, total);
 
+  /// Cards left after the current one (0 when complete or on the last card).
+  int get remaining => completed ? 0 : (total - displayCurrent).clamp(0, total);
+
   VocabularyContext? primaryContextFor(String itemId) =>
       primaryContextByItemId[itemId];
 
@@ -187,6 +190,25 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
     final item = state.currentItem;
     if (item == null || state.completed || state.ratingInFlight) return;
     state = state.copyWith(flipped: true);
+  }
+
+  void unflip() {
+    final item = state.currentItem;
+    if (item == null ||
+        state.completed ||
+        state.ratingInFlight ||
+        !state.flipped) {
+      return;
+    }
+    state = state.copyWith(flipped: false);
+  }
+
+  void toggleFlip() {
+    if (state.flipped) {
+      unflip();
+    } else {
+      flip();
+    }
   }
 
   Future<void> rate(VocabularyRating rating) async {

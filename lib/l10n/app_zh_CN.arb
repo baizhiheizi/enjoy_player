@@ -883,6 +883,13 @@
       "total": { "type": "int" }
     }
   },
+  "vocabularyRemaining": "剩余 {count}",
+  "@vocabularyRemaining": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyFlipBack": "翻回正面",
   "vocabularyReviewComplete": "复习完成",
   "vocabularyReviewCompleteDescription": "做得好，评分已保存。",
   "vocabularyDone": "完成",
@@ -905,7 +912,7 @@
       "days": { "type": "int" }
     }
   },
-  "vocabularyKeyboardShortcuts": "快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出",
+  "vocabularyKeyboardShortcuts": "快捷键：空格翻转/翻回 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出",
   "vocabularyContextsCount": "{count} 个语境",
   "@vocabularyContextsCount": {
     "placeholders": {
@@ -935,6 +942,7 @@
   "vocabularyMediaOpenFailed": "无法打开该媒体",
   "vocabularyConfirmContinue": "继续",
   "vocabularySourceLabel": "来源",
+  "vocabularyUnknownSource": "未知来源",
   "vocabularyLocatorLabel": "{start}秒 · {duration}秒",
   "@vocabularyLocatorLabel": {
     "placeholders": {

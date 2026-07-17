@@ -2702,6 +2702,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String vocabularyRemaining(int count) {
+    return '$count remaining';
+  }
+
+  @override
+  String get vocabularyFlipBack => 'Flip back';
+
+  @override
   String get vocabularyReviewComplete => 'Review complete';
 
   @override
@@ -2758,7 +2766,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vocabularyKeyboardShortcuts =>
-      'Shortcuts: Space flip · 1/2/3 rate · ← previous · → skip · Esc exit';
+      'Shortcuts: Space flip/back · 1/2/3 rate · ← previous · → skip · Esc exit';
 
   @override
   String vocabularyContextsCount(int count) {
@@ -2824,6 +2832,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vocabularySourceLabel => 'Source';
+
+  @override
+  String get vocabularyUnknownSource => 'Unknown source';
 
   @override
   String vocabularyLocatorLabel(String start, String duration) {

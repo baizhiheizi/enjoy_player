@@ -65,7 +65,7 @@ This document is the implementation contract for Enjoy Player (Flutter). It desc
 
 | Key | Action |
 |-----|--------|
-| Space | Flip card |
+| Space | Toggle flip (front ↔ back) |
 | `1` / `2` / `3` | Rate 0 / 1 / 2 |
 | ← | Previous (session stack) |
 | → | Skip |
@@ -425,14 +425,16 @@ Empty states: no words; no due (still allow custom review).
 
 ### Flashcard session
 
-- Fullscreen / modal; progress `current / total`; skip; undo; hide/minimize player chrome on enter.
-- Front: word + primary context preview; tap/Space to flip.
-- Back tabs:
-  - **Context** — text, locator label, source title, play segment (`MediaLocator`), confirm “Open in player” (exits review), shadow reading affordance, contextual translation (persist to context).
-  - **Dictionary** — render `explanation` or fetch; `onDataUpdate` → persist on item.
-  - **Notes** — placeholder (“coming soon”) unless product expands scope.
+- Immersive study chrome (no dense AppBar): progress `current / total` + progress track (5px); **Skip** as quiet header text; undo; desktop-only muted keyboard shortcut hint.
+- **Centered study stage:** card uses ~90% of available height (max 720) and `contentMaxWidth`; front/back share the same stage; fade-only flip; uniform `space24` padding rhythm.
+- Front: hero word + muted context with **word highlight**; pill “tap to flip” affordance.
+- Space **toggles** flip; **Flip back** under ratings. Flipping prefetches contextual translation when missing (signed-in).
+- Back tabs (pill segmented control):
+  - **Context** — quote block with word highlight; **media title** from library; locator meta; play / open / shadow; contextual **markdown** (redundant/empty heading sections pruned); compact loading row while fetching.
+  - **Dictionary** — structured senses (IPA single slash pair, POS, definition, translation, examples) or fetch.
+  - **Notes** — placeholder (“coming soon”).
 
-Rating buttons only on back (or after flip), labels: Don’t Know / Know / Know Well.
+Rating row: one-line chips (40px tall, max width 360, centered — not full-bleed) with soft error / primary / muted green fills. Media actions are compact text buttons so the Context scroll area stays readable on short windows.
 
 ### Word list
 

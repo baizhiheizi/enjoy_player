@@ -57,6 +57,15 @@ void main() {
     session.flip();
     state = container.read(vocabularyReviewSessionProvider);
     expect(state.flipped, isTrue);
+    expect(state.remaining, 2);
+
+    session.unflip();
+    state = container.read(vocabularyReviewSessionProvider);
+    expect(state.flipped, isFalse);
+
+    session.toggleFlip();
+    state = container.read(vocabularyReviewSessionProvider);
+    expect(state.flipped, isTrue);
 
     await session.rate(VocabularyRating.know);
     state = container.read(vocabularyReviewSessionProvider);

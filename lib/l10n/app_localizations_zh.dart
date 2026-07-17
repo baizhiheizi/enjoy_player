@@ -2592,6 +2592,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String vocabularyRemaining(int count) {
+    return '剩余 $count';
+  }
+
+  @override
+  String get vocabularyFlipBack => '翻回正面';
+
+  @override
   String get vocabularyReviewComplete => '复习完成';
 
   @override
@@ -2646,7 +2654,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get vocabularyKeyboardShortcuts =>
-      '快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+      '快捷键：空格翻转/翻回 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
 
   @override
   String vocabularyContextsCount(int count) {
@@ -2709,6 +2717,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get vocabularySourceLabel => '来源';
+
+  @override
+  String get vocabularyUnknownSource => '未知来源';
 
   @override
   String vocabularyLocatorLabel(String start, String duration) {
@@ -5155,6 +5166,14 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   }
 
   @override
+  String vocabularyRemaining(int count) {
+    return '剩余 $count';
+  }
+
+  @override
+  String get vocabularyFlipBack => '翻回正面';
+
+  @override
   String get vocabularyReviewComplete => '复习完成';
 
   @override
@@ -5209,7 +5228,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularyKeyboardShortcuts =>
-      '快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+      '快捷键：空格翻转/翻回 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
 
   @override
   String vocabularyContextsCount(int count) {
@@ -5272,6 +5291,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularySourceLabel => '来源';
+
+  @override
+  String get vocabularyUnknownSource => '未知来源';
 
   @override
   String vocabularyLocatorLabel(String start, String duration) {

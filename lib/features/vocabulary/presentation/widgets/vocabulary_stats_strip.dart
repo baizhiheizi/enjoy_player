@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -18,49 +19,84 @@ class VocabularyStatsStrip extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    final cells = <(String, int)>[
-      (l10n.vocabularyTotal, stats.total),
-      (l10n.vocabularyDue, stats.due),
-      (l10n.vocabularyStatusNew, stats.newCount),
-      (l10n.vocabularyStatusLearning, stats.learningCount),
-      (l10n.vocabularyStatusReviewing, stats.reviewingCount),
-      (l10n.vocabularyStatusMastered, stats.masteredCount),
+    final cells = <(String, int, bool)>[
+      (l10n.vocabularyTotal, stats.total, false),
+      (l10n.vocabularyDue, stats.due, stats.due > 0),
+      (l10n.vocabularyStatusNew, stats.newCount, false),
+      (l10n.vocabularyStatusLearning, stats.learningCount, false),
+      (l10n.vocabularyStatusReviewing, stats.reviewingCount, false),
+      (l10n.vocabularyStatusMastered, stats.masteredCount, false),
     ];
 
-    return Wrap(
-      spacing: t.space8,
-      runSpacing: t.space8,
-      children: [
-        for (final (label, value) in cells)
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: t.space12,
-              vertical: t.space8,
+    return EnjoyCard(
+      padding: EdgeInsets.symmetric(vertical: t.space12, horizontal: t.space4),
+      child: Row(
+        children: [
+          for (var i = 0; i < cells.length; i++) ...[
+            if (i > 0)
+              Container(
+                width: 1,
+                height: 36,
+                color: cs.outlineVariant.withValues(alpha: 0.25),
+              ),
+            Expanded(
+              child: _StatCell(
+                label: cells[i].$1,
+                value: cells[i].$2,
+                emphasize: cells[i].$3,
+              ),
             ),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(t.radiusMd),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$value',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: t.space4),
-                Text(
-                  label,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  const _StatCell({
+    required this.label,
+    required this.value,
+    required this.emphasize,
+  });
+
+  final String label;
+  final int value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final valueColor = emphasize ? cs.primary : cs.onSurface;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: t.space4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$value',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+              letterSpacing: -0.3,
             ),
           ),
-      ],
+          SizedBox(height: t.space4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: emphasize
+                  ? cs.primary.withValues(alpha: 0.85)
+                  : cs.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
