@@ -120,6 +120,15 @@ void main() {
     );
   });
 
+  test('parseContextualMarkdownDocument splits preamble and sections', () {
+    final doc = parseContextualMarkdownDocument(
+      '## 翻译\n\n原来句子。\n\n## 词性\n\n名词。\n\n## 语境中的含义\n\n炎症。',
+    );
+    expect(doc.preamble, '原来句子。');
+    expect(doc.sections.map((s) => s.title), ['词性', '语境中的含义']);
+    expect(doc.sections.map((s) => s.body), ['名词。', '炎症。']);
+  });
+
   testWidgets('Dictionary tab shows cached explanation', (tester) async {
     final explanation = encodeDictionaryExplanation(
       const DictionaryResult(
@@ -133,6 +142,7 @@ void main() {
       _wrap(_card(item: _item(explanation: explanation))),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Notes'), findsNothing);
     await tester.tap(find.text('Dictionary'));
     await tester.pumpAndSettle();
     expect(find.textContaining('a greeting'), findsOneWidget);

@@ -1,12 +1,15 @@
 /// All Words list: filters, search, delete.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
@@ -28,7 +31,13 @@ class VocabularyWordList extends ConsumerWidget {
 
     return itemsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (_, _) => EmptyState(
+        icon: Icons.error_outline_rounded,
+        title: l10n.vocabularyListLoadFailed,
+        subtitle: l10n.vocabularyAiFetchFailed,
+        action: () => ref.invalidate(vocabularyItemsProvider),
+        actionLabel: l10n.retry,
+      ),
       data: (items) {
         if (items.isEmpty) {
           return const VocabularyEmptyState(kind: VocabularyEmptyKind.noWords);
@@ -40,43 +49,66 @@ class VocabularyWordList extends ConsumerWidget {
         return Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: l10n.vocabularySearchPlaceholder,
-                        prefixIcon: const Icon(Icons.search),
-                        isDense: true,
-                        border: const OutlineInputBorder(),
+              padding: EdgeInsets.fromLTRB(t.space24, t.space8, t.space24, 0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final stacked = constraints.maxWidth < 520;
+                  final search = TextField(
+                    decoration: InputDecoration(
+                      hintText: l10n.vocabularySearchPlaceholder,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(t.radiusMd),
                       ),
-                      onChanged: (v) => ref
-                          .read(vocabularyListFiltersProvider.notifier)
-                          .setQuery(v),
                     ),
-                  ),
-                  SizedBox(width: t.space8),
-                  EnjoyTappableIcon(
+                    onChanged: (v) => ref
+                        .read(vocabularyListFiltersProvider.notifier)
+                        .setQuery(v),
+                  );
+                  final export = EnjoyButton.ghost(
                     icon: Icons.file_download_outlined,
-                    tooltip: l10n.vocabularyExportToAnki,
                     onPressed: () => showVocabularyAnkiExportDialog(context),
-                  ),
-                ],
+                    child: Text(l10n.vocabularyExport),
+                  );
+                  if (stacked) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        search,
+                        SizedBox(height: t.space8),
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: export,
+                        ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: search),
+                      SizedBox(width: t.space8),
+                      export,
+                    ],
+                  );
+                },
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: t.space16,
-                vertical: t.space8,
+              padding: EdgeInsets.fromLTRB(
+                t.space24,
+                t.space12,
+                t.space24,
+                t.space8,
               ),
               child: Wrap(
-                spacing: t.space8,
+                spacing: t.space12,
                 runSpacing: t.space8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  DropdownButton<VocabularyStatus?>(
+                  _LabeledDropdown<VocabularyStatus?>(
+                    label: l10n.vocabularyFilterStatus,
                     value: filters.status,
-                    hint: Text(l10n.vocabularyFilterStatus),
                     items: [
                       DropdownMenuItem(
                         value: null,
@@ -92,9 +124,9 @@ class VocabularyWordList extends ConsumerWidget {
                         .read(vocabularyListFiltersProvider.notifier)
                         .setStatus(v),
                   ),
-                  DropdownButton<String?>(
+                  _LabeledDropdown<String?>(
+                    label: l10n.vocabularyFilterLanguage,
                     value: filters.language,
-                    hint: Text(l10n.vocabularyFilterLanguage),
                     items: [
                       DropdownMenuItem(
                         value: null,
@@ -116,9 +148,19 @@ class VocabularyWordList extends ConsumerWidget {
                       kind: VocabularyEmptyKind.noMatches,
                     )
                   : ListView.separated(
-                      padding: EdgeInsets.only(bottom: t.space24),
+                      padding: EdgeInsets.fromLTRB(
+                        t.space16,
+                        0,
+                        t.space16,
+                        t.space24,
+                      ),
                       itemCount: visible.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => Divider(
+                        height: 1,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outlineVariant.withValues(alpha: 0.22),
+                      ),
                       itemBuilder: (context, index) {
                         final item = visible[index];
                         return _WordRow(item: item);
@@ -128,6 +170,56 @@ class VocabularyWordList extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _LabeledDropdown<T> extends StatelessWidget {
+  const _LabeledDropdown({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(t.radiusMd),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: t.space12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(width: t.space8),
+            DropdownButtonHideUnderline(
+              child: DropdownButton<T>(
+                value: value,
+                items: items,
+                onChanged: onChanged,
+                borderRadius: BorderRadius.circular(t.radiusMd),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -142,31 +234,63 @@ class _WordRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     final relative = relativeNextReviewLabel(
       nextReviewAt: item.nextReviewAt,
       now: DateTime.now(),
     );
 
-    return ListTile(
-      title: Text(item.word),
-      subtitle: Text(
-        [
-          vocabularyStatusLabel(l10n, item.status),
-          l10n.vocabularyContextsCount(item.contextsCount),
-          l10n.vocabularyReviewsCount(item.reviewsCount),
-          vocabularyRelativeLabel(l10n, relative),
-          item.language,
-        ].join(' · '),
-        style: Theme.of(
-          context,
-        ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: t.space8, horizontal: t.space8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.word,
+                  style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: t.space8),
+                Wrap(
+                  spacing: t.space8,
+                  runSpacing: t.space4,
+                  children: [
+                    _MetaChip(label: vocabularyStatusLabel(l10n, item.status)),
+                    _MetaChip(
+                      label: l10n.vocabularyContextsCount(item.contextsCount),
+                    ),
+                    _MetaChip(
+                      label: l10n.vocabularyReviewsCount(item.reviewsCount),
+                    ),
+                    _MetaChip(label: vocabularyRelativeLabel(l10n, relative)),
+                    _MetaChip(label: item.language),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+            onSelected: (value) {
+              if (value == 'delete') {
+                unawaited(_confirmDelete(context, ref));
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(
+                  l10n.vocabularyDelete,
+                  style: TextStyle(color: cs.error),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      trailing: EnjoyTappableIcon(
-        icon: Icons.delete_outline,
-        tooltip: l10n.vocabularyDelete,
-        onPressed: () => _confirmDelete(context, ref),
-      ),
-      contentPadding: EdgeInsets.symmetric(horizontal: t.space16),
     );
   }
 
@@ -189,5 +313,32 @@ class _WordRow extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await ref.read(vocabularyRepositoryProvider).deleteItem(item.id);
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(t.radiusFull),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
+        child: Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+        ),
+      ),
+    );
   }
 }

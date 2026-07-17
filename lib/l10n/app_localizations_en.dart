@@ -2652,31 +2652,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vocabularyNoMatches => 'No matching words';
 
   @override
+  String get vocabularyNoMatchesDescription =>
+      'Try a different search or clear the status and language filters.';
+
+  @override
+  String get vocabularyListLoadFailed => 'Could not load your vocabulary.';
+
+  @override
+  String get vocabularyCustomReview => 'Custom review';
+
+  @override
   String get vocabularySelectReviewItems => 'Choose what to review';
 
   @override
   String get vocabularyReviewDueItems => 'Due items';
 
   @override
+  String get vocabularyReviewDueHint => 'Words scheduled for today or earlier';
+
+  @override
   String get vocabularyReviewAll => 'All words';
+
+  @override
+  String get vocabularyReviewAllHint => 'Review every word in your book';
 
   @override
   String get vocabularyReviewByStatus => 'By status';
 
   @override
+  String get vocabularyReviewByStatusHint =>
+      'Focus on new, learning, reviewing, or mastered';
+
+  @override
   String get vocabularyReviewByLanguage => 'By language';
+
+  @override
+  String get vocabularyReviewByLanguageHint =>
+      'Limit the session to one source language';
 
   @override
   String get vocabularyReviewRandom => 'Random';
 
   @override
+  String get vocabularyReviewRandomHint =>
+      'Shuffle and take a short practice set';
+
+  @override
   String get vocabularyNumberOfWords => 'Number of words';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count words';
+  }
 
   @override
   String get vocabularyStartReview => 'Start review';
 
   @override
   String get vocabularyEmptyQueue => 'No words match this selection.';
+
+  @override
+  String get vocabularyExitReview => 'Exit review';
 
   @override
   String get vocabularyHowWellDoYouKnow => 'How well do you know this?';

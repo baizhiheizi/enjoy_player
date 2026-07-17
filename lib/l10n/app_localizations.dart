@@ -4947,6 +4947,24 @@ abstract class AppLocalizations {
   /// **'No matching words'**
   String get vocabularyNoMatches;
 
+  /// No description provided for @vocabularyNoMatchesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search or clear the status and language filters.'**
+  String get vocabularyNoMatchesDescription;
+
+  /// No description provided for @vocabularyListLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your vocabulary.'**
+  String get vocabularyListLoadFailed;
+
+  /// No description provided for @vocabularyCustomReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom review'**
+  String get vocabularyCustomReview;
+
   /// No description provided for @vocabularySelectReviewItems.
   ///
   /// In en, this message translates to:
@@ -4959,11 +4977,23 @@ abstract class AppLocalizations {
   /// **'Due items'**
   String get vocabularyReviewDueItems;
 
+  /// No description provided for @vocabularyReviewDueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier'**
+  String get vocabularyReviewDueHint;
+
   /// No description provided for @vocabularyReviewAll.
   ///
   /// In en, this message translates to:
   /// **'All words'**
   String get vocabularyReviewAll;
+
+  /// No description provided for @vocabularyReviewAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review every word in your book'**
+  String get vocabularyReviewAllHint;
 
   /// No description provided for @vocabularyReviewByStatus.
   ///
@@ -4971,11 +5001,23 @@ abstract class AppLocalizations {
   /// **'By status'**
   String get vocabularyReviewByStatus;
 
+  /// No description provided for @vocabularyReviewByStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on new, learning, reviewing, or mastered'**
+  String get vocabularyReviewByStatusHint;
+
   /// No description provided for @vocabularyReviewByLanguage.
   ///
   /// In en, this message translates to:
   /// **'By language'**
   String get vocabularyReviewByLanguage;
+
+  /// No description provided for @vocabularyReviewByLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit the session to one source language'**
+  String get vocabularyReviewByLanguageHint;
 
   /// No description provided for @vocabularyReviewRandom.
   ///
@@ -4983,11 +5025,23 @@ abstract class AppLocalizations {
   /// **'Random'**
   String get vocabularyReviewRandom;
 
+  /// No description provided for @vocabularyReviewRandomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle and take a short practice set'**
+  String get vocabularyReviewRandomHint;
+
   /// No description provided for @vocabularyNumberOfWords.
   ///
   /// In en, this message translates to:
   /// **'Number of words'**
   String get vocabularyNumberOfWords;
+
+  /// No description provided for @vocabularyQueueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} words'**
+  String vocabularyQueueCount(int count);
 
   /// No description provided for @vocabularyStartReview.
   ///
@@ -5000,6 +5054,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No words match this selection.'**
   String get vocabularyEmptyQueue;
+
+  /// No description provided for @vocabularyExitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit review'**
+  String get vocabularyExitReview;
 
   /// No description provided for @vocabularyHowWellDoYouKnow.
   ///

@@ -243,11 +243,12 @@ class _VocabularyReviewSessionScreenState
                               0.0,
                               t.contentMaxWidth,
                             );
-                            // Prefer filling available height on short windows so
-                            // study content isn't crushed by chrome + footer.
-                            final stageHeight = (constraints.maxHeight * 0.9)
-                                .clamp(280.0, 720.0)
-                                .clamp(0.0, constraints.maxHeight);
+                            final compact = constraints.maxHeight < 640;
+                            final stageHeight = compact
+                                ? constraints.maxHeight.clamp(0.0, 560.0)
+                                : (constraints.maxHeight * 0.82)
+                                      .clamp(420.0, 640.0)
+                                      .clamp(0.0, constraints.maxHeight);
                             return Center(
                               child: SizedBox(
                                 width: stageWidth,
@@ -395,7 +396,7 @@ class _SessionHeader extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.close_rounded),
-                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                tooltip: l10n.vocabularyExitReview,
                 onPressed: onClose,
               ),
               Expanded(

@@ -65,7 +65,6 @@ String pruneEmptyMarkdownSections(String markdown) {
   final out = <String>[];
   var i = 0;
 
-  // Keep preamble until first heading.
   while (i < lines.length && !_atxHeading.hasMatch(lines[i].trim())) {
     out.add(lines[i]);
     i++;
@@ -92,4 +91,63 @@ String pruneEmptyMarkdownSections(String markdown) {
 /// Contextual markdown ready for flashcard display.
 String prepareContextualMarkdown(String markdown) {
   return pruneEmptyMarkdownSections(stripRedundantContextualHeading(markdown));
+}
+
+/// One titled body section from contextual AI markdown.
+final class ContextualMarkdownSection {
+  const ContextualMarkdownSection({required this.title, required this.body});
+
+  final String title;
+  final String body;
+}
+
+/// Parsed contextual markdown: optional preamble + titled sections.
+final class ContextualMarkdownDocument {
+  const ContextualMarkdownDocument({
+    required this.preamble,
+    required this.sections,
+  });
+
+  final String preamble;
+  final List<ContextualMarkdownSection> sections;
+
+  bool get isEmpty => preamble.trim().isEmpty && sections.isEmpty;
+}
+
+/// Splits prepared markdown into a preamble and titled sections.
+ContextualMarkdownDocument parseContextualMarkdownDocument(String markdown) {
+  final prepared = prepareContextualMarkdown(markdown);
+  if (prepared.isEmpty) {
+    return const ContextualMarkdownDocument(preamble: '', sections: []);
+  }
+
+  final lines = prepared.split('\n');
+  final preamble = <String>[];
+  final sections = <ContextualMarkdownSection>[];
+  var i = 0;
+
+  while (i < lines.length && !_atxHeading.hasMatch(lines[i].trim())) {
+    preamble.add(lines[i]);
+    i++;
+  }
+
+  while (i < lines.length) {
+    final match = _atxHeading.firstMatch(lines[i].trim());
+    i++;
+    final body = <String>[];
+    while (i < lines.length && !_atxHeading.hasMatch(lines[i].trim())) {
+      body.add(lines[i]);
+      i++;
+    }
+    final bodyText = body.join('\n').trim();
+    if (match == null || bodyText.isEmpty) continue;
+    sections.add(
+      ContextualMarkdownSection(title: match.group(2)!.trim(), body: bodyText),
+    );
+  }
+
+  return ContextualMarkdownDocument(
+    preamble: preamble.join('\n').trim(),
+    sections: sections,
+  );
 }

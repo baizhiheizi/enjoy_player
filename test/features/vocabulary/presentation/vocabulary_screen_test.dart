@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,6 +73,33 @@ void main() {
     expect(find.text('1'), findsWidgets);
     expect(find.text('Total'), findsOneWidget);
     expect(find.text('No words yet'), findsNothing);
+
+    await disposeHarness(tester);
+  });
+
+  testWidgets('no-due state offers custom review', (tester) async {
+    final repo = VocabularyRepository(db);
+    final created = await repo.addWithContext(
+      word: 'hello',
+      language: 'en',
+      targetLanguage: 'zh',
+      text: 'Hello world',
+      sourceType: VocabularySourceType.video,
+      sourceId: 'v1',
+      mediaLocator: const MediaLocator(start: 0, duration: 1000),
+    );
+
+    await (db.update(
+      db.vocabularyItems,
+    )..where((t) => t.id.equals(created.item.id))).write(
+      VocabularyItemsCompanion(nextReviewAt: Value(DateTime.utc(2099))),
+    );
+
+    await pumpScreen(tester);
+
+    expect(find.text('Nothing due right now'), findsOneWidget);
+    expect(find.text('Custom review'), findsOneWidget);
+    expect(find.text('Start review'), findsNothing);
 
     await disposeHarness(tester);
   });

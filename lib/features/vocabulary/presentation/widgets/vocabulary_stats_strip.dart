@@ -29,25 +29,49 @@ class VocabularyStatsStrip extends StatelessWidget {
     ];
 
     return EnjoyCard(
-      padding: EdgeInsets.symmetric(vertical: t.space12, horizontal: t.space4),
-      child: Row(
-        children: [
-          for (var i = 0; i < cells.length; i++) ...[
-            if (i > 0)
-              Container(
-                width: 1,
-                height: 36,
-                color: cs.outlineVariant.withValues(alpha: 0.25),
-              ),
-            Expanded(
-              child: _StatCell(
-                label: cells[i].$1,
-                value: cells[i].$2,
-                emphasize: cells[i].$3,
-              ),
-            ),
-          ],
-        ],
+      padding: EdgeInsets.all(t.space12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 560;
+          if (compact) {
+            return Wrap(
+              spacing: t.space8,
+              runSpacing: t.space8,
+              children: [
+                for (final cell in cells)
+                  SizedBox(
+                    width: (constraints.maxWidth - t.space8) / 2,
+                    child: _StatCell(
+                      label: cell.$1,
+                      value: cell.$2,
+                      emphasize: cell.$3,
+                      bordered: true,
+                    ),
+                  ),
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              for (var i = 0; i < cells.length; i++) ...[
+                if (i > 0)
+                  Container(
+                    width: 1,
+                    height: 36,
+                    color: cs.outlineVariant.withValues(alpha: 0.25),
+                  ),
+                Expanded(
+                  child: _StatCell(
+                    label: cells[i].$1,
+                    value: cells[i].$2,
+                    emphasize: cells[i].$3,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -58,11 +82,13 @@ class _StatCell extends StatelessWidget {
     required this.label,
     required this.value,
     required this.emphasize,
+    this.bordered = false,
   });
 
   final String label;
   final int value;
   final bool emphasize;
+  final bool bordered;
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +96,11 @@ class _StatCell extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final valueColor = emphasize ? cs.primary : cs.onSurface;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: t.space4),
+    final content = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: t.space8,
+        vertical: bordered ? t.space8 : 0,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -97,6 +126,16 @@ class _StatCell extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (!bordered) return content;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(t.radiusSm),
+      ),
+      child: content,
     );
   }
 }

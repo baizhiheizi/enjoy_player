@@ -406,12 +406,13 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 
 ### Vocabulary page
 
-- Header + stats strip: **total, due, new, learning, reviewing, mastered**.
-- Tabs: **Review** | **All Words**.
+- Compact header with back + title; centered column (`contentMaxWidth`).
+- Adaptive stats strip: **total, due, new, learning, reviewing, mastered** (horizontal on wide layouts; 2-column wrap under ~560px). Due is the only emphasized metric.
+- Pill tabs: **Review** | **All Words**.
 
 ### Review entry + options
 
-Modes:
+Modes (selectable cards with short hints + live queue count):
 
 | Mode | Behavior |
 |------|----------|
@@ -419,29 +420,27 @@ Modes:
 | All | Entire vocabulary |
 | By status | Filter one status |
 | By language | Filter one source language |
-| Random | Shuffle then take N (web default N=20; weak `Math.random` shuffle — Flutter should use a proper shuffle) |
+| Random | Shuffle then take N (Fisher–Yates; default N=20) |
 
-Empty states: no words; no due (still allow custom review).
+Empty states: no words; no due with **Custom review** CTA in the empty panel (not a contradictory bottom “Start review”).
 
 ### Flashcard session
 
-- Immersive study chrome (no dense AppBar): progress `current / total` + progress track (5px); **Skip** as quiet header text; undo; desktop-only muted keyboard shortcut hint.
-- **Centered study stage:** card uses ~90% of available height (max 720) and `contentMaxWidth`; front/back share the same stage; fade-only flip; uniform `space24` padding rhythm.
-- Front: hero word + muted context with **word highlight**; pill “tap to flip” affordance.
+- Immersive study chrome (no dense AppBar): progress `current / total` + progress track (5px); **Skip** as quiet header text; undo; desktop-only muted keyboard shortcut hint; close tooltip = exit review.
+- **Adaptive study stage:** compact windows fill available height (cap 560); regular windows use ~82% height (420–640) and `contentMaxWidth`; front/back share the same stage; fade-only flip.
+- Front: hero word + muted context with **word highlight**; stronger pill “tap to flip” affordance + semantics.
 - Space **toggles** flip; **Flip back** under ratings. Flipping prefetches contextual translation when missing (signed-in).
-- Back tabs (pill segmented control):
-  - **Context** — quote block with word highlight; **media title** from library; locator meta; play / open / shadow; contextual **markdown** (redundant/empty heading sections pruned); compact loading row while fetching.
+- Back tabs (pill segmented control — **Notes hidden until implemented**):
+  - **Context** — quote block with word highlight; **media title** from library; locator meta; media actions beside source; contextual content parsed into app section labels + body markdown (redundant/empty heading sections pruned).
   - **Dictionary** — structured senses (IPA single slash pair, POS, definition, translation, examples) or fetch.
-  - **Notes** — placeholder (“coming soon”).
 
-Rating row: one-line chips (40px tall, max width 360, centered — not full-bleed) with soft error / primary / muted green fills. Media actions are compact text buttons so the Context scroll area stays readable on short windows.
+Rating row: one-line chips (48px tall, max width 400, centered) with soft error / primary / tertiary fills. Scrollable study body is independent of the sticky rating footer.
 
 ### Word list
 
-- Search: client-side `contains` on `word` / `language` after DB status/language filter.
-- Show status, contexts count, reviews count, next-review relative label (overdue / today / tomorrow / in N days).
-- Delete with confirm.
-- Export Anki entry point.
+- Responsive toolbar: search first, labeled status/language filters, Export as secondary action (stacks under ~520px).
+- Rows: word + status/context/review/next-review/language chips; delete via overflow menu + confirm.
+- Localized load-failure + retry; no-match empty copy.
 
 ### Add-to-vocabulary control (lookup sheet)
 

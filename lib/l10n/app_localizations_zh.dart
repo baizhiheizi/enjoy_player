@@ -2542,31 +2542,63 @@ class AppLocalizationsZh extends AppLocalizations {
   String get vocabularyNoMatches => '没有匹配的单词';
 
   @override
+  String get vocabularyNoMatchesDescription => '试试其他搜索词，或清除状态与语言筛选。';
+
+  @override
+  String get vocabularyListLoadFailed => '无法加载生词本。';
+
+  @override
+  String get vocabularyCustomReview => '自定义复习';
+
+  @override
   String get vocabularySelectReviewItems => '选择复习范围';
 
   @override
   String get vocabularyReviewDueItems => '待复习';
 
   @override
+  String get vocabularyReviewDueHint => '今天或更早到期的单词';
+
+  @override
   String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewAllHint => '复习生词本中的全部单词';
 
   @override
   String get vocabularyReviewByStatus => '按状态';
 
   @override
+  String get vocabularyReviewByStatusHint => '聚焦新词、学习中、复习中或已掌握';
+
+  @override
   String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewByLanguageHint => '按来源语言筛选本次复习';
 
   @override
   String get vocabularyReviewRandom => '随机';
 
   @override
+  String get vocabularyReviewRandomHint => '随机抽取一组进行练习';
+
+  @override
   String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count 个单词';
+  }
 
   @override
   String get vocabularyStartReview => '开始复习';
 
   @override
   String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyExitReview => '退出复习';
 
   @override
   String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';
@@ -5116,31 +5148,63 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get vocabularyNoMatches => '没有匹配的单词';
 
   @override
+  String get vocabularyNoMatchesDescription => '试试其他搜索词，或清除状态与语言筛选。';
+
+  @override
+  String get vocabularyListLoadFailed => '无法加载生词本。';
+
+  @override
+  String get vocabularyCustomReview => '自定义复习';
+
+  @override
   String get vocabularySelectReviewItems => '选择复习范围';
 
   @override
   String get vocabularyReviewDueItems => '待复习';
 
   @override
+  String get vocabularyReviewDueHint => '今天或更早到期的单词';
+
+  @override
   String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewAllHint => '复习生词本中的全部单词';
 
   @override
   String get vocabularyReviewByStatus => '按状态';
 
   @override
+  String get vocabularyReviewByStatusHint => '聚焦新词、学习中、复习中或已掌握';
+
+  @override
   String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewByLanguageHint => '按来源语言筛选本次复习';
 
   @override
   String get vocabularyReviewRandom => '随机';
 
   @override
+  String get vocabularyReviewRandomHint => '随机抽取一组进行练习';
+
+  @override
   String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count 个单词';
+  }
 
   @override
   String get vocabularyStartReview => '开始复习';
 
   @override
   String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyExitReview => '退出复习';
 
   @override
   String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';

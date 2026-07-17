@@ -162,70 +162,71 @@ class _FlashcardFront extends StatelessWidget {
       child: EnjoyCard(
         child: EnjoyTappableSurface(
           borderRadius: BorderRadius.circular(t.radiusLg),
+          semanticsLabel: l10n.vocabularyFlipHint,
           onTap: onFlip,
           child: Padding(
             padding: EdgeInsets.all(t.space24),
             child: Column(
               children: [
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            word,
-                            textAlign: TextAlign.center,
-                            style: tt.headlineLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -1.0,
-                              height: 1.1,
-                              color: cs.onSurface,
+                const Spacer(),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        word,
+                        textAlign: TextAlign.center,
+                        style: tt.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.0,
+                          height: 1.1,
+                          color: cs.onSurface,
+                        ),
+                      ),
+                      SizedBox(height: t.space20),
+                      if (contextText != null && contextText!.isNotEmpty)
+                        Text.rich(
+                          TextSpan(
+                            children: highlightVocabularyWord(
+                              text: contextText!,
+                              word: word,
+                              base: contextBase ?? const TextStyle(),
+                              highlight: contextHighlight ?? const TextStyle(),
                             ),
                           ),
-                          SizedBox(height: t.space20),
-                          if (contextText != null && contextText!.isNotEmpty)
-                            Text.rich(
-                              TextSpan(
-                                children: highlightVocabularyWord(
-                                  text: contextText!,
-                                  word: word,
-                                  base: contextBase ?? const TextStyle(),
-                                  highlight:
-                                      contextHighlight ?? const TextStyle(),
-                                ),
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          else
-                            Text(
-                              l10n.vocabularyNoContextAvailable,
-                              textAlign: TextAlign.center,
-                              style: contextBase,
-                            ),
-                        ],
-                      ),
-                    ),
+                          textAlign: TextAlign.center,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      else
+                        Text(
+                          l10n.vocabularyNoContextAvailable,
+                          textAlign: TextAlign.center,
+                          style: contextBase,
+                        ),
+                    ],
                   ),
                 ),
+                const Spacer(),
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                    color: cs.primaryContainer.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(t.radiusFull),
+                    border: Border.all(
+                      color: cs.primary.withValues(alpha: 0.35),
+                    ),
                   ),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: t.space16,
-                      vertical: t.space8,
+                      horizontal: t.space20,
+                      vertical: t.space12,
                     ),
                     child: Text(
                       l10n.vocabularyFlipHint,
-                      style: tt.labelMedium?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
+                      style: tt.labelLarge?.copyWith(
+                        color: cs.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -286,7 +287,7 @@ class _FlashcardBack extends StatelessWidget {
     return SizedBox.expand(
       child: EnjoyCard(
         child: DefaultTabController(
-          length: 3,
+          length: 2,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -315,7 +316,7 @@ class _FlashcardBack extends StatelessWidget {
                     dividerColor: Colors.transparent,
                     indicatorSize: TabBarIndicatorSize.tab,
                     indicator: BoxDecoration(
-                      color: cs.surfaceContainerHighest,
+                      color: cs.primaryContainer.withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(t.radiusSm),
                     ),
                     labelColor: cs.onSurface,
@@ -326,9 +327,8 @@ class _FlashcardBack extends StatelessWidget {
                     unselectedLabelStyle: tt.labelMedium,
                     labelPadding: EdgeInsets.symmetric(horizontal: t.space8),
                     tabs: [
-                      Tab(height: 36, text: l10n.vocabularyContext),
-                      Tab(height: 36, text: l10n.vocabularyDictionary),
-                      Tab(height: 36, text: l10n.vocabularyNotes),
+                      Tab(height: 40, text: l10n.vocabularyContext),
+                      Tab(height: 40, text: l10n.vocabularyDictionary),
                     ],
                   ),
                 ),
@@ -366,7 +366,6 @@ class _FlashcardBack extends StatelessWidget {
                           onFetch: onFetchDictionary,
                         ),
                       ),
-                      _TabBody(child: Text(l10n.vocabularyNotesPlaceholder)),
                     ],
                   ),
                 ),
@@ -375,42 +374,47 @@ class _FlashcardBack extends StatelessWidget {
                 height: 1,
                 color: cs.outlineVariant.withValues(alpha: 0.28),
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space16,
-                  t.space12,
-                  t.space16,
-                  t.space12,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.vocabularyHowWellDoYouKnow,
-                      textAlign: TextAlign.center,
-                      style: tt.labelMedium?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    t.space16,
+                    t.space12,
+                    t.space16,
+                    t.space12,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.vocabularyHowWellDoYouKnow,
+                        textAlign: TextAlign.center,
+                        style: tt.labelMedium?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: t.space8),
-                    _RatingBar(ratingInFlight: ratingInFlight, onRate: onRate),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: EdgeInsets.symmetric(horizontal: t.space12),
-                        minimumSize: Size.zero,
+                      SizedBox(height: t.space8),
+                      _RatingBar(
+                        ratingInFlight: ratingInFlight,
+                        onRate: onRate,
                       ),
-                      onPressed: ratingInFlight
-                          ? null
-                          : () {
-                              Haptics.selection(context);
-                              onUnflip();
-                            },
-                      child: Text(l10n.vocabularyFlipBack),
-                    ),
-                  ],
+                      SizedBox(height: t.space4),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(48, 40),
+                          padding: EdgeInsets.symmetric(horizontal: t.space12),
+                        ),
+                        onPressed: ratingInFlight
+                            ? null
+                            : () {
+                                Haptics.selection(context);
+                                onUnflip();
+                              },
+                        child: Text(l10n.vocabularyFlipBack),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -425,8 +429,8 @@ class _FlashcardBack extends StatelessWidget {
 class _RatingBar extends StatelessWidget {
   const _RatingBar({required this.ratingInFlight, required this.onRate});
 
-  static const double _height = 40;
-  static const double _maxWidth = 360;
+  static const double _height = 48;
+  static const double _maxWidth = 400;
 
   final bool ratingInFlight;
   final ValueChanged<VocabularyRating> onRate;
@@ -478,9 +482,9 @@ class _RatingBar extends StatelessWidget {
                 child: _RatingChip(
                   label: l10n.vocabularyKnowWell,
                   icon: Icons.check_circle_rounded,
-                  background: const Color(0xFF40916C).withValues(alpha: 0.14),
-                  foreground: const Color(0xFF74C69D),
-                  border: const Color(0xFF40916C).withValues(alpha: 0.4),
+                  background: cs.tertiary.withValues(alpha: 0.16),
+                  foreground: cs.tertiary,
+                  border: cs.tertiary.withValues(alpha: 0.45),
                   emphasized: false,
                   onPressed: ratingInFlight
                       ? null
@@ -520,43 +524,48 @@ class _RatingChip extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final enabled = onPressed != null;
 
-    return Material(
-      color: enabled ? background : background.withValues(alpha: 0.35),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(t.radiusSm),
-        side: BorderSide(
-          color: enabled ? border : border.withValues(alpha: 0.25),
-          width: emphasized ? 1.25 : 1,
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: Material(
+        color: enabled ? background : background.withValues(alpha: 0.35),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusSm),
+          side: BorderSide(
+            color: enabled ? border : border.withValues(alpha: 0.25),
+            width: emphasized ? 1.25 : 1,
+          ),
         ),
-      ),
-      child: InkWell(
-        onTap: enabled
-            ? () {
-                Haptics.selection(context);
-                onPressed!();
-              }
-            : null,
-        borderRadius: BorderRadius.circular(t.radiusSm),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: t.space8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: foreground),
-              SizedBox(width: t.space4),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w600,
+        child: InkWell(
+          onTap: enabled
+              ? () {
+                  Haptics.selection(context);
+                  onPressed!();
+                }
+              : null,
+          borderRadius: BorderRadius.circular(t.radiusSm),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: t.space8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 18, color: foreground),
+                SizedBox(width: t.space4),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -578,7 +587,7 @@ class _TabBody extends StatelessWidget {
           t.space24,
           t.space16,
           t.space24,
-          t.space16,
+          t.space24,
         ),
         child: child,
       ),
@@ -606,32 +615,6 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// Quiet in-card markdown subheads so AI headings don't fight section labels.
-MarkdownStyleSheet _contextualMarkdownStyle(
-  ThemeData theme,
-  EnjoyThemeTokens t,
-) {
-  final cs = theme.colorScheme;
-  final tt = theme.textTheme;
-  final base = buildLookupMarkdownStyleSheet(theme, t);
-  final quietHead = tt.labelLarge?.copyWith(
-    color: cs.onSurfaceVariant,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
-    letterSpacing: 0.15,
-  );
-  return base.copyWith(
-    p: tt.bodyMedium?.copyWith(height: 1.5, color: cs.onSurface),
-    blockSpacing: t.space12,
-    h2: quietHead,
-    h2Padding: EdgeInsets.only(top: t.space16, bottom: t.space4),
-    h3: quietHead,
-    h3Padding: EdgeInsets.only(top: t.space12, bottom: t.space4),
-    h4: quietHead,
-    h4Padding: EdgeInsets.only(top: t.space12, bottom: t.space4),
-  );
-}
-
 class _MediaAction extends StatelessWidget {
   const _MediaAction({
     required this.icon,
@@ -656,10 +639,51 @@ class _MediaAction extends StatelessWidget {
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: TextButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: EdgeInsets.symmetric(horizontal: t.space8),
+        minimumSize: const Size(48, 48),
+        padding: EdgeInsets.symmetric(horizontal: t.space12),
       ),
+    );
+  }
+}
+
+class _StructuredContextualMarkdown extends StatelessWidget {
+  const _StructuredContextualMarkdown({required this.markdown});
+
+  final String markdown;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final theme = Theme.of(context);
+    final doc = parseContextualMarkdownDocument(markdown);
+    final style = buildLookupMarkdownStyleSheet(theme, t).copyWith(
+      p: theme.textTheme.bodyMedium?.copyWith(
+        height: 1.5,
+        color: theme.colorScheme.onSurface,
+      ),
+      blockSpacing: t.space8,
+      h1: theme.textTheme.bodyMedium,
+      h2: theme.textTheme.bodyMedium,
+      h3: theme.textTheme.bodyMedium,
+      h4: theme.textTheme.bodyMedium,
+      h1Padding: EdgeInsets.zero,
+      h2Padding: EdgeInsets.zero,
+      h3Padding: EdgeInsets.zero,
+      h4Padding: EdgeInsets.zero,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (doc.preamble.isNotEmpty)
+          MarkdownBody(data: doc.preamble, selectable: true, styleSheet: style),
+        for (final section in doc.sections) ...[
+          SizedBox(height: t.space20),
+          _SectionLabel(section.title),
+          SizedBox(height: t.space8),
+          MarkdownBody(data: section.body, selectable: true, styleSheet: style),
+        ],
+      ],
     );
   }
 }
@@ -713,7 +737,6 @@ class _ContextBody extends ConsumerWidget {
     final sourceTitle =
         titleAsync.asData?.value ??
         (titleAsync.isLoading ? null : l10n.vocabularyUnknownSource);
-    final mdStyle = _contextualMarkdownStyle(theme, t);
     final contextBase = tt.bodyMedium?.copyWith(height: 1.5);
     final contextHighlight = contextBase?.copyWith(
       fontWeight: FontWeight.w700,
@@ -780,15 +803,47 @@ class _ContextBody extends ConsumerWidget {
             style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
+        if (canMedia) ...[
+          SizedBox(height: t.space12),
+          Wrap(
+            spacing: t.space8,
+            runSpacing: t.space8,
+            children: [
+              _MediaAction(
+                icon: Icons.play_arrow_rounded,
+                label: clipPlayInFlight
+                    ? l10n.vocabularyFetching
+                    : l10n.vocabularyPlaySegment,
+                onPressed: clipPlayInFlight ? null : onPlayClip,
+              ),
+              _MediaAction(
+                icon: Icons.open_in_new_rounded,
+                label: l10n.vocabularyOpenInPlayer,
+                onPressed: onOpenInPlayer,
+              ),
+              _MediaAction(
+                icon: Icons.record_voice_over_rounded,
+                label: l10n.vocabularyShadowReading,
+                onPressed: onShadowReading,
+              ),
+            ],
+          ),
+        ] else ...[
+          SizedBox(height: t.space12),
+          Text(
+            l10n.vocabularyMediaUnavailable,
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ],
+        if (mediaError != null) ...[
+          SizedBox(height: t.space8),
+          _SoftError(message: l10n.vocabularyMediaPlayFailed),
+        ],
         SizedBox(height: t.space24),
         _SectionLabel(l10n.vocabularyContextualTranslation),
         SizedBox(height: t.space8),
         if (translation != null)
-          MarkdownBody(
-            data: prepareContextualMarkdown(translation.translatedText),
-            selectable: true,
-            styleSheet: mdStyle,
-          )
+          _StructuredContextualMarkdown(markdown: translation.translatedText)
         else if (!signedIn)
           const AuthRequiredCallout(
             surface: AuthRequiredSurface.lookupContextual,
@@ -828,42 +883,6 @@ class _ContextBody extends ConsumerWidget {
               child: Text(l10n.vocabularyFetchContextual),
             ),
           ),
-        ],
-        if (canMedia) ...[
-          SizedBox(height: t.space20),
-          Wrap(
-            spacing: t.space4,
-            runSpacing: t.space4,
-            children: [
-              _MediaAction(
-                icon: Icons.play_arrow_rounded,
-                label: clipPlayInFlight
-                    ? l10n.vocabularyFetching
-                    : l10n.vocabularyPlaySegment,
-                onPressed: clipPlayInFlight ? null : onPlayClip,
-              ),
-              _MediaAction(
-                icon: Icons.open_in_new_rounded,
-                label: l10n.vocabularyOpenInPlayer,
-                onPressed: onOpenInPlayer,
-              ),
-              _MediaAction(
-                icon: Icons.record_voice_over_rounded,
-                label: l10n.vocabularyShadowReading,
-                onPressed: onShadowReading,
-              ),
-            ],
-          ),
-        ] else ...[
-          SizedBox(height: t.space12),
-          Text(
-            l10n.vocabularyMediaUnavailable,
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-          ),
-        ],
-        if (mediaError != null) ...[
-          SizedBox(height: t.space8),
-          _SoftError(message: l10n.vocabularyMediaPlayFailed),
         ],
       ],
     );
