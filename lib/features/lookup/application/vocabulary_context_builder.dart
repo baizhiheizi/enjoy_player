@@ -1,4 +1,4 @@
-/// Builds transcript context for lookup AI and vocabulary persistence (web parity).
+/// Builds transcript context for lookup AI and vocabulary persistence.
 library;
 
 import 'dart:math' as math;
@@ -15,6 +15,11 @@ typedef VocabularyContextSpan = ({
   int endLineIndex,
 });
 
+/// How many cues to walk backward/forward from the seed line when searching
+/// for sentence boundaries, and the hard cap when the transcript has no
+/// punctuation (so context never becomes the full echo / transcript).
+const int kVocabularyContextLineRadius = 3;
+
 String plainCueText(String raw) {
   return raw
       .replaceAll(RegExp(r'<[^>]*>'), '')
@@ -25,22 +30,33 @@ String plainCueText(String raw) {
 ({int startArrayIndex, int endArrayIndex}) expandContextLines(
   int startArrayIndex,
   int endArrayIndex,
-  int lineCount,
-) {
+  int lineCount, {
+  int radius = kVocabularyContextLineRadius,
+}) {
   var expandedStart = startArrayIndex;
   var expandedEnd = endArrayIndex;
 
-  final backwardExpansion = startArrayIndex < 3 ? startArrayIndex : 3;
+  final backwardExpansion = math.min(radius, startArrayIndex);
   for (var i = 0; i < backwardExpansion; i++) {
     if (expandedStart > 0) expandedStart--;
   }
 
-  final forwardExpansion = math.min(3, lineCount - 1 - endArrayIndex);
+  final forwardExpansion = math.min(radius, lineCount - 1 - endArrayIndex);
   for (var i = 0; i < forwardExpansion; i++) {
     if (expandedEnd < lineCount - 1) expandedEnd++;
   }
 
   return (startArrayIndex: expandedStart, endArrayIndex: expandedEnd);
+}
+
+/// True when [text] contains more than one sentence (or a sentence plus more).
+bool isMoreThanOneSentence(String text, String primaryLanguage) {
+  final boundaries = getSentenceBoundaries(text, primaryLanguage);
+  if (boundaries.length >= 2) return true;
+  if (boundaries.length == 1) {
+    return text.substring(boundaries.first).trim().isNotEmpty;
+  }
+  return false;
 }
 
 /// Returns surrounding transcript text for contextual translation (LLM).
@@ -57,6 +73,14 @@ String? buildVocabularyContext({
 )?.text;
 
 /// Resolves context text and the inclusive cue line range used to build it.
+///
+/// Rules:
+/// 1. Prefer a **complete sentence** containing the seed cue (active line).
+/// 2. If echo is active and the echo region itself is **more than one sentence**,
+///    use the full echo region (do not shrink to a single sentence).
+/// 3. Expansion / no-punctuation fallback is always seeded from a **single**
+///    cue and capped at ±[kVocabularyContextLineRadius] lines — never the
+///    unbounded echo window or full transcript.
 VocabularyContextSpan? resolveVocabularyContextSpan({
   required List<TranscriptLine> lines,
   required EchoState echo,
@@ -65,17 +89,19 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
 }) {
   if (lines.isEmpty) return null;
 
-  if (echo.active &&
+  final echoValid =
+      echo.active &&
       echo.startLineIndex >= 0 &&
       echo.endLineIndex >= 0 &&
       echo.startLineIndex < lines.length &&
-      echo.endLineIndex < lines.length) {
-    final echoLineCount = echo.endLineIndex - echo.startLineIndex + 1;
-    if (echoLineCount >= 2) {
-      final text = _joinLines(lines, echo.startLineIndex, echo.endLineIndex);
-      if (text == null) return null;
+      echo.endLineIndex < lines.length &&
+      echo.startLineIndex <= echo.endLineIndex;
+
+  if (echoValid) {
+    final echoText = _joinLines(lines, echo.startLineIndex, echo.endLineIndex);
+    if (echoText != null && isMoreThanOneSentence(echoText, primaryLanguage)) {
       return (
-        text: text,
+        text: echoText,
         startLineIndex: echo.startLineIndex,
         endLineIndex: echo.endLineIndex,
       );
@@ -83,25 +109,13 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
   }
 
   final activeIdx = transcriptActiveIndex(lines, currentTimeSeconds);
-  if (activeIdx < 0) return null;
+  // Seed from one cue so ±radius cannot grow with a large echo span.
+  final seedIdx = activeIdx >= 0
+      ? activeIdx
+      : (echoValid ? echo.startLineIndex : -1);
+  if (seedIdx < 0) return null;
 
-  var contextStartArrayIndex = activeIdx;
-  var contextEndArrayIndex = activeIdx;
-
-  if (echo.active &&
-      echo.startLineIndex >= 0 &&
-      echo.endLineIndex >= 0 &&
-      echo.startLineIndex < lines.length &&
-      echo.endLineIndex < lines.length) {
-    contextStartArrayIndex = echo.startLineIndex;
-    contextEndArrayIndex = echo.endLineIndex;
-  }
-
-  final expanded = expandContextLines(
-    contextStartArrayIndex,
-    contextEndArrayIndex,
-    lines.length,
-  );
+  final expanded = expandContextLines(seedIdx, seedIdx, lines.length);
   final expStart = expanded.startArrayIndex;
   final expEnd = expanded.endArrayIndex;
   final expandedLines = lines.sublist(expStart, expEnd + 1);
@@ -114,6 +128,11 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
     expandedText,
     primaryLanguage,
   );
+
+  // No terminators — keep the bounded ±radius window (not the full echo).
+  if (sentenceBoundaries.isEmpty) {
+    return _fallbackSpan(lines, expStart, expEnd);
+  }
 
   var charIndex = 0;
   final lineCharPositions = <({int start, int end, int lineIndex})>[];
@@ -133,41 +152,37 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
     }
   }
 
-  final baseStartLineIndex = contextStartArrayIndex - expStart;
-  final baseEndLineIndex = contextEndArrayIndex - expStart;
-
-  if (baseStartLineIndex < 0 || baseEndLineIndex >= lineCharPositions.length) {
-    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
+  final baseLineIndex = seedIdx - expStart;
+  if (baseLineIndex < 0 || baseLineIndex >= lineCharPositions.length) {
+    return _fallbackSpan(lines, expStart, expEnd);
   }
 
-  final baseStartCharIndex = lineCharPositions[baseStartLineIndex].start;
-  final baseEndCharIndex = lineCharPositions[baseEndLineIndex].end;
+  final baseStartCharIndex = lineCharPositions[baseLineIndex].start;
+  final baseEndCharIndex = lineCharPositions[baseLineIndex].end;
 
   var sentenceStartCharIndex = 0;
   var sentenceEndCharIndex = expandedText.length;
 
-  if (sentenceBoundaries.isNotEmpty) {
-    var prevBoundary = 0;
-    for (var i = 0; i < sentenceBoundaries.length; i++) {
-      if (sentenceBoundaries[i] > baseStartCharIndex) {
-        sentenceStartCharIndex = prevBoundary;
-        break;
-      }
-      prevBoundary = sentenceBoundaries[i];
+  var prevBoundary = 0;
+  for (var i = 0; i < sentenceBoundaries.length; i++) {
+    if (sentenceBoundaries[i] > baseStartCharIndex) {
+      sentenceStartCharIndex = prevBoundary;
+      break;
     }
-    if (baseStartCharIndex >= sentenceBoundaries.last) {
-      sentenceStartCharIndex = sentenceBoundaries.last;
-    }
+    prevBoundary = sentenceBoundaries[i];
+  }
+  if (baseStartCharIndex >= sentenceBoundaries.last) {
+    sentenceStartCharIndex = sentenceBoundaries.last;
+  }
 
-    for (var i = 0; i < sentenceBoundaries.length; i++) {
-      if (sentenceBoundaries[i] >= baseEndCharIndex) {
-        sentenceEndCharIndex = sentenceBoundaries[i];
-        break;
-      }
+  for (var i = 0; i < sentenceBoundaries.length; i++) {
+    if (sentenceBoundaries[i] >= baseEndCharIndex) {
+      sentenceEndCharIndex = sentenceBoundaries[i];
+      break;
     }
-    if (baseEndCharIndex > sentenceBoundaries.last) {
-      sentenceEndCharIndex = sentenceBoundaries.last;
-    }
+  }
+  if (baseEndCharIndex > sentenceBoundaries.last) {
+    sentenceEndCharIndex = sentenceBoundaries.last;
   }
 
   var contextStartLineIndex = expStart;
@@ -204,18 +219,17 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
     contextEndLineIndex = expEnd;
   }
   if (contextStartLineIndex > contextEndLineIndex) {
-    contextStartLineIndex = contextStartArrayIndex;
-    contextEndLineIndex = contextEndArrayIndex;
+    return _fallbackSpan(lines, expStart, expEnd);
   }
 
   final endExclusive = math.min(contextEndLineIndex + 1, lines.length);
   if (contextStartLineIndex < 0 || contextStartLineIndex >= endExclusive) {
-    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
+    return _fallbackSpan(lines, expStart, expEnd);
   }
 
   final text = _joinLines(lines, contextStartLineIndex, contextEndLineIndex);
   if (text == null) {
-    return _fallbackSpan(lines, contextStartArrayIndex, contextEndArrayIndex);
+    return _fallbackSpan(lines, expStart, expEnd);
   }
   return (
     text: text,

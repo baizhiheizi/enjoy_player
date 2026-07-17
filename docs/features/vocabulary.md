@@ -473,10 +473,11 @@ Web: `components/transcript/vocabulary-context-builder.ts`.
 
 Rules:
 
-1. If echo active and echo span has **≥ 2 lines** → join those lines’ primary text; locator = first line start → last line end (ms).
-2. Else → find active line at current time; **expand to sentence boundaries** (`getSentenceBoundaries` / equivalent).
-3. `sourceType` = `Audio` or `Video` from session; `sourceId` = media id.
-4. Locator via `createMediaLocatorFromSeconds(start, duration)`.
+1. Prefer a **complete sentence** containing the **active cue**: expand ±`kVocabularyContextLineRadius` (3) cues from that single seed line, then trim with `getSentenceBoundaries`.
+2. If echo is active and the echo region itself is **more than one sentence** (2+ terminators, or a terminator plus trailing text) → use the **full echo region** (do not shrink to one sentence). Locator = first echo line start → last echo line end (ms).
+3. If the transcript has **no punctuation** (no sentence terminators in the search window) → use that same bounded ±3 window around the active cue. Never expand from the full echo span, or context can become the entire transcript.
+4. `sourceType` = `Audio` or `Video` from session; `sourceId` = media id.
+5. Locator via `createMediaLocatorFromSeconds(start, duration)`.
 
 Flutter already has a **string-only** builder for lookup AI:
 

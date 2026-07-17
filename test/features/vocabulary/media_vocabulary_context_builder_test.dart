@@ -7,11 +7,19 @@ import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 void main() {
   group('buildMediaVocabularyContext', () {
-    test('echo with two or more lines joins text and spans locator ms', () {
+    test('multi-sentence echo keeps full region and spans locator ms', () {
       final lines = <TranscriptLine>[
-        const TranscriptLine(text: 'A', startMs: 1000, durationMs: 500),
-        const TranscriptLine(text: 'B', startMs: 1500, durationMs: 500),
-        const TranscriptLine(text: 'C', startMs: 2000, durationMs: 500),
+        const TranscriptLine(
+          text: 'Hello world.',
+          startMs: 1000,
+          durationMs: 500,
+        ),
+        const TranscriptLine(
+          text: 'How are you?',
+          startMs: 1500,
+          durationMs: 500,
+        ),
+        const TranscriptLine(text: 'Bye.', startMs: 2000, durationMs: 500),
       ];
       const echo = EchoState(
         active: true,
@@ -29,7 +37,7 @@ void main() {
         sourceId: 'media-1',
       );
       expect(ctx, isNotNull);
-      expect(ctx!.text, 'A B');
+      expect(ctx!.text, 'Hello world. How are you?');
       expect(ctx.sourceType, VocabularySourceType.video);
       expect(ctx.sourceId, 'media-1');
       expect(ctx.locator.start, 1000);

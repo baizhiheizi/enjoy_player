@@ -6,7 +6,7 @@ While playback is open, the user can **select 1–100 characters** on the **acti
 
 1. **Translation** — `POST /translations` via `translationServiceProvider`.
 2. **Definition (dictionary)** — `POST /dictionary/query` via `dictionaryServiceProvider` (word = selected text only). In the sheet UI this section is labeled **Definition** / **释义** (`lookupSectionDictionary`).
-3. **Contextual translation** — LLM markdown via `POST /chat/completions` through `contextualTranslationServiceProvider` (system prompts aligned with web `contextual-translation`); includes optional **surrounding transcript context** from `buildVocabularyContext`.
+3. **Contextual translation** — LLM markdown via `POST /chat/completions` through `contextualTranslationServiceProvider` (system prompts aligned with web `contextual-translation`); includes optional **surrounding transcript context** from `buildVocabularyContext` (same span rules as add-to-vocabulary: prefer a complete sentence; multi-sentence echo keeps the full echo region; unpunctuated transcripts use a bounded ±3 cue window around the active line).
 
 Sections appear in the sheet in that order: translation, then definition/dictionary, then contextual translation.
 
