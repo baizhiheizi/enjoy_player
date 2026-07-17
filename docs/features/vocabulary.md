@@ -56,7 +56,7 @@ This document is the implementation contract for Enjoy Player (Flutter). It desc
 
 ### Primary flows
 
-1. **Add word + context** — User selects text → lookup sheet → Add to Vocabulary / Add Context / Already in Vocabulary. Remove deletes the **entire item** (all contexts), not one context.
+1. **Add word + context** — User selects text → lookup sheet → header bookmark icon (Add to Vocabulary / Add Context / Already in Vocabulary). Remove deletes the **entire item** (all contexts), not one context.
 2. **Review** — Open Vocabulary → Review → choose due / all / filter / random → fullscreen cards → flip → rate `0|1|2` or skip → optional undo last rating → session complete.
 3. **Manage** — All Words tab: search + status/language filters → delete confirm → Export Anki.
 4. **During review (card back)** — Context tab (play clip / open player / shadow / contextual AI); Dictionary tab (persist explanation on item); Notes placeholder.
@@ -444,14 +444,16 @@ Rating row: one-line chips (48px tall, max width 400, centered) with soft error 
 
 ### Add-to-vocabulary control (lookup sheet)
 
+Icon button in the sheet header next to **Copy** (same 44×44 chrome). Tooltip carries the CTA label; filled bookmark when already saved.
+
 States:
 
-| State | Label | Action |
-|-------|-------|--------|
-| Not in book | Add to Vocabulary | Create item + context |
-| In book, new context | Add Context | Append context |
-| Exact context exists | Already in Vocabulary | Offer delete whole item |
-| Busy | Adding… | Disable |
+| State | Tooltip | Icon | Action |
+|-------|---------|------|--------|
+| Not in book | Add to Vocabulary | `bookmark_add_outlined` | Create item + context |
+| In book, new context | Add Context | `bookmark_add_rounded` | Append context |
+| Exact context exists | Already in Vocabulary | `bookmark_rounded` (primary) | Offer delete whole item |
+| Busy | Adding… / Removing… | Spinner | Disable |
 
 Wire into [`dictionary_lookup_sheet.dart`](../../lib/features/lookup/presentation/dictionary_lookup_sheet.dart) without changing lookup language catalog rules ([ADR-0042](../decisions/0042-multi-language-lookup-catalog.md)).
 

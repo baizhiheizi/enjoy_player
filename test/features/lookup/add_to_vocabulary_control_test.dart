@@ -57,48 +57,51 @@ void main() {
     await tester.pumpWidget(harness(request()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add to Vocabulary'), findsOneWidget);
-    await tester.tap(find.text('Add to Vocabulary'));
+    expect(find.byTooltip('Add to Vocabulary'), findsOneWidget);
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+    await tester.tap(find.byTooltip('Add to Vocabulary'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Already in Vocabulary'), findsOneWidget);
+    expect(find.byTooltip('Already in Vocabulary'), findsOneWidget);
+    expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
   });
 
   testWidgets('Add Context when locator differs', (tester) async {
     await tester.pumpWidget(harness(request(start: 1000)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Add to Vocabulary'));
+    await tester.tap(find.byTooltip('Add to Vocabulary'));
     await tester.pumpAndSettle();
 
     await tester.pumpWidget(harness(request(start: 5000)));
     await tester.pumpAndSettle();
-    expect(find.text('Add Context'), findsOneWidget);
+    expect(find.byTooltip('Add Context'), findsOneWidget);
+    expect(find.byIcon(Icons.bookmark_add_rounded), findsOneWidget);
   });
 
   testWidgets('cancel delete leaves item', (tester) async {
     await tester.pumpWidget(harness(request()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Add to Vocabulary'));
+    await tester.tap(find.byTooltip('Add to Vocabulary'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Already in Vocabulary'));
+    await tester.tap(find.byTooltip('Already in Vocabulary'));
     await tester.pumpAndSettle();
     expect(find.text('Remove from vocabulary?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.text('Already in Vocabulary'), findsOneWidget);
+    expect(find.byTooltip('Already in Vocabulary'), findsOneWidget);
   });
 
   testWidgets('confirm delete returns to Add', (tester) async {
     await tester.pumpWidget(harness(request()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Add to Vocabulary'));
+    await tester.tap(find.byTooltip('Add to Vocabulary'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Already in Vocabulary'));
+    await tester.tap(find.byTooltip('Already in Vocabulary'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
-    expect(find.text('Add to Vocabulary'), findsOneWidget);
+    expect(find.byTooltip('Add to Vocabulary'), findsOneWidget);
   });
 }

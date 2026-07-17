@@ -378,10 +378,10 @@ class _FlashcardBack extends StatelessWidget {
                 top: false,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    t.space16,
                     t.space12,
-                    t.space16,
+                    t.space8,
                     t.space12,
+                    t.space8,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -389,7 +389,7 @@ class _FlashcardBack extends StatelessWidget {
                       Text(
                         l10n.vocabularyHowWellDoYouKnow,
                         textAlign: TextAlign.center,
-                        style: tt.labelMedium?.copyWith(
+                        style: tt.labelSmall?.copyWith(
                           color: cs.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
@@ -399,11 +399,12 @@ class _FlashcardBack extends StatelessWidget {
                         ratingInFlight: ratingInFlight,
                         onRate: onRate,
                       ),
-                      SizedBox(height: t.space4),
                       TextButton(
                         style: TextButton.styleFrom(
-                          minimumSize: const Size(48, 40),
+                          minimumSize: const Size(44, 36),
+                          visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.symmetric(horizontal: t.space12),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: ratingInFlight
                             ? null
@@ -425,12 +426,11 @@ class _FlashcardBack extends StatelessWidget {
   }
 }
 
-/// Rating row: standard control height, capped width (not full-bleed slabs).
+/// Compact rating pills — sized for small screens, capped on wide layouts.
 class _RatingBar extends StatelessWidget {
   const _RatingBar({required this.ratingInFlight, required this.onRate});
 
-  static const double _height = 48;
-  static const double _maxWidth = 400;
+  static const double _maxWidth = 360;
 
   final bool ratingInFlight;
   final ValueChanged<VocabularyRating> onRate;
@@ -440,66 +440,63 @@ class _RatingBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
+    final gap = MediaQuery.sizeOf(context).width < 360 ? t.space4 : t.space8;
 
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: _maxWidth),
-        child: SizedBox(
-          height: _height,
-          width: double.infinity,
-          child: Row(
-            children: [
-              Expanded(
-                child: _RatingChip(
-                  label: l10n.vocabularyDontKnow,
-                  icon: Icons.close_rounded,
-                  background: cs.error.withValues(alpha: 0.12),
-                  foreground: cs.error,
-                  border: cs.error.withValues(alpha: 0.35),
-                  emphasized: false,
-                  onPressed: ratingInFlight
-                      ? null
-                      : () => onRate(VocabularyRating.dontKnow),
-                ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _RatingChip(
+                label: l10n.vocabularyDontKnow,
+                icon: Icons.close_rounded,
+                background: cs.error.withValues(alpha: 0.12),
+                foreground: cs.error,
+                border: cs.error.withValues(alpha: 0.35),
+                emphasized: false,
+                onPressed: ratingInFlight
+                    ? null
+                    : () => onRate(VocabularyRating.dontKnow),
               ),
-              SizedBox(width: t.space8),
-              Expanded(
-                child: _RatingChip(
-                  label: l10n.vocabularyKnow,
-                  icon: Icons.check_rounded,
-                  background: cs.primary.withValues(alpha: 0.18),
-                  foreground: cs.primary,
-                  border: cs.primary.withValues(alpha: 0.45),
-                  emphasized: true,
-                  onPressed: ratingInFlight
-                      ? null
-                      : () => onRate(VocabularyRating.know),
-                ),
+            ),
+            SizedBox(width: gap),
+            Expanded(
+              child: _RatingChip(
+                label: l10n.vocabularyKnow,
+                icon: Icons.check_rounded,
+                background: cs.primary.withValues(alpha: 0.18),
+                foreground: cs.primary,
+                border: cs.primary.withValues(alpha: 0.45),
+                emphasized: true,
+                onPressed: ratingInFlight
+                    ? null
+                    : () => onRate(VocabularyRating.know),
               ),
-              SizedBox(width: t.space8),
-              Expanded(
-                child: _RatingChip(
-                  label: l10n.vocabularyKnowWell,
-                  icon: Icons.check_circle_rounded,
-                  background: cs.tertiary.withValues(alpha: 0.16),
-                  foreground: cs.tertiary,
-                  border: cs.tertiary.withValues(alpha: 0.45),
-                  emphasized: false,
-                  onPressed: ratingInFlight
-                      ? null
-                      : () => onRate(VocabularyRating.knowWell),
-                ),
+            ),
+            SizedBox(width: gap),
+            Expanded(
+              child: _RatingChip(
+                label: l10n.vocabularyKnowWell,
+                icon: Icons.check_circle_rounded,
+                background: cs.tertiary.withValues(alpha: 0.16),
+                foreground: cs.tertiary,
+                border: cs.tertiary.withValues(alpha: 0.45),
+                emphasized: false,
+                onPressed: ratingInFlight
+                    ? null
+                    : () => onRate(VocabularyRating.knowWell),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// One-line rating control sized like a normal outlined button.
+/// Compact outlined rating pill (~36px tall).
 class _RatingChip extends StatelessWidget {
   const _RatingChip({
     required this.label,
@@ -523,6 +520,7 @@ class _RatingChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final enabled = onPressed != null;
+    final radius = BorderRadius.circular(t.radiusFull);
 
     return Semantics(
       button: true,
@@ -531,7 +529,7 @@ class _RatingChip extends StatelessWidget {
       child: Material(
         color: enabled ? background : background.withValues(alpha: 0.35),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(t.radiusSm),
+          borderRadius: radius,
           side: BorderSide(
             color: enabled ? border : border.withValues(alpha: 0.25),
             width: emphasized ? 1.25 : 1,
@@ -544,13 +542,16 @@ class _RatingChip extends StatelessWidget {
                   onPressed!();
                 }
               : null,
-          borderRadius: BorderRadius.circular(t.radiusSm),
+          borderRadius: radius,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: t.space8),
+            padding: EdgeInsets.symmetric(
+              horizontal: t.space8,
+              vertical: t.space8,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 18, color: foreground),
+                Icon(icon, size: 16, color: foreground),
                 SizedBox(width: t.space4),
                 Flexible(
                   child: Text(
@@ -558,9 +559,10 @@ class _RatingChip extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: foreground,
                       fontWeight: FontWeight.w600,
+                      height: 1.15,
                     ),
                   ),
                 ),
@@ -595,8 +597,41 @@ class _TabBody extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+/// Top-level section heading with icon (Context / Source / Contextual translation).
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: cs.primary.withValues(alpha: 0.9)),
+        SizedBox(width: t.space8),
+        Expanded(
+          child: Text(
+            label,
+            style: tt.titleSmall?.copyWith(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.1,
+              height: 1.2,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Nested label inside contextual markdown (e.g. part of speech).
+class _DetailLabel extends StatelessWidget {
+  const _DetailLabel(this.text);
 
   final String text;
 
@@ -605,10 +640,10 @@ class _SectionLabel extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Text(
       text,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: cs.onSurfaceVariant.withValues(alpha: 0.85),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: cs.onSurfaceVariant.withValues(alpha: 0.75),
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
+        letterSpacing: 0.35,
         height: 1.2,
       ),
     );
@@ -655,11 +690,12 @@ class _StructuredContextualMarkdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final doc = parseContextualMarkdownDocument(markdown);
-    final style = buildLookupMarkdownStyleSheet(theme, t).copyWith(
+    final bodyStyle = buildLookupMarkdownStyleSheet(theme, t).copyWith(
       p: theme.textTheme.bodyMedium?.copyWith(
-        height: 1.5,
-        color: theme.colorScheme.onSurface,
+        height: 1.55,
+        color: cs.onSurface.withValues(alpha: 0.92),
       ),
       blockSpacing: t.space8,
       h1: theme.textTheme.bodyMedium,
@@ -671,17 +707,32 @@ class _StructuredContextualMarkdown extends StatelessWidget {
       h3Padding: EdgeInsets.zero,
       h4Padding: EdgeInsets.zero,
     );
+    final translationStyle = bodyStyle.copyWith(
+      p: theme.textTheme.bodyLarge?.copyWith(
+        height: 1.5,
+        color: cs.onSurface,
+        fontWeight: FontWeight.w500,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (doc.preamble.isNotEmpty)
-          MarkdownBody(data: doc.preamble, selectable: true, styleSheet: style),
+          MarkdownBody(
+            data: doc.preamble,
+            selectable: true,
+            styleSheet: translationStyle,
+          ),
         for (final section in doc.sections) ...[
-          SizedBox(height: t.space20),
-          _SectionLabel(section.title),
+          SizedBox(height: doc.preamble.isNotEmpty ? t.space20 : t.space12),
+          _DetailLabel(section.title),
           SizedBox(height: t.space8),
-          MarkdownBody(data: section.body, selectable: true, styleSheet: style),
+          MarkdownBody(
+            data: section.body,
+            selectable: true,
+            styleSheet: bodyStyle,
+          ),
         ],
       ],
     );
@@ -737,34 +788,35 @@ class _ContextBody extends ConsumerWidget {
     final sourceTitle =
         titleAsync.asData?.value ??
         (titleAsync.isLoading ? null : l10n.vocabularyUnknownSource);
-    final contextBase = tt.bodyMedium?.copyWith(height: 1.5);
+    final contextBase = tt.bodyLarge?.copyWith(
+      height: 1.55,
+      color: cs.onSurface.withValues(alpha: 0.92),
+    );
     final contextHighlight = contextBase?.copyWith(
       fontWeight: FontWeight.w700,
       color: cs.onSurface,
-      backgroundColor: cs.primary.withValues(alpha: 0.16),
+      backgroundColor: cs.primary.withValues(alpha: 0.18),
     );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SectionLabel(l10n.vocabularyContext),
-        SizedBox(height: t.space8),
+        _SectionHeading(
+          icon: Icons.format_quote_rounded,
+          label: l10n.vocabularyContext,
+        ),
+        SizedBox(height: t.space16),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(t.radiusMd),
             border: Border(
               left: BorderSide(
                 width: 3,
-                color: cs.primary.withValues(alpha: 0.5),
+                color: cs.primary.withValues(alpha: 0.45),
               ),
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: t.space16,
-              vertical: t.space12,
-            ),
+            padding: EdgeInsetsDirectional.only(start: t.space16),
             child: Text.rich(
               TextSpan(
                 children: highlightVocabularyWord(
@@ -777,37 +829,44 @@ class _ContextBody extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(height: t.space24),
-        _SectionLabel(l10n.vocabularySourceLabel),
-        SizedBox(height: t.space8),
+        SizedBox(height: t.space32),
+        _SectionHeading(
+          icon: Icons.movie_outlined,
+          label: l10n.vocabularySourceLabel,
+        ),
+        SizedBox(height: t.space16),
         if (titleAsync.isLoading && sourceTitle == null)
           Text('…', style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant))
         else
           Text(
             sourceTitle ?? l10n.vocabularyUnknownSource,
-            maxLines: 2,
+            maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: tt.bodyMedium?.copyWith(
+            style: tt.bodyLarge?.copyWith(
               color: cs.onSurface,
               height: 1.4,
               fontWeight: FontWeight.w500,
+              letterSpacing: -0.1,
             ),
           ),
         if (locator != null) ...[
-          SizedBox(height: t.space4),
+          SizedBox(height: t.space8),
           Text(
             l10n.vocabularyLocatorLabel(
               (locator.start / 1000).toStringAsFixed(1),
               (locator.duration / 1000).toStringAsFixed(1),
             ),
-            style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+            style: tt.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant.withValues(alpha: 0.85),
+              letterSpacing: 0.1,
+            ),
           ),
         ],
         if (canMedia) ...[
-          SizedBox(height: t.space12),
+          SizedBox(height: t.space8),
           Wrap(
-            spacing: t.space8,
-            runSpacing: t.space8,
+            spacing: t.space4,
+            runSpacing: t.space4,
             children: [
               _MediaAction(
                 icon: Icons.play_arrow_rounded,
@@ -839,9 +898,12 @@ class _ContextBody extends ConsumerWidget {
           SizedBox(height: t.space8),
           _SoftError(message: l10n.vocabularyMediaPlayFailed),
         ],
-        SizedBox(height: t.space24),
-        _SectionLabel(l10n.vocabularyContextualTranslation),
-        SizedBox(height: t.space8),
+        SizedBox(height: t.space32),
+        _SectionHeading(
+          icon: Icons.translate_rounded,
+          label: l10n.vocabularyContextualTranslation,
+        ),
+        SizedBox(height: t.space16),
         if (translation != null)
           _StructuredContextualMarkdown(markdown: translation.translatedText)
         else if (!signedIn)
@@ -851,7 +913,7 @@ class _ContextBody extends ConsumerWidget {
           )
         else if (contextualFetchInFlight)
           Padding(
-            padding: EdgeInsets.symmetric(vertical: t.space12),
+            padding: EdgeInsets.symmetric(vertical: t.space8),
             child: Row(
               children: [
                 SizedBox(

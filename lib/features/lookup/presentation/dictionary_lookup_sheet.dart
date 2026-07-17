@@ -171,6 +171,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                         ),
                       ),
                     ),
+                    AddToVocabularyControl(request: _effectiveRequest),
                     IconButton(
                       style: IconButton.styleFrom(
                         minimumSize: const Size(44, 44),
@@ -205,15 +206,6 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                     height: 1.15,
                     letterSpacing: -0.3,
                   ),
-                ),
-              ),
-            ),
-            constrain(
-              Padding(
-                padding: const EdgeInsets.fromLTRB(_hPad, 0, _hPad, 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: AddToVocabularyControl(request: _effectiveRequest),
                 ),
               ),
             ),

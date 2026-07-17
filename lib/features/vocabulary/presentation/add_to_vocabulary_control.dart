@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_cta_state.dart';
@@ -16,6 +15,7 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 
 final _log = logNamed('Vocabulary');
 
+/// Icon control matching the lookup sheet copy/close chrome.
 class AddToVocabularyControl extends ConsumerStatefulWidget {
   const AddToVocabularyControl({required this.request, super.key});
 
@@ -169,18 +169,41 @@ class _AddToVocabularyControlState
     };
   }
 
+  IconData get _icon => switch (_kind) {
+    VocabularyCtaKind.alreadyInVocabulary => Icons.bookmark_rounded,
+    VocabularyCtaKind.addContext => Icons.bookmark_add_rounded,
+    VocabularyCtaKind.notInBook || null => Icons.bookmark_add_outlined,
+  };
+
   @override
   Widget build(BuildContext context) {
     if (_unavailable || _kind == null) {
       return const SizedBox.shrink();
     }
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     final label = _label(l10n);
-    final onPressed = _busy ? null : _onPrimary;
+    final inBook = _kind == VocabularyCtaKind.alreadyInVocabulary;
+    final foreground = inBook ? scheme.primary : scheme.onSurfaceVariant;
 
-    if (_kind == VocabularyCtaKind.alreadyInVocabulary) {
-      return EnjoyButton.secondary(onPressed: onPressed, child: Text(label));
-    }
-    return EnjoyButton.primary(onPressed: onPressed, child: Text(label));
+    return IconButton(
+      style: IconButton.styleFrom(
+        minimumSize: const Size(44, 44),
+        fixedSize: const Size(44, 44),
+        foregroundColor: foreground,
+      ),
+      tooltip: label,
+      onPressed: _busy ? null : _onPrimary,
+      icon: _busy
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: foreground,
+              ),
+            )
+          : Icon(_icon, size: 20),
+    );
   }
 }
