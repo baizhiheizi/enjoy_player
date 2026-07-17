@@ -293,6 +293,37 @@ final class VocabularyContext {
   final DateTime? serverUpdatedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  VocabularyContext copyWith({
+    String? id,
+    String? vocabularyItemId,
+    String? text,
+    VocabularySourceType? sourceType,
+    String? sourceId,
+    MediaLocator? locator,
+    EbookLocator? ebookLocator,
+    String? explanation,
+    bool clearExplanation = false,
+    String? syncStatus,
+    DateTime? serverUpdatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return VocabularyContext(
+      id: id ?? this.id,
+      vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
+      text: text ?? this.text,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      locator: locator ?? this.locator,
+      ebookLocator: ebookLocator ?? this.ebookLocator,
+      explanation: clearExplanation ? null : (explanation ?? this.explanation),
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 /// Local review audit row (never synced).

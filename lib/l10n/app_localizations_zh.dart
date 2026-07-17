@@ -2662,6 +2662,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get vocabularyFlipHint => '点击翻转';
 
   @override
+  String get vocabularyPlaySegment => '播放片段';
+
+  @override
+  String get vocabularyOpenInPlayer => '在播放器中打开';
+
+  @override
+  String get vocabularyOpenInPlayerDescription => '打开播放器将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyShadowReading => '跟读';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyContextualTranslation => '语境翻译';
+
+  @override
+  String get vocabularyFetchDictionary => '查询词典';
+
+  @override
+  String get vocabularyFetchContextual => '翻译语境';
+
+  @override
+  String get vocabularyFetching => '加载中…';
+
+  @override
+  String get vocabularyAiUnavailable => '登录后可使用 AI 查询';
+
+  @override
+  String get vocabularyAiFetchFailed => '加载失败，请联网后重试。';
+
+  @override
+  String get vocabularyMediaUnavailable => '此语境不支持媒体操作';
+
+  @override
+  String get vocabularyMediaPlayFailed => '无法播放该片段';
+
+  @override
+  String get vocabularyMediaOpenFailed => '无法打开该媒体';
+
+  @override
+  String get vocabularyConfirmContinue => '继续';
+
+  @override
+  String get vocabularySourceLabel => '来源';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '$start秒 · $duration秒';
+  }
+
+  @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
 
   @override
@@ -5132,6 +5186,60 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularyFlipHint => '点击翻转';
+
+  @override
+  String get vocabularyPlaySegment => '播放片段';
+
+  @override
+  String get vocabularyOpenInPlayer => '在播放器中打开';
+
+  @override
+  String get vocabularyOpenInPlayerDescription => '打开播放器将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyShadowReading => '跟读';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyContextualTranslation => '语境翻译';
+
+  @override
+  String get vocabularyFetchDictionary => '查询词典';
+
+  @override
+  String get vocabularyFetchContextual => '翻译语境';
+
+  @override
+  String get vocabularyFetching => '加载中…';
+
+  @override
+  String get vocabularyAiUnavailable => '登录后可使用 AI 查询';
+
+  @override
+  String get vocabularyAiFetchFailed => '加载失败，请联网后重试。';
+
+  @override
+  String get vocabularyMediaUnavailable => '此语境不支持媒体操作';
+
+  @override
+  String get vocabularyMediaPlayFailed => '无法播放该片段';
+
+  @override
+  String get vocabularyMediaOpenFailed => '无法打开该媒体';
+
+  @override
+  String get vocabularyConfirmContinue => '继续';
+
+  @override
+  String get vocabularySourceLabel => '来源';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '$start秒 · $duration秒';
+  }
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';

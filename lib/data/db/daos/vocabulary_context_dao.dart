@@ -23,8 +23,15 @@ class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
           ))
           .get();
 
+  Future<VocabularyContextRow?> getById(String id) => (select(
+    vocabularyContexts,
+  )..where((t) => t.id.equals(id))).getSingleOrNull();
+
   Future<void> insertRow(VocabularyContextRow row) =>
       into(vocabularyContexts).insert(row);
+
+  Future<void> updateRow(VocabularyContextRow row) =>
+      into(vocabularyContexts).insert(row, mode: InsertMode.replace);
 
   Future<int> deleteByItemId(String vocabularyItemId) => (delete(
     vocabularyContexts,

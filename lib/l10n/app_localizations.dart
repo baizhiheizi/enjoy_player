@@ -5169,6 +5169,108 @@ abstract class AppLocalizations {
   /// **'Tap to flip'**
   String get vocabularyFlipHint;
 
+  /// No description provided for @vocabularyPlaySegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Play segment'**
+  String get vocabularyPlaySegment;
+
+  /// No description provided for @vocabularyOpenInPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in player'**
+  String get vocabularyOpenInPlayer;
+
+  /// No description provided for @vocabularyOpenInPlayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the player will end this review session. Your ratings so far are saved.'**
+  String get vocabularyOpenInPlayerDescription;
+
+  /// No description provided for @vocabularyShadowReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadow reading'**
+  String get vocabularyShadowReading;
+
+  /// No description provided for @vocabularyShadowReadingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.'**
+  String get vocabularyShadowReadingDescription;
+
+  /// No description provided for @vocabularyContextualTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Contextual translation'**
+  String get vocabularyContextualTranslation;
+
+  /// No description provided for @vocabularyFetchDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up dictionary'**
+  String get vocabularyFetchDictionary;
+
+  /// No description provided for @vocabularyFetchContextual.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate context'**
+  String get vocabularyFetchContextual;
+
+  /// No description provided for @vocabularyFetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get vocabularyFetching;
+
+  /// No description provided for @vocabularyAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use AI lookup'**
+  String get vocabularyAiUnavailable;
+
+  /// No description provided for @vocabularyAiFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load. Try again when online.'**
+  String get vocabularyAiFetchFailed;
+
+  /// No description provided for @vocabularyMediaUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Media actions unavailable for this context'**
+  String get vocabularyMediaUnavailable;
+
+  /// No description provided for @vocabularyMediaPlayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play this segment'**
+  String get vocabularyMediaPlayFailed;
+
+  /// No description provided for @vocabularyMediaOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this media'**
+  String get vocabularyMediaOpenFailed;
+
+  /// No description provided for @vocabularyConfirmContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get vocabularyConfirmContinue;
+
+  /// No description provided for @vocabularySourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get vocabularySourceLabel;
+
+  /// No description provided for @vocabularyLocatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}s · {duration}s'**
+  String vocabularyLocatorLabel(String start, String duration);
+
   /// No description provided for @authRequiredCloudFeaturesTitle.
   ///
   /// In en, this message translates to:

@@ -9,8 +9,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
+import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
+import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_flashcard.dart';
@@ -53,6 +58,63 @@ class _VocabularyReviewSessionScreenState
     if (context.canPop()) {
       context.pop();
     } else {
+      context.go('/vocabulary');
+    }
+  }
+
+  Future<void> _confirmMediaHandoff({
+    required String title,
+    required String body,
+    required bool activateEcho,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showEnjoyAlertDialog<bool>(
+      context: context,
+      title: Text(title),
+      content: Text(body),
+      actionsBuilder: (ctx) => [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(l10n.vocabularyCancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(l10n.vocabularyConfirmContinue),
+        ),
+      ],
+    );
+    if (confirmed != true || !mounted) return;
+
+    final handoff = ref
+        .read(vocabularyReviewSessionProvider.notifier)
+        .takeMediaHandoff(activateEcho: activateEcho);
+    if (handoff == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.vocabularyMediaOpenFailed)));
+      return;
+    }
+
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/vocabulary');
+    }
+    if (!mounted) return;
+
+    openPlayerRoute(context, handoff.mediaId);
+    try {
+      await applyVocabularyMediaHandoff(
+        player: ref.read(playerControllerProvider.notifier),
+        echo: ref.read(echoModeProvider.notifier),
+        handoff: handoff,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.vocabularyMediaOpenFailed)));
       context.go('/vocabulary');
     }
   }
@@ -180,11 +242,15 @@ class _VocabularyReviewSessionScreenState
                   Expanded(
                     child: VocabularyFlashcard(
                       item: session.currentItem!,
-                      contextText: session.primaryContextFor(
-                        session.currentItem!.id,
-                      ),
+                      primaryContext: session.currentPrimaryContext,
                       flipped: session.flipped,
                       ratingInFlight: session.ratingInFlight,
+                      dictionaryFetchInFlight: session.dictionaryFetchInFlight,
+                      contextualFetchInFlight: session.contextualFetchInFlight,
+                      clipPlayInFlight: session.clipPlayInFlight,
+                      dictionaryError: session.dictionaryError,
+                      contextualError: session.contextualError,
+                      mediaError: session.mediaError,
                       onFlip: () => ref
                           .read(vocabularyReviewSessionProvider.notifier)
                           .flip(),
@@ -192,6 +258,35 @@ class _VocabularyReviewSessionScreenState
                         ref
                             .read(vocabularyReviewSessionProvider.notifier)
                             .rate(r),
+                      ),
+                      onFetchDictionary: () => unawaited(
+                        ref
+                            .read(vocabularyReviewSessionProvider.notifier)
+                            .fetchDictionary(),
+                      ),
+                      onFetchContextual: () => unawaited(
+                        ref
+                            .read(vocabularyReviewSessionProvider.notifier)
+                            .fetchContextualTranslation(),
+                      ),
+                      onPlayClip: () => unawaited(
+                        ref
+                            .read(vocabularyReviewSessionProvider.notifier)
+                            .playClip(),
+                      ),
+                      onOpenInPlayer: () => unawaited(
+                        _confirmMediaHandoff(
+                          title: l10n.vocabularyOpenInPlayer,
+                          body: l10n.vocabularyOpenInPlayerDescription,
+                          activateEcho: false,
+                        ),
+                      ),
+                      onShadowReading: () => unawaited(
+                        _confirmMediaHandoff(
+                          title: l10n.vocabularyShadowReading,
+                          body: l10n.vocabularyShadowReadingDescription,
+                          activateEcho: true,
+                        ),
                       ),
                     ),
                   ),

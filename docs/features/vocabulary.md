@@ -6,7 +6,7 @@ Vocabulary is Enjoy’s **local-first spaced-repetition (SRS) word book**: save 
 
 This document is the implementation contract for Enjoy Player (Flutter). It describes **what the Enjoy web app actually implements today** (`~/dev/enjoy/apps/web`), not the aspirational marketing copy under `enjoy/apps/docs/**/vocabulary.md`.
 
-**Status in Flutter:** P0 foundation + **P1 screen/review shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts). Sync, Anki export, and review-context media/AI richness are not shipped yet.
+**Status in Flutter:** P0–**P2 shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts); review Context/Dictionary write-through, clip play, open-in-player, and shadow hand-off. Sync and Anki export are not shipped yet.
 
 **Tracking:** [#375](https://github.com/baizhiheizi/enjoy_player/issues/375).
 
@@ -592,10 +592,10 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 
 ### P2 — Context richness
 
-- [ ] Persist dictionary / contextual explanation on entities from review tabs
-- [ ] Context clip playback via locator
-- [ ] Open-in-player confirm (exit review)
-- [ ] Shadow reading entry from context tab (if product wants parity)
+- [x] Persist dictionary / contextual explanation on entities from review tabs
+- [x] Context clip playback via locator
+- [x] Open-in-player confirm (exit review)
+- [x] Shadow reading entry from context tab (hand-off to player + echo; not embedded in flashcard)
 
 ### P3 — Sync
 
@@ -715,8 +715,8 @@ Do not rewrite ADR-0010 — supersede or extend with a new ADR when sync lands.
 - [x] User can add a word + media context from the lookup sheet; duplicates merge correctly.
 - [x] Vocabulary screen shows stats, list filters/search, delete.
 - [x] Review session supports due/custom selection, flip, 3 ratings, skip, undo; SRS matches web tests.
-- [ ] Dictionary / contextual results can persist onto item/context.
-- [ ] Context clip playback and open-in-player work without a second `media_kit` Player.
+- [x] Dictionary / contextual results can persist onto item/context.
+- [x] Context clip playback and open-in-player work without a second `media_kit` Player.
 - [ ] Anki CSV export works for Pro with Front/Back/Tags contract.
 - [ ] (Later) Sync upload/download preserves newer SRS state across devices.
 - [x] Docs + tests green; `flutter analyze` / `flutter test` / format + codegen gates pass.

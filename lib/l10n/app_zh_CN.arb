@@ -919,6 +919,29 @@
     }
   },
   "vocabularyFlipHint": "点击翻转",
+  "vocabularyPlaySegment": "播放片段",
+  "vocabularyOpenInPlayer": "在播放器中打开",
+  "vocabularyOpenInPlayerDescription": "打开播放器将结束本次复习。已保存的评分不会丢失。",
+  "vocabularyShadowReading": "跟读",
+  "vocabularyShadowReadingDescription": "前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。",
+  "vocabularyContextualTranslation": "语境翻译",
+  "vocabularyFetchDictionary": "查询词典",
+  "vocabularyFetchContextual": "翻译语境",
+  "vocabularyFetching": "加载中…",
+  "vocabularyAiUnavailable": "登录后可使用 AI 查询",
+  "vocabularyAiFetchFailed": "加载失败，请联网后重试。",
+  "vocabularyMediaUnavailable": "此语境不支持媒体操作",
+  "vocabularyMediaPlayFailed": "无法播放该片段",
+  "vocabularyMediaOpenFailed": "无法打开该媒体",
+  "vocabularyConfirmContinue": "继续",
+  "vocabularySourceLabel": "来源",
+  "vocabularyLocatorLabel": "{start}秒 · {duration}秒",
+  "@vocabularyLocatorLabel": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "duration": { "type": "String" }
+    }
+  },
   "authRequiredCloudFeaturesTitle": "需要登录账户",
   "practicePosterShareTooltip": "分享练习海报",
   "practicePosterPreviewTitle": "分享你的练习",

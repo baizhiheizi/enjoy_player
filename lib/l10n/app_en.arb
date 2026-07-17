@@ -1353,6 +1353,29 @@
     }
   },
   "vocabularyFlipHint": "Tap to flip",
+  "vocabularyPlaySegment": "Play segment",
+  "vocabularyOpenInPlayer": "Open in player",
+  "vocabularyOpenInPlayerDescription": "Opening the player will end this review session. Your ratings so far are saved.",
+  "vocabularyShadowReading": "Shadow reading",
+  "vocabularyShadowReadingDescription": "Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.",
+  "vocabularyContextualTranslation": "Contextual translation",
+  "vocabularyFetchDictionary": "Look up dictionary",
+  "vocabularyFetchContextual": "Translate context",
+  "vocabularyFetching": "Loading…",
+  "vocabularyAiUnavailable": "Sign in to use AI lookup",
+  "vocabularyAiFetchFailed": "Could not load. Try again when online.",
+  "vocabularyMediaUnavailable": "Media actions unavailable for this context",
+  "vocabularyMediaPlayFailed": "Could not play this segment",
+  "vocabularyMediaOpenFailed": "Could not open this media",
+  "vocabularyConfirmContinue": "Continue",
+  "vocabularySourceLabel": "Source",
+  "vocabularyLocatorLabel": "{start}s · {duration}s",
+  "@vocabularyLocatorLabel": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "duration": { "type": "String" }
+    }
+  },
   "authRequiredCloudFeaturesTitle": "Account required",
   "practicePosterShareTooltip": "Share practice poster",
   "practicePosterPreviewTitle": "Share your practice",

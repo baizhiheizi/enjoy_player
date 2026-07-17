@@ -2774,6 +2774,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vocabularyFlipHint => 'Tap to flip';
 
   @override
+  String get vocabularyPlaySegment => 'Play segment';
+
+  @override
+  String get vocabularyOpenInPlayer => 'Open in player';
+
+  @override
+  String get vocabularyOpenInPlayerDescription =>
+      'Opening the player will end this review session. Your ratings so far are saved.';
+
+  @override
+  String get vocabularyShadowReading => 'Shadow reading';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.';
+
+  @override
+  String get vocabularyContextualTranslation => 'Contextual translation';
+
+  @override
+  String get vocabularyFetchDictionary => 'Look up dictionary';
+
+  @override
+  String get vocabularyFetchContextual => 'Translate context';
+
+  @override
+  String get vocabularyFetching => 'Loading…';
+
+  @override
+  String get vocabularyAiUnavailable => 'Sign in to use AI lookup';
+
+  @override
+  String get vocabularyAiFetchFailed =>
+      'Could not load. Try again when online.';
+
+  @override
+  String get vocabularyMediaUnavailable =>
+      'Media actions unavailable for this context';
+
+  @override
+  String get vocabularyMediaPlayFailed => 'Could not play this segment';
+
+  @override
+  String get vocabularyMediaOpenFailed => 'Could not open this media';
+
+  @override
+  String get vocabularyConfirmContinue => 'Continue';
+
+  @override
+  String get vocabularySourceLabel => 'Source';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '${start}s · ${duration}s';
+  }
+
+  @override
   String get authRequiredCloudFeaturesTitle => 'Account required';
 
   @override

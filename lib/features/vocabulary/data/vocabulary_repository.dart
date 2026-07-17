@@ -238,6 +238,40 @@ class VocabularyRepository {
     return row == null ? null : _itemFromRow(row);
   }
 
+  /// Persists dictionary JSON on the item. Does not change SRS fields.
+  Future<VocabularyItem?> updateItemExplanation({
+    required String itemId,
+    required String? explanation,
+    DateTime? now,
+  }) async {
+    final at = now ?? DateTime.now();
+    final row = await _db.vocabularyItemDao.getById(itemId);
+    if (row == null) return null;
+    final updated = row.copyWith(
+      explanation: Value(explanation),
+      updatedAt: at,
+    );
+    await _db.vocabularyItemDao.updateRow(updated);
+    return _itemFromRow(updated);
+  }
+
+  /// Persists contextual-translation JSON on one context. Sibling contexts unchanged.
+  Future<VocabularyContext?> updateContextExplanation({
+    required String contextId,
+    required String? explanation,
+    DateTime? now,
+  }) async {
+    final at = now ?? DateTime.now();
+    final row = await _db.vocabularyContextDao.getById(contextId);
+    if (row == null) return null;
+    final updated = row.copyWith(
+      explanation: Value(explanation),
+      updatedAt: at,
+    );
+    await _db.vocabularyContextDao.updateRow(updated);
+    return _contextFromRow(updated);
+  }
+
   Future<VocabularyItem?> findByWord({
     required String word,
     required String language,
