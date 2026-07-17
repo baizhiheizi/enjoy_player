@@ -32,6 +32,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/diagnostics.md](features/diagnostics.md) | Product + dev | Local diagnostic logging, export, and privacy behavior changes |
 | [features/discover.md](features/discover.md) | Product + dev | YouTube Discover feeds, subscriptions, add-to-library behavior changes |
 | [features/dictionary-lookup.md](features/dictionary-lookup.md) | Product + dev | Transcript selection lookup (translation / contextual / dictionary) behavior changes |
+| [features/vocabulary.md](features/vocabulary.md) | Product + dev | Vocabulary book, SRS review, add-from-lookup, Anki export, or vocab sync behavior changes |
 | [features/community.md](features/community.md) | Product + dev | Signed-in Home community activity card behavior changes |
 | [features/settings.md](features/settings.md) | Product + dev | Settings hub, hotkeys / sync sub-screens, account hero, language / mic pickers, or developer API editors change |
 | [features/shadow-reading.md](features/shadow-reading.md) | Product + dev | Shadow reading panel, recording bus, pitch contour, or Azure pronunciation assessment behavior changes |
