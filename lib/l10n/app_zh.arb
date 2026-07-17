@@ -1009,6 +1009,80 @@
   "vocabularyConfirmDeleteBody": "将删除该词及其全部语境。",
   "vocabularyCancel": "取消",
   "vocabularyDelete": "删除",
+  "vocabularyTitle": "生词本",
+  "vocabularyProfileEntry": "生词本",
+  "vocabularyProfileEntryHint": "复习已保存的单词与闪卡",
+  "vocabularyReview": "复习",
+  "vocabularyAllWords": "全部单词",
+  "vocabularyTotal": "总计",
+  "vocabularyDue": "待复习",
+  "vocabularyStatusNew": "新词",
+  "vocabularyStatusLearning": "学习中",
+  "vocabularyStatusReviewing": "复习中",
+  "vocabularyStatusMastered": "已掌握",
+  "vocabularyNoWords": "还没有单词",
+  "vocabularyNoWordsDescription": "在字幕中选中文本并选择「加入生词本」即可开始。",
+  "vocabularyNoDueItems": "当前没有待复习",
+  "vocabularyNoDueItemsDescription": "你仍可自定义复习：全部、按状态、按语言或随机抽取。",
+  "vocabularyNoMatches": "没有匹配的单词",
+  "vocabularySelectReviewItems": "选择复习范围",
+  "vocabularyReviewDueItems": "待复习",
+  "vocabularyReviewAll": "全部单词",
+  "vocabularyReviewByStatus": "按状态",
+  "vocabularyReviewByLanguage": "按语言",
+  "vocabularyReviewRandom": "随机",
+  "vocabularyNumberOfWords": "单词数量",
+  "vocabularyStartReview": "开始复习",
+  "vocabularyEmptyQueue": "没有符合条件的单词。",
+  "vocabularyHowWellDoYouKnow": "你掌握得怎么样？",
+  "vocabularyDontKnow": "不会",
+  "vocabularyKnow": "会",
+  "vocabularyKnowWell": "很熟",
+  "vocabularySkip": "跳过",
+  "vocabularyUndo": "撤销",
+  "vocabularyProgress": "{current} / {total}",
+  "@vocabularyProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "vocabularyReviewComplete": "复习完成",
+  "vocabularyReviewCompleteDescription": "做得好，评分已保存。",
+  "vocabularyDone": "完成",
+  "vocabularySearchPlaceholder": "搜索单词",
+  "vocabularyFilterStatus": "状态",
+  "vocabularyFilterLanguage": "语言",
+  "vocabularyFilterAll": "全部",
+  "vocabularyContext": "语境",
+  "vocabularyDictionary": "词典",
+  "vocabularyNotes": "笔记",
+  "vocabularyNotesPlaceholder": "笔记即将推出",
+  "vocabularyNoContextAvailable": "暂无语境",
+  "vocabularyDictionaryNotAvailable": "离线时无法显示词典",
+  "vocabularyOverdue": "已过期",
+  "vocabularyToday": "今天",
+  "vocabularyTomorrow": "明天",
+  "vocabularyInDays": "{days} 天后",
+  "@vocabularyInDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "vocabularyKeyboardShortcuts": "快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出",
+  "vocabularyContextsCount": "{count} 个语境",
+  "@vocabularyContextsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyReviewsCount": "{count} 次复习",
+  "@vocabularyReviewsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyFlipHint": "点击翻转",
   "authRequiredCloudFeaturesTitle": "需要登录账户",
   "practicePosterShareTooltip": "分享练习海报",
   "practicePosterPreviewTitle": "分享你的练习",

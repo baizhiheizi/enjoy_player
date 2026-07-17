@@ -47,4 +47,6 @@ class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<VocabularyItemRow>> listAll() => select(vocabularyItems).get();
+
+  Stream<List<VocabularyItemRow>> watchAll() => select(vocabularyItems).watch();
 }

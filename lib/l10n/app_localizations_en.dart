@@ -2602,6 +2602,178 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vocabularyDelete => 'Delete';
 
   @override
+  String get vocabularyTitle => 'Vocabulary';
+
+  @override
+  String get vocabularyProfileEntry => 'Vocabulary';
+
+  @override
+  String get vocabularyProfileEntryHint => 'Review saved words and flashcards';
+
+  @override
+  String get vocabularyReview => 'Review';
+
+  @override
+  String get vocabularyAllWords => 'All Words';
+
+  @override
+  String get vocabularyTotal => 'Total';
+
+  @override
+  String get vocabularyDue => 'Due';
+
+  @override
+  String get vocabularyStatusNew => 'New';
+
+  @override
+  String get vocabularyStatusLearning => 'Learning';
+
+  @override
+  String get vocabularyStatusReviewing => 'Reviewing';
+
+  @override
+  String get vocabularyStatusMastered => 'Mastered';
+
+  @override
+  String get vocabularyNoWords => 'No words yet';
+
+  @override
+  String get vocabularyNoWordsDescription =>
+      'Select text in a transcript and choose Add to Vocabulary to start your word book.';
+
+  @override
+  String get vocabularyNoDueItems => 'Nothing due right now';
+
+  @override
+  String get vocabularyNoDueItemsDescription =>
+      'You can still start a custom review of all words, by status, language, or a random set.';
+
+  @override
+  String get vocabularyNoMatches => 'No matching words';
+
+  @override
+  String get vocabularySelectReviewItems => 'Choose what to review';
+
+  @override
+  String get vocabularyReviewDueItems => 'Due items';
+
+  @override
+  String get vocabularyReviewAll => 'All words';
+
+  @override
+  String get vocabularyReviewByStatus => 'By status';
+
+  @override
+  String get vocabularyReviewByLanguage => 'By language';
+
+  @override
+  String get vocabularyReviewRandom => 'Random';
+
+  @override
+  String get vocabularyNumberOfWords => 'Number of words';
+
+  @override
+  String get vocabularyStartReview => 'Start review';
+
+  @override
+  String get vocabularyEmptyQueue => 'No words match this selection.';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => 'How well do you know this?';
+
+  @override
+  String get vocabularyDontKnow => 'Don\'t Know';
+
+  @override
+  String get vocabularyKnow => 'Know';
+
+  @override
+  String get vocabularyKnowWell => 'Know Well';
+
+  @override
+  String get vocabularySkip => 'Skip';
+
+  @override
+  String get vocabularyUndo => 'Undo';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get vocabularyReviewComplete => 'Review complete';
+
+  @override
+  String get vocabularyReviewCompleteDescription =>
+      'Nice work. Your ratings are saved.';
+
+  @override
+  String get vocabularyDone => 'Done';
+
+  @override
+  String get vocabularySearchPlaceholder => 'Search words';
+
+  @override
+  String get vocabularyFilterStatus => 'Status';
+
+  @override
+  String get vocabularyFilterLanguage => 'Language';
+
+  @override
+  String get vocabularyFilterAll => 'All';
+
+  @override
+  String get vocabularyContext => 'Context';
+
+  @override
+  String get vocabularyDictionary => 'Dictionary';
+
+  @override
+  String get vocabularyNotes => 'Notes';
+
+  @override
+  String get vocabularyNotesPlaceholder => 'Notes coming soon';
+
+  @override
+  String get vocabularyNoContextAvailable => 'No context available';
+
+  @override
+  String get vocabularyDictionaryNotAvailable =>
+      'Dictionary not available offline';
+
+  @override
+  String get vocabularyOverdue => 'Overdue';
+
+  @override
+  String get vocabularyToday => 'Today';
+
+  @override
+  String get vocabularyTomorrow => 'Tomorrow';
+
+  @override
+  String vocabularyInDays(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      'Shortcuts: Space flip · 1/2/3 rate · ← previous · → skip · Esc exit';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count contexts';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get vocabularyFlipHint => 'Tap to flip';
+
+  @override
   String get authRequiredCloudFeaturesTitle => 'Account required';
 
   @override

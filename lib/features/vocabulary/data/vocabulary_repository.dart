@@ -262,6 +262,15 @@ class VocabularyRepository {
     return rows.map(_itemFromRow).toList();
   }
 
+  Future<List<VocabularyItem>> listAll() async {
+    final rows = await _db.vocabularyItemDao.listAll();
+    return rows.map(_itemFromRow).toList();
+  }
+
+  Stream<List<VocabularyItem>> watchAll() => _db.vocabularyItemDao
+      .watchAll()
+      .map((rows) => rows.map(_itemFromRow).toList());
+
   /// Resolves lookup CTA kind for [word] + language pair + media locator.
   Future<({VocabularyCtaKind kind, VocabularyItem? item})> resolveCtaState({
     required String word,

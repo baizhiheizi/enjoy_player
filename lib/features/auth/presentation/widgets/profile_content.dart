@@ -130,6 +130,17 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           EnjoyCard(
             padding: EdgeInsets.zero,
             child: SettingsRow(
+              leadingIcon: Icons.menu_book_outlined,
+              title: l10n.vocabularyProfileEntry,
+              subtitle: l10n.vocabularyProfileEntryHint,
+              onTap: () => context.push('/vocabulary'),
+              responsive: false,
+            ),
+          ),
+          SizedBox(height: t.space8),
+          EnjoyCard(
+            padding: EdgeInsets.zero,
+            child: SettingsRow(
               leadingIcon: Icons.tune_rounded,
               title: l10n.profileSectionPreferences,
               subtitle: l10n.profileSectionPreferencesHint,

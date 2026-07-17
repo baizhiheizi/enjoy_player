@@ -6,7 +6,7 @@ Vocabulary is Enjoy’s **local-first spaced-repetition (SRS) word book**: save 
 
 This document is the implementation contract for Enjoy Player (Flutter). It describes **what the Enjoy web app actually implements today** (`~/dev/enjoy/apps/web`), not the aspirational marketing copy under `enjoy/apps/docs/**/vocabulary.md`.
 
-**Status in Flutter:** foundation shipping (P0). Local Drift schema + SRS domain + add/remove from lookup sheet (media contexts). Vocabulary screen, review UI, sync, and Anki export are not shipped yet.
+**Status in Flutter:** P0 foundation + **P1 screen/review shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts). Sync, Anki export, and review-context media/AI richness are not shipped yet.
 
 **Tracking:** [#375](https://github.com/baizhiheizi/enjoy_player/issues/375).
 
@@ -584,11 +584,11 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 
 ### P1 — Vocabulary screen + review
 
-- [ ] Stats + Review / All Words UI
-- [ ] Review options dialog + fullscreen session + flip + rate + skip + undo
-- [ ] Keyboard shortcuts (desktop)
-- [ ] List search/filters/delete
-- [ ] Empty states
+- [x] Stats + Review / All Words UI
+- [x] Review options dialog + fullscreen session + flip + rate + skip + undo
+- [x] Keyboard shortcuts (desktop)
+- [x] List search/filters/delete
+- [x] Empty states
 
 ### P2 — Context richness
 
@@ -619,12 +619,12 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 
 ## Open decisions (resolve before / during Speckit)
 
-1. **Navigation:** dedicated shell destination vs settings/library entry?
+1. **Navigation:** Resolved in [ADR-0053](../decisions/0053-vocabulary-secondary-route.md) — secondary `/vocabulary` route from Profile (not a primary shell tab).
 2. **Sync in v1?** Recommend local-first Drift first; sync as P3 with new ADR — but **IDs/schema API-compatible from day one**.
-3. Keep web UX “delete whole item from Already in Vocabulary”?
-4. Hotkey registration vs in-modal-only shortcuts ([hotkeys.md](hotkeys.md))?
-5. Home due widget timing (with P1 or later)?
-6. Random review: Fisher–Yates vs web’s weak shuffle (prefer Fisher–Yates).
+3. Keep web UX “delete whole item from Already in Vocabulary”? Yes (P0).
+4. Hotkey registration vs in-modal-only shortcuts ([hotkeys.md](hotkeys.md))? In-session only for P1 (ADR-0053).
+5. Home due widget timing (with P1 or later)? Later (not in P1).
+6. Random review: Fisher–Yates vs web’s weak shuffle — Fisher–Yates (P1).
 
 ---
 
@@ -712,11 +712,11 @@ Do not rewrite ADR-0010 — supersede or extend with a new ADR when sync lands.
 
 ## Acceptance criteria (feature complete)
 
-- [ ] User can add a word + media context from the lookup sheet; duplicates merge correctly.
-- [ ] Vocabulary screen shows stats, list filters/search, delete.
-- [ ] Review session supports due/custom selection, flip, 3 ratings, skip, undo; SRS matches web tests.
+- [x] User can add a word + media context from the lookup sheet; duplicates merge correctly.
+- [x] Vocabulary screen shows stats, list filters/search, delete.
+- [x] Review session supports due/custom selection, flip, 3 ratings, skip, undo; SRS matches web tests.
 - [ ] Dictionary / contextual results can persist onto item/context.
 - [ ] Context clip playback and open-in-player work without a second `media_kit` Player.
 - [ ] Anki CSV export works for Pro with Front/Back/Tags contract.
 - [ ] (Later) Sync upload/download preserves newer SRS state across devices.
-- [ ] Docs + tests green; `flutter analyze` / `flutter test` / format + codegen gates pass.
+- [x] Docs + tests green; `flutter analyze` / `flutter test` / format + codegen gates pass.

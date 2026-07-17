@@ -31,6 +31,8 @@ import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_scr
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -217,6 +219,14 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/subscription',
             builder: (context, state) => const SubscriptionScreen(),
+          ),
+          GoRoute(
+            path: '/vocabulary',
+            builder: (context, state) => const VocabularyScreen(),
+          ),
+          GoRoute(
+            path: '/vocabulary/review',
+            builder: (context, state) => const VocabularyReviewSessionScreen(),
           ),
         ],
       ),

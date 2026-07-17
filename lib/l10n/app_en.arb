@@ -1279,6 +1279,80 @@
   "vocabularyConfirmDeleteBody": "This deletes the word and all of its contexts.",
   "vocabularyCancel": "Cancel",
   "vocabularyDelete": "Delete",
+  "vocabularyTitle": "Vocabulary",
+  "vocabularyProfileEntry": "Vocabulary",
+  "vocabularyProfileEntryHint": "Review saved words and flashcards",
+  "vocabularyReview": "Review",
+  "vocabularyAllWords": "All Words",
+  "vocabularyTotal": "Total",
+  "vocabularyDue": "Due",
+  "vocabularyStatusNew": "New",
+  "vocabularyStatusLearning": "Learning",
+  "vocabularyStatusReviewing": "Reviewing",
+  "vocabularyStatusMastered": "Mastered",
+  "vocabularyNoWords": "No words yet",
+  "vocabularyNoWordsDescription": "Select text in a transcript and choose Add to Vocabulary to start your word book.",
+  "vocabularyNoDueItems": "Nothing due right now",
+  "vocabularyNoDueItemsDescription": "You can still start a custom review of all words, by status, language, or a random set.",
+  "vocabularyNoMatches": "No matching words",
+  "vocabularySelectReviewItems": "Choose what to review",
+  "vocabularyReviewDueItems": "Due items",
+  "vocabularyReviewAll": "All words",
+  "vocabularyReviewByStatus": "By status",
+  "vocabularyReviewByLanguage": "By language",
+  "vocabularyReviewRandom": "Random",
+  "vocabularyNumberOfWords": "Number of words",
+  "vocabularyStartReview": "Start review",
+  "vocabularyEmptyQueue": "No words match this selection.",
+  "vocabularyHowWellDoYouKnow": "How well do you know this?",
+  "vocabularyDontKnow": "Don't Know",
+  "vocabularyKnow": "Know",
+  "vocabularyKnowWell": "Know Well",
+  "vocabularySkip": "Skip",
+  "vocabularyUndo": "Undo",
+  "vocabularyProgress": "{current} / {total}",
+  "@vocabularyProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "vocabularyReviewComplete": "Review complete",
+  "vocabularyReviewCompleteDescription": "Nice work. Your ratings are saved.",
+  "vocabularyDone": "Done",
+  "vocabularySearchPlaceholder": "Search words",
+  "vocabularyFilterStatus": "Status",
+  "vocabularyFilterLanguage": "Language",
+  "vocabularyFilterAll": "All",
+  "vocabularyContext": "Context",
+  "vocabularyDictionary": "Dictionary",
+  "vocabularyNotes": "Notes",
+  "vocabularyNotesPlaceholder": "Notes coming soon",
+  "vocabularyNoContextAvailable": "No context available",
+  "vocabularyDictionaryNotAvailable": "Dictionary not available offline",
+  "vocabularyOverdue": "Overdue",
+  "vocabularyToday": "Today",
+  "vocabularyTomorrow": "Tomorrow",
+  "vocabularyInDays": "In {days} days",
+  "@vocabularyInDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "vocabularyKeyboardShortcuts": "Shortcuts: Space flip · 1/2/3 rate · ← previous · → skip · Esc exit",
+  "vocabularyContextsCount": "{count} contexts",
+  "@vocabularyContextsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyReviewsCount": "{count} reviews",
+  "@vocabularyReviewsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "vocabularyFlipHint": "Tap to flip",
   "authRequiredCloudFeaturesTitle": "Account required",
   "practicePosterShareTooltip": "Share practice poster",
   "practicePosterPreviewTitle": "Share your practice",

@@ -2494,6 +2494,174 @@ class AppLocalizationsZh extends AppLocalizations {
   String get vocabularyDelete => '删除';
 
   @override
+  String get vocabularyTitle => '生词本';
+
+  @override
+  String get vocabularyProfileEntry => '生词本';
+
+  @override
+  String get vocabularyProfileEntryHint => '复习已保存的单词与闪卡';
+
+  @override
+  String get vocabularyReview => '复习';
+
+  @override
+  String get vocabularyAllWords => '全部单词';
+
+  @override
+  String get vocabularyTotal => '总计';
+
+  @override
+  String get vocabularyDue => '待复习';
+
+  @override
+  String get vocabularyStatusNew => '新词';
+
+  @override
+  String get vocabularyStatusLearning => '学习中';
+
+  @override
+  String get vocabularyStatusReviewing => '复习中';
+
+  @override
+  String get vocabularyStatusMastered => '已掌握';
+
+  @override
+  String get vocabularyNoWords => '还没有单词';
+
+  @override
+  String get vocabularyNoWordsDescription => '在字幕中选中文本并选择「加入生词本」即可开始。';
+
+  @override
+  String get vocabularyNoDueItems => '当前没有待复习';
+
+  @override
+  String get vocabularyNoDueItemsDescription => '你仍可自定义复习：全部、按状态、按语言或随机抽取。';
+
+  @override
+  String get vocabularyNoMatches => '没有匹配的单词';
+
+  @override
+  String get vocabularySelectReviewItems => '选择复习范围';
+
+  @override
+  String get vocabularyReviewDueItems => '待复习';
+
+  @override
+  String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewByStatus => '按状态';
+
+  @override
+  String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewRandom => '随机';
+
+  @override
+  String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String get vocabularyStartReview => '开始复习';
+
+  @override
+  String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';
+
+  @override
+  String get vocabularyDontKnow => '不会';
+
+  @override
+  String get vocabularyKnow => '会';
+
+  @override
+  String get vocabularyKnowWell => '很熟';
+
+  @override
+  String get vocabularySkip => '跳过';
+
+  @override
+  String get vocabularyUndo => '撤销';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get vocabularyReviewComplete => '复习完成';
+
+  @override
+  String get vocabularyReviewCompleteDescription => '做得好，评分已保存。';
+
+  @override
+  String get vocabularyDone => '完成';
+
+  @override
+  String get vocabularySearchPlaceholder => '搜索单词';
+
+  @override
+  String get vocabularyFilterStatus => '状态';
+
+  @override
+  String get vocabularyFilterLanguage => '语言';
+
+  @override
+  String get vocabularyFilterAll => '全部';
+
+  @override
+  String get vocabularyContext => '语境';
+
+  @override
+  String get vocabularyDictionary => '词典';
+
+  @override
+  String get vocabularyNotes => '笔记';
+
+  @override
+  String get vocabularyNotesPlaceholder => '笔记即将推出';
+
+  @override
+  String get vocabularyNoContextAvailable => '暂无语境';
+
+  @override
+  String get vocabularyDictionaryNotAvailable => '离线时无法显示词典';
+
+  @override
+  String get vocabularyOverdue => '已过期';
+
+  @override
+  String get vocabularyToday => '今天';
+
+  @override
+  String get vocabularyTomorrow => '明天';
+
+  @override
+  String vocabularyInDays(int days) {
+    return '$days 天后';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      '快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count 个语境';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count 次复习';
+  }
+
+  @override
+  String get vocabularyFlipHint => '点击翻转';
+
+  @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
 
   @override
@@ -4796,6 +4964,174 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularyDelete => '删除';
+
+  @override
+  String get vocabularyTitle => '生词本';
+
+  @override
+  String get vocabularyProfileEntry => '生词本';
+
+  @override
+  String get vocabularyProfileEntryHint => '复习已保存的单词与闪卡';
+
+  @override
+  String get vocabularyReview => '复习';
+
+  @override
+  String get vocabularyAllWords => '全部单词';
+
+  @override
+  String get vocabularyTotal => '总计';
+
+  @override
+  String get vocabularyDue => '待复习';
+
+  @override
+  String get vocabularyStatusNew => '新词';
+
+  @override
+  String get vocabularyStatusLearning => '学习中';
+
+  @override
+  String get vocabularyStatusReviewing => '复习中';
+
+  @override
+  String get vocabularyStatusMastered => '已掌握';
+
+  @override
+  String get vocabularyNoWords => '还没有单词';
+
+  @override
+  String get vocabularyNoWordsDescription => '在字幕中选中文本并选择「加入生词本」即可开始。';
+
+  @override
+  String get vocabularyNoDueItems => '当前没有待复习';
+
+  @override
+  String get vocabularyNoDueItemsDescription => '你仍可自定义复习：全部、按状态、按语言或随机抽取。';
+
+  @override
+  String get vocabularyNoMatches => '没有匹配的单词';
+
+  @override
+  String get vocabularySelectReviewItems => '选择复习范围';
+
+  @override
+  String get vocabularyReviewDueItems => '待复习';
+
+  @override
+  String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewByStatus => '按状态';
+
+  @override
+  String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewRandom => '随机';
+
+  @override
+  String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String get vocabularyStartReview => '开始复习';
+
+  @override
+  String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';
+
+  @override
+  String get vocabularyDontKnow => '不会';
+
+  @override
+  String get vocabularyKnow => '会';
+
+  @override
+  String get vocabularyKnowWell => '很熟';
+
+  @override
+  String get vocabularySkip => '跳过';
+
+  @override
+  String get vocabularyUndo => '撤销';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get vocabularyReviewComplete => '复习完成';
+
+  @override
+  String get vocabularyReviewCompleteDescription => '做得好，评分已保存。';
+
+  @override
+  String get vocabularyDone => '完成';
+
+  @override
+  String get vocabularySearchPlaceholder => '搜索单词';
+
+  @override
+  String get vocabularyFilterStatus => '状态';
+
+  @override
+  String get vocabularyFilterLanguage => '语言';
+
+  @override
+  String get vocabularyFilterAll => '全部';
+
+  @override
+  String get vocabularyContext => '语境';
+
+  @override
+  String get vocabularyDictionary => '词典';
+
+  @override
+  String get vocabularyNotes => '笔记';
+
+  @override
+  String get vocabularyNotesPlaceholder => '笔记即将推出';
+
+  @override
+  String get vocabularyNoContextAvailable => '暂无语境';
+
+  @override
+  String get vocabularyDictionaryNotAvailable => '离线时无法显示词典';
+
+  @override
+  String get vocabularyOverdue => '已过期';
+
+  @override
+  String get vocabularyToday => '今天';
+
+  @override
+  String get vocabularyTomorrow => '明天';
+
+  @override
+  String vocabularyInDays(int days) {
+    return '$days 天后';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      '快捷键：空格翻转 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count 个语境';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count 次复习';
+  }
+
+  @override
+  String get vocabularyFlipHint => '点击翻转';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
