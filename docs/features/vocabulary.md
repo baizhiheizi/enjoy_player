@@ -6,7 +6,7 @@ Vocabulary is Enjoy’s **local-first spaced-repetition (SRS) word book**: save 
 
 This document is the implementation contract for Enjoy Player (Flutter). It describes **what the Enjoy web app actually implements today** (`~/dev/enjoy/apps/web`), not the aspirational marketing copy under `enjoy/apps/docs/**/vocabulary.md`.
 
-**Status in Flutter:** P0–**P2 shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts); review Context/Dictionary write-through, clip play, open-in-player, and shadow hand-off. Sync and Anki export are not shipped yet.
+**Status in Flutter:** P0–**P4 shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts); review Context/Dictionary write-through, clip play, open-in-player, and shadow hand-off; cloud sync of items/contexts with SRS-preserving conflict resolution ([ADR-0054](../decisions/0054-vocabulary-cloud-sync.md)); Pro-gated Anki CSV export from All Words.
 
 **Tracking:** [#375](https://github.com/baizhiheizi/enjoy_player/issues/375).
 
@@ -388,15 +388,15 @@ Cursor pagination: `updatedAfter` ISO timestamp.
 
 ### Sync semantics
 
-Today [ADR-0010](../decisions/0010-cloud-sync-mvp.md) / [sync.md](sync.md) cover audio, video, recording only — **vocabulary excluded**.
-
-When adding vocabulary sync (new ADR):
+[ADR-0054](../decisions/0054-vocabulary-cloud-sync.md) extends [ADR-0010](../decisions/0010-cloud-sync-mvp.md) / [sync.md](sync.md) (previously audio/video/recording only) to cover vocabulary items and contexts:
 
 | Entity | Upload / download | Conflict |
 |--------|-------------------|----------|
-| `vocabularyItem` | Yes | Prefer newer SRS: compare `lastReviewedAt`, else higher `reviewsCount`; may keep local SRS while adopting newer server metadata (`resolveVocabularyItemConflict`) |
+| `vocabularyItem` | Yes | Prefer newer SRS: compare `lastReviewedAt`, else higher `reviewsCount`; may keep local SRS while adopting newer server metadata (`resolveVocabularyItemConflict`, [lib/features/vocabulary/domain/vocabulary_item_conflict.dart](../../lib/features/vocabulary/domain/vocabulary_item_conflict.dart)) |
 | `vocabularyContext` | Yes | Last-write-wins on `updatedAt` |
 | `vocabularyReview` | **Never** | Device-local undo history |
+
+Unlike audio/video/recording, vocabulary **auto-pulls on every signed-in `fullSync`** (paged `updatedAfter` cursors) — a documented, narrow exception to [ADR-0013](../decisions/0013-local-first-sync.md)'s no-auto-mirror policy, since a word book is a cross-device dataset rather than local-path media.
 
 Offline: full local CRUD/review. AI dictionary / contextual translation require network when cache empty.
 
@@ -599,14 +599,14 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 
 ### P3 — Sync
 
-- [ ] New ADR superseding/extending ADR-0010 for vocabulary entities
-- [ ] API client + queue entity types + download/upload + conflict rules
-- [ ] Tests for SRS-preserving merge
+- [x] New ADR ([ADR-0054](../decisions/0054-vocabulary-cloud-sync.md)) extending ADR-0010 for vocabulary entities
+- [x] API client + queue entity types + download/upload + conflict rules
+- [x] Tests for SRS-preserving merge
 
 ### P4 — Anki export
 
-- [ ] Pro gate + CSV builder + share/save file UX
-- [ ] Filter dialog parity with web
+- [x] Pro gate + CSV builder + share/save file UX
+- [x] Filter dialog parity with web
 
 ### Explicitly out of scope unless product asks
 
@@ -683,9 +683,10 @@ Port web fixtures from:
 | [`lib/features/ai/domain/models/dictionary_result.dart`](../../lib/features/ai/domain/models/dictionary_result.dart) | Dictionary JSON model |
 | [`lib/core/ids/enjoy_ids.dart`](../../lib/core/ids/enjoy_ids.dart) | Shared UUID v5 namespace |
 | [`lib/data/db/`](../../lib/data/db/) | Drift — add vocab tables/DAOs |
-| [`lib/features/sync/`](../../lib/features/sync/) | Extend later for vocab entities |
+| [`lib/features/sync/`](../../lib/features/sync/) | Extended for vocab entities (ADR-0054) |
+| [`lib/data/api/services/vocabulary_api.dart`](../../lib/data/api/services/vocabulary_api.dart) | Vocabulary REST client |
 | [dictionary-lookup.md](dictionary-lookup.md), [ADR-0019](../decisions/0019-transcript-dictionary-lookup.md), [ADR-0042](../decisions/0042-multi-language-lookup-catalog.md) | Lookup rules |
-| [ADR-0010](../decisions/0010-cloud-sync-mvp.md), [sync.md](sync.md) | Sync scope (vocab excluded today) |
+| [ADR-0010](../decisions/0010-cloud-sync-mvp.md), [ADR-0054](../decisions/0054-vocabulary-cloud-sync.md), [sync.md](sync.md) | Sync scope (vocabulary included) |
 | [shadow-reading.md](shadow-reading.md), [subscription.md](subscription.md), [ai.md](ai.md) | Related features |
 
 ---
@@ -702,11 +703,11 @@ Minimum ARB coverage (from web `en/vocabulary.json`):
 
 | Decision | When |
 |----------|------|
-| Drift schema + local-first vocab (no sync yet) | P0 |
-| Vocabulary cloud sync + conflict policy | P3 |
-| Shell navigation / IA for Vocabulary destination | P1 |
+| Drift schema + local-first vocab (no sync yet) | P0 ([ADR-0052](../decisions/0052-vocabulary-local-first-schema.md)) |
+| Vocabulary cloud sync + conflict policy | P3 ([ADR-0054](../decisions/0054-vocabulary-cloud-sync.md)) |
+| Shell navigation / IA for Vocabulary destination | P1 ([ADR-0053](../decisions/0053-vocabulary-secondary-route.md)) |
 
-Do not rewrite ADR-0010 — supersede or extend with a new ADR when sync lands.
+Does not rewrite ADR-0010 / ADR-0013 — extended/clarified via ADR-0054.
 
 ---
 
@@ -717,6 +718,6 @@ Do not rewrite ADR-0010 — supersede or extend with a new ADR when sync lands.
 - [x] Review session supports due/custom selection, flip, 3 ratings, skip, undo; SRS matches web tests.
 - [x] Dictionary / contextual results can persist onto item/context.
 - [x] Context clip playback and open-in-player work without a second `media_kit` Player.
-- [ ] Anki CSV export works for Pro with Front/Back/Tags contract.
-- [ ] (Later) Sync upload/download preserves newer SRS state across devices.
+- [x] Anki CSV export works for Pro with Front/Back/Tags contract.
+- [x] Sync upload/download preserves newer SRS state across devices.
 - [x] Docs + tests green; `flutter analyze` / `flutter test` / format + codegen gates pass.

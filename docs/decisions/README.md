@@ -77,3 +77,4 @@ Trade-offs, follow-up work, risks.
 | [0051](0051-youtube-worker-discovery.md) | YouTube discovery via server-side RSSHub proxy (supersedes 0021 and 0047) |
 | [0052](0052-vocabulary-local-first-schema.md) | Vocabulary local-first Drift schema (items/contexts/reviews; sync deferred) |
 | [0053](0053-vocabulary-secondary-route.md) | Vocabulary secondary route (Profile entry; not a primary shell tab) |
+| [0054](0054-vocabulary-cloud-sync.md) | Vocabulary cloud sync — SRS-preserving item conflict, LWW contexts, reviews never sync, auto-pull exception to ADR-0013 (extends ADR-0010) |

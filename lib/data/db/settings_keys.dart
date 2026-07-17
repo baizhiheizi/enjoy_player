@@ -20,6 +20,11 @@ abstract final class SettingsKeys {
   static const String syncCursorVideo = 'sync.cursor.video';
   static const String syncCursorRecording = 'sync.cursor.recording';
 
+  /// ISO-8601 cursors for incremental vocabulary `updatedAfter` downloads.
+  static const String syncCursorVocabularyItem = 'sync.cursor.vocabulary_item';
+  static const String syncCursorVocabularyContext =
+      'sync.cursor.vocabulary_context';
+
   /// Per-target recording pull (`sync.cursor.recording.{targetType}.{targetId}`).
   static String syncCursorRecordingTarget(String targetType, String targetId) =>
       'sync.cursor.recording.$targetType.$targetId';
@@ -71,6 +76,8 @@ abstract final class SettingsKeys {
     syncCursorAudio,
     syncCursorVideo,
     syncCursorRecording,
+    syncCursorVocabularyItem,
+    syncCursorVocabularyContext,
     syncLastFullSyncAt,
     updateLastCheckAt,
     updateSnoozeUntil,

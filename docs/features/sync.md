@@ -8,6 +8,16 @@
 - **Outbound queue**: Drift table `sync_queue` (`entityType`, `entityId`, `action`, optional `payloadJson`, retries).
 - **No automatic library mirror**: signing in does **not** download every remote audio/video/recording into the Library. Remote browsing is opt-in via the [Cloud](cloud.md) screen.
 
+### Vocabulary (items + contexts) — auto-pull exception
+
+[ADR-0054](../decisions/0054-vocabulary-cloud-sync.md) extends the entities above with **vocabulary items** and **vocabulary contexts** (`SyncEntityType.vocabularyItem` / `.vocabularyContext`, wire `vocabulary_item` / `vocabulary_context`):
+
+- **Upload**: `POST /api/v1/mine/vocabulary_items|vocabulary_contexts` via [`VocabularyApi`](../../lib/data/api/services/vocabulary_api.dart), same envelope shape as audio/video (`{ vocabularyItem: {…} }` / `{ vocabularyContext: {…} }`).
+- **Auto-pull on every signed-in `fullSync`** — unlike audio/video/recording above, vocabulary **is** mirrored automatically (paged by `updatedAfter` cursors `sync.cursor.vocabulary_item` / `sync.cursor.vocabulary_context`). This is a deliberate, narrow exception to the no-auto-mirror policy: a word book is a cross-device dataset, not local-path media.
+- **Item conflict is SRS-preserving**, not plain last-write-wins: [`resolveVocabularyItemConflict`](../../lib/features/vocabulary/domain/vocabulary_item_conflict.dart) keeps whichever side's spaced-repetition activity (`lastReviewedAt`, else `reviewsCount`) is fresher, and only adopts the other side's `word` / `explanation` when that side's `updatedAt` is newer than the SRS-winning side's review reference. **Context conflict** stays plain LWW on `updatedAt` (server wins ties).
+- **Review audits (`vocabulary_reviews`) never sync** — never uploaded, never downloaded, never enqueued. Undo history is per-device only.
+- Enqueued from [`VocabularyRepository`](../../lib/features/vocabulary/data/vocabulary_repository.dart): item/context `create` on `addWithContext`, item `update` on `markReviewed` / `undoLatestReview` / explanation write-through / context-count bump, item `delete` after the local cascade (contexts + reviews) on `deleteItem`.
+
 **Recording metadata** on the wire (`duration`, `referenceStart`, `referenceDuration`) uses **milliseconds**, matching the enjoy web/extension `Recording` type. The local Drift `recordings` row uses the same Dart field names (`duration`, `referenceStart`, `referenceDuration`); SQLite columns are `duration`, `reference_start`, `reference_duration`. Audio and video rows still use **seconds** for `duration` in their payloads.
 
 ### Lazy recording pull
@@ -44,5 +54,7 @@ When the server accepts an upload but **omits** the `updatedAt` field in its res
 
 - [ADR-0010](../decisions/0010-cloud-sync-mvp.md) (historical bidirectional download scope)
 - [ADR-0013](../decisions/0013-local-first-sync.md) (local-first + lazy recordings)
+- [ADR-0054](../decisions/0054-vocabulary-cloud-sync.md) (vocabulary items/contexts, SRS-preserving conflict, auto-pull exception)
 - [Cloud index](cloud.md)
+- [Vocabulary](vocabulary.md)
 - Web reference: `enjoy` monorepo `apps/web/src/db/services/sync-*.ts`, `apps/web/src/db/id-generator.ts`

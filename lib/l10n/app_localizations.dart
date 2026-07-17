@@ -5271,6 +5271,78 @@ abstract class AppLocalizations {
   /// **'{start}s · {duration}s'**
   String vocabularyLocatorLabel(String start, String duration);
 
+  /// No description provided for @vocabularyExportToAnki.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Anki'**
+  String get vocabularyExportToAnki;
+
+  /// No description provided for @vocabularyExportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Anki'**
+  String get vocabularyExportDialogTitle;
+
+  /// No description provided for @vocabularyExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get vocabularyExport;
+
+  /// No description provided for @vocabularyNoItemsToExport.
+  ///
+  /// In en, this message translates to:
+  /// **'No items to export'**
+  String get vocabularyNoItemsToExport;
+
+  /// No description provided for @vocabularyProRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro required'**
+  String get vocabularyProRequired;
+
+  /// No description provided for @vocabularyProRequiredDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Anki export is available on Enjoy Pro. Upgrade to export your vocabulary as Anki CSV cards.'**
+  String get vocabularyProRequiredDescription;
+
+  /// No description provided for @vocabularyUpgradeToPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get vocabularyUpgradeToPro;
+
+  /// No description provided for @vocabularyExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary exported.'**
+  String get vocabularyExportSuccess;
+
+  /// No description provided for @vocabularyExportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export vocabulary.'**
+  String get vocabularyExportError;
+
+  /// No description provided for @vocabularyExportCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Export cancelled.'**
+  String get vocabularyExportCancelled;
+
+  /// No description provided for @vocabularyExportSparseCacheHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Card backs are richer when dictionary and contextual translations were saved during review.'**
+  String get vocabularyExportSparseCacheHint;
+
+  /// No description provided for @vocabularyExportProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting…'**
+  String get vocabularyExportProgress;
+
   /// No description provided for @authRequiredCloudFeaturesTitle.
   ///
   /// In en, this message translates to:

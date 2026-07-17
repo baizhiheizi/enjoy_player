@@ -33,13 +33,23 @@ class SyncEngine {
   final AppDatabase _db;
   final SyncQueueRepository _queue;
   final SyncUploadService _upload;
-  // ignore: unused_field — reserved for optional manual / debug full downloads.
   final SyncDownloadService _download;
 
   Future<SyncResult> fullSync(SyncOptions options) async {
-    // Local-first: do not mirror remote audios/videos/recordings into the library.
-    // Outbound queue drain only (see docs/features/sync.md).
-    return processQueue(options);
+    // Local-first: do not mirror remote audios/videos/recordings into the
+    // library (ADR-0013). Vocabulary is an intentional exception — a
+    // cross-device word book, not local-path media — so it pulls on every
+    // signed-in sync alongside the outbound queue drain (ADR-0054).
+    final queueResult = await processQueue(options);
+    final vocabResult = await pullVocabulary();
+    return queueResult.merge(vocabResult);
+  }
+
+  /// Pulls vocabulary items + contexts (ADR-0054 auto-pull exception).
+  Future<SyncResult> pullVocabulary() async {
+    final items = await _download.downloadVocabularyItems();
+    final contexts = await _download.downloadVocabularyContexts();
+    return items.merge(contexts);
   }
 
   Future<SyncResult> processQueue(SyncOptions options) async {
@@ -93,6 +103,10 @@ class SyncEngine {
             await _upload.deleteRecording(item.entityId);
           case SyncEntityType.youtubeSubscription:
             break; // subscription deletion is local-only
+          case SyncEntityType.vocabularyItem:
+            await _upload.deleteVocabularyItem(item.entityId);
+          case SyncEntityType.vocabularyContext:
+            await _upload.deleteVocabularyContext(item.entityId);
         }
         await _queue.removeById(item.id);
         return true;
@@ -133,6 +147,26 @@ class SyncEngine {
           // Subscription sync deferred — server API not yet ready.
           // Queue row is retained so it will sync when support is added.
           break;
+        case SyncEntityType.vocabularyItem:
+          final row = await _db.vocabularyItemDao.getById(item.entityId);
+          if (row == null) {
+            _log.warning(
+              'sync vocabulary item ${item.entityId}: missing locally, drop queue row',
+            );
+            await _queue.removeById(item.id);
+            return true;
+          }
+          await _upload.uploadVocabularyItem(row);
+        case SyncEntityType.vocabularyContext:
+          final row = await _db.vocabularyContextDao.getById(item.entityId);
+          if (row == null) {
+            _log.warning(
+              'sync vocabulary context ${item.entityId}: missing locally, drop queue row',
+            );
+            await _queue.removeById(item.id);
+            return true;
+          }
+          await _upload.uploadVocabularyContext(row);
       }
 
       await _queue.removeById(item.id);

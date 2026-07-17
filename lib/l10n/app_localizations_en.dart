@@ -2831,6 +2831,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get vocabularyExportToAnki => 'Export to Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => 'Export to Anki';
+
+  @override
+  String get vocabularyExport => 'Export';
+
+  @override
+  String get vocabularyNoItemsToExport => 'No items to export';
+
+  @override
+  String get vocabularyProRequired => 'Pro required';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki export is available on Enjoy Pro. Upgrade to export your vocabulary as Anki CSV cards.';
+
+  @override
+  String get vocabularyUpgradeToPro => 'Upgrade to Pro';
+
+  @override
+  String get vocabularyExportSuccess => 'Vocabulary exported.';
+
+  @override
+  String get vocabularyExportError => 'Could not export vocabulary.';
+
+  @override
+  String get vocabularyExportCancelled => 'Export cancelled.';
+
+  @override
+  String get vocabularyExportSparseCacheHint =>
+      'Card backs are richer when dictionary and contextual translations were saved during review.';
+
+  @override
+  String get vocabularyExportProgress => 'Exporting…';
+
+  @override
   String get authRequiredCloudFeaturesTitle => 'Account required';
 
   @override

@@ -9,6 +9,7 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
+import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/features/sync/application/queue_for_sync.dart';
 import 'package:enjoy_player/features/sync/application/sync_engine.dart';
 import 'package:enjoy_player/features/sync/data/recording_target_sync_service.dart';
@@ -39,6 +40,7 @@ SyncUploadService syncUploadService(Ref ref) => SyncUploadService(
   audioApi: AudioApi(ref.watch(apiClientProvider)),
   videoApi: VideoApi(ref.watch(apiClientProvider)),
   recordingApi: RecordingApi(ref.watch(apiClientProvider)),
+  vocabularyApi: VocabularyApi(ref.watch(apiClientProvider)),
 );
 
 @Riverpod(keepAlive: true)
@@ -47,6 +49,7 @@ SyncDownloadService syncDownloadService(Ref ref) => SyncDownloadService(
   audioApi: AudioApi(ref.watch(apiClientProvider)),
   videoApi: VideoApi(ref.watch(apiClientProvider)),
   recordingApi: RecordingApi(ref.watch(apiClientProvider)),
+  vocabularyApi: VocabularyApi(ref.watch(apiClientProvider)),
 );
 
 @Riverpod(keepAlive: true)

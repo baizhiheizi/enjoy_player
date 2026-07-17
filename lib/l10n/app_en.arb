@@ -1376,6 +1376,18 @@
       "duration": { "type": "String" }
     }
   },
+  "vocabularyExportToAnki": "Export to Anki",
+  "vocabularyExportDialogTitle": "Export to Anki",
+  "vocabularyExport": "Export",
+  "vocabularyNoItemsToExport": "No items to export",
+  "vocabularyProRequired": "Pro required",
+  "vocabularyProRequiredDescription": "Anki export is available on Enjoy Pro. Upgrade to export your vocabulary as Anki CSV cards.",
+  "vocabularyUpgradeToPro": "Upgrade to Pro",
+  "vocabularyExportSuccess": "Vocabulary exported.",
+  "vocabularyExportError": "Could not export vocabulary.",
+  "vocabularyExportCancelled": "Export cancelled.",
+  "vocabularyExportSparseCacheHint": "Card backs are richer when dictionary and contextual translations were saved during review.",
+  "vocabularyExportProgress": "Exporting…",
   "authRequiredCloudFeaturesTitle": "Account required",
   "practicePosterShareTooltip": "Share practice poster",
   "practicePosterPreviewTitle": "Share your practice",

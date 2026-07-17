@@ -1,12 +1,15 @@
 /// JSON preparation + server merge helpers for sync.
 library;
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_item_conflict.dart';
 
 export 'package:enjoy_player/core/utils/remote_thumbnail_url.dart'
     show isRemoteThumbnailUrl, remoteThumbnailForCard;
@@ -221,6 +224,159 @@ RecordingRow mergeRecordingLastWriteWins({
   if (local == null) return serverRow;
   if (local.updatedAt.isAfter(serverRow.updatedAt)) return local;
   return serverRow.copyWith(localPath: Value(local.localPath));
+}
+
+/// Payload for [VocabularyApi.uploadVocabularyItem] body (`vocabularyItem`
+/// key added by API). Review audits never leave the device (ADR-0054).
+Map<String, dynamic> prepareForSyncVocabularyItemMap(VocabularyItemRow row) {
+  return <String, dynamic>{
+    'id': row.id,
+    'word': row.word,
+    'language': row.language,
+    'targetLanguage': row.targetLanguage,
+    'status': row.status,
+    'easeFactor': row.easeFactor,
+    'interval': row.interval,
+    'nextReviewAt': row.nextReviewAt.toUtc().toIso8601String(),
+    'reviewsCount': row.reviewsCount,
+    if (row.lastReviewedAt != null)
+      'lastReviewedAt': row.lastReviewedAt!.toUtc().toIso8601String(),
+    'contextsCount': row.contextsCount,
+    if (row.explanation != null) 'explanation': row.explanation,
+    'createdAt': row.createdAt.toUtc().toIso8601String(),
+    'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+  };
+}
+
+/// Payload for [VocabularyApi.uploadVocabularyContext] body
+/// (`vocabularyContext` key added by API).
+Map<String, dynamic> prepareForSyncVocabularyContextMap(
+  VocabularyContextRow row,
+) {
+  return <String, dynamic>{
+    'id': row.id,
+    'vocabularyItemId': row.vocabularyItemId,
+    'text': row.contextText,
+    'sourceType': row.sourceType,
+    'sourceId': row.sourceId,
+    'locator': jsonDecode(row.locatorJson),
+    if (row.explanation != null) 'explanation': row.explanation,
+    'createdAt': row.createdAt.toUtc().toIso8601String(),
+    'updatedAt': row.updatedAt.toUtc().toIso8601String(),
+  };
+}
+
+VocabularyItemRow vocabularyItemRowFromServerJson(Map<String, dynamic> json) {
+  final now = DateTime.now();
+  final updatedAt = requireIsoDate(json['updatedAt'], now);
+  final createdAt = requireIsoDate(json['createdAt'], updatedAt);
+  return VocabularyItemRow(
+    id: json['id'] as String,
+    word: json['word'] as String? ?? '',
+    language: json['language'] as String? ?? 'und',
+    targetLanguage: json['targetLanguage'] as String? ?? 'und',
+    status: json['status'] as String? ?? 'new',
+    easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
+    interval: (json['interval'] as num?)?.toInt() ?? 0,
+    nextReviewAt: requireIsoDate(json['nextReviewAt'], updatedAt),
+    reviewsCount: (json['reviewsCount'] as num?)?.toInt() ?? 0,
+    lastReviewedAt: parseIsoDate(json['lastReviewedAt']),
+    contextsCount: (json['contextsCount'] as num?)?.toInt() ?? 0,
+    explanation: json['explanation'] as String?,
+    syncStatus: json['syncStatus'] as String? ?? 'synced',
+    serverUpdatedAt: parseIsoDate(json['serverUpdatedAt']),
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+}
+
+VocabularyContextRow vocabularyContextRowFromServerJson(
+  Map<String, dynamic> json,
+) {
+  final now = DateTime.now();
+  final updatedAt = requireIsoDate(json['updatedAt'], now);
+  final createdAt = requireIsoDate(json['createdAt'], updatedAt);
+  final locator = json['locator'];
+  final locatorJson = locator == null
+      ? '{}'
+      : (locator is String ? locator : jsonEncode(locator));
+  return VocabularyContextRow(
+    id: json['id'] as String,
+    vocabularyItemId: json['vocabularyItemId'] as String? ?? '',
+    contextText: json['text'] as String? ?? '',
+    sourceType: json['sourceType'] as String? ?? 'Video',
+    sourceId: json['sourceId'] as String? ?? '',
+    locatorJson: locatorJson,
+    explanation: json['explanation'] as String?,
+    syncStatus: json['syncStatus'] as String? ?? 'synced',
+    serverUpdatedAt: parseIsoDate(json['serverUpdatedAt']),
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+}
+
+/// SRS-preserving merge (ADR-0054): keeps local SRS fields when local review
+/// activity is fresher than the server's; otherwise takes the server row.
+VocabularyItemRow mergeVocabularyItemConflict({
+  required VocabularyItemRow? local,
+  required Map<String, dynamic> server,
+}) {
+  final serverRow = vocabularyItemRowFromServerJson(server);
+  if (local == null) return serverRow;
+
+  final resolved = resolveVocabularyItemConflict(
+    local: VocabularyItemConflictSide(
+      word: local.word,
+      status: local.status,
+      easeFactor: local.easeFactor,
+      interval: local.interval,
+      nextReviewAt: local.nextReviewAt,
+      reviewsCount: local.reviewsCount,
+      lastReviewedAt: local.lastReviewedAt,
+      explanation: local.explanation,
+      contextsCount: local.contextsCount,
+      updatedAt: local.updatedAt,
+    ),
+    server: VocabularyItemConflictSide(
+      word: serverRow.word,
+      status: serverRow.status,
+      easeFactor: serverRow.easeFactor,
+      interval: serverRow.interval,
+      nextReviewAt: serverRow.nextReviewAt,
+      reviewsCount: serverRow.reviewsCount,
+      lastReviewedAt: serverRow.lastReviewedAt,
+      explanation: serverRow.explanation,
+      contextsCount: serverRow.contextsCount,
+      updatedAt: serverRow.updatedAt,
+    ),
+  );
+
+  return local.copyWith(
+    word: resolved.word,
+    status: resolved.status,
+    easeFactor: resolved.easeFactor,
+    interval: resolved.interval,
+    nextReviewAt: resolved.nextReviewAt,
+    reviewsCount: resolved.reviewsCount,
+    lastReviewedAt: Value(resolved.lastReviewedAt),
+    explanation: Value(resolved.explanation),
+    contextsCount: resolved.contextsCount,
+    syncStatus: const Value('synced'),
+    serverUpdatedAt: Value(resolved.serverUpdatedAt),
+    updatedAt: resolved.updatedAt,
+  );
+}
+
+/// Server wins on ties (`>=`), matching web `resolveConflict`. Context
+/// conflicts have no local-only columns to preserve (ADR-0054).
+VocabularyContextRow mergeVocabularyContextLastWriteWins({
+  required VocabularyContextRow? local,
+  required Map<String, dynamic> server,
+}) {
+  final serverRow = vocabularyContextRowFromServerJson(server);
+  if (local == null) return serverRow;
+  if (local.updatedAt.isAfter(serverRow.updatedAt)) return local;
+  return serverRow;
 }
 
 Map<String, dynamic> unwrapEntity(Map<String, dynamic> response, String key) {

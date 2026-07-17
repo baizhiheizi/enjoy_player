@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_con
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_relative_review.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_anki_export_dialog.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_l10n.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_empty_states.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -40,16 +41,28 @@ class VocabularyWordList extends ConsumerWidget {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, 0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: l10n.vocabularySearchPlaceholder,
-                  prefixIcon: const Icon(Icons.search),
-                  isDense: true,
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (v) => ref
-                    .read(vocabularyListFiltersProvider.notifier)
-                    .setQuery(v),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: l10n.vocabularySearchPlaceholder,
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => ref
+                          .read(vocabularyListFiltersProvider.notifier)
+                          .setQuery(v),
+                    ),
+                  ),
+                  SizedBox(width: t.space8),
+                  EnjoyTappableIcon(
+                    icon: Icons.file_download_outlined,
+                    tooltip: l10n.vocabularyExportToAnki,
+                    onPressed: () => showVocabularyAnkiExportDialog(context),
+                  ),
+                ],
               ),
             ),
             Padding(

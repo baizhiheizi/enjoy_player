@@ -58,6 +58,20 @@ Future<void> enqueuePendingSync(
           final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
           if (sub == null) return;
           payloadJson = jsonEncode(prepareForSyncSubscriptionMap(sub));
+        case SyncEntityType.vocabularyItem:
+          final row = await db.vocabularyItemDao.getById(id);
+          if (row == null) return;
+          payloadJson = jsonEncode(prepareForSyncVocabularyItemMap(row));
+          await db.vocabularyItemDao.updateRow(
+            row.copyWith(syncStatus: const Value('pending')),
+          );
+        case SyncEntityType.vocabularyContext:
+          final row = await db.vocabularyContextDao.getById(id);
+          if (row == null) return;
+          payloadJson = jsonEncode(prepareForSyncVocabularyContextMap(row));
+          await db.vocabularyContextDao.updateRow(
+            row.copyWith(syncStatus: const Value('pending')),
+          );
       }
   }
 

@@ -1,4 +1,5 @@
-/// Local vocabulary repository (Drift DAOs + SRS). Sync deferred to a later phase.
+/// Local vocabulary repository (Drift DAOs + SRS) with optional cloud sync
+/// enqueue (ADR-0054). Review audits are never enqueued.
 library;
 
 import 'package:drift/drift.dart';
@@ -6,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_cta_state.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_locator_json.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
@@ -13,9 +15,12 @@ import 'package:enjoy_player/features/vocabulary/domain/vocabulary_normalize.dar
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_srs.dart';
 
 class VocabularyRepository {
-  VocabularyRepository(this._db);
+  VocabularyRepository(this._db, {this.enqueueSync});
 
   final AppDatabase _db;
+
+  /// Optional cloud sync enqueue (ADR-0054). Null in unit tests.
+  final SyncEnqueueFn? enqueueSync;
 
   // ignore: prefer_const_constructors — Uuid() has no const constructor
   static final Uuid _uuid = Uuid();
@@ -72,6 +77,11 @@ class VocabularyRepository {
           updatedAt: at,
         );
         await _db.vocabularyItemDao.insertRow(row);
+        await enqueueSync?.call(
+          SyncEntityType.vocabularyItem,
+          id,
+          SyncAction.create,
+        );
         item = _itemFromRow(row);
       } else {
         item = _itemFromRow(existing);
@@ -125,6 +135,11 @@ class VocabularyRepository {
         updatedAt: at,
       );
       await _db.vocabularyContextDao.insertRow(contextRow);
+      await enqueueSync?.call(
+        SyncEntityType.vocabularyContext,
+        contextId,
+        SyncAction.create,
+      );
 
       if (!isNewItem) {
         final fresh = await _db.vocabularyItemDao.getById(item.id);
@@ -134,6 +149,11 @@ class VocabularyRepository {
             updatedAt: at,
           );
           await _db.vocabularyItemDao.updateRow(updated);
+          await enqueueSync?.call(
+            SyncEntityType.vocabularyItem,
+            item.id,
+            SyncAction.update,
+          );
           item = _itemFromRow(updated);
         }
       }
@@ -148,9 +168,16 @@ class VocabularyRepository {
 
   Future<void> deleteItem(String id) async {
     await _db.transaction(() async {
+      // Local cascade first; review audits never sync, and the server is
+      // expected to cascade its own contexts on item delete (ADR-0054).
       await _db.vocabularyReviewDao.deleteByItemId(id);
       await _db.vocabularyContextDao.deleteByItemId(id);
       await _db.vocabularyItemDao.deleteById(id);
+      await enqueueSync?.call(
+        SyncEntityType.vocabularyItem,
+        id,
+        SyncAction.delete,
+      );
     });
   }
 
@@ -200,6 +227,13 @@ class VocabularyRepository {
         updatedAt: at,
       );
       await _db.vocabularyItemDao.updateRow(updated);
+      // Review audits (`vocabularyReviewDao`) are device-local undo history
+      // only and are never enqueued — only the resulting item update syncs.
+      await enqueueSync?.call(
+        SyncEntityType.vocabularyItem,
+        itemId,
+        SyncAction.update,
+      );
       return _itemFromRow(updated);
     });
   }
@@ -229,6 +263,11 @@ class VocabularyRepository {
       );
       await _db.vocabularyItemDao.updateRow(restoredRow);
       await _db.vocabularyReviewDao.deleteById(review.id);
+      await enqueueSync?.call(
+        SyncEntityType.vocabularyItem,
+        itemId,
+        SyncAction.update,
+      );
       return _itemFromRow(restoredRow);
     });
   }
@@ -252,6 +291,11 @@ class VocabularyRepository {
       updatedAt: at,
     );
     await _db.vocabularyItemDao.updateRow(updated);
+    await enqueueSync?.call(
+      SyncEntityType.vocabularyItem,
+      itemId,
+      SyncAction.update,
+    );
     return _itemFromRow(updated);
   }
 
@@ -269,6 +313,11 @@ class VocabularyRepository {
       updatedAt: at,
     );
     await _db.vocabularyContextDao.updateRow(updated);
+    await enqueueSync?.call(
+      SyncEntityType.vocabularyContext,
+      contextId,
+      SyncAction.update,
+    );
     return _contextFromRow(updated);
   }
 
@@ -299,6 +348,22 @@ class VocabularyRepository {
   Future<List<VocabularyItem>> listAll() async {
     final rows = await _db.vocabularyItemDao.listAll();
     return rows.map(_itemFromRow).toList();
+  }
+
+  /// Items + contexts for Anki export (caller applies filters).
+  Future<
+    ({
+      List<VocabularyItem> items,
+      Map<String, List<VocabularyContext>> contextsByItemId,
+    })
+  >
+  loadExportBundle() async {
+    final items = await listAll();
+    final contextsByItemId = <String, List<VocabularyContext>>{};
+    for (final item in items) {
+      contextsByItemId[item.id] = await getContextsForItem(item.id);
+    }
+    return (items: items, contextsByItemId: contextsByItemId);
   }
 
   Stream<List<VocabularyItem>> watchAll() => _db.vocabularyItemDao

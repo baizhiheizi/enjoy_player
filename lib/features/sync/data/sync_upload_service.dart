@@ -9,6 +9,7 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
+import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 
 final _log = logNamed('sync.upload');
@@ -52,12 +53,14 @@ class SyncUploadService {
     required this._audioApi,
     required this._videoApi,
     required this._recordingApi,
+    required this._vocabularyApi,
   });
 
   final AppDatabase _db;
   final AudioApi _audioApi;
   final VideoApi _videoApi;
   final RecordingApi _recordingApi;
+  final VocabularyApi _vocabularyApi;
 
   Future<void> uploadAudio(AudioRow row) async {
     Map<String, dynamic> inner;
@@ -155,6 +158,78 @@ class SyncUploadService {
     );
   }
 
+  Future<void> uploadVocabularyItem(VocabularyItemRow row) async {
+    Map<String, dynamic> inner;
+    try {
+      final response = await _vocabularyApi.uploadVocabularyItem(
+        prepareForSyncVocabularyItemMap(row),
+      );
+      inner = unwrapEntity(response, 'vocabularyItem');
+    } on ApiException catch (e) {
+      if (!e.isDuplicateEntity) rethrow;
+      _log.fine(
+        'vocabulary item ${row.id} already on server; fetching existing row',
+      );
+      try {
+        final response = await _vocabularyApi.vocabularyItem(row.id);
+        inner = unwrapEntity(response, 'vocabularyItem');
+      } on ApiException catch (fetchError) {
+        if (fetchError.statusCode == 404) {
+          throw SyncDuplicateMissingError('vocabulary_item', row.id);
+        }
+        rethrow;
+      }
+    }
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'vocabulary_item',
+      id: row.id,
+    );
+    await _db.vocabularyItemDao.updateRow(
+      row.copyWith(
+        syncStatus: const Value('synced'),
+        serverUpdatedAt: Value(serverUpdated),
+        updatedAt: serverUpdated,
+      ),
+    );
+  }
+
+  Future<void> uploadVocabularyContext(VocabularyContextRow row) async {
+    Map<String, dynamic> inner;
+    try {
+      final response = await _vocabularyApi.uploadVocabularyContext(
+        prepareForSyncVocabularyContextMap(row),
+      );
+      inner = unwrapEntity(response, 'vocabularyContext');
+    } on ApiException catch (e) {
+      if (!e.isDuplicateEntity) rethrow;
+      _log.fine(
+        'vocabulary context ${row.id} already on server; fetching existing row',
+      );
+      try {
+        final response = await _vocabularyApi.vocabularyContext(row.id);
+        inner = unwrapEntity(response, 'vocabularyContext');
+      } on ApiException catch (fetchError) {
+        if (fetchError.statusCode == 404) {
+          throw SyncDuplicateMissingError('vocabulary_context', row.id);
+        }
+        rethrow;
+      }
+    }
+    final serverUpdated = _requireServerUpdated(
+      inner,
+      entity: 'vocabulary_context',
+      id: row.id,
+    );
+    await _db.vocabularyContextDao.updateRow(
+      row.copyWith(
+        syncStatus: const Value('synced'),
+        serverUpdatedAt: Value(serverUpdated),
+        updatedAt: serverUpdated,
+      ),
+    );
+  }
+
   DateTime _requireServerUpdated(
     Map<String, dynamic> inner, {
     required String entity,
@@ -191,6 +266,24 @@ class SyncUploadService {
   Future<void> deleteRecording(String id) async {
     try {
       await _recordingApi.deleteRecording(id);
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return;
+      rethrow;
+    }
+  }
+
+  Future<void> deleteVocabularyItem(String id) async {
+    try {
+      await _vocabularyApi.deleteVocabularyItem(id);
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return;
+      rethrow;
+    }
+  }
+
+  Future<void> deleteVocabularyContext(String id) async {
+    try {
+      await _vocabularyApi.deleteVocabularyContext(id);
     } on ApiException catch (e) {
       if (e.statusCode == 404) return;
       rethrow;

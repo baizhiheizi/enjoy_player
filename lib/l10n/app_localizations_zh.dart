@@ -2716,6 +2716,43 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get vocabularyExportToAnki => '导出到 Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => '导出到 Anki';
+
+  @override
+  String get vocabularyExport => '导出';
+
+  @override
+  String get vocabularyNoItemsToExport => '没有可导出的词条';
+
+  @override
+  String get vocabularyProRequired => '需要 Pro';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki 导出仅限 Enjoy Pro。升级后可将生词本导出为 Anki CSV 卡片。';
+
+  @override
+  String get vocabularyUpgradeToPro => '升级到 Pro';
+
+  @override
+  String get vocabularyExportSuccess => '生词本已导出。';
+
+  @override
+  String get vocabularyExportError => '导出失败。';
+
+  @override
+  String get vocabularyExportCancelled => '已取消导出。';
+
+  @override
+  String get vocabularyExportSparseCacheHint => '在复习中保存词典与语境翻译后，卡片背面内容会更丰富。';
+
+  @override
+  String get vocabularyExportProgress => '正在导出…';
+
+  @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
 
   @override
@@ -5240,6 +5277,43 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String vocabularyLocatorLabel(String start, String duration) {
     return '$start秒 · $duration秒';
   }
+
+  @override
+  String get vocabularyExportToAnki => '导出到 Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => '导出到 Anki';
+
+  @override
+  String get vocabularyExport => '导出';
+
+  @override
+  String get vocabularyNoItemsToExport => '没有可导出的词条';
+
+  @override
+  String get vocabularyProRequired => '需要 Pro';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki 导出仅限 Enjoy Pro。升级后可将生词本导出为 Anki CSV 卡片。';
+
+  @override
+  String get vocabularyUpgradeToPro => '升级到 Pro';
+
+  @override
+  String get vocabularyExportSuccess => '生词本已导出。';
+
+  @override
+  String get vocabularyExportError => '导出失败。';
+
+  @override
+  String get vocabularyExportCancelled => '已取消导出。';
+
+  @override
+  String get vocabularyExportSparseCacheHint => '在复习中保存词典与语境翻译后，卡片背面内容会更丰富。';
+
+  @override
+  String get vocabularyExportProgress => '正在导出…';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';

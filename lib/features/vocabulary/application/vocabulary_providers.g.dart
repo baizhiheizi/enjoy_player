@@ -55,7 +55,7 @@ final class VocabularyRepositoryProvider
 }
 
 String _$vocabularyRepositoryHash() =>
-    r'f1ddf4bf145fc20973431e70951417146d9d4524';
+    r'28c63b22e9a196751f26dfea0a4d4725d9914f44';
 
 /// Live list of all vocabulary items (updates after add/rate/delete).
 

@@ -942,6 +942,18 @@
       "duration": { "type": "String" }
     }
   },
+  "vocabularyExportToAnki": "导出到 Anki",
+  "vocabularyExportDialogTitle": "导出到 Anki",
+  "vocabularyExport": "导出",
+  "vocabularyNoItemsToExport": "没有可导出的词条",
+  "vocabularyProRequired": "需要 Pro",
+  "vocabularyProRequiredDescription": "Anki 导出仅限 Enjoy Pro。升级后可将生词本导出为 Anki CSV 卡片。",
+  "vocabularyUpgradeToPro": "升级到 Pro",
+  "vocabularyExportSuccess": "生词本已导出。",
+  "vocabularyExportError": "导出失败。",
+  "vocabularyExportCancelled": "已取消导出。",
+  "vocabularyExportSparseCacheHint": "在复习中保存词典与语境翻译后，卡片背面内容会更丰富。",
+  "vocabularyExportProgress": "正在导出…",
   "authRequiredCloudFeaturesTitle": "需要登录账户",
   "practicePosterShareTooltip": "分享练习海报",
   "practicePosterPreviewTitle": "分享你的练习",
