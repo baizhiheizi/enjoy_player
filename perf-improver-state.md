@@ -24,9 +24,11 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 
 ## Optimization Backlog — Remaining
 
-1. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off for major bump or hand-rolled quantiser. **Reassessed 2026-07-13, deferred.**
-2. **JSON decode concurrency audit** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. `audio_api.audios()` / `transcript_api.transcripts()` are simple one-shots; threshold correct as-is.
+1. **Incremental AI response streaming** — issue #310; user-facing latency opportunity. Awaiting maintainer decision.
+2. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off for major bump or hand-rolled quantiser. **Reassessed 2026-07-13, deferred.**
 3. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (`app_database.dart:650`; only generated `.g.dart` references it). When hooked up, needs `.distinctBy(equals)`.
+4. **JSON decode concurrency audit** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. `audio_api.audios()` / `transcript_api.transcripts()` are simple one-shots; threshold correct as-is.
+5. **Microbenchmark harness** — no `test/perf/` yet; structural tests cover Drift emission costs but no JIT microbenchmarks for hot regex/serialization paths.
 
 ## Optimization Backlog — Addressed
 
@@ -35,7 +37,7 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 - ✅ PR #208+#238 (2026-07-07) — `TranscriptTrack` `==`/`hashCode` + `.distinctBy(_listEqualsTranscriptTrack)` in `TranscriptRepository.watchTracks`. Closes #219.
 - ✅ PR #291 (2026-07-11) — `PlaybackSession`/`EchoState` equality; single shared `rawEnginePositionStreamProvider`; `.select(...)` on every chrome provider; `PlayerInteractions._lines()` cached.
 - ✅ PR #335 (2026-07-13) — `DiscoverRepository._avatarUrlCache` swapped onto shared `L1Store<K, V>`; 6h TTL; ~10 lines removed; 3 new unit tests.
-- ✅ PR draft `perf-assist/discover-feed-batched-upsert-2026-07-15` (commit 888be23, 2026-07-15) — `YoutubeFeedEntryDao.upsertEntries(List<row>)` via `batch((b) => b.insertAll(...))`. `_refreshSingleSource` and `subscribeFromUserInput` collapsed to one batched call. 3 new structural tests (50-row batch ≤1 emission; empty no-op; loop-of-30 emits strictly more than batch-of-30).
+- ✅ PR #360 (2026-07-17, commit `ce9f38b`) — `YoutubeFeedEntryDao.upsertEntries(List<row>)` via `batch((b) => b.insertAll(...))`. `_refreshSingleSource` and `subscribeFromUserInput` collapsed to one batched call. 3 new structural tests.
 
 ## Measurement infrastructure status
 
@@ -56,11 +58,11 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 
 ## Run History (last 5)
 
-- **2026-07-15** 14:57 UTC — run 29423417496. Drafted batched feed entry upsert → PR draft `perf-assist/discover-feed-batched-upsert-2026-07-15`. `YoutubeFeedEntryDao.upsertEntries(List<row>)` + 3 new structural tests. CI green on `0d4e595`; #355 still open and ready to close.
+- **2026-07-17** 12:00 UTC — run 29587195118. Verification only. PR #360 (drafted last run) merged as `ce9f38b`. Backlog audited; next opportunity (#310 streaming, #144 no-op tracker) is maintainer-gated. No draft this run.
+- **2026-07-15** 14:57 UTC — run 29423417496. Drafted batched feed entry upsert → PR draft `perf-assist/discover-feed-batched-upsert-2026-07-15`. `YoutubeFeedEntryDao.upsertEntries(List<row>)` + 3 new structural tests. CI green on `0d4e595`.
 - **2026-07-14** 15:23 UTC — run 29340890900. Investigation. Prioritized sequential per-entry Drift upserts for benchmark-first investigation; microbenchmarked `extractVideoId` regex caching (1.302×, deprioritized); created #355.
 - **2026-07-13** 15:30 UTC — run 29262675978. Drafted LRU consolidation → PR #335. All gates green.
 - **2026-07-11** 14:30 UTC — run 29155553769. Investigation only. Audited #291 / #292 / #293 / #295; dedupe chain complete.
-- **2026-07-07** 15:30 UTC — run 28878529792. Investigation only. PR #208+#238 shipped.
 
 ## Per-run safe-output checklist
 
