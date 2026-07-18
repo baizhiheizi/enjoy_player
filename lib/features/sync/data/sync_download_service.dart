@@ -75,6 +75,8 @@ class SyncDownloadService {
       getLocal: _db.videoDao.getById,
       insertRow: _db.videoDao.insertRow,
       merge: mergeVideoLastWriteWins,
+      // Mine `deletedAt` = leave library; drop the local row (membership tombstone).
+      onTombstone: (id) => _db.videoDao.deleteId(id),
     );
   }
 
@@ -150,6 +152,7 @@ class SyncDownloadService {
       required Map<String, dynamic> server,
     })
     merge,
+    Future<void> Function(String id)? onTombstone,
   }) async {
     final errors = <String>[];
     var synced = 0;
@@ -179,6 +182,14 @@ class SyncDownloadService {
         try {
           final id = m['id'] as String?;
           if (id == null || id.isEmpty) continue;
+          final deletedAt = m['deletedAt'];
+          if (deletedAt != null &&
+              deletedAt.toString().isNotEmpty &&
+              onTombstone != null) {
+            await onTombstone(id);
+            synced++;
+            continue;
+          }
           final local = await getLocal(id);
           final merged = merge(local: local, server: m);
           await insertRow(merged);

@@ -202,33 +202,13 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('enjoyLocalVideoVid', () {
-    test('shares the audio-AID formula (same per-user scope)', () {
-      // The web reference pins both to the same sha256(contentHash:userId)
-      // shape; if these ever drift the ID parity in weapp / app breaks.
+    test('is content-addressed (ignores userId)', () {
       const content = 'abc123';
-      const user = 'u1';
-      final want = sha256.convert(utf8.encode('$content:$user')).toString();
-      expect(enjoyLocalVideoVid(contentHashHex: content, userId: user), want);
-    });
-
-    test('matches enjoyLocalAudioAid for the same input (intentional)', () {
-      // The doc on enjoyLocalVideoVid says: "same formula as audio `aid`".
-      // The two helpers exist for readability — they MUST collide so cross-
-      // device dedupe continues to work regardless of which feature wrote
-      // the local row first.
-      const content = 'same-bytes';
-      const user = 'u1';
+      expect(enjoyLocalVideoVid(contentHashHex: content), content);
       expect(
-        enjoyLocalVideoVid(contentHashHex: content, userId: user),
-        enjoyLocalAudioAid(contentHashHex: content, userId: user),
+        enjoyLocalVideoVid(contentHashHex: content, userId: 'alice'),
+        enjoyLocalVideoVid(contentHashHex: content, userId: 'bob'),
       );
-    });
-
-    test('differs when userId differs', () {
-      const content = 'same-bytes';
-      final a = enjoyLocalVideoVid(contentHashHex: content, userId: 'alice');
-      final b = enjoyLocalVideoVid(contentHashHex: content, userId: 'bob');
-      expect(a, isNot(b));
     });
   });
 

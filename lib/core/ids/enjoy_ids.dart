@@ -30,11 +30,13 @@ String enjoyLocalAudioAid({
   required String userId,
 }) => enjoySha256HexOfString('$contentHashHex:$userId');
 
-/// Web `generateLocalVideoVid` — same formula as audio `aid`.
+/// Web `generateLocalVideoVid` — content-addressed (no userId salt).
+///
+/// [userId] is ignored; kept optional for call-site compatibility.
 String enjoyLocalVideoVid({
   required String contentHashHex,
-  required String userId,
-}) => enjoySha256HexOfString('$contentHashHex:$userId');
+  String? userId,
+}) => contentHashHex;
 
 String enjoyTranscriptId({
   required String targetType,

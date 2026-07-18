@@ -15,7 +15,7 @@ import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
 
 void main() {
   test(
-    'uploadVideo recovers via public catalog when mine create duplicates and mine GET 404s',
+    'uploadVideo recovers via mine GET when create hits a unique race',
     () async {
       final paths = <String>[];
       final mock = MockClient((request) async {
@@ -33,9 +33,6 @@ void main() {
           );
         }
         if (request.method == 'GET' && path == '/api/v1/mine/videos/vid-1') {
-          return http.Response('null', 404);
-        }
-        if (request.method == 'GET' && path == '/api/v1/videos/vid-1') {
           return http.Response(
             jsonEncode({
               'id': 'vid-1',
@@ -97,7 +94,6 @@ void main() {
       expect(paths, [
         'POST /api/v1/mine/videos',
         'GET /api/v1/mine/videos/vid-1',
-        'GET /api/v1/videos/vid-1',
       ]);
 
       final saved = await db.videoDao.getById('vid-1');
@@ -108,7 +104,7 @@ void main() {
   );
 
   test(
-    'uploadVideo still throws SyncDuplicateMissingError when public GET 404s',
+    'uploadVideo throws SyncDuplicateMissingError when mine GET 404s after race',
     () async {
       final mock = MockClient((request) async {
         final path = request.url.path;

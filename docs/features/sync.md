@@ -52,12 +52,15 @@ When the server accepts an upload but **omits** the `updatedAt` field in its res
 
 **Vocabulary exception:** older `POST /mine/vocabulary_items|vocabulary_contexts` responses were only `{ success: true }` (`len=16`). The client refetches `GET …/:id` when the create body lacks `updatedAt`. The API should return the persisted row via `render :show` (same shape as GET show).
 
-### Duplicate create + mine GET 404 (provider / YouTube videos)
+### Library membership (UserVideo)
 
-YouTube (and other provider) video IDs are **global** (`uuid_v5(video:{provider}:{vid})`). The public catalog (`POST /api/v1/videos`) may already hold that row with `user_id` null (or another owner). A naïve `POST /api/v1/mine/videos` that only looks up `Current.user.videos` then hits a primary-key / `(provider,vid)` unique violation; `GET /mine/videos/:id` returns **404** because the row is outside the user's library scope.
+Mine video APIs mean **library membership**, not exclusive ownership of the catalog `Video` row. Many users can enroll the same YouTube/Netflix (or new content-addressed upload) id. `DELETE /mine/videos/:id` leaves the library (soft-deletes membership); pulls may include `deletedAt` tombstones — the player removes the local row.
 
-- **Server** (`enjoy_web` `API::V1::Mine::VideosController#create`): adopts unowned catalog rows onto the current user, and returns the existing row when another user already owns the deterministic id (idempotent success for the client).
-- **Client**: on duplicate create, try mine GET, then **public** `GET /api/v1/videos/:id`. Only if both 404 does sync mark the queue item permanently failed (`SyncDuplicateMissingError`).
+New local uploads use **content-addressed** ids: `vid = contentHash` (no `userId`), `id = uuid_v5(video:user:{vid})`. Legacy per-user upload ids on the server are left as-is.
+
+### Duplicate create recovery
+
+On rare unique races during `POST /mine/videos`, the client retries with `GET /mine/videos/:id`. If that 404s, sync marks the queue item permanently failed (`SyncDuplicateMissingError`). Public catalog GET is no longer used for ownership recovery.
 
 ## Related
 
