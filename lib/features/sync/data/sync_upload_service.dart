@@ -176,7 +176,13 @@ class SyncUploadService {
       final response = await _vocabularyApi.uploadVocabularyItem(
         prepareForSyncVocabularyItemMap(row),
       );
-      inner = unwrapEntity(response, 'vocabularyItem');
+      inner = await _ensureUpdatedAt(
+        unwrapEntity(response, 'vocabularyItem'),
+        entity: 'vocabulary_item',
+        id: row.id,
+        fetchById: () => _vocabularyApi.vocabularyItem(row.id),
+        envelopeKey: 'vocabularyItem',
+      );
     } on ApiException catch (e) {
       if (!e.isDuplicateEntity) rethrow;
       _log.fine(
@@ -212,7 +218,13 @@ class SyncUploadService {
       final response = await _vocabularyApi.uploadVocabularyContext(
         prepareForSyncVocabularyContextMap(row),
       );
-      inner = unwrapEntity(response, 'vocabularyContext');
+      inner = await _ensureUpdatedAt(
+        unwrapEntity(response, 'vocabularyContext'),
+        entity: 'vocabulary_context',
+        id: row.id,
+        fetchById: () => _vocabularyApi.vocabularyContext(row.id),
+        envelopeKey: 'vocabularyContext',
+      );
     } on ApiException catch (e) {
       if (!e.isDuplicateEntity) rethrow;
       _log.fine(
@@ -240,6 +252,23 @@ class SyncUploadService {
         updatedAt: serverUpdated,
       ),
     );
+  }
+
+  /// Older mine vocabulary create endpoints returned `{ success: true }`
+  /// without the row. Refetch by id so sync can stamp [serverUpdatedAt].
+  Future<Map<String, dynamic>> _ensureUpdatedAt(
+    Map<String, dynamic> inner, {
+    required String entity,
+    required String id,
+    required Future<Map<String, dynamic>> Function() fetchById,
+    required String envelopeKey,
+  }) async {
+    if (parseIsoDate(inner['updatedAt']) != null) return inner;
+    _log.info(
+      '$entity $id: upload ok but response missing updatedAt; fetching row',
+    );
+    final response = await fetchById();
+    return unwrapEntity(response, envelopeKey);
   }
 
   DateTime _requireServerUpdated(
