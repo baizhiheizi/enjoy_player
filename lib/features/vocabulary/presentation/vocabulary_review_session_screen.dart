@@ -54,6 +54,10 @@ class _VocabularyReviewSessionScreenState
 
   @override
   void dispose() {
+    // Desktop Escape / GoRouter.pop may leave without [_exit]; clear session.
+    if (ref.read(vocabularyReviewSessionProvider).hasActiveSession) {
+      ref.read(vocabularyReviewSessionProvider.notifier).clear();
+    }
     _focusNode.dispose();
     super.dispose();
   }

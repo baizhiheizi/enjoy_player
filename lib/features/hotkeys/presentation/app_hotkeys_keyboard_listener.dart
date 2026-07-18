@@ -65,9 +65,16 @@ class _AppHotkeysKeyboardListenerState
 
   /// [AppHotkeysKeyboardListener] is built in [MaterialApp.router]'s `builder`
   /// above the [Navigator], so [context] here does not include a [Navigator].
-  /// Use GoRouter's root key for overlays, dialogs, and imperative pops.
+  /// Prefer [GlobalKey.currentState] / [GlobalKey.currentContext] on the
+  /// router keys — not [Navigator.of] on the key's context (that walks
+  /// ancestors and misses the keyed navigator itself).
   BuildContext? _routerNavigatorContext() =>
       ref.read(appRouterProvider).configuration.navigatorKey.currentContext;
+
+  NavigatorState? _rootNavigatorState() =>
+      ref.read(appRouterProvider).configuration.navigatorKey.currentState;
+
+  NavigatorState? _shellNavigatorState() => enjoyShellNavigatorKey.currentState;
 
   bool _onKey(KeyEvent event) {
     if (!mounted) return false;
@@ -77,17 +84,13 @@ class _AppHotkeysKeyboardListenerState
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
     final goRouter = ref.read(appRouterProvider);
     final navCtx = _routerNavigatorContext();
+    final shellNav = _shellNavigatorState();
+    final rootNav = _rootNavigatorState();
 
     // Modal.close (Escape): dismiss transient UI only — never collapse the
     // player route as a fallback (see escape_dismissal.dart).
     if (_matches(event, ctrl, 'modal.close')) {
       final path = goRouter.state.uri.path;
-      NavigatorState? leafNav;
-      NavigatorState? rootNav;
-      if (navCtx != null) {
-        leafNav = Navigator.of(navCtx, rootNavigator: false);
-        rootNav = Navigator.of(navCtx, rootNavigator: true);
-      }
       final action = resolveEscapeDismissal(
         EscapeDismissalContext(
           cheatsheetOpen: hotkeysCheatsheetOpen.value,
@@ -95,9 +98,8 @@ class _AppHotkeysKeyboardListenerState
           isRecordingActive: ref
               .read(shadowReadingHotkeyBusProvider)
               .isRecordingActive,
-          leafNavigatorCanPop: leafNav?.canPop() ?? false,
-          rootNavigatorCanPop: rootNav?.canPop() ?? false,
-          leafAndRootNavIdentical: identical(leafNav, rootNav),
+          shellHasPopupRoute: navigatorHasTopPopupRoute(shellNav),
+          rootHasPopupRoute: navigatorHasTopPopupRoute(rootNav),
           goRouterCanPop: goRouter.canPop(),
           path: path,
           isDesktop: isDesktop,
@@ -105,9 +107,7 @@ class _AppHotkeysKeyboardListenerState
       );
       switch (action) {
         case EscapeDismissalAction.closeCheatsheet:
-          if (navCtx != null) {
-            unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
-          }
+          if (rootNav != null) unawaited(rootNav.maybePop());
           return true;
         case EscapeDismissalAction.exitFullscreen:
           unawaited(
@@ -119,12 +119,11 @@ class _AppHotkeysKeyboardListenerState
               .read(shadowReadingHotkeyBusProvider.notifier)
               .pulseRecordingCancel();
           return true;
-        case EscapeDismissalAction.popNavigatorOverlay:
-          if (leafNav?.canPop() ?? false) {
-            leafNav!.pop();
-          } else if (rootNav?.canPop() ?? false) {
-            rootNav!.pop();
-          }
+        case EscapeDismissalAction.popShellPopup:
+          if (shellNav != null) unawaited(shellNav.maybePop());
+          return true;
+        case EscapeDismissalAction.popRootPopup:
+          if (rootNav != null) unawaited(rootNav.maybePop());
           return true;
         case EscapeDismissalAction.popGoRouter:
           goRouter.pop();
@@ -139,7 +138,7 @@ class _AppHotkeysKeyboardListenerState
     if (_matches(event, ctrl, 'global.help')) {
       if (navCtx == null) return false;
       if (hotkeysCheatsheetOpen.value) {
-        unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
+        if (rootNav != null) unawaited(rootNav.maybePop());
         return true;
       }
       unawaited(showHotkeysHelpDialog(navCtx));

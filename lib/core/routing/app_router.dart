@@ -36,6 +36,10 @@ import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.
 
 part 'app_router.g.dart';
 
+/// Nested navigator owned by the app [ShellRoute] (profile pushes, sheets).
+final GlobalKey<NavigatorState> enjoyShellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
+
 CustomTransitionPage<void> _shellPage({
   required LocalKey key,
   required Widget child,
@@ -109,6 +113,7 @@ GoRouter appRouter(Ref ref) {
         ],
       ),
       ShellRoute(
+        navigatorKey: enjoyShellNavigatorKey,
         builder: (context, state, child) => RootShell(child: child),
         routes: [
           GoRoute(
