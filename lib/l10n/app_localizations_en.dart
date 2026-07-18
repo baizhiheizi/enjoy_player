@@ -2453,6 +2453,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateDismiss => 'Dismiss';
 
   @override
+  String get updateCancel => 'Cancel';
+
+  @override
+  String get updateRetry => 'Retry';
+
+  @override
+  String get updatePreparing => 'Preparing download…';
+
+  @override
+  String updateDownloading(int percent) {
+    return 'Downloading update… $percent%';
+  }
+
+  @override
+  String get updateVerifying => 'Verifying download…';
+
+  @override
+  String get updateOpeningInstaller => 'Opening installer…';
+
+  @override
+  String get updateErrorDownload =>
+      'Download failed. Check your connection and try again.';
+
+  @override
+  String get updateErrorChecksum =>
+      'The download was corrupted. Please try again.';
+
+  @override
+  String get updateErrorPermission =>
+      'Install permission was denied. Allow installs from this app in system settings, then retry.';
+
+  @override
+  String get updateErrorAlreadyRunning =>
+      'An update download is already in progress.';
+
+  @override
+  String get updateErrorInstallation =>
+      'Could not open the installer. Please try again.';
+
+  @override
+  String get updateErrorGeneric => 'Update failed. Please try again.';
+
+  @override
   String get updateUpToDate => 'You\'re on the latest version.';
 
   @override

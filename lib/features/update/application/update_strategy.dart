@@ -12,5 +12,12 @@ abstract class UpdateStrategy {
   });
 
   /// Starts download/install (or opens native updater UI).
-  Future<void> applyUpdate(AppRelease release);
+  ///
+  /// Yields [UpdateInstallProgress] until a terminal phase
+  /// ([UpdateInstallPhase.completed], [UpdateInstallPhase.failed], or
+  /// [UpdateInstallPhase.canceled]).
+  Stream<UpdateInstallProgress> applyUpdate(AppRelease release);
+
+  /// Cancels an in-flight download when supported by the platform strategy.
+  Future<void> cancelUpdate();
 }

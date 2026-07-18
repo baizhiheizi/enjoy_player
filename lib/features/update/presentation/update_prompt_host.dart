@@ -53,26 +53,31 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
     if (release == null || !mounted) return;
     _showingPrompt = true;
     try {
-      await showUpdatePromptDialog(
-        context: context,
-        release: release,
-        onUpdate: () {
-          unawaited(ref.read(updateCtrlProvider.notifier).applyPendingUpdate());
-        },
-        onLater: () {
-          unawaited(
-            ref.read(updateCtrlProvider.notifier).snoozeOptionalUpdate(release),
-          );
-        },
-        onDismiss: release.severity == UpdateSeverity.optional
-            ? () =>
-                  ref.read(updateCtrlProvider.notifier).dismissOptionalPrompt()
-            : null,
-      );
+      await _showPrompt(context, ref, release);
     } finally {
       _showingPrompt = false;
     }
   }
+}
+
+Future<void> _showPrompt(
+  BuildContext context,
+  WidgetRef ref,
+  AppRelease release,
+) {
+  final ctrl = ref.read(updateCtrlProvider.notifier);
+  return showUpdatePromptDialog(
+    context: context,
+    release: release,
+    onApply: ctrl.applyPendingUpdate,
+    onCancelApply: ctrl.cancelPendingUpdate,
+    onLater: () {
+      unawaited(ctrl.snoozeOptionalUpdate(release));
+    },
+    onDismiss: release.severity == UpdateSeverity.optional
+        ? ctrl.dismissOptionalPrompt
+        : null,
+  );
 }
 
 /// Manual check from Settings/About.
@@ -96,19 +101,5 @@ Future<void> runManualUpdateCheck(BuildContext context, WidgetRef ref) async {
   }
   final release = result.release;
   if (release == null) return;
-  await showUpdatePromptDialog(
-    context: context,
-    release: release,
-    onUpdate: () {
-      unawaited(ref.read(updateCtrlProvider.notifier).applyPendingUpdate());
-    },
-    onLater: () {
-      unawaited(
-        ref.read(updateCtrlProvider.notifier).snoozeOptionalUpdate(release),
-      );
-    },
-    onDismiss: release.severity == UpdateSeverity.optional
-        ? () => ref.read(updateCtrlProvider.notifier).dismissOptionalPrompt()
-        : null,
-  );
+  await _showPrompt(context, ref, release);
 }

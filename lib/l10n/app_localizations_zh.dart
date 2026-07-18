@@ -2350,6 +2350,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get updateDismiss => '忽略';
 
   @override
+  String get updateCancel => '取消';
+
+  @override
+  String get updateRetry => '重试';
+
+  @override
+  String get updatePreparing => '正在准备下载…';
+
+  @override
+  String updateDownloading(int percent) {
+    return '正在下载更新… $percent%';
+  }
+
+  @override
+  String get updateVerifying => '正在校验下载…';
+
+  @override
+  String get updateOpeningInstaller => '正在打开安装程序…';
+
+  @override
+  String get updateErrorDownload => '下载失败。请检查网络后重试。';
+
+  @override
+  String get updateErrorChecksum => '下载文件已损坏，请重试。';
+
+  @override
+  String get updateErrorPermission => '未授予安装权限。请在系统设置中允许从此应用安装，然后重试。';
+
+  @override
+  String get updateErrorAlreadyRunning => '已有更新正在下载。';
+
+  @override
+  String get updateErrorInstallation => '无法打开安装程序，请重试。';
+
+  @override
+  String get updateErrorGeneric => '更新失败，请重试。';
+
+  @override
   String get updateUpToDate => '已是最新版本。';
 
   @override
@@ -4954,6 +4992,44 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get updateDismiss => '忽略';
+
+  @override
+  String get updateCancel => '取消';
+
+  @override
+  String get updateRetry => '重试';
+
+  @override
+  String get updatePreparing => '正在准备下载…';
+
+  @override
+  String updateDownloading(int percent) {
+    return '正在下载更新… $percent%';
+  }
+
+  @override
+  String get updateVerifying => '正在校验下载…';
+
+  @override
+  String get updateOpeningInstaller => '正在打开安装程序…';
+
+  @override
+  String get updateErrorDownload => '下载失败。请检查网络后重试。';
+
+  @override
+  String get updateErrorChecksum => '下载文件已损坏，请重试。';
+
+  @override
+  String get updateErrorPermission => '未授予安装权限。请在系统设置中允许从此应用安装，然后重试。';
+
+  @override
+  String get updateErrorAlreadyRunning => '已有更新正在下载。';
+
+  @override
+  String get updateErrorInstallation => '无法打开安装程序，请重试。';
+
+  @override
+  String get updateErrorGeneric => '更新失败，请重试。';
 
   @override
   String get updateUpToDate => '已是最新版本。';

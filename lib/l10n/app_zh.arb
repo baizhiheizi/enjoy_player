@@ -961,6 +961,23 @@
   "updateNow": "立即更新",
   "updateLater": "稍后",
   "updateDismiss": "忽略",
+  "updateCancel": "取消",
+  "updateRetry": "重试",
+  "updatePreparing": "正在准备下载…",
+  "updateDownloading": "正在下载更新… {percent}%",
+  "@updateDownloading": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "updateVerifying": "正在校验下载…",
+  "updateOpeningInstaller": "正在打开安装程序…",
+  "updateErrorDownload": "下载失败。请检查网络后重试。",
+  "updateErrorChecksum": "下载文件已损坏，请重试。",
+  "updateErrorPermission": "未授予安装权限。请在系统设置中允许从此应用安装，然后重试。",
+  "updateErrorAlreadyRunning": "已有更新正在下载。",
+  "updateErrorInstallation": "无法打开安装程序，请重试。",
+  "updateErrorGeneric": "更新失败，请重试。",
   "updateUpToDate": "已是最新版本。",
   "updateCheckOffline": "无法检查更新，请检查网络连接。",
   "updateStoreChannelHint": "此版本来自 TestFlight 或 Play 商店，更新由商店处理。",

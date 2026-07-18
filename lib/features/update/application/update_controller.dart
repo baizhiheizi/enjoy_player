@@ -73,14 +73,32 @@ class UpdateCtrl extends _$UpdateCtrl {
     state = const UpdateCheckResult.upToDate();
   }
 
-  Future<void> applyPendingUpdate() async {
+  /// Starts the pending update and yields install progress for the UI.
+  Stream<UpdateInstallProgress> applyPendingUpdate() async* {
     final release = state?.release;
-    if (release == null) return;
+    if (release == null) {
+      yield const UpdateInstallProgress.failed(
+        reason: UpdateInstallFailureReason.internal,
+        detail: 'no_pending_release',
+      );
+      return;
+    }
     try {
-      await ref.read(updateStrategyProvider).applyUpdate(release);
+      yield* ref.read(updateStrategyProvider).applyUpdate(release);
     } catch (e, st) {
       _log.warning('apply update failed', e, st);
-      rethrow;
+      yield UpdateInstallProgress.failed(
+        reason: UpdateInstallFailureReason.internal,
+        detail: e.toString(),
+      );
+    }
+  }
+
+  Future<void> cancelPendingUpdate() async {
+    try {
+      await ref.read(updateStrategyProvider).cancelUpdate();
+    } catch (e, st) {
+      _log.warning('cancel update failed', e, st);
     }
   }
 

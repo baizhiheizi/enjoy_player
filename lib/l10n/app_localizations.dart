@@ -4563,6 +4563,78 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get updateDismiss;
 
+  /// No description provided for @updateCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get updateCancel;
+
+  /// No description provided for @updateRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get updateRetry;
+
+  /// No description provided for @updatePreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing download…'**
+  String get updatePreparing;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading update… {percent}%'**
+  String updateDownloading(int percent);
+
+  /// No description provided for @updateVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying download…'**
+  String get updateVerifying;
+
+  /// No description provided for @updateOpeningInstaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening installer…'**
+  String get updateOpeningInstaller;
+
+  /// No description provided for @updateErrorDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed. Check your connection and try again.'**
+  String get updateErrorDownload;
+
+  /// No description provided for @updateErrorChecksum.
+  ///
+  /// In en, this message translates to:
+  /// **'The download was corrupted. Please try again.'**
+  String get updateErrorChecksum;
+
+  /// No description provided for @updateErrorPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Install permission was denied. Allow installs from this app in system settings, then retry.'**
+  String get updateErrorPermission;
+
+  /// No description provided for @updateErrorAlreadyRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'An update download is already in progress.'**
+  String get updateErrorAlreadyRunning;
+
+  /// No description provided for @updateErrorInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the installer. Please try again.'**
+  String get updateErrorInstallation;
+
+  /// No description provided for @updateErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please try again.'**
+  String get updateErrorGeneric;
+
   /// No description provided for @updateUpToDate.
   ///
   /// In en, this message translates to:

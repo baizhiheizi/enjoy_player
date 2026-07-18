@@ -2,16 +2,16 @@
 
 ## Summary
 
-Enjoy Player distributes **direct** updates (not via a store) on **Windows** and **macOS**, and falls back to **NoOp** on iOS / Android (the store handles updates there). The flow fetches a remote **version manifest**, compares against the running version, and either **silently logs up-to-date**, shows an **optional** prompt, or blocks on a **mandatory** update. Snooze is honored until a per-release deadline.
+Enjoy Player distributes **direct** updates (not via a store) on **Windows**, **macOS**, and **Android sideload** (`direct` flavor). Store-channel builds (Play / TestFlight) use a **NoOp** strategy — the store owns updates. The flow fetches a remote **version manifest**, compares against the running version, and either **silently logs up-to-date**, shows an **optional** prompt, or blocks on a **mandatory** update. Snooze is honored until a per-release deadline.
 
 ## Channel split
 
 | Channel | Platforms | Strategy |
 |---------|-----------|----------|
-| Direct | Windows, macOS | `DirectUpdateStrategy` — fetches the remote `latest.json`, evaluates, prompts. |
-| Store | iOS, Android | `NoOpUpdateStrategy` — store handles updates; we don't prompt. |
+| Direct | Windows, macOS, Android sideload | `DirectUpdateStrategy` — fetches the remote `latest.json`, evaluates, prompts; installs via Sparkle/WinSparkle (desktop) or `ota_update` (Android). |
+| Store | iOS, Android Play | `NoOpUpdateStrategy` — store handles updates; we don't prompt. |
 
-The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-0023](../decisions/0023-app-update-distribution.md)).
+The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-0023](../decisions/0023-app-update-distribution.md)). Android product flavors are `store` / `direct`.
 
 ## Manifest schema
 
@@ -25,12 +25,13 @@ The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-002
   "notes": "...",
   "assets": {
     "windows": { "url": "...", "sha256": "...", "file": "EnjoyPlayer-0.2.4.exe" },
-    "macos":   { "url": "...", "sha256": "...", "file": "EnjoyPlayer-0.2.4.dmg" }
+    "macos":   { "url": "...", "sha256": "...", "file": "EnjoyPlayer-0.2.4.dmg" },
+    "android_arm64_v8a": { "url": "...", "sha256": "...", "file": "EnjoyPlayer-v0.2.4-arm64-v8a.apk" }
   }
 }
 ```
 
-`checksum_verifier.dart` validates `sha256` against the downloaded asset before install.
+`checksum_verifier.dart` normalizes SHA-256 hex from the feed. On Android, the normalized digest is passed to `ota_update` as `sha256checksum` so the plugin verifies the APK before opening the installer.
 
 ## Evaluator rules (`UpdateEvaluator.evaluateUpdate`)
 
@@ -45,15 +46,38 @@ The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-002
 
 `update_prompt_dialog.dart` is rendered by `update_prompt_host.dart` from inside the app shell (not a separate route), so it floats above whatever is on screen:
 
-- **Optional**: **Update now** / **Later** / **Snooze until tomorrow**. The user's choice is persisted in `SettingsKeys.prefsSnoozedVersion` + `prefsSnoozeUntil`.
-- **Mandatory**: **Update now** is the only available action; the dialog blocks interaction until the user accepts (or the install completes / fails). On Windows, the dialog drives the in-app installer handoff; on macOS, the dialog opens the downloaded `.dmg`.
+- **Optional**: **Update now** / **Later** / **Dismiss**. Later snoozes for 24h (`SettingsKeys.updateSnoozeUntil` + `updateSnoozeVersion`).
+- **Mandatory**: **Update now** is the only available action; the dialog blocks interaction until the user accepts (barrier and back are disabled).
+
+### Android download progress (direct flavor)
+
+Tapping **Update now** does **not** dismiss the dialog. The prompt immediately shows:
+
+1. **Preparing download…** (indeterminate)
+2. **Downloading update… N%** with a determinate progress bar
+3. **Verifying download…** (when a feed SHA-256 is present)
+4. **Opening installer…** then the dialog closes as the system package installer appears
+
+During download the user can **Cancel**:
+
+- **Optional**: cancels the transfer and closes the prompt.
+- **Mandatory**: cancels the transfer but returns to the still-blocking update prompt so the user can retry.
+
+Failures stay inline with a localized message and **Retry** (download, checksum, permission, already-running, installation, generic). There is no system notification / background download service — the modal is the progress surface.
+
+Desktop direct updates still hand off to Sparkle / WinSparkle (native UI) after a short preparing state.
+
+## Android APK selection
+
+`DirectUpdateStrategy` asks `ota_update` for the device ABI (`getAbi`) and prefers matching feed keys such as `android_arm64_v8a`, `android_armeabi_v7a`, or `android_x86_64`, then falls back to generic `android*` assets.
 
 ## Failure modes
 
-- **Manifest fetch fails** → swallow the error (logged). The user is not prompted; the next app launch retries.
-- **Checksum mismatch** → the download is discarded and an error toast is shown.
-- **Install handoff fails** (e.g. permission) → the prompt reappears on next launch.
-- **Out-of-date without mandatory** → the prompt can be permanently dismissed by the user (snooze is the lighter-weight path; **dismiss** is reserved for the support contact path).
+- **Manifest fetch fails** → swallow the error (logged) on startup. Manual check shows an offline error notice. The next app launch retries (subject to the 24h startup debounce).
+- **Checksum mismatch** → plugin aborts install; the prompt shows a checksum error with **Retry**.
+- **Install permission denied** → prompt shows permission guidance with **Retry**.
+- **Download / install handoff fails** → inline error + **Retry**; optional prompt can still use Later.
+- **Out-of-date without mandatory** → Later (snooze) or Dismiss; next startup may re-prompt after snooze expires.
 
 ## Code map
 
@@ -66,9 +90,21 @@ The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-002
 | No-op strategy | [`lib/features/update/application/noop_update_strategy.dart`](../../lib/features/update/application/noop_update_strategy.dart) |
 | Controller | [`lib/features/update/application/update_controller.dart`](../../lib/features/update/application/update_controller.dart) |
 | Prompt UI | [`lib/features/update/presentation/update_prompt_dialog.dart`](../../lib/features/update/presentation/update_prompt_dialog.dart) |
+| Prompt host | [`lib/features/update/presentation/update_prompt_host.dart`](../../lib/features/update/presentation/update_prompt_host.dart) |
 
 ## Related
 
 - ADR: [`docs/decisions/0023-app-update-distribution.md`](../decisions/0023-app-update-distribution.md)
 - Production diagnostics: [`docs/features/diagnostics.md`](diagnostics.md) (update failures feed diagnostic log)
 - Packaging: [`docs/packaging.md`](../packaging.md)
+
+## Manual verification (Android direct)
+
+On a device/emulator with a `direct` flavor build and a reachable `latest.json`:
+
+1. Trigger update (startup prompt or Settings → Check for updates).
+2. Tap **Update now** — preparing state appears within ~100ms (no silent hang).
+3. With network throttling, confirm percentage advances and Cancel works (optional closes; mandatory returns to Update now).
+4. Confirm checksum failures / offline download failures show Retry.
+5. On success, system installer opens and the in-app dialog dismisses.
+6. On a non-arm64 ABI emulator (when a matching APK is published), confirm the ABI-specific asset is chosen.
