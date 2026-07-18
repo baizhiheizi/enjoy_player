@@ -10,6 +10,9 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 const _fakeProfile = UserProfile(
@@ -17,6 +20,15 @@ const _fakeProfile = UserProfile(
   email: 'reader@example.com',
   name: 'Reader',
   balance: 12.5,
+);
+
+const _emptyVocabStats = VocabularyStats(
+  total: 0,
+  due: 0,
+  newCount: 0,
+  learningCount: 0,
+  reviewingCount: 0,
+  masteredCount: 0,
 );
 
 class _FakeAuthCtrl extends AuthCtrl {
@@ -36,7 +48,11 @@ class _FakePrefsCtrl extends AppPreferencesCtrl {
   Future<AppPreferencesState> build() async => AppPreferencesState.initial;
 }
 
-Widget _harness(Widget child, {required _FakeAuthCtrl authCtrl}) {
+Widget _harness(
+  Widget child, {
+  required _FakeAuthCtrl authCtrl,
+  VocabularyStats vocabStats = _emptyVocabStats,
+}) {
   final scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF7B61FF),
     brightness: Brightness.dark,
@@ -48,6 +64,7 @@ Widget _harness(Widget child, {required _FakeAuthCtrl authCtrl}) {
       profilePracticeStatsProvider.overrideWith(
         (ref) async => LearningStatistics.empty(),
       ),
+      vocabularyStatsProvider.overrideWithValue(vocabStats),
     ],
     child: MaterialApp(
       theme: ThemeData(
@@ -121,4 +138,52 @@ void main() {
       expect(find.byIcon(Icons.settings_outlined), findsWidgets);
     },
   );
+
+  testWidgets(
+    'ProfileContent shows due-review count pill on Vocabulary when due > 0',
+    (tester) async {
+      final authCtrl = _FakeAuthCtrl();
+      await tester.pumpWidget(
+        _harness(
+          const ProfileContent(),
+          authCtrl: authCtrl,
+          vocabStats: const VocabularyStats(
+            total: 5,
+            due: 3,
+            newCount: 1,
+            learningCount: 2,
+            reviewingCount: 1,
+            masteredCount: 1,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(
+        const Locale('en', 'US'),
+      );
+
+      await _scrollUntilVisible(tester, find.text(l10n.vocabularyProfileEntry));
+      expect(find.text(l10n.vocabularyProfileEntry), findsOneWidget);
+      expect(find.byType(SettingsValuePill), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    },
+  );
+
+  testWidgets('ProfileContent hides due-review count pill when due is 0', (
+    tester,
+  ) async {
+    final authCtrl = _FakeAuthCtrl();
+    await tester.pumpWidget(
+      _harness(const ProfileContent(), authCtrl: authCtrl),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await AppLocalizations.delegate.load(const Locale('en', 'US'));
+
+    await _scrollUntilVisible(tester, find.text(l10n.vocabularyProfileEntry));
+    expect(find.text(l10n.vocabularyProfileEntry), findsOneWidget);
+    expect(find.byType(SettingsValuePill), findsNothing);
+    expect(find.text('0'), findsNothing);
+  });
 }

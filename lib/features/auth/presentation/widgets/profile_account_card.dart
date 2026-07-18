@@ -69,12 +69,7 @@ class ProfileAccountCard extends StatelessWidget {
               ),
             ),
           ),
-          Divider(
-            height: 1,
-            indent: t.space20,
-            endIndent: t.space20,
-            color: cs.outlineVariant.withValues(alpha: 0.18),
-          ),
+          const SettingsRowDivider(insetForLeading: false),
           SettingsRow(
             leadingIcon: Icons.workspace_premium_outlined,
             title: l10n.profileSubscriptionTile,
@@ -82,12 +77,7 @@ class ProfileAccountCard extends StatelessWidget {
             onTap: onSubscriptionTap,
             responsive: false,
           ),
-          Divider(
-            height: 1,
-            indent: t.space20,
-            endIndent: t.space20,
-            color: cs.outlineVariant.withValues(alpha: 0.18),
-          ),
+          const SettingsRowDivider(),
           SettingsRow(
             leadingIcon: Icons.receipt_long_rounded,
             title: l10n.profileCreditsUsageTile,

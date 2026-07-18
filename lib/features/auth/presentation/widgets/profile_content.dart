@@ -13,7 +13,6 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
@@ -25,11 +24,13 @@ import 'package:enjoy_player/features/auth/presentation/widgets/profile_sign_out
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_stats.dart';
 import 'package:enjoy_player/features/credits/application/todays_credits_provider.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// The profile view body: hero card, practice stats, account nav card,
-/// preferences entry, settings entry, and sign-out button.
+/// unlabeled learning/config sections, and sign-out button.
 ///
 /// Used exclusively by the Profile tab ([ProfileScreen]). The content is a
 /// scrollable, pull-to-refreshable list sized to the shell body.
@@ -47,6 +48,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
     ref.invalidate(profilePracticeStatsProvider);
     ref.invalidate(learningStatisticsProvider);
     ref.invalidate(todaysCreditsUsedProvider);
+    ref.invalidate(vocabularyStatsProvider);
     await ref.read(authCtrlProvider.notifier).refreshProfile();
   }
 
@@ -101,6 +103,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
 
         final creditsUsedAsync = ref.watch(todaysCreditsUsedProvider);
         final creditsUsed = creditsUsedAsync.valueOrNull;
+        final dueCount = ref.watch(vocabularyStatsProvider).due;
 
         final children = <Widget>[
           ProfileHeroCard(profile: p),
@@ -116,48 +119,54 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
             onSubscriptionTap: () => context.push('/subscription'),
           ),
           SizedBox(height: t.space16),
-          EnjoyCard(
-            padding: EdgeInsets.zero,
-            child: SettingsRow(
-              leadingIcon: Icons.manage_accounts_outlined,
-              title: l10n.profileEditEntry,
-              subtitle: l10n.profileEditEntryHint,
-              onTap: () => context.push('/profile/edit'),
-              responsive: false,
-            ),
+          _ProfileNavSection(
+            rows: [
+              SettingsRow(
+                leadingIcon: Icons.menu_book_outlined,
+                title: l10n.vocabularyProfileEntry,
+                subtitle: l10n.vocabularyProfileEntryHint,
+                valueBadge: dueCount > 0
+                    ? Semantics(
+                        container: true,
+                        label: '${l10n.vocabularyDue}: $dueCount',
+                        child: SettingsValuePill(
+                          label: '$dueCount',
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                        ),
+                      )
+                    : null,
+                onTap: () => context.push('/vocabulary'),
+                responsive: false,
+              ),
+            ],
           ),
           SizedBox(height: t.space8),
-          EnjoyCard(
-            padding: EdgeInsets.zero,
-            child: SettingsRow(
-              leadingIcon: Icons.menu_book_outlined,
-              title: l10n.vocabularyProfileEntry,
-              subtitle: l10n.vocabularyProfileEntryHint,
-              onTap: () => context.push('/vocabulary'),
-              responsive: false,
-            ),
-          ),
-          SizedBox(height: t.space8),
-          EnjoyCard(
-            padding: EdgeInsets.zero,
-            child: SettingsRow(
-              leadingIcon: Icons.tune_rounded,
-              title: l10n.profileSectionPreferences,
-              subtitle: l10n.profileSectionPreferencesHint,
-              onTap: () => context.push('/profile/preferences'),
-              responsive: false,
-            ),
-          ),
-          SizedBox(height: t.space8),
-          EnjoyCard(
-            padding: EdgeInsets.zero,
-            child: SettingsRow(
-              leadingIcon: Icons.settings_outlined,
-              title: l10n.settingsTitle,
-              subtitle: l10n.settingsSubtitle,
-              onTap: () => context.push('/settings'),
-              responsive: false,
-            ),
+          _ProfileNavSection(
+            rows: [
+              SettingsRow(
+                leadingIcon: Icons.manage_accounts_outlined,
+                title: l10n.profileEditEntry,
+                subtitle: l10n.profileEditEntryHint,
+                onTap: () => context.push('/profile/edit'),
+                responsive: false,
+              ),
+              SettingsRow(
+                leadingIcon: Icons.tune_rounded,
+                title: l10n.profileSectionPreferences,
+                subtitle: l10n.profileSectionPreferencesHint,
+                onTap: () => context.push('/profile/preferences'),
+                responsive: false,
+              ),
+              SettingsRow(
+                leadingIcon: Icons.settings_outlined,
+                title: l10n.settingsTitle,
+                subtitle: l10n.settingsSubtitle,
+                onTap: () => context.push('/settings'),
+                responsive: false,
+              ),
+            ],
           ),
           SizedBox(height: t.space32),
           ProfileSignOutButton(
@@ -186,6 +195,26 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
       },
       loading: () => const SkeletonProfile(),
       error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
+    );
+  }
+}
+
+/// Zero-padding [EnjoyCard] of [SettingsRow]s separated by [SettingsRowDivider].
+class _ProfileNavSection extends StatelessWidget {
+  const _ProfileNavSection({required this.rows});
+
+  final List<SettingsRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[];
+    for (var i = 0; i < rows.length; i++) {
+      if (i > 0) children.add(const SettingsRowDivider());
+      children.add(rows[i]);
+    }
+    return EnjoyCard(
+      padding: EdgeInsets.zero,
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
 }

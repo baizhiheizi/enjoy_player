@@ -11,6 +11,8 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/profile_content.dart';
 import 'package:enjoy_player/features/library/domain/learning_statistics.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 const _fakeProfile = UserProfile(
@@ -46,6 +48,16 @@ Widget _harness(Widget child, AuthCtrl authCtrl) {
       appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
       profilePracticeStatsProvider.overrideWith(
         (ref) async => LearningStatistics.empty(),
+      ),
+      vocabularyStatsProvider.overrideWithValue(
+        const VocabularyStats(
+          total: 0,
+          due: 0,
+          newCount: 0,
+          learningCount: 0,
+          reviewingCount: 0,
+          masteredCount: 0,
+        ),
       ),
     ],
     child: MaterialApp(
