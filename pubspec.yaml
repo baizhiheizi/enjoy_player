@@ -72,6 +72,7 @@ dependencies:
   ai_sdk_anthropic: 1.1.0
   ai_sdk_google: 1.1.0
   ai_sdk_provider: 1.1.0
+  flutter_timezone: ^5.1.0
 
 dev_dependencies:
   flutter_test:

@@ -6,7 +6,7 @@ The community activity card surfaces **active learners** on the signed-in **Home
 
 ## MVP behavior
 
-- **Endpoint**: `GET /api/v1/users/active`, called with the device timezone. The JSON shape is camelCase and decoded via the shared `convertKeysToCamel` helper (`lib/data/api/case_conversion.dart`).
+- **Endpoint**: `GET /api/v1/users/active`, called with the device **IANA** timezone id (e.g. `Asia/Shanghai` via `clientTimezoneId()` / `flutter_timezone`). Abbreviations like `HKT`/`CST` are not sent — Rails rejects them and falls back to UTC. If the native plugin fails, the client sends a UTC offset (`+08:00`). The JSON shape is camelCase and decoded via the shared `convertKeysToCamel` helper (`lib/data/api/case_conversion.dart`).
 - **Timeout**: the request uses an **8-second client timeout**; on timeout (or any other error), the card hides / shows no data rather than a retry affordance (matches web parity).
 - **Variants**: `CommunityActivityCardVariant.card` (full stats + up to 8 avatars; tablet/desktop) and `CommunityActivityCardVariant.summary` (compact headline + up to 4 avatars; mobile insight strip).
 - **Today stats**: when the server returns `recordingsCountToday` / `recordingsDurationToday`, the card shows the aggregated practice volume; otherwise the stat row is hidden.
@@ -23,6 +23,7 @@ The card is only mounted on Home when `authCtrlProvider` reports `AuthSignedIn`.
 |------|------|
 | Domain models | [`lib/features/community/domain/active_user.dart`](../../lib/features/community/domain/active_user.dart) |
 | Riverpod provider | [`lib/features/community/application/active_users_provider.dart`](../../lib/features/community/application/active_users_provider.dart) |
+| Client IANA timezone | [`lib/core/utils/client_timezone.dart`](../../lib/core/utils/client_timezone.dart) |
 | Card UI (card + summary variants) | [`lib/features/community/presentation/community_activity_card.dart`](../../lib/features/community/presentation/community_activity_card.dart) |
 
 ## Related
