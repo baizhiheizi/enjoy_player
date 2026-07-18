@@ -33,10 +33,8 @@ String enjoyLocalAudioAid({
 /// Web `generateLocalVideoVid` — content-addressed (no userId salt).
 ///
 /// [userId] is ignored; kept optional for call-site compatibility.
-String enjoyLocalVideoVid({
-  required String contentHashHex,
-  String? userId,
-}) => contentHashHex;
+String enjoyLocalVideoVid({required String contentHashHex, String? userId}) =>
+    contentHashHex;
 
 String enjoyTranscriptId({
   required String targetType,
