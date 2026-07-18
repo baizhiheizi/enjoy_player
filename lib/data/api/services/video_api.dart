@@ -28,6 +28,11 @@ class VideoApi extends RestApi {
 
   Future<JsonMap> video(String id) => client.getJson('$_minePath/$id');
 
+  /// Public catalog row (`GET /api/v1/videos/:id`) — not scoped to the
+  /// signed-in user's library. Used when mine create reports a duplicate id
+  /// but `GET /mine/videos/:id` 404s (global YouTube / provider rows).
+  Future<JsonMap> publicVideo(String id) => client.getJson('$_publicPath/$id');
+
   Future<JsonMap> uploadVideo(JsonMap video) =>
       client.postJson(_minePath, body: {'video': video});
 

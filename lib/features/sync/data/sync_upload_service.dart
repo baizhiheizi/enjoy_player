@@ -111,10 +111,22 @@ class SyncUploadService {
         final response = await _videoApi.video(row.id);
         return unwrapEntity(response, 'video');
       } on ApiException catch (fetchError) {
-        if (fetchError.statusCode == 404) {
-          throw SyncDuplicateMissingError('video', row.id);
+        if (fetchError.statusCode != 404) rethrow;
+        // Deterministic provider ids are global; the row may exist outside
+        // /mine (catalog / another owner). Public GET recovers sync.
+        try {
+          final response = await _videoApi.publicVideo(row.id);
+          _log.info(
+            'video ${row.id}: mine GET 404 after duplicate create; '
+            'using public catalog row',
+          );
+          return unwrapEntity(response, 'video');
+        } on ApiException catch (publicError) {
+          if (publicError.statusCode == 404) {
+            throw SyncDuplicateMissingError('video', row.id);
+          }
+          rethrow;
         }
-        rethrow;
       }
     }
   }

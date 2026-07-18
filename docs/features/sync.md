@@ -50,6 +50,13 @@ Server wins when `server.updatedAt >= local.updatedAt`; local-only paths (`local
 
 When the server accepts an upload but **omits** the `updatedAt` field in its response, [`SyncUploadService`](../../lib/features/sync/data/sync_upload_service.dart) throws a `SyncMissingUpdatedAtError` instead of silently stamping the row with `DateTime.now()`. The local `serverUpdatedAt` is preserved as-is and the queue row is marked for a follow-up pull — this prevents a clock-skewed "successful" upload from masking a real divergence on the next reconciliation. Callers should treat `SyncMissingUpdatedAtError` as a soft failure (retry eligible) rather than a hard conflict.
 
+### Duplicate create + mine GET 404 (provider / YouTube videos)
+
+YouTube (and other provider) video IDs are **global** (`uuid_v5(video:{provider}:{vid})`). The public catalog (`POST /api/v1/videos`) may already hold that row with `user_id` null (or another owner). A naïve `POST /api/v1/mine/videos` that only looks up `Current.user.videos` then hits a primary-key / `(provider,vid)` unique violation; `GET /mine/videos/:id` returns **404** because the row is outside the user's library scope.
+
+- **Server** (`enjoy_web` `API::V1::Mine::VideosController#create`): adopts unowned catalog rows onto the current user, and returns the existing row when another user already owns the deterministic id (idempotent success for the client).
+- **Client**: on duplicate create, try mine GET, then **public** `GET /api/v1/videos/:id`. Only if both 404 does sync mark the queue item permanently failed (`SyncDuplicateMissingError`).
+
 ## Related
 
 - [ADR-0010](../decisions/0010-cloud-sync-mvp.md) (historical bidirectional download scope)
