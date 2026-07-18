@@ -136,6 +136,9 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
   @override
   ReviewSessionState build() => const ReviewSessionState(queue: []);
 
+  /// Whether a review queue is currently loaded (safe to read outside [build]).
+  bool get hasActiveSession => state.hasActiveSession;
+
   /// Start a session from [options] against current book items.
   ///
   /// Returns `false` when the built queue is empty (caller shows a message).

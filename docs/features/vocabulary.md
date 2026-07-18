@@ -69,7 +69,7 @@ This document is the implementation contract for Enjoy Player (Flutter). It desc
 | `1` / `2` / `3` | Rate 0 / 1 / 2 |
 | ← | Previous (session stack) |
 | → | Skip |
-| Esc | Exit review |
+| Esc | Exit review (global `modal.close` / GoRouter pop only — not also handled in-session). Session clear runs in `/vocabulary/review` `onExit`, not `State.dispose`. |
 
 Block rating while a mutation is in flight. Align with [hotkeys](hotkeys.md) when wiring global shortcuts.
 

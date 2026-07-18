@@ -575,23 +575,40 @@ class _RatingChip extends StatelessWidget {
   }
 }
 
-class _TabBody extends StatelessWidget {
+class _TabBody extends StatefulWidget {
   const _TabBody({required this.child});
 
   final Widget child;
 
   @override
+  State<_TabBody> createState() => _TabBodyState();
+}
+
+class _TabBodyState extends State<_TabBody> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
+    // Explicit controller: desktop Scrollbar defaults to PrimaryScrollController,
+    // but SingleChildScrollView does not attach to it — scrolling then throws.
     return Scrollbar(
+      controller: _scrollController,
       child: SingleChildScrollView(
+        controller: _scrollController,
         padding: EdgeInsets.fromLTRB(
           t.space24,
           t.space16,
           t.space24,
           t.space24,
         ),
-        child: child,
+        child: widget.child,
       ),
     );
   }

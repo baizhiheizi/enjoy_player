@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,6 +32,7 @@ import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_scr
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 
@@ -231,6 +233,17 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: '/vocabulary/review',
+            onExit: (context, state) {
+              // Clear while the route context is still mounted — not in
+              // State.dispose (ref / watch notify is unsafe during unmount).
+              final session = ProviderScope.containerOf(
+                context,
+              ).read(vocabularyReviewSessionProvider.notifier);
+              if (session.hasActiveSession) {
+                session.clear();
+              }
+              return true;
+            },
             builder: (context, state) => const VocabularyReviewSessionScreen(),
           ),
         ],

@@ -54,16 +54,12 @@ class _VocabularyReviewSessionScreenState
 
   @override
   void dispose() {
-    // Desktop Escape / GoRouter.pop may leave without [_exit]; clear session.
-    if (ref.read(vocabularyReviewSessionProvider).hasActiveSession) {
-      ref.read(vocabularyReviewSessionProvider.notifier).clear();
-    }
     _focusNode.dispose();
     super.dispose();
   }
 
   void _exit() {
-    ref.read(vocabularyReviewSessionProvider.notifier).clear();
+    // Session clear is owned by GoRoute.onExit for `/vocabulary/review`.
     if (context.canPop()) {
       context.pop();
     } else {
@@ -134,10 +130,8 @@ class _VocabularyReviewSessionScreenState
     final notifier = ref.read(vocabularyReviewSessionProvider.notifier);
     if (!session.hasActiveSession) return KeyEventResult.ignored;
 
-    if (event.logicalKey == LogicalKeyboardKey.escape) {
-      _exit();
-      return KeyEventResult.handled;
-    }
+    // Escape is owned by AppHotkeys (modal.close → popGoRouter). Handling it
+    // here as well double-pops (review → vocabulary → profile).
     if (session.completed) return KeyEventResult.ignored;
 
     if (event.logicalKey == LogicalKeyboardKey.space) {
