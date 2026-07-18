@@ -27,6 +27,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
     required this.title,
     required this.padding,
     required this.chips,
+    this.enabled = true,
     this.onTap,
     this.deleteLabel,
     this.onDelete,
@@ -37,6 +38,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
   final String title;
   final EdgeInsetsGeometry padding;
   final List<Widget> chips;
+  final bool enabled;
   final VoidCallback? onTap;
   final String? deleteLabel;
   final VoidCallback? onDelete;
@@ -47,6 +49,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(t.radiusSm);
+    final titleColor = enabled ? null : cs.onSurface.withValues(alpha: 0.38);
 
     final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -54,6 +57,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
         children: [
           Radio<T>(
             value: value,
+            enabled: enabled,
             visualDensity: VisualDensity.compact,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
@@ -67,6 +71,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,
                 height: 1.2,
+                color: titleColor,
               ),
             ),
           ),
@@ -83,8 +88,10 @@ class _CompactOptionRow<T> extends StatelessWidget {
     );
 
     final inkWell = InkWell(
-      onTap:
-          onTap ?? () => RadioGroup.maybeOf<T>(context)?.onChanged.call(value),
+      onTap: !enabled
+          ? null
+          : onTap ??
+                () => RadioGroup.maybeOf<T>(context)?.onChanged.call(value),
       borderRadius: radius,
       child: SizedBox(height: 40, child: row),
     );
@@ -237,12 +244,13 @@ class AutoTranslateOptionTile extends StatelessWidget {
         ),
     ];
 
-    return _CompactOptionRow<String>(
+    return _CompactOptionRow<String?>(
       value: value,
       selected: selected,
       title: l10n.subtitlesAutoTranslate,
       padding: padding,
       chips: chips,
+      enabled: enabled,
     );
   }
 }
