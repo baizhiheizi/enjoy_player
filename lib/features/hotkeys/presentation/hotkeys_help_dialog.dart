@@ -13,12 +13,14 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
-import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_cheatsheet_open.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
+
+/// Width at which the cheatsheet switches from one to two columns.
+const double _kHotkeysHelpTwoColumnMinWidth = 560;
 
 class HotkeysHelpDialog extends ConsumerStatefulWidget {
   const HotkeysHelpDialog({super.key});
@@ -50,9 +52,6 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
 
     ref.watch(hotkeysCtrlProvider);
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
-    final helpKeyLabel = formatHotkeyForDisplay(
-      ctrl.effectiveKeys('global.help'),
-    );
 
     String effective(String id) => ctrl.effectiveKeys(id);
 
@@ -67,7 +66,6 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
       ),
       child: Focus(
         focusNode: _focus,
-        autofocus: true,
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent &&
               event.logicalKey == LogicalKeyboardKey.escape) {
@@ -79,62 +77,27 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
         },
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: 560,
+            maxWidth: t.contentMaxWidth,
             maxHeight: MediaQuery.sizeOf(context).height * 0.85,
           ),
           child: Padding(
-            padding: EdgeInsets.all(t.space24),
+            padding: EdgeInsets.fromLTRB(
+              t.space20,
+              t.space16,
+              t.space16,
+              t.space16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: cs.primaryContainer,
-                        borderRadius: BorderRadius.circular(t.radiusMd),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(t.space12),
-                        child: Icon(
-                          Icons.keyboard_outlined,
-                          color: cs.onPrimaryContainer,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: t.space16),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.hotkeysTitle,
-                            style: tt.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: t.space4),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  l10n.hotkeysHelpSubtitle(helpKeyLabel),
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ),
-                              KbdChordRow(
-                                binding: ctrl.effectiveKeys('global.help'),
-                                compact: true,
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: Text(
+                        l10n.hotkeysTitle,
+                        style: tt.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -146,16 +109,36 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                     ),
                   ],
                 ),
-                SizedBox(height: t.space16),
+                SizedBox(height: t.space12),
                 TextField(
                   controller: _search,
+                  autofocus: true,
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: l10n.hotkeysHelpSearchHint,
                     prefixIcon: const Icon(Icons.search_rounded),
                     filled: true,
                     fillColor: cs.surfaceContainerHighest.withValues(
-                      alpha: 0.65,
+                      alpha: 0.45,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(t.radiusMd),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(t.radiusMd),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(t.radiusMd),
+                      borderSide: BorderSide(
+                        color: cs.outlineVariant.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.space12,
+                      vertical: t.space12,
                     ),
                   ),
                 ),
@@ -168,23 +151,27 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                   ),
                 ),
                 SizedBox(height: t.space12),
-                Text(
-                  l10n.hotkeysHintFooter,
-                  style: tt.bodySmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                    height: 1.35,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      final router = GoRouter.of(context);
-                      Navigator.of(context).pop();
-                      unawaited(router.push('/settings/keyboard'));
-                    },
-                    child: Text(l10n.hotkeysHelpCustomize),
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.hotkeysHintFooter,
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        final router = GoRouter.of(context);
+                        Navigator.of(context).pop();
+                        unawaited(router.push('/settings/keyboard'));
+                      },
+                      child: Text(l10n.hotkeysHelpCustomize),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -212,82 +199,125 @@ class _HotkeysHelpList extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final children = <Widget>[];
-    var any = false;
-    for (final scope in HotkeyScope.values) {
-      final defs = _hotkeyDefinitionsForScope(scope).where(matches).toList();
-      if (defs.isEmpty) continue;
-      any = true;
-      children.add(
-        Padding(
-          padding: EdgeInsets.only(bottom: t.space8),
-          child: Text(
-            hotkeysScopeLabel(l10n, scope).toUpperCase(),
-            style: tt.labelSmall?.copyWith(
-              letterSpacing: 1.0,
-              fontWeight: FontWeight.w600,
-              color: cs.primary,
-            ),
-          ),
-        ),
-      );
-      for (final def in defs) {
-        children.add(
-          Padding(
-            padding: EdgeInsets.only(bottom: t.space8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: t.space8,
-                    runSpacing: t.space4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(hotkeyDescription(l10n, def), style: tt.bodyMedium),
-                      if (ctrl.hasCustomBinding(def.id))
-                        Chip(
-                          label: Text(
-                            l10n.hotkeysCustomizedBadge,
-                            style: tt.labelSmall,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          labelPadding: EdgeInsets.symmetric(
-                            horizontal: t.space8,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: t.space16),
-                KbdChordRow(binding: ctrl.effectiveKeys(def.id)),
-              ],
-            ),
-          ),
-        );
-      }
-      children.add(SizedBox(height: t.space8));
-    }
-
-    if (!any) {
-      return Center(
-        child: Text(
-          l10n.hotkeysHelpEmpty,
-          style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-        ),
-      );
-    }
-
     // Reserve trailing space so desktop scrollbars do not paint over key caps.
     final trailingPad = t.space16 + 12;
 
-    return SingleChildScrollView(
-      padding: EdgeInsetsDirectional.only(end: trailingPad),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final listWidth = (constraints.maxWidth - trailingPad).clamp(
+          0.0,
+          double.infinity,
+        );
+        final twoCol = listWidth >= _kHotkeysHelpTwoColumnMinWidth;
+        final gap = t.space16;
+        final colWidth = twoCol ? (listWidth - gap) / 2 : listWidth;
+
+        final children = <Widget>[];
+        var any = false;
+        for (final scope in HotkeyScope.values) {
+          final defs = _hotkeyDefinitionsForScope(
+            scope,
+          ).where(matches).toList();
+          if (defs.isEmpty) continue;
+          any = true;
+          children.add(
+            Padding(
+              padding: EdgeInsets.only(
+                top: children.isEmpty ? 0 : t.space12,
+                bottom: t.space8,
+              ),
+              child: Text(
+                hotkeysScopeLabel(l10n, scope).toUpperCase(),
+                style: tt.labelSmall?.copyWith(
+                  letterSpacing: 1.0,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ),
+          );
+          children.add(
+            Wrap(
+              spacing: gap,
+              runSpacing: t.space8,
+              children: [
+                for (final def in defs)
+                  SizedBox(
+                    width: colWidth,
+                    child: _HotkeyHelpRow(
+                      description: hotkeyDescription(l10n, def),
+                      customized: ctrl.hasCustomBinding(def.id),
+                      customizedLabel: l10n.hotkeysCustomizedBadge,
+                      binding: ctrl.effectiveKeys(def.id),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
+
+        if (!any) {
+          return Center(
+            child: Text(
+              l10n.hotkeysHelpEmpty,
+              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          );
+        }
+
+        return SingleChildScrollView(
+          padding: EdgeInsetsDirectional.only(end: trailingPad),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HotkeyHelpRow extends StatelessWidget {
+  const _HotkeyHelpRow({
+    required this.description,
+    required this.customized,
+    required this.customizedLabel,
+    required this.binding,
+  });
+
+  final String description;
+  final bool customized;
+  final String customizedLabel;
+  final String binding;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Wrap(
+            spacing: t.space8,
+            runSpacing: t.space4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(description, style: tt.bodyMedium),
+              if (customized)
+                Chip(
+                  label: Text(customizedLabel, style: tt.labelSmall),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  labelPadding: EdgeInsets.symmetric(horizontal: t.space8),
+                ),
+            ],
+          ),
+        ),
+        SizedBox(width: t.space12),
+        KbdChordRow(binding: binding, compact: true),
+      ],
     );
   }
 }

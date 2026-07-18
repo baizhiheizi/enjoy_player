@@ -49,9 +49,9 @@ class HotkeysSettingsScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(
-              left: t.space8,
-              right: t.space8,
-              bottom: t.space16,
+              left: t.space4,
+              right: t.space4,
+              bottom: t.space12,
             ),
             child: Text(
               l10n.hotkeysSettingsSubtitle(helpKeyLabel),
@@ -62,7 +62,12 @@ class HotkeysSettingsScreen extends ConsumerWidget {
             ),
           ),
           EnjoyCard(
-            padding: EdgeInsets.all(t.space16),
+            padding: EdgeInsets.fromLTRB(
+              t.space16,
+              t.space16,
+              t.space12,
+              t.space16,
+            ),
             child: const HotkeysSettingsSection(),
           ),
         ],
