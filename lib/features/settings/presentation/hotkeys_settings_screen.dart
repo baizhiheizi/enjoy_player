@@ -4,9 +4,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_reset_all.dart';
@@ -29,23 +30,22 @@ class HotkeysSettingsScreen extends ConsumerWidget {
       ctrl.effectiveKeys('global.help'),
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.hotkeysSectionKeyboard),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              if (!await confirmHotkeysResetAll(context)) return;
-              if (!context.mounted) return;
-              await ctrl.resetAllBindings();
-            },
-            child: Text(l10n.hotkeysResetAll),
-          ),
-        ],
-      ),
-      body: CenteredMaxWidthListView(
-        maxWidth: t.contentMaxWidth + 96,
-        padding: EdgeInsets.all(t.space16),
+    return EnjoyPage(
+      kind: EnjoyPageKind.hub,
+      title: l10n.hotkeysSectionKeyboard,
+      showBack: true,
+      actions: [
+        TextButton(
+          onPressed: () async {
+            if (!await confirmHotkeysResetAll(context)) return;
+            if (!context.mounted) return;
+            await ctrl.resetAllBindings();
+          },
+          child: Text(l10n.hotkeysResetAll),
+        ),
+      ],
+      body: (context, metrics) => ListView(
+        padding: metrics.padding(top: t.space16, bottom: t.space32),
         children: [
           Padding(
             padding: EdgeInsets.only(

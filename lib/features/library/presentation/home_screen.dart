@@ -10,9 +10,11 @@ import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
@@ -37,146 +39,137 @@ class HomeScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: mediaAsync.when(
-              data: (recent) {
-                return CustomScrollView(
-                  slivers: [
-                    // Editorial header
-                    SliverToBoxAdapter(
-                      child: EditorialHeader(
-                        title: l10n.homeTitle,
-                        trailing: FilledButton.icon(
-                          onPressed: () => showImportChooser(context, ref),
-                          icon: const Icon(Icons.add_rounded, size: 18),
-                          label: Text(l10n.actionImport),
-                        ),
-                      ),
-                    ),
-
-                    // Today's goal + community (signed-in, responsive grid) —
-                    // always rendered, even when the recents grid below is
-                    // replaced by the empty state, so returning users still
-                    // see their streak/community progress on a fresh library.
-                    const SliverToBoxAdapter(child: _HomeInsightCards()),
-
-                    if (recent.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: EmptyState(
-                          icon: Icons.collections_bookmark_rounded,
-                          illustrationAsset: EnjoyIllustrations.emptyLibrary,
-                          title: l10n.homeEmptyTitle,
-                          subtitle: l10n.homeEmptyHint,
-                          action: () => showImportChooser(context, ref),
-                          actionLabel: l10n.actionImport,
-                          secondaryAction: () => context.go('/discover'),
-                          secondaryActionLabel: l10n.discoverBrowseAction,
-                        ),
-                      )
-                    else ...[
-                      // Recents section label
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(
-                          t.space24,
-                          0,
-                          t.space24,
-                          t.space12,
-                        ),
-                        sliver: SliverToBoxAdapter(
-                          child: Text(
-                            l10n.homeRecentMedia,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ),
-                      ),
-
-                      // Media grid — aspect ratio tracks actual tile width so rows stay tight.
-                      SliverPadding(
-                        padding: EdgeInsets.symmetric(horizontal: t.space24),
-                        sliver: SliverLayoutBuilder(
-                          builder: (context, constraints) {
-                            return SliverGrid(
-                              gridDelegate:
-                                  mediaCardTileGridDelegateForMinTileWidth(
-                                    crossAxisExtent:
-                                        constraints.crossAxisExtent,
-                                    mainAxisSpacing: t.space12,
-                                    crossAxisSpacing: t.space12,
-                                  ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  final m = recent[index];
-                                  return Align(
-                                    key: ValueKey<String>('home-media-${m.id}'),
-                                    alignment: Alignment.topCenter,
-                                    child: _HomeMediaTile(media: m),
-                                  );
-                                },
-                                childCount: recent.length,
-                                findChildIndexCallback: (key) =>
-                                    findSliverIndexByPrefixedId(
-                                      items: recent,
-                                      key: key,
-                                      prefix: 'home-media-',
-                                      idOf: (m) => m.id,
-                                    ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-                    ],
-                  ],
-                );
-              },
-              loading: () => const _HomeLoadingScrollView(),
-              error: (e, _) {
-                final cs = Theme.of(context).colorScheme;
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(t.space24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.error_outline_rounded,
-                          size: 48,
-                          color: cs.error,
-                        ),
-                        SizedBox(height: t.space16),
-                        Text(
-                          '${l10n.error}: $e',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        SizedBox(height: t.space16),
-                        FilledButton.tonal(
-                          onPressed: () =>
-                              ref.invalidate(libraryHomeRecentsProvider),
-                          child: Text(l10n.retry),
-                        ),
-                      ],
+    return EnjoyPage(
+      kind: EnjoyPageKind.browse,
+      body: (context, metrics) {
+        final gutter = metrics.gutter;
+        return mediaAsync.when(
+          data: (recent) {
+            return CustomScrollView(
+              slivers: [
+                // Editorial header
+                SliverToBoxAdapter(
+                  child: EditorialHeader(
+                    title: l10n.homeTitle,
+                    trailing: FilledButton.icon(
+                      onPressed: () => showImportChooser(context, ref),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(l10n.actionImport),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                ),
+
+                // Today's goal + community (signed-in, responsive grid) —
+                // always rendered, even when the recents grid below is
+                // replaced by the empty state, so returning users still
+                // see their streak/community progress on a fresh library.
+                const SliverToBoxAdapter(child: _HomeInsightCards()),
+
+                if (recent.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: EmptyState(
+                      icon: Icons.collections_bookmark_rounded,
+                      illustrationAsset: EnjoyIllustrations.emptyLibrary,
+                      title: l10n.homeEmptyTitle,
+                      subtitle: l10n.homeEmptyHint,
+                      action: () => showImportChooser(context, ref),
+                      actionLabel: l10n.actionImport,
+                      secondaryAction: () => context.go('/discover'),
+                      secondaryActionLabel: l10n.discoverBrowseAction,
+                    ),
+                  )
+                else ...[
+                  // Recents section label
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(gutter, 0, gutter, t.space12),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        l10n.homeRecentMedia,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ),
+                  ),
+
+                  // Media grid — aspect ratio tracks actual tile width so rows stay tight.
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: gutter),
+                    sliver: SliverLayoutBuilder(
+                      builder: (context, constraints) {
+                        return SliverGrid(
+                          gridDelegate:
+                              mediaCardTileGridDelegateForMinTileWidth(
+                                crossAxisExtent: constraints.crossAxisExtent,
+                                mainAxisSpacing: t.space12,
+                                crossAxisSpacing: t.space12,
+                              ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final m = recent[index];
+                              return Align(
+                                key: ValueKey<String>('home-media-${m.id}'),
+                                alignment: Alignment.topCenter,
+                                child: _HomeMediaTile(media: m),
+                              );
+                            },
+                            childCount: recent.length,
+                            findChildIndexCallback: (key) =>
+                                findSliverIndexByPrefixedId(
+                                  items: recent,
+                                  key: key,
+                                  prefix: 'home-media-',
+                                  idOf: (m) => m.id,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+                ],
+              ],
+            );
+          },
+          loading: () => const _HomeLoadingScrollView(),
+          error: (e, _) {
+            final cs = Theme.of(context).colorScheme;
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(t.space24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: cs.error,
+                    ),
+                    SizedBox(height: t.space16),
+                    Text(
+                      '${l10n.error}: $e',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    SizedBox(height: t.space16),
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          ref.invalidate(libraryHomeRecentsProvider),
+                      child: Text(l10n.retry),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -195,50 +188,55 @@ class _HomeLoadingScrollView extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: EditorialHeader(
-            title: l10n.homeTitle,
-            trailing: FilledButton.icon(
-              onPressed: () => showImportChooser(context, ref),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(l10n.actionImport),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space12),
-          sliver: SliverToBoxAdapter(
-            child: Text(
-              l10n.homeRecentMedia,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gutter = pageGutterOf(context, constraints.maxWidth);
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: EditorialHeader(
+                title: l10n.homeTitle,
+                trailing: FilledButton.icon(
+                  onPressed: () => showImportChooser(context, ref),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.actionImport),
+                ),
               ),
             ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: t.space24),
-          sliver: SliverLayoutBuilder(
-            builder: (context, constraints) {
-              return SliverGrid(
-                gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
-                  crossAxisExtent: constraints.crossAxisExtent,
-                  mainAxisSpacing: t.space12,
-                  crossAxisSpacing: t.space12,
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(gutter, 0, gutter, t.space12),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  l10n.homeRecentMedia,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => const _HomeRecentGridSkeletonTile(),
-                  childCount: _kSkeletonTileCount,
-                ),
-              );
-            },
-          ),
-        ),
-        SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-      ],
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: gutter),
+              sliver: SliverLayoutBuilder(
+                builder: (context, gridConstraints) {
+                  return SliverGrid(
+                    gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+                      crossAxisExtent: gridConstraints.crossAxisExtent,
+                      mainAxisSpacing: t.space12,
+                      crossAxisSpacing: t.space12,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => const _HomeRecentGridSkeletonTile(),
+                      childCount: _kSkeletonTileCount,
+                    ),
+                  );
+                },
+              ),
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+          ],
+        );
+      },
     );
   }
 }
@@ -322,9 +320,10 @@ class _HomeInsightCards extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= _kStripSplitMinWidth;
+        final gutter = pageGutterOf(context, constraints.maxWidth);
         final pad = wide
-            ? EdgeInsets.fromLTRB(t.space24, t.space20, t.space24, t.space20)
-            : EdgeInsets.fromLTRB(t.space24, t.space12, t.space24, t.space12);
+            ? EdgeInsets.fromLTRB(gutter, t.space20, gutter, t.space20)
+            : EdgeInsets.fromLTRB(gutter, t.space12, gutter, t.space12);
 
         final strip = Card(
           margin: EdgeInsets.zero,

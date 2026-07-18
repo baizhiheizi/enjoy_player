@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
@@ -131,12 +132,17 @@ class LocalAudioLibraryBody extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.fromLTRB(t.space16, t.space8, t.space16, t.space24),
-      itemCount: items.length,
-      separatorBuilder: (context, _) => SizedBox(height: t.space8),
-      itemBuilder: (context, index) {
-        return LocalAudioRow(media: items[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gutter = pageGutterOf(context, constraints.maxWidth);
+        return ListView.separated(
+          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space24),
+          itemCount: items.length,
+          separatorBuilder: (context, _) => SizedBox(height: t.space8),
+          itemBuilder: (context, index) {
+            return LocalAudioRow(media: items[index]);
+          },
+        );
       },
     );
   }
@@ -199,7 +205,6 @@ class LocalVideoLibraryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
 
     if (items.isEmpty) {
       final filteredBySearch =
@@ -229,9 +234,10 @@ class LocalVideoLibraryBody extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisExtent = constraints.maxWidth - t.space16 * 2;
+        final gutter = pageGutterOf(context, constraints.maxWidth);
+        final crossAxisExtent = constraints.maxWidth - gutter * 2;
         return GridView.builder(
-          padding: EdgeInsets.all(t.space16),
+          padding: EdgeInsets.all(gutter),
           gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
             crossAxisExtent: crossAxisExtent,
           ),

@@ -6,15 +6,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
+import 'package:enjoy_player/core/utils/sliver_key_index.dart';
+import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_filter_strip.dart';
@@ -28,7 +30,6 @@ class DiscoverScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final refreshing = ref.watch(discoverRefreshStateProvider);
     final selectedChannelId = ref.watch(discoverSelectedChannelProvider);
@@ -48,8 +49,9 @@ class DiscoverScreen extends ConsumerWidget {
       }
     }
 
-    return Scaffold(
-      body: RefreshIndicator(
+    return EnjoyPage(
+      kind: EnjoyPageKind.browse,
+      body: (context, metrics) => RefreshIndicator(
         onRefresh: onRefresh,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -76,15 +78,15 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             const SliverToBoxAdapter(child: DiscoverChannelFilterStrip()),
             subscriptionsAsync.when(
-              loading: () => const SliverToBoxAdapter(
+              loading: () => SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: SkeletonMediaList(itemCount: 5),
+                  padding: EdgeInsets.symmetric(horizontal: metrics.gutter),
+                  child: const SkeletonMediaList(itemCount: 5),
                 ),
               ),
               error: (_, _) => SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(t.space24),
+                  padding: EdgeInsets.all(metrics.gutter),
                   child: Text(l10n.discoverSubscriptionsLoadFailed),
                 ),
               ),
@@ -105,6 +107,7 @@ class DiscoverScreen extends ConsumerWidget {
                 return _DiscoverFeedSliver(
                   feedAsync: feedAsync,
                   onRefresh: onRefresh,
+                  gutter: metrics.gutter,
                 );
               },
             ),
@@ -141,10 +144,15 @@ void _showPartialFailure(
 }
 
 class _DiscoverFeedSliver extends StatelessWidget {
-  const _DiscoverFeedSliver({required this.feedAsync, required this.onRefresh});
+  const _DiscoverFeedSliver({
+    required this.feedAsync,
+    required this.onRefresh,
+    required this.gutter,
+  });
 
   final AsyncValue<List<FeedEntry>> feedAsync;
   final Future<void> Function() onRefresh;
+  final double gutter;
 
   @override
   Widget build(BuildContext context) {
@@ -152,10 +160,10 @@ class _DiscoverFeedSliver extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
 
     return feedAsync.when(
-      loading: () => const SliverToBoxAdapter(
+      loading: () => SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
-          child: SkeletonMediaList(itemCount: 5),
+          padding: EdgeInsets.symmetric(horizontal: gutter),
+          child: const SkeletonMediaList(itemCount: 5),
         ),
       ),
       error: (_, _) => SliverToBoxAdapter(
@@ -180,12 +188,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
           );
         }
         return SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            t.space24,
-            t.space8,
-            t.space24,
-            t.space32,
-          ),
+          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space32),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               const minTileWidth = 320.0;
@@ -198,7 +201,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
               if (crossAxisCount == 1) {
                 return SliverList.separated(
                   itemCount: entries.length,
-                  separatorBuilder: (_, _) => SizedBox(height: t.space24),
+                  separatorBuilder: (_, _) => SizedBox(height: t.space20),
                   itemBuilder: (context, index) => KeyedSubtree(
                     key: ValueKey<String>(
                       'discover-feed-${entries[index].videoId}',
@@ -211,7 +214,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
               return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: t.space24,
+                  mainAxisSpacing: t.space20,
                   crossAxisSpacing: t.space16,
                   childAspectRatio: discoverFeedTileGridAspectRatio,
                 ),

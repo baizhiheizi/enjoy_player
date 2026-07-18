@@ -75,7 +75,9 @@ class SignInScreen extends ConsumerWidget {
         loading: () => const Center(child: SkeletonAppBootstrap()),
         error: (e, _) => Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: BoxConstraints(
+              maxWidth: EnjoyThemeTokens.of(context).modalMaxWidth,
+            ),
             child: Padding(
               padding: EdgeInsets.all(t.space32),
               child: Column(
@@ -133,7 +135,7 @@ class _SignInHub extends ConsumerWidget {
     return Center(
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: BoxConstraints(maxWidth: t.modalMaxWidth),
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: t.space32,

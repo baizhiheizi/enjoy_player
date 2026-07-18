@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -34,9 +36,11 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
     final l10n = AppLocalizations.of(context)!;
     final auth = ref.watch(authCtrlProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.syncScreenTitle)),
-      body: auth.when(
+    return EnjoyPage(
+      kind: EnjoyPageKind.hub,
+      title: l10n.syncScreenTitle,
+      showBack: true,
+      body: (context, metrics) => auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
             return const Center(
@@ -47,6 +51,7 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
             );
           }
           return _SignedInBody(
+            metrics: metrics,
             busyRetry: _busyRetry,
             busySync: _busySync,
             onRetryFailed: () => _runRetryFailed(context, l10n),
@@ -104,12 +109,14 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
 
 class _SignedInBody extends ConsumerWidget {
   const _SignedInBody({
+    required this.metrics,
     required this.busySync,
     required this.busyRetry,
     required this.onSyncNow,
     required this.onRetryFailed,
   });
 
+  final EnjoyPageMetrics metrics;
   final bool busySync;
   final bool busyRetry;
   final VoidCallback onSyncNow;
@@ -134,7 +141,7 @@ class _SignedInBody extends ConsumerWidget {
     }
 
     return ListView(
-      padding: EdgeInsets.all(t.space16),
+      padding: metrics.padding(top: t.space16, bottom: t.space32),
       children: [
         EnjoyCard(
           padding: EdgeInsets.zero,

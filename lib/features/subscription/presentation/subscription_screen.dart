@@ -4,9 +4,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -35,9 +36,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     final l10n = AppLocalizations.of(context)!;
     final auth = ref.watch(authCtrlProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.subscriptionTitle)),
-      body: auth.when(
+    return EnjoyPage(
+      kind: EnjoyPageKind.hub,
+      title: l10n.subscriptionTitle,
+      showBack: true,
+      body: (context, metrics) => auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
             return const Center(
@@ -47,7 +50,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               ),
             );
           }
-          return _SubscriptionBody(onRefresh: _refresh);
+          return _SubscriptionBody(onRefresh: _refresh, metrics: metrics);
         },
         loading: () => const SkeletonSettingsList(rowCount: 6),
         error: (e, _) => Center(child: Text(l10n.errorGenericLoadFailed)),
@@ -57,22 +60,23 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 }
 
 class _SubscriptionBody extends ConsumerWidget {
-  const _SubscriptionBody({required this.onRefresh});
+  const _SubscriptionBody({required this.onRefresh, required this.metrics});
 
   final Future<void> Function() onRefresh;
+  final EnjoyPageMetrics metrics;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final statusAsync = ref.watch(subscriptionStatusProvider);
+    final pad = metrics.padding(top: t.space16, bottom: t.space32);
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: statusAsync.when(
-        data: (status) => CenteredMaxWidthListView(
-          maxWidth: t.contentMaxWidth + 96,
-          padding: EdgeInsets.all(t.space16),
+        data: (status) => ListView(
+          padding: pad,
           children: [
             _SubscriptionHeroHeader(
               isPro: status.subscriptionTier == SubscriptionTier.pro,
@@ -84,7 +88,7 @@ class _SubscriptionBody extends ConsumerWidget {
           ],
         ),
         loading: () => ListView(
-          padding: EdgeInsets.all(t.space16),
+          padding: pad,
           children: [
             Skeleton.line(width: double.infinity, height: 120),
             SizedBox(height: t.space16),
@@ -94,7 +98,7 @@ class _SubscriptionBody extends ConsumerWidget {
           ],
         ),
         error: (e, _) => ListView(
-          padding: EdgeInsets.all(t.space16),
+          padding: pad,
           children: [
             Text(l10n.subscriptionErrorLoading),
             SizedBox(height: t.space8),

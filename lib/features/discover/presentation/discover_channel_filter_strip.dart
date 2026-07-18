@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/horizontal_drag_scroll_behavior.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
@@ -59,63 +60,69 @@ class _DiscoverChannelFilterStripState
       ),
       error: (_, _) => const SizedBox.shrink(),
       data: (subs) {
-        return SizedBox(
-          height: DiscoverChannelFilterStrip.rowHeight,
-          child: ScrollConfiguration(
-            behavior: const HorizontalDragScrollBehavior(),
-            child: Scrollbar(
-              controller: _scrollController,
-              interactive: true,
-              notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,
-              child: ListView.separated(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                primary: false,
-                padding: EdgeInsets.fromLTRB(
-                  t.space24,
-                  t.space4,
-                  t.space24,
-                  t.space8,
-                ),
-                separatorBuilder: (_, _) => SizedBox(width: t.space8),
-                itemCount: 2 + subs.length,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _AllFilterChip(
-                      label: l10n.discoverFilterAll,
-                      selected: selectedId == null,
-                      onTap: () {
-                        Haptics.selection(context);
-                        ref
-                            .read(discoverSelectedChannelProvider.notifier)
-                            .select(null);
-                      },
-                    );
-                  }
-                  if (index == 1 + subs.length) {
-                    return _ManageFilterChip(
-                      tooltip: l10n.discoverManageChannels,
-                      onTap: () {
-                        Haptics.selection(context);
-                        unawaited(showDiscoverManageChannels(context, ref));
-                      },
-                    );
-                  }
-                  final channel = subs[index - 1];
-                  return _ChannelFilterChip(
-                    channel: channel,
-                    selected: selectedId == channel.channelId,
-                    onTap: () {
-                      Haptics.selection(context);
-                      ref
-                          .read(discoverSelectedChannelProvider.notifier)
-                          .select(channel.channelId);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final gutter = pageGutterOf(context, constraints.maxWidth);
+            return SizedBox(
+              height: DiscoverChannelFilterStrip.rowHeight,
+              child: ScrollConfiguration(
+                behavior: const HorizontalDragScrollBehavior(),
+                child: Scrollbar(
+                  controller: _scrollController,
+                  interactive: true,
+                  notificationPredicate: (n) =>
+                      n.metrics.axis == Axis.horizontal,
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    primary: false,
+                    padding: EdgeInsets.fromLTRB(
+                      gutter,
+                      t.space4,
+                      gutter,
+                      t.space8,
+                    ),
+                    separatorBuilder: (_, _) => SizedBox(width: t.space8),
+                    itemCount: 2 + subs.length,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return _AllFilterChip(
+                          label: l10n.discoverFilterAll,
+                          selected: selectedId == null,
+                          onTap: () {
+                            Haptics.selection(context);
+                            ref
+                                .read(discoverSelectedChannelProvider.notifier)
+                                .select(null);
+                          },
+                        );
+                      }
+                      if (index == 1 + subs.length) {
+                        return _ManageFilterChip(
+                          tooltip: l10n.discoverManageChannels,
+                          onTap: () {
+                            Haptics.selection(context);
+                            unawaited(showDiscoverManageChannels(context, ref));
+                          },
+                        );
+                      }
+                      final channel = subs[index - 1];
+                      return _ChannelFilterChip(
+                        channel: channel,
+                        selected: selectedId == channel.channelId,
+                        onTap: () {
+                          Haptics.selection(context);
+                          ref
+                              .read(discoverSelectedChannelProvider.notifier)
+                              .select(channel.channelId);
+                        },
+                      );
                     },
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

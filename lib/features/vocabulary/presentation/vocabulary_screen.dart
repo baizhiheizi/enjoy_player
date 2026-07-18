@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_options.dart';
@@ -29,103 +31,58 @@ class VocabularyScreen extends ConsumerWidget {
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(t.space8, t.space8, t.space16, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                      onPressed: () {
-                        if (context.canPop()) {
-                          context.pop();
-                        } else {
-                          context.go('/profile');
-                        }
-                      },
-                      icon: const Icon(Icons.arrow_back_rounded),
-                    ),
-                    Expanded(
-                      child: Text(
-                        l10n.vocabularyTitle,
-                        style: tt.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-                    ),
+      child: EnjoyPage(
+        kind: EnjoyPageKind.hub,
+        title: l10n.vocabularyTitle,
+        showBack: true,
+        onBack: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/profile');
+          }
+        },
+        body: (context, metrics) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: metrics.padding(top: t.space12),
+              child: VocabularyStatsStrip(stats: stats),
+            ),
+            Padding(
+              padding: metrics.padding(top: t.space12, bottom: t.space8),
+              child: Material(
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(t.radiusMd),
+                child: TabBar(
+                  dividerColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(t.radiusSm),
+                  ),
+                  labelColor: cs.onSurface,
+                  unselectedLabelColor: cs.onSurfaceVariant,
+                  labelStyle: tt.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: tt.labelLarge,
+                  tabs: [
+                    Tab(height: 40, text: l10n.vocabularyReview),
+                    Tab(height: 40, text: l10n.vocabularyAllWords),
                   ],
                 ),
               ),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            t.space24,
-                            t.space12,
-                            t.space24,
-                            0,
-                          ),
-                          child: VocabularyStatsStrip(stats: stats),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            t.space24,
-                            t.space12,
-                            t.space24,
-                            t.space8,
-                          ),
-                          child: Material(
-                            color: cs.surfaceContainerHighest.withValues(
-                              alpha: 0.35,
-                            ),
-                            borderRadius: BorderRadius.circular(t.radiusMd),
-                            child: TabBar(
-                              dividerColor: Colors.transparent,
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              indicator: BoxDecoration(
-                                color: cs.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(t.radiusSm),
-                              ),
-                              labelColor: cs.onSurface,
-                              unselectedLabelColor: cs.onSurfaceVariant,
-                              labelStyle: tt.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              unselectedLabelStyle: tt.labelLarge,
-                              tabs: [
-                                Tab(height: 40, text: l10n.vocabularyReview),
-                                Tab(height: 40, text: l10n.vocabularyAllWords),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: TabBarView(
-                            children: [
-                              _ReviewTab(total: stats.total, due: stats.due),
-                              const VocabularyWordList(),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _ReviewTab(total: stats.total, due: stats.due),
+                  const VocabularyWordList(),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

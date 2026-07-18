@@ -11,8 +11,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_single_column.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_layout_two_pane.dart';
@@ -25,26 +25,38 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = EnjoyThemeTokens.of(context);
-    final contentMaxWidth = t.contentMaxWidth + 96;
 
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final metrics = EnjoyPageMetrics.of(
+            context,
+            kind: EnjoyPageKind.hub,
+            paneWidth: constraints.maxWidth,
+          );
           final twoPane = constraints.maxWidth >= t.breakpointRail;
           if (!twoPane) {
-            return CenteredMaxWidthScrollView(
-              maxWidth: contentMaxWidth,
-              slivers: const [
-                SliverToBoxAdapter(child: _EditorialHeaderSlot()),
-                SliverToBoxAdapter(child: SettingsSearchField()),
-                SliverToBoxAdapter(child: SettingsLayoutSingleColumn()),
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: metrics.horizontalInset,
+                  ),
+                  sliver: const SliverMainAxisGroup(
+                    slivers: [
+                      SliverToBoxAdapter(child: _EditorialHeaderSlot()),
+                      SliverToBoxAdapter(child: SettingsSearchField()),
+                      SliverToBoxAdapter(child: SettingsLayoutSingleColumn()),
+                    ],
+                  ),
+                ),
               ],
             );
           }
 
-          final twoPaneMaxWidth = contentMaxWidth + t.sidebarWidth;
+          final twoPaneMaxWidth = t.hubMaxWidth + t.sidebarWidth;
           final hPad = math.max(
-            0.0,
+            metrics.gutter,
             (constraints.maxWidth - twoPaneMaxWidth) / 2,
           );
 
@@ -73,17 +85,21 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 /// Thin slot so [EditorialHeader] can resolve [AppLocalizations] via
-/// [ConsumerWidget] and its own [LayoutBuilder] for centering, even when
-/// used outside of [CenteredMaxWidthScrollView].
+/// [ConsumerWidget] and its own [LayoutBuilder] for centering.
 class _EditorialHeaderSlot extends ConsumerWidget {
   const _EditorialHeaderSlot();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     return EditorialHeader(
       title: l10n.settingsTitle,
       subtitle: l10n.settingsSubtitle,
+      widthMode: EditorialHeaderWidthMode.column,
+      columnMaxWidth: t.hubMaxWidth,
+      // Outer padding already applied by the settings layout.
+      padding: EdgeInsets.fromLTRB(0, t.space24, 0, t.space16),
     );
   }
 }

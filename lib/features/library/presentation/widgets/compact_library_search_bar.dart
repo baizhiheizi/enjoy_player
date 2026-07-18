@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
@@ -55,35 +56,42 @@ class _CompactLibrarySearchBarState
     final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(t.space24, 0, t.space24, t.space12),
-      child: TextField(
-        focusNode: compactFocusNode,
-        controller: _controller,
-        onChanged: (v) => ref.read(librarySearchProvider.notifier).setQuery(v),
-        onSubmitted: (_) => ref.read(librarySearchProvider.notifier).commit(),
-        style: tt.bodyMedium,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: l10n.searchHint,
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: cs.onSurfaceVariant,
-            size: 20,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gutter = pageGutterOf(context, constraints.maxWidth);
+        return Padding(
+          padding: EdgeInsets.fromLTRB(gutter, 0, gutter, t.space12),
+          child: TextField(
+            focusNode: compactFocusNode,
+            controller: _controller,
+            onChanged: (v) =>
+                ref.read(librarySearchProvider.notifier).setQuery(v),
+            onSubmitted: (_) =>
+                ref.read(librarySearchProvider.notifier).commit(),
+            style: tt.bodyMedium,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: l10n.searchHint,
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: cs.onSurfaceVariant,
+                size: 20,
+              ),
+              filled: true,
+              fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(t.radiusSm),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: t.space12,
+                vertical: t.space8,
+              ),
+              isDense: true,
+            ),
           ),
-          filled: true,
-          fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(t.radiusSm),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: t.space12,
-            vertical: t.space8,
-          ),
-          isDense: true,
-        ),
-      ),
+        );
+      },
     );
   }
 }

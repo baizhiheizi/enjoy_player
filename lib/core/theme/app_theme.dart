@@ -270,6 +270,18 @@ ThemeData buildAppTheme() {
         vertical: tokens.space12,
       ),
       isDense: false,
+      labelStyle: textTheme.labelLarge?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w500,
+      ),
+      floatingLabelStyle: textTheme.labelLarge?.copyWith(
+        color: colorScheme.primary,
+        fontWeight: FontWeight.w600,
+      ),
+      helperStyle: textTheme.bodyMedium?.copyWith(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+        height: 1.35,
+      ),
     ),
     chipTheme: ChipThemeData(
       shape: RoundedRectangleBorder(

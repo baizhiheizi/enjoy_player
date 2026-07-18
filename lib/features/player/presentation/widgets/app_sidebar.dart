@@ -118,18 +118,20 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 SizedBox(
                   height: t.sidebarBrandHeight,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: t.space20),
+                    padding: EdgeInsets.symmetric(horizontal: t.space16),
                     child: Row(
                       children: [
-                        const EnjoyLogo(size: 30),
+                        const EnjoyLogo(size: 28),
                         SizedBox(width: t.space12),
                         Expanded(
                           child: Text(
                             l10n.appTitle,
                             style: tt.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
+                              letterSpacing: t.heroTitleLetterSpacing * 0.35,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -140,10 +142,10 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 // Search
                 Padding(
                   padding: EdgeInsets.fromLTRB(
-                    t.space12,
+                    t.space16,
                     0,
-                    t.space12,
-                    t.space12,
+                    t.space16,
+                    t.space16,
                   ),
                   child: Tooltip(
                     message: searchTooltip,

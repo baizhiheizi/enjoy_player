@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/profile_practice_stats_provider.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -94,7 +93,7 @@ void main() {
       );
 
       expect(find.byType(RefreshIndicator), findsOneWidget);
-      expect(find.byType(CenteredMaxWidthListView), findsOneWidget);
+      expect(find.byType(ListView), findsOneWidget);
       expect(find.byTooltip(l10n.profileRefreshTooltip), findsNothing);
 
       await _scrollUntilVisible(tester, find.text(l10n.authSignOut));

@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/centered_max_width_scroll.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
@@ -166,19 +166,22 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           ),
         ];
 
-        final contentMaxWidth = t.contentMaxWidth + 96;
-        return RefreshIndicator(
-          onRefresh: _refresh,
-          child: CenteredMaxWidthListView(
-            maxWidth: contentMaxWidth,
-            padding: EdgeInsets.fromLTRB(
-              t.space24,
-              t.space16,
-              t.space24,
-              t.space32,
-            ),
-            children: children,
-          ),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final metrics = EnjoyPageMetrics.of(
+              context,
+              kind: EnjoyPageKind.hub,
+              paneWidth: constraints.maxWidth,
+            );
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: metrics.padding(top: t.space16, bottom: t.space32),
+                children: children,
+              ),
+            );
+          },
         );
       },
       loading: () => const SkeletonProfile(),
