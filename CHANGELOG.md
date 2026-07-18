@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-07-18
+
+### Added
+
+- **Update availability badge** on Settings when a newer app version is ready.
+
+### Changed
+
+- **Android update prompts** now show download progress.
+
+### Fixed
+
+- **Transcript subtitle selection** once again offers the Auto translate option.
+
 ## [0.6.1] - 2026-07-18
 
 ### Added
