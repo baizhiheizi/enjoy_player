@@ -23,10 +23,24 @@ See [ADR-0024](decisions/0024-download-landing-page.md) for hosting decisions an
 ## Quick start
 
 1. Bump `version:` in [`pubspec.yaml`](../pubspec.yaml) and update [`CHANGELOG.md`](../CHANGELOG.md).
-2. Sync platform metadata: `bash .github/scripts/sync_release_version.sh` (Windows installer; Android/iOS/macOS read pubspec at build).
+2. Sync and verify platform metadata: `bash .github/scripts/sync_release_version.sh`. The script updates the checked-in Windows installer version; every other target derives its version from `pubspec.yaml` during build or packaging.
 3. Run the release script for your platform (see [Host matrix](#host-matrix) below).
 4. Confirm artifacts in the [output paths](#artifacts).
 5. When ready, wire up CI — see [GitHub Actions](#github-actions-later).
+
+### Version propagation
+
+`pubspec.yaml` is the source of truth for both the marketing version and build
+number (`version: X.Y.Z+N`). Do not hand-edit generated Flutter or Xcode files.
+
+| Platform | Marketing version | Build number |
+|----------|-------------------|--------------|
+| Android | `versionName` from Flutter at build time | `versionCode` from Flutter at build time |
+| iOS | `CFBundleShortVersionString` via `FLUTTER_BUILD_NAME` | `CFBundleVersion` via `FLUTTER_BUILD_NUMBER` |
+| macOS | `MARKETING_VERSION` via `FLUTTER_BUILD_NAME` | `CURRENT_PROJECT_VERSION` via `FLUTTER_BUILD_NUMBER` |
+| Windows executable | Flutter-generated `FLUTTER_VERSION` macros | Flutter-generated version macros |
+| Windows installer | `MyAppVersion`, synced by `sync_release_version.sh` | Not stored separately |
+| Linux | Flutter build metadata and AppImage filename from the pubspec version | Flutter build metadata |
 
 ---
 

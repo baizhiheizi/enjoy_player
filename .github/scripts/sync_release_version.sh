@@ -5,6 +5,7 @@
 # - Android versionName/versionCode — read from pubspec at `flutter build` time
 # - iOS/macOS CFBundle* — read from pubspec via Flutter-Generated.xcconfig
 # - Windows .exe FileVersion — read from pubspec at `flutter build` time
+# - Linux build metadata and AppImage filename — read from pubspec
 # - Windows Inno Setup installer — MyAppVersion must be synced manually (below)
 set -euo pipefail
 
@@ -30,3 +31,4 @@ echo "  windows/installer         MyAppVersion=${version}"
 echo "  android                   versionName/versionCode from pubspec at build"
 echo "  ios/macos                 CFBundle* from pubspec at build"
 echo "  windows/runner            FileVersion from pubspec at build"
+echo "  linux                     build metadata/AppImage version from pubspec"

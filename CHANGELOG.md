@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-18
+
+### Added
+
+- **Vocabulary learning workflow** with transcript lookup actions, AI-enriched review cards, persisted review sessions, cloud sync, media actions, and Pro Anki CSV export.
+- **Profile editing** with avatar upload and Enjoy ID support.
+
+### Changed
+
+- **Adaptive layouts and UI polish** across vocabulary, profile, and hotkey screens, using shared page families and gutters.
+- **Vocabulary context selection** now prefers complete sentences with a bounded fallback for unpunctuated transcripts.
+- **API timezone handling** now uses the device timezone reported by `flutter_timezone`.
+
+### Fixed
+
+- **Sync recovery** now handles duplicate catalog rows during video upload and refetches vocabulary when create responses omit `updatedAt`.
+- **Keyboard navigation** dismisses shell sheets before popping routes and returns cleanly from vocabulary review on Escape.
+- **Windows Azure assessment** now supports media paths containing non-ASCII characters.
+
 ## [0.6.0] - 2026-07-16
 
 ### Changed
