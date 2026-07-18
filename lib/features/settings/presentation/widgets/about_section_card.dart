@@ -16,6 +16,8 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/developer_contact_sheet.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
+import 'package:enjoy_player/features/update/application/update_controller.dart';
+import 'package:enjoy_player/features/update/presentation/update_notification_dot.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_host.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -172,6 +174,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                         leadingIcon: Icons.system_update_alt_rounded,
                         title: l10n.settingsCheckForUpdatesTitle,
                         subtitle: l10n.settingsCheckForUpdatesSubtitle,
+                        valueBadge: ref.watch(updateAvailableBadgeProvider)
+                            ? UpdateNotificationDot(
+                                semanticsLabel:
+                                    l10n.updateAvailableBadgeSemantics,
+                              )
+                            : null,
                         onTap: () => runManualUpdateCheck(context, ref),
                         responsive: false,
                       ),

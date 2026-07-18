@@ -26,6 +26,8 @@ import 'package:enjoy_player/features/credits/application/todays_credits_provide
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
+import 'package:enjoy_player/features/update/application/update_controller.dart';
+import 'package:enjoy_player/features/update/presentation/update_notification_dot.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -163,6 +165,11 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
                 leadingIcon: Icons.settings_outlined,
                 title: l10n.settingsTitle,
                 subtitle: l10n.settingsSubtitle,
+                valueBadge: ref.watch(updateAvailableBadgeProvider)
+                    ? UpdateNotificationDot(
+                        semanticsLabel: l10n.updateAvailableBadgeSemantics,
+                      )
+                    : null,
                 onTap: () => context.push('/settings'),
                 responsive: false,
               ),

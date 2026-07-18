@@ -42,12 +42,23 @@ The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-002
 
 `semver_compare.dart` provides `isVersionLessThan` (numeric component compare, ignoring pre-release tags; matches web `semverLessThan`).
 
+## Startup check and Settings badge
+
+Direct builds check `latest.json` on **every app launch** (no 24h debounce). When a newer version exists:
+
+- A red notification dot appears on **Profile** (bottom nav), the **Settings** row in Profile, **Check for updates** in About, and the sidebar account avatar.
+- The badge stays visible after optional **Later** / **Dismiss** (snooze only suppresses the auto-prompt).
+- The badge clears on the next successful check that finds the app up to date.
+
+`updateAvailableBadgeProvider` derives from `UpdateCheckResult.showsUpdateBadge` (`release != null`).
+
 ## Prompt UX
 
 `update_prompt_dialog.dart` is rendered by `update_prompt_host.dart` from inside the app shell (not a separate route), so it floats above whatever is on screen:
 
-- **Optional**: **Update now** / **Later** / **Dismiss**. Later snoozes for 24h (`SettingsKeys.updateSnoozeUntil` + `updateSnoozeVersion`).
+- **Optional**: **Update now** / **Later** / **Dismiss**. Later snoozes for 24h (`SettingsKeys.updateSnoozeUntil` + `updateSnoozeVersion`) and suppresses the auto-prompt only.
 - **Mandatory**: **Update now** is the only available action; the dialog blocks interaction until the user accepts (barrier and back are disabled).
+- Auto-prompt is skipped while media is playing; the badge still updates from the launch check.
 
 ### Android download progress (direct flavor)
 
@@ -73,7 +84,7 @@ Desktop direct updates still hand off to Sparkle / WinSparkle (native UI) after 
 
 ## Failure modes
 
-- **Manifest fetch fails** → swallow the error (logged) on startup. Manual check shows an offline error notice. The next app launch retries (subject to the 24h startup debounce).
+- **Manifest fetch fails** → swallow the error (logged) on startup. Manual check shows an offline error notice. The next app launch retries.
 - **Checksum mismatch** → plugin aborts install; the prompt shows a checksum error with **Retry**.
 - **Install permission denied** → prompt shows permission guidance with **Retry**.
 - **Download / install handoff fails** → inline error + **Retry**; optional prompt can still use Later.

@@ -12,6 +12,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 import 'package:enjoy_player/features/subscription/presentation/tier_reconcile_host.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/player_controller.dart';
@@ -61,6 +62,7 @@ class _RootShellState extends ConsumerState<RootShell> {
     final sessionActive = ref.watch(
       playerControllerProvider.select((s) => s != null),
     );
+    final updateBadge = ref.watch(updateAvailableBadgeProvider);
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
     final onPlayer = path.startsWith('/player/');
@@ -97,6 +99,10 @@ class _RootShellState extends ConsumerState<RootShell> {
                         icon: Icons.person_outlined,
                         selectedIcon: Icons.person_rounded,
                         label: l10n.profileTitle,
+                        showBadge: updateBadge,
+                        semanticsLabel: updateBadge
+                            ? '${l10n.profileTitle}, ${l10n.updateAvailableBadgeSemantics}'
+                            : null,
                       ),
                     ],
                   )

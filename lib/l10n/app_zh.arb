@@ -950,6 +950,7 @@
   "settingsCheckForUpdatesTitle": "检查更新",
   "settingsCheckForUpdatesSubtitle": "查看是否有新的直接下载版本",
   "updateAvailableTitle": "有可用更新",
+  "updateAvailableBadgeSemantics": "有可用更新",
   "updateMandatoryTitle": "需要更新",
   "updateVersionLine": "已安装 {current} → {latest}",
   "@updateVersionLine": {

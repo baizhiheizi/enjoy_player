@@ -2333,6 +2333,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get updateAvailableTitle => '有可用更新';
 
   @override
+  String get updateAvailableBadgeSemantics => '有可用更新';
+
+  @override
   String get updateMandatoryTitle => '需要更新';
 
   @override
@@ -4975,6 +4978,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get updateAvailableTitle => '有可用更新';
+
+  @override
+  String get updateAvailableBadgeSemantics => '有可用更新';
 
   @override
   String get updateMandatoryTitle => '需要更新';

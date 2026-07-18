@@ -65,6 +65,9 @@ class UpdateCheckResult {
   bool get hasUpdate =>
       availability == UpdateAvailability.updateAvailable ||
       availability == UpdateAvailability.mandatoryUpdate;
+
+  /// True when a newer release is known (including snoozed/dismissed prompts).
+  bool get showsUpdateBadge => release != null;
 }
 
 /// Stages of an in-progress download/install handoff.

@@ -4533,6 +4533,12 @@ abstract class AppLocalizations {
   /// **'Update available'**
   String get updateAvailableTitle;
 
+  /// No description provided for @updateAvailableBadgeSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableBadgeSemantics;
+
   /// No description provided for @updateMandatoryTitle.
   ///
   /// In en, this message translates to:

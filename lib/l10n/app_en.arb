@@ -1220,6 +1220,7 @@
   "settingsCheckForUpdatesTitle": "Check for updates",
   "settingsCheckForUpdatesSubtitle": "See if a newer direct-download build is available",
   "updateAvailableTitle": "Update available",
+  "updateAvailableBadgeSemantics": "Update available",
   "updateMandatoryTitle": "Update required",
   "updateVersionLine": "Installed {current} → {latest}",
   "@updateVersionLine": {

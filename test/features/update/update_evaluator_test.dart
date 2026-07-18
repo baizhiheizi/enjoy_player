@@ -43,7 +43,7 @@ void main() {
     expect(result.release?.severity, UpdateSeverity.mandatory);
   });
 
-  test('snooze suppresses optional prompt', () {
+  test('snooze suppresses optional prompt but keeps badge release', () {
     final until = DateTime.utc(2099, 1, 1);
     final result = evaluateUpdate(
       currentVersion: '0.1.0',
@@ -53,5 +53,7 @@ void main() {
       now: DateTime.utc(2026, 1, 1),
     );
     expect(result.hasUpdate, isFalse);
+    expect(result.showsUpdateBadge, isTrue);
+    expect(result.release?.manifest.version, '0.2.0');
   });
 }

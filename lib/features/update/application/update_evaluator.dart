@@ -32,18 +32,25 @@ UpdateCheckResult evaluateUpdate({
     );
   }
 
+  final release = AppRelease(
+    manifest: manifest,
+    severity: UpdateSeverity.optional,
+    currentVersion: currentVersion,
+  );
+
   if (snoozedVersion == manifest.version &&
       snoozeUntil != null &&
       clock.isBefore(snoozeUntil)) {
-    return const UpdateCheckResult.upToDate();
+    // Suppress the prompt, but keep [release] so the Settings badge can still
+    // indicate that a newer build exists.
+    return UpdateCheckResult(
+      availability: UpdateAvailability.upToDate,
+      release: release,
+    );
   }
 
   return UpdateCheckResult(
     availability: UpdateAvailability.updateAvailable,
-    release: AppRelease(
-      manifest: manifest,
-      severity: UpdateSeverity.optional,
-      currentVersion: currentVersion,
-    ),
+    release: release,
   );
 }

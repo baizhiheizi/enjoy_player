@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/release/distribution_channel.dart';
+import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/update/application/update_controller.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_dialog.dart';
@@ -43,6 +44,8 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
   Widget build(BuildContext context) {
     ref.listen<UpdateCheckResult?>(updateCtrlProvider, (prev, next) {
       if (next == null || !next.hasUpdate || _showingPrompt) return;
+      // Still refresh the badge during playback; only delay the modal.
+      if (ref.read(playerIsPlayingProvider).value ?? false) return;
       unawaited(_maybeShowPrompt(next));
     });
     return widget.child;

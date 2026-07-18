@@ -11,7 +11,6 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/release/distribution_channel.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
-import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/update/application/update_providers.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 
@@ -19,10 +18,7 @@ part 'update_controller.g.dart';
 
 final _log = logNamed('update');
 
-/// Minimum interval between automatic startup checks.
-const Duration kUpdateStartupDebounce = Duration(hours: 24);
-
-/// Snooze duration for optional updates.
+/// Snooze duration for optional updates (suppresses auto-prompt only).
 const Duration kUpdateSnoozeDuration = Duration(hours: 24);
 
 @Riverpod(keepAlive: true)
@@ -37,16 +33,9 @@ class UpdateCtrl extends _$UpdateCtrl {
     });
   }
 
+  /// Runs on every app launch (no debounce). Always refreshes badge state.
   Future<UpdateCheckResult> checkForUpdatesStartup() async {
     if (!isDirectDistributionChannel) {
-      return const UpdateCheckResult.upToDate();
-    }
-    if (_isPlaybackActive()) {
-      return const UpdateCheckResult.upToDate();
-    }
-    final last = await _readLastCheck();
-    if (last != null &&
-        DateTime.now().toUtc().difference(last) < kUpdateStartupDebounce) {
       return const UpdateCheckResult.upToDate();
     }
     return _runCheck(persistLastCheck: true);
@@ -70,7 +59,11 @@ class UpdateCtrl extends _$UpdateCtrl {
       SettingsKeys.updateSnoozeVersion,
       release.manifest.version,
     );
-    state = const UpdateCheckResult.upToDate();
+    // Keep [release] so the Settings badge remains visible while snoozed.
+    state = UpdateCheckResult(
+      availability: UpdateAvailability.upToDate,
+      release: release,
+    );
   }
 
   /// Starts the pending update and yields install progress for the UI.
@@ -103,8 +96,13 @@ class UpdateCtrl extends _$UpdateCtrl {
   }
 
   void dismissOptionalPrompt() {
-    if (state?.release?.severity == UpdateSeverity.optional) {
-      state = const UpdateCheckResult.upToDate();
+    final release = state?.release;
+    if (release?.severity == UpdateSeverity.optional) {
+      // Suppress re-prompt for this result, but keep the badge.
+      state = UpdateCheckResult(
+        availability: UpdateAvailability.upToDate,
+        release: release,
+      );
     }
   }
 
@@ -124,13 +122,13 @@ class UpdateCtrl extends _$UpdateCtrl {
       if (persistLastCheck) {
         await _writeLastCheck(DateTime.now().toUtc());
       }
-      if (result.hasUpdate && !_isPlaybackActive()) {
+      if (result.hasUpdate || result.showsUpdateBadge) {
         state = result;
-      } else if (force && !result.hasUpdate && result.errorMessage == null) {
+      } else if (force && result.errorMessage == null) {
         state = result;
       } else if (force && result.errorMessage != null) {
         state = result;
-      } else if (!result.hasUpdate) {
+      } else if (!result.hasUpdate && !result.showsUpdateBadge) {
         state = result;
       }
       return result;
@@ -143,19 +141,6 @@ class UpdateCtrl extends _$UpdateCtrl {
       if (force) state = failed;
       return failed;
     }
-  }
-
-  bool _isPlaybackActive() {
-    return ref.read(playerIsPlayingProvider).value ?? false;
-  }
-
-  Future<DateTime?> _readLastCheck() async {
-    final raw = await ref
-        .read(deviceGlobalAppDatabaseProvider)
-        .settingsDao
-        .getValue(SettingsKeys.updateLastCheckAt);
-    if (raw == null || raw.isEmpty) return null;
-    return DateTime.tryParse(raw)?.toUtc();
   }
 
   Future<({String? version, DateTime? until})> _readSnooze() async {
@@ -178,4 +163,10 @@ class UpdateCtrl extends _$UpdateCtrl {
         .settingsDao
         .setValue(SettingsKeys.updateLastCheckAt, at.toIso8601String());
   }
+}
+
+/// Whether Settings / Profile should show an update notification dot.
+@Riverpod(keepAlive: true)
+bool updateAvailableBadge(Ref ref) {
+  return ref.watch(updateCtrlProvider)?.showsUpdateBadge ?? false;
 }

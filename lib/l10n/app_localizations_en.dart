@@ -2436,6 +2436,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateAvailableTitle => 'Update available';
 
   @override
+  String get updateAvailableBadgeSemantics => 'Update available';
+
+  @override
   String get updateMandatoryTitle => 'Update required';
 
   @override

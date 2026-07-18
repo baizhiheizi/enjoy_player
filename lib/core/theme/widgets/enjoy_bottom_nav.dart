@@ -12,6 +12,7 @@ class EnjoyBottomNavDestination {
     required this.selectedIcon,
     required this.label,
     this.semanticsLabel,
+    this.showBadge = false,
   });
 
   final IconData icon;
@@ -20,6 +21,9 @@ class EnjoyBottomNavDestination {
 
   /// Defaults to [label] when null.
   final String? semanticsLabel;
+
+  /// Small notification dot on the icon (e.g. pending app update).
+  final bool showBadge;
 }
 
 class EnjoyBottomNav extends StatelessWidget {
@@ -141,14 +145,38 @@ class _EnjoyBottomNavItem extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          selected
-                              ? destination.selectedIcon
-                              : destination.icon,
-                          size: 24,
-                          color: selected
-                              ? cs.onPrimaryContainer
-                              : cs.onSurfaceVariant,
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Icon(
+                              selected
+                                  ? destination.selectedIcon
+                                  : destination.icon,
+                              size: 24,
+                              color: selected
+                                  ? cs.onPrimaryContainer
+                                  : cs.onSurfaceVariant,
+                            ),
+                            if (destination.showBadge)
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: cs.error,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: selected
+                                          ? cs.primaryContainer
+                                          : cs.surfaceContainerLow,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         SizedBox(height: t.space4),
                         Text(
