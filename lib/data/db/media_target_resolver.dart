@@ -34,10 +34,9 @@ Future<PlayableSource?> resolvePlayableSource(
     }
   }
 
-  final netUri = video?.mediaUrl ?? audio?.mediaUrl;
-  if (netUri != null && netUri.isNotEmpty) {
-    return RemoteUrlPlayableSource(netUri);
-  }
+  // Local-first (ADR-0013 / ADR-0050): prefer a trusted on-disk file over
+  // metadata `mediaUrl`. Synced rows often keep both; opening an unplayable
+  // remote URL while a good local file exists leaves the player stuck loading.
   final local = video?.localUri ?? audio?.localUri;
   final trusted = await localUriTrusted(
     localUri: local,
@@ -46,6 +45,10 @@ Future<PlayableSource?> resolvePlayableSource(
   );
   if (trusted) {
     return LocalFilePlayableSource(local!);
+  }
+  final netUri = video?.mediaUrl ?? audio?.mediaUrl;
+  if (netUri != null && netUri.isNotEmpty) {
+    return RemoteUrlPlayableSource(netUri);
   }
   return null;
 }
@@ -68,10 +71,6 @@ Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
     }
   }
 
-  final netUri = video?.mediaUrl ?? audio?.mediaUrl;
-  if (netUri != null && netUri.isNotEmpty) {
-    return netUri;
-  }
   final local = video?.localUri ?? audio?.localUri;
   final trusted = await localUriTrusted(
     localUri: local,
@@ -80,6 +79,10 @@ Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
   );
   if (trusted) {
     return local;
+  }
+  final netUri = video?.mediaUrl ?? audio?.mediaUrl;
+  if (netUri != null && netUri.isNotEmpty) {
+    return netUri;
   }
   return null;
 }

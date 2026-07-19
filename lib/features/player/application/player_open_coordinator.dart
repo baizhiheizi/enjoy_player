@@ -49,7 +49,11 @@ Future<void> runPlayerOpen(
 
   final db = ref.read(appDatabaseProvider);
   final resolved = await resolvePlaybackOpen(db, mediaId);
-  if (resolved == null) return;
+  if (resolved == null) {
+    // Do not silently succeed — ExpandedPlayerScreen would stay on the
+    // loading skeleton forever (open completes, session never publishes).
+    throw StateError('No playable source for media $mediaId');
+  }
   if (host.isOpenStale(gen)) return;
 
   final video = resolved.video;

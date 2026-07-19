@@ -224,7 +224,11 @@ class YoutubeWebViewController {
       _events.cancelPendingVolumeRestore();
       _bumpVerifyGeneration();
       _pollLoop.stop();
-      session.mountTick.value++;
+      // Defer: notifying during StatefulElement.unmount locks the tree
+      // (ValueListenableBuilder markNeedsBuild assertion).
+      scheduleMicrotask(() {
+        session.mountTick.value++;
+      });
     }
   }
 

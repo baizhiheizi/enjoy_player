@@ -16,7 +16,9 @@ import 'package:enjoy_player/features/player/presentation/layouts/audio_player_l
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
 
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
@@ -56,13 +58,48 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
               ),
             )
           else
-            const Center(child: SkeletonAppBootstrap()),
+            // Claim the permanent MediaKit surface during open (ADR-0057) so
+            // warmVideoSurface / Video are not parked off-screen for the whole
+            // resolve → open window.
+            const Align(
+              alignment: Alignment.topCenter,
+              child: _LocalLoadingVideoStage(),
+            ),
           if (!isYoutube)
             const Align(
               alignment: Alignment.topCenter,
               child: _VideoCollapseOnlyOverlay(),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// 16:9 portal target while local / URL [openMedia] is in flight.
+class _LocalLoadingVideoStage extends StatelessWidget {
+  const _LocalLoadingVideoStage();
+
+  static const double aspectWidth = 16;
+  static const double aspectHeight = 9;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: true,
+      bottom: false,
+      left: false,
+      right: false,
+      child: AspectRatio(
+        aspectRatio: aspectWidth / aspectHeight,
+        child: PlayerSurfaceTarget(
+          id: PlayerSurfaceIds.expandedPlayerLoading,
+          overlayBuilder: (_) => const SizedBox.shrink(),
+          child: const ColoredBox(
+            color: Colors.black,
+            child: Center(child: SkeletonAppBootstrap()),
+          ),
+        ),
       ),
     );
   }

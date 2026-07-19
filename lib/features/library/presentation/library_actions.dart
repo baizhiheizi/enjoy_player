@@ -150,7 +150,14 @@ Future<void> confirmAndDeleteMedia(
   );
   if (confirmed != true || !context.mounted) return;
   try {
+    final session = ref.read(playerControllerProvider);
     await ref.read(mediaLibraryRepositoryProvider).deleteMedia(media.id);
+    if (!context.mounted) return;
+    // Drop the playback session so a same-id re-import cannot early-return
+    // from openMedia without reopening the new local file.
+    if (session?.mediaId == media.id) {
+      await ref.read(playerControllerProvider.notifier).clear();
+    }
     if (!context.mounted) return;
     final openId = GoRouterState.of(context).pathParameters['mediaId'];
     if (openId == media.id) {

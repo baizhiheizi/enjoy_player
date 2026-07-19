@@ -15,6 +15,11 @@ import 'package:enjoy_player/features/player/application/player_engine_test_doub
 /// [openGeneration] must match [currentOpenGeneration] before and after each
 /// async step so concurrent [openMedia] calls cannot dispose another call's
 /// engine mid-flight.
+///
+/// Per ADR-0057, the permanent [PlayerSurfaceHost] keys its stage by engine
+/// identity. We must **swap + bump first** so the host drops the old
+/// `buildVideoStage`, then dispose the previous engine — never dispose while
+/// the host still mounts that engine's platform view.
 Future<void> ensureEngineForPlayableSource(
   Ref ref, {
   required PlayableSource playable,
@@ -32,20 +37,31 @@ Future<void> ensureEngineForPlayableSource(
 
   if (wantYt && !haveYt) {
     if (currentOpenGeneration() != openGeneration) return;
+    final next = YoutubePlayerEngine();
+    setOwnedEngine(next);
+    ref.read(playerEngineRevProvider.notifier).bump();
+    // Let PlayerSurfaceHost drop the old ObjectKey stage before teardown.
+    await Future<void>.delayed(Duration.zero);
+    if (currentOpenGeneration() != openGeneration) {
+      await next.dispose();
+      return;
+    }
     if (owned != null) {
       await owned.dispose();
-      if (currentOpenGeneration() != openGeneration) return;
     }
-    setOwnedEngine(YoutubePlayerEngine());
-    ref.read(playerEngineRevProvider.notifier).bump();
     return;
   }
 
   if (!wantYt && haveYt) {
     if (currentOpenGeneration() != openGeneration) return;
-    await owned.dispose();
-    if (currentOpenGeneration() != openGeneration) return;
-    setOwnedEngine(MediaKitPlayerEngine());
+    final next = MediaKitPlayerEngine();
+    setOwnedEngine(next);
     ref.read(playerEngineRevProvider.notifier).bump();
+    await Future<void>.delayed(Duration.zero);
+    if (currentOpenGeneration() != openGeneration) {
+      await next.dispose();
+      return;
+    }
+    await owned.dispose();
   }
 }

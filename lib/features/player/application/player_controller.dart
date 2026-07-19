@@ -403,13 +403,15 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
       owned.warmVideoSurface();
       return;
     }
-    if (owned != null) {
-      unawaited(owned.dispose());
-    }
+    // Swap + bump first (ADR-0057) so PlayerSurfaceHost drops the old stage
+    // before the previous engine is disposed.
     _ownedEngine = YoutubePlayerEngine(
       repeatMode: () => ref.read(playerPreferencesCtrlProvider).repeatMode,
     );
     ref.read(playerEngineRevProvider.notifier).bump();
+    if (owned != null) {
+      unawaited(owned.dispose());
+    }
     _ownedEngine!.warmVideoSurface();
   }
 
