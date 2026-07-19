@@ -121,6 +121,91 @@ class ApiClient {
     allowEmptyBody: true,
   );
 
+  /// PUT raw bytes to a relative API path with optional bearer auth.
+  ///
+  /// Used for Worker media upload (`PUT /audio/media/:ref`). Returns decoded
+  /// JSON object with camelCase keys when the body is a JSON object.
+  Future<Map<String, dynamic>> putBytesJson(
+    String path, {
+    required List<int> bytes,
+    required String contentType,
+    bool requireAuth = true,
+  }) async {
+    final base = _trimTrailingSlash(await getBaseUrl());
+    final uriBase = Uri.parse(base);
+    final pathUri = Uri.parse(path);
+    final merged = uriBase.resolveUri(pathUri);
+
+    String? bearer;
+    if (sendAuthHeader && requireAuth) {
+      final token = await getAccessToken();
+      if (token == null || token.isEmpty) {
+        if (refreshAccessToken != null) {
+          final ok = await refreshAccessToken!();
+          if (ok) {
+            final newToken = await getAccessToken();
+            if (newToken != null && newToken.isNotEmpty) {
+              bearer = newToken;
+            }
+          }
+        }
+      } else {
+        bearer = token;
+      }
+      if (bearer == null) {
+        throw const ApiException(message: 'Not authenticated', statusCode: 401);
+      }
+    }
+
+    final request = http.Request('PUT', merged)..bodyBytes = bytes;
+    request.headers['Accept'] = 'application/json';
+    request.headers['Content-Type'] = contentType;
+    if (bearer != null) {
+      request.headers['Authorization'] = 'Bearer $bearer';
+    }
+
+    final sw = Stopwatch()..start();
+    _apiHttpTrace('HTTP → PUT $merged (bytes len=${bytes.length})');
+    try {
+      final streamed = await _client.send(request);
+      final bodyBytes = await streamed.stream.toBytes();
+      sw.stop();
+      final response = http.Response.bytes(
+        bodyBytes,
+        streamed.statusCode,
+        headers: streamed.headers,
+        request: request,
+      );
+      _apiHttpTrace(
+        'HTTP ← PUT $merged ${response.statusCode} '
+        '${sw.elapsedMilliseconds}ms len=${bodyBytes.length}',
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = await _decodeResponseBody(response);
+        final map = castJsonObjectOrNull(decoded);
+        if (map == null) {
+          throw ApiException(
+            message: 'Expected JSON object',
+            statusCode: response.statusCode,
+            body: decoded,
+          );
+        }
+        return map;
+      }
+      await _throwApiError(response);
+      throw AssertionError('unreachable');
+    } catch (e, st) {
+      sw.stop();
+      _log.warning(
+        'HTTP ✗ PUT $merged after ${sw.elapsedMilliseconds}ms: $e',
+        e,
+        st,
+      );
+      rethrow;
+    }
+  }
+
   /// PUT raw bytes to an absolute URL (e.g. Active Storage direct-upload target).
   ///
   /// Does not attach the Enjoy bearer token — storage backends use [headers]

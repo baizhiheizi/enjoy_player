@@ -115,6 +115,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get asrStatusExtracting => 'Extracting audio…';
 
   @override
+  String get asrStatusUploading => 'Uploading audio…';
+
+  @override
   String get asrLanguageTitle => 'Spoken language';
 
   @override
@@ -122,6 +125,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusPolling => 'Transcribing…';
 
   @override
   String get asrStatusSaving => 'Saving…';
@@ -155,6 +161,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorUnsupportedMedia =>
+      'This audio format isn\'t supported for long transcription';
+
+  @override
+  String get asrErrorProviderTimeout =>
+      'Transcription timed out. Please try again.';
+
+  @override
+  String get asrErrorProviderRetryable =>
+      'Transcription failed. Please try again.';
 
   @override
   String get asrErrorByokMissing =>
@@ -3284,6 +3302,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get asrStatusExtracting => '正在提取音频…';
 
   @override
+  String get asrStatusUploading => '正在上传音频…';
+
+  @override
   String get asrLanguageTitle => '语音语言';
 
   @override
@@ -3291,6 +3312,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get asrStatusRecognizing => '正在识别…';
+
+  @override
+  String get asrStatusPolling => '正在转写…';
 
   @override
   String get asrStatusSaving => '正在保存…';
@@ -3321,6 +3345,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get asrErrorUnsupportedSource => '不支持此来源';
+
+  @override
+  String get asrErrorUnsupportedMedia => '此音频格式不支持长音频转写';
+
+  @override
+  String get asrErrorProviderTimeout => '转写超时，请重试。';
+
+  @override
+  String get asrErrorProviderRetryable => '转写失败，请重试。';
 
   @override
   String get asrErrorByokMissing => '请先配置 AI 服务以生成字幕';

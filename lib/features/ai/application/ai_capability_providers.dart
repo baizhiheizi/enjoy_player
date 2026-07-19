@@ -36,7 +36,10 @@ part 'ai_capability_providers.g.dart';
 AsrCapability resolveAsrCapability(Ref ref, AIServiceConfig config) {
   switch (config.provider) {
     case AIProvider.enjoy:
-      return EnjoyAsrCapability(ref.read(asrApiProvider));
+      return EnjoyAsrCapability(
+        ref.read(asrApiProvider),
+        uploadApi: ref.read(asrMediaUploadApiProvider),
+      );
     case AIProvider.byok:
       final speechByok = config.speechByok;
       if (speechByok == null) return const ByokNotConfiguredAsrCapability();

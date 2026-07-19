@@ -291,6 +291,12 @@ abstract class AppLocalizations {
   /// **'Extracting audio…'**
   String get asrStatusExtracting;
 
+  /// No description provided for @asrStatusUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading audio…'**
+  String get asrStatusUploading;
+
   /// No description provided for @asrLanguageTitle.
   ///
   /// In en, this message translates to:
@@ -308,6 +314,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recognizing…'**
   String get asrStatusRecognizing;
+
+  /// No description provided for @asrStatusPolling.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribing…'**
+  String get asrStatusPolling;
 
   /// No description provided for @asrStatusSaving.
   ///
@@ -368,6 +380,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This source isn\'t supported'**
   String get asrErrorUnsupportedSource;
+
+  /// No description provided for @asrErrorUnsupportedMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'This audio format isn\'t supported for long transcription'**
+  String get asrErrorUnsupportedMedia;
+
+  /// No description provided for @asrErrorProviderTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcription timed out. Please try again.'**
+  String get asrErrorProviderTimeout;
+
+  /// No description provided for @asrErrorProviderRetryable.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcription failed. Please try again.'**
+  String get asrErrorProviderRetryable;
 
   /// No description provided for @asrErrorByokMissing.
   ///

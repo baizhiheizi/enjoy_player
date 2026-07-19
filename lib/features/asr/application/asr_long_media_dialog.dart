@@ -7,16 +7,15 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/features/asr/domain/asr_long_form_constants.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-const int _kLongMediaThresholdSeconds = 30 * 60;
 
 Future<bool?> showAsrLongMediaConfirmDialog(
   BuildContext context, {
   required int mediaDurationSeconds,
 }) {
-  // Only show for media that crosses the threshold.
-  if (mediaDurationSeconds < _kLongMediaThresholdSeconds) {
+  // Only show for media that crosses the long-form Enjoy gate (15 min).
+  if (mediaDurationSeconds < kLongFormMinDurationSeconds) {
     return Future.value(true);
   }
   final minutes = (mediaDurationSeconds / 60).round();

@@ -81,3 +81,4 @@ Trade-offs, follow-up work, risks.
 | [0055](0055-adaptive-page-layout-system.md) | Adaptive page layout system (`EnjoyPage` / browse·hub·form widths) |
 | [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads |
 | [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |
+| [0058](0058-enjoy-deepgram-long-form-asr.md) | Enjoy long-form ASR via Worker Deepgram jobs (≥900s upload/submit/poll) |

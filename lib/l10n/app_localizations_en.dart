@@ -119,6 +119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get asrStatusExtracting => 'Extracting audio…';
 
   @override
+  String get asrStatusUploading => 'Uploading audio…';
+
+  @override
   String get asrLanguageTitle => 'Spoken language';
 
   @override
@@ -126,6 +129,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusPolling => 'Transcribing…';
 
   @override
   String get asrStatusSaving => 'Saving…';
@@ -159,6 +165,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorUnsupportedMedia =>
+      'This audio format isn\'t supported for long transcription';
+
+  @override
+  String get asrErrorProviderTimeout =>
+      'Transcription timed out. Please try again.';
+
+  @override
+  String get asrErrorProviderRetryable =>
+      'Transcription failed. Please try again.';
 
   @override
   String get asrErrorByokMissing =>

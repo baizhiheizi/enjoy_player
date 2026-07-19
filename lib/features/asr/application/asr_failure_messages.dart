@@ -9,6 +9,7 @@ library;
 
 import 'package:enjoy_player/features/asr/application/asr_generation_job.dart';
 import 'package:enjoy_player/features/asr/domain/asr_audio_extraction_failure.dart';
+import 'package:enjoy_player/features/asr/domain/asr_long_form_job_exception.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// ARB key for a given extraction failure reason.
@@ -27,6 +28,25 @@ String asrExtractionMessageKey(AsrAudioExtractionFailureReason reason) {
   }
 }
 
+/// ARB key for Enjoy long-form job failures.
+String asrLongFormFailureMessageKey(AsrLongFormJobException e) {
+  switch (e.category) {
+    case 'billing_exhausted':
+    case 'credits_exhausted':
+      return 'asrErrorCreditsExhausted';
+    case 'unsupported_media':
+      return 'asrErrorUnsupportedMedia';
+    case 'provider_timeout':
+      return 'asrErrorProviderTimeout';
+    case 'provider_failure':
+      return e.retryable ? 'asrErrorProviderRetryable' : 'asrErrorGeneric';
+    case 'cancelled':
+      return 'asrStatusCancelled';
+    default:
+      return e.retryable ? 'asrErrorProviderRetryable' : 'asrErrorGeneric';
+  }
+}
+
 /// The localized message key for a terminal [AsrGenerationPhase.error]
 /// or `cancelled` state. Returns the ARB key, never raw exception text.
 String asrPhaseMessageKey(AsrGenerationPhase phase) {
@@ -39,8 +59,12 @@ String asrPhaseMessageKey(AsrGenerationPhase phase) {
       return 'asrStatusSuccess';
     case AsrGenerationPhase.extracting:
       return 'asrStatusExtracting';
+    case AsrGenerationPhase.uploading:
+      return 'asrStatusUploading';
     case AsrGenerationPhase.recognizing:
       return 'asrStatusRecognizing';
+    case AsrGenerationPhase.polling:
+      return 'asrStatusPolling';
     case AsrGenerationPhase.persisting:
       return 'asrStatusSaving';
     case AsrGenerationPhase.idle:
@@ -53,8 +77,12 @@ String asrMessageForKey(AppLocalizations l10n, String? key) {
   switch (key) {
     case 'asrStatusExtracting':
       return l10n.asrStatusExtracting;
+    case 'asrStatusUploading':
+      return l10n.asrStatusUploading;
     case 'asrStatusRecognizing':
       return l10n.asrStatusRecognizing;
+    case 'asrStatusPolling':
+      return l10n.asrStatusPolling;
     case 'asrStatusSaving':
       return l10n.asrStatusSaving;
     case 'asrStatusSuccess':
@@ -71,6 +99,12 @@ String asrMessageForKey(AppLocalizations l10n, String? key) {
       return l10n.asrErrorFileTooLarge;
     case 'asrErrorUnsupportedSource':
       return l10n.asrErrorUnsupportedSource;
+    case 'asrErrorUnsupportedMedia':
+      return l10n.asrErrorUnsupportedMedia;
+    case 'asrErrorProviderTimeout':
+      return l10n.asrErrorProviderTimeout;
+    case 'asrErrorProviderRetryable':
+      return l10n.asrErrorProviderRetryable;
     case 'asrErrorByokMissing':
       return l10n.asrErrorByokMissing;
     case 'asrErrorCreditsExhausted':

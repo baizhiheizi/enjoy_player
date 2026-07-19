@@ -11,8 +11,14 @@ enum AsrGenerationPhase {
   /// FFmpeg is extracting audio from a video source.
   extracting,
 
-  /// `AsrService.transcribe` is running.
+  /// Uploading recognition audio to Worker storage (Enjoy long-form).
+  uploading,
+
+  /// `AsrService.transcribe` is running (short-clip sync recognition).
   recognizing,
+
+  /// Polling Enjoy long-form job status.
+  polling,
 
   /// The resulting `TranscriptLine[]` is being upserted to Drift.
   persisting,
@@ -39,6 +45,7 @@ class AsrGenerationJob {
     this.startedAt,
     this.completedAt,
     this.trackId,
+    this.creditsCharged,
   });
 
   final String mediaId;
@@ -68,6 +75,9 @@ class AsrGenerationJob {
   /// to confirm the new row is the active primary.
   final String? trackId;
 
+  /// Credits charged for a completed Enjoy long-form job, when reported.
+  final int? creditsCharged;
+
   AsrGenerationJob copyWith({
     AsrGenerationPhase? phase,
     String? detectedLanguage,
@@ -76,6 +86,7 @@ class AsrGenerationJob {
     DateTime? startedAt,
     DateTime? completedAt,
     String? trackId,
+    int? creditsCharged,
   }) {
     return AsrGenerationJob(
       mediaId: mediaId,
@@ -87,6 +98,7 @@ class AsrGenerationJob {
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       trackId: trackId ?? this.trackId,
+      creditsCharged: creditsCharged ?? this.creditsCharged,
     );
   }
 }
