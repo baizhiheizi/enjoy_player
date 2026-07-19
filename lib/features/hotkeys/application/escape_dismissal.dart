@@ -25,6 +25,7 @@ class EscapeDismissalContext {
     required this.isRecordingActive,
     required this.shellHasPopupRoute,
     required this.rootHasPopupRoute,
+    required this.vocabularyPracticeOpen,
     required this.goRouterCanPop,
     required this.path,
     required this.isDesktop,
@@ -39,6 +40,9 @@ class EscapeDismissalContext {
 
   /// Top route on GoRouter's root navigator is a [PopupRoute].
   final bool rootHasPopupRoute;
+
+  /// In-tree vocabulary review practice overlay (not a [PopupRoute]).
+  final bool vocabularyPracticeOpen;
   final bool goRouterCanPop;
   final String path;
   final bool isDesktop;
@@ -52,6 +56,7 @@ enum EscapeDismissalAction {
   cancelRecording,
   popShellPopup,
   popRootPopup,
+  clearVocabularyPractice,
   popGoRouter,
   noopOnPlayer,
 }
@@ -64,6 +69,9 @@ EscapeDismissalAction? resolveEscapeDismissal(EscapeDismissalContext ctx) {
   if (ctx.isRecordingActive) return EscapeDismissalAction.cancelRecording;
   if (ctx.shellHasPopupRoute) return EscapeDismissalAction.popShellPopup;
   if (ctx.rootHasPopupRoute) return EscapeDismissalAction.popRootPopup;
+  if (ctx.vocabularyPracticeOpen) {
+    return EscapeDismissalAction.clearVocabularyPractice;
+  }
   if (ctx.onPlayerRoute) return EscapeDismissalAction.noopOnPlayer;
   if (ctx.goRouterCanPop) return EscapeDismissalAction.popGoRouter;
   return null;

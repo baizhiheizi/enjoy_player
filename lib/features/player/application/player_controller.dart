@@ -17,7 +17,9 @@ import 'package:enjoy_player/features/player/application/player_open_coordinator
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/domain/echo_window.dart';
+import 'package:enjoy_player/features/player/domain/open_media_options.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
@@ -266,10 +268,23 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     state = null;
     await openMedia(mediaId);
     ref.invalidate(openMediaActionProvider(mediaId));
+    ref.invalidate(
+      openMediaLaunchProvider(PlayerLaunchRequest(mediaId: mediaId)),
+    );
   }
 
-  Future<void> openMedia(String mediaId) async {
-    if (state?.mediaId == mediaId) return;
+  Future<void> openMedia(
+    String mediaId, {
+    OpenMediaOptions options = OpenMediaOptions.defaults,
+  }) async {
+    if (state?.mediaId == mediaId) {
+      // Same media already open — still honor explicit launches that must
+      // clear restored echo before the caller seeks.
+      if (!options.restoreEcho) {
+        ref.read(echoModeProvider.notifier).deactivate();
+      }
+      return;
+    }
 
     final gen = ++_openGeneration;
     _bumpPlaybackGen();
@@ -278,6 +293,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
       this,
       ref,
       mediaId,
+      options: options,
       onFailureResetSession: () {
         if (gen == _openGeneration) {
           state = null;
@@ -342,7 +358,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     _startCompletionLoop();
   }
 
-  Future<void> clear() async {
+  Future<void> clear({bool keepVideoSurface = false}) async {
     _bumpPlaybackGen();
     await _positionTracker.cancel();
 
@@ -374,7 +390,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     final ytEngine = ownedEngine is YoutubePlayerEngine ? ownedEngine : null;
     switch (teardown) {
       case TeardownIdle():
-        await ytEngine!.idleAfterClear();
+        await ytEngine!.idleAfterClear(keepMounted: keepVideoSurface);
       case TeardownStop():
         await engine.stop();
     }

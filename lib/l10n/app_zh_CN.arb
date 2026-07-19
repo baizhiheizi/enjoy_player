@@ -964,6 +964,20 @@
   "vocabularyOpenInPlayerDescription": "打开播放器将结束本次复习。已保存的评分不会丢失。",
   "vocabularyShadowReading": "跟读",
   "vocabularyShadowReadingDescription": "前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。",
+  "vocabularyEchoReading": "回声跟读",
+  "vocabularyPracticeDismiss": "关闭练习",
+  "vocabularyPracticePause": "暂停",
+  "vocabularyStatsExpand": "显示状态明细",
+  "vocabularyStatsCollapse": "隐藏状态明细",
+  "vocabularyPreviousContext": "上一个语境",
+  "vocabularyNextContext": "下一个语境",
+  "vocabularyContextOfTotal": "第 {current} / {total} 个",
+  "@vocabularyContextOfTotal": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "vocabularyContextualTranslation": "语境翻译",
   "vocabularyFetchDictionary": "查询词典",
   "vocabularyFetchContextual": "翻译语境",

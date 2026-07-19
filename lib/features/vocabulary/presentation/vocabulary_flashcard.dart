@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_source_t
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_text_style.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/widgets/vocabulary_context_pager.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Formats IPA with a single leading/trailing slash pair.
@@ -58,6 +59,11 @@ class VocabularyFlashcard extends ConsumerWidget {
     required this.onPlayClip,
     required this.onOpenInPlayer,
     required this.onShadowReading,
+    this.contextsCount = 0,
+    this.activeContextIndex = 0,
+    this.onPreviousContext,
+    this.onNextContext,
+    this.actionsEnabled = true,
   });
 
   final VocabularyItem item;
@@ -78,6 +84,11 @@ class VocabularyFlashcard extends ConsumerWidget {
   final VoidCallback onPlayClip;
   final VoidCallback onOpenInPlayer;
   final VoidCallback onShadowReading;
+  final int contextsCount;
+  final int activeContextIndex;
+  final VoidCallback? onPreviousContext;
+  final VoidCallback? onNextContext;
+  final bool actionsEnabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,6 +128,11 @@ class VocabularyFlashcard extends ConsumerWidget {
                 onPlayClip: onPlayClip,
                 onOpenInPlayer: onOpenInPlayer,
                 onShadowReading: onShadowReading,
+                contextsCount: contextsCount,
+                activeContextIndex: activeContextIndex,
+                onPreviousContext: onPreviousContext,
+                onNextContext: onNextContext,
+                actionsEnabled: actionsEnabled,
               ),
             )
           : KeyedSubtree(
@@ -124,7 +140,7 @@ class VocabularyFlashcard extends ConsumerWidget {
               child: _FlashcardFront(
                 word: item.word,
                 contextText: primaryContext?.text,
-                onFlip: onFlip,
+                onFlip: actionsEnabled ? onFlip : () {},
               ),
             ),
     );
@@ -258,6 +274,11 @@ class _FlashcardBack extends StatelessWidget {
     required this.onPlayClip,
     required this.onOpenInPlayer,
     required this.onShadowReading,
+    required this.contextsCount,
+    required this.activeContextIndex,
+    this.onPreviousContext,
+    this.onNextContext,
+    required this.actionsEnabled,
   });
 
   final VocabularyItem item;
@@ -276,6 +297,11 @@ class _FlashcardBack extends StatelessWidget {
   final VoidCallback onPlayClip;
   final VoidCallback onOpenInPlayer;
   final VoidCallback onShadowReading;
+  final int contextsCount;
+  final int activeContextIndex;
+  final VoidCallback? onPreviousContext;
+  final VoidCallback? onNextContext;
+  final bool actionsEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -356,6 +382,11 @@ class _FlashcardBack extends StatelessWidget {
                           onPlayClip: onPlayClip,
                           onOpenInPlayer: onOpenInPlayer,
                           onShadowReading: onShadowReading,
+                          contextsCount: contextsCount,
+                          activeContextIndex: activeContextIndex,
+                          onPreviousContext: onPreviousContext,
+                          onNextContext: onNextContext,
+                          actionsEnabled: actionsEnabled,
                         ),
                       ),
                       _TabBody(
@@ -396,7 +427,7 @@ class _FlashcardBack extends StatelessWidget {
                       ),
                       SizedBox(height: t.space8),
                       _RatingBar(
-                        ratingInFlight: ratingInFlight,
+                        ratingInFlight: ratingInFlight || !actionsEnabled,
                         onRate: onRate,
                       ),
                       TextButton(
@@ -406,7 +437,7 @@ class _FlashcardBack extends StatelessWidget {
                           padding: EdgeInsets.symmetric(horizontal: t.space12),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        onPressed: ratingInFlight
+                        onPressed: (ratingInFlight || !actionsEnabled)
                             ? null
                             : () {
                                 Haptics.selection(context);
@@ -768,6 +799,11 @@ class _ContextBody extends ConsumerWidget {
     required this.onPlayClip,
     required this.onOpenInPlayer,
     required this.onShadowReading,
+    required this.contextsCount,
+    required this.activeContextIndex,
+    this.onPreviousContext,
+    this.onNextContext,
+    required this.actionsEnabled,
   });
 
   final String word;
@@ -780,6 +816,11 @@ class _ContextBody extends ConsumerWidget {
   final VoidCallback onPlayClip;
   final VoidCallback onOpenInPlayer;
   final VoidCallback onShadowReading;
+  final int contextsCount;
+  final int activeContextIndex;
+  final VoidCallback? onPreviousContext;
+  final VoidCallback? onNextContext;
+  final bool actionsEnabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -846,6 +887,15 @@ class _ContextBody extends ConsumerWidget {
             ),
           ),
         ),
+        if (contextsCount > 1) ...[
+          SizedBox(height: t.space16),
+          VocabularyContextPager(
+            index: activeContextIndex,
+            total: contextsCount,
+            onPrevious: actionsEnabled ? onPreviousContext : null,
+            onNext: actionsEnabled ? onNextContext : null,
+          ),
+        ],
         SizedBox(height: t.space32),
         _SectionHeading(
           icon: Icons.movie_outlined,
@@ -890,17 +940,19 @@ class _ContextBody extends ConsumerWidget {
                 label: clipPlayInFlight
                     ? l10n.vocabularyFetching
                     : l10n.vocabularyPlaySegment,
-                onPressed: clipPlayInFlight ? null : onPlayClip,
+                onPressed: (!actionsEnabled || clipPlayInFlight)
+                    ? null
+                    : onPlayClip,
               ),
               _MediaAction(
                 icon: Icons.open_in_new_rounded,
                 label: l10n.vocabularyOpenInPlayer,
-                onPressed: onOpenInPlayer,
+                onPressed: actionsEnabled ? onOpenInPlayer : null,
               ),
               _MediaAction(
                 icon: Icons.record_voice_over_rounded,
-                label: l10n.vocabularyShadowReading,
-                onPressed: onShadowReading,
+                label: l10n.vocabularyEchoReading,
+                onPressed: actionsEnabled ? onShadowReading : null,
               ),
             ],
           ),

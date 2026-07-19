@@ -80,3 +80,4 @@ Trade-offs, follow-up work, risks.
 | [0054](0054-vocabulary-cloud-sync.md) | Vocabulary cloud sync — SRS-preserving item conflict, LWW contexts, reviews never sync, auto-pull exception to ADR-0013 (extends ADR-0010) |
 | [0055](0055-adaptive-page-layout-system.md) | Adaptive page layout system (`EnjoyPage` / browse·hub·form widths) |
 | [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads |
+| [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |

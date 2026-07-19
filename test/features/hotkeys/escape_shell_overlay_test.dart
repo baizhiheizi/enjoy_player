@@ -22,6 +22,7 @@ void _dispatchEscape({
       isRecordingActive: false,
       shellHasPopupRoute: navigatorHasTopPopupRoute(shellNav),
       rootHasPopupRoute: navigatorHasTopPopupRoute(rootNav),
+      vocabularyPracticeOpen: false,
       goRouterCanPop: goRouter.canPop(),
       path: goRouter.state.uri.path,
       isDesktop: true,
@@ -40,6 +41,7 @@ void _dispatchEscape({
     case EscapeDismissalAction.closeCheatsheet:
     case EscapeDismissalAction.exitFullscreen:
     case EscapeDismissalAction.cancelRecording:
+    case EscapeDismissalAction.clearVocabularyPractice:
     case EscapeDismissalAction.noopOnPlayer:
     case null:
       return;

@@ -2759,6 +2759,32 @@ class AppLocalizationsZh extends AppLocalizations {
       '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
 
   @override
+  String get vocabularyEchoReading => '回声跟读';
+
+  @override
+  String get vocabularyPracticeDismiss => '关闭练习';
+
+  @override
+  String get vocabularyPracticePause => '暂停';
+
+  @override
+  String get vocabularyStatsExpand => '显示状态明细';
+
+  @override
+  String get vocabularyStatsCollapse => '隐藏状态明细';
+
+  @override
+  String get vocabularyPreviousContext => '上一个语境';
+
+  @override
+  String get vocabularyNextContext => '下一个语境';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '第 $current / $total 个';
+  }
+
+  @override
   String get vocabularyContextualTranslation => '语境翻译';
 
   @override
@@ -5404,6 +5430,32 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   @override
   String get vocabularyShadowReadingDescription =>
       '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyEchoReading => '回声跟读';
+
+  @override
+  String get vocabularyPracticeDismiss => '关闭练习';
+
+  @override
+  String get vocabularyPracticePause => '暂停';
+
+  @override
+  String get vocabularyStatsExpand => '显示状态明细';
+
+  @override
+  String get vocabularyStatsCollapse => '隐藏状态明细';
+
+  @override
+  String get vocabularyPreviousContext => '上一个语境';
+
+  @override
+  String get vocabularyNextContext => '下一个语境';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '第 $current / $total 个';
+  }
 
   @override
   String get vocabularyContextualTranslation => '语境翻译';

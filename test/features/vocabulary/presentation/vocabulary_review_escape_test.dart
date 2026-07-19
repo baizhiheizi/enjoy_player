@@ -22,6 +22,7 @@ void _dispatchGlobalEscape(GoRouter goRouter) {
       isRecordingActive: false,
       shellHasPopupRoute: false,
       rootHasPopupRoute: false,
+      vocabularyPracticeOpen: false,
       goRouterCanPop: goRouter.canPop(),
       path: goRouter.state.uri.path,
       isDesktop: true,

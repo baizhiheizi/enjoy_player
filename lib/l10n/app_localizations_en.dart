@@ -2881,6 +2881,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.';
 
   @override
+  String get vocabularyEchoReading => 'Echo reading';
+
+  @override
+  String get vocabularyPracticeDismiss => 'Close practice';
+
+  @override
+  String get vocabularyPracticePause => 'Pause';
+
+  @override
+  String get vocabularyStatsExpand => 'Show status breakdown';
+
+  @override
+  String get vocabularyStatsCollapse => 'Hide status breakdown';
+
+  @override
+  String get vocabularyPreviousContext => 'Previous context';
+
+  @override
+  String get vocabularyNextContext => 'Next context';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
   String get vocabularyContextualTranslation => 'Contextual translation';
 
   @override

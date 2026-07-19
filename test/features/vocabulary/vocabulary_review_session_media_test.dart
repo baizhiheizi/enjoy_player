@@ -1,15 +1,26 @@
-import 'package:drift/native.dart';
-import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/player/domain/echo_window.dart';
+import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
-import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
-import 'package:enjoy_player/features/vocabulary/data/vocabulary_repository.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
-import 'package:enjoy_player/features/vocabulary/domain/vocabulary_session_selection.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('clip open vs restored position', () {
+    test('echo enforcer pause-rewinds when position is past clip window', () {
+      // Documents why playVocabularyClip must seek before echo.activate:
+      // openMedia restores ~lesson position; activating the clip window first
+      // yields pauseAndRewind and aborts HTML5 play().
+      const window = (start: 10.0, end: 15.0);
+      final decision = decideEchoPlaybackTime(712.0, window);
+      expect(decision, isA<EchoPauseAndRewind>());
+    });
+
+    test('inside clip window after seek is EchoOk', () {
+      const window = (start: 10.0, end: 15.0);
+      expect(decideEchoPlaybackTime(12.0, window), isA<EchoOk>());
+    });
+  });
+
   group('mediaLocatorWindow', () {
     test('converts ms locator to seconds', () {
       const locator = MediaLocator(start: 1500, duration: 2500);
@@ -47,77 +58,30 @@ void main() {
     });
   });
 
-  group('takeMediaHandoff', () {
-    late AppDatabase db;
-    late ProviderContainer container;
-
-    setUp(() {
-      db = AppDatabase(executor: NativeDatabase.memory());
-      container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+  group('PlayerLaunchRequest.vocabularyOpenSource', () {
+    test('encodes expanded open with the locator echo window', () {
+      final req = PlayerLaunchRequest.vocabularyOpenSource(
+        mediaId: 'media-42',
+        startSec: 3.0,
+        endSec: 5.0,
       );
-    });
-
-    tearDown(() async {
-      container.dispose();
-      await db.close();
-    });
-
-    test('clears session and returns seek window', () async {
-      final repo = VocabularyRepository(db);
-      await repo.addWithContext(
-        word: 'hello',
-        language: 'en',
-        targetLanguage: 'zh',
-        text: 'Hello world.',
-        sourceType: VocabularySourceType.video,
-        sourceId: 'media-42',
-        mediaLocator: const MediaLocator(start: 3000, duration: 2000),
-        now: DateTime.utc(2020, 1, 1),
-      );
-
-      final session = container.read(vocabularyReviewSessionProvider.notifier);
-      await session.start(
-        const ReviewSelectionOptions(mode: VocabularyReviewMode.all),
-        now: DateTime.utc(2030, 1, 1),
-      );
+      expect(req.autoplay, isTrue);
+      expect(req.activateClipWindow, isTrue);
+      expect(req.isExplicitLaunch, isTrue);
       expect(
-        container.read(vocabularyReviewSessionProvider).hasActiveSession,
-        isTrue,
+        req.location,
+        '/player/media-42?start=3&end=5&autoplay=1&clip=1&norestore=1',
       );
 
-      final handoff = session.takeMediaHandoff(activateEcho: true);
-      expect(handoff, isNotNull);
-      expect(handoff!.mediaId, 'media-42');
-      expect(handoff.startSec, 3.0);
-      expect(handoff.endSec, 5.0);
-      expect(handoff.activateEcho, isTrue);
-      expect(
-        container.read(vocabularyReviewSessionProvider).hasActiveSession,
-        isFalse,
+      final parsed = PlayerLaunchRequest.fromUri(
+        Uri.parse(req.location),
+        mediaId: 'media-42',
       );
-    });
-
-    test('open-in-player style handoff does not activate echo flag', () async {
-      final repo = VocabularyRepository(db);
-      await repo.addWithContext(
-        word: 'hello',
-        language: 'en',
-        targetLanguage: 'zh',
-        text: 'Hello world.',
-        sourceType: VocabularySourceType.audio,
-        sourceId: 'a1',
-        mediaLocator: const MediaLocator(start: 0, duration: 500),
-        now: DateTime.utc(2020, 1, 1),
-      );
-
-      final session = container.read(vocabularyReviewSessionProvider.notifier);
-      await session.start(
-        const ReviewSelectionOptions(mode: VocabularyReviewMode.all),
-        now: DateTime.utc(2030, 1, 1),
-      );
-      final handoff = session.takeMediaHandoff(activateEcho: false);
-      expect(handoff!.activateEcho, isFalse);
+      expect(parsed.startSec, 3.0);
+      expect(parsed.endSec, 5.0);
+      expect(parsed.autoplay, isTrue);
+      expect(parsed.activateClipWindow, isTrue);
+      expect(parsed.isExplicitLaunch, isTrue);
     });
   });
 }

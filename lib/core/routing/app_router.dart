@@ -25,6 +25,7 @@ import 'package:enjoy_player/features/discover/presentation/channel_feed_screen.
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
 import 'package:enjoy_player/features/library/presentation/library_screen.dart';
+import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_screen.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/player/presentation/youtube_login_screen.dart';
@@ -152,13 +153,17 @@ GoRouter appRouter(Ref ref) {
             path: '/player/:mediaId',
             pageBuilder: (context, state) {
               final id = state.pathParameters['mediaId']!;
+              final launch = PlayerLaunchRequest.fromUri(
+                state.uri,
+                mediaId: id,
+              );
               return CustomTransitionPage<void>(
                 // Keep the player page identity stable across `/player/:id`
                 // changes. Windows WebView platform views are fragile when
                 // rapidly destroyed/recreated; reusing the page lets the
                 // YouTube engine navigate the existing WebView instead.
                 key: const ValueKey('player-page'),
-                child: ExpandedPlayerScreen(mediaId: id),
+                child: ExpandedPlayerScreen(launch: launch),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                       return FadeTransition(

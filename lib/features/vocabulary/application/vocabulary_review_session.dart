@@ -1,6 +1,9 @@
 /// Ephemeral flashcard review session state for Vocabulary.
 library;
 
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
@@ -11,6 +14,7 @@ import 'package:enjoy_player/features/vocabulary/application/vocabulary_provider
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_media.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_explanation_codec.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_session_selection.dart';
 
 final _log = logNamed('VocabularyReviewSession');
@@ -32,14 +36,15 @@ final class ReviewSessionState {
     this.ratingInFlight = false,
     this.dictionaryFetchInFlight = false,
     this.contextualFetchInFlight = false,
-    this.clipPlayInFlight = false,
     this.dictionaryError,
     this.contextualError,
     this.mediaError,
     this.ratedStack = const [],
     this.history = const [],
     this.completed = false,
-    this.primaryContextByItemId = const {},
+    this.contextsByItemId = const {},
+    this.activeContextIndexByItemId = const {},
+    this.practicePhase = ReviewPracticePhase.none,
   });
 
   final List<VocabularyItem> queue;
@@ -48,28 +53,65 @@ final class ReviewSessionState {
   final bool ratingInFlight;
   final bool dictionaryFetchInFlight;
   final bool contextualFetchInFlight;
-  final bool clipPlayInFlight;
   final String? dictionaryError;
   final String? contextualError;
   final String? mediaError;
   final List<String> ratedStack;
   final List<ReviewHistoryEntry> history;
   final bool completed;
-  final Map<String, VocabularyContext> primaryContextByItemId;
+  final Map<String, List<VocabularyContext>> contextsByItemId;
+  final Map<String, int> activeContextIndexByItemId;
+  final ReviewPracticePhase practicePhase;
 
   bool get hasActiveSession => queue.isNotEmpty;
 
   bool get canUndo => ratedStack.isNotEmpty && !ratingInFlight;
+
+  ReviewPracticeMode get practiceMode => practicePhase.asMode;
+
+  bool get practiceSheetOpen => practicePhase.overlayOpen;
+
+  /// True while clip practice is open (suppress mini-bar).
+  bool get practiceOwnsVideoStage => practicePhase.isClip;
+
+  bool get clipPlayInFlight => practicePhase == ReviewPracticePhase.clipOpening;
+
+  bool get claimsVideoSurface => practicePhase.claimsVideoSurface;
 
   VocabularyItem? get currentItem {
     if (completed || index < 0 || index >= queue.length) return null;
     return queue[index];
   }
 
+  /// Active context for the current card (earliest by default; pager may change).
   VocabularyContext? get currentPrimaryContext {
     final item = currentItem;
     if (item == null) return null;
-    return primaryContextByItemId[item.id];
+    return primaryContextFor(item.id);
+  }
+
+  List<VocabularyContext> contextsFor(String itemId) =>
+      contextsByItemId[itemId] ?? const [];
+
+  int activeContextIndexFor(String itemId) {
+    final list = contextsFor(itemId);
+    if (list.isEmpty) return 0;
+    final raw = activeContextIndexByItemId[itemId] ?? 0;
+    if (raw < 0) return 0;
+    if (raw >= list.length) return list.length - 1;
+    return raw;
+  }
+
+  int get currentContextsCount {
+    final item = currentItem;
+    if (item == null) return 0;
+    return contextsFor(item.id).length;
+  }
+
+  int get currentActiveContextIndex {
+    final item = currentItem;
+    if (item == null) return 0;
+    return activeContextIndexFor(item.id);
   }
 
   int get total => queue.length;
@@ -79,8 +121,11 @@ final class ReviewSessionState {
   /// Cards left after the current one (0 when complete or on the last card).
   int get remaining => completed ? 0 : (total - displayCurrent).clamp(0, total);
 
-  VocabularyContext? primaryContextFor(String itemId) =>
-      primaryContextByItemId[itemId];
+  VocabularyContext? primaryContextFor(String itemId) {
+    final list = contextsFor(itemId);
+    if (list.isEmpty) return null;
+    return list[activeContextIndexFor(itemId)];
+  }
 
   ReviewSessionState copyWith({
     List<VocabularyItem>? queue,
@@ -89,7 +134,6 @@ final class ReviewSessionState {
     bool? ratingInFlight,
     bool? dictionaryFetchInFlight,
     bool? contextualFetchInFlight,
-    bool? clipPlayInFlight,
     String? dictionaryError,
     bool clearDictionaryError = false,
     String? contextualError,
@@ -99,7 +143,9 @@ final class ReviewSessionState {
     List<String>? ratedStack,
     List<ReviewHistoryEntry>? history,
     bool? completed,
-    Map<String, VocabularyContext>? primaryContextByItemId,
+    Map<String, List<VocabularyContext>>? contextsByItemId,
+    Map<String, int>? activeContextIndexByItemId,
+    ReviewPracticePhase? practicePhase,
   }) {
     return ReviewSessionState(
       queue: queue ?? this.queue,
@@ -110,7 +156,6 @@ final class ReviewSessionState {
           dictionaryFetchInFlight ?? this.dictionaryFetchInFlight,
       contextualFetchInFlight:
           contextualFetchInFlight ?? this.contextualFetchInFlight,
-      clipPlayInFlight: clipPlayInFlight ?? this.clipPlayInFlight,
       dictionaryError: clearDictionaryError
           ? null
           : (dictionaryError ?? this.dictionaryError),
@@ -121,8 +166,10 @@ final class ReviewSessionState {
       ratedStack: ratedStack ?? this.ratedStack,
       history: history ?? this.history,
       completed: completed ?? this.completed,
-      primaryContextByItemId:
-          primaryContextByItemId ?? this.primaryContextByItemId,
+      contextsByItemId: contextsByItemId ?? this.contextsByItemId,
+      activeContextIndexByItemId:
+          activeContextIndexByItemId ?? this.activeContextIndexByItemId,
+      practicePhase: practicePhase ?? this.practicePhase,
     );
   }
 }
@@ -155,17 +202,19 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
       return false;
     }
 
-    final contexts = <String, VocabularyContext>{};
+    final contextsByItemId = <String, List<VocabularyContext>>{};
+    final activeIndex = <String, int>{};
     for (final item in queue) {
       final list = await repo.getContextsForItem(item.id);
-      if (list.isEmpty) continue;
       list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      contexts[item.id] = list.first;
+      contextsByItemId[item.id] = list;
+      activeIndex[item.id] = 0;
     }
 
     state = ReviewSessionState(
       queue: List<VocabularyItem>.from(queue),
-      primaryContextByItemId: contexts,
+      contextsByItemId: contextsByItemId,
+      activeContextIndexByItemId: activeIndex,
     );
     return true;
   }
@@ -173,25 +222,116 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
   /// Restore a previously built non-empty queue (tests / deep links).
   void startWithQueue(
     List<VocabularyItem> queue, {
+    Map<String, List<VocabularyContext>> contextsByItemId = const {},
+    Map<String, int> activeContextIndexByItemId = const {},
     Map<String, VocabularyContext> primaryContextByItemId = const {},
   }) {
     if (queue.isEmpty) {
       state = const ReviewSessionState(queue: []);
       return;
     }
+
+    var contexts = Map<String, List<VocabularyContext>>.from(contextsByItemId);
+    var indices = Map<String, int>.from(activeContextIndexByItemId);
+    if (contexts.isEmpty && primaryContextByItemId.isNotEmpty) {
+      for (final e in primaryContextByItemId.entries) {
+        contexts[e.key] = [e.value];
+        indices[e.key] = 0;
+      }
+    }
+
     state = ReviewSessionState(
       queue: List<VocabularyItem>.from(queue),
-      primaryContextByItemId: primaryContextByItemId,
+      contextsByItemId: contexts,
+      activeContextIndexByItemId: indices,
     );
   }
 
   void clear() {
+    final hadPractice = state.practiceSheetOpen;
     state = const ReviewSessionState(queue: []);
+    if (hadPractice) {
+      ref.read(echoModeProvider.notifier).deactivate();
+      try {
+        unawaited(
+          ref.read(playerControllerProvider.notifier).activeEngine.pause(),
+        );
+      } catch (_) {}
+    }
+  }
+
+  /// Pauses lesson media, clears the playback session, and closes practice UI.
+  ///
+  /// Does **not** clear the review queue — the flashcard stays mounted.
+  Future<void> clearPractice() async {
+    if (state.practicePhase == ReviewPracticePhase.none) return;
+    final wasClip = state.practicePhase.isClip;
+    ref.read(echoModeProvider.notifier).deactivate();
+    if (wasClip) {
+      final player = ref.read(playerControllerProvider.notifier);
+      final hasSession = ref.read(playerControllerProvider) != null;
+      if (hasSession) {
+        try {
+          await player.activeEngine.pause();
+        } catch (_) {
+          // Best-effort pause when the engine is not ready.
+        }
+        // Drop the playback session so the mini-bar does not appear after dismiss.
+        try {
+          await player.clear(keepVideoSurface: true);
+        } catch (_) {}
+      }
+    }
+    if (!ref.mounted) return;
+    state = state.copyWith(
+      practicePhase: ReviewPracticePhase.none,
+      clearMediaError: true,
+    );
+  }
+
+  /// Selects the active context index for the current item (clamped; no wrap).
+  Future<void> selectContext(int index) async {
+    final item = state.currentItem;
+    if (item == null || state.completed) return;
+    final list = state.contextsFor(item.id);
+    if (list.isEmpty) return;
+    final clamped = index.clamp(0, list.length - 1);
+    if (state.practiceSheetOpen) {
+      await clearPractice();
+    }
+    final indices = Map<String, int>.from(state.activeContextIndexByItemId);
+    indices[item.id] = clamped;
+    state = state.copyWith(
+      activeContextIndexByItemId: indices,
+      clearMediaError: true,
+    );
+  }
+
+  Future<void> selectPreviousContext() async {
+    final item = state.currentItem;
+    if (item == null) return;
+    final i = state.activeContextIndexFor(item.id);
+    if (i <= 0) return;
+    await selectContext(i - 1);
+  }
+
+  Future<void> selectNextContext() async {
+    final item = state.currentItem;
+    if (item == null) return;
+    final list = state.contextsFor(item.id);
+    final i = state.activeContextIndexFor(item.id);
+    if (i >= list.length - 1) return;
+    await selectContext(i + 1);
   }
 
   void flip() {
     final item = state.currentItem;
-    if (item == null || state.completed || state.ratingInFlight) return;
+    if (item == null ||
+        state.completed ||
+        state.ratingInFlight ||
+        state.practiceSheetOpen) {
+      return;
+    }
     state = state.copyWith(flipped: true);
   }
 
@@ -200,7 +340,8 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
     if (item == null ||
         state.completed ||
         state.ratingInFlight ||
-        !state.flipped) {
+        !state.flipped ||
+        state.practiceSheetOpen) {
       return;
     }
     state = state.copyWith(flipped: false);
@@ -219,7 +360,8 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
     if (item == null ||
         !state.flipped ||
         state.ratingInFlight ||
-        state.completed) {
+        state.completed ||
+        state.practiceSheetOpen) {
       return;
     }
 
@@ -246,6 +388,7 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
           completed: true,
           flipped: false,
           index: queue.length,
+          practicePhase: ReviewPracticePhase.none,
         );
       } else {
         state = state.copyWith(
@@ -255,6 +398,7 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
           ratingInFlight: false,
           ratedStack: ratedStack,
           history: history,
+          practicePhase: ReviewPracticePhase.none,
         );
       }
     } catch (_) {
@@ -265,7 +409,12 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
 
   void skip() {
     final item = state.currentItem;
-    if (item == null || state.ratingInFlight || state.completed) return;
+    if (item == null ||
+        state.ratingInFlight ||
+        state.completed ||
+        state.practiceSheetOpen) {
+      return;
+    }
     final history = [
       ...state.history,
       ReviewHistoryEntry(itemId: item.id, wasRated: false),
@@ -277,18 +426,20 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
         completed: true,
         flipped: false,
         index: state.queue.length,
+        practicePhase: ReviewPracticePhase.none,
       );
     } else {
       state = state.copyWith(
         index: nextIndex,
         flipped: false,
         history: history,
+        practicePhase: ReviewPracticePhase.none,
       );
     }
   }
 
   Future<void> undo() async {
-    if (!state.canUndo) return;
+    if (!state.canUndo || state.practiceSheetOpen) return;
     final itemId = state.ratedStack.last;
     state = state.copyWith(ratingInFlight: true);
     try {
@@ -322,7 +473,11 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
   }
 
   void previous() {
-    if (state.history.isEmpty || state.ratingInFlight) return;
+    if (state.history.isEmpty ||
+        state.ratingInFlight ||
+        state.practiceSheetOpen) {
+      return;
+    }
     final history = List<ReviewHistoryEntry>.from(state.history);
     final last = history.removeLast();
     final idx = state.queue.indexWhere((i) => i.id == last.itemId);
@@ -335,12 +490,16 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
       index: idx,
       flipped: false,
       completed: false,
+      practicePhase: ReviewPracticePhase.none,
     );
   }
 
   Future<void> fetchDictionary() async {
     final item = state.currentItem;
-    if (item == null || state.dictionaryFetchInFlight || state.completed) {
+    if (item == null ||
+        state.dictionaryFetchInFlight ||
+        state.completed ||
+        state.practiceSheetOpen) {
       return;
     }
     state = state.copyWith(
@@ -389,7 +548,8 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
     if (item == null ||
         ctx == null ||
         state.contextualFetchInFlight ||
-        state.completed) {
+        state.completed ||
+        state.practiceSheetOpen) {
       return;
     }
     state = state.copyWith(
@@ -416,12 +576,17 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
         );
         return;
       }
-      final map = Map<String, VocabularyContext>.from(
-        state.primaryContextByItemId,
+      final contexts = Map<String, List<VocabularyContext>>.from(
+        state.contextsByItemId,
       );
-      map[item.id] = updated;
+      final list = List<VocabularyContext>.from(contexts[item.id] ?? const []);
+      final i = list.indexWhere((c) => c.id == updated.id);
+      if (i >= 0) {
+        list[i] = updated;
+      }
+      contexts[item.id] = list;
       state = state.copyWith(
-        primaryContextByItemId: map,
+        contextsByItemId: contexts,
         contextualFetchInFlight: false,
         clearContextualError: true,
       );
@@ -434,47 +599,93 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
     }
   }
 
-  Future<void> playClip() async {
+  /// Shows clip practice overlay in the opening phase (no surface claim yet).
+  void preparePracticeClip() {
     final ctx = state.currentPrimaryContext;
     if (ctx == null ||
         state.clipPlayInFlight ||
         state.completed ||
+        state.practicePhase.isClip ||
         !vocabularyContextSupportsMediaActions(ctx)) {
       return;
     }
-    state = state.copyWith(clipPlayInFlight: true, clearMediaError: true);
+    state = state.copyWith(
+      practicePhase: ReviewPracticePhase.clipOpening,
+      clearMediaError: true,
+    );
+  }
+
+  /// Opens media on the permanent surface, seeks the clip window, then plays.
+  Future<void> startPracticeClipPlayback() async {
+    final ctx = state.currentPrimaryContext;
+    if (ctx == null ||
+        state.completed ||
+        state.practicePhase != ReviewPracticePhase.clipOpening ||
+        !vocabularyContextSupportsMediaActions(ctx)) {
+      return;
+    }
     try {
       await playVocabularyClip(
         player: ref.read(playerControllerProvider.notifier),
         echo: ref.read(echoModeProvider.notifier),
         context: ctx,
       );
-      state = state.copyWith(clipPlayInFlight: false);
+      if (ref.mounted &&
+          state.practicePhase == ReviewPracticePhase.clipOpening) {
+        state = state.copyWith(practicePhase: ReviewPracticePhase.clipReady);
+      }
     } catch (e, st) {
       _log.warning('Clip play failed', e, st);
-      state = state.copyWith(
-        clipPlayInFlight: false,
-        mediaError: 'play_failed',
-      );
+      if (ref.mounted) {
+        state = state.copyWith(
+          practicePhase: ReviewPracticePhase.none,
+          mediaError: 'play_failed',
+        );
+        try {
+          await ref
+              .read(playerControllerProvider.notifier)
+              .clear(keepVideoSurface: true);
+        } catch (_) {}
+      }
     }
   }
 
-  /// Clears the session and returns hand-off data after the user confirmed.
-  ///
-  /// Does not navigate or open media — the presentation layer does that.
-  VocabularyMediaHandoff? takeMediaHandoff({required bool activateEcho}) {
+  /// Opens clip practice (sets opening phase then plays).
+  Future<void> openPracticeClip() async {
+    preparePracticeClip();
+    await startPracticeClipPlayback();
+  }
+
+  /// Opens echo practice as a recorder-only overlay (no player session).
+  Future<void> openPracticeEcho() async {
     final ctx = state.currentPrimaryContext;
-    if (ctx == null || !vocabularyContextSupportsMediaActions(ctx)) {
-      return null;
+    if (ctx == null ||
+        state.completed ||
+        !vocabularyContextSupportsMediaActions(ctx)) {
+      return;
     }
-    final window = mediaLocatorWindow(ctx.locator!);
-    final handoff = VocabularyMediaHandoff(
-      mediaId: ctx.sourceId,
-      startSec: window.startSec,
-      endSec: window.endSec,
-      activateEcho: activateEcho,
+    if (state.practicePhase.isClip) {
+      await clearPractice();
+    }
+    if (!ref.mounted) return;
+    state = state.copyWith(
+      practicePhase: ReviewPracticePhase.echo,
+      clearMediaError: true,
     );
-    clear();
-    return handoff;
+  }
+
+  /// Legacy name — opens clip practice (overlay host owns chrome).
+  Future<void> playClip() => openPracticeClip();
+
+  /// Test helper to simulate an open practice sheet without media APIs.
+  @visibleForTesting
+  void debugSetPracticeMode(ReviewPracticeMode mode) {
+    state = state.copyWith(practicePhase: mode.toPhase());
+  }
+
+  /// Test helper for explicit practice phases.
+  @visibleForTesting
+  void debugSetPracticePhase(ReviewPracticePhase phase) {
+    state = state.copyWith(practicePhase: phase);
   }
 }

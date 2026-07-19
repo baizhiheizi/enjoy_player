@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/player/application/player_position_tracker
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
+import 'package:enjoy_player/features/player/domain/open_media_options.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
@@ -38,7 +39,12 @@ abstract interface class PlayerOpenHost {
   PlayerPositionTracker get positionTracker;
 }
 
-Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
+Future<void> runPlayerOpen(
+  PlayerOpenHost host,
+  Ref ref,
+  String mediaId, {
+  OpenMediaOptions options = OpenMediaOptions.defaults,
+}) async {
   final gen = host.openGeneration;
 
   final db = ref.read(appDatabaseProvider);
@@ -118,13 +124,13 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   final persisted = await db.echoSessionDao.getLatestForTarget(dexie, mediaId);
   if (host.isOpenStale(gen)) return;
 
-  final posMs = persisted?.currentTimeMs ?? 0;
+  final posMs = options.restorePosition ? (persisted?.currentTimeMs ?? 0) : 0;
   if (posMs > 0) {
     await engine.seek(Duration(milliseconds: posMs));
   }
   if (host.isOpenStale(gen)) return;
 
-  if (persisted != null && persisted.echoActive) {
+  if (options.restoreEcho && persisted != null && persisted.echoActive) {
     ref
         .read(echoModeProvider.notifier)
         .restoreFromSession(
@@ -138,7 +144,9 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
   }
   ref
       .read(transcriptBlurModeProvider.notifier)
-      .restoreFromSession(persisted?.blurActive ?? false);
+      .restoreFromSession(
+        options.restoreEcho ? (persisted?.blurActive ?? false) : false,
+      );
   if (host.isOpenStale(gen)) return;
 
   final now = DateTime.now();
@@ -153,7 +161,9 @@ Future<void> runPlayerOpen(PlayerOpenHost host, Ref ref, String mediaId) async {
     thumbnailUrl: thumb,
     durationSeconds: durationSec > 0 ? durationSec.toDouble() : posMs / 1000.0,
     currentTimeSeconds: posMs / 1000.0,
-    currentSegmentIndex: persisted?.currentSegmentIndex ?? -1,
+    currentSegmentIndex: options.restorePosition
+        ? (persisted?.currentSegmentIndex ?? -1)
+        : -1,
     language: language,
     startedAt: now,
     lastActiveAt: now,
@@ -199,9 +209,10 @@ Future<void> runPlayerOpenGuarded(
   Ref ref,
   String mediaId, {
   required void Function() onFailureResetSession,
+  OpenMediaOptions options = OpenMediaOptions.defaults,
 }) async {
   try {
-    await runPlayerOpen(host, ref, mediaId);
+    await runPlayerOpen(host, ref, mediaId, options: options);
   } on MediaNeedsRelocateException catch (e, st) {
     onFailureResetSession();
     // Expected when a path-linked file moved — UI shows LocateMediaScreen.

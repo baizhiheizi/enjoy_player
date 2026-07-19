@@ -134,12 +134,12 @@ class YoutubeWebViewController {
     }
   }
 
-  Future<void> idleAfterClear() async {
+  Future<void> idleAfterClear({bool keepMounted = false}) async {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
     _events.cancelPendingVolumeRestore();
     _bumpVerifyGeneration();
-    session.resetForClear();
+    session.resetForClear(keepMounted: keepMounted);
     _pollLoop.stop();
     final navGen = ++_navGeneration;
     final controller = _webController;

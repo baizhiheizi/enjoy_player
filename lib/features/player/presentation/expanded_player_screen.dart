@@ -11,14 +11,17 @@ import 'package:enjoy_player/features/player/application/player_state_providers.
 import 'package:enjoy_player/features/player/application/player_ui_provider.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 
 import 'expanded_player_widgets.dart';
 import 'locate_media_screen.dart';
 
 class ExpandedPlayerScreen extends ConsumerStatefulWidget {
-  const ExpandedPlayerScreen({required this.mediaId, super.key});
+  const ExpandedPlayerScreen({required this.launch, super.key});
 
-  final String mediaId;
+  final PlayerLaunchRequest launch;
+
+  String get mediaId => launch.mediaId;
 
   @override
   ConsumerState<ExpandedPlayerScreen> createState() =>
@@ -36,16 +39,17 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final open = ref.watch(openMediaActionProvider(widget.mediaId));
+    final open = ref.watch(openMediaLaunchProvider(widget.launch));
     final chrome = ref.watch(playerControllerProvider.select(playbackChromeOf));
     final isPlaying = ref.watch(playerIsPlayingProvider).value ?? false;
     final paletteAsync = ref.watch(currentArtworkPaletteProvider);
     final accent = paletteAsync.value?.dominant;
     final cs = Theme.of(context).colorScheme;
+    final mediaId = widget.mediaId;
 
-    if (chrome != null && chrome.mediaId == widget.mediaId) {
+    if (chrome != null && chrome.mediaId == mediaId) {
       return ExpandedPlayerChromeBody(
-        mediaId: widget.mediaId,
+        mediaId: mediaId,
         chrome: chrome,
         isPlaying: isPlaying,
         accent: accent,
@@ -60,6 +64,6 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       return ExpandedPlayerGenericErrorBody(colorScheme: cs);
     }
 
-    return ExpandedPlayerLoadingBody(colorScheme: cs, mediaId: widget.mediaId);
+    return ExpandedPlayerLoadingBody(colorScheme: cs, mediaId: mediaId);
   }
 }

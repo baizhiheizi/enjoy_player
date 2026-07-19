@@ -5349,6 +5349,54 @@ abstract class AppLocalizations {
   /// **'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.'**
   String get vocabularyShadowReadingDescription;
 
+  /// No description provided for @vocabularyEchoReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo reading'**
+  String get vocabularyEchoReading;
+
+  /// No description provided for @vocabularyPracticeDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Close practice'**
+  String get vocabularyPracticeDismiss;
+
+  /// No description provided for @vocabularyPracticePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get vocabularyPracticePause;
+
+  /// No description provided for @vocabularyStatsExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show status breakdown'**
+  String get vocabularyStatsExpand;
+
+  /// No description provided for @vocabularyStatsCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide status breakdown'**
+  String get vocabularyStatsCollapse;
+
+  /// No description provided for @vocabularyPreviousContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous context'**
+  String get vocabularyPreviousContext;
+
+  /// No description provided for @vocabularyNextContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next context'**
+  String get vocabularyNextContext;
+
+  /// No description provided for @vocabularyContextOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String vocabularyContextOfTotal(int current, int total);
+
   /// No description provided for @vocabularyContextualTranslation.
   ///
   /// In en, this message translates to:

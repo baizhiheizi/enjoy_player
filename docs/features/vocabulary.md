@@ -6,7 +6,7 @@ Vocabulary is Enjoy’s **local-first spaced-repetition (SRS) word book**: save 
 
 This document is the implementation contract for Enjoy Player (Flutter). It describes **what the Enjoy web app actually implements today** (`~/dev/enjoy/apps/web`), not the aspirational marketing copy under `enjoy/apps/docs/**/vocabulary.md`.
 
-**Status in Flutter:** P0–**P4 shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts); review Context/Dictionary write-through, clip play, open-in-player, and shadow hand-off; cloud sync of items/contexts with SRS-preserving conflict resolution ([ADR-0054](../decisions/0054-vocabulary-cloud-sync.md)); Pro-gated Anki CSV export from All Words.
+**Status in Flutter:** P0–**P4 shipping**. Local Drift schema + SRS + lookup add/remove; Vocabulary destination (`/vocabulary` from Profile) with compact expandable stats, Review/All Words, flashcard session (flip/rate/skip/undo, desktop in-session shortcuts); review Context/Dictionary write-through; in-route adaptive practice overlay for clip play + in-session echo recorder; open-in-player to full player; multi-context pager; cloud sync of items/contexts with SRS-preserving conflict resolution ([ADR-0054](../decisions/0054-vocabulary-cloud-sync.md)); Pro-gated Anki CSV export from All Words.
 
 **Tracking:** [#375](https://github.com/baizhiheizi/enjoy_player/issues/375).
 
@@ -59,7 +59,7 @@ This document is the implementation contract for Enjoy Player (Flutter). It desc
 1. **Add word + context** — User selects text → lookup sheet → header bookmark icon (Add to Vocabulary / Add Context / Already in Vocabulary). Remove deletes the **entire item** (all contexts), not one context.
 2. **Review** — Open Vocabulary → Review → choose due / all / filter / random → fullscreen cards → flip → rate `0|1|2` or skip → optional undo last rating → session complete.
 3. **Manage** — All Words tab: search + status/language filters → delete confirm → Export Anki.
-4. **During review (card back)** — Context tab (play clip / open player / shadow / contextual AI); Dictionary tab (persist explanation on item); Notes placeholder.
+4. **During review (card back)** — Context tab (practice overlay for play clip / echo reading; open player; contextual AI; context pager when multi-context); Dictionary tab (persist explanation on item); Notes placeholder.
 
 ### Keyboard (desktop review)
 
@@ -407,7 +407,7 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 ### Vocabulary page
 
 - Compact header with back + title; centered column (`contentMaxWidth`).
-- Adaptive stats strip: **total, due, new, learning, reviewing, mastered** (horizontal on wide layouts; 2-column wrap under ~560px). Due is the only emphasized metric.
+- Compact stats strip: collapsed **Total | Due** (due emphasized when &gt; 0) with expand/collapse for **new / learning / reviewing / mastered**. List-first on phone — no tall 2×3 stats grid.
 - Pill tabs: **Review** | **All Words**.
 
 ### Review entry + options
@@ -431,8 +431,10 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
 - Front: hero word + muted context with **word highlight**; stronger pill “tap to flip” affordance + semantics.
 - Space **toggles** flip; **Flip back** under ratings. Flipping prefetches contextual translation when missing (signed-in).
 - Back tabs (pill segmented control — **Notes hidden until implemented**):
-  - **Context** — quote block with word highlight; **media title** from library; locator meta; media actions beside source; contextual content parsed into app section labels + body markdown (redundant/empty heading sections pruned).
+  - **Context** — quote block with word highlight; **context pager** (prev/next + n of m) when the item has 2+ contexts; **media title** from library; locator meta; media actions; contextual content parsed into app section labels + body markdown (redundant/empty heading sections pruned).
   - **Dictionary** — structured senses (IPA single slash pair, POS, definition, translation, examples) or fetch.
+- **Practice overlay (in-route, adaptive):** Play segment and Echo reading open a shared panel stacked over the flashcard (bottom-aligned on compact, centered on wide) — not a navigator modal/dialog. Clip practice claims a `PlayerSurfaceTarget` so the permanent RootShell [`PlayerSurfaceHost`](../../lib/features/player/presentation/widgets/player_surface_host.dart) positions its sole video/WebView stage at the modal's global bounds (ADR-0057). Pipeline: `clipOpening` (resolve/open with `OpenMediaOptions.explicitLaunch`) → await surface readiness → seek → activate bounded clip window → play → `clipReady` (attach portal). Dismiss pauses, clears the playback session (no mini-bar), keeps the YouTube WebView mounted on its idle page, parks the surface, and keeps the flashcard mounted. Echo is recorder-only (`ShadowReadingPanel` with context media id / locator / language; no `PlayerController` / global echo activation); its recorder controls remain enabled independently of global EchoMode. Modes are mutually exclusive. Overlay is modal (dismiss before rate/flip; Esc clears practice, does not exit review). Global mini-bar is suppressed while clip practice is open.
+- **Open in player / source** — confirm **replaces** the review route with `/player/:id?start=…&end=…&autoplay=1&clip=1&norestore=1` via `PlayerLaunchRequest.vocabularyOpenSource`. This opens the normal expanded video + transcript screen at the context locator with Echo active, rather than a standalone video-only destination. Review `onExit` clears the session once; do not pop-then-navigate.
 
 Rating row: one-line chips (48px tall, max width 400, centered) with soft error / primary / tertiary fills. Scrollable study body is independent of the sticky rating footer.
 
@@ -572,7 +574,7 @@ Flutter: add ARB keys under `lib/l10n/` matching user-visible strings (stats lab
 - Pro gate **only** Anki export, not core vocabulary.
 - List search is in-memory on the filtered set (no FTS required for v1).
 - Opening full player from review **ends** the session (confirm dialog).
-- Shadow reading from context tab should reuse [shadow-reading](shadow-reading.md) patterns where possible; media clip playback must go through existing `PlayerController` (never construct a second `media_kit` `Player`).
+- Echo reading from the review practice overlay reuses [shadow-reading](shadow-reading.md) `ShadowReadingPanel`; media clip playback must go through existing `PlayerController` (never construct a second `media_kit` `Player`).
 
 ---
 

@@ -156,7 +156,7 @@ void main() {
     expect(find.text('Hello world.'), findsOneWidget);
     expect(find.text('Play segment'), findsOneWidget);
     expect(find.text('Open in player'), findsOneWidget);
-    expect(find.text('Shadow reading'), findsOneWidget);
+    expect(find.text('Echo reading'), findsOneWidget);
     expect(find.text('Flip back'), findsOneWidget);
   });
 

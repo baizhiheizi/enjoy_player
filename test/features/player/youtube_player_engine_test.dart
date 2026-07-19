@@ -30,6 +30,16 @@ void main() {
       expect(engine.shouldMountWebView, isTrue);
     });
 
+    test('practice clear idles content but keeps WebView mounted', () async {
+      final engine = YoutubePlayerEngine();
+      await engine.open(const YoutubePlayableSource('abc12345678'));
+
+      await engine.idleAfterClear(keepMounted: true);
+
+      expect(engine.currentVideoId, isEmpty);
+      expect(engine.shouldMountWebView, isTrue);
+    });
+
     test(
       'warmVideoSurface only requests mount (no redundant idle navigation)',
       () {

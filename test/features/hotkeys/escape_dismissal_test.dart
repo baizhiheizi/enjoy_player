@@ -12,6 +12,7 @@ void main() {
       isRecordingActive: false,
       shellHasPopupRoute: false,
       rootHasPopupRoute: false,
+      vocabularyPracticeOpen: false,
       goRouterCanPop: true,
       path: '/player/media-1',
       isDesktop: true,
@@ -71,6 +72,19 @@ void main() {
 
     test('idle player route is a no-op', () {
       expect(resolveEscapeDismissal(base), EscapeDismissalAction.noopOnPlayer);
+    });
+
+    test('vocabulary practice clears before popping review route', () {
+      expect(
+        resolveEscapeDismissal(
+          base.copyWith(
+            path: '/vocabulary/review',
+            vocabularyPracticeOpen: true,
+            goRouterCanPop: true,
+          ),
+        ),
+        EscapeDismissalAction.clearVocabularyPractice,
+      );
     });
 
     test('non-player route pops GoRouter when no overlay', () {
@@ -167,6 +181,7 @@ extension on EscapeDismissalContext {
     bool? isRecordingActive,
     bool? shellHasPopupRoute,
     bool? rootHasPopupRoute,
+    bool? vocabularyPracticeOpen,
     bool? goRouterCanPop,
     String? path,
     bool? isDesktop,
@@ -177,6 +192,8 @@ extension on EscapeDismissalContext {
       isRecordingActive: isRecordingActive ?? this.isRecordingActive,
       shellHasPopupRoute: shellHasPopupRoute ?? this.shellHasPopupRoute,
       rootHasPopupRoute: rootHasPopupRoute ?? this.rootHasPopupRoute,
+      vocabularyPracticeOpen:
+          vocabularyPracticeOpen ?? this.vocabularyPracticeOpen,
       goRouterCanPop: goRouterCanPop ?? this.goRouterCanPop,
       path: path ?? this.path,
       isDesktop: isDesktop ?? this.isDesktop,

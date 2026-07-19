@@ -15,8 +15,11 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class VideoPlayerLayout extends StatefulWidget {
@@ -349,42 +352,49 @@ class _VideoStageWithChrome extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isYoutube = engine is YoutubePlayerEngine;
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        engine.buildVideoStage(
-          context: context,
-          maxWidth: maxWidth,
-          maxHeight: maxHeight,
-        ),
-        if (!isYoutube)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: Haptics.wrapTap(
-                context,
-                () => ref.read(playerControllerProvider.notifier).togglePlay(),
+    final yt = isYoutube ? engine as YoutubePlayerEngine : null;
+
+    return PlayerSurfaceTarget(
+      id: PlayerSurfaceIds.expandedPlayer,
+      overlayBuilder: (ctx) => Stack(
+        fit: StackFit.expand,
+        children: [
+          if (!isYoutube)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: Haptics.wrapTap(
+                  ctx,
+                  () =>
+                      ref.read(playerControllerProvider.notifier).togglePlay(),
+                ),
+                child: const ColoredBox(color: Colors.transparent),
               ),
-              child: const ColoredBox(color: Colors.transparent),
             ),
-          ),
-        if (showButtons)
-          Positioned(
-            top: loginOnTop ? 8 : null,
-            bottom: loginOnTop ? null : 12,
-            right: 8,
-            child: isYoutube
-                ? const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      YoutubeOpenInBrowserButton(),
-                      SizedBox(width: 6),
-                      YoutubeLoginVideoFrameButton(),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-      ],
+          if (showButtons)
+            Positioned(
+              top: loginOnTop ? 8 : null,
+              bottom: loginOnTop ? null : 12,
+              right: 8,
+              child: isYoutube
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        YoutubeOpenInBrowserButton(),
+                        SizedBox(width: 6),
+                        YoutubeLoginVideoFrameButton(),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
+      child: ColoredBox(
+        color: Colors.black,
+        child: yt == null
+            ? const SizedBox.expand()
+            : YoutubeVideoPoster(primaryUrl: yt.posterUrl, visible: true),
+      ),
     );
   }
 }

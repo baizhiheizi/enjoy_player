@@ -1,4 +1,4 @@
-/// 16:9 WebView host + poster while YouTube [openMedia] is in flight.
+/// 16:9 portal target + poster while YouTube [openMedia] is in flight.
 library;
 
 import 'package:flutter/material.dart';
@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
+import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 
 class YoutubeLoadingVideoStage extends ConsumerWidget {
@@ -30,7 +32,10 @@ class YoutubeLoadingVideoStage extends ConsumerWidget {
 
     if (yt != null) {
       yt.setPosterUrl(thumb);
+      yt.ensureWebViewAttached();
     }
+
+    final showSurface = yt != null && yt.shouldMountWebView;
 
     return SafeArea(
       top: true,
@@ -39,27 +44,17 @@ class YoutubeLoadingVideoStage extends ConsumerWidget {
       right: false,
       child: AspectRatio(
         aspectRatio: aspectWidth / aspectHeight,
-        child: yt == null
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  const ColoredBox(color: Colors.black),
-                  YoutubeVideoPoster(primaryUrl: thumb, visible: true),
-                ],
-              )
-            : ValueListenableBuilder<int>(
-                valueListenable: yt.mountTick,
-                builder: (context, _, _) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      const ColoredBox(color: Colors.black),
-                      if (yt.shouldMountWebView) yt.buildWebViewHost(),
-                      YoutubeVideoPoster(primaryUrl: thumb, visible: true),
-                    ],
-                  );
-                },
-              ),
+        child: PlayerSurfaceTarget(
+          id: PlayerSurfaceIds.expandedPlayerLoading,
+          enabled: showSurface,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const ColoredBox(color: Colors.black),
+              YoutubeVideoPoster(primaryUrl: thumb, visible: true),
+            ],
+          ),
+        ),
       ),
     );
   }

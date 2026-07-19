@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'hotkeys_cheatsheet_open.dart';
@@ -100,6 +101,9 @@ class _AppHotkeysKeyboardListenerState
               .isRecordingActive,
           shellHasPopupRoute: navigatorHasTopPopupRoute(shellNav),
           rootHasPopupRoute: navigatorHasTopPopupRoute(rootNav),
+          vocabularyPracticeOpen: ref
+              .read(vocabularyReviewSessionProvider)
+              .practiceSheetOpen,
           goRouterCanPop: goRouter.canPop(),
           path: path,
           isDesktop: isDesktop,
@@ -124,6 +128,11 @@ class _AppHotkeysKeyboardListenerState
           return true;
         case EscapeDismissalAction.popRootPopup:
           if (rootNav != null) unawaited(rootNav.maybePop());
+          return true;
+        case EscapeDismissalAction.clearVocabularyPractice:
+          unawaited(
+            ref.read(vocabularyReviewSessionProvider.notifier).clearPractice(),
+          );
           return true;
         case EscapeDismissalAction.popGoRouter:
           goRouter.pop();
