@@ -49,14 +49,19 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
           if (isYoutube)
             Align(
               alignment: Alignment.topCenter,
-              child: YoutubeLoadingVideoStage(mediaId: mediaId),
+              child: YoutubeLoadingVideoStage(
+                mediaId: mediaId,
+                overlayBuilder: (_) =>
+                    const _VideoCollapseOnlyOverlay(useSafeArea: false),
+              ),
             )
           else
             const Center(child: SkeletonAppBootstrap()),
-          const Align(
-            alignment: Alignment.topCenter,
-            child: _VideoCollapseOnlyOverlay(),
-          ),
+          if (!isYoutube)
+            const Align(
+              alignment: Alignment.topCenter,
+              child: _VideoCollapseOnlyOverlay(),
+            ),
         ],
       ),
     );
@@ -114,6 +119,14 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
         ? VideoPlayerLayout(
             engine: engine,
             transcript: TranscriptPanel(mediaId: mediaId),
+            surfaceOverlay: Positioned(
+              top: kToolbarHeight + 8,
+              right: 8,
+              child: SharePracticePosterButton(
+                mediaId: mediaId,
+                iconColor: Colors.white,
+              ),
+            ),
             initialTranscriptSplitWidthPx: splitPx,
             onTranscriptSplitWidthCommitted: (w) => ref
                 .read(playerPreferencesCtrlProvider.notifier)
@@ -165,18 +178,19 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             mediaBody,
-            Positioned(
-              top: 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                left: false,
-                child: SharePracticePosterButton(
-                  mediaId: mediaId,
-                  iconColor: isVideo ? Colors.white : cs.onSurface,
+            if (!isVideo)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  left: false,
+                  child: SharePracticePosterButton(
+                    mediaId: mediaId,
+                    iconColor: cs.onSurface,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -186,29 +200,28 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
 
 /// Collapse control only (loading / minimal chrome).
 class _VideoCollapseOnlyOverlay extends ConsumerWidget {
-  const _VideoCollapseOnlyOverlay();
+  const _VideoCollapseOnlyOverlay({this.useSafeArea = true});
+
+  final bool useSafeArea;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      bottom: false,
-      left: false,
-      right: false,
-      child: SizedBox(
-        height: kToolbarHeight,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Theme.of(context).colorScheme.onSurface,
-              size: 28,
-            ),
-            onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
+    final content = SizedBox(
+      height: kToolbarHeight,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 28,
           ),
+          onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
         ),
       ),
     );
+    if (!useSafeArea) return content;
+    return SafeArea(bottom: false, left: false, right: false, child: content);
   }
 }

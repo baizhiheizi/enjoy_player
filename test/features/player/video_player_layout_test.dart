@@ -44,6 +44,7 @@ void main() {
     required double width,
     required double height,
     FakePlayerEngine? engine,
+    Widget? surfaceOverlay,
     List<Override> overrides = const [],
   }) async {
     final fake = engine ?? FakePlayerEngine();
@@ -76,6 +77,7 @@ void main() {
                     child: VideoPlayerLayout(
                       engine: fake,
                       transcript: const Text('TR_STUB'),
+                      surfaceOverlay: surfaceOverlay,
                     ),
                   ),
                 ),
@@ -157,6 +159,50 @@ void main() {
     await tester.tapAt(tester.getCenter(find.byType(PlayerSurfaceTarget)));
     await tester.pump();
     expect(fake.playOrPauseCallCount, 1);
+  });
+
+  testWidgets('video title chrome is painted by the surface host', (
+    tester,
+  ) async {
+    await pumpLayout(
+      tester,
+      width: 900,
+      height: 600,
+      overrides: [
+        playerControllerProvider.overrideWith(
+          () => _SessionPlayerController(_testSession()),
+        ),
+      ],
+    );
+
+    final title = find.text('Layout test');
+    expect(title, findsOneWidget);
+    expect(
+      find.ancestor(of: title, matching: find.byType(PlayerSurfaceHost)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('extra video chrome is painted by the surface host', (
+    tester,
+  ) async {
+    await pumpLayout(
+      tester,
+      width: 900,
+      height: 600,
+      surfaceOverlay: const Positioned(
+        top: 64,
+        right: 8,
+        child: Text('SURFACE_ACTION'),
+      ),
+    );
+
+    final action = find.text('SURFACE_ACTION');
+    expect(action, findsOneWidget);
+    expect(
+      find.ancestor(of: action, matching: find.byType(PlayerSurfaceHost)),
+      findsOneWidget,
+    );
   });
 
   /// Mirrors [ExpandedPlayerChromeBody] narrow video layout: [VideoPlayerLayout]

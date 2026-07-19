@@ -12,9 +12,14 @@ import 'package:enjoy_player/features/player/presentation/widgets/player_surface
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 
 class YoutubeLoadingVideoStage extends ConsumerWidget {
-  const YoutubeLoadingVideoStage({required this.mediaId, super.key});
+  const YoutubeLoadingVideoStage({
+    required this.mediaId,
+    this.overlayBuilder,
+    super.key,
+  });
 
   final String mediaId;
+  final PlayerSurfaceOverlayBuilder? overlayBuilder;
 
   static const double aspectWidth = 16;
   static const double aspectHeight = 9;
@@ -47,6 +52,7 @@ class YoutubeLoadingVideoStage extends ConsumerWidget {
         child: PlayerSurfaceTarget(
           id: PlayerSurfaceIds.expandedPlayerLoading,
           enabled: showSurface,
+          overlayBuilder: overlayBuilder,
           child: Stack(
             fit: StackFit.expand,
             children: [
