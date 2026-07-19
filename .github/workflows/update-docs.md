@@ -8,7 +8,7 @@ permissions: read-all
 network: defaults
 imports:
 - shared/runtime.md
-- shared/engine-minimax.md
+- shared/engine-deepseek.md
 safe-outputs:
   create-pull-request:
     draft: true
