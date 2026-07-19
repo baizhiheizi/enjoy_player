@@ -134,5 +134,35 @@ void main() {
     expect(panel.mediaId, 'media-1');
     expect(panel.startSec, 1.5);
     expect(panel.endSec, 4.0);
+    expect(panel.referenceText, 'Hello world.');
+  });
+
+  testWidgets('echo practice shows context sentence for reading', (
+    tester,
+  ) async {
+    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          colorScheme: scheme,
+          extensions: [EnjoyThemeTokens.build(scheme)],
+        ),
+        home: const Scaffold(
+          body: VocabularyEchoReadingText(
+            text: 'Hello world.',
+            word: 'hello',
+            baseStyle: TextStyle(fontSize: 16),
+            highlightStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Hello world.'), findsOneWidget);
+    expect(find.byType(VocabularyEchoReadingText), findsOneWidget);
   });
 }

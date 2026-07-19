@@ -107,6 +107,7 @@ class VocabularyPracticeSheet extends ConsumerWidget {
       body = VocabularyPracticeEchoBody(
         contextItem: ctx,
         language: item.language,
+        word: item.word,
       );
     } else {
       final window = mediaLocatorWindow(ctx.locator!);

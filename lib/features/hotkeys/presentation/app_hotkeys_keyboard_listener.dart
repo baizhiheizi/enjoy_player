@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
+import 'package:enjoy_player/features/hotkeys/application/shadow_reading_hotkey_policy.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus.dart';
@@ -25,6 +26,7 @@ import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'hotkeys_cheatsheet_open.dart';
@@ -178,6 +180,33 @@ class _AppHotkeysKeyboardListenerState
     }
 
     final session = ref.read(playerControllerProvider);
+    final vocabularyEchoPracticeOpen =
+        ref.read(vocabularyReviewSessionProvider).practiceMode ==
+        ReviewPracticeMode.echo;
+    // Vocabulary echo practice is recorder-only (no player session), but still
+    // mounts ShadowReadingPanel which listens on the shared hotkey bus.
+    if (shadowReadingBusHotkeysEnabled(
+      hasPlayerSession: session != null,
+      vocabularyEchoPracticeOpen: vocabularyEchoPracticeOpen,
+    )) {
+      if (_matches(event, ctrl, 'player.toggleRecording')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseRecording();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.playRecording')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePlayback();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.togglePitchContour')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePitchContour();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.toggleAssessment')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseAssessment();
+        return true;
+      }
+    }
+
     if (session != null) {
       if (_matches(event, ctrl, 'player.togglePlay')) {
         unawaited(ref.read(playerControllerProvider.notifier).togglePlay());
@@ -220,22 +249,6 @@ class _AppHotkeysKeyboardListenerState
       }
       if (_matches(event, ctrl, 'player.toggleBlurPractice')) {
         unawaited(ref.read(playerInteractionsProvider.notifier).toggleBlur());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleRecording')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseRecording();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.playRecording')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePlayback();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.togglePitchContour')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePitchContour();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleAssessment')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseAssessment();
         return true;
       }
 
