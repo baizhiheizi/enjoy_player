@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-19
+
+### Added
+
+- **Long-form AI transcripts** now use resumable Deepgram jobs for media at least 15 minutes long, with upload progress, persisted in-flight attempts, and clearer processing feedback.
+
+### Changed
+
+- **Vocabulary review and echo practice** have more focused study controls and polished practice layouts.
+- **Vocabulary on mobile** now prioritizes the word list, moves statistics into Review details, and collapses filters behind the toolbar.
+- **Transcript empty states** use clearer AI transcript wording and actions tailored to local and remote media.
+
+### Fixed
+
+- **Local media reopening and sync** no longer hang after a video is deleted and imported again.
+- **Player overlays**, including dictionary lookup, remain correctly positioned above video.
+- **Android release builds** support current `share_plus` versions under Android Gradle Plugin 9.
+
 ## [0.6.2] - 2026-07-18
 
 ### Added
