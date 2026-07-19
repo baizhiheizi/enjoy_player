@@ -12,15 +12,16 @@ Each row shows at least:
 
 | Field | Display |
 |-------|---------|
-| Word | Normalized stored form |
-| Status | Localized status label |
-| Contexts count | Integer |
-| Reviews count | Integer |
-| Next review | Relative label: overdue / today / tomorrow / in N days |
+| Word | Normalized stored form (title) |
+| Status | Localized status label (accent chip) |
+| Contexts count | Integer (in muted secondary line) |
+| Reviews count | Integer (in muted secondary line) |
+| Next review | Relative label: overdue / today / tomorrow / in N days (in muted secondary line) |
+| Language | Trailing muted label |
 
 **Invariants**:
 
-- Row actions include delete (with confirm). No Anki export control in P1.
+- Row actions include delete (with confirm) via overflow menu. Export lives in the list toolbar, not the row.
 - Tapping a row may be no-op or expand detail later; P1 does not require a detail screen.
 
 ---
@@ -67,6 +68,6 @@ Each row shows at least:
 
 ---
 
-## C5. Stats strip coupling
+## C5. Stats coupling
 
-Stats use the same item set as the book (not the search-filtered subset). Deleting or completing reviews that change status/due must update the strip on the next provider emission.
+Stats use the same item set as the book (not the search-filtered subset). Due count appears as a badge on the Review tab; full Total / Due / status breakdown is available from the app-bar insights sheet. Deleting or completing reviews that change status/due must update those surfaces on the next provider emission.

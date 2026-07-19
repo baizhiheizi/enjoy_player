@@ -17,14 +17,14 @@ void main() {
         extensions: [EnjoyThemeTokens.build(scheme)],
       ),
       home: Scaffold(
-        body: SingleChildScrollView(child: VocabularyStatsStrip(stats: stats)),
+        body: SingleChildScrollView(
+          child: VocabularyStatsBreakdown(stats: stats),
+        ),
       ),
     );
   }
 
-  testWidgets('collapsed shows Total and Due; expand reveals statuses', (
-    tester,
-  ) async {
+  testWidgets('breakdown shows Total, Due, and status counts', (tester) async {
     const stats = VocabularyStats(
       total: 3,
       due: 1,
@@ -37,11 +37,6 @@ void main() {
 
     expect(find.text('Total'), findsOneWidget);
     expect(find.text('Due'), findsOneWidget);
-    expect(find.text('New'), findsNothing);
-
-    await tester.tap(find.byTooltip('Show status breakdown'));
-    await tester.pumpAndSettle();
-
     expect(find.text('New'), findsOneWidget);
     expect(find.text('Learning'), findsOneWidget);
     expect(find.text('Reviewing'), findsOneWidget);

@@ -407,8 +407,8 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 ### Vocabulary page
 
 - Compact header with back + title; centered column (`contentMaxWidth`).
-- Compact stats strip: collapsed **Total | Due** (due emphasized when &gt; 0) with expand/collapse for **new / learning / reviewing / mastered**. List-first on phone — no tall 2×3 stats grid.
-- Pill tabs: **Review** | **All Words**.
+- List-first chrome: no persistent stats banner. **Due** count is a badge on the **Review** tab; Total / Due / status breakdown opens from an app-bar insights action (adaptive sheet).
+- Equal-width segmented tabs: **Review** | **All Words** (due badge on Review).
 
 ### Review entry + options
 
@@ -440,8 +440,8 @@ Rating row: one-line chips (48px tall, max width 400, centered) with soft error 
 
 ### Word list
 
-- Responsive toolbar: search first, labeled status/language filters, Export as secondary action (stacks under ~520px).
-- Rows: word + status/context/review/next-review/language chips; delete via overflow menu + confirm.
+- One toolbar: search + filter toggle + Export. Status/language menus appear only when filters are open (or already active). Gutters match `EnjoyPage` hub metrics.
+- Rows: word title; one status chip + muted secondary line (`contexts · reviews · next-review`); language trailing + overflow delete (confirm).
 - Localized load-failure + retry; no-match empty copy.
 
 ### Add-to-vocabulary control (lookup sheet)

@@ -1,4 +1,4 @@
-/// Vocabulary destination: stats + Review / All Words tabs.
+/// Vocabulary destination: slim Review / All Words tabs + list-first chrome.
 library;
 
 import 'package:flutter/material.dart';
@@ -42,35 +42,52 @@ class VocabularyScreen extends ConsumerWidget {
             context.go('/profile');
           }
         },
+        actions: [
+          IconButton(
+            tooltip: l10n.vocabularyStatsExpand,
+            onPressed: () => showVocabularyStatsSheet(context, stats),
+            icon: const Icon(Icons.insights_outlined),
+          ),
+        ],
         body: (context, metrics) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: metrics.padding(top: t.space12),
-              child: VocabularyStatsStrip(stats: stats),
-            ),
-            Padding(
-              padding: metrics.padding(top: t.space12, bottom: t.space8),
+              padding: metrics.padding(top: t.space8, bottom: t.space4),
               child: Material(
-                color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(t.radiusMd),
-                child: TabBar(
-                  dividerColor: Colors.transparent,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    color: cs.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(t.radiusSm),
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(t.radiusFull),
+                clipBehavior: Clip.antiAlias,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: TabBar(
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: cs.primaryContainer.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(t.radiusFull),
+                    ),
+                    labelColor: cs.onPrimaryContainer,
+                    unselectedLabelColor: cs.onSurfaceVariant,
+                    labelStyle: tt.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    unselectedLabelStyle: tt.labelLarge,
+                    splashFactory: NoSplash.splashFactory,
+                    overlayColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    tabs: [
+                      Tab(
+                        height: 40,
+                        child: _ReviewTabLabel(
+                          label: l10n.vocabularyReview,
+                          due: stats.due,
+                        ),
+                      ),
+                      Tab(height: 40, text: l10n.vocabularyAllWords),
+                    ],
                   ),
-                  labelColor: cs.onSurface,
-                  unselectedLabelColor: cs.onSurfaceVariant,
-                  labelStyle: tt.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: tt.labelLarge,
-                  tabs: [
-                    Tab(height: 40, text: l10n.vocabularyReview),
-                    Tab(height: 40, text: l10n.vocabularyAllWords),
-                  ],
                 ),
               ),
             ),
@@ -78,13 +95,51 @@ class VocabularyScreen extends ConsumerWidget {
               child: TabBarView(
                 children: [
                   _ReviewTab(total: stats.total, due: stats.due),
-                  const VocabularyWordList(),
+                  VocabularyWordList(metrics: metrics),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReviewTabLabel extends StatelessWidget {
+  const _ReviewTabLabel({required this.label, required this.due});
+
+  final String label;
+  final int due;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        if (due > 0) ...[
+          SizedBox(width: t.space8),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: 2),
+            decoration: BoxDecoration(
+              color: cs.primary.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(t.radiusFull),
+            ),
+            child: Text(
+              '$due',
+              style: tt.labelSmall?.copyWith(
+                color: cs.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

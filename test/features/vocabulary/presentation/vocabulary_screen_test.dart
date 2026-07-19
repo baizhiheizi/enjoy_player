@@ -56,9 +56,9 @@ void main() {
     await disposeHarness(tester);
   });
 
-  testWidgets('stats strip shows total after seed', (tester) async {
+  testWidgets('stats sheet and due badge when item is due', (tester) async {
     final repo = VocabularyRepository(db);
-    await repo.addWithContext(
+    final created = await repo.addWithContext(
       word: 'hello',
       language: 'en',
       targetLanguage: 'zh',
@@ -68,11 +68,25 @@ void main() {
       mediaLocator: const MediaLocator(start: 0, duration: 1000),
     );
 
+    await (db.update(
+      db.vocabularyItems,
+    )..where((t) => t.id.equals(created.item.id))).write(
+      VocabularyItemsCompanion(nextReviewAt: Value(DateTime.utc(2000))),
+    );
+
     await pumpScreen(tester);
 
-    expect(find.text('1'), findsWidgets);
-    expect(find.text('Total'), findsOneWidget);
     expect(find.text('No words yet'), findsNothing);
+    expect(find.text('Total'), findsNothing);
+    // Due badge on Review tab + large due count on Review CTA.
+    expect(find.text('1'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Show status breakdown'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('Due'), findsWidgets);
 
     await disposeHarness(tester);
   });

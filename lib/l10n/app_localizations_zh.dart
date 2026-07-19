@@ -2696,6 +2696,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get vocabularyFilterAll => '全部';
 
   @override
+  String get vocabularyFilters => '筛选';
+
+  @override
   String get vocabularyContext => '语境';
 
   @override
@@ -5375,6 +5378,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get vocabularyFilterAll => '全部';
+
+  @override
+  String get vocabularyFilters => '筛选';
 
   @override
   String get vocabularyContext => '语境';

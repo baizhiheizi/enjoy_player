@@ -1365,6 +1365,7 @@
   "vocabularyFilterStatus": "Status",
   "vocabularyFilterLanguage": "Language",
   "vocabularyFilterAll": "All",
+  "vocabularyFilters": "Filters",
   "vocabularyContext": "Context",
   "vocabularyDictionary": "Dictionary",
   "vocabularyNotes": "Notes",

@@ -2818,6 +2818,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vocabularyFilterAll => 'All';
 
   @override
+  String get vocabularyFilters => 'Filters';
+
+  @override
   String get vocabularyContext => 'Context';
 
   @override

@@ -5241,6 +5241,12 @@ abstract class AppLocalizations {
   /// **'All'**
   String get vocabularyFilterAll;
 
+  /// No description provided for @vocabularyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get vocabularyFilters;
+
   /// No description provided for @vocabularyContext.
   ///
   /// In en, this message translates to:
