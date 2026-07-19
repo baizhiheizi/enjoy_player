@@ -96,7 +96,7 @@ void main() {
         'INSERT INTO audios (id, aid, provider, title, duration_seconds, language, local_uri, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         ['a1', 'aid', 'user', 't', 0, 'und', uri, 0, 0],
       );
-      other.dispose();
+      other.close();
 
       expect(
         await isAppManagedMediaStillReferenced(db: db, fileUri: uri),

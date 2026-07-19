@@ -24,7 +24,7 @@ void main() {
 
   test('wraps root words into a segment for timeline builder', () {
     final result = mapLongFormTranscriptToAsrResult(
-      AsrLongFormTranscript(
+      const AsrLongFormTranscript(
         text: 'Hello there friend',
         language: 'en',
         words: [

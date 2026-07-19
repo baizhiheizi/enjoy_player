@@ -50,8 +50,8 @@ void main() {
         home: Builder(
           builder: (context) {
             return TextButton(
-              onPressed: () {
-                showAsrLongMediaConfirmDialog(
+              onPressed: () async {
+                await showAsrLongMediaConfirmDialog(
                   context,
                   mediaDurationSeconds: kLongFormMinDurationSeconds,
                 );
