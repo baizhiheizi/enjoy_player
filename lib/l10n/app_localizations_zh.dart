@@ -490,7 +490,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importSubtitle => '导入字幕';
 
   @override
-  String get noTranscript => '无字幕稿';
+  String get noTranscript => '暂无字幕稿';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
@@ -558,8 +558,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importSubtitleSuccess => '字幕已导入';
 
   @override
-  String get noTranscriptHint =>
-      '打开媒体时云端字幕会在后台加载（每项在刷新前仅一次）。本地视频请使用提取或添加字幕（.srt/.vtt）。';
+  String get noTranscriptHint => '可添加字幕文件、提取内嵌字幕，或用 AI 生成字幕稿。';
+
+  @override
+  String get noTranscriptHintRemote => '云端字幕会在可用时自动加载。可在 CC 菜单中刷新。';
 
   @override
   String get transcriptEmptyExtract => '提取';
@@ -568,10 +570,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptEmptyAddSubtitle => '添加字幕';
 
   @override
-  String get transcriptEmptyGenerate => 'Generate transcript';
+  String get transcriptEmptyGenerate => 'AI 字幕稿';
 
   @override
-  String get subtitlesGenerate => 'Generate transcript';
+  String get subtitlesGenerate => 'AI 字幕稿';
 
   @override
   String get subtitlesRegenerate => '重新生成字幕';
@@ -3618,7 +3620,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get importSubtitle => '导入字幕';
 
   @override
-  String get noTranscript => '无字幕稿';
+  String get noTranscript => '暂无字幕稿';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
@@ -3686,14 +3688,22 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get importSubtitleSuccess => '字幕已导入';
 
   @override
-  String get noTranscriptHint =>
-      '打开媒体时云端字幕会在后台加载（每项在刷新前仅一次）。本地视频请使用提取或添加字幕（.srt/.vtt）。';
+  String get noTranscriptHint => '可添加字幕文件、提取内嵌字幕，或用 AI 生成字幕稿。';
+
+  @override
+  String get noTranscriptHintRemote => '云端字幕会在可用时自动加载。可在 CC 菜单中刷新。';
 
   @override
   String get transcriptEmptyExtract => '提取';
 
   @override
   String get transcriptEmptyAddSubtitle => '添加字幕';
+
+  @override
+  String get transcriptEmptyGenerate => 'AI 字幕稿';
+
+  @override
+  String get subtitlesGenerate => 'AI 字幕稿';
 
   @override
   String get subtitlesRegenerate => '重新生成字幕';

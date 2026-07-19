@@ -509,7 +509,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importSubtitle => 'Import subtitle';
 
   @override
-  String get noTranscript => 'No transcript';
+  String get noTranscript => 'No transcript yet';
 
   @override
   String get importSrtOrVtt => 'Import an .srt or .vtt file.';
@@ -578,7 +578,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTranscriptHint =>
-      'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).';
+      'Add a subtitle file, extract embedded captions, or create an AI transcript.';
+
+  @override
+  String get noTranscriptHintRemote =>
+      'Cloud captions load automatically when available. Open the CC menu to refresh.';
 
   @override
   String get transcriptEmptyExtract => 'Extract';
@@ -587,10 +591,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcriptEmptyAddSubtitle => 'Add subtitle';
 
   @override
-  String get transcriptEmptyGenerate => 'Generate transcript';
+  String get transcriptEmptyGenerate => 'AI transcript';
 
   @override
-  String get subtitlesGenerate => 'Generate transcript';
+  String get subtitlesGenerate => 'AI transcript';
 
   @override
   String get subtitlesRegenerate => 'Re-generate transcript';

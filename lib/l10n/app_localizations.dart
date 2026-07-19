@@ -1008,7 +1008,7 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscript.
   ///
   /// In en, this message translates to:
-  /// **'No transcript'**
+  /// **'No transcript yet'**
   String get noTranscript;
 
   /// No description provided for @importSrtOrVtt.
@@ -1140,8 +1140,14 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscriptHint.
   ///
   /// In en, this message translates to:
-  /// **'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).'**
+  /// **'Add a subtitle file, extract embedded captions, or create an AI transcript.'**
   String get noTranscriptHint;
+
+  /// No description provided for @noTranscriptHintRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud captions load automatically when available. Open the CC menu to refresh.'**
+  String get noTranscriptHintRemote;
 
   /// No description provided for @transcriptEmptyExtract.
   ///
@@ -1158,13 +1164,13 @@ abstract class AppLocalizations {
   /// No description provided for @transcriptEmptyGenerate.
   ///
   /// In en, this message translates to:
-  /// **'Generate transcript'**
+  /// **'AI transcript'**
   String get transcriptEmptyGenerate;
 
   /// No description provided for @subtitlesGenerate.
   ///
   /// In en, this message translates to:
-  /// **'Generate transcript'**
+  /// **'AI transcript'**
   String get subtitlesGenerate;
 
   /// No description provided for @subtitlesRegenerate.
