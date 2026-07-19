@@ -151,25 +151,35 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
         (p) => p.videoTranscriptSplitWidthPx,
       ),
     );
+    final transcript = Stack(
+      fit: StackFit.expand,
+      children: [
+        TranscriptPanel(mediaId: mediaId),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: SafeArea(
+            bottom: false,
+            left: false,
+            child: SharePracticePosterButton(
+              mediaId: mediaId,
+              iconColor: cs.onSurface,
+            ),
+          ),
+        ),
+      ],
+    );
 
     final mediaBody = isVideo
         ? VideoPlayerLayout(
             engine: engine,
-            transcript: TranscriptPanel(mediaId: mediaId),
-            surfaceOverlay: Positioned(
-              top: kToolbarHeight + 8,
-              right: 8,
-              child: SharePracticePosterButton(
-                mediaId: mediaId,
-                iconColor: Colors.white,
-              ),
-            ),
+            transcript: transcript,
             initialTranscriptSplitWidthPx: splitPx,
             onTranscriptSplitWidthCommitted: (w) => ref
                 .read(playerPreferencesCtrlProvider.notifier)
                 .setVideoTranscriptSplitWidthPx(w),
           )
-        : AudioPlayerLayout(transcript: TranscriptPanel(mediaId: mediaId));
+        : AudioPlayerLayout(transcript: transcript);
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -211,25 +221,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
       body: PlayerAmbientBackdrop(
         accentColor: accent,
         intensity: 0.08,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            mediaBody,
-            if (!isVideo)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: SafeArea(
-                  bottom: false,
-                  left: false,
-                  child: SharePracticePosterButton(
-                    mediaId: mediaId,
-                    iconColor: cs.onSurface,
-                  ),
-                ),
-              ),
-          ],
-        ),
+        child: mediaBody,
       ),
     );
   }

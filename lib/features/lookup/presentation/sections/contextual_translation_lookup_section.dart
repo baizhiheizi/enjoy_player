@@ -223,22 +223,12 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
     required Widget body,
   }) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Padding(
           padding: EdgeInsetsDirectional.only(end: t.space40),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(t.radiusSm),
-              border: Border.all(
-                color: cs.outlineVariant.withValues(alpha: 0.22),
-              ),
-            ),
-            child: Padding(padding: EdgeInsets.all(t.space12), child: body),
-          ),
+          child: body,
         ),
         PositionedDirectional(
           top: 0,
