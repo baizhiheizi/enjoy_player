@@ -80,6 +80,10 @@ release_repo_root() {
 release_stop_gradle_daemons() {
   local root="$1"
   local android_dir="${root}/android"
+  if [[ -z "${JAVA_HOME:-}" ]] && ! command -v java >/dev/null 2>&1; then
+    echo "WARNING: Skipping explicit Gradle daemon stop because JAVA_HOME and java are unavailable."
+    return 0
+  fi
   if [[ -x "${android_dir}/gradlew" ]]; then
     echo ">>> Stop Gradle daemons (fresh JVM for Android release build)"
     (cd "${android_dir}" && ./gradlew --stop) || true

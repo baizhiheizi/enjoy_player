@@ -92,4 +92,16 @@ if ($sharePlusPatched) {
     }
 }
 
+# file_picker 12's Kotlin source layout changed during the AGP 9 migration.
+# Gradle's incremental cache can retain a source snapshot that compiles
+# FilePickerDelegate.kt without FileUtils.kt after an upgrade.
+if (-not $repoRoot) {
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+}
+$filePickerBuild = Join-Path $repoRoot "build\file_picker"
+if (Test-Path $filePickerBuild) {
+    Remove-Item -Recurse -Force $filePickerBuild
+    Write-Host "Cleared stale $filePickerBuild"
+}
+
 Write-Host "AGP 9 pub plugin patches applied."
