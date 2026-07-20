@@ -371,7 +371,10 @@ class _VideoStageWithChrome extends ConsumerWidget {
 
     return PlayerSurfaceTarget(
       id: PlayerSurfaceIds.expandedPlayer,
+      // opaque: false so empty regions pass hits through to the WebView
+      // below (YouTube needs a real WebView gesture; see docs/features/youtube.md).
       overlayBuilder: (ctx) => MouseRegion(
+        opaque: false,
         onEnter: onHoverChanged == null ? null : (_) => onHoverChanged!(true),
         onExit: onHoverChanged == null ? null : (_) => onHoverChanged!(false),
         child: Stack(

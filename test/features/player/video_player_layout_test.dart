@@ -183,6 +183,30 @@ void main() {
     );
   });
 
+  testWidgets(
+    'host overlay MouseRegion is pass-through so WebView can receive hits',
+    (tester) async {
+      await pumpLayout(tester, width: 900, height: 600);
+
+      final hostRegions = find.descendant(
+        of: find.byType(PlayerSurfaceHost),
+        matching: find.byType(MouseRegion),
+      );
+      expect(hostRegions, findsWidgets);
+
+      final passThrough = tester
+          .widgetList<MouseRegion>(hostRegions)
+          .where((r) => !r.opaque);
+      expect(
+        passThrough,
+        isNotEmpty,
+        reason:
+            'Host chrome MouseRegion must use opaque: false so empty '
+            'regions pass hits through to the YouTube WebView',
+      );
+    },
+  );
+
   testWidgets('extra video chrome is painted by the surface host', (
     tester,
   ) async {

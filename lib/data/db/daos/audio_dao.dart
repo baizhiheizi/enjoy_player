@@ -29,6 +29,13 @@ class AudioDao extends DatabaseAccessor<AppDatabase> with _$AudioDaoMixin {
     );
   }
 
+  /// Bumps [Audios.updatedAt] so Home "Recent media" can resurface the row.
+  Future<void> touchUpdatedAt(String id) async {
+    await (update(audios)..where((t) => t.id.equals(id))).write(
+      AudiosCompanion(updatedAt: Value(DateTime.now())),
+    );
+  }
+
   Future<void> deleteId(String id) =>
       (delete(audios)..where((t) => t.id.equals(id))).go();
 

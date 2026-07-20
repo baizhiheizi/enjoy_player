@@ -67,6 +67,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     try {
       await addDiscoverFeedEntryToLibrary(ref, widget.entry);
       ref.invalidate(libraryMediaProvider);
+      ref.invalidate(libraryHomeRecentsProvider);
       if (!mounted) return false;
       setState(() => _inLibrary = true);
       AppNotice.success(context, l10n.discoverAddedToLibrary);

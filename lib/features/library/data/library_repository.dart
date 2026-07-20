@@ -251,6 +251,8 @@ class MediaLibraryRepository {
         prefetchedTitle: prefetchedTitle,
         prefetchedThumbnailUrl: prefetchedThumbnailUrl,
       );
+      // Resurface on Home even when metadata was already complete (re-add).
+      await _db.videoDao.touchUpdatedAt(dup.id);
       return dup.id;
     }
 
@@ -571,6 +573,20 @@ class MediaLibraryRepository {
   ///
   /// Kept as a stable hook for call sites (e.g. cloud add-to-library) — no-op.
   Future<void> ensureVideoPosterAfterMetadataInsert(VideoRow _) async {}
+
+  /// Bumps library-row [updatedAt] so Home "Recent media" ranks recently opened
+  /// items without enqueueing a cloud sync update.
+  Future<void> touchMediaUpdatedAt(String mediaId) async {
+    final video = await _db.videoDao.getById(mediaId);
+    if (video != null) {
+      await _db.videoDao.touchUpdatedAt(mediaId);
+      return;
+    }
+    final audio = await _db.audioDao.getById(mediaId);
+    if (audio != null) {
+      await _db.audioDao.touchUpdatedAt(mediaId);
+    }
+  }
 
   Future<void> deleteMedia(String id) async {
     // Atomic: enqueue the sync row inside the same transaction as the

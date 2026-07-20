@@ -20,6 +20,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -309,6 +310,8 @@ Future<void> importYoutubeFromDialog(
     final id = await ref
         .read(mediaLibraryRepositoryProvider)
         .importYoutubeVideo(submitted, contentLanguage: contentLanguage);
+    ref.invalidate(libraryMediaProvider);
+    ref.invalidate(libraryHomeRecentsProvider);
     if (!context.mounted) return;
     _dismissBlockingImportDialogThen(
       context,

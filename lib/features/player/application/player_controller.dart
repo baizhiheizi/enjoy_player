@@ -283,6 +283,10 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
       if (!options.restoreEcho) {
         ref.read(echoModeProvider.notifier).deactivate();
       }
+      // Still bump library updatedAt so Home "Recent media" reflects this open.
+      unawaited(
+        ref.read(mediaLibraryRepositoryProvider).touchMediaUpdatedAt(mediaId),
+      );
       return;
     }
 
@@ -306,6 +310,10 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     // and the generation is still current).
     if (!_disposed && gen == _openGeneration && state?.mediaId == mediaId) {
       _startCompletionLoop();
+      // Promote to Home "Recent media" even if playback is still starting.
+      unawaited(
+        ref.read(mediaLibraryRepositoryProvider).touchMediaUpdatedAt(mediaId),
+      );
     }
   }
 
