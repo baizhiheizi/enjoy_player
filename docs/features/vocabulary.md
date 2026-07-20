@@ -438,6 +438,8 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
 
 Rating row: one-line chips (48px tall, max width 400, centered) with soft error / primary / tertiary fills. Scrollable study body is independent of the sticky rating footer.
 
+**Desktop scrolling:** back-tab content (`_TabBody`) attaches an explicit `ScrollController` to both `SingleChildScrollView` and `Scrollbar`. Desktop `Scrollbar` defaults to `PrimaryScrollController`, which `SingleChildScrollView` does not auto-attach to — without the explicit pair, scrolling the Context / Dictionary tabs on desktop throws. Mobile scrollables are unaffected.
+
 ### Word list
 
 - One toolbar: search + filter toggle + Export. Status/language menus appear only when filters are open (or already active). Gutters match `EnjoyPage` hub metrics.
