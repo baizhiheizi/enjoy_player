@@ -1,1 +1,1 @@
-- [Test Improver run state](test-improver-state.md) — last run 2026-07-16 08:44 UTC (asr_failure_messages dispatchers, 20 tests, 47/47 target lines), validated coverage pipeline, backlog + monthly issue state
+- [Test Improver run state](test-improver-state.md) — last run 2026-07-20 19:30 UTC (yin_pitch pitch detection, 13 tests, branch test-assist/yin-pitch-coverage, commit 194bb70), monthly issue #166 updated with full July run history
