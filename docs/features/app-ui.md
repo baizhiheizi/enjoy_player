@@ -69,7 +69,7 @@ Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-sc
 | `LibraryScreen` | `EditorialHeader` + `SegmentedButton` + `MediaCardRow` / `MediaCardTile` |
 | `ExpandedPlayerScreen` | `PlayerAmbientBackdrop` + transparent app bar (hidden while playing, returns on pause) |
 | `AudioPlayerLayout` | `HeroArtwork` with dynamic rim light, "Now reading" editorial label |
-| `VideoPlayerLayout` | Side-by-side video + transcript when width **>** `breakpointTranscriptSideBySide` (720) (any orientation). Below: stacked 16:9 video over transcript. Split: draggable transcript column (**≥360** px min, max 50% width), persisted `splitPx` preference, dark zinc panel, 1px left border; top **SafeArea** on video when expanded chrome hides the app bar |
+| `VideoPlayerLayout` | Side-by-side when layout is landscape (`width > height`); stacked 16:9 video over transcript in portrait/square ([ADR-0059](../decisions/0059-phone-tablet-orientation-and-player-aspect-layout.md)). Split: draggable transcript column (**≥360** px min, max 50% width), persisted `splitPx` preference, dark zinc panel, 1px left border; top **SafeArea** on video when expanded chrome hides the app bar. Transport packing still uses `breakpointTranscriptSideBySide` (720). |
 | `GlobalTransportBar` | Glass kept; dynamic-accent play ring; tabular timestamps; narrow ≤720px: prev/next always when transcript loaded (replay via line tap) |
 | `TranscriptPanel` | Source Serif 4 body; editorial left-rail active line; neutral echo card with 8px orange rail |
 | `ShadowReadingPanel` | Idle: three-zone bar (pitch icon, centered 56pt FAB, play + more; delete in menu); recording: centered FAB + countdown |

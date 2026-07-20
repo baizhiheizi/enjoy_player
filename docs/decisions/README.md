@@ -82,3 +82,4 @@ Trade-offs, follow-up work, risks.
 | [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads |
 | [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |
 | [0058](0058-enjoy-deepgram-long-form-asr.md) | Enjoy long-form ASR via Worker Deepgram jobs (≥900s upload/submit/poll) |
+| [0059](0059-phone-tablet-orientation-and-player-aspect-layout.md) | Phone portrait lock / tablet rotate; player stack vs side-by-side by window aspect |

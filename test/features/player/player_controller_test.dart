@@ -134,6 +134,8 @@ void main() {
         pathProviderRoot.deleteSync(recursive: true);
       }
 
+      // Let fire-and-forget openMedia side effects settle before closing Drift.
+      await pumpEventQueue();
       container.dispose();
       await db.close();
       await fake.dispose();
