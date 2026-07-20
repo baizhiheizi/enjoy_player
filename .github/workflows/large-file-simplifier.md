@@ -1,6 +1,6 @@
 ---
 on:
-  schedule: daily on weekdays
+  schedule: daily around 4:00 utc+8
   skip-if-match: is:issue is:open in:title "[large-file-simplifier]"
   workflow_dispatch: null
 permissions:

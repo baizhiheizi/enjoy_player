@@ -3,7 +3,7 @@ on:
   permissions:
     pull-requests: read
   reaction: eyes
-  schedule: every 12h
+  schedule: every 12h around 3:00 utc+8
   slash_command:
     name: repo-assist
     strategy: centralized
