@@ -57,6 +57,13 @@ if [[ "${RELEASE_SKIP_BUILD}" != true ]]; then
   echo ">>> Prune stale Android JNI merge cache (flutter/flutter#187553)"
   bash "${root}/tool/prune_android_jni_merge_cache.sh"
 
+  # Always patch pub-cache plugins for AGP 9 (also covers --skip-checks and
+  # Windows hosts where ~/.pub-cache is not the Flutter cache).
+  echo ">>> Apply AGP 9 pub plugin patches"
+  bash "${root}/tool/patch_agp9_pub_plugins.sh"
+  # Drop stale share_plus outputs from pre-patch builds (empty UP-TO-DATE Kotlin).
+  rm -rf "${root}/build/share_plus"
+
   release_stop_gradle_daemons "${root}"
 
   if [[ "${BUILD_AAB}" == true ]]; then

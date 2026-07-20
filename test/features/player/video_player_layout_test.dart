@@ -3,6 +3,8 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_host.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +44,7 @@ void main() {
     required double width,
     required double height,
     FakePlayerEngine? engine,
+    Widget? surfaceOverlay,
     List<Override> overrides = const [],
   }) async {
     final fake = engine ?? FakePlayerEngine();
@@ -65,15 +68,22 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: Center(
-              child: SizedBox(
-                width: width,
-                height: height,
-                child: VideoPlayerLayout(
-                  engine: fake,
-                  transcript: const Text('TR_STUB'),
+            body: Stack(
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: width,
+                    height: height,
+                    child: VideoPlayerLayout(
+                      engine: fake,
+                      transcript: const Text('TR_STUB'),
+                      surfaceOverlay: surfaceOverlay,
+                    ),
+                  ),
                 ),
-              ),
+                // Overlay chrome (tap-to-toggle) lives on the permanent host.
+                const PlayerSurfaceHost(),
+              ],
             ),
           ),
         ),
@@ -145,19 +155,54 @@ void main() {
     );
 
     expect(fake.playOrPauseCallCount, 0);
-    // Find the stage tap GestureDetector: the one wrapping a transparent
-    // ColoredBox with onTap set and no horizontal drag handler. Match by
-    // widget type + predicate rather than fragile tree traversal.
-    final stageTap = find.byWidgetPredicate(
-      (w) =>
-          w is GestureDetector &&
-          w.onTap != null &&
-          w.onHorizontalDragUpdate == null &&
-          w.behavior == HitTestBehavior.opaque,
-    );
-    await tester.tap(stageTap.first);
+    // Tap chrome lives on [PlayerSurfaceHost] over the registered target.
+    await tester.tapAt(tester.getCenter(find.byType(PlayerSurfaceTarget)));
     await tester.pump();
     expect(fake.playOrPauseCallCount, 1);
+  });
+
+  testWidgets('video title chrome is painted by the surface host', (
+    tester,
+  ) async {
+    await pumpLayout(
+      tester,
+      width: 900,
+      height: 600,
+      overrides: [
+        playerControllerProvider.overrideWith(
+          () => _SessionPlayerController(_testSession()),
+        ),
+      ],
+    );
+
+    final title = find.text('Layout test');
+    expect(title, findsOneWidget);
+    expect(
+      find.ancestor(of: title, matching: find.byType(PlayerSurfaceHost)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('extra video chrome is painted by the surface host', (
+    tester,
+  ) async {
+    await pumpLayout(
+      tester,
+      width: 900,
+      height: 600,
+      surfaceOverlay: const Positioned(
+        top: 64,
+        right: 8,
+        child: Text('SURFACE_ACTION'),
+      ),
+    );
+
+    final action = find.text('SURFACE_ACTION');
+    expect(action, findsOneWidget);
+    expect(
+      find.ancestor(of: action, matching: find.byType(PlayerSurfaceHost)),
+      findsOneWidget,
+    );
   });
 
   /// Mirrors [ExpandedPlayerChromeBody] narrow video layout: [VideoPlayerLayout]
@@ -175,6 +220,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [playerEngineTestDoubleProvider.overrideWithValue(fake)],
           child: MaterialApp(
             theme: ThemeData(
               colorScheme: scheme,
@@ -232,6 +278,7 @@ void main() {
                                   ),
                                 ),
                               ),
+                            const PlayerSurfaceHost(),
                           ],
                         ),
                       );

@@ -6,14 +6,18 @@ SyncQueueRow _row({
   required int id,
   int retryCount = 0,
   DateTime? lastAttempt,
+  String entityType = 'audio',
+  String entityId = 'a1',
+  String action = 'create',
+  DateTime? createdAt,
 }) {
   return SyncQueueRow(
     id: id,
-    entityType: 'audio',
-    entityId: 'a1',
-    action: 'create',
+    entityType: entityType,
+    entityId: entityId,
+    action: action,
     payloadJson: '{}',
-    createdAt: DateTime(2026, 1, 1),
+    createdAt: createdAt ?? DateTime(2026, 1, 1),
     retryCount: retryCount,
     lastAttempt: lastAttempt,
     error: null,
@@ -21,6 +25,28 @@ SyncQueueRow _row({
 }
 
 void main() {
+  group('sortSyncQueueWork', () {
+    test('orders delete before create for the same entity', () {
+      final create = _row(
+        id: 1,
+        entityType: 'video',
+        entityId: 'v1',
+        action: 'create',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final delete = _row(
+        id: 2,
+        entityType: 'video',
+        entityId: 'v1',
+        action: 'delete',
+        createdAt: DateTime(2026, 1, 2),
+      );
+      final work = [create, delete];
+      sortSyncQueueWork(work);
+      expect(work.map((r) => r.action), ['delete', 'create']);
+    });
+  });
+
   group('shouldRetryQueueItem', () {
     test('allows first attempt when lastAttempt is null', () {
       expect(shouldRetryQueueItem(_row(id: 1)), isTrue);

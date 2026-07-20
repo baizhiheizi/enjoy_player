@@ -41,7 +41,7 @@ final class UpdateCtrlProvider
   }
 }
 
-String _$updateCtrlHash() => r'47e02f6cea9856bc03465e9b3458209551b3aa7a';
+String _$updateCtrlHash() => r'8769a898c8253ae2fda256f1b60a23d6fdde33b1';
 
 abstract class _$UpdateCtrl extends $Notifier<UpdateCheckResult?> {
   UpdateCheckResult? build();
@@ -60,3 +60,50 @@ abstract class _$UpdateCtrl extends $Notifier<UpdateCheckResult?> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Whether Settings / Profile should show an update notification dot.
+
+@ProviderFor(updateAvailableBadge)
+final updateAvailableBadgeProvider = UpdateAvailableBadgeProvider._();
+
+/// Whether Settings / Profile should show an update notification dot.
+
+final class UpdateAvailableBadgeProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether Settings / Profile should show an update notification dot.
+  UpdateAvailableBadgeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateAvailableBadgeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateAvailableBadgeHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return updateAvailableBadge(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$updateAvailableBadgeHash() =>
+    r'f5e4df3407ad3052a9fb53c8a5952424fdddc66e';

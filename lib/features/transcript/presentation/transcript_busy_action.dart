@@ -48,18 +48,18 @@ class _TranscriptBusyButtonState extends State<TranscriptBusyButton> {
           )
         : Icon(widget.icon);
 
-    if (widget.filled) {
-      return FilledButton.icon(
-        onPressed: _busy ? null : _run,
-        icon: icon,
-        label: Text(widget.label),
-      );
-    }
-    return OutlinedButton.icon(
-      onPressed: _busy ? null : _run,
-      icon: icon,
-      label: Text(widget.label),
-    );
+    final button = widget.filled
+        ? FilledButton.icon(
+            onPressed: _busy ? null : _run,
+            icon: icon,
+            label: Text(widget.label),
+          )
+        : OutlinedButton.icon(
+            onPressed: _busy ? null : _run,
+            icon: icon,
+            label: Text(widget.label),
+          );
+    return SizedBox(width: double.infinity, child: button);
   }
 }
 

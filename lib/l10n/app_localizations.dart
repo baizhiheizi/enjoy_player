@@ -291,6 +291,12 @@ abstract class AppLocalizations {
   /// **'Extracting audio…'**
   String get asrStatusExtracting;
 
+  /// No description provided for @asrStatusUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading audio…'**
+  String get asrStatusUploading;
+
   /// No description provided for @asrLanguageTitle.
   ///
   /// In en, this message translates to:
@@ -308,6 +314,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recognizing…'**
   String get asrStatusRecognizing;
+
+  /// No description provided for @asrStatusPolling.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribing…'**
+  String get asrStatusPolling;
 
   /// No description provided for @asrStatusSaving.
   ///
@@ -368,6 +380,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This source isn\'t supported'**
   String get asrErrorUnsupportedSource;
+
+  /// No description provided for @asrErrorUnsupportedMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'This audio format isn\'t supported for long transcription'**
+  String get asrErrorUnsupportedMedia;
+
+  /// No description provided for @asrErrorProviderTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcription timed out. Please try again.'**
+  String get asrErrorProviderTimeout;
+
+  /// No description provided for @asrErrorProviderRetryable.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcription failed. Please try again.'**
+  String get asrErrorProviderRetryable;
 
   /// No description provided for @asrErrorByokMissing.
   ///
@@ -1008,7 +1038,7 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscript.
   ///
   /// In en, this message translates to:
-  /// **'No transcript'**
+  /// **'No transcript yet'**
   String get noTranscript;
 
   /// No description provided for @importSrtOrVtt.
@@ -1140,8 +1170,14 @@ abstract class AppLocalizations {
   /// No description provided for @noTranscriptHint.
   ///
   /// In en, this message translates to:
-  /// **'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).'**
+  /// **'Add a subtitle file, extract embedded captions, or create an AI transcript.'**
   String get noTranscriptHint;
+
+  /// No description provided for @noTranscriptHintRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud captions load automatically when available. Open the CC menu to refresh.'**
+  String get noTranscriptHintRemote;
 
   /// No description provided for @transcriptEmptyExtract.
   ///
@@ -1158,13 +1194,13 @@ abstract class AppLocalizations {
   /// No description provided for @transcriptEmptyGenerate.
   ///
   /// In en, this message translates to:
-  /// **'Generate transcript'**
+  /// **'AI transcript'**
   String get transcriptEmptyGenerate;
 
   /// No description provided for @subtitlesGenerate.
   ///
   /// In en, this message translates to:
-  /// **'Generate transcript'**
+  /// **'AI transcript'**
   String get subtitlesGenerate;
 
   /// No description provided for @subtitlesRegenerate.
@@ -4533,6 +4569,12 @@ abstract class AppLocalizations {
   /// **'Update available'**
   String get updateAvailableTitle;
 
+  /// No description provided for @updateAvailableBadgeSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableBadgeSemantics;
+
   /// No description provided for @updateMandatoryTitle.
   ///
   /// In en, this message translates to:
@@ -4562,6 +4604,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get updateDismiss;
+
+  /// No description provided for @updateCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get updateCancel;
+
+  /// No description provided for @updateRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get updateRetry;
+
+  /// No description provided for @updatePreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing download…'**
+  String get updatePreparing;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading update… {percent}%'**
+  String updateDownloading(int percent);
+
+  /// No description provided for @updateVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying download…'**
+  String get updateVerifying;
+
+  /// No description provided for @updateOpeningInstaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening installer…'**
+  String get updateOpeningInstaller;
+
+  /// No description provided for @updateErrorDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed. Check your connection and try again.'**
+  String get updateErrorDownload;
+
+  /// No description provided for @updateErrorChecksum.
+  ///
+  /// In en, this message translates to:
+  /// **'The download was corrupted. Please try again.'**
+  String get updateErrorChecksum;
+
+  /// No description provided for @updateErrorPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Install permission was denied. Allow installs from this app in system settings, then retry.'**
+  String get updateErrorPermission;
+
+  /// No description provided for @updateErrorAlreadyRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'An update download is already in progress.'**
+  String get updateErrorAlreadyRunning;
+
+  /// No description provided for @updateErrorInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the installer. Please try again.'**
+  String get updateErrorInstallation;
+
+  /// No description provided for @updateErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please try again.'**
+  String get updateErrorGeneric;
 
   /// No description provided for @updateUpToDate.
   ///
@@ -4796,6 +4910,684 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source language reset to learning default'**
   String get lookupSourceResetToLearning;
+
+  /// No description provided for @vocabularyAddToVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Vocabulary'**
+  String get vocabularyAddToVocabulary;
+
+  /// No description provided for @vocabularyAddContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Context'**
+  String get vocabularyAddContext;
+
+  /// No description provided for @vocabularyAlreadyInVocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in Vocabulary'**
+  String get vocabularyAlreadyInVocabulary;
+
+  /// No description provided for @vocabularyAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding…'**
+  String get vocabularyAdding;
+
+  /// No description provided for @vocabularyRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing…'**
+  String get vocabularyRemoving;
+
+  /// No description provided for @vocabularyConfirmDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from vocabulary?'**
+  String get vocabularyConfirmDeleteTitle;
+
+  /// No description provided for @vocabularyConfirmDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the word and all of its contexts.'**
+  String get vocabularyConfirmDeleteBody;
+
+  /// No description provided for @vocabularyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get vocabularyCancel;
+
+  /// No description provided for @vocabularyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get vocabularyDelete;
+
+  /// No description provided for @vocabularyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get vocabularyTitle;
+
+  /// No description provided for @vocabularyProfileEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get vocabularyProfileEntry;
+
+  /// No description provided for @vocabularyProfileEntryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review saved words and flashcards'**
+  String get vocabularyProfileEntryHint;
+
+  /// No description provided for @vocabularyReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get vocabularyReview;
+
+  /// No description provided for @vocabularyAllWords.
+  ///
+  /// In en, this message translates to:
+  /// **'All Words'**
+  String get vocabularyAllWords;
+
+  /// No description provided for @vocabularyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get vocabularyTotal;
+
+  /// No description provided for @vocabularyDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get vocabularyDue;
+
+  /// No description provided for @vocabularyStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get vocabularyStatusNew;
+
+  /// No description provided for @vocabularyStatusLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get vocabularyStatusLearning;
+
+  /// No description provided for @vocabularyStatusReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get vocabularyStatusReviewing;
+
+  /// No description provided for @vocabularyStatusMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get vocabularyStatusMastered;
+
+  /// No description provided for @vocabularyNoWords.
+  ///
+  /// In en, this message translates to:
+  /// **'No words yet'**
+  String get vocabularyNoWords;
+
+  /// No description provided for @vocabularyNoWordsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text in a transcript and choose Add to Vocabulary to start your word book.'**
+  String get vocabularyNoWordsDescription;
+
+  /// No description provided for @vocabularyNoDueItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due right now'**
+  String get vocabularyNoDueItems;
+
+  /// No description provided for @vocabularyNoDueItemsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You can still start a custom review of all words, by status, language, or a random set.'**
+  String get vocabularyNoDueItemsDescription;
+
+  /// No description provided for @vocabularyNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching words'**
+  String get vocabularyNoMatches;
+
+  /// No description provided for @vocabularyNoMatchesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search or clear the status and language filters.'**
+  String get vocabularyNoMatchesDescription;
+
+  /// No description provided for @vocabularyListLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your vocabulary.'**
+  String get vocabularyListLoadFailed;
+
+  /// No description provided for @vocabularyCustomReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom review'**
+  String get vocabularyCustomReview;
+
+  /// No description provided for @vocabularySelectReviewItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to review'**
+  String get vocabularySelectReviewItems;
+
+  /// No description provided for @vocabularyReviewDueItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Due items'**
+  String get vocabularyReviewDueItems;
+
+  /// No description provided for @vocabularyReviewDueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Words scheduled for today or earlier'**
+  String get vocabularyReviewDueHint;
+
+  /// No description provided for @vocabularyReviewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All words'**
+  String get vocabularyReviewAll;
+
+  /// No description provided for @vocabularyReviewAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review every word in your book'**
+  String get vocabularyReviewAllHint;
+
+  /// No description provided for @vocabularyReviewByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'By status'**
+  String get vocabularyReviewByStatus;
+
+  /// No description provided for @vocabularyReviewByStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on new, learning, reviewing, or mastered'**
+  String get vocabularyReviewByStatusHint;
+
+  /// No description provided for @vocabularyReviewByLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'By language'**
+  String get vocabularyReviewByLanguage;
+
+  /// No description provided for @vocabularyReviewByLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit the session to one source language'**
+  String get vocabularyReviewByLanguageHint;
+
+  /// No description provided for @vocabularyReviewRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get vocabularyReviewRandom;
+
+  /// No description provided for @vocabularyReviewRandomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle and take a short practice set'**
+  String get vocabularyReviewRandomHint;
+
+  /// No description provided for @vocabularyNumberOfWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of words'**
+  String get vocabularyNumberOfWords;
+
+  /// No description provided for @vocabularyQueueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} words'**
+  String vocabularyQueueCount(int count);
+
+  /// No description provided for @vocabularyStartReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Start review'**
+  String get vocabularyStartReview;
+
+  /// No description provided for @vocabularyEmptyQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'No words match this selection.'**
+  String get vocabularyEmptyQueue;
+
+  /// No description provided for @vocabularyExitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit review'**
+  String get vocabularyExitReview;
+
+  /// No description provided for @vocabularyHowWellDoYouKnow.
+  ///
+  /// In en, this message translates to:
+  /// **'How well do you know this?'**
+  String get vocabularyHowWellDoYouKnow;
+
+  /// No description provided for @vocabularyDontKnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t Know'**
+  String get vocabularyDontKnow;
+
+  /// No description provided for @vocabularyKnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Know'**
+  String get vocabularyKnow;
+
+  /// No description provided for @vocabularyKnowWell.
+  ///
+  /// In en, this message translates to:
+  /// **'Know Well'**
+  String get vocabularyKnowWell;
+
+  /// No description provided for @vocabularySkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get vocabularySkip;
+
+  /// No description provided for @vocabularyUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get vocabularyUndo;
+
+  /// No description provided for @vocabularyProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String vocabularyProgress(int current, int total);
+
+  /// No description provided for @vocabularyRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remaining'**
+  String vocabularyRemaining(int count);
+
+  /// No description provided for @vocabularyFlipBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip back'**
+  String get vocabularyFlipBack;
+
+  /// No description provided for @vocabularyReviewComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Review complete'**
+  String get vocabularyReviewComplete;
+
+  /// No description provided for @vocabularyReviewCompleteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice work. Your ratings are saved.'**
+  String get vocabularyReviewCompleteDescription;
+
+  /// No description provided for @vocabularyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get vocabularyDone;
+
+  /// No description provided for @vocabularySearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search words'**
+  String get vocabularySearchPlaceholder;
+
+  /// No description provided for @vocabularyFilterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get vocabularyFilterStatus;
+
+  /// No description provided for @vocabularyFilterLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get vocabularyFilterLanguage;
+
+  /// No description provided for @vocabularyFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get vocabularyFilterAll;
+
+  /// No description provided for @vocabularyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get vocabularyFilters;
+
+  /// No description provided for @vocabularyContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context'**
+  String get vocabularyContext;
+
+  /// No description provided for @vocabularyDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary'**
+  String get vocabularyDictionary;
+
+  /// No description provided for @vocabularyNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get vocabularyNotes;
+
+  /// No description provided for @vocabularyNotesPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes coming soon'**
+  String get vocabularyNotesPlaceholder;
+
+  /// No description provided for @vocabularyNoContextAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No context available'**
+  String get vocabularyNoContextAvailable;
+
+  /// No description provided for @vocabularyDictionaryNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary not available offline'**
+  String get vocabularyDictionaryNotAvailable;
+
+  /// No description provided for @vocabularyOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get vocabularyOverdue;
+
+  /// No description provided for @vocabularyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get vocabularyToday;
+
+  /// No description provided for @vocabularyTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get vocabularyTomorrow;
+
+  /// No description provided for @vocabularyInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days'**
+  String vocabularyInDays(int days);
+
+  /// No description provided for @vocabularyKeyboardShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts: Space flip/back · 1/2/3 rate · ← previous · → skip · Esc exit'**
+  String get vocabularyKeyboardShortcuts;
+
+  /// No description provided for @vocabularyContextsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} contexts'**
+  String vocabularyContextsCount(int count);
+
+  /// No description provided for @vocabularyReviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String vocabularyReviewsCount(int count);
+
+  /// No description provided for @vocabularyFlipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to flip'**
+  String get vocabularyFlipHint;
+
+  /// No description provided for @vocabularyPlaySegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Play segment'**
+  String get vocabularyPlaySegment;
+
+  /// No description provided for @vocabularyOpenInPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in player'**
+  String get vocabularyOpenInPlayer;
+
+  /// No description provided for @vocabularyOpenInPlayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the player will end this review session. Your ratings so far are saved.'**
+  String get vocabularyOpenInPlayerDescription;
+
+  /// No description provided for @vocabularyShadowReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadow reading'**
+  String get vocabularyShadowReading;
+
+  /// No description provided for @vocabularyShadowReadingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.'**
+  String get vocabularyShadowReadingDescription;
+
+  /// No description provided for @vocabularyEchoReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo reading'**
+  String get vocabularyEchoReading;
+
+  /// No description provided for @vocabularyPracticeDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Close practice'**
+  String get vocabularyPracticeDismiss;
+
+  /// No description provided for @vocabularyPracticePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get vocabularyPracticePause;
+
+  /// No description provided for @vocabularyStatsExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show status breakdown'**
+  String get vocabularyStatsExpand;
+
+  /// No description provided for @vocabularyStatsCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide status breakdown'**
+  String get vocabularyStatsCollapse;
+
+  /// No description provided for @vocabularyPreviousContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous context'**
+  String get vocabularyPreviousContext;
+
+  /// No description provided for @vocabularyNextContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next context'**
+  String get vocabularyNextContext;
+
+  /// No description provided for @vocabularyContextOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String vocabularyContextOfTotal(int current, int total);
+
+  /// No description provided for @vocabularyContextualTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Contextual translation'**
+  String get vocabularyContextualTranslation;
+
+  /// No description provided for @vocabularyFetchDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up dictionary'**
+  String get vocabularyFetchDictionary;
+
+  /// No description provided for @vocabularyFetchContextual.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate context'**
+  String get vocabularyFetchContextual;
+
+  /// No description provided for @vocabularyFetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get vocabularyFetching;
+
+  /// No description provided for @vocabularyAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use AI lookup'**
+  String get vocabularyAiUnavailable;
+
+  /// No description provided for @vocabularyAiFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load. Try again when online.'**
+  String get vocabularyAiFetchFailed;
+
+  /// No description provided for @vocabularyMediaUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Media actions unavailable for this context'**
+  String get vocabularyMediaUnavailable;
+
+  /// No description provided for @vocabularyMediaPlayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play this segment'**
+  String get vocabularyMediaPlayFailed;
+
+  /// No description provided for @vocabularyMediaOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this media'**
+  String get vocabularyMediaOpenFailed;
+
+  /// No description provided for @vocabularyConfirmContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get vocabularyConfirmContinue;
+
+  /// No description provided for @vocabularySourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get vocabularySourceLabel;
+
+  /// No description provided for @vocabularyUnknownSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown source'**
+  String get vocabularyUnknownSource;
+
+  /// No description provided for @vocabularyLocatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}s · {duration}s'**
+  String vocabularyLocatorLabel(String start, String duration);
+
+  /// No description provided for @vocabularyExportToAnki.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Anki'**
+  String get vocabularyExportToAnki;
+
+  /// No description provided for @vocabularyExportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Anki'**
+  String get vocabularyExportDialogTitle;
+
+  /// No description provided for @vocabularyExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get vocabularyExport;
+
+  /// No description provided for @vocabularyNoItemsToExport.
+  ///
+  /// In en, this message translates to:
+  /// **'No items to export'**
+  String get vocabularyNoItemsToExport;
+
+  /// No description provided for @vocabularyProRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro required'**
+  String get vocabularyProRequired;
+
+  /// No description provided for @vocabularyProRequiredDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Anki export is available on Enjoy Pro. Upgrade to export your vocabulary as Anki CSV cards.'**
+  String get vocabularyProRequiredDescription;
+
+  /// No description provided for @vocabularyUpgradeToPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get vocabularyUpgradeToPro;
+
+  /// No description provided for @vocabularyExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary exported.'**
+  String get vocabularyExportSuccess;
+
+  /// No description provided for @vocabularyExportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export vocabulary.'**
+  String get vocabularyExportError;
+
+  /// No description provided for @vocabularyExportCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Export cancelled.'**
+  String get vocabularyExportCancelled;
+
+  /// No description provided for @vocabularyExportSparseCacheHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Card backs are richer when dictionary and contextual translations were saved during review.'**
+  String get vocabularyExportSparseCacheHint;
+
+  /// No description provided for @vocabularyExportProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting…'**
+  String get vocabularyExportProgress;
 
   /// No description provided for @authRequiredCloudFeaturesTitle.
   ///

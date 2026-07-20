@@ -31,6 +31,7 @@ class LookupCoordinator extends _$LookupCoordinator {
       final t = EnjoyThemeTokens.of(context);
       await showEnjoyDialog<void>(
         context: context,
+        useRootNavigator: true,
         builder: (ctx) {
           return Dialog(
             backgroundColor: scheme.surfaceContainerHigh,
@@ -64,6 +65,7 @@ class LookupCoordinator extends _$LookupCoordinator {
     await showEnjoySheet<void>(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       useSafeArea: true,
       builder: (sheetContext) => DictionaryLookupSheet(
         presentation: DictionaryLookupPresentation.bottomSheet,

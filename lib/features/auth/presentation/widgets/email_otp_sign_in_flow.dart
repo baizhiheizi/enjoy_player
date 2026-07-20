@@ -105,7 +105,9 @@ class _EmailOtpSignInFlowState extends ConsumerState<EmailOtpSignInFlow> {
     return Center(
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: BoxConstraints(
+            maxWidth: EnjoyThemeTokens.of(context).modalMaxWidth,
+          ),
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: EnjoyThemeTokens.of(context).space32,
@@ -172,7 +174,9 @@ class OtpResumePane extends ConsumerWidget {
     return Center(
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: BoxConstraints(
+            maxWidth: EnjoyThemeTokens.of(context).modalMaxWidth,
+          ),
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: t.space32,

@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/features/cloud/presentation/cloud_library_body.dart';
 import 'package:enjoy_player/features/library/presentation/library_actions.dart';
@@ -142,51 +144,50 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final isCloud = source == LibrarySource.cloud;
 
-    return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final showCompactSearch =
-              !isCloud && constraints.maxWidth < t.breakpointRail;
+    return EnjoyPage(
+      kind: EnjoyPageKind.browse,
+      body: (context, metrics) {
+        final showCompactSearch =
+            !isCloud && metrics.paneWidth < t.breakpointRail;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              EditorialHeader(
-                title: l10n.libraryTitle,
-                titleAccessory: LibrarySourceToggle(
-                  source: source,
-                  onToggle: () => _toggleSource(context, source),
-                ),
-                trailing: isCloud
-                    ? IconButton(
-                        icon: const Icon(Icons.refresh_rounded, size: 22),
-                        tooltip: l10n.cloudRefreshTooltip,
-                        onPressed: () =>
-                            _cloudBodyKey.currentState?.refreshActiveTab(),
-                      )
-                    : FilledButton.icon(
-                        onPressed: () => showImportChooser(context, ref),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: Text(l10n.actionImport),
-                      ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            EditorialHeader(
+              title: l10n.libraryTitle,
+              titleAccessory: LibrarySourceToggle(
+                source: source,
+                onToggle: () => _toggleSource(context, source),
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space24,
-                  0,
-                  t.space24,
-                  t.space12,
-                ),
-                child: _kindSegment(l10n, source),
+              trailing: isCloud
+                  ? IconButton(
+                      icon: const Icon(Icons.refresh_rounded, size: 22),
+                      tooltip: l10n.cloudRefreshTooltip,
+                      onPressed: () =>
+                          _cloudBodyKey.currentState?.refreshActiveTab(),
+                    )
+                  : FilledButton.icon(
+                      onPressed: () => showImportChooser(context, ref),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(l10n.actionImport),
+                    ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                metrics.gutter,
+                0,
+                metrics.gutter,
+                t.space12,
               ),
-              if (showCompactSearch) const CompactLibrarySearchBar(),
-              Expanded(
-                child: _sourceBody(source: source, reduceMotion: reduceMotion),
-              ),
-            ],
-          );
-        },
-      ),
+              child: _kindSegment(l10n, source),
+            ),
+            if (showCompactSearch) const CompactLibrarySearchBar(),
+            Expanded(
+              child: _sourceBody(source: source, reduceMotion: reduceMotion),
+            ),
+          ],
+        );
+      },
     );
   }
 }

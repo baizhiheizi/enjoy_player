@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/api/secure_token_store.dart';
 import 'package:enjoy_player/data/api/services/ai/asr_api.dart';
+import 'package:enjoy_player/data/api/services/ai/asr_media_upload_api.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_api.dart';
 import 'package:enjoy_player/data/api/services/ai/azure_token_cache.dart';
 import 'package:enjoy_player/data/api/services/ai/chat_api.dart';
@@ -19,6 +20,10 @@ part 'ai_api_providers.g.dart';
 
 @Riverpod(keepAlive: true)
 AsrApi asrApi(Ref ref) => AsrApi(ref.watch(aiApiClientProvider));
+
+@Riverpod(keepAlive: true)
+AsrMediaUploadApi asrMediaUploadApi(Ref ref) =>
+    AsrMediaUploadApi(ref.watch(aiApiClientProvider));
 
 @Riverpod(keepAlive: true)
 ChatApi chatApi(Ref ref) => ChatApi(ref.watch(aiApiClientProvider));

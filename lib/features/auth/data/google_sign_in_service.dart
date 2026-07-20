@@ -20,21 +20,23 @@ GoogleSignInService googleSignInService(Ref ref) {
 }
 
 class GoogleSignInService {
-  GoogleSignInService({GoogleSignIn? googleSignIn})
-    : _googleSignIn =
-          googleSignIn ??
-          GoogleSignIn(
-            scopes: const ['email', 'profile'],
-            // Android only returns a non-null idToken when a serverClientId
-            // (a Web application type OAuth client) is supplied; the token's
-            // `aud` claim then equals this value. iOS/macOS derive their
-            // client ID from Info.plist's GIDClientID instead.
-            serverClientId: defaultTargetPlatform == TargetPlatform.android
-                ? kGoogleWebClientId
-                : null,
-          );
+  GoogleSignInService();
 
-  final GoogleSignIn _googleSignIn;
+  static const _scopes = ['email', 'profile'];
+  static final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  static Future<void>? _initialization;
+
+  static Future<void> _ensureInitialized() {
+    return _initialization ??= _googleSignIn.initialize(
+      // Android only returns a non-null idToken when a serverClientId
+      // (a Web application type OAuth client) is supplied; the token's
+      // `aud` claim then equals this value. iOS/macOS derive their
+      // client ID from Info.plist's GIDClientID instead.
+      serverClientId: defaultTargetPlatform == TargetPlatform.android
+          ? kGoogleWebClientId
+          : null,
+    );
+  }
 
   /// Returns Google ID token, or `null` when the user cancels.
   ///
@@ -51,11 +53,17 @@ class GoogleSignInService {
         'placeholder GIDClientID/CFBundleURLSchemes.',
       );
     }
-    final account = await _googleSignIn.signIn();
-    if (account == null) {
-      return null;
+    await _ensureInitialized();
+    late final GoogleSignInAccount account;
+    try {
+      account = await _googleSignIn.authenticate(scopeHint: _scopes);
+    } on GoogleSignInException catch (error) {
+      if (error.code == GoogleSignInExceptionCode.canceled) {
+        return null;
+      }
+      rethrow;
     }
-    final auth = await account.authentication;
+    final auth = account.authentication;
     final idToken = auth.idToken;
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Google Sign-In returned no idToken');
@@ -63,5 +71,8 @@ class GoogleSignInService {
     return idToken;
   }
 
-  Future<void> signOut() => _googleSignIn.signOut();
+  Future<void> signOut() async {
+    await _ensureInitialized();
+    await _googleSignIn.signOut();
+  }
 }

@@ -94,11 +94,11 @@ class YoutubeSession {
     emitDuration(Duration.zero);
   }
 
-  void resetForClear() {
+  void resetForClear({bool keepMounted = false}) {
     _cancelHint();
     tapToPlayHintActive = false;
     videoId = '';
-    mountRequested = false;
+    mountRequested = keepMounted;
     playbackCompleted = false;
     watchPageLoadStopReceived = false;
     awaitingColdInitialNavigation = false;

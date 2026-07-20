@@ -460,6 +460,31 @@ void main() {
       expect(fake.openUris, ['https://example.com/media.mp4']);
     });
 
+    test('openMedia prefers trusted localUri over mediaUrl', () async {
+      final file = File(
+        p.join(
+          Directory.systemTemp.path,
+          'enjoy_local_prefers_${DateTime.now().microsecondsSinceEpoch}.mp4',
+        ),
+      );
+      // insertMedia stores size: 1 — keep the file matching that trust check.
+      await file.writeAsBytes(const [1]);
+      addTearDown(() async {
+        if (await file.exists()) await file.delete();
+      });
+      final localUri = Uri.file(file.path).toString();
+      final id = await insertMedia(
+        id: 'local-pref-1',
+        kind: 'video',
+        localUri: localUri,
+        mediaUrl: 'https://example.com/should-not-open.mp4',
+        md5: 'hash-local-pref',
+      );
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      expect(fake.openUris, [localUri]);
+    });
+
     test(
       'openMedia persists video poster from screenshot when thumbnail missing',
       () async {

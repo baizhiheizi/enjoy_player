@@ -17,5 +17,10 @@ class NoOpUpdateStrategy implements UpdateStrategy {
   }
 
   @override
-  Future<void> applyUpdate(AppRelease release) async {}
+  Stream<UpdateInstallProgress> applyUpdate(AppRelease release) async* {
+    yield const UpdateInstallProgress.completed();
+  }
+
+  @override
+  Future<void> cancelUpdate() async {}
 }

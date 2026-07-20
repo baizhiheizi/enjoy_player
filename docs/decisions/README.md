@@ -75,3 +75,10 @@ Trade-offs, follow-up work, risks.
 | [0049](0049-youtube-language-aware-captions.md) | YouTube language-aware caption discovery & primary selection |
 | [0050](0050-path-linked-local-media.md) | Path-linked local media — prefer lasting link, copy fallback (partial supersession of 0005 import storage) |
 | [0051](0051-youtube-worker-discovery.md) | YouTube discovery via server-side RSSHub proxy (supersedes 0021 and 0047) |
+| [0052](0052-vocabulary-local-first-schema.md) | Vocabulary local-first Drift schema (items/contexts/reviews; sync deferred) |
+| [0053](0053-vocabulary-secondary-route.md) | Vocabulary secondary route (Profile entry; not a primary shell tab) |
+| [0054](0054-vocabulary-cloud-sync.md) | Vocabulary cloud sync — SRS-preserving item conflict, LWW contexts, reviews never sync, auto-pull exception to ADR-0013 (extends ADR-0010) |
+| [0055](0055-adaptive-page-layout-system.md) | Adaptive page layout system (`EnjoyPage` / browse·hub·form widths) |
+| [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads |
+| [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |
+| [0058](0058-enjoy-deepgram-long-form-asr.md) | Enjoy long-form ASR via Worker Deepgram jobs (≥900s upload/submit/poll) |

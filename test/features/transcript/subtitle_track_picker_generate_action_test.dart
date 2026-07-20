@@ -32,14 +32,12 @@ void main() {
     );
   }
 
-  testWidgets('shows Generate transcript when no AI track exists', (
-    tester,
-  ) async {
+  testWidgets('shows AI transcript when no AI track exists', (tester) async {
     await tester.pumpWidget(
       _wrap(actions(onGenerate: () async {}, hasGeneratedTrack: false)),
     );
 
-    expect(find.text('Generate transcript'), findsOneWidget);
+    expect(find.text('AI transcript'), findsOneWidget);
     expect(find.text('Re-generate transcript'), findsNothing);
   });
 

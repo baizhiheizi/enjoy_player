@@ -2,8 +2,8 @@
 ///
 /// Orchestrates the pipeline:
 ///   1. Resolve media (target type) — refuse unknown mediaIds.
-///   2. Extract audio (skip for audio-only sources).
-///   3. Call [AsrService.transcribe] (uses the configured provider).
+///   2. Extract audio (skip for audio-only sources / long-form resume).
+///   3. Call [AsrService.transcribe] (Enjoy short-clip or long-form job).
 ///   4. Build a [TranscriptLine] timeline via [buildAsrTranscriptLines].
 ///   5. Upsert a deterministic `source: 'ai'` row via
 ///      [TranscriptRepository.upsertAsrGeneratedTrack].
@@ -20,27 +20,33 @@ import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
-import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
+import 'package:enjoy_player/features/ai/domain/models/asr_long_form_phase.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_request.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_result.dart';
 import 'package:enjoy_player/features/asr/application/asr_failure_messages.dart';
 import 'package:enjoy_player/features/asr/application/asr_generation_job.dart';
 import 'package:enjoy_player/features/asr/data/asr_audio_extractor.dart';
+import 'package:enjoy_player/features/asr/data/asr_long_form_attempt_store.dart';
 import 'package:enjoy_player/features/asr/domain/asr_audio_extraction_failure.dart';
+import 'package:enjoy_player/features/asr/domain/asr_long_form_constants.dart';
+import 'package:enjoy_player/features/asr/domain/asr_long_form_job_exception.dart';
+import 'package:enjoy_player/features/asr/domain/asr_long_form_models.dart';
 import 'package:enjoy_player/features/asr/domain/asr_timeline_builder.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 
 part 'asr_generation_controller.g.dart';
 
 final Logger _log = logNamed('asr.controller');
+const _uuid = Uuid();
 
 @Riverpod(keepAlive: true)
 class AsrGenerationController extends _$AsrGenerationController {
@@ -50,7 +56,8 @@ class AsrGenerationController extends _$AsrGenerationController {
   @override
   AsyncValue<AsrGenerationJob?> build(String mediaId) {
     ref.onDispose(() {
-      _cancelToken?.complete();
+      final c = _cancelToken;
+      if (c != null && !c.isCompleted) c.complete();
       _cancelToken = null;
     });
     return const AsyncValue.data(null);
@@ -151,86 +158,162 @@ class AsrGenerationController extends _$AsrGenerationController {
   }) async {
     final startedAt = DateTime.now();
     Uint8List? audio;
+    final attemptStore = ref.read(asrLongFormAttemptStoreProvider);
     try {
-      // 1. Extract audio (skip for audio-only files).
-      if (kind == MediaKind.video) {
-        if (mediaSourceUri == null || mediaSourceUri.isEmpty) {
+      final mediaDurationMs = await _resolveMediaDurationMs(mediaSourceUri);
+      final durationSeconds = mediaDurationMs > 0
+          ? mediaDurationMs / 1000
+          : null;
+      final isLongForm =
+          durationSeconds != null &&
+          durationSeconds >= kLongFormMinDurationSeconds;
+
+      AsrLongFormAttempt? attempt;
+      if (isLongForm) {
+        attempt = await attemptStore.load(mediaId);
+        if (attempt == null) {
+          attempt = AsrLongFormAttempt(
+            mediaId: mediaId,
+            idempotencyKey: _uuid.v4(),
+            language: requestedLanguage,
+            declaredDurationSeconds: durationSeconds,
+            startedAt: DateTime.now(),
+          );
+          await attemptStore.save(attempt);
+        }
+      } else {
+        await attemptStore.clear(mediaId);
+      }
+
+      final resumeJobId = attempt?.jobId;
+      final skipExtract = resumeJobId != null && resumeJobId.isNotEmpty;
+
+      if (!skipExtract) {
+        // 1. Extract audio (skip for audio-only files).
+        if (kind == MediaKind.video) {
+          if (mediaSourceUri == null || mediaSourceUri.isEmpty) {
+            _setError('asrErrorUnsupportedSource');
+            return;
+          }
+          _setPhase(AsrGenerationPhase.extracting);
+          final extractor = ref.read(asrAudioExtractorProvider);
+          try {
+            audio = await extractor.extractAudio(
+              mediaSourceUri: mediaSourceUri,
+              kind: kind,
+              onProgress: (p) {
+                if (cancel.isCompleted) return;
+                _updateJob((j) => j.copyWith(progress: p));
+              },
+            );
+          } on AsrAudioExtractionException catch (e) {
+            _log.info('Audio extraction failed: ${e.reason.name}');
+            _setError(asrExtractionMessageKey(e.reason));
+            return;
+          }
+        } else if (mediaSourceUri != null && mediaSourceUri.isNotEmpty) {
+          try {
+            final extractor = ref.read(asrAudioExtractorProvider);
+            audio = await extractor.extractAudio(
+              mediaSourceUri: mediaSourceUri,
+              kind: kind,
+            );
+          } on AsrAudioExtractionException catch (e) {
+            _setError(asrExtractionMessageKey(e.reason));
+            return;
+          }
+        } else {
           _setError('asrErrorUnsupportedSource');
           return;
         }
-        _setPhase(AsrGenerationPhase.extracting);
-        final extractor = ref.read(asrAudioExtractorProvider);
-        try {
-          audio = await extractor.extractAudio(
-            mediaSourceUri: mediaSourceUri,
-            kind: kind,
-            onProgress: (p) {
-              if (cancel.isCompleted) return;
-              _updateJob((j) => j.copyWith(progress: p));
-            },
-          );
-        } on AsrAudioExtractionException catch (e) {
-          _log.info('Audio extraction failed: ${e.reason.name}');
-          _setError(asrExtractionMessageKey(e.reason));
-          return;
-        }
-      } else if (mediaSourceUri != null && mediaSourceUri.isNotEmpty) {
-        try {
-          final extractor = ref.read(asrAudioExtractorProvider);
-          audio = await extractor.extractAudio(
-            mediaSourceUri: mediaSourceUri,
-            kind: kind,
-          );
-        } on AsrAudioExtractionException catch (e) {
-          _setError(asrExtractionMessageKey(e.reason));
-          return;
-        }
-      } else {
-        _setError('asrErrorUnsupportedSource');
-        return;
-      }
 
-      final audioBytes = audio;
-      // extractAudio returns a non-null [Uint8List], so guard against an empty
-      // payload (the only real runtime risk here) — the prior null check was
-      // dead code that tripped `flutter analyze`.
-      if (audioBytes.isEmpty) {
-        _setError('asrErrorGeneric');
-        return;
+        final audioBytes = audio;
+        if (audioBytes.isEmpty) {
+          _setError('asrErrorGeneric');
+          return;
+        }
       }
 
       if (cancel.isCompleted) {
+        await attemptStore.clear(mediaId);
         _setCancelled();
         return;
       }
 
       // 2. Recognition.
-      _setPhase(AsrGenerationPhase.recognizing);
+      if (!isLongForm) {
+        _setPhase(AsrGenerationPhase.recognizing);
+      }
       final asrService = ref.read(asrServiceProvider);
-      final mediaDurationMs = await _resolveMediaDurationMs(mediaSourceUri);
-      final durationSeconds = mediaDurationMs > 0
-          ? mediaDurationMs / 1000
-          : null;
+      final audioBytes = audio ?? Uint8List(0);
       final req = AsrRequest(
         audioBytes: audioBytes,
         filename: 'asr-${mediaId.hashCode}.wav',
         language: requestedLanguage,
         responseFormat: 'json',
         durationSeconds: durationSeconds,
+        idempotencyKey: attempt?.idempotencyKey,
+        existingJobId: resumeJobId,
+        existingMediaReference: attempt?.mediaReference,
+        shouldCancel: () => cancel.isCompleted,
+        onLongFormPhase: (phase) {
+          if (cancel.isCompleted) return;
+          switch (phase) {
+            case AsrLongFormClientPhase.uploading:
+              _setPhase(AsrGenerationPhase.uploading);
+            case AsrLongFormClientPhase.polling:
+              _setPhase(AsrGenerationPhase.polling);
+          }
+        },
+        onLongFormUploaded: (mediaReference) {
+          final current = attempt;
+          if (current == null) return;
+          final next = current.copyWith(mediaReference: mediaReference);
+          attempt = next;
+          unawaited(attemptStore.save(next));
+        },
+        onLongFormJobAccepted: (jobId, mediaReference) {
+          final current = attempt;
+          if (current == null) return;
+          final next = current.copyWith(
+            jobId: jobId,
+            mediaReference: mediaReference,
+          );
+          attempt = next;
+          unawaited(attemptStore.save(next));
+        },
       );
+
       final AsrResult result;
       try {
         result = await asrService.transcribe(req);
       } on ByokNotConfiguredFailure catch (_) {
         _setError('asrErrorByokMissing');
         return;
+      } on AsrLongFormJobException catch (e) {
+        if (e.category == 'cancelled' || cancel.isCompleted) {
+          await attemptStore.clear(mediaId);
+          _setCancelled();
+          return;
+        }
+        _log.info('Long-form job failed: ${e.category}');
+        // Retryable failures clear attempt so next Generate uses a new key.
+        await attemptStore.clear(mediaId);
+        _setError(asrLongFormFailureMessageKey(e));
+        return;
       } on Object catch (e, st) {
         _log.warning('ASR call failed', e, st);
+        if (cancel.isCompleted) {
+          await attemptStore.clear(mediaId);
+          _setCancelled();
+          return;
+        }
         _setError(_mapProviderError(e));
         return;
       }
 
       if (cancel.isCompleted) {
+        await attemptStore.clear(mediaId);
         _setCancelled();
         return;
       }
@@ -241,11 +324,13 @@ class AsrGenerationController extends _$AsrGenerationController {
         mediaDurationMs: mediaDurationMs,
       );
       if (lines.isEmpty) {
+        await attemptStore.clear(mediaId);
         _setError('asrErrorNoSpeech');
         return;
       }
 
       if (cancel.isCompleted) {
+        await attemptStore.clear(mediaId);
         _setCancelled();
         return;
       }
@@ -272,6 +357,8 @@ class AsrGenerationController extends _$AsrGenerationController {
         persistedLanguage: trackLanguage,
       );
 
+      await attemptStore.clear(mediaId);
+
       if (cancel.isCompleted) {
         _setCancelled();
         return;
@@ -290,7 +377,7 @@ class AsrGenerationController extends _$AsrGenerationController {
         ),
       );
     } finally {
-      // 5. Free audio bytes eagerly.
+      // Free audio bytes eagerly.
       audio = null;
     }
   }
@@ -368,6 +455,9 @@ class AsrGenerationController extends _$AsrGenerationController {
   String _mapProviderError(Object e) {
     if (e is CreditsFailure) return 'asrErrorCreditsExhausted';
     if (e is NetworkFailure) return 'asrErrorNetwork';
+    if (e is AsrLongFormJobException) {
+      return asrLongFormFailureMessageKey(e);
+    }
     return 'asrErrorGeneric';
   }
 }

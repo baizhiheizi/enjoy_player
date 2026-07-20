@@ -104,6 +104,20 @@ class YoutubePlayerEngine implements PlayerEngine {
     _logInitPhase('mount_requested');
   }
 
+  /// Completes when [webViewMounted] is true or [timeout] elapses.
+  Future<bool> awaitWebViewMounted({
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    ensureWebViewAttached();
+    if (webViewMounted) return true;
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (webViewMounted) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    return webViewMounted;
+  }
+
   Widget buildWebViewHost() {
     return YoutubeWebViewHost(key: _session.webViewHostKey, engine: this);
   }
@@ -259,7 +273,8 @@ class YoutubePlayerEngine implements PlayerEngine {
     _session.playbackCompleted = false;
   }
 
-  Future<void> idleAfterClear() => _webView.idleAfterClear();
+  Future<void> idleAfterClear({bool keepMounted = false}) =>
+      _webView.idleAfterClear(keepMounted: keepMounted);
 
   @override
   Future<Uint8List?> screenshot({String? format}) async => null;

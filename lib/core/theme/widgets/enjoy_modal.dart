@@ -7,6 +7,15 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 Color enjoyModalBarrierColor() => Colors.black.withValues(alpha: 0.52);
 
+/// Whether [context] should use a compact bottom sheet vs a centered modal.
+///
+/// Uses [EnjoyThemeTokens.breakpointCompact] (600) against the current width.
+@visibleForTesting
+bool enjoyUseCompactSheet(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  return width < EnjoyThemeTokens.of(context).breakpointCompact;
+}
+
 /// Standard Enjoy modal bottom sheet (drag handle left to sheet content).
 Future<T?> showEnjoySheet<T>({
   required BuildContext context,
@@ -29,6 +38,56 @@ Future<T?> showEnjoySheet<T>({
       borderRadius: BorderRadius.vertical(top: Radius.circular(t.radiusXl)),
     ),
     builder: builder,
+  );
+}
+
+/// Adaptive Enjoy sheet: bottom sheet on compact widths, centered dialog on wide.
+///
+/// Same barrier color and surface styling as [showEnjoySheet] / [showEnjoyDialog].
+Future<T?> showEnjoyAdaptiveSheet<T>({
+  required BuildContext context,
+  required Widget Function(BuildContext context) builder,
+  bool isScrollControlled = true,
+  bool useRootNavigator = false,
+  bool useSafeArea = true,
+  bool barrierDismissible = true,
+}) {
+  if (enjoyUseCompactSheet(context)) {
+    return showEnjoySheet<T>(
+      context: context,
+      builder: builder,
+      isScrollControlled: isScrollControlled,
+      useRootNavigator: useRootNavigator,
+      useSafeArea: useSafeArea,
+    );
+  }
+
+  final t = EnjoyThemeTokens.of(context);
+  final cs = Theme.of(context).colorScheme;
+  return showDialog<T>(
+    context: context,
+    useRootNavigator: useRootNavigator,
+    barrierDismissible: barrierDismissible,
+    barrierColor: enjoyModalBarrierColor(),
+    builder: (ctx) {
+      return Dialog(
+        backgroundColor: cs.surfaceContainerHigh,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: t.space24,
+          vertical: t.space24,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusXl),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: t.modalMaxWidthLarge,
+            maxHeight: MediaQuery.sizeOf(ctx).height * 0.85,
+          ),
+          child: builder(ctx),
+        ),
+      );
+    },
   );
 }
 

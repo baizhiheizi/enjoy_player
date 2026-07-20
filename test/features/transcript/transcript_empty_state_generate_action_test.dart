@@ -15,7 +15,7 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
-  testWidgets('shows Generate transcript CTA when enabled', (tester) async {
+  testWidgets('shows AI transcript CTA when enabled', (tester) async {
     await tester.pumpWidget(
       _wrap(
         TranscriptEmptyState(
@@ -28,11 +28,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Generate transcript'), findsOneWidget);
+    expect(find.text('AI transcript'), findsOneWidget);
     expect(find.text('Add subtitle'), findsOneWidget);
+    expect(find.textContaining('Add a subtitle file'), findsOneWidget);
   });
 
-  testWidgets('hides Generate CTA when showGenerateButton is false', (
+  testWidgets('hides AI transcript CTA when showGenerateButton is false', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -46,11 +47,34 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Generate transcript'), findsNothing);
+    expect(find.text('AI transcript'), findsNothing);
     expect(find.text('Add subtitle'), findsOneWidget);
   });
 
-  testWidgets('Generate CTA shows busy spinner while onGenerate runs', (
+  testWidgets('shows remote hint when no local actions are available', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        TranscriptEmptyState(
+          onImport: () async {},
+          showImportButton: false,
+          showExtractButton: false,
+          showGenerateButton: false,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Cloud captions load automatically'),
+      findsOneWidget,
+    );
+    expect(find.text('AI transcript'), findsNothing);
+    expect(find.text('Add subtitle'), findsNothing);
+  });
+
+  testWidgets('AI transcript CTA shows busy spinner while onGenerate runs', (
     tester,
   ) async {
     final completer = Completer<void>();
@@ -66,7 +90,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Generate transcript'));
+    await tester.tap(find.text('AI transcript'));
     await tester.pump(); // first rebuild → busy
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 

@@ -12,11 +12,14 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
 import 'package:enjoy_player/features/subscription/presentation/tier_reconcile_host.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/update/application/update_controller.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import '../application/player_controller.dart';
 import 'widgets/app_sidebar.dart';
 import 'widgets/global_transport_bar.dart';
+import 'widgets/player_surface_host.dart';
 
 class RootShell extends ConsumerStatefulWidget {
   const RootShell({required this.child, super.key});
@@ -61,6 +64,10 @@ class _RootShellState extends ConsumerState<RootShell> {
     final sessionActive = ref.watch(
       playerControllerProvider.select((s) => s != null),
     );
+    final suppressTransportForVocabularyPractice = ref.watch(
+      vocabularyReviewSessionProvider.select((s) => s.practiceOwnsVideoStage),
+    );
+    final updateBadge = ref.watch(updateAvailableBadgeProvider);
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
     final onPlayer = path.startsWith('/player/');
@@ -97,6 +104,10 @@ class _RootShellState extends ConsumerState<RootShell> {
                         icon: Icons.person_outlined,
                         selectedIcon: Icons.person_rounded,
                         label: l10n.profileTitle,
+                        showBadge: updateBadge,
+                        semanticsLabel: updateBadge
+                            ? '${l10n.profileTitle}, ${l10n.updateAvailableBadgeSemantics}'
+                            : null,
                       ),
                     ],
                   )
@@ -109,17 +120,21 @@ class _RootShellState extends ConsumerState<RootShell> {
             /// space via [bottomNavigationBar] instead.
             final playerWithTransport = sessionActive && onPlayer;
 
+            final showMiniTransport =
+                sessionActive &&
+                !playerWithTransport &&
+                !suppressTransportForVocabularyPractice;
+
             final pageColumn = Column(
               children: [
                 Expanded(child: widget.child),
-                if (sessionActive && !playerWithTransport)
-                  const GlobalTransportBar(),
+                if (showMiniTransport) const GlobalTransportBar(),
                 ?bottomNav,
               ],
             );
 
             final bottomClearance =
-                (sessionActive ? kRootShellTransportSnackClearance : 0.0) +
+                (showMiniTransport ? kRootShellTransportSnackClearance : 0.0) +
                 (!useSidebar && !onPlayer
                     ? rootShellBottomNavClearance(context)
                     : 0.0);
@@ -142,30 +157,34 @@ class _RootShellState extends ConsumerState<RootShell> {
               return Scaffold(body: SafeArea(child: pageColumn));
             }
 
-            if (useSidebar) {
-              return RootShellBottomInset(
-                bottomClearance: bottomClearance,
-                child: Scaffold(
-                  body: SafeArea(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Semantics(
-                          container: true,
-                          label: l10n.navMainLabel,
-                          child: const AppSidebar(),
+            final shell = useSidebar
+                ? RootShellBottomInset(
+                    bottomClearance: bottomClearance,
+                    child: Scaffold(
+                      body: SafeArea(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Semantics(
+                              container: true,
+                              label: l10n.navMainLabel,
+                              child: const AppSidebar(),
+                            ),
+                            Expanded(child: pageColumn),
+                          ],
                         ),
-                        Expanded(child: pageColumn),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }
+                  )
+                : RootShellBottomInset(
+                    bottomClearance: bottomClearance,
+                    child: mobileShellScaffold(),
+                  );
 
-            return RootShellBottomInset(
-              bottomClearance: bottomClearance,
-              child: mobileShellScaffold(),
+            // Permanent video/WebView surface — follows PlayerSurfaceTarget.
+            return Stack(
+              fit: StackFit.expand,
+              children: [shell, const PlayerSurfaceHost()],
             );
           },
         ),

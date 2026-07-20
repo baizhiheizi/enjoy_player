@@ -2,11 +2,19 @@
 /// action — mirrors Apple Music / Apple Podcasts heading style.
 library;
 
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-import '../enjoy_tokens.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+
+/// How [EditorialHeader] applies horizontal insets on wide panes.
+enum EditorialHeaderWidthMode {
+  /// Match browse bodies: [pageGutterOf] only (full-bleed title row).
+  gutter,
+
+  /// Center within [columnMaxWidth] (hub / form), with at least page gutter.
+  column,
+}
 
 class EditorialHeader extends StatelessWidget {
   const EditorialHeader({
@@ -17,6 +25,8 @@ class EditorialHeader extends StatelessWidget {
     this.trailing,
     this.padding,
     this.compact = false,
+    this.widthMode = EditorialHeaderWidthMode.gutter,
+    this.columnMaxWidth,
   });
 
   final String title;
@@ -30,6 +40,13 @@ class EditorialHeader extends StatelessWidget {
   /// Tighter vertical rhythm for nested / secondary headers.
   final bool compact;
 
+  /// Browse screens use [gutter]; hub screens use [column].
+  final EditorialHeaderWidthMode widthMode;
+
+  /// Cap when [widthMode] is [EditorialHeaderWidthMode.column].
+  /// Defaults to [EnjoyThemeTokens.hubMaxWidth] when null.
+  final double? columnMaxWidth;
+
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
@@ -38,12 +55,24 @@ class EditorialHeader extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final horizontal = math.max(
-          t.space24,
-          (constraints.maxWidth - t.contentMaxWidth) / 2,
-        );
+        final paneWidth = constraints.maxWidth;
+        final gutter = pageGutterOf(context, paneWidth);
         final top = compact ? t.space16 : t.space24;
         final bottom = compact ? t.space12 : t.space16;
+
+        final double horizontal;
+        final double? titleMaxWidth;
+        switch (widthMode) {
+          case EditorialHeaderWidthMode.gutter:
+            horizontal = gutter;
+            titleMaxWidth = null;
+          case EditorialHeaderWidthMode.column:
+            final cap = columnMaxWidth ?? t.hubMaxWidth;
+            horizontal = (paneWidth - cap) / 2 > gutter
+                ? (paneWidth - cap) / 2
+                : gutter;
+            titleMaxWidth = cap;
+        }
 
         final titleStyle = compact
             ? tt.headlineMedium?.copyWith(
@@ -59,7 +88,9 @@ class EditorialHeader extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerLeft,
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
+              constraints: BoxConstraints(
+                maxWidth: titleMaxWidth ?? double.infinity,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

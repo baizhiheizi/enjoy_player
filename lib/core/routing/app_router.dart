@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,6 +25,7 @@ import 'package:enjoy_player/features/discover/presentation/channel_feed_screen.
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
 import 'package:enjoy_player/features/library/presentation/home_screen.dart';
 import 'package:enjoy_player/features/library/presentation/library_screen.dart';
+import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
 import 'package:enjoy_player/features/player/presentation/expanded_player_screen.dart';
 import 'package:enjoy_player/features/player/presentation/root_shell.dart';
 import 'package:enjoy_player/features/player/presentation/youtube_login_screen.dart';
@@ -31,8 +33,15 @@ import 'package:enjoy_player/features/settings/presentation/hotkeys_settings_scr
 import 'package:enjoy_player/features/settings/presentation/settings_screen.dart';
 import 'package:enjoy_player/features/settings/presentation/sync_status_screen.dart';
 import 'package:enjoy_player/features/subscription/presentation/subscription_screen.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_review_session_screen.dart';
+import 'package:enjoy_player/features/vocabulary/presentation/vocabulary_screen.dart';
 
 part 'app_router.g.dart';
+
+/// Nested navigator owned by the app [ShellRoute] (profile pushes, sheets).
+final GlobalKey<NavigatorState> enjoyShellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 CustomTransitionPage<void> _shellPage({
   required LocalKey key,
@@ -107,6 +116,7 @@ GoRouter appRouter(Ref ref) {
         ],
       ),
       ShellRoute(
+        navigatorKey: enjoyShellNavigatorKey,
         builder: (context, state, child) => RootShell(child: child),
         routes: [
           GoRoute(
@@ -143,13 +153,17 @@ GoRouter appRouter(Ref ref) {
             path: '/player/:mediaId',
             pageBuilder: (context, state) {
               final id = state.pathParameters['mediaId']!;
+              final launch = PlayerLaunchRequest.fromUri(
+                state.uri,
+                mediaId: id,
+              );
               return CustomTransitionPage<void>(
                 // Keep the player page identity stable across `/player/:id`
                 // changes. Windows WebView platform views are fragile when
                 // rapidly destroyed/recreated; reusing the page lets the
                 // YouTube engine navigate the existing WebView instead.
                 key: const ValueKey('player-page'),
-                child: ExpandedPlayerScreen(mediaId: id),
+                child: ExpandedPlayerScreen(launch: launch),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                       return FadeTransition(
@@ -217,6 +231,25 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/subscription',
             builder: (context, state) => const SubscriptionScreen(),
+          ),
+          GoRoute(
+            path: '/vocabulary',
+            builder: (context, state) => const VocabularyScreen(),
+          ),
+          GoRoute(
+            path: '/vocabulary/review',
+            onExit: (context, state) {
+              // Clear while the route context is still mounted — not in
+              // State.dispose (ref / watch notify is unsafe during unmount).
+              final session = ProviderScope.containerOf(
+                context,
+              ).read(vocabularyReviewSessionProvider.notifier);
+              if (session.hasActiveSession) {
+                session.clear();
+              }
+              return true;
+            },
+            builder: (context, state) => const VocabularyReviewSessionScreen(),
           ),
         ],
       ),

@@ -23,20 +23,13 @@ class KbdChip extends StatelessWidget {
     final padH = compact ? t.space8 : t.space12;
     final padV = compact ? t.space4 : t.space8;
     final fontSize = compact ? 11.0 : 12.0;
-    final minH = compact ? 24.0 : 28.0;
+    final minH = compact ? 22.0 : 26.0;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh,
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(t.radiusSm),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.45)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            offset: const Offset(0, 1.5),
-            blurRadius: 0,
-          ),
-        ],
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: padH, vertical: padV),
@@ -50,7 +43,7 @@ class KbdChip extends StatelessWidget {
                 fontSize: fontSize,
                 fontWeight: FontWeight.w600,
                 height: 1.1,
-                color: cs.onSurface,
+                color: cs.onSurface.withValues(alpha: 0.92),
               ),
             ),
           ),
@@ -75,24 +68,32 @@ class KbdChordRow extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Wrap(
-      spacing: compact ? 4 : 6,
-      runSpacing: compact ? 4 : 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      alignment: WrapAlignment.end,
+    final gap = compact ? 3.0 : 5.0;
+    final chord = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < tokens.length; i++) ...[
-          if (i > 0)
+          if (i > 0) ...[
+            SizedBox(width: gap),
             Text(
               '+',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: cs.onSurfaceVariant.withValues(alpha: 0.55),
-                fontWeight: FontWeight.w600,
+                color: cs.onSurfaceVariant.withValues(alpha: 0.35),
+                fontWeight: FontWeight.w500,
               ),
             ),
+            SizedBox(width: gap),
+          ],
           KbdChip(label: tokens[i], compact: compact),
         ],
       ],
+    );
+
+    // Stay on one line; scale down only if a parent gives a tight max width.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerEnd,
+      child: chord,
     );
   }
 }

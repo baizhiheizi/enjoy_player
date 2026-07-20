@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
+import 'package:enjoy_player/features/hotkeys/application/shadow_reading_hotkey_policy.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus.dart';
@@ -24,6 +25,8 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
+import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'hotkeys_cheatsheet_open.dart';
@@ -65,9 +68,16 @@ class _AppHotkeysKeyboardListenerState
 
   /// [AppHotkeysKeyboardListener] is built in [MaterialApp.router]'s `builder`
   /// above the [Navigator], so [context] here does not include a [Navigator].
-  /// Use GoRouter's root key for overlays, dialogs, and imperative pops.
+  /// Prefer [GlobalKey.currentState] / [GlobalKey.currentContext] on the
+  /// router keys — not [Navigator.of] on the key's context (that walks
+  /// ancestors and misses the keyed navigator itself).
   BuildContext? _routerNavigatorContext() =>
       ref.read(appRouterProvider).configuration.navigatorKey.currentContext;
+
+  NavigatorState? _rootNavigatorState() =>
+      ref.read(appRouterProvider).configuration.navigatorKey.currentState;
+
+  NavigatorState? _shellNavigatorState() => enjoyShellNavigatorKey.currentState;
 
   bool _onKey(KeyEvent event) {
     if (!mounted) return false;
@@ -77,17 +87,13 @@ class _AppHotkeysKeyboardListenerState
     final ctrl = ref.read(hotkeysCtrlProvider.notifier);
     final goRouter = ref.read(appRouterProvider);
     final navCtx = _routerNavigatorContext();
+    final shellNav = _shellNavigatorState();
+    final rootNav = _rootNavigatorState();
 
     // Modal.close (Escape): dismiss transient UI only — never collapse the
     // player route as a fallback (see escape_dismissal.dart).
     if (_matches(event, ctrl, 'modal.close')) {
       final path = goRouter.state.uri.path;
-      NavigatorState? leafNav;
-      NavigatorState? rootNav;
-      if (navCtx != null) {
-        leafNav = Navigator.of(navCtx, rootNavigator: false);
-        rootNav = Navigator.of(navCtx, rootNavigator: true);
-      }
       final action = resolveEscapeDismissal(
         EscapeDismissalContext(
           cheatsheetOpen: hotkeysCheatsheetOpen.value,
@@ -95,9 +101,11 @@ class _AppHotkeysKeyboardListenerState
           isRecordingActive: ref
               .read(shadowReadingHotkeyBusProvider)
               .isRecordingActive,
-          leafNavigatorCanPop: leafNav?.canPop() ?? false,
-          rootNavigatorCanPop: rootNav?.canPop() ?? false,
-          leafAndRootNavIdentical: identical(leafNav, rootNav),
+          shellHasPopupRoute: navigatorHasTopPopupRoute(shellNav),
+          rootHasPopupRoute: navigatorHasTopPopupRoute(rootNav),
+          vocabularyPracticeOpen: ref
+              .read(vocabularyReviewSessionProvider)
+              .practiceSheetOpen,
           goRouterCanPop: goRouter.canPop(),
           path: path,
           isDesktop: isDesktop,
@@ -105,9 +113,7 @@ class _AppHotkeysKeyboardListenerState
       );
       switch (action) {
         case EscapeDismissalAction.closeCheatsheet:
-          if (navCtx != null) {
-            unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
-          }
+          if (rootNav != null) unawaited(rootNav.maybePop());
           return true;
         case EscapeDismissalAction.exitFullscreen:
           unawaited(
@@ -119,12 +125,16 @@ class _AppHotkeysKeyboardListenerState
               .read(shadowReadingHotkeyBusProvider.notifier)
               .pulseRecordingCancel();
           return true;
-        case EscapeDismissalAction.popNavigatorOverlay:
-          if (leafNav?.canPop() ?? false) {
-            leafNav!.pop();
-          } else if (rootNav?.canPop() ?? false) {
-            rootNav!.pop();
-          }
+        case EscapeDismissalAction.popShellPopup:
+          if (shellNav != null) unawaited(shellNav.maybePop());
+          return true;
+        case EscapeDismissalAction.popRootPopup:
+          if (rootNav != null) unawaited(rootNav.maybePop());
+          return true;
+        case EscapeDismissalAction.clearVocabularyPractice:
+          unawaited(
+            ref.read(vocabularyReviewSessionProvider.notifier).clearPractice(),
+          );
           return true;
         case EscapeDismissalAction.popGoRouter:
           goRouter.pop();
@@ -139,7 +149,7 @@ class _AppHotkeysKeyboardListenerState
     if (_matches(event, ctrl, 'global.help')) {
       if (navCtx == null) return false;
       if (hotkeysCheatsheetOpen.value) {
-        unawaited(Navigator.of(navCtx, rootNavigator: true).maybePop());
+        if (rootNav != null) unawaited(rootNav.maybePop());
         return true;
       }
       unawaited(showHotkeysHelpDialog(navCtx));
@@ -170,6 +180,33 @@ class _AppHotkeysKeyboardListenerState
     }
 
     final session = ref.read(playerControllerProvider);
+    final vocabularyEchoPracticeOpen =
+        ref.read(vocabularyReviewSessionProvider).practiceMode ==
+        ReviewPracticeMode.echo;
+    // Vocabulary echo practice is recorder-only (no player session), but still
+    // mounts ShadowReadingPanel which listens on the shared hotkey bus.
+    if (shadowReadingBusHotkeysEnabled(
+      hasPlayerSession: session != null,
+      vocabularyEchoPracticeOpen: vocabularyEchoPracticeOpen,
+    )) {
+      if (_matches(event, ctrl, 'player.toggleRecording')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseRecording();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.playRecording')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePlayback();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.togglePitchContour')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePitchContour();
+        return true;
+      }
+      if (_matches(event, ctrl, 'player.toggleAssessment')) {
+        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseAssessment();
+        return true;
+      }
+    }
+
     if (session != null) {
       if (_matches(event, ctrl, 'player.togglePlay')) {
         unawaited(ref.read(playerControllerProvider.notifier).togglePlay());
@@ -212,22 +249,6 @@ class _AppHotkeysKeyboardListenerState
       }
       if (_matches(event, ctrl, 'player.toggleBlurPractice')) {
         unawaited(ref.read(playerInteractionsProvider.notifier).toggleBlur());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleRecording')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseRecording();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.playRecording')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePlayback();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.togglePitchContour')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulsePitchContour();
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleAssessment')) {
-        ref.read(shadowReadingHotkeyBusProvider.notifier).pulseAssessment();
         return true;
       }
 

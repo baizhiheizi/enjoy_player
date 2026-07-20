@@ -20,6 +20,11 @@ abstract final class SettingsKeys {
   static const String syncCursorVideo = 'sync.cursor.video';
   static const String syncCursorRecording = 'sync.cursor.recording';
 
+  /// ISO-8601 cursors for incremental vocabulary `updatedAfter` downloads.
+  static const String syncCursorVocabularyItem = 'sync.cursor.vocabulary_item';
+  static const String syncCursorVocabularyContext =
+      'sync.cursor.vocabulary_context';
+
   /// Per-target recording pull (`sync.cursor.recording.{targetType}.{targetId}`).
   static String syncCursorRecordingTarget(String targetType, String targetId) =>
       'sync.cursor.recording.$targetType.$targetId';
@@ -61,6 +66,10 @@ abstract final class SettingsKeys {
   /// `GET /youtube/client-profiles`. Fall back to built-in defaults when absent.
   static const String youtubeClientProfilesV1 = 'youtube.client_profiles_v1';
 
+  /// In-flight Enjoy long-form ASR attempt JSON for [mediaId].
+  static String asrLongFormAttempt(String mediaId) =>
+      'asr.long_form.attempt.$mediaId';
+
   static const _staticKeys = {
     apiBaseUrl,
     apiAiBaseUrl,
@@ -71,6 +80,8 @@ abstract final class SettingsKeys {
     syncCursorAudio,
     syncCursorVideo,
     syncCursorRecording,
+    syncCursorVocabularyItem,
+    syncCursorVocabularyContext,
     syncLastFullSyncAt,
     updateLastCheckAt,
     updateSnoozeUntil,
@@ -87,6 +98,7 @@ abstract final class SettingsKeys {
     if (_staticKeys.contains(key)) return true;
     if (key.startsWith('sync.cursor.recording.')) return true;
     if (key.startsWith('sync.last_pull_at.recording.')) return true;
+    if (key.startsWith('asr.long_form.attempt.')) return true;
     return false;
   }
 }

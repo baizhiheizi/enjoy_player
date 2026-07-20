@@ -29,86 +29,88 @@ class TranscriptEmptyState extends StatelessWidget {
   /// ASR transcript generation (local audio/video only).
   final Future<void> Function()? onGenerate;
 
-  /// When false, only cloud/hint copy (e.g. YouTube — no local file to import).
+  /// When false, only remote/cloud hint copy (e.g. YouTube — no local file).
   final bool showImportButton;
 
-  /// When true with [onExtract], shows an Extract control next to import.
+  /// When true with [onExtract], shows an Extract control.
   final bool showExtractButton;
 
-  /// When true with [onGenerate], shows a Generate transcript control.
+  /// When true with [onGenerate], shows an AI transcript control.
   final bool showGenerateButton;
+
+  bool get _hasLocalActions =>
+      showImportButton || showExtractButton || showGenerateButton;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final hint = _hasLocalActions
+        ? l10n.noTranscriptHint
+        : l10n.noTranscriptHintRemote;
 
     return LayoutBuilder(
       builder: (context, viewport) {
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: t.space16,
-            vertical: t.space16,
+            vertical: t.space24,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: viewport.maxHeight),
             child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(t.space8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SvgPicture.asset(
                       EnjoyIllustrations.emptyTranscript,
-                      height: 88,
+                      height: 72,
                       fit: BoxFit.contain,
                     ),
-                    SizedBox(height: t.space16),
+                    SizedBox(height: t.space20),
                     Text(
                       l10n.noTranscript,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(height: t.space8),
                     Text(
-                      l10n.noTranscriptHint,
+                      hint,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
-                        height: 1.35,
+                        height: 1.45,
                       ),
                     ),
-                    if (showExtractButton ||
-                        showImportButton ||
-                        showGenerateButton) ...[
+                    if (_hasLocalActions) ...[
                       SizedBox(height: t.space24),
-                      Wrap(
-                        spacing: t.space8,
-                        runSpacing: t.space8,
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                      _EmptyActionColumn(
                         children: [
                           if (showGenerateButton && onGenerate != null)
                             TranscriptBusyButton(
-                              icon: Icons.graphic_eq_rounded,
+                              icon: Icons.auto_awesome_rounded,
                               label: l10n.transcriptEmptyGenerate,
                               onPressed: onGenerate!,
-                            ),
-                          if (showExtractButton && onExtract != null)
-                            TranscriptBusyButton(
-                              icon: Icons.subtitles_outlined,
-                              label: l10n.transcriptEmptyExtract,
-                              onPressed: onExtract!,
+                              filled: true,
                             ),
                           if (showImportButton)
                             TranscriptBusyButton(
                               icon: Icons.upload_file_rounded,
                               label: l10n.transcriptEmptyAddSubtitle,
                               onPressed: onImport,
-                              filled: true,
+                              filled: !showGenerateButton,
+                            ),
+                          if (showExtractButton && onExtract != null)
+                            TranscriptBusyButton(
+                              icon: Icons.subtitles_outlined,
+                              label: l10n.transcriptEmptyExtract,
+                              onPressed: onExtract!,
                             ),
                         ],
                       ),
@@ -120,6 +122,26 @@ class TranscriptEmptyState extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _EmptyActionColumn extends StatelessWidget {
+  const _EmptyActionColumn({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) SizedBox(height: t.space8),
+          children[i],
+        ],
+      ],
     );
   }
 }

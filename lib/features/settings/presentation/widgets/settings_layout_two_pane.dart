@@ -138,7 +138,12 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
         Container(width: 1, color: cs.outlineVariant.withValues(alpha: 0.18)),
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.only(left: t.space24, bottom: t.space32),
+            padding: EdgeInsets.fromLTRB(
+              t.pageGutter,
+              0,
+              t.pageGutter,
+              t.space32,
+            ),
             child: _DetailPane(sectionId: effectiveSelected, visual: visual),
           ),
         ),

@@ -6,6 +6,7 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
+import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -15,12 +16,14 @@ class SyncDownloadService {
     required this._audioApi,
     required this._videoApi,
     required this._recordingApi,
+    required this._vocabularyApi,
   });
 
   final AppDatabase _db;
   final AudioApi _audioApi;
   final VideoApi _videoApi;
   final RecordingApi _recordingApi;
+  final VocabularyApi _vocabularyApi;
 
   static const _pageSize = 50;
 
@@ -32,6 +35,14 @@ class SyncDownloadService {
 
   Future<SyncResult> downloadRecordings() =>
       _downloadRecordingsInternal(resetCursor: false);
+
+  /// Word-book continuity (ADR-0054): unlike media, vocabulary pulls on
+  /// every signed-in sync rather than only via manual "Add to library".
+  Future<SyncResult> downloadVocabularyItems() =>
+      _downloadVocabularyItemsInternal(resetCursor: false);
+
+  Future<SyncResult> downloadVocabularyContexts() =>
+      _downloadVocabularyContextsInternal(resetCursor: false);
 
   Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<AudioRow>(
@@ -64,6 +75,8 @@ class SyncDownloadService {
       getLocal: _db.videoDao.getById,
       insertRow: _db.videoDao.insertRow,
       merge: mergeVideoLastWriteWins,
+      // Mine `deletedAt` = leave library; drop the local row (membership tombstone).
+      onTombstone: (id) => _db.videoDao.deleteId(id),
     );
   }
 
@@ -84,6 +97,46 @@ class SyncDownloadService {
     );
   }
 
+  Future<SyncResult> _downloadVocabularyItemsInternal({
+    required bool resetCursor,
+  }) {
+    return _downloadEntityInternal<VocabularyItemRow>(
+      resetCursor: resetCursor,
+      cursorKey: SettingsKeys.syncCursorVocabularyItem,
+      fetchPage: ({int? limit, String? updatedAfter}) async {
+        final raw = await _vocabularyApi.vocabularyItems(
+          limit: limit,
+          updatedAfter: updatedAfter,
+        );
+        return raw.map<Map<String, dynamic>>(castJsonObject).toList();
+      },
+      getLocal: _db.vocabularyItemDao.getById,
+      // `updateRow` is `InsertMode.replace` — an upsert, unlike `insertRow`
+      // (plain insert) which would throw on an existing row from a prior sync.
+      insertRow: _db.vocabularyItemDao.updateRow,
+      merge: mergeVocabularyItemConflict,
+    );
+  }
+
+  Future<SyncResult> _downloadVocabularyContextsInternal({
+    required bool resetCursor,
+  }) {
+    return _downloadEntityInternal<VocabularyContextRow>(
+      resetCursor: resetCursor,
+      cursorKey: SettingsKeys.syncCursorVocabularyContext,
+      fetchPage: ({int? limit, String? updatedAfter}) async {
+        final raw = await _vocabularyApi.vocabularyContexts(
+          limit: limit,
+          updatedAfter: updatedAfter,
+        );
+        return raw.map<Map<String, dynamic>>(castJsonObject).toList();
+      },
+      getLocal: _db.vocabularyContextDao.getById,
+      insertRow: _db.vocabularyContextDao.updateRow,
+      merge: mergeVocabularyContextLastWriteWins,
+    );
+  }
+
   Future<SyncResult> _downloadEntityInternal<E>({
     required bool resetCursor,
     required String cursorKey,
@@ -99,6 +152,7 @@ class SyncDownloadService {
       required Map<String, dynamic> server,
     })
     merge,
+    Future<void> Function(String id)? onTombstone,
   }) async {
     final errors = <String>[];
     var synced = 0;
@@ -128,6 +182,14 @@ class SyncDownloadService {
         try {
           final id = m['id'] as String?;
           if (id == null || id.isEmpty) continue;
+          final deletedAt = m['deletedAt'];
+          if (deletedAt != null &&
+              deletedAt.toString().isNotEmpty &&
+              onTombstone != null) {
+            await onTombstone(id);
+            synced++;
+            continue;
+          }
           final local = await getLocal(id);
           final merged = merge(local: local, server: m);
           await insertRow(merged);
@@ -159,7 +221,9 @@ class SyncDownloadService {
     final a = await _downloadAudiosInternal(resetCursor: true);
     final v = await _downloadVideosInternal(resetCursor: true);
     final r = await _downloadRecordingsInternal(resetCursor: true);
-    return a.merge(v).merge(r);
+    final vi = await _downloadVocabularyItemsInternal(resetCursor: true);
+    final vc = await _downloadVocabularyContextsInternal(resetCursor: true);
+    return a.merge(v).merge(r).merge(vi).merge(vc);
   }
 }
 

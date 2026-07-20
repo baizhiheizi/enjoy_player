@@ -4,7 +4,7 @@
 
 Shadow reading is the **record-while-you-listen** flow that lives below the **echo region** in the expanded player. The user listens to a cue, records themselves reading it back via the **shadow reading panel**, optionally runs **Azure pronunciation assessment** on the take, and (now) can **export a shareable practice poster** (see [`echo-mode.md`](echo-mode.md) and [`share-poster.md`](share-poster.md)).
 
-The panel is mounted only when **echo mode is active** and the current media has a usable transcript.
+The panel is mounted when **echo mode is active** in the expanded player (with a usable transcript), and also in the vocabulary review **Echo reading** practice overlay (recorder-only, with the context sentence shown above the controls). Global record / play-take / pitch / assess hotkeys pulse `ShadowReadingHotkeyBus` whenever a player session is open **or** vocabulary echo practice is open.
 
 ## Recording bus
 

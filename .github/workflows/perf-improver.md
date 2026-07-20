@@ -3,7 +3,7 @@ on:
   permissions:
     pull-requests: read
   reaction: eyes
-  schedule: daily
+  schedule: daily around 1:00 utc+8
   slash_command:
     name: perf-assist
     strategy: centralized
@@ -29,7 +29,7 @@ network:
   - java
 imports:
 - shared/runtime.md
-- shared/engine-minimax.md
+- shared/engine-deepseek.md
 safe-outputs:
   add-comment:
     hide-older-comments: true

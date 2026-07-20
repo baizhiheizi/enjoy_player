@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-19
+
+### Added
+
+- **Long-form AI transcripts** now use resumable Deepgram jobs for media at least 15 minutes long, with upload progress, persisted in-flight attempts, and clearer processing feedback.
+
+### Changed
+
+- **Vocabulary review and echo practice** have more focused study controls and polished practice layouts.
+- **Vocabulary on mobile** now prioritizes the word list, moves statistics into Review details, and collapses filters behind the toolbar.
+- **Transcript empty states** use clearer AI transcript wording and actions tailored to local and remote media.
+
+### Fixed
+
+- **Local media reopening and sync** no longer hang after a video is deleted and imported again.
+- **Player overlays**, including dictionary lookup, remain correctly positioned above video.
+- **Android release builds** support current `share_plus` versions under Android Gradle Plugin 9.
+
+## [0.6.2] - 2026-07-18
+
+### Added
+
+- **Update availability badge** on Settings when a newer app version is ready.
+
+### Changed
+
+- **Android update prompts** now show download progress.
+
+### Fixed
+
+- **Transcript subtitle selection** once again offers the Auto translate option.
+
+## [0.6.1] - 2026-07-18
+
+### Added
+
+- **Vocabulary learning workflow** with transcript lookup actions, AI-enriched review cards, persisted review sessions, cloud sync, media actions, and Pro Anki CSV export.
+- **Profile editing** with avatar upload and Enjoy ID support.
+
+### Changed
+
+- **Adaptive layouts and UI polish** across vocabulary, profile, and hotkey screens, using shared page families and gutters.
+- **Vocabulary context selection** now prefers complete sentences with a bounded fallback for unpunctuated transcripts.
+- **API timezone handling** now uses the device timezone reported by `flutter_timezone`.
+
+### Fixed
+
+- **Sync recovery** now handles duplicate catalog rows during video upload and refetches vocabulary when create responses omit `updatedAt`.
+- **Keyboard navigation** dismisses shell sheets before popping routes and returns cleanly from vocabulary review on Escape.
+- **Windows Azure assessment** now supports media paths containing non-ASCII characters.
+
 ## [0.6.0] - 2026-07-16
 
 ### Changed

@@ -23,10 +23,24 @@ See [ADR-0024](decisions/0024-download-landing-page.md) for hosting decisions an
 ## Quick start
 
 1. Bump `version:` in [`pubspec.yaml`](../pubspec.yaml) and update [`CHANGELOG.md`](../CHANGELOG.md).
-2. Sync platform metadata: `bash .github/scripts/sync_release_version.sh` (Windows installer; Android/iOS/macOS read pubspec at build).
+2. Sync and verify platform metadata: `bash .github/scripts/sync_release_version.sh`. The script updates the checked-in Windows installer version; every other target derives its version from `pubspec.yaml` during build or packaging.
 3. Run the release script for your platform (see [Host matrix](#host-matrix) below).
 4. Confirm artifacts in the [output paths](#artifacts).
 5. When ready, wire up CI — see [GitHub Actions](#github-actions-later).
+
+### Version propagation
+
+`pubspec.yaml` is the source of truth for both the marketing version and build
+number (`version: X.Y.Z+N`). Do not hand-edit generated Flutter or Xcode files.
+
+| Platform | Marketing version | Build number |
+|----------|-------------------|--------------|
+| Android | `versionName` from Flutter at build time | `versionCode` from Flutter at build time |
+| iOS | `CFBundleShortVersionString` via `FLUTTER_BUILD_NAME` | `CFBundleVersion` via `FLUTTER_BUILD_NUMBER` |
+| macOS | `MARKETING_VERSION` via `FLUTTER_BUILD_NAME` | `CURRENT_PROJECT_VERSION` via `FLUTTER_BUILD_NUMBER` |
+| Windows executable | Flutter-generated `FLUTTER_VERSION` macros | Flutter-generated version macros |
+| Windows installer | `MyAppVersion`, synced by `sync_release_version.sh` | Not stored separately |
+| Linux | Flutter build metadata and AppImage filename from the pubspec version | Flutter build metadata |
 
 ---
 
@@ -422,7 +436,9 @@ Platform CI setup (secrets, runners):
 - **Debug-signed AAB/APK**: missing `android/key.properties` — create from example and rebuild.
 - **Gradle / `dl.google.com` TLS**: mirrors are in [`settings.gradle.kts`](../android/settings.gradle.kts); use JDK 17; check VPN/proxy.
 - **`packageStoreReleaseBundle` OutOfMemoryError**: the Play AAB is large (~180MB with ffmpeg-kit native libs). The previous `MaxMetaspaceSize=4G` in [`android/gradle.properties`](../android/gradle.properties) let Gradle reserve up to ~12G virtual memory, which often fails after `flutter test` on 16GB Windows hosts. Release scripts stop Gradle daemons before building. If it still fails, close other heavy apps, run `./android/gradlew --stop`, and retry with `pwsh ./release.ps1 -Platform android -SkipChecks`.
-- **AGP 9 plugin errors**: run `tool/patch_agp9_pub_plugins.ps1` (Windows) or `tool/patch_agp9_pub_plugins.sh` (Linux/macOS) after `flutter pub get`.
+- **AGP 9 plugin errors**: run `tool/patch_agp9_pub_plugins.ps1` (Windows) or `tool/patch_agp9_pub_plugins.sh` (Linux/macOS) after `flutter pub get`. Android release scripts run the bash patch automatically before building.
+- **`cannot find symbol SharePlusPlugin`**: `share_plus` 13.2+ assumes AGP 9 enables built-in Kotlin and skips applying KGP. This repo keeps `android.builtInKotlin=false`, so the plugin's Kotlin never compiles. Re-run the AGP 9 patch scripts above (they force-apply KGP for `share_plus` and clear stale `build/share_plus` outputs), then rebuild. On Windows, prefer the `.ps1` patcher or a current `.sh` that resolves `%LOCALAPPDATA%/Pub/Cache`.
+- **`file_picker` unresolved `FileUtils` references**: after upgrading `file_picker`, Gradle can retain an incomplete Kotlin source snapshot. The AGP 9 patch scripts clear `build/file_picker`; rerun either patch script above and rebuild.
 
 ### Windows
 

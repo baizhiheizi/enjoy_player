@@ -16,7 +16,9 @@ import 'package:enjoy_player/features/player/presentation/layouts/audio_player_l
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_loading_video_stage.dart';
 
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
@@ -49,15 +51,55 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
           if (isYoutube)
             Align(
               alignment: Alignment.topCenter,
-              child: YoutubeLoadingVideoStage(mediaId: mediaId),
+              child: YoutubeLoadingVideoStage(
+                mediaId: mediaId,
+                overlayBuilder: (_) =>
+                    const _VideoCollapseOnlyOverlay(useSafeArea: false),
+              ),
             )
           else
-            const Center(child: SkeletonAppBootstrap()),
-          const Align(
-            alignment: Alignment.topCenter,
-            child: _VideoCollapseOnlyOverlay(),
-          ),
+            // Claim the permanent MediaKit surface during open (ADR-0057) so
+            // warmVideoSurface / Video are not parked off-screen for the whole
+            // resolve → open window.
+            const Align(
+              alignment: Alignment.topCenter,
+              child: _LocalLoadingVideoStage(),
+            ),
+          if (!isYoutube)
+            const Align(
+              alignment: Alignment.topCenter,
+              child: _VideoCollapseOnlyOverlay(),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// 16:9 portal target while local / URL [openMedia] is in flight.
+class _LocalLoadingVideoStage extends StatelessWidget {
+  const _LocalLoadingVideoStage();
+
+  static const double aspectWidth = 16;
+  static const double aspectHeight = 9;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: true,
+      bottom: false,
+      left: false,
+      right: false,
+      child: AspectRatio(
+        aspectRatio: aspectWidth / aspectHeight,
+        child: PlayerSurfaceTarget(
+          id: PlayerSurfaceIds.expandedPlayerLoading,
+          overlayBuilder: (_) => const SizedBox.shrink(),
+          child: const ColoredBox(
+            color: Colors.black,
+            child: Center(child: SkeletonAppBootstrap()),
+          ),
+        ),
       ),
     );
   }
@@ -109,17 +151,35 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
         (p) => p.videoTranscriptSplitWidthPx,
       ),
     );
+    final transcript = Stack(
+      fit: StackFit.expand,
+      children: [
+        TranscriptPanel(mediaId: mediaId),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: SafeArea(
+            bottom: false,
+            left: false,
+            child: SharePracticePosterButton(
+              mediaId: mediaId,
+              iconColor: cs.onSurface,
+            ),
+          ),
+        ),
+      ],
+    );
 
     final mediaBody = isVideo
         ? VideoPlayerLayout(
             engine: engine,
-            transcript: TranscriptPanel(mediaId: mediaId),
+            transcript: transcript,
             initialTranscriptSplitWidthPx: splitPx,
             onTranscriptSplitWidthCommitted: (w) => ref
                 .read(playerPreferencesCtrlProvider.notifier)
                 .setVideoTranscriptSplitWidthPx(w),
           )
-        : AudioPlayerLayout(transcript: TranscriptPanel(mediaId: mediaId));
+        : AudioPlayerLayout(transcript: transcript);
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -161,24 +221,7 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
       body: PlayerAmbientBackdrop(
         accentColor: accent,
         intensity: 0.08,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            mediaBody,
-            Positioned(
-              top: 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                left: false,
-                child: SharePracticePosterButton(
-                  mediaId: mediaId,
-                  iconColor: isVideo ? Colors.white : cs.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: mediaBody,
       ),
     );
   }
@@ -186,29 +229,28 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
 
 /// Collapse control only (loading / minimal chrome).
 class _VideoCollapseOnlyOverlay extends ConsumerWidget {
-  const _VideoCollapseOnlyOverlay();
+  const _VideoCollapseOnlyOverlay({this.useSafeArea = true});
+
+  final bool useSafeArea;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      bottom: false,
-      left: false,
-      right: false,
-      child: SizedBox(
-        height: kToolbarHeight,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Theme.of(context).colorScheme.onSurface,
-              size: 28,
-            ),
-            onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
+    final content = SizedBox(
+      height: kToolbarHeight,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 28,
           ),
+          onPressed: () => unawaited(collapseExpandedPlayer(ref, context)),
         ),
       ),
     );
+    if (!useSafeArea) return content;
+    return SafeArea(bottom: false, left: false, right: false, child: content);
   }
 }

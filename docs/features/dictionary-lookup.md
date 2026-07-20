@@ -6,7 +6,7 @@ While playback is open, the user can **select 1–100 characters** on the **acti
 
 1. **Translation** — `POST /translations` via `translationServiceProvider`.
 2. **Definition (dictionary)** — `POST /dictionary/query` via `dictionaryServiceProvider` (word = selected text only). In the sheet UI this section is labeled **Definition** / **释义** (`lookupSectionDictionary`).
-3. **Contextual translation** — LLM markdown via `POST /chat/completions` through `contextualTranslationServiceProvider` (system prompts aligned with web `contextual-translation`); includes optional **surrounding transcript context** from `buildVocabularyContext`.
+3. **Contextual translation** — LLM markdown via `POST /chat/completions` through `contextualTranslationServiceProvider` (system prompts aligned with web `contextual-translation`); includes optional **surrounding transcript context** from `buildVocabularyContext` (same span rules as add-to-vocabulary: prefer a complete sentence; multi-sentence echo keeps the full echo region; unpunctuated transcripts use a bounded ±3 cue window around the active line).
 
 Sections appear in the sheet in that order: translation, then definition/dictionary, then contextual translation.
 
@@ -30,7 +30,7 @@ Sections appear in the sheet in that order: translation, then definition/diction
 - **Selection toolbar** is suppressed on transcript selections; the sheet is the primary affordance.
 - **Signed out** — Translation, dictionary, and contextual sections **do not** call the Worker while the user is not `AuthSignedIn`. Each section shows a compact **Account required** callout with a **Sign in** button (`AuthRequiredCallout`) that navigates to `/sign-in?from=…`. After **AuthFailure** (e.g. expired session), the same callout is shown instead of a retry-only error row.
 - **Translation** section is expanded on first open and fetches immediately when signed in. **Definition (dictionary)** and **contextual translation** start **collapsed** — expand once to fetch when signed in (saves credits vs eager triple fetch).
-- **Sheet chrome** — Header, selected term (hero panel with gradient + border), and language row are grouped at the top; scrollable sections use elevated cards (`LookupExpansionCard`) with a nested content well. **Copy** uses a tonal icon button and shows a short **success notice** (`AppNotice` / `lookupCopySuccess`).
+- **Sheet chrome** — Header, selected term, and language row are grouped at the top; scrollable sections use elevated cards (`LookupExpansionCard`) with a nested content well. Header actions: **Add/remove vocabulary** (bookmark icon) + **Copy** + **Close** — matching tonal `IconButton` chrome. Copy shows a short **success notice** (`AppNotice` / `lookupCopySuccess`). Contextual translation body sits in a subtle inset panel so it reads apart from other section content.
 - **Language row** — Single segmented control with chevrons on source/target and a centered swap control.
 
 ## Code map

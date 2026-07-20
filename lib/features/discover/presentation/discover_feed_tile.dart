@@ -22,8 +22,8 @@ import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Width / height for [SliverGrid] cells (16:9 thumb + metadata only).
-const double discoverFeedTileGridAspectRatio = 1.22;
+/// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
+const double discoverFeedTileGridAspectRatio = 1.28;
 
 class DiscoverFeedTile extends ConsumerStatefulWidget {
   const DiscoverFeedTile({required this.entry, super.key});
@@ -146,14 +146,9 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                 adding: _adding,
                 durationLabel: durationLabel,
               ),
-              SizedBox(height: t.space12),
+              SizedBox(height: t.space8),
               Padding(
-                padding: EdgeInsets.fromLTRB(
-                  t.space12,
-                  0,
-                  t.space12,
-                  t.space12,
-                ),
+                padding: EdgeInsets.fromLTRB(t.space4, 0, t.space4, t.space4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -162,7 +157,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                       label: channelName,
                       seed: entry.channelId,
                     ),
-                    SizedBox(width: t.space12),
+                    SizedBox(width: t.space8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +169,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                             overflow: TextOverflow.ellipsis,
                             style: tt.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              height: 1.28,
+                              height: 1.22,
                             ),
                           ),
                           SizedBox(height: t.space4),
@@ -182,9 +177,11 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                             '$channelName · $publishedLabel',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: tt.bodySmall?.copyWith(
-                              color: cs.onSurfaceVariant,
-                              height: 1.2,
+                            style: tt.labelMedium?.copyWith(
+                              color: cs.onSurfaceVariant.withValues(
+                                alpha: 0.85,
+                              ),
+                              height: 1.15,
                             ),
                           ),
                         ],

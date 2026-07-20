@@ -119,6 +119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get asrStatusExtracting => 'Extracting audio…';
 
   @override
+  String get asrStatusUploading => 'Uploading audio…';
+
+  @override
   String get asrLanguageTitle => 'Spoken language';
 
   @override
@@ -126,6 +129,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusPolling => 'Transcribing…';
 
   @override
   String get asrStatusSaving => 'Saving…';
@@ -159,6 +165,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorUnsupportedMedia =>
+      'This audio format isn\'t supported for long transcription';
+
+  @override
+  String get asrErrorProviderTimeout =>
+      'Transcription timed out. Please try again.';
+
+  @override
+  String get asrErrorProviderRetryable =>
+      'Transcription failed. Please try again.';
 
   @override
   String get asrErrorByokMissing =>
@@ -509,7 +527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importSubtitle => 'Import subtitle';
 
   @override
-  String get noTranscript => 'No transcript';
+  String get noTranscript => 'No transcript yet';
 
   @override
   String get importSrtOrVtt => 'Import an .srt or .vtt file.';
@@ -578,7 +596,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTranscriptHint =>
-      'Cloud transcripts load in the background when you open media (once per item until you refresh). For local video, use Extract or Add subtitle (.srt/.vtt).';
+      'Add a subtitle file, extract embedded captions, or create an AI transcript.';
+
+  @override
+  String get noTranscriptHintRemote =>
+      'Cloud captions load automatically when available. Open the CC menu to refresh.';
 
   @override
   String get transcriptEmptyExtract => 'Extract';
@@ -587,10 +609,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcriptEmptyAddSubtitle => 'Add subtitle';
 
   @override
-  String get transcriptEmptyGenerate => 'Generate transcript';
+  String get transcriptEmptyGenerate => 'AI transcript';
 
   @override
-  String get subtitlesGenerate => 'Generate transcript';
+  String get subtitlesGenerate => 'AI transcript';
 
   @override
   String get subtitlesRegenerate => 'Re-generate transcript';
@@ -2436,6 +2458,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateAvailableTitle => 'Update available';
 
   @override
+  String get updateAvailableBadgeSemantics => 'Update available';
+
+  @override
   String get updateMandatoryTitle => 'Update required';
 
   @override
@@ -2451,6 +2476,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateDismiss => 'Dismiss';
+
+  @override
+  String get updateCancel => 'Cancel';
+
+  @override
+  String get updateRetry => 'Retry';
+
+  @override
+  String get updatePreparing => 'Preparing download…';
+
+  @override
+  String updateDownloading(int percent) {
+    return 'Downloading update… $percent%';
+  }
+
+  @override
+  String get updateVerifying => 'Verifying download…';
+
+  @override
+  String get updateOpeningInstaller => 'Opening installer…';
+
+  @override
+  String get updateErrorDownload =>
+      'Download failed. Check your connection and try again.';
+
+  @override
+  String get updateErrorChecksum =>
+      'The download was corrupted. Please try again.';
+
+  @override
+  String get updateErrorPermission =>
+      'Install permission was denied. Allow installs from this app in system settings, then retry.';
+
+  @override
+  String get updateErrorAlreadyRunning =>
+      'An update download is already in progress.';
+
+  @override
+  String get updateErrorInstallation =>
+      'Could not open the installer. Please try again.';
+
+  @override
+  String get updateErrorGeneric => 'Update failed. Please try again.';
 
   @override
   String get updateUpToDate => 'You\'re on the latest version.';
@@ -2572,6 +2640,377 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lookupSourceResetToLearning =>
       'Source language reset to learning default';
+
+  @override
+  String get vocabularyAddToVocabulary => 'Add to Vocabulary';
+
+  @override
+  String get vocabularyAddContext => 'Add Context';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => 'Already in Vocabulary';
+
+  @override
+  String get vocabularyAdding => 'Adding…';
+
+  @override
+  String get vocabularyRemoving => 'Removing…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => 'Remove from vocabulary?';
+
+  @override
+  String get vocabularyConfirmDeleteBody =>
+      'This deletes the word and all of its contexts.';
+
+  @override
+  String get vocabularyCancel => 'Cancel';
+
+  @override
+  String get vocabularyDelete => 'Delete';
+
+  @override
+  String get vocabularyTitle => 'Vocabulary';
+
+  @override
+  String get vocabularyProfileEntry => 'Vocabulary';
+
+  @override
+  String get vocabularyProfileEntryHint => 'Review saved words and flashcards';
+
+  @override
+  String get vocabularyReview => 'Review';
+
+  @override
+  String get vocabularyAllWords => 'All Words';
+
+  @override
+  String get vocabularyTotal => 'Total';
+
+  @override
+  String get vocabularyDue => 'Due';
+
+  @override
+  String get vocabularyStatusNew => 'New';
+
+  @override
+  String get vocabularyStatusLearning => 'Learning';
+
+  @override
+  String get vocabularyStatusReviewing => 'Reviewing';
+
+  @override
+  String get vocabularyStatusMastered => 'Mastered';
+
+  @override
+  String get vocabularyNoWords => 'No words yet';
+
+  @override
+  String get vocabularyNoWordsDescription =>
+      'Select text in a transcript and choose Add to Vocabulary to start your word book.';
+
+  @override
+  String get vocabularyNoDueItems => 'Nothing due right now';
+
+  @override
+  String get vocabularyNoDueItemsDescription =>
+      'You can still start a custom review of all words, by status, language, or a random set.';
+
+  @override
+  String get vocabularyNoMatches => 'No matching words';
+
+  @override
+  String get vocabularyNoMatchesDescription =>
+      'Try a different search or clear the status and language filters.';
+
+  @override
+  String get vocabularyListLoadFailed => 'Could not load your vocabulary.';
+
+  @override
+  String get vocabularyCustomReview => 'Custom review';
+
+  @override
+  String get vocabularySelectReviewItems => 'Choose what to review';
+
+  @override
+  String get vocabularyReviewDueItems => 'Due items';
+
+  @override
+  String get vocabularyReviewDueHint => 'Words scheduled for today or earlier';
+
+  @override
+  String get vocabularyReviewAll => 'All words';
+
+  @override
+  String get vocabularyReviewAllHint => 'Review every word in your book';
+
+  @override
+  String get vocabularyReviewByStatus => 'By status';
+
+  @override
+  String get vocabularyReviewByStatusHint =>
+      'Focus on new, learning, reviewing, or mastered';
+
+  @override
+  String get vocabularyReviewByLanguage => 'By language';
+
+  @override
+  String get vocabularyReviewByLanguageHint =>
+      'Limit the session to one source language';
+
+  @override
+  String get vocabularyReviewRandom => 'Random';
+
+  @override
+  String get vocabularyReviewRandomHint =>
+      'Shuffle and take a short practice set';
+
+  @override
+  String get vocabularyNumberOfWords => 'Number of words';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count words';
+  }
+
+  @override
+  String get vocabularyStartReview => 'Start review';
+
+  @override
+  String get vocabularyEmptyQueue => 'No words match this selection.';
+
+  @override
+  String get vocabularyExitReview => 'Exit review';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => 'How well do you know this?';
+
+  @override
+  String get vocabularyDontKnow => 'Don\'t Know';
+
+  @override
+  String get vocabularyKnow => 'Know';
+
+  @override
+  String get vocabularyKnowWell => 'Know Well';
+
+  @override
+  String get vocabularySkip => 'Skip';
+
+  @override
+  String get vocabularyUndo => 'Undo';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String vocabularyRemaining(int count) {
+    return '$count remaining';
+  }
+
+  @override
+  String get vocabularyFlipBack => 'Flip back';
+
+  @override
+  String get vocabularyReviewComplete => 'Review complete';
+
+  @override
+  String get vocabularyReviewCompleteDescription =>
+      'Nice work. Your ratings are saved.';
+
+  @override
+  String get vocabularyDone => 'Done';
+
+  @override
+  String get vocabularySearchPlaceholder => 'Search words';
+
+  @override
+  String get vocabularyFilterStatus => 'Status';
+
+  @override
+  String get vocabularyFilterLanguage => 'Language';
+
+  @override
+  String get vocabularyFilterAll => 'All';
+
+  @override
+  String get vocabularyFilters => 'Filters';
+
+  @override
+  String get vocabularyContext => 'Context';
+
+  @override
+  String get vocabularyDictionary => 'Dictionary';
+
+  @override
+  String get vocabularyNotes => 'Notes';
+
+  @override
+  String get vocabularyNotesPlaceholder => 'Notes coming soon';
+
+  @override
+  String get vocabularyNoContextAvailable => 'No context available';
+
+  @override
+  String get vocabularyDictionaryNotAvailable =>
+      'Dictionary not available offline';
+
+  @override
+  String get vocabularyOverdue => 'Overdue';
+
+  @override
+  String get vocabularyToday => 'Today';
+
+  @override
+  String get vocabularyTomorrow => 'Tomorrow';
+
+  @override
+  String vocabularyInDays(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      'Shortcuts: Space flip/back · 1/2/3 rate · ← previous · → skip · Esc exit';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count contexts';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get vocabularyFlipHint => 'Tap to flip';
+
+  @override
+  String get vocabularyPlaySegment => 'Play segment';
+
+  @override
+  String get vocabularyOpenInPlayer => 'Open in player';
+
+  @override
+  String get vocabularyOpenInPlayerDescription =>
+      'Opening the player will end this review session. Your ratings so far are saved.';
+
+  @override
+  String get vocabularyShadowReading => 'Shadow reading';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      'Continue to the player for shadow reading? This ends the review session. Your ratings so far are saved.';
+
+  @override
+  String get vocabularyEchoReading => 'Echo reading';
+
+  @override
+  String get vocabularyPracticeDismiss => 'Close practice';
+
+  @override
+  String get vocabularyPracticePause => 'Pause';
+
+  @override
+  String get vocabularyStatsExpand => 'Show status breakdown';
+
+  @override
+  String get vocabularyStatsCollapse => 'Hide status breakdown';
+
+  @override
+  String get vocabularyPreviousContext => 'Previous context';
+
+  @override
+  String get vocabularyNextContext => 'Next context';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get vocabularyContextualTranslation => 'Contextual translation';
+
+  @override
+  String get vocabularyFetchDictionary => 'Look up dictionary';
+
+  @override
+  String get vocabularyFetchContextual => 'Translate context';
+
+  @override
+  String get vocabularyFetching => 'Loading…';
+
+  @override
+  String get vocabularyAiUnavailable => 'Sign in to use AI lookup';
+
+  @override
+  String get vocabularyAiFetchFailed =>
+      'Could not load. Try again when online.';
+
+  @override
+  String get vocabularyMediaUnavailable =>
+      'Media actions unavailable for this context';
+
+  @override
+  String get vocabularyMediaPlayFailed => 'Could not play this segment';
+
+  @override
+  String get vocabularyMediaOpenFailed => 'Could not open this media';
+
+  @override
+  String get vocabularyConfirmContinue => 'Continue';
+
+  @override
+  String get vocabularySourceLabel => 'Source';
+
+  @override
+  String get vocabularyUnknownSource => 'Unknown source';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '${start}s · ${duration}s';
+  }
+
+  @override
+  String get vocabularyExportToAnki => 'Export to Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => 'Export to Anki';
+
+  @override
+  String get vocabularyExport => 'Export';
+
+  @override
+  String get vocabularyNoItemsToExport => 'No items to export';
+
+  @override
+  String get vocabularyProRequired => 'Pro required';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki export is available on Enjoy Pro. Upgrade to export your vocabulary as Anki CSV cards.';
+
+  @override
+  String get vocabularyUpgradeToPro => 'Upgrade to Pro';
+
+  @override
+  String get vocabularyExportSuccess => 'Vocabulary exported.';
+
+  @override
+  String get vocabularyExportError => 'Could not export vocabulary.';
+
+  @override
+  String get vocabularyExportCancelled => 'Export cancelled.';
+
+  @override
+  String get vocabularyExportSparseCacheHint =>
+      'Card backs are richer when dictionary and contextual translations were saved during review.';
+
+  @override
+  String get vocabularyExportProgress => 'Exporting…';
 
   @override
   String get authRequiredCloudFeaturesTitle => 'Account required';

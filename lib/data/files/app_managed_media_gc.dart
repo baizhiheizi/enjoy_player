@@ -102,6 +102,6 @@ bool _sqliteFileReferencesLocalUri(String dbPath, String fileUri) {
     // Missing tables / locked DB — treat as referenced to avoid data loss.
     return true;
   } finally {
-    raw?.dispose();
+    raw?.close();
   }
 }

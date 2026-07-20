@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -35,9 +37,11 @@ class CreditsUsageScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final auth = ref.watch(authCtrlProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.creditsUsageTitle)),
-      body: auth.when(
+    return EnjoyPage(
+      kind: EnjoyPageKind.hub,
+      title: l10n.creditsUsageTitle,
+      showBack: true,
+      body: (context, metrics) => auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
             return const Center(
@@ -47,7 +51,7 @@ class CreditsUsageScreen extends ConsumerWidget {
               ),
             );
           }
-          return const _CreditsUsageBody();
+          return _CreditsUsageBody(metrics: metrics);
         },
         loading: () => const SkeletonSettingsList(rowCount: 8),
         error: (Object e, StackTrace s) => Center(child: Text('$e')),
@@ -57,7 +61,9 @@ class CreditsUsageScreen extends ConsumerWidget {
 }
 
 class _CreditsUsageBody extends ConsumerWidget {
-  const _CreditsUsageBody();
+  const _CreditsUsageBody({required this.metrics});
+
+  final EnjoyPageMetrics metrics;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,7 +79,7 @@ class _CreditsUsageBody extends ConsumerWidget {
         await ref.read(creditsUsagePageProvider.future);
       },
       child: ListView(
-        padding: EdgeInsets.all(t.space16),
+        padding: metrics.padding(top: t.space16, bottom: t.space32),
         children: [
           Text(
             l10n.creditsUsageDescription,

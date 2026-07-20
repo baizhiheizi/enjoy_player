@@ -37,9 +37,23 @@ Single dark `ThemeData` only (`buildAppTheme()`). No light theme and no Settings
 
 - **Mobile**: custom `EnjoyBottomNav` (68pt content height + system home-indicator inset via `SafeArea`). **Four** destinations: Home, Discover, Library, **Profile** (the signed-in profile tab — see [auth.md](auth.md) for the dedicated profile screen; Settings is reached from a tile inside the Profile tab, not as a top-level destination). Pill selection, editorial typography, keyboard focus ring on items; haptics on change. Implemented in `lib/core/theme/widgets/enjoy_bottom_nav.dart`, used from `RootShell`.
 - **Library source switch**: Inside `LibraryScreen`, a compact **Local / Cloud** badge with swap icon sits inline beside the Library title; tap toggles source. Cloud mode uses `/library?source=cloud`; legacy `/cloud` redirects. Import + compact search on Local; Refresh on Cloud.
-- **Desktop (≥ 900 px)**: `AppSidebar` — flat tonal panel (`surfaceContainerLow`), hairline right border, pill nav items with hover/splash/focus, `FocusTraversalGroup` for keyboard order; extra top breathing room on **macOS** desktop for traffic-light clearance. **Four** destinations mirror the mobile bottom nav: Home, Discover, Library, Profile. Library nav item covers both local and cloud sources (no separate Cloud row). The Settings hub is reached from inside the Profile tab (a tile that pushes `/settings`), not from the sidebar.
+- **Desktop (≥ 900 px)**: `AppSidebar` — flat tonal panel (`surfaceContainerLow`), hairline right border, pill nav items with hover/splash/focus, `FocusTraversalGroup` for keyboard order; extra top breathing room on **macOS** desktop for traffic-light clearance. **Three** primary pills: Home, Discover, Library. Profile is reached via the bottom **`SidebarAccountChip`** (not a fourth nav pill). Library nav item covers both local and cloud sources (no separate Cloud row). The Settings hub is reached from inside the Profile tab (a tile that pushes `/settings`), not from the sidebar.
 - **No glass on sidebar**: `EnjoyThemeTokens.useGlassOnSidebar = false`.
 - Platform-adaptive transitions: Cupertino on iOS/macOS, ZoomPage on Android, FadeUpwards on Windows/Linux.
+
+## Page layout
+
+Adaptive page families ([ADR-0055](../decisions/0055-adaptive-page-layout-system.md)):
+
+| Kind | Width | Chrome | Examples |
+|------|-------|--------|----------|
+| `browse` | Full pane + `pageGutter` (16 / 24) | `EditorialHeader` (gutter-aligned) | Home, Discover, Library, channel feed |
+| `hub` | Centered `hubMaxWidth` (840) | Editorial or `EnjoySubpageAppBar` | Profile, Settings, Subscription, Credits, Hotkeys, AI providers, Vocabulary |
+| `form` | Centered `formMaxWidth` (680) | `EnjoySubpageAppBar` | Preferences, Edit Profile |
+| `auth` | Centered `modalMaxWidth` (400) | Auth scaffold | Sign-in |
+| `playerChrome` | Player-owned | Player chrome | Expanded player |
+
+Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-screen max widths or stretch form Save buttons to the full desktop pane.
 
 ## System chrome
 
@@ -60,7 +74,7 @@ Single dark `ThemeData` only (`buildAppTheme()`). No light theme and no Settings
 | `TranscriptPanel` | Source Serif 4 body; editorial left-rail active line; neutral echo card with 8px orange rail |
 | `ShadowReadingPanel` | Idle: three-zone bar (pitch icon, centered 56pt FAB, play + more; delete in menu); recording: centered FAB + countdown |
 | `SettingsScreen` | iOS-style grouped `_SettingsCard`; **Appearance & Language** rows open pickers for display + native language (learning fixed en-US); guest vs signed-in copy for language sync |
-| `ProfileScreen` | Editorial profile hub; 4th shell tab on both the bottom nav and the sidebar; tier chip mirrors `UserProfile.subscriptionTier`; chrome-free body (the shell provides page chrome) hosts the hero card, practice stats, credits/subscription nav, **Edit profile + Preferences + Settings** entry tiles, and sign out. The **Edit profile** tile pushes `/profile/edit` (`ProfileEditScreen`) for username + avatar (read-only Enjoy ID / email / Mixin ID). The **Preferences** tile pushes `/profile/preferences` (`ProfilePreferencesScreen`) for daily goal and display / learning / native language. Tapping the hero card also opens Edit profile; the `SidebarAccountChip` links to the profile hub for keyboard / mouse users. See [auth.md](auth.md#profile). |
+| `ProfileScreen` | Editorial profile hub; 4th mobile bottom-nav tab; desktop entry via `SidebarAccountChip`; tier chip mirrors `UserProfile.subscriptionTier`; chrome-free body uses hub max width; hosts hero card, practice stats, credits/subscription nav, unlabeled Vocabulary (due-count pill) + config (**Edit profile** + Preferences + Settings) section cards, and sign out. The **Edit profile** tile pushes `/profile/edit` (`ProfileEditScreen`) for username + avatar (read-only Enjoy ID / email / Mixin ID). The **Preferences** tile pushes `/profile/preferences` (`ProfilePreferencesScreen`) for daily goal and display / learning / native language. Tapping the hero card also opens Edit profile. Preferences / Edit Profile are `form` pages at `formMaxWidth`. See [auth.md](auth.md#profile). |
 | `NotFoundScreen` | `errorBuilder` fallback at the router root for unknown `go_router` locations; localized en / zh / zh-CN, shows the attempted URI, single primary "Back to Home" action to `/` |
 
 ## Design token reference (`EnjoyThemeTokens`)
@@ -72,10 +86,15 @@ Elevation: 0 / 1 / 3 / 8
 Motion:   180ms fast / 260ms standard / 240ms enter / 160ms exit
 Sidebar:  248px wide, useGlassOnSidebar: false
 Transport: 88px height
-ContentMaxWidth: 720px
+ContentMaxWidth: 720px (reading column / empty states)
+FormMaxWidth: 680px
+HubMaxWidth: 840px
+PageGutter: 24px (default) / PageGutterCompact: 16px (< breakpointCompact 600)
+BreakpointRail: 900px
+BreakpointCompact: 600px
 BottomNav: 68px content height (+ safe area)
-DesktopGutter: 24px (wide layout rhythm)
-Modal max: 400px (alerts) / 560px (wide pickers)
+DesktopGutter: 24px (alias rhythm; prefer pageGutter)
+Modal max: 400px (alerts / auth) / 560px (wide pickers)
 Focus ring: 2px (custom nav / sidebars)
 ```
 
@@ -85,7 +104,9 @@ Focus ring: 2px (custom nav / sidebars)
 |--------|------|---------|
 | `AppBackground` | `core/theme/widgets/app_background.dart` | Dark gradient scaffold BG |
 | `PlayerAmbientBackdrop` | same | Artwork color tint overlay (player only) |
-| `EditorialHeader` | `core/theme/widgets/editorial_header.dart` | Large title + subtitle + trailing; wide screens center within `contentMaxWidth`; optional `compact` |
+| `EnjoyPage` / `EnjoyPageKind` | `core/theme/widgets/enjoy_page.dart`, `core/layout/enjoy_page_kind.dart` | Adaptive page scaffold + width metrics |
+| `EnjoySubpageAppBar` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route back + title chrome |
+| `EditorialHeader` | `core/theme/widgets/editorial_header.dart` | Large title + subtitle + trailing; gutter or column width mode; optional `compact` |
 | `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Mobile shell bottom navigation (replaces stock `NavigationBar`) |
 | `showEnjoySheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Shared modal scrim + sheet shape; alert content max width |
 | `MediaCardTile` | `core/theme/widgets/media_card.dart` | Grid tile (video/home) |
@@ -118,3 +139,4 @@ See ADR-0007 for rationale.
 - [ADR-0008](../decisions/0008-light-mode-parity.md) — Light mode parity (superseded by 0011)
 - [ADR-0009](../decisions/0009-platform-adaptive-shell.md) — Platform-adaptive shell
 - [ADR-0011](../decisions/0011-dark-mode-only.md) — Dark mode only + logo-aligned brand
+- [ADR-0055](../decisions/0055-adaptive-page-layout-system.md) — Adaptive page layout system

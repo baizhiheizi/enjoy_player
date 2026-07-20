@@ -16,12 +16,12 @@ class EnjoyCard extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     return Material(
-      color: cs.surfaceContainerLow,
+      color: cs.surfaceContainer,
       elevation: t.elevationCard,
       shadowColor: Colors.black.withValues(alpha: 0.35),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(t.radiusLg),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.28)),
+        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.22)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),

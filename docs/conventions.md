@@ -34,6 +34,13 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 - Use `package:logging` through project logging helpers; do not call `print()`.
 - Do not construct `media_kit` `Player()` outside `MediaKitPlayerEngine` / `PlayerController`.
 
+## Page layout
+
+- Every new shell / push screen picks an **`EnjoyPageKind`** (`browse` | `hub` | `form` | `auth` | `playerChrome`) and builds through **`EnjoyPage`** (or applies `EnjoyPageMetrics` / `pageGutterOf` consistently).
+- Widths come from tokens only: browse = full pane + `pageGutter`; hub = `hubMaxWidth` (840); form = `formMaxWidth` (680); auth = `modalMaxWidth` (400). Do **not** use informal `contentMaxWidth + 96` or unconstrained desktop forms.
+- Push routes use **`EnjoySubpageAppBar`** (via `EnjoyPage(showBack: true)`), not one-off `AppBar` / custom back rows. Primary tabs use **`EditorialHeader`** with gutter-aligned width so titles match browse bodies.
+- See [ADR-0055](decisions/0055-adaptive-page-layout-system.md) and [app-ui.md § Page layout](features/app-ui.md#page-layout).
+
 ## UI interaction
 
 - Prefer **`EnjoyTappableSurface` / `EnjoyTappableIcon`** (or **`EnjoyButton`**) for new tappable UI instead of ad-hoc `InkWell` + `GestureDetector` combinations — see [ADR-0018](decisions/0018-shared-interactive-primitives.md).

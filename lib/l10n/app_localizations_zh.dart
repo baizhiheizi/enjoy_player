@@ -115,6 +115,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get asrStatusExtracting => 'Extracting audio…';
 
   @override
+  String get asrStatusUploading => 'Uploading audio…';
+
+  @override
   String get asrLanguageTitle => 'Spoken language';
 
   @override
@@ -122,6 +125,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get asrStatusRecognizing => 'Recognizing…';
+
+  @override
+  String get asrStatusPolling => 'Transcribing…';
 
   @override
   String get asrStatusSaving => 'Saving…';
@@ -155,6 +161,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get asrErrorUnsupportedSource => 'This source isn\'t supported';
+
+  @override
+  String get asrErrorUnsupportedMedia =>
+      'This audio format isn\'t supported for long transcription';
+
+  @override
+  String get asrErrorProviderTimeout =>
+      'Transcription timed out. Please try again.';
+
+  @override
+  String get asrErrorProviderRetryable =>
+      'Transcription failed. Please try again.';
 
   @override
   String get asrErrorByokMissing =>
@@ -490,7 +508,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importSubtitle => '导入字幕';
 
   @override
-  String get noTranscript => '无字幕稿';
+  String get noTranscript => '暂无字幕稿';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
@@ -558,8 +576,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importSubtitleSuccess => '字幕已导入';
 
   @override
-  String get noTranscriptHint =>
-      '打开媒体时云端字幕会在后台加载（每项在刷新前仅一次）。本地视频请使用提取或添加字幕（.srt/.vtt）。';
+  String get noTranscriptHint => '可添加字幕文件、提取内嵌字幕，或用 AI 生成字幕稿。';
+
+  @override
+  String get noTranscriptHintRemote => '云端字幕会在可用时自动加载。可在 CC 菜单中刷新。';
 
   @override
   String get transcriptEmptyExtract => '提取';
@@ -568,10 +588,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptEmptyAddSubtitle => '添加字幕';
 
   @override
-  String get transcriptEmptyGenerate => 'Generate transcript';
+  String get transcriptEmptyGenerate => 'AI 字幕稿';
 
   @override
-  String get subtitlesGenerate => 'Generate transcript';
+  String get subtitlesGenerate => 'AI 字幕稿';
 
   @override
   String get subtitlesRegenerate => '重新生成字幕';
@@ -2333,6 +2353,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get updateAvailableTitle => '有可用更新';
 
   @override
+  String get updateAvailableBadgeSemantics => '有可用更新';
+
+  @override
   String get updateMandatoryTitle => '需要更新';
 
   @override
@@ -2348,6 +2371,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get updateDismiss => '忽略';
+
+  @override
+  String get updateCancel => '取消';
+
+  @override
+  String get updateRetry => '重试';
+
+  @override
+  String get updatePreparing => '正在准备下载…';
+
+  @override
+  String updateDownloading(int percent) {
+    return '正在下载更新… $percent%';
+  }
+
+  @override
+  String get updateVerifying => '正在校验下载…';
+
+  @override
+  String get updateOpeningInstaller => '正在打开安装程序…';
+
+  @override
+  String get updateErrorDownload => '下载失败。请检查网络后重试。';
+
+  @override
+  String get updateErrorChecksum => '下载文件已损坏，请重试。';
+
+  @override
+  String get updateErrorPermission => '未授予安装权限。请在系统设置中允许从此应用安装，然后重试。';
+
+  @override
+  String get updateErrorAlreadyRunning => '已有更新正在下载。';
+
+  @override
+  String get updateErrorInstallation => '无法打开安装程序，请重试。';
+
+  @override
+  String get updateErrorGeneric => '更新失败，请重试。';
 
   @override
   String get updateUpToDate => '已是最新版本。';
@@ -2465,6 +2526,364 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
+
+  @override
+  String get vocabularyAddToVocabulary => '加入生词本';
+
+  @override
+  String get vocabularyAddContext => '添加语境';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => '已在生词本';
+
+  @override
+  String get vocabularyAdding => '添加中…';
+
+  @override
+  String get vocabularyRemoving => '删除中…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => '从生词本移除？';
+
+  @override
+  String get vocabularyConfirmDeleteBody => '将删除该词及其全部语境。';
+
+  @override
+  String get vocabularyCancel => '取消';
+
+  @override
+  String get vocabularyDelete => '删除';
+
+  @override
+  String get vocabularyTitle => '生词本';
+
+  @override
+  String get vocabularyProfileEntry => '生词本';
+
+  @override
+  String get vocabularyProfileEntryHint => '复习已保存的单词与闪卡';
+
+  @override
+  String get vocabularyReview => '复习';
+
+  @override
+  String get vocabularyAllWords => '全部单词';
+
+  @override
+  String get vocabularyTotal => '总计';
+
+  @override
+  String get vocabularyDue => '待复习';
+
+  @override
+  String get vocabularyStatusNew => '新词';
+
+  @override
+  String get vocabularyStatusLearning => '学习中';
+
+  @override
+  String get vocabularyStatusReviewing => '复习中';
+
+  @override
+  String get vocabularyStatusMastered => '已掌握';
+
+  @override
+  String get vocabularyNoWords => '还没有单词';
+
+  @override
+  String get vocabularyNoWordsDescription => '在字幕中选中文本并选择「加入生词本」即可开始。';
+
+  @override
+  String get vocabularyNoDueItems => '当前没有待复习';
+
+  @override
+  String get vocabularyNoDueItemsDescription => '你仍可自定义复习：全部、按状态、按语言或随机抽取。';
+
+  @override
+  String get vocabularyNoMatches => '没有匹配的单词';
+
+  @override
+  String get vocabularyNoMatchesDescription => '试试其他搜索词，或清除状态与语言筛选。';
+
+  @override
+  String get vocabularyListLoadFailed => '无法加载生词本。';
+
+  @override
+  String get vocabularyCustomReview => '自定义复习';
+
+  @override
+  String get vocabularySelectReviewItems => '选择复习范围';
+
+  @override
+  String get vocabularyReviewDueItems => '待复习';
+
+  @override
+  String get vocabularyReviewDueHint => '今天或更早到期的单词';
+
+  @override
+  String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewAllHint => '复习生词本中的全部单词';
+
+  @override
+  String get vocabularyReviewByStatus => '按状态';
+
+  @override
+  String get vocabularyReviewByStatusHint => '聚焦新词、学习中、复习中或已掌握';
+
+  @override
+  String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewByLanguageHint => '按来源语言筛选本次复习';
+
+  @override
+  String get vocabularyReviewRandom => '随机';
+
+  @override
+  String get vocabularyReviewRandomHint => '随机抽取一组进行练习';
+
+  @override
+  String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count 个单词';
+  }
+
+  @override
+  String get vocabularyStartReview => '开始复习';
+
+  @override
+  String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyExitReview => '退出复习';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';
+
+  @override
+  String get vocabularyDontKnow => '不会';
+
+  @override
+  String get vocabularyKnow => '会';
+
+  @override
+  String get vocabularyKnowWell => '很熟';
+
+  @override
+  String get vocabularySkip => '跳过';
+
+  @override
+  String get vocabularyUndo => '撤销';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String vocabularyRemaining(int count) {
+    return '剩余 $count';
+  }
+
+  @override
+  String get vocabularyFlipBack => '翻回正面';
+
+  @override
+  String get vocabularyReviewComplete => '复习完成';
+
+  @override
+  String get vocabularyReviewCompleteDescription => '做得好，评分已保存。';
+
+  @override
+  String get vocabularyDone => '完成';
+
+  @override
+  String get vocabularySearchPlaceholder => '搜索单词';
+
+  @override
+  String get vocabularyFilterStatus => '状态';
+
+  @override
+  String get vocabularyFilterLanguage => '语言';
+
+  @override
+  String get vocabularyFilterAll => '全部';
+
+  @override
+  String get vocabularyFilters => '筛选';
+
+  @override
+  String get vocabularyContext => '语境';
+
+  @override
+  String get vocabularyDictionary => '词典';
+
+  @override
+  String get vocabularyNotes => '笔记';
+
+  @override
+  String get vocabularyNotesPlaceholder => '笔记即将推出';
+
+  @override
+  String get vocabularyNoContextAvailable => '暂无语境';
+
+  @override
+  String get vocabularyDictionaryNotAvailable => '离线时无法显示词典';
+
+  @override
+  String get vocabularyOverdue => '已过期';
+
+  @override
+  String get vocabularyToday => '今天';
+
+  @override
+  String get vocabularyTomorrow => '明天';
+
+  @override
+  String vocabularyInDays(int days) {
+    return '$days 天后';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      '快捷键：空格翻转/翻回 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count 个语境';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count 次复习';
+  }
+
+  @override
+  String get vocabularyFlipHint => '点击翻转';
+
+  @override
+  String get vocabularyPlaySegment => '播放片段';
+
+  @override
+  String get vocabularyOpenInPlayer => '在播放器中打开';
+
+  @override
+  String get vocabularyOpenInPlayerDescription => '打开播放器将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyShadowReading => '跟读';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyEchoReading => '回声跟读';
+
+  @override
+  String get vocabularyPracticeDismiss => '关闭练习';
+
+  @override
+  String get vocabularyPracticePause => '暂停';
+
+  @override
+  String get vocabularyStatsExpand => '显示状态明细';
+
+  @override
+  String get vocabularyStatsCollapse => '隐藏状态明细';
+
+  @override
+  String get vocabularyPreviousContext => '上一个语境';
+
+  @override
+  String get vocabularyNextContext => '下一个语境';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '第 $current / $total 个';
+  }
+
+  @override
+  String get vocabularyContextualTranslation => '语境翻译';
+
+  @override
+  String get vocabularyFetchDictionary => '查询词典';
+
+  @override
+  String get vocabularyFetchContextual => '翻译语境';
+
+  @override
+  String get vocabularyFetching => '加载中…';
+
+  @override
+  String get vocabularyAiUnavailable => '登录后可使用 AI 查询';
+
+  @override
+  String get vocabularyAiFetchFailed => '加载失败，请联网后重试。';
+
+  @override
+  String get vocabularyMediaUnavailable => '此语境不支持媒体操作';
+
+  @override
+  String get vocabularyMediaPlayFailed => '无法播放该片段';
+
+  @override
+  String get vocabularyMediaOpenFailed => '无法打开该媒体';
+
+  @override
+  String get vocabularyConfirmContinue => '继续';
+
+  @override
+  String get vocabularySourceLabel => '来源';
+
+  @override
+  String get vocabularyUnknownSource => '未知来源';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '$start秒 · $duration秒';
+  }
+
+  @override
+  String get vocabularyExportToAnki => '导出到 Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => '导出到 Anki';
+
+  @override
+  String get vocabularyExport => '导出';
+
+  @override
+  String get vocabularyNoItemsToExport => '没有可导出的词条';
+
+  @override
+  String get vocabularyProRequired => '需要 Pro';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki 导出仅限 Enjoy Pro。升级后可将生词本导出为 Anki CSV 卡片。';
+
+  @override
+  String get vocabularyUpgradeToPro => '升级到 Pro';
+
+  @override
+  String get vocabularyExportSuccess => '生词本已导出。';
+
+  @override
+  String get vocabularyExportError => '导出失败。';
+
+  @override
+  String get vocabularyExportCancelled => '已取消导出。';
+
+  @override
+  String get vocabularyExportSparseCacheHint => '在复习中保存词典与语境翻译后，卡片背面内容会更丰富。';
+
+  @override
+  String get vocabularyExportProgress => '正在导出…';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';
@@ -2883,6 +3302,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get asrStatusExtracting => '正在提取音频…';
 
   @override
+  String get asrStatusUploading => '正在上传音频…';
+
+  @override
   String get asrLanguageTitle => '语音语言';
 
   @override
@@ -2890,6 +3312,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get asrStatusRecognizing => '正在识别…';
+
+  @override
+  String get asrStatusPolling => '正在转写…';
 
   @override
   String get asrStatusSaving => '正在保存…';
@@ -2920,6 +3345,15 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get asrErrorUnsupportedSource => '不支持此来源';
+
+  @override
+  String get asrErrorUnsupportedMedia => '此音频格式不支持长音频转写';
+
+  @override
+  String get asrErrorProviderTimeout => '转写超时，请重试。';
+
+  @override
+  String get asrErrorProviderRetryable => '转写失败，请重试。';
 
   @override
   String get asrErrorByokMissing => '请先配置 AI 服务以生成字幕';
@@ -3222,7 +3656,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get importSubtitle => '导入字幕';
 
   @override
-  String get noTranscript => '无字幕稿';
+  String get noTranscript => '暂无字幕稿';
 
   @override
   String get importSrtOrVtt => '导入 .srt 或 .vtt 文件。';
@@ -3290,14 +3724,22 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get importSubtitleSuccess => '字幕已导入';
 
   @override
-  String get noTranscriptHint =>
-      '打开媒体时云端字幕会在后台加载（每项在刷新前仅一次）。本地视频请使用提取或添加字幕（.srt/.vtt）。';
+  String get noTranscriptHint => '可添加字幕文件、提取内嵌字幕，或用 AI 生成字幕稿。';
+
+  @override
+  String get noTranscriptHintRemote => '云端字幕会在可用时自动加载。可在 CC 菜单中刷新。';
 
   @override
   String get transcriptEmptyExtract => '提取';
 
   @override
   String get transcriptEmptyAddSubtitle => '添加字幕';
+
+  @override
+  String get transcriptEmptyGenerate => 'AI 字幕稿';
+
+  @override
+  String get subtitlesGenerate => 'AI 字幕稿';
 
   @override
   String get subtitlesRegenerate => '重新生成字幕';
@@ -4610,6 +5052,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get updateAvailableTitle => '有可用更新';
 
   @override
+  String get updateAvailableBadgeSemantics => '有可用更新';
+
+  @override
   String get updateMandatoryTitle => '需要更新';
 
   @override
@@ -4625,6 +5070,44 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get updateDismiss => '忽略';
+
+  @override
+  String get updateCancel => '取消';
+
+  @override
+  String get updateRetry => '重试';
+
+  @override
+  String get updatePreparing => '正在准备下载…';
+
+  @override
+  String updateDownloading(int percent) {
+    return '正在下载更新… $percent%';
+  }
+
+  @override
+  String get updateVerifying => '正在校验下载…';
+
+  @override
+  String get updateOpeningInstaller => '正在打开安装程序…';
+
+  @override
+  String get updateErrorDownload => '下载失败。请检查网络后重试。';
+
+  @override
+  String get updateErrorChecksum => '下载文件已损坏，请重试。';
+
+  @override
+  String get updateErrorPermission => '未授予安装权限。请在系统设置中允许从此应用安装，然后重试。';
+
+  @override
+  String get updateErrorAlreadyRunning => '已有更新正在下载。';
+
+  @override
+  String get updateErrorInstallation => '无法打开安装程序，请重试。';
+
+  @override
+  String get updateErrorGeneric => '更新失败，请重试。';
 
   @override
   String get updateUpToDate => '已是最新版本。';
@@ -4742,6 +5225,364 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get lookupSourceResetToLearning => '源语言已重置为学习语言默认值';
+
+  @override
+  String get vocabularyAddToVocabulary => '加入生词本';
+
+  @override
+  String get vocabularyAddContext => '添加语境';
+
+  @override
+  String get vocabularyAlreadyInVocabulary => '已在生词本';
+
+  @override
+  String get vocabularyAdding => '添加中…';
+
+  @override
+  String get vocabularyRemoving => '删除中…';
+
+  @override
+  String get vocabularyConfirmDeleteTitle => '从生词本移除？';
+
+  @override
+  String get vocabularyConfirmDeleteBody => '将删除该词及其全部语境。';
+
+  @override
+  String get vocabularyCancel => '取消';
+
+  @override
+  String get vocabularyDelete => '删除';
+
+  @override
+  String get vocabularyTitle => '生词本';
+
+  @override
+  String get vocabularyProfileEntry => '生词本';
+
+  @override
+  String get vocabularyProfileEntryHint => '复习已保存的单词与闪卡';
+
+  @override
+  String get vocabularyReview => '复习';
+
+  @override
+  String get vocabularyAllWords => '全部单词';
+
+  @override
+  String get vocabularyTotal => '总计';
+
+  @override
+  String get vocabularyDue => '待复习';
+
+  @override
+  String get vocabularyStatusNew => '新词';
+
+  @override
+  String get vocabularyStatusLearning => '学习中';
+
+  @override
+  String get vocabularyStatusReviewing => '复习中';
+
+  @override
+  String get vocabularyStatusMastered => '已掌握';
+
+  @override
+  String get vocabularyNoWords => '还没有单词';
+
+  @override
+  String get vocabularyNoWordsDescription => '在字幕中选中文本并选择「加入生词本」即可开始。';
+
+  @override
+  String get vocabularyNoDueItems => '当前没有待复习';
+
+  @override
+  String get vocabularyNoDueItemsDescription => '你仍可自定义复习：全部、按状态、按语言或随机抽取。';
+
+  @override
+  String get vocabularyNoMatches => '没有匹配的单词';
+
+  @override
+  String get vocabularyNoMatchesDescription => '试试其他搜索词，或清除状态与语言筛选。';
+
+  @override
+  String get vocabularyListLoadFailed => '无法加载生词本。';
+
+  @override
+  String get vocabularyCustomReview => '自定义复习';
+
+  @override
+  String get vocabularySelectReviewItems => '选择复习范围';
+
+  @override
+  String get vocabularyReviewDueItems => '待复习';
+
+  @override
+  String get vocabularyReviewDueHint => '今天或更早到期的单词';
+
+  @override
+  String get vocabularyReviewAll => '全部单词';
+
+  @override
+  String get vocabularyReviewAllHint => '复习生词本中的全部单词';
+
+  @override
+  String get vocabularyReviewByStatus => '按状态';
+
+  @override
+  String get vocabularyReviewByStatusHint => '聚焦新词、学习中、复习中或已掌握';
+
+  @override
+  String get vocabularyReviewByLanguage => '按语言';
+
+  @override
+  String get vocabularyReviewByLanguageHint => '按来源语言筛选本次复习';
+
+  @override
+  String get vocabularyReviewRandom => '随机';
+
+  @override
+  String get vocabularyReviewRandomHint => '随机抽取一组进行练习';
+
+  @override
+  String get vocabularyNumberOfWords => '单词数量';
+
+  @override
+  String vocabularyQueueCount(int count) {
+    return '$count 个单词';
+  }
+
+  @override
+  String get vocabularyStartReview => '开始复习';
+
+  @override
+  String get vocabularyEmptyQueue => '没有符合条件的单词。';
+
+  @override
+  String get vocabularyExitReview => '退出复习';
+
+  @override
+  String get vocabularyHowWellDoYouKnow => '你掌握得怎么样？';
+
+  @override
+  String get vocabularyDontKnow => '不会';
+
+  @override
+  String get vocabularyKnow => '会';
+
+  @override
+  String get vocabularyKnowWell => '很熟';
+
+  @override
+  String get vocabularySkip => '跳过';
+
+  @override
+  String get vocabularyUndo => '撤销';
+
+  @override
+  String vocabularyProgress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String vocabularyRemaining(int count) {
+    return '剩余 $count';
+  }
+
+  @override
+  String get vocabularyFlipBack => '翻回正面';
+
+  @override
+  String get vocabularyReviewComplete => '复习完成';
+
+  @override
+  String get vocabularyReviewCompleteDescription => '做得好，评分已保存。';
+
+  @override
+  String get vocabularyDone => '完成';
+
+  @override
+  String get vocabularySearchPlaceholder => '搜索单词';
+
+  @override
+  String get vocabularyFilterStatus => '状态';
+
+  @override
+  String get vocabularyFilterLanguage => '语言';
+
+  @override
+  String get vocabularyFilterAll => '全部';
+
+  @override
+  String get vocabularyFilters => '筛选';
+
+  @override
+  String get vocabularyContext => '语境';
+
+  @override
+  String get vocabularyDictionary => '词典';
+
+  @override
+  String get vocabularyNotes => '笔记';
+
+  @override
+  String get vocabularyNotesPlaceholder => '笔记即将推出';
+
+  @override
+  String get vocabularyNoContextAvailable => '暂无语境';
+
+  @override
+  String get vocabularyDictionaryNotAvailable => '离线时无法显示词典';
+
+  @override
+  String get vocabularyOverdue => '已过期';
+
+  @override
+  String get vocabularyToday => '今天';
+
+  @override
+  String get vocabularyTomorrow => '明天';
+
+  @override
+  String vocabularyInDays(int days) {
+    return '$days 天后';
+  }
+
+  @override
+  String get vocabularyKeyboardShortcuts =>
+      '快捷键：空格翻转/翻回 · 1/2/3 评分 · ← 上一张 · → 跳过 · Esc 退出';
+
+  @override
+  String vocabularyContextsCount(int count) {
+    return '$count 个语境';
+  }
+
+  @override
+  String vocabularyReviewsCount(int count) {
+    return '$count 次复习';
+  }
+
+  @override
+  String get vocabularyFlipHint => '点击翻转';
+
+  @override
+  String get vocabularyPlaySegment => '播放片段';
+
+  @override
+  String get vocabularyOpenInPlayer => '在播放器中打开';
+
+  @override
+  String get vocabularyOpenInPlayerDescription => '打开播放器将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyShadowReading => '跟读';
+
+  @override
+  String get vocabularyShadowReadingDescription =>
+      '前往播放器进行跟读？这将结束本次复习。已保存的评分不会丢失。';
+
+  @override
+  String get vocabularyEchoReading => '回声跟读';
+
+  @override
+  String get vocabularyPracticeDismiss => '关闭练习';
+
+  @override
+  String get vocabularyPracticePause => '暂停';
+
+  @override
+  String get vocabularyStatsExpand => '显示状态明细';
+
+  @override
+  String get vocabularyStatsCollapse => '隐藏状态明细';
+
+  @override
+  String get vocabularyPreviousContext => '上一个语境';
+
+  @override
+  String get vocabularyNextContext => '下一个语境';
+
+  @override
+  String vocabularyContextOfTotal(int current, int total) {
+    return '第 $current / $total 个';
+  }
+
+  @override
+  String get vocabularyContextualTranslation => '语境翻译';
+
+  @override
+  String get vocabularyFetchDictionary => '查询词典';
+
+  @override
+  String get vocabularyFetchContextual => '翻译语境';
+
+  @override
+  String get vocabularyFetching => '加载中…';
+
+  @override
+  String get vocabularyAiUnavailable => '登录后可使用 AI 查询';
+
+  @override
+  String get vocabularyAiFetchFailed => '加载失败，请联网后重试。';
+
+  @override
+  String get vocabularyMediaUnavailable => '此语境不支持媒体操作';
+
+  @override
+  String get vocabularyMediaPlayFailed => '无法播放该片段';
+
+  @override
+  String get vocabularyMediaOpenFailed => '无法打开该媒体';
+
+  @override
+  String get vocabularyConfirmContinue => '继续';
+
+  @override
+  String get vocabularySourceLabel => '来源';
+
+  @override
+  String get vocabularyUnknownSource => '未知来源';
+
+  @override
+  String vocabularyLocatorLabel(String start, String duration) {
+    return '$start秒 · $duration秒';
+  }
+
+  @override
+  String get vocabularyExportToAnki => '导出到 Anki';
+
+  @override
+  String get vocabularyExportDialogTitle => '导出到 Anki';
+
+  @override
+  String get vocabularyExport => '导出';
+
+  @override
+  String get vocabularyNoItemsToExport => '没有可导出的词条';
+
+  @override
+  String get vocabularyProRequired => '需要 Pro';
+
+  @override
+  String get vocabularyProRequiredDescription =>
+      'Anki 导出仅限 Enjoy Pro。升级后可将生词本导出为 Anki CSV 卡片。';
+
+  @override
+  String get vocabularyUpgradeToPro => '升级到 Pro';
+
+  @override
+  String get vocabularyExportSuccess => '生词本已导出。';
+
+  @override
+  String get vocabularyExportError => '导出失败。';
+
+  @override
+  String get vocabularyExportCancelled => '已取消导出。';
+
+  @override
+  String get vocabularyExportSparseCacheHint => '在复习中保存词典与语境翻译后，卡片背面内容会更丰富。';
+
+  @override
+  String get vocabularyExportProgress => '正在导出…';
 
   @override
   String get authRequiredCloudFeaturesTitle => '需要登录账户';

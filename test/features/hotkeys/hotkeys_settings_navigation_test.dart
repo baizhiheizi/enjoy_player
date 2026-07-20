@@ -156,6 +156,7 @@ void main() {
 
       final ctrl = _RecordingHotkeysCtrl.last!;
       expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('GLOBAL'), findsOneWidget);
       expect(ctrl.resetAllCalled, isFalse);
 
       await tester.tap(find.text('Reset all shortcuts'));
@@ -174,6 +175,23 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(ctrl.resetAllCalled, isTrue);
+    });
+
+    testWidgets('filter empty state when no shortcuts match', (tester) async {
+      await tester.pumpWidget(
+        _themedApp(
+          overrides: [_recordingHotkeysOverride()],
+          child: const HotkeysSettingsScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'zzzz-no-match');
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      expect(find.text(l10n.hotkeysHelpEmpty), findsOneWidget);
+      expect(find.text('GLOBAL'), findsNothing);
     });
   });
 
@@ -222,6 +240,49 @@ void main() {
 
       expect(router.state.uri.path, '/settings/keyboard');
       expect(find.byType(HotkeysSettingsScreen), findsOneWidget);
+    });
+
+    testWidgets('search filters shortcuts and shows empty state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(900, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [_recordingHotkeysOverride()],
+          child: MaterialApp(
+            theme: ThemeData(
+              colorScheme: scheme,
+              extensions: [EnjoyThemeTokens.build(scheme)],
+            ),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => showHotkeysHelpDialog(context),
+                  child: const Text('open-help'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('open-help'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Keyboard shortcuts'), findsOneWidget);
+      expect(find.text('GLOBAL'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'zzzz-no-match');
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      expect(find.text(l10n.hotkeysHelpEmpty), findsOneWidget);
     });
   });
 }

@@ -60,4 +60,48 @@ if (Test-Path $inappWebViewGradle) {
 
 Patch-BuiltInKotlinKts (Join-Path $pubCache "url_launcher_android-6.3.30\android\build.gradle.kts")
 
+# share_plus 13.2+ skips applying KGP when AGP >= 9, assuming built-in Kotlin.
+# This app keeps android.builtInKotlin=false, so Kotlin sources never compile and
+# GeneratedPluginRegistrant fails with "cannot find symbol SharePlusPlugin".
+$sharePlusPatched = $false
+Get-ChildItem -Path $pubCache -Directory -Filter "share_plus-*" | ForEach-Object {
+    $gradleKts = Join-Path $_.FullName "android\build.gradle.kts"
+    if (-not (Test-Path $gradleKts)) { return }
+    $text = Get-Content $gradleKts -Raw
+    if ($text -notmatch "agpMajor\s*<\s*9") { return }
+    $updated = [regex]::Replace(
+        $text,
+        "(?ms)if\s*\(\s*agpMajor\s*<\s*9\s*\)\s*\{\s*apply\(plugin\s*=\s*[`"']org\.jetbrains\.kotlin\.android[`"']\)\s*\}",
+        'apply(plugin = "org.jetbrains.kotlin.android")'
+    )
+    if ($updated -ne $text) {
+        Set-Content -Path $gradleKts -Value $updated -NoNewline
+        Write-Host "Patched share_plus AGP9/KGP: $gradleKts"
+        $sharePlusPatched = $true
+    }
+}
+
+# Invalidate stale share_plus outputs from builds that ran before the KGP patch
+# (Gradle can mark compileReleaseKotlin UP-TO-DATE with empty class output).
+if ($sharePlusPatched) {
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+    $sharePlusBuild = Join-Path $repoRoot "build\share_plus"
+    if (Test-Path $sharePlusBuild) {
+        Remove-Item -Recurse -Force $sharePlusBuild
+        Write-Host "Cleared stale $sharePlusBuild"
+    }
+}
+
+# file_picker 12's Kotlin source layout changed during the AGP 9 migration.
+# Gradle's incremental cache can retain a source snapshot that compiles
+# FilePickerDelegate.kt without FileUtils.kt after an upgrade.
+if (-not $repoRoot) {
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+}
+$filePickerBuild = Join-Path $repoRoot "build\file_picker"
+if (Test-Path $filePickerBuild) {
+    Remove-Item -Recurse -Force $filePickerBuild
+    Write-Host "Cleared stale $filePickerBuild"
+}
+
 Write-Host "AGP 9 pub plugin patches applied."

@@ -30,11 +30,11 @@ String enjoyLocalAudioAid({
   required String userId,
 }) => enjoySha256HexOfString('$contentHashHex:$userId');
 
-/// Web `generateLocalVideoVid` — same formula as audio `aid`.
-String enjoyLocalVideoVid({
-  required String contentHashHex,
-  required String userId,
-}) => enjoySha256HexOfString('$contentHashHex:$userId');
+/// Web `generateLocalVideoVid` — content-addressed (no userId salt).
+///
+/// [userId] is ignored; kept optional for call-site compatibility.
+String enjoyLocalVideoVid({required String contentHashHex, String? userId}) =>
+    contentHashHex;
 
 String enjoyTranscriptId({
   required String targetType,
@@ -44,4 +44,29 @@ String enjoyTranscriptId({
 }) => _uuid.v5(
   enjoyUuidNamespaceUrl,
   'transcript:$targetType:$targetId:$language:$source',
+);
+
+/// Web `generateVocabularyItemId`.
+String enjoyVocabularyItemId({
+  required String normalizedWord,
+  required String language,
+  required String targetLanguage,
+}) => _uuid.v5(
+  enjoyUuidNamespaceUrl,
+  'vocabulary-item:$normalizedWord:$language:$targetLanguage',
+);
+
+/// Web `generateVocabularyContextId`.
+///
+/// [stableLocatorJson] must match web `JSON.stringify(locator, sortedKeys)`.
+String enjoyVocabularyContextId({
+  required String vocabularyItemId,
+  required String sourceType, // Video|Audio|Ebook
+  required String sourceId,
+  required String text,
+  required String stableLocatorJson,
+}) => _uuid.v5(
+  enjoyUuidNamespaceUrl,
+  'vocabulary-context:$vocabularyItemId:$sourceType:$sourceId:'
+  '${text.length > 100 ? text.substring(0, 100) : text}:$stableLocatorJson',
 );

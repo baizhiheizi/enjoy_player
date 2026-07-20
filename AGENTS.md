@@ -19,6 +19,7 @@ Guidance for humans and AI coding agents working in this repository.
 - **Persistence**: All SQLite access goes through Drift [`AppDatabase`](lib/data/db/app_database.dart) DAOs — no raw SQL in UI/feature widgets (ADR-0002).
 - **Quality gates**: Behavior changes need automated tests or documented manual verification, shared UI patterns, performance evidence for user-visible hot paths, and matching docs updates.
 - **Documentation hygiene**: Architectural decisions → new ADR in [`docs/decisions/`](docs/decisions/). Feature behavior changes → update [`docs/features/<feature>.md`](docs/features/). Shared UI interaction patterns → [ADR-0018](docs/decisions/0018-shared-interactive-primitives.md).
+- **Page layout**: New screens pick an [`EnjoyPageKind`](lib/core/layout/enjoy_page_kind.dart) and use [`EnjoyPage`](lib/core/theme/widgets/enjoy_page.dart) / layout tokens (`pageGutter`, `formMaxWidth`, `hubMaxWidth`). Do not invent per-screen max widths or ad-hoc full-bleed forms on desktop — see [ADR-0055](docs/decisions/0055-adaptive-page-layout-system.md) and [app-ui.md](docs/features/app-ui.md#page-layout).
 
 ## Lookup language catalog
 

@@ -1,6 +1,6 @@
 ---
 on:
-  schedule: daily
+  schedule: daily around 2:00 utc+8
   workflow_dispatch:
     inputs:
       regenerate-template:
@@ -13,7 +13,7 @@ permissions:
   pull-requests: read
 imports:
 - shared/runtime.md
-- shared/engine-minimax.md
+- shared/engine-deepseek.md
 safe-outputs:
   create-pull-request:
     allowed-files:

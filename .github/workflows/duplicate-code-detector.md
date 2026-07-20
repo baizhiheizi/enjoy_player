@@ -1,6 +1,6 @@
 ---
 on:
-  schedule: daily
+  schedule: daily around 3:00 utc+8
   workflow_dispatch: null
 permissions:
   contents: read
@@ -8,7 +8,7 @@ permissions:
   pull-requests: read
 imports:
 - shared/runtime.md
-- shared/engine-minimax.md
+- shared/engine-deepseek.md
 safe-outputs:
   create-issue:
     assignees: copilot

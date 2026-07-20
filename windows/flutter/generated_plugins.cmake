@@ -9,12 +9,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   azure_speech
   flutter_inappwebview_windows
   flutter_secure_storage_windows
+  flutter_timezone
   media_kit_libs_windows_video
   media_kit_video
   record_windows
   screen_retriever_windows
   share_plus
-  sqlite3_flutter_libs
   url_launcher_windows
   window_manager
 )

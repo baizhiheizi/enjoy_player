@@ -8,6 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/utils/client_timezone.dart';
 import 'package:enjoy_player/data/api/services/api_providers.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -28,7 +29,7 @@ Future<LearningStatistics?> learningStatistics(Ref ref) async {
   _statsLog.info('stats: learningStatistics request start');
   try {
     final json = await api
-        .learningStatistics(timezone: DateTime.now().timeZoneName)
+        .learningStatistics(timezone: await clientTimezoneId())
         .timeout(const Duration(seconds: 15));
     _statsLog.info(
       'stats: learningStatistics done in ${sw.elapsedMilliseconds}ms',

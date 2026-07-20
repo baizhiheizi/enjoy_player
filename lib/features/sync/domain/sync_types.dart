@@ -2,7 +2,14 @@
 library;
 
 /// Matches web `EntityType` subset implemented on Flutter.
-enum SyncEntityType { audio, video, recording, youtubeSubscription }
+enum SyncEntityType {
+  audio,
+  video,
+  recording,
+  youtubeSubscription,
+  vocabularyItem,
+  vocabularyContext,
+}
 
 extension SyncEntityTypeWire on SyncEntityType {
   String get wireName => switch (this) {
@@ -10,6 +17,8 @@ extension SyncEntityTypeWire on SyncEntityType {
     SyncEntityType.video => 'video',
     SyncEntityType.recording => 'recording',
     SyncEntityType.youtubeSubscription => 'youtube_subscription',
+    SyncEntityType.vocabularyItem => 'vocabulary_item',
+    SyncEntityType.vocabularyContext => 'vocabulary_context',
   };
 
   static SyncEntityType? tryParse(String raw) => switch (raw) {
@@ -17,6 +26,8 @@ extension SyncEntityTypeWire on SyncEntityType {
     'video' => SyncEntityType.video,
     'recording' => SyncEntityType.recording,
     'youtube_subscription' => SyncEntityType.youtubeSubscription,
+    'vocabulary_item' => SyncEntityType.vocabularyItem,
+    'vocabulary_context' => SyncEntityType.vocabularyContext,
     _ => null,
   };
 }

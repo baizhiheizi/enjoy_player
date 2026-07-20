@@ -10,8 +10,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -162,9 +164,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     final cs = Theme.of(context).colorScheme;
     final auth = ref.watch(authCtrlProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileEditTitle)),
-      body: auth.when(
+    return EnjoyPage(
+      kind: EnjoyPageKind.form,
+      title: l10n.profileEditTitle,
+      showBack: true,
+      body: (context, metrics) => auth.when(
         data: (state) {
           if (state is! AuthSignedIn) {
             return Center(child: Text(l10n.authSignInTitle));
@@ -193,12 +197,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           }
 
           return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              t.space24,
-              t.space16,
-              t.space24,
-              t.space32,
-            ),
+            padding: metrics.padding(top: t.space16, bottom: t.space32),
             child: Form(
               key: _formKey,
               child: Column(

@@ -49,6 +49,53 @@ final class AsrApiProvider extends $FunctionalProvider<AsrApi, AsrApi, AsrApi>
 
 String _$asrApiHash() => r'145c374a536cfeac6731ed9226c5ed5eec260a4e';
 
+@ProviderFor(asrMediaUploadApi)
+final asrMediaUploadApiProvider = AsrMediaUploadApiProvider._();
+
+final class AsrMediaUploadApiProvider
+    extends
+        $FunctionalProvider<
+          AsrMediaUploadApi,
+          AsrMediaUploadApi,
+          AsrMediaUploadApi
+        >
+    with $Provider<AsrMediaUploadApi> {
+  AsrMediaUploadApiProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'asrMediaUploadApiProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$asrMediaUploadApiHash();
+
+  @$internal
+  @override
+  $ProviderElement<AsrMediaUploadApi> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsrMediaUploadApi create(Ref ref) {
+    return asrMediaUploadApi(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsrMediaUploadApi value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsrMediaUploadApi>(value),
+    );
+  }
+}
+
+String _$asrMediaUploadApiHash() => r'42d2e77b623f4781aabec997b0a0e9714fdd6ed5';
+
 @ProviderFor(chatApi)
 final chatApiProvider = ChatApiProvider._();
 

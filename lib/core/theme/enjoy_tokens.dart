@@ -32,6 +32,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       elevationModal: 8,
       elevationBar: 2,
       elevationSurface: 1,
+      breakpointCompact: 600,
       breakpointRail: 900,
       breakpointTranscriptSideBySide: 720,
       motionFast: const Duration(milliseconds: 180),
@@ -47,6 +48,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         vertical: 10,
       ),
       contentMaxWidth: 720,
+      formMaxWidth: 680,
+      hubMaxWidth: 840,
+      pageGutterCompact: 16,
+      pageGutter: 24,
       miniBarBlurSigma: 20,
       sidebarWidth: 248,
       sidebarBrandHeight: 56,
@@ -86,6 +91,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.elevationBar,
     required this.elevationSurface,
     // ── Breakpoints ────────────────────────────────────────────────
+    required this.breakpointCompact,
     required this.breakpointRail,
     required this.breakpointTranscriptSideBySide,
     // ── Motion ─────────────────────────────────────────────────────
@@ -103,6 +109,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     // ── Layout ─────────────────────────────────────────────────────
     required this.transcriptLinePadding,
     required this.contentMaxWidth,
+    required this.formMaxWidth,
+    required this.hubMaxWidth,
+    required this.pageGutterCompact,
+    required this.pageGutter,
     required this.miniBarBlurSigma,
     required this.sidebarWidth,
     required this.sidebarBrandHeight,
@@ -151,6 +161,9 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final double elevationSurface;
 
   // ── Breakpoints ────────────────────────────────────────────────────────
+  /// Pane width below which [pageGutterCompact] applies.
+  final double breakpointCompact;
+
   /// Width at which shell switches from bottom nav to extended sidebar.
   final double breakpointRail;
 
@@ -182,7 +195,21 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   // ── Layout ─────────────────────────────────────────────────────────────
   final EdgeInsets transcriptLinePadding;
+
+  /// Reading column / empty-state cap (legacy content column).
   final double contentMaxWidth;
+
+  /// Centered max width for form pages (Preferences, Edit Profile, …).
+  final double formMaxWidth;
+
+  /// Centered max width for hub pages (Profile, Settings, Subscription, …).
+  final double hubMaxWidth;
+
+  /// Horizontal gutter when pane width is below [breakpointCompact].
+  final double pageGutterCompact;
+
+  /// Default horizontal gutter for page content (browse + capped columns).
+  final double pageGutter;
 
   /// Backdrop-filter blur for the transport glass bar.
   final double miniBarBlurSigma;
@@ -247,6 +274,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     double? elevationModal,
     double? elevationBar,
     double? elevationSurface,
+    double? breakpointCompact,
     double? breakpointRail,
     double? breakpointTranscriptSideBySide,
     Duration? motionFast,
@@ -259,6 +287,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     Color? ccBadge,
     EdgeInsets? transcriptLinePadding,
     double? contentMaxWidth,
+    double? formMaxWidth,
+    double? hubMaxWidth,
+    double? pageGutterCompact,
+    double? pageGutter,
     double? miniBarBlurSigma,
     double? sidebarWidth,
     double? sidebarBrandHeight,
@@ -295,6 +327,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       elevationModal: elevationModal ?? this.elevationModal,
       elevationBar: elevationBar ?? this.elevationBar,
       elevationSurface: elevationSurface ?? this.elevationSurface,
+      breakpointCompact: breakpointCompact ?? this.breakpointCompact,
       breakpointRail: breakpointRail ?? this.breakpointRail,
       breakpointTranscriptSideBySide:
           breakpointTranscriptSideBySide ?? this.breakpointTranscriptSideBySide,
@@ -309,6 +342,10 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       transcriptLinePadding:
           transcriptLinePadding ?? this.transcriptLinePadding,
       contentMaxWidth: contentMaxWidth ?? this.contentMaxWidth,
+      formMaxWidth: formMaxWidth ?? this.formMaxWidth,
+      hubMaxWidth: hubMaxWidth ?? this.hubMaxWidth,
+      pageGutterCompact: pageGutterCompact ?? this.pageGutterCompact,
+      pageGutter: pageGutter ?? this.pageGutter,
       miniBarBlurSigma: miniBarBlurSigma ?? this.miniBarBlurSigma,
       sidebarWidth: sidebarWidth ?? this.sidebarWidth,
       sidebarBrandHeight: sidebarBrandHeight ?? this.sidebarBrandHeight,
@@ -368,6 +405,11 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         other.elevationSurface,
         t,
       )!,
+      breakpointCompact: lerpDouble(
+        breakpointCompact,
+        other.breakpointCompact,
+        t,
+      )!,
       breakpointRail: lerpDouble(breakpointRail, other.breakpointRail, t)!,
       breakpointTranscriptSideBySide: lerpDouble(
         breakpointTranscriptSideBySide,
@@ -398,6 +440,14 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         t,
       )!,
       contentMaxWidth: lerpDouble(contentMaxWidth, other.contentMaxWidth, t)!,
+      formMaxWidth: lerpDouble(formMaxWidth, other.formMaxWidth, t)!,
+      hubMaxWidth: lerpDouble(hubMaxWidth, other.hubMaxWidth, t)!,
+      pageGutterCompact: lerpDouble(
+        pageGutterCompact,
+        other.pageGutterCompact,
+        t,
+      )!,
+      pageGutter: lerpDouble(pageGutter, other.pageGutter, t)!,
       miniBarBlurSigma: lerpDouble(
         miniBarBlurSigma,
         other.miniBarBlurSigma,

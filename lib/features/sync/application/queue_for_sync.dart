@@ -16,6 +16,20 @@ import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
+/// Schedules [SyncEngine.processQueue] outside any ambient Drift transaction.
+///
+/// Library/vocabulary deletes enqueue sync rows inside `_db.transaction(...)`.
+/// Starting a drain in that Zone makes follow-up queue DB ops use the closed
+/// transaction executor (`Transaction used after it was closed`).
+void scheduleSyncQueueDrain(SyncEngine engine) {
+  Zone.root.run(() {
+    unawaited(() async {
+      await Future<void>.delayed(Duration.zero);
+      await engine.processQueue(const SyncOptions());
+    }());
+  });
+}
+
 Future<void> enqueuePendingSync(
   Ref ref,
   SyncQueueRepository queue,
@@ -58,6 +72,20 @@ Future<void> enqueuePendingSync(
           final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
           if (sub == null) return;
           payloadJson = jsonEncode(prepareForSyncSubscriptionMap(sub));
+        case SyncEntityType.vocabularyItem:
+          final row = await db.vocabularyItemDao.getById(id);
+          if (row == null) return;
+          payloadJson = jsonEncode(prepareForSyncVocabularyItemMap(row));
+          await db.vocabularyItemDao.updateRow(
+            row.copyWith(syncStatus: const Value('pending')),
+          );
+        case SyncEntityType.vocabularyContext:
+          final row = await db.vocabularyContextDao.getById(id);
+          if (row == null) return;
+          payloadJson = jsonEncode(prepareForSyncVocabularyContextMap(row));
+          await db.vocabularyContextDao.updateRow(
+            row.copyWith(syncStatus: const Value('pending')),
+          );
       }
   }
 
@@ -70,6 +98,6 @@ Future<void> enqueuePendingSync(
 
   final auth = ref.read(authCtrlProvider).valueOrNull;
   if (auth is AuthSignedIn) {
-    unawaited(engine.processQueue(const SyncOptions()));
+    scheduleSyncQueueDrain(engine);
   }
 }

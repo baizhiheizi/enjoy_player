@@ -177,7 +177,7 @@ final class SyncUploadServiceProvider
   }
 }
 
-String _$syncUploadServiceHash() => r'4563a2a90cddc3c92c292aafe68c4b943a72499b';
+String _$syncUploadServiceHash() => r'c99bee0011ebff2d4192f756146410afc941a98c';
 
 @ProviderFor(syncDownloadService)
 final syncDownloadServiceProvider = SyncDownloadServiceProvider._();
@@ -225,7 +225,7 @@ final class SyncDownloadServiceProvider
 }
 
 String _$syncDownloadServiceHash() =>
-    r'bd29b8afaa903812ebfc8fff44aed9608fff7751';
+    r'f38c5b04cddd594bf81ae50c4f66879e0ef755c7';
 
 @ProviderFor(recordingTargetSyncService)
 final recordingTargetSyncServiceProvider =

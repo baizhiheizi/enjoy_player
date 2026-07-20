@@ -34,6 +34,10 @@ Future<void> showPracticePosterPreviewSheet(
   return showEnjoySheet<void>(
     context: context,
     isScrollControlled: true,
+    // The permanent player surface is hosted above the shell navigator.
+    // Present this sheet on the root navigator so its scrim and content remain
+    // above the video texture on Windows.
+    useRootNavigator: true,
     builder: (ctx) => _PracticePosterPreviewSheet(mediaId: mediaId),
   );
 }

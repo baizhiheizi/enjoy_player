@@ -15,8 +15,11 @@ import 'package:enjoy_player/features/player/application/player_controller.dart'
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
+import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/player_surface_target.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_login_video_frame_button.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/youtube_open_in_browser_button.dart';
+import 'package:enjoy_player/features/player/presentation/widgets/youtube_video_poster.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class VideoPlayerLayout extends StatefulWidget {
@@ -26,10 +29,14 @@ class VideoPlayerLayout extends StatefulWidget {
     super.key,
     this.initialTranscriptSplitWidthPx,
     this.onTranscriptSplitWidthCommitted,
+    this.surfaceOverlay,
   });
 
   final PlayerEngine engine;
   final Widget transcript;
+
+  /// Chrome painted by the permanent surface host above the video stage.
+  final Widget? surfaceOverlay;
 
   /// Restored persisted split width; `null` uses default fraction.
   final double? initialTranscriptSplitWidthPx;
@@ -84,6 +91,11 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
   /// Whether the mouse hovers the video column (desktop side-by-side only).
   bool _videoColumnHovered = false;
 
+  void _setVideoColumnHovered(bool hovered) {
+    if (!mounted || hovered == _videoColumnHovered) return;
+    setState(() => _videoColumnHovered = hovered);
+  }
+
   double _transcriptWidthForTotal(double totalWidth) {
     final maxW = totalWidth * _kMaxTranscriptFraction;
     final minW = math.min(_kMinTranscriptWidth, maxW);
@@ -121,19 +133,17 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
             children: [
               SizedBox(
                 width: vw,
-                child: MouseRegion(
-                  onEnter: (_) => setState(() => _videoColumnHovered = true),
-                  onExit: (_) => setState(() => _videoColumnHovered = false),
-                  child: SafeArea(
-                    top: true,
-                    bottom: false,
-                    left: false,
-                    right: false,
-                    child: _VideoColumn(
-                      engine: widget.engine,
-                      isHovered: _videoColumnHovered,
-                      showButtonsInTitleBar: true,
-                    ),
+                child: SafeArea(
+                  top: true,
+                  bottom: false,
+                  left: false,
+                  right: false,
+                  child: _VideoColumn(
+                    engine: widget.engine,
+                    isHovered: _videoColumnHovered,
+                    onHoverChanged: _setVideoColumnHovered,
+                    showButtonsInTitleBar: true,
+                    surfaceOverlay: widget.surfaceOverlay,
                   ),
                 ),
               ),
@@ -182,7 +192,9 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
                 child: _VideoColumn(
                   engine: widget.engine,
                   isHovered: false,
+                  onHoverChanged: null,
                   showButtonsInTitleBar: false,
+                  surfaceOverlay: widget.surfaceOverlay,
                 ),
               ),
             ),
@@ -204,12 +216,16 @@ class _VideoColumn extends StatelessWidget {
   const _VideoColumn({
     required this.engine,
     required this.isHovered,
+    required this.onHoverChanged,
     required this.showButtonsInTitleBar,
+    required this.surfaceOverlay,
   });
 
   final PlayerEngine engine;
   final bool isHovered;
+  final ValueChanged<bool>? onHoverChanged;
   final bool showButtonsInTitleBar;
+  final Widget? surfaceOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +242,12 @@ class _VideoColumn extends StatelessWidget {
                 maxHeight: c.maxHeight,
                 showButtons: !showButtonsInTitleBar,
                 loginOnTop: showButtonsInTitleBar,
-              ),
-              _VideoTitleBar(
-                isHovered: isHovered,
-                showYtButtons: showButtonsInTitleBar,
+                onHoverChanged: onHoverChanged,
+                titleBar: _VideoTitleBar(
+                  isHovered: isHovered,
+                  showYtButtons: showButtonsInTitleBar,
+                ),
+                surfaceOverlay: surfaceOverlay,
               ),
             ],
           );
@@ -274,46 +292,40 @@ class _VideoTitleBar extends ConsumerWidget {
                 ],
               ),
             ),
-            child: SafeArea(
-              bottom: false,
-              left: false,
-              right: false,
-              child: SizedBox(
-                height: kToolbarHeight,
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
+            child: SizedBox(
+              height: kToolbarHeight,
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: () =>
+                        unawaited(collapseExpandedPlayer(ref, context)),
+                  ),
+                  Expanded(
+                    child: Text(
+                      chrome?.mediaTitle ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
-                        size: 28,
-                      ),
-                      onPressed: () =>
-                          unawaited(collapseExpandedPlayer(ref, context)),
-                    ),
-                    Expanded(
-                      child: Text(
-                        chrome?.mediaTitle ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
                       ),
                     ),
-                    if (showYtButtons) ...[
-                      const YoutubeOpenInBrowserButton(),
-                      const SizedBox(width: 6),
-                      const YoutubeLoginVideoFrameButton(),
-                      const SizedBox(width: 12),
-                    ],
+                  ),
+                  if (showYtButtons) ...[
+                    const YoutubeOpenInBrowserButton(),
+                    const SizedBox(width: 6),
+                    const YoutubeLoginVideoFrameButton(),
+                    const SizedBox(width: 12),
                   ],
-                ),
+                ],
               ),
             ),
           ),
@@ -329,6 +341,9 @@ class _VideoStageWithChrome extends ConsumerWidget {
     required this.maxWidth,
     required this.maxHeight,
     required this.loginOnTop,
+    required this.onHoverChanged,
+    required this.titleBar,
+    required this.surfaceOverlay,
     this.showButtons = true,
   });
 
@@ -340,6 +355,9 @@ class _VideoStageWithChrome extends ConsumerWidget {
   /// app chrome top-right). Stacked narrow: login sits bottom-right to avoid
   /// the share button over the video top edge.
   final bool loginOnTop;
+  final ValueChanged<bool>? onHoverChanged;
+  final Widget titleBar;
+  final Widget? surfaceOverlay;
 
   /// Whether to render YouTube control buttons inside this stage.
   ///
@@ -349,42 +367,56 @@ class _VideoStageWithChrome extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isYoutube = engine is YoutubePlayerEngine;
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        engine.buildVideoStage(
-          context: context,
-          maxWidth: maxWidth,
-          maxHeight: maxHeight,
-        ),
-        if (!isYoutube)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: Haptics.wrapTap(
-                context,
-                () => ref.read(playerControllerProvider.notifier).togglePlay(),
+    final yt = isYoutube ? engine as YoutubePlayerEngine : null;
+
+    return PlayerSurfaceTarget(
+      id: PlayerSurfaceIds.expandedPlayer,
+      overlayBuilder: (ctx) => MouseRegion(
+        onEnter: onHoverChanged == null ? null : (_) => onHoverChanged!(true),
+        onExit: onHoverChanged == null ? null : (_) => onHoverChanged!(false),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (!isYoutube)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: Haptics.wrapTap(
+                    ctx,
+                    () => ref
+                        .read(playerControllerProvider.notifier)
+                        .togglePlay(),
+                  ),
+                  child: const ColoredBox(color: Colors.transparent),
+                ),
               ),
-              child: const ColoredBox(color: Colors.transparent),
-            ),
-          ),
-        if (showButtons)
-          Positioned(
-            top: loginOnTop ? 8 : null,
-            bottom: loginOnTop ? null : 12,
-            right: 8,
-            child: isYoutube
-                ? const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      YoutubeOpenInBrowserButton(),
-                      SizedBox(width: 6),
-                      YoutubeLoginVideoFrameButton(),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-      ],
+            if (showButtons)
+              Positioned(
+                top: loginOnTop ? 8 : null,
+                bottom: loginOnTop ? null : 12,
+                right: 8,
+                child: isYoutube
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          YoutubeOpenInBrowserButton(),
+                          SizedBox(width: 6),
+                          YoutubeLoginVideoFrameButton(),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            titleBar,
+            ?surfaceOverlay,
+          ],
+        ),
+      ),
+      child: ColoredBox(
+        color: Colors.black,
+        child: yt == null
+            ? const SizedBox.expand()
+            : YoutubeVideoPoster(primaryUrl: yt.posterUrl, visible: true),
+      ),
     );
   }
 }

@@ -33,7 +33,10 @@ class _NoSessionPlayerController extends PlayerController {
   PlaybackSession? build() => null;
 }
 
-List<Override> _pickerOverrides({required List<TranscriptTrack> tracks}) => [
+List<Override> _pickerOverrides({
+  required List<TranscriptTrack> tracks,
+  _SpyAutoTranslateCtrl? autoTranslateCtrl,
+}) => [
   playerControllerProvider.overrideWith(() => _NoSessionPlayerController()),
   allTranscriptsForMediaProvider(
     _mediaId,
@@ -50,7 +53,7 @@ List<Override> _pickerOverrides({required List<TranscriptTrack> tracks}) => [
   ),
   autoTranslateCtrlProvider(
     _mediaId,
-  ).overrideWith(() => _IdleAutoTranslateCtrl()),
+  ).overrideWith(() => autoTranslateCtrl ?? _SpyAutoTranslateCtrl()),
   autoTranslateSelectionIdProvider(
     _mediaId,
   ).overrideWith((ref) async => 'ai-selection-id'),
@@ -58,9 +61,16 @@ List<Override> _pickerOverrides({required List<TranscriptTrack> tracks}) => [
   authCtrlProvider.overrideWith(() => _SignedInAuthCtrl()),
 ];
 
-class _IdleAutoTranslateCtrl extends AutoTranslateCtrl {
+class _SpyAutoTranslateCtrl extends AutoTranslateCtrl {
+  int selectCalls = 0;
+
   @override
   AutoTranslateUiState build(String mediaId) => const AutoTranslateUiState();
+
+  @override
+  Future<void> selectAutoTranslate() async {
+    selectCalls += 1;
+  }
 }
 
 class _SignedInAuthCtrl extends AuthCtrl {
@@ -192,6 +202,65 @@ void main() {
     expect(find.text(l10n.subtitlesAutoTranslate), findsOneWidget);
     expect(find.text('Stored AI zh'), findsNothing);
   });
+
+  testWidgets('tapping Auto translate selects via the nullable radio group', (
+    tester,
+  ) async {
+    const track = TranscriptTrack(
+      id: 't1',
+      targetType: 'Video',
+      targetId: _mediaId,
+      language: 'en',
+      source: 'user',
+      label: 'English',
+      trackIndex: null,
+    );
+    final spy = _SpyAutoTranslateCtrl();
+    await tester.pumpWidget(
+      _harness(
+        overrides: _pickerOverrides(
+          tracks: const [track],
+          autoTranslateCtrl: spy,
+        ),
+      ),
+    );
+    await tester.pump();
+    tester.takeException();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10n.subtitlesTranslation));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AutoTranslateOptionTile), findsOneWidget);
+    await tester.tap(find.text(l10n.subtitlesAutoTranslate));
+    await tester.pumpAndSettle();
+
+    expect(spy.selectCalls, 1);
+  });
+
+  testWidgets(
+    'disabled Auto translate does not select when no primary is chosen',
+    (tester) async {
+      final spy = _SpyAutoTranslateCtrl();
+      await tester.pumpWidget(
+        _harness(
+          overrides: _pickerOverrides(tracks: const [], autoTranslateCtrl: spy),
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10n.subtitlesTranslation));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AutoTranslateOptionTile), findsOneWidget);
+      await tester.tap(find.text(l10n.subtitlesAutoTranslate));
+      await tester.pumpAndSettle();
+
+      expect(spy.selectCalls, 0);
+    },
+  );
 
   testWidgets('keeps each caption row compact so the picker fits many tracks', (
     tester,
