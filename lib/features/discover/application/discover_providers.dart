@@ -147,16 +147,29 @@ Future<String?> recommendedChannelAvatar(Ref ref, String channelId) async {
 
 @Riverpod(keepAlive: true)
 class DiscoverRefreshState extends _$DiscoverRefreshState {
+  /// In-flight refresh future, used for single-flight deduplication.
+  /// `null` when no refresh is currently executing.
+  Future<DiscoverRefreshResult>? _pendingRefresh;
+
   @override
   bool build() => false;
 
   Future<DiscoverRefreshResult> refresh({bool force = false}) async {
+    // Single-flight: if a refresh is already in progress, return the existing
+    // future to avoid duplicate HTTP requests and redundant DB writes.
+    if (_pendingRefresh != null) {
+      _log.fine('discover refresh already in progress, reusing in-flight');
+      return _pendingRefresh!;
+    }
+
     state = true;
     try {
-      return await ref
+      _pendingRefresh = ref
           .read(discoverRepositoryProvider)
           .refreshFeeds(force: force);
+      return await _pendingRefresh!;
     } finally {
+      _pendingRefresh = null;
       state = false;
     }
   }
