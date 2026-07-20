@@ -1,23 +1,16 @@
----
-name: run-2026-06-23
-description: Notes from Repo Assist run on 2026-06-23 (run id 28037645580)
-metadata:
-  type: project
----
+# Repo Assist — Enjoy Player
 
-# Run 2026-06-23 (workflow run 28037645580)
+## Backlog progress
+- Issues commented on: #309, #310, #355, #383
+- PRs created: ADR-0056 docs cross-refs (2026-07-20)
+- No `bug`/`help wanted`/`good first issue` issues remain open
+- CI is green on main; v0.7.0 released 2026-07-19; maintainer active (Flutter upgrade, plugin fixes)
 
-## Selected tasks: 9, 2, 3 + 11
+## Pending actions for Repo Assist
+- Duplicate-code findings #152–#154, #161, #162, #203, #204, #206 — still need verification comments
+- Many PR-fallback branches need PR creation (format-duration-ms, transcript-perf, worker-lang-pair, etc.) — blocked until merge confidence is high after Flutter upgrade
 
-## Work done
-- **Task 9**: Created branch `repo-assist/test-time-format` and added 15 unit tests for `lib/core/utils/time_format.dart`. All tests pass, `flutter analyze` clean, `dart format` clean.
-- **Task 2**: Commented on #8 offering to break the 1566-LOC `settings_screen.dart` refactor into per-widget PRs starting with `settings_tile.dart`, noting the `_ApiBaseUrlEditor` / `_AiApiBaseUrlEditor` dedup opportunity.
-- **Task 3**: No issues labelled `bug` / `help wanted` / `good first issue` were open, so fell back to Task 2.
-- **Task 11**: Created issue `[repo-assist] Monthly Activity 2026-06` (#12).
-
-## Backlog cursor
-- No `comments_made` field set yet.
-- Next run should continue with: open issues without Repo Assist comments.
-
-## Related
-- [[monthly-activity-2026-06]]
+## Known environment limitations
+- Agentic runner Flutter SDK is read-only → `flutter analyze`/`flutter test` may fail on cache writes
+- Pre-existing `dart format` drift in the repo (pre-dating this run's docs-only changes)
+- No git credentials for network operations
