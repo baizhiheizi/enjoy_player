@@ -27,6 +27,14 @@ transport retries and app restarts can reattach without double-billing. Cancel
 stops client waiting; a later Generate starts a new attempt key after terminal
 failure or cancel.
 
+**Progress reporting**: During audio extraction (FFmpeg WAV conversion on short
+jobs; file read on long-form upload), the controller surfaces a `[0, 1]`
+progress value via `AsrGenerationJob.progress`. The presentation layer uses this
+to show a determinate progress indicator during extraction and upload phases,
+replacing the previous indeterminate spinner. Long-form upload/poll phases keep
+the UI interactive — see `AsrAudioExtractor.onProgress` and
+`AsrGenerationController` progress wiring.
+
 Whisper-compatible and long-form language fields normalize the user-selected
 BCP-47 tag (e.g. `en-US`) to the base subtag (`en`) before sending. Omitting
 language selects Worker multilingual mode for long-form.
