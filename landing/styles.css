@@ -31,6 +31,7 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a { color: var(--brand-from); text-decoration: none; }
@@ -155,6 +156,7 @@ a:hover { text-decoration: underline; }
   padding: 120px 0 56px;
   gap: 16px;
   position: relative;
+  overflow: hidden;
 }
 
 .hero-glow {
