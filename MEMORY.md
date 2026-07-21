@@ -1,1 +1,1 @@
-- [Test Improver run state](test-improver-state.md) — last run 2026-07-20 19:30 UTC (yin_pitch pitch detection, 13 tests, branch test-assist/yin-pitch-coverage, commit 194bb70), monthly issue #166 updated with full July run history
+- [Test Improver run state](test-improver-state.md) — last run 2026-07-21 09:50 UTC (logging test infrastructure, reset seams + TestLoggingScope, branch test-assist/logging-infrastructure, commit 914260a), monthly issue #166 updated
