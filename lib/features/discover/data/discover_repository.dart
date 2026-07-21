@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/utils/collections.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_feed_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -98,21 +99,21 @@ class DiscoverRepository {
     return _db.youtubeChannelSubscriptionDao
         .watchAll()
         .map((rows) => rows.map(_mapSubscription).toList(growable: false))
-        .distinctBy(_listEqualsDiscoverChannel);
+        .distinctBy(listEquals);
   }
 
   Stream<List<FeedEntry>> watchTimeline() {
     return _db.youtubeFeedEntryDao
         .watchTimeline()
         .map((rows) => rows.map(_mapFeedEntry).toList(growable: false))
-        .distinctBy(_listEqualsFeedEntry);
+        .distinctBy(listEquals);
   }
 
   Stream<List<FeedEntry>> watchChannelFeed(String channelId) {
     return _db.youtubeFeedEntryDao
         .watchForChannel(channelId)
         .map((rows) => rows.map(_mapFeedEntry).toList(growable: false))
-        .distinctBy(_listEqualsFeedEntry);
+        .distinctBy(listEquals);
   }
 
   Future<DiscoverChannel?> getSubscription(String channelId) async {
@@ -372,7 +373,7 @@ class DiscoverRepository {
       // Batch upsert the parsed entries in a single Drift transaction.
       // Replaces the previous per-entry loop, which paid N fsyncs and
       // emitted N intermediate watchTimeline states (each suppressed by
-      // `.distinctBy(_listEqualsFeedEntry)` upstream — wasted work).
+      // `.distinctBy(listEquals)` upstream — wasted work).
       final entries = result.feedResult.entries;
       if (entries.isNotEmpty) {
         await _db.youtubeFeedEntryDao.upsertEntries([
@@ -454,25 +455,4 @@ class _ChannelRefreshOutcome {
 
   final String channelId;
   final bool success;
-}
-
-bool _listEqualsDiscoverChannel(
-  List<DiscoverChannel> previous,
-  List<DiscoverChannel> current,
-) {
-  if (identical(previous, current)) return true;
-  if (previous.length != current.length) return false;
-  for (var i = 0; i < previous.length; i++) {
-    if (previous[i] != current[i]) return false;
-  }
-  return true;
-}
-
-bool _listEqualsFeedEntry(List<FeedEntry> previous, List<FeedEntry> current) {
-  if (identical(previous, current)) return true;
-  if (previous.length != current.length) return false;
-  for (var i = 0; i < previous.length; i++) {
-    if (previous[i] != current[i]) return false;
-  }
-  return true;
 }

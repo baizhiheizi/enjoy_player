@@ -4,6 +4,7 @@ library;
 import 'package:async/async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/collections.dart';
 import '../../../core/utils/stream_distinct.dart';
 import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
@@ -11,21 +12,6 @@ import '../../../data/db/media_target_resolver.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../data/transcript_repository.dart';
 import 'transcript_repository_provider.dart';
-
-/// Compares two transcript-line lists element-wise. Used to absorb identical
-/// re-emissions before they reach Riverpod listeners — see
-/// [transcriptLinesForMediaProvider].
-bool _listEqualsTranscriptLine(
-  List<TranscriptLine> previous,
-  List<TranscriptLine> current,
-) {
-  if (identical(previous, current)) return true;
-  if (previous.length != current.length) return false;
-  for (var i = 0; i < previous.length; i++) {
-    if (previous[i] != current[i]) return false;
-  }
-  return true;
-}
 
 Future<List<TranscriptLine>> _computeLines(
   AppDatabase db,
@@ -70,7 +56,7 @@ Stream<List<TranscriptLine>> _linesForMedia(
             .asyncMap(
               (_) => _computeLines(db, repo, tt, mediaId, primary: primary),
             ),
-      ]).distinctBy(_listEqualsTranscriptLine);
+      ]).distinctBy(listEquals);
     });
   });
 }

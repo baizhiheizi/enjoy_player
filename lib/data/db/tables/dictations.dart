@@ -3,8 +3,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @DataClassName('DictationRow')
-class Dictations extends Table {
+class Dictations extends Table with SyncMetadataColumns {
   @override
   String get tableName => 'dictations';
 
@@ -20,10 +22,6 @@ class Dictations extends Table {
   IntColumn get correctWords => integer()();
   IntColumn get missedWords => integer()();
   IntColumn get extraWords => integer()();
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

@@ -38,14 +38,8 @@ class CloudLibraryBody extends ConsumerStatefulWidget {
 }
 
 class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
-  final List<RemoteLibraryItem> _audios = [];
-  final List<RemoteLibraryItem> _videos = [];
-  String? _audioCursor;
-  String? _videoCursor;
-  bool _loadingAudio = false;
-  bool _loadingVideo = false;
-  bool _audioDone = false;
-  bool _videoDone = false;
+  final _audios = _CloudPagedList();
+  final _videos = _CloudPagedList();
 
   @override
   void initState() {
@@ -62,68 +56,39 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
     ]);
   }
 
-  Future<void> _loadAudioPage({required bool reset}) async {
-    if (_loadingAudio || _audioDone && !reset) return;
-    final auth = ref.read(authCtrlProvider).valueOrNull;
-    if (auth is! AuthSignedIn) return;
-
-    setState(() => _loadingAudio = true);
-    try {
-      if (reset) {
-        _audios.clear();
-        _audioCursor = null;
-        _audioDone = false;
-      }
-      final repo = ref.read(cloudIndexRepositoryProvider);
-      final batch = await repo.fetchAudios(updatedAfter: _audioCursor);
-      if (!mounted) return;
-      setState(() {
-        _audios.addAll(batch);
-        if (batch.isEmpty) {
-          _audioDone = true;
-        } else {
-          final last = batch.last.rawJson['updatedAt']?.toString();
-          _audioCursor = last;
-          if (batch.length < CloudIndexRepository.pageSize) {
-            _audioDone = true;
-          }
-        }
-      });
-    } finally {
-      if (mounted) setState(() => _loadingAudio = false);
-    }
+  Future<void> _loadAudioPage({required bool reset}) {
+    return _loadPage(
+      page: _audios,
+      reset: reset,
+      fetch: (cursor) => ref
+          .read(cloudIndexRepositoryProvider)
+          .fetchAudios(updatedAfter: cursor),
+    );
   }
 
-  Future<void> _loadVideoPage({required bool reset}) async {
-    if (_loadingVideo || _videoDone && !reset) return;
+  Future<void> _loadVideoPage({required bool reset}) {
+    return _loadPage(
+      page: _videos,
+      reset: reset,
+      fetch: (cursor) => ref
+          .read(cloudIndexRepositoryProvider)
+          .fetchVideos(updatedAfter: cursor),
+    );
+  }
+
+  Future<void> _loadPage({
+    required _CloudPagedList page,
+    required bool reset,
+    required Future<List<RemoteLibraryItem>> Function(String? cursor) fetch,
+  }) async {
     final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) return;
-
-    setState(() => _loadingVideo = true);
-    try {
-      if (reset) {
-        _videos.clear();
-        _videoCursor = null;
-        _videoDone = false;
-      }
-      final repo = ref.read(cloudIndexRepositoryProvider);
-      final batch = await repo.fetchVideos(updatedAfter: _videoCursor);
-      if (!mounted) return;
-      setState(() {
-        _videos.addAll(batch);
-        if (batch.isEmpty) {
-          _videoDone = true;
-        } else {
-          final last = batch.last.rawJson['updatedAt']?.toString();
-          _videoCursor = last;
-          if (batch.length < CloudIndexRepository.pageSize) {
-            _videoDone = true;
-          }
-        }
-      });
-    } finally {
-      if (mounted) setState(() => _loadingVideo = false);
-    }
+    await page.load(
+      reset: reset,
+      isMounted: () => mounted,
+      setState: setState,
+      fetch: fetch,
+    );
   }
 
   /// Refreshes the video or audio tab matching [tabController.index].
@@ -154,16 +119,16 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
           controller: widget.tabController,
           children: [
             _CloudVideoGrid(
-              items: _videos,
-              loading: _loadingVideo,
-              done: _videoDone,
+              items: _videos.items,
+              loading: _videos.loading,
+              done: _videos.done,
               onLoadMore: () => _loadVideoPage(reset: false),
               onRefresh: () => _loadVideoPage(reset: true),
             ),
             _CloudAudioList(
-              items: _audios,
-              loading: _loadingAudio,
-              done: _audioDone,
+              items: _audios.items,
+              loading: _audios.loading,
+              done: _audios.done,
               onLoadMore: () => _loadAudioPage(reset: false),
               onRefresh: () => _loadAudioPage(reset: true),
             ),
@@ -180,6 +145,80 @@ String _coverSeed(RemoteLibraryItem item) {
   final m = item.md5?.trim();
   if (m != null && m.isNotEmpty) return m;
   return item.id;
+}
+
+/// Cursor + loading state for one cloud catalog tab.
+class _CloudPagedList {
+  final List<RemoteLibraryItem> items = [];
+  String? cursor;
+  bool loading = false;
+  bool done = false;
+
+  Future<void> load({
+    required bool reset,
+    required bool Function() isMounted,
+    required void Function(VoidCallback fn) setState,
+    required Future<List<RemoteLibraryItem>> Function(String? cursor) fetch,
+  }) async {
+    if (loading || done && !reset) return;
+    setState(() => loading = true);
+    try {
+      if (reset) {
+        items.clear();
+        cursor = null;
+        done = false;
+      }
+      final batch = await fetch(cursor);
+      if (!isMounted()) return;
+      setState(() {
+        items.addAll(batch);
+        if (batch.isEmpty) {
+          done = true;
+        } else {
+          cursor = batch.last.rawJson['updatedAt']?.toString();
+          if (batch.length < CloudIndexRepository.pageSize) {
+            done = true;
+          }
+        }
+      });
+    } finally {
+      if (isMounted()) setState(() => loading = false);
+    }
+  }
+}
+
+/// Shared "is in library / add to library" state for cloud list/grid tiles.
+mixin _CloudItemMembershipMixin<W extends ConsumerStatefulWidget>
+    on ConsumerState<W> {
+  bool? _inLibrary;
+  bool _busy = false;
+
+  RemoteLibraryItem get cloudItem;
+
+  Future<void> loadMembership() async {
+    final v = await ref.read(cloudAddToLibraryProvider).isInLibrary(cloudItem);
+    if (mounted) setState(() => _inLibrary = v);
+  }
+
+  Future<void> addToLibrary() async {
+    final l10n = AppLocalizations.of(context)!;
+    final add = ref.read(cloudAddToLibraryProvider);
+    setState(() => _busy = true);
+    try {
+      await add.add(cloudItem);
+      ref.invalidate(libraryMediaProvider);
+      ref.invalidate(libraryHomeRecentsProvider);
+      ref.invalidate(libraryFilteredListsProvider);
+      if (!mounted) return;
+      setState(() {
+        _inLibrary = true;
+        _busy = false;
+      });
+      AppNotice.success(context, l10n.cloudAddedToLibrary);
+    } catch (_) {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 }
 
 class _CloudAudioList extends ConsumerStatefulWidget {
@@ -287,21 +326,15 @@ class _CloudAudioRow extends ConsumerStatefulWidget {
   ConsumerState<_CloudAudioRow> createState() => _CloudAudioRowState();
 }
 
-class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
-  bool? _inLibrary;
-  bool _busy = false;
+class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
+    with _CloudItemMembershipMixin {
+  @override
+  RemoteLibraryItem get cloudItem => widget.item;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
-    final v = await ref
-        .read(cloudAddToLibraryProvider)
-        .isInLibrary(widget.item);
-    if (mounted) setState(() => _inLibrary = v);
+    unawaited(loadMembership());
   }
 
   @override
@@ -311,7 +344,6 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
     );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final add = ref.watch(cloudAddToLibraryProvider);
     final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
     final seed = _coverSeed(item);
@@ -328,23 +360,7 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow> {
         iconSize: 22,
         tooltip: l10n.cloudAddToLibraryTooltip,
         icon: Icon(Icons.library_add_outlined, color: cs.onSurfaceVariant),
-        onPressed: () async {
-          setState(() => _busy = true);
-          try {
-            await add.add(item);
-            ref.invalidate(libraryMediaProvider);
-            ref.invalidate(libraryHomeRecentsProvider);
-            ref.invalidate(libraryFilteredListsProvider);
-            if (!context.mounted) return;
-            setState(() {
-              _inLibrary = true;
-              _busy = false;
-            });
-            AppNotice.success(context, l10n.cloudAddedToLibrary);
-          } catch (_) {
-            if (mounted) setState(() => _busy = false);
-          }
-        },
+        onPressed: () => unawaited(addToLibrary()),
       );
     }
 
@@ -490,21 +506,15 @@ class _CloudVideoTile extends ConsumerStatefulWidget {
   ConsumerState<_CloudVideoTile> createState() => _CloudVideoTileState();
 }
 
-class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
-  bool? _inLibrary;
-  bool _busy = false;
+class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
+    with _CloudItemMembershipMixin {
+  @override
+  RemoteLibraryItem get cloudItem => widget.item;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
-    final v = await ref
-        .read(cloudAddToLibraryProvider)
-        .isInLibrary(widget.item);
-    if (mounted) setState(() => _inLibrary = v);
+    unawaited(loadMembership());
   }
 
   @override
@@ -514,7 +524,6 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
     );
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final add = ref.watch(cloudAddToLibraryProvider);
     final dur = formatDurationHmsSeconds(widget.item.durationSeconds);
     final item = widget.item;
     final seed = _coverSeed(item);
@@ -549,23 +558,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile> {
           shape: const CircleBorder(),
         ),
         icon: const Icon(Icons.library_add_outlined),
-        onPressed: () async {
-          setState(() => _busy = true);
-          try {
-            await add.add(item);
-            ref.invalidate(libraryMediaProvider);
-            ref.invalidate(libraryHomeRecentsProvider);
-            ref.invalidate(libraryFilteredListsProvider);
-            if (!context.mounted) return;
-            setState(() {
-              _inLibrary = true;
-              _busy = false;
-            });
-            AppNotice.success(context, l10n.cloudAddedToLibrary);
-          } catch (_) {
-            if (mounted) setState(() => _busy = false);
-          }
-        },
+        onPressed: () => unawaited(addToLibrary()),
       );
     }
 

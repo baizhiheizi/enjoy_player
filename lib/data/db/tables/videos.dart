@@ -3,8 +3,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @DataClassName('VideoRow')
-class Videos extends Table {
+class Videos extends Table with SyncMetadataColumns {
   @override
   String get tableName => 'videos';
 
@@ -29,10 +31,6 @@ class Videos extends Table {
   /// Used for cheap open trust checks; device-local (not synced).
   IntColumn get localMtimeMs => integer().nullable()();
   TextColumn get mediaUrl => text().nullable()();
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

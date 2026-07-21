@@ -8,6 +8,51 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VideosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -153,53 +198,12 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     vid,
     provider,
@@ -214,10 +218,6 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
     size,
     localMtimeMs,
     mediaUrl,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -231,6 +231,37 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -330,37 +361,6 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
         mediaUrl.isAcceptableOrUnknown(data['media_url']!, _mediaUrlMeta),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -370,6 +370,22 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
   VideoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VideoRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -426,22 +442,6 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
         DriftSqlType.string,
         data['${effectivePrefix}media_url'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -452,6 +452,10 @@ class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
 }
 
 class VideoRow extends DataClass implements Insertable<VideoRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String vid;
   final String provider;
@@ -473,11 +477,11 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
   /// Used for cheap open trust checks; device-local (not synced).
   final int? localMtimeMs;
   final String? mediaUrl;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const VideoRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.vid,
     required this.provider,
@@ -492,14 +496,18 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     this.size,
     this.localMtimeMs,
     this.mediaUrl,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['vid'] = Variable<String>(vid);
     map['provider'] = Variable<String>(provider);
@@ -530,19 +538,19 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     if (!nullToAbsent || mediaUrl != null) {
       map['media_url'] = Variable<String>(mediaUrl);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   VideosCompanion toCompanion(bool nullToAbsent) {
     return VideosCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       vid: Value(vid),
       provider: Value(provider),
@@ -569,14 +577,6 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       mediaUrl: mediaUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaUrl),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -586,6 +586,10 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VideoRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       vid: serializer.fromJson<String>(json['vid']),
       provider: serializer.fromJson<String>(json['provider']),
@@ -600,16 +604,16 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       size: serializer.fromJson<int?>(json['size']),
       localMtimeMs: serializer.fromJson<int?>(json['localMtimeMs']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'vid': serializer.toJson<String>(vid),
       'provider': serializer.toJson<String>(provider),
@@ -624,14 +628,14 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
       'size': serializer.toJson<int?>(size),
       'localMtimeMs': serializer.toJson<int?>(localMtimeMs),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   VideoRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? vid,
     String? provider,
@@ -646,11 +650,13 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     Value<int?> size = const Value.absent(),
     Value<int?> localMtimeMs = const Value.absent(),
     Value<String?> mediaUrl = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => VideoRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     vid: vid ?? this.vid,
     provider: provider ?? this.provider,
@@ -665,15 +671,17 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     size: size.present ? size.value : this.size,
     localMtimeMs: localMtimeMs.present ? localMtimeMs.value : this.localMtimeMs,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   VideoRow copyWithCompanion(VideosCompanion data) {
     return VideoRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       vid: data.vid.present ? data.vid.value : this.vid,
       provider: data.provider.present ? data.provider.value : this.provider,
@@ -696,20 +704,16 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           ? data.localMtimeMs.value
           : this.localMtimeMs,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('VideoRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vid: $vid, ')
           ..write('provider: $provider, ')
@@ -723,17 +727,17 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           ..write('md5: $md5, ')
           ..write('size: $size, ')
           ..write('localMtimeMs: $localMtimeMs, ')
-          ..write('mediaUrl: $mediaUrl, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('mediaUrl: $mediaUrl')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     vid,
     provider,
@@ -748,15 +752,15 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
     size,
     localMtimeMs,
     mediaUrl,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VideoRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.vid == this.vid &&
           other.provider == this.provider &&
@@ -770,14 +774,14 @@ class VideoRow extends DataClass implements Insertable<VideoRow> {
           other.md5 == this.md5 &&
           other.size == this.size &&
           other.localMtimeMs == this.localMtimeMs &&
-          other.mediaUrl == this.mediaUrl &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.mediaUrl == this.mediaUrl);
 }
 
 class VideosCompanion extends UpdateCompanion<VideoRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> vid;
   final Value<String> provider;
@@ -792,12 +796,12 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
   final Value<int?> size;
   final Value<int?> localMtimeMs;
   final Value<String?> mediaUrl;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const VideosCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.vid = const Value.absent(),
     this.provider = const Value.absent(),
@@ -812,13 +816,13 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     this.size = const Value.absent(),
     this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VideosCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String vid,
     this.provider = const Value.absent(),
@@ -833,17 +837,17 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     this.size = const Value.absent(),
     this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        vid = Value(vid),
-       title = Value(title),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       title = Value(title);
   static Insertable<VideoRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? vid,
     Expression<String>? provider,
@@ -858,13 +862,13 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     Expression<int>? size,
     Expression<int>? localMtimeMs,
     Expression<String>? mediaUrl,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (vid != null) 'vid': vid,
       if (provider != null) 'provider': provider,
@@ -879,15 +883,15 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
       if (size != null) 'size': size,
       if (localMtimeMs != null) 'local_mtime_ms': localMtimeMs,
       if (mediaUrl != null) 'media_url': mediaUrl,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   VideosCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? vid,
     Value<String>? provider,
@@ -902,13 +906,13 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     Value<int?>? size,
     Value<int?>? localMtimeMs,
     Value<String?>? mediaUrl,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return VideosCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       vid: vid ?? this.vid,
       provider: provider ?? this.provider,
@@ -923,10 +927,6 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
       size: size ?? this.size,
       localMtimeMs: localMtimeMs ?? this.localMtimeMs,
       mediaUrl: mediaUrl ?? this.mediaUrl,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -934,6 +934,18 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -976,18 +988,6 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
     if (mediaUrl.present) {
       map['media_url'] = Variable<String>(mediaUrl.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -997,6 +997,10 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
   @override
   String toString() {
     return (StringBuffer('VideosCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vid: $vid, ')
           ..write('provider: $provider, ')
@@ -1011,10 +1015,6 @@ class VideosCompanion extends UpdateCompanion<VideoRow> {
           ..write('size: $size, ')
           ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1026,6 +1026,51 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $AudiosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -1202,53 +1247,12 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     aid,
     provider,
@@ -1266,10 +1270,6 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
     size,
     localMtimeMs,
     mediaUrl,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1283,6 +1283,37 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -1403,37 +1434,6 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
         mediaUrl.isAcceptableOrUnknown(data['media_url']!, _mediaUrlMeta),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -1443,6 +1443,22 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
   AudioRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AudioRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1511,22 +1527,6 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
         DriftSqlType.string,
         data['${effectivePrefix}media_url'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -1537,6 +1537,10 @@ class $AudiosTable extends Audios with TableInfo<$AudiosTable, AudioRow> {
 }
 
 class AudioRow extends DataClass implements Insertable<AudioRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String aid;
   final String provider;
@@ -1557,11 +1561,11 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
   /// Used for cheap open trust checks; device-local (not synced).
   final int? localMtimeMs;
   final String? mediaUrl;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const AudioRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.aid,
     required this.provider,
@@ -1579,14 +1583,18 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     this.size,
     this.localMtimeMs,
     this.mediaUrl,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['aid'] = Variable<String>(aid);
     map['provider'] = Variable<String>(provider);
@@ -1626,19 +1634,19 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     if (!nullToAbsent || mediaUrl != null) {
       map['media_url'] = Variable<String>(mediaUrl);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   AudiosCompanion toCompanion(bool nullToAbsent) {
     return AudiosCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       aid: Value(aid),
       provider: Value(provider),
@@ -1674,14 +1682,6 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       mediaUrl: mediaUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaUrl),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -1691,6 +1691,10 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AudioRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       aid: serializer.fromJson<String>(json['aid']),
       provider: serializer.fromJson<String>(json['provider']),
@@ -1708,16 +1712,16 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       size: serializer.fromJson<int?>(json['size']),
       localMtimeMs: serializer.fromJson<int?>(json['localMtimeMs']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'aid': serializer.toJson<String>(aid),
       'provider': serializer.toJson<String>(provider),
@@ -1735,14 +1739,14 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
       'size': serializer.toJson<int?>(size),
       'localMtimeMs': serializer.toJson<int?>(localMtimeMs),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   AudioRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? aid,
     String? provider,
@@ -1760,11 +1764,13 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     Value<int?> size = const Value.absent(),
     Value<int?> localMtimeMs = const Value.absent(),
     Value<String?> mediaUrl = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => AudioRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     aid: aid ?? this.aid,
     provider: provider ?? this.provider,
@@ -1784,15 +1790,17 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     size: size.present ? size.value : this.size,
     localMtimeMs: localMtimeMs.present ? localMtimeMs.value : this.localMtimeMs,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   AudioRow copyWithCompanion(AudiosCompanion data) {
     return AudioRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       aid: data.aid.present ? data.aid.value : this.aid,
       provider: data.provider.present ? data.provider.value : this.provider,
@@ -1822,20 +1830,16 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           ? data.localMtimeMs.value
           : this.localMtimeMs,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('AudioRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('aid: $aid, ')
           ..write('provider: $provider, ')
@@ -1852,17 +1856,17 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           ..write('md5: $md5, ')
           ..write('size: $size, ')
           ..write('localMtimeMs: $localMtimeMs, ')
-          ..write('mediaUrl: $mediaUrl, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('mediaUrl: $mediaUrl')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hashAll([
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     aid,
     provider,
@@ -1880,15 +1884,15 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
     size,
     localMtimeMs,
     mediaUrl,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AudioRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.aid == this.aid &&
           other.provider == this.provider &&
@@ -1905,14 +1909,14 @@ class AudioRow extends DataClass implements Insertable<AudioRow> {
           other.md5 == this.md5 &&
           other.size == this.size &&
           other.localMtimeMs == this.localMtimeMs &&
-          other.mediaUrl == this.mediaUrl &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.mediaUrl == this.mediaUrl);
 }
 
 class AudiosCompanion extends UpdateCompanion<AudioRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> aid;
   final Value<String> provider;
@@ -1930,12 +1934,12 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
   final Value<int?> size;
   final Value<int?> localMtimeMs;
   final Value<String?> mediaUrl;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const AudiosCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.aid = const Value.absent(),
     this.provider = const Value.absent(),
@@ -1953,13 +1957,13 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     this.size = const Value.absent(),
     this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AudiosCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String aid,
     this.provider = const Value.absent(),
@@ -1977,17 +1981,17 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     this.size = const Value.absent(),
     this.localMtimeMs = const Value.absent(),
     this.mediaUrl = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        aid = Value(aid),
-       title = Value(title),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       title = Value(title);
   static Insertable<AudioRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? aid,
     Expression<String>? provider,
@@ -2005,13 +2009,13 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     Expression<int>? size,
     Expression<int>? localMtimeMs,
     Expression<String>? mediaUrl,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (aid != null) 'aid': aid,
       if (provider != null) 'provider': provider,
@@ -2029,15 +2033,15 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
       if (size != null) 'size': size,
       if (localMtimeMs != null) 'local_mtime_ms': localMtimeMs,
       if (mediaUrl != null) 'media_url': mediaUrl,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   AudiosCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? aid,
     Value<String>? provider,
@@ -2055,13 +2059,13 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     Value<int?>? size,
     Value<int?>? localMtimeMs,
     Value<String?>? mediaUrl,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return AudiosCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       aid: aid ?? this.aid,
       provider: provider ?? this.provider,
@@ -2079,10 +2083,6 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
       size: size ?? this.size,
       localMtimeMs: localMtimeMs ?? this.localMtimeMs,
       mediaUrl: mediaUrl ?? this.mediaUrl,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2090,6 +2090,18 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -2141,18 +2153,6 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
     if (mediaUrl.present) {
       map['media_url'] = Variable<String>(mediaUrl.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2162,6 +2162,10 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
   @override
   String toString() {
     return (StringBuffer('AudiosCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('aid: $aid, ')
           ..write('provider: $provider, ')
@@ -2179,10 +2183,6 @@ class AudiosCompanion extends UpdateCompanion<AudioRow> {
           ..write('size: $size, ')
           ..write('localMtimeMs: $localMtimeMs, ')
           ..write('mediaUrl: $mediaUrl, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2195,6 +2195,51 @@ class $TranscriptsTable extends Transcripts
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TranscriptsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -2289,53 +2334,12 @@ class $TranscriptsTable extends Transcripts
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -2345,10 +2349,6 @@ class $TranscriptsTable extends Transcripts
     referenceId,
     label,
     trackIndex,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2362,6 +2362,37 @@ class $TranscriptsTable extends Transcripts
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -2431,37 +2462,6 @@ class $TranscriptsTable extends Transcripts
         trackIndex.isAcceptableOrUnknown(data['track_index']!, _trackIndexMeta),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -2471,6 +2471,22 @@ class $TranscriptsTable extends Transcripts
   TranscriptRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TranscriptRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -2507,22 +2523,6 @@ class $TranscriptsTable extends Transcripts
         DriftSqlType.int,
         data['${effectivePrefix}track_index'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -2533,6 +2533,10 @@ class $TranscriptsTable extends Transcripts
 }
 
 class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
 
   /// Weapp `TargetType`: `Video` | `Audio` | `Example` | `Ebook`.
@@ -2548,11 +2552,11 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   final String? referenceId;
   final String label;
   final int? trackIndex;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const TranscriptRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.targetType,
     required this.targetId,
@@ -2562,14 +2566,18 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     this.referenceId,
     required this.label,
     this.trackIndex,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['target_type'] = Variable<String>(targetType);
     map['target_id'] = Variable<String>(targetId);
@@ -2583,19 +2591,19 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     if (!nullToAbsent || trackIndex != null) {
       map['track_index'] = Variable<int>(trackIndex);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   TranscriptsCompanion toCompanion(bool nullToAbsent) {
     return TranscriptsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       targetType: Value(targetType),
       targetId: Value(targetId),
@@ -2609,14 +2617,6 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       trackIndex: trackIndex == null && nullToAbsent
           ? const Value.absent()
           : Value(trackIndex),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -2626,6 +2626,10 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TranscriptRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       targetType: serializer.fromJson<String>(json['targetType']),
       targetId: serializer.fromJson<String>(json['targetId']),
@@ -2635,16 +2639,16 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       referenceId: serializer.fromJson<String?>(json['referenceId']),
       label: serializer.fromJson<String>(json['label']),
       trackIndex: serializer.fromJson<int?>(json['trackIndex']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'targetType': serializer.toJson<String>(targetType),
       'targetId': serializer.toJson<String>(targetId),
@@ -2654,14 +2658,14 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       'referenceId': serializer.toJson<String?>(referenceId),
       'label': serializer.toJson<String>(label),
       'trackIndex': serializer.toJson<int?>(trackIndex),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   TranscriptRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? targetType,
     String? targetId,
@@ -2671,11 +2675,13 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     Value<String?> referenceId = const Value.absent(),
     String? label,
     Value<int?> trackIndex = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => TranscriptRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     targetType: targetType ?? this.targetType,
     targetId: targetId ?? this.targetId,
@@ -2685,15 +2691,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     referenceId: referenceId.present ? referenceId.value : this.referenceId,
     label: label ?? this.label,
     trackIndex: trackIndex.present ? trackIndex.value : this.trackIndex,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   TranscriptRow copyWithCompanion(TranscriptsCompanion data) {
     return TranscriptRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       targetType: data.targetType.present
           ? data.targetType.value
@@ -2711,20 +2719,16 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
       trackIndex: data.trackIndex.present
           ? data.trackIndex.value
           : this.trackIndex,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('TranscriptRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -2733,17 +2737,17 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           ..write('timelineJson: $timelineJson, ')
           ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
-          ..write('trackIndex: $trackIndex, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('trackIndex: $trackIndex')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -2753,15 +2757,15 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
     referenceId,
     label,
     trackIndex,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TranscriptRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.targetType == this.targetType &&
           other.targetId == this.targetId &&
@@ -2770,14 +2774,14 @@ class TranscriptRow extends DataClass implements Insertable<TranscriptRow> {
           other.timelineJson == this.timelineJson &&
           other.referenceId == this.referenceId &&
           other.label == this.label &&
-          other.trackIndex == this.trackIndex &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.trackIndex == this.trackIndex);
 }
 
 class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> targetType;
   final Value<String> targetId;
@@ -2787,12 +2791,12 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   final Value<String?> referenceId;
   final Value<String> label;
   final Value<int?> trackIndex;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const TranscriptsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.targetType = const Value.absent(),
     this.targetId = const Value.absent(),
@@ -2802,13 +2806,13 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TranscriptsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String targetType,
     required String targetId,
@@ -2818,20 +2822,20 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     this.referenceId = const Value.absent(),
     this.label = const Value.absent(),
     this.trackIndex = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        targetType = Value(targetType),
        targetId = Value(targetId),
        language = Value(language),
        source = Value(source),
-       timelineJson = Value(timelineJson),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       timelineJson = Value(timelineJson);
   static Insertable<TranscriptRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? targetType,
     Expression<String>? targetId,
@@ -2841,13 +2845,13 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Expression<String>? referenceId,
     Expression<String>? label,
     Expression<int>? trackIndex,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (targetType != null) 'target_type': targetType,
       if (targetId != null) 'target_id': targetId,
@@ -2857,15 +2861,15 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       if (referenceId != null) 'reference_id': referenceId,
       if (label != null) 'label': label,
       if (trackIndex != null) 'track_index': trackIndex,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   TranscriptsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? targetType,
     Value<String>? targetId,
@@ -2875,13 +2879,13 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     Value<String?>? referenceId,
     Value<String>? label,
     Value<int?>? trackIndex,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return TranscriptsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       targetType: targetType ?? this.targetType,
       targetId: targetId ?? this.targetId,
@@ -2891,10 +2895,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
       referenceId: referenceId ?? this.referenceId,
       label: label ?? this.label,
       trackIndex: trackIndex ?? this.trackIndex,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2902,6 +2902,18 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -2929,18 +2941,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
     if (trackIndex.present) {
       map['track_index'] = Variable<int>(trackIndex.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2950,6 +2950,10 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
   @override
   String toString() {
     return (StringBuffer('TranscriptsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -2959,10 +2963,6 @@ class TranscriptsCompanion extends UpdateCompanion<TranscriptRow> {
           ..write('referenceId: $referenceId, ')
           ..write('label: $label, ')
           ..write('trackIndex: $trackIndex, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3367,6 +3367,51 @@ class $EchoSessionsTable extends EchoSessions
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $EchoSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -3621,53 +3666,12 @@ class $EchoSessionsTable extends EchoSessions
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -3690,10 +3694,6 @@ class $EchoSessionsTable extends EchoSessions
     startedAt,
     lastActiveAt,
     completedAt,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3707,6 +3707,37 @@ class $EchoSessionsTable extends EchoSessions
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -3885,37 +3916,6 @@ class $EchoSessionsTable extends EchoSessions
         ),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -3925,6 +3925,22 @@ class $EchoSessionsTable extends EchoSessions
   EchoSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return EchoSessionRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -4013,22 +4029,6 @@ class $EchoSessionsTable extends EchoSessions
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -4039,6 +4039,10 @@ class $EchoSessionsTable extends EchoSessions
 }
 
 class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String targetType;
   final String targetId;
@@ -4065,11 +4069,11 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
   final DateTime startedAt;
   final DateTime lastActiveAt;
   final DateTime? completedAt;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const EchoSessionRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.targetType,
     required this.targetId,
@@ -4092,14 +4096,18 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     required this.startedAt,
     required this.lastActiveAt,
     this.completedAt,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['target_type'] = Variable<String>(targetType);
     map['target_id'] = Variable<String>(targetId);
@@ -4134,19 +4142,19 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   EchoSessionsCompanion toCompanion(bool nullToAbsent) {
     return EchoSessionsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       targetType: Value(targetType),
       targetId: Value(targetId),
@@ -4181,14 +4189,6 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -4198,6 +4198,10 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return EchoSessionRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       targetType: serializer.fromJson<String>(json['targetType']),
       targetId: serializer.fromJson<String>(json['targetId']),
@@ -4226,16 +4230,16 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       lastActiveAt: serializer.fromJson<DateTime>(json['lastActiveAt']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'targetType': serializer.toJson<String>(targetType),
       'targetId': serializer.toJson<String>(targetId),
@@ -4260,14 +4264,14 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       'startedAt': serializer.toJson<DateTime>(startedAt),
       'lastActiveAt': serializer.toJson<DateTime>(lastActiveAt),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   EchoSessionRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? targetType,
     String? targetId,
@@ -4290,11 +4294,13 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     DateTime? startedAt,
     DateTime? lastActiveAt,
     Value<DateTime?> completedAt = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => EchoSessionRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     targetType: targetType ?? this.targetType,
     targetId: targetId ?? this.targetId,
@@ -4321,15 +4327,17 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     startedAt: startedAt ?? this.startedAt,
     lastActiveAt: lastActiveAt ?? this.lastActiveAt,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   EchoSessionRow copyWithCompanion(EchoSessionsCompanion data) {
     return EchoSessionRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       targetType: data.targetType.present
           ? data.targetType.value
@@ -4384,20 +4392,16 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('EchoSessionRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -4419,17 +4423,17 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
           ..write('blurActive: $blurActive, ')
           ..write('startedAt: $startedAt, ')
           ..write('lastActiveAt: $lastActiveAt, ')
-          ..write('completedAt: $completedAt, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('completedAt: $completedAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hashAll([
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -4452,15 +4456,15 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
     startedAt,
     lastActiveAt,
     completedAt,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is EchoSessionRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.targetType == this.targetType &&
           other.targetId == this.targetId &&
@@ -4482,14 +4486,14 @@ class EchoSessionRow extends DataClass implements Insertable<EchoSessionRow> {
           other.blurActive == this.blurActive &&
           other.startedAt == this.startedAt &&
           other.lastActiveAt == this.lastActiveAt &&
-          other.completedAt == this.completedAt &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.completedAt == this.completedAt);
 }
 
 class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> targetType;
   final Value<String> targetId;
@@ -4512,12 +4516,12 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
   final Value<DateTime> startedAt;
   final Value<DateTime> lastActiveAt;
   final Value<DateTime?> completedAt;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const EchoSessionsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.targetType = const Value.absent(),
     this.targetId = const Value.absent(),
@@ -4540,13 +4544,13 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     this.startedAt = const Value.absent(),
     this.lastActiveAt = const Value.absent(),
     this.completedAt = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   EchoSessionsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String targetType,
     required String targetId,
@@ -4569,19 +4573,19 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     required DateTime startedAt,
     required DateTime lastActiveAt,
     this.completedAt = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        targetType = Value(targetType),
        targetId = Value(targetId),
        startedAt = Value(startedAt),
-       lastActiveAt = Value(lastActiveAt),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       lastActiveAt = Value(lastActiveAt);
   static Insertable<EchoSessionRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? targetType,
     Expression<String>? targetId,
@@ -4604,13 +4608,13 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     Expression<DateTime>? startedAt,
     Expression<DateTime>? lastActiveAt,
     Expression<DateTime>? completedAt,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (targetType != null) 'target_type': targetType,
       if (targetId != null) 'target_id': targetId,
@@ -4636,15 +4640,15 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
       if (startedAt != null) 'started_at': startedAt,
       if (lastActiveAt != null) 'last_active_at': lastActiveAt,
       if (completedAt != null) 'completed_at': completedAt,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   EchoSessionsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? targetType,
     Value<String>? targetId,
@@ -4667,13 +4671,13 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     Value<DateTime>? startedAt,
     Value<DateTime>? lastActiveAt,
     Value<DateTime?>? completedAt,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return EchoSessionsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       targetType: targetType ?? this.targetType,
       targetId: targetId ?? this.targetId,
@@ -4697,10 +4701,6 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
       startedAt: startedAt ?? this.startedAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       completedAt: completedAt ?? this.completedAt,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4708,6 +4708,18 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -4776,18 +4788,6 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4797,6 +4797,10 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
   @override
   String toString() {
     return (StringBuffer('EchoSessionsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -4819,10 +4823,6 @@ class EchoSessionsCompanion extends UpdateCompanion<EchoSessionRow> {
           ..write('startedAt: $startedAt, ')
           ..write('lastActiveAt: $lastActiveAt, ')
           ..write('completedAt: $completedAt, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4835,6 +4835,51 @@ class $RecordingsTable extends Recordings
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $RecordingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -4973,53 +5018,12 @@ class $RecordingsTable extends Recordings
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -5033,10 +5037,6 @@ class $RecordingsTable extends Recordings
     pronunciationScore,
     assessmentJson,
     localPath,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5050,6 +5050,37 @@ class $RecordingsTable extends Recordings
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -5156,37 +5187,6 @@ class $RecordingsTable extends Recordings
         localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -5196,6 +5196,22 @@ class $RecordingsTable extends Recordings
   RecordingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return RecordingRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -5248,22 +5264,6 @@ class $RecordingsTable extends Recordings
         DriftSqlType.string,
         data['${effectivePrefix}local_path'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -5274,6 +5274,10 @@ class $RecordingsTable extends Recordings
 }
 
 class RecordingRow extends DataClass implements Insertable<RecordingRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String targetType;
   final String targetId;
@@ -5287,11 +5291,11 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
   final int? pronunciationScore;
   final String? assessmentJson;
   final String? localPath;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const RecordingRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.targetType,
     required this.targetId,
@@ -5305,14 +5309,18 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
     this.pronunciationScore,
     this.assessmentJson,
     this.localPath,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['target_type'] = Variable<String>(targetType);
     map['target_id'] = Variable<String>(targetId);
@@ -5336,19 +5344,19 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
     if (!nullToAbsent || localPath != null) {
       map['local_path'] = Variable<String>(localPath);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   RecordingsCompanion toCompanion(bool nullToAbsent) {
     return RecordingsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       targetType: Value(targetType),
       targetId: Value(targetId),
@@ -5370,14 +5378,6 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
       localPath: localPath == null && nullToAbsent
           ? const Value.absent()
           : Value(localPath),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -5387,6 +5387,10 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return RecordingRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       targetType: serializer.fromJson<String>(json['targetType']),
       targetId: serializer.fromJson<String>(json['targetId']),
@@ -5400,16 +5404,16 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
       pronunciationScore: serializer.fromJson<int?>(json['pronunciationScore']),
       assessmentJson: serializer.fromJson<String?>(json['assessmentJson']),
       localPath: serializer.fromJson<String?>(json['localPath']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'targetType': serializer.toJson<String>(targetType),
       'targetId': serializer.toJson<String>(targetId),
@@ -5423,14 +5427,14 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
       'pronunciationScore': serializer.toJson<int?>(pronunciationScore),
       'assessmentJson': serializer.toJson<String?>(assessmentJson),
       'localPath': serializer.toJson<String?>(localPath),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   RecordingRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? targetType,
     String? targetId,
@@ -5444,11 +5448,13 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
     Value<int?> pronunciationScore = const Value.absent(),
     Value<String?> assessmentJson = const Value.absent(),
     Value<String?> localPath = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => RecordingRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     targetType: targetType ?? this.targetType,
     targetId: targetId ?? this.targetId,
@@ -5466,15 +5472,17 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
         ? assessmentJson.value
         : this.assessmentJson,
     localPath: localPath.present ? localPath.value : this.localPath,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   RecordingRow copyWithCompanion(RecordingsCompanion data) {
     return RecordingRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       targetType: data.targetType.present
           ? data.targetType.value
@@ -5500,20 +5508,16 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
           ? data.assessmentJson.value
           : this.assessmentJson,
       localPath: data.localPath.present ? data.localPath.value : this.localPath,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('RecordingRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -5526,17 +5530,17 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
           ..write('audioUrl: $audioUrl, ')
           ..write('pronunciationScore: $pronunciationScore, ')
           ..write('assessmentJson: $assessmentJson, ')
-          ..write('localPath: $localPath, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('localPath: $localPath')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -5550,15 +5554,15 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
     pronunciationScore,
     assessmentJson,
     localPath,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RecordingRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.targetType == this.targetType &&
           other.targetId == this.targetId &&
@@ -5571,14 +5575,14 @@ class RecordingRow extends DataClass implements Insertable<RecordingRow> {
           other.audioUrl == this.audioUrl &&
           other.pronunciationScore == this.pronunciationScore &&
           other.assessmentJson == this.assessmentJson &&
-          other.localPath == this.localPath &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.localPath == this.localPath);
 }
 
 class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> targetType;
   final Value<String> targetId;
@@ -5592,12 +5596,12 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
   final Value<int?> pronunciationScore;
   final Value<String?> assessmentJson;
   final Value<String?> localPath;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const RecordingsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.targetType = const Value.absent(),
     this.targetId = const Value.absent(),
@@ -5611,13 +5615,13 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
     this.pronunciationScore = const Value.absent(),
     this.assessmentJson = const Value.absent(),
     this.localPath = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RecordingsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String targetType,
     required String targetId,
@@ -5631,22 +5635,22 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
     this.pronunciationScore = const Value.absent(),
     this.assessmentJson = const Value.absent(),
     this.localPath = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        targetType = Value(targetType),
        targetId = Value(targetId),
        referenceStart = Value(referenceStart),
        referenceDuration = Value(referenceDuration),
        referenceText = Value(referenceText),
        language = Value(language),
-       duration = Value(duration),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       duration = Value(duration);
   static Insertable<RecordingRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? targetType,
     Expression<String>? targetId,
@@ -5660,13 +5664,13 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
     Expression<int>? pronunciationScore,
     Expression<String>? assessmentJson,
     Expression<String>? localPath,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (targetType != null) 'target_type': targetType,
       if (targetId != null) 'target_id': targetId,
@@ -5680,15 +5684,15 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
       if (pronunciationScore != null) 'pronunciation_score': pronunciationScore,
       if (assessmentJson != null) 'assessment_json': assessmentJson,
       if (localPath != null) 'local_path': localPath,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   RecordingsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? targetType,
     Value<String>? targetId,
@@ -5702,13 +5706,13 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
     Value<int?>? pronunciationScore,
     Value<String?>? assessmentJson,
     Value<String?>? localPath,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return RecordingsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       targetType: targetType ?? this.targetType,
       targetId: targetId ?? this.targetId,
@@ -5722,10 +5726,6 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
       pronunciationScore: pronunciationScore ?? this.pronunciationScore,
       assessmentJson: assessmentJson ?? this.assessmentJson,
       localPath: localPath ?? this.localPath,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5733,6 +5733,18 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -5772,18 +5784,6 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
     if (localPath.present) {
       map['local_path'] = Variable<String>(localPath.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5793,6 +5793,10 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
   @override
   String toString() {
     return (StringBuffer('RecordingsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -5806,10 +5810,6 @@ class RecordingsCompanion extends UpdateCompanion<RecordingRow> {
           ..write('pronunciationScore: $pronunciationScore, ')
           ..write('assessmentJson: $assessmentJson, ')
           ..write('localPath: $localPath, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5822,6 +5822,51 @@ class $DictationsTable extends Dictations
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $DictationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -5951,53 +5996,12 @@ class $DictationsTable extends Dictations
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -6010,10 +6014,6 @@ class $DictationsTable extends Dictations
     correctWords,
     missedWords,
     extraWords,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6027,6 +6027,37 @@ class $DictationsTable extends Dictations
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -6135,37 +6166,6 @@ class $DictationsTable extends Dictations
     } else if (isInserting) {
       context.missing(_extraWordsMeta);
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -6175,6 +6175,22 @@ class $DictationsTable extends Dictations
   DictationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DictationRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -6223,22 +6239,6 @@ class $DictationsTable extends Dictations
         DriftSqlType.int,
         data['${effectivePrefix}extra_words'],
       )!,
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -6249,6 +6249,10 @@ class $DictationsTable extends Dictations
 }
 
 class DictationRow extends DataClass implements Insertable<DictationRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String targetType;
   final String targetId;
@@ -6261,11 +6265,11 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
   final int correctWords;
   final int missedWords;
   final int extraWords;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const DictationRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.targetType,
     required this.targetId,
@@ -6278,14 +6282,18 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
     required this.correctWords,
     required this.missedWords,
     required this.extraWords,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['target_type'] = Variable<String>(targetType);
     map['target_id'] = Variable<String>(targetId);
@@ -6298,19 +6306,19 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
     map['correct_words'] = Variable<int>(correctWords);
     map['missed_words'] = Variable<int>(missedWords);
     map['extra_words'] = Variable<int>(extraWords);
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   DictationsCompanion toCompanion(bool nullToAbsent) {
     return DictationsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       targetType: Value(targetType),
       targetId: Value(targetId),
@@ -6323,14 +6331,6 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
       correctWords: Value(correctWords),
       missedWords: Value(missedWords),
       extraWords: Value(extraWords),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -6340,6 +6340,10 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DictationRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       targetType: serializer.fromJson<String>(json['targetType']),
       targetId: serializer.fromJson<String>(json['targetId']),
@@ -6354,16 +6358,16 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
       correctWords: serializer.fromJson<int>(json['correctWords']),
       missedWords: serializer.fromJson<int>(json['missedWords']),
       extraWords: serializer.fromJson<int>(json['extraWords']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'targetType': serializer.toJson<String>(targetType),
       'targetId': serializer.toJson<String>(targetId),
@@ -6376,14 +6380,14 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
       'correctWords': serializer.toJson<int>(correctWords),
       'missedWords': serializer.toJson<int>(missedWords),
       'extraWords': serializer.toJson<int>(extraWords),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   DictationRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? targetType,
     String? targetId,
@@ -6396,11 +6400,13 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
     int? correctWords,
     int? missedWords,
     int? extraWords,
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => DictationRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     targetType: targetType ?? this.targetType,
     targetId: targetId ?? this.targetId,
@@ -6413,15 +6419,17 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
     correctWords: correctWords ?? this.correctWords,
     missedWords: missedWords ?? this.missedWords,
     extraWords: extraWords ?? this.extraWords,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   DictationRow copyWithCompanion(DictationsCompanion data) {
     return DictationRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       targetType: data.targetType.present
           ? data.targetType.value
@@ -6448,20 +6456,16 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
       extraWords: data.extraWords.present
           ? data.extraWords.value
           : this.extraWords,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('DictationRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -6473,17 +6477,17 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
           ..write('accuracy: $accuracy, ')
           ..write('correctWords: $correctWords, ')
           ..write('missedWords: $missedWords, ')
-          ..write('extraWords: $extraWords, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('extraWords: $extraWords')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     targetType,
     targetId,
@@ -6496,15 +6500,15 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
     correctWords,
     missedWords,
     extraWords,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DictationRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.targetType == this.targetType &&
           other.targetId == this.targetId &&
@@ -6516,14 +6520,14 @@ class DictationRow extends DataClass implements Insertable<DictationRow> {
           other.accuracy == this.accuracy &&
           other.correctWords == this.correctWords &&
           other.missedWords == this.missedWords &&
-          other.extraWords == this.extraWords &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.extraWords == this.extraWords);
 }
 
 class DictationsCompanion extends UpdateCompanion<DictationRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> targetType;
   final Value<String> targetId;
@@ -6536,12 +6540,12 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
   final Value<int> correctWords;
   final Value<int> missedWords;
   final Value<int> extraWords;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const DictationsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.targetType = const Value.absent(),
     this.targetId = const Value.absent(),
@@ -6554,13 +6558,13 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
     this.correctWords = const Value.absent(),
     this.missedWords = const Value.absent(),
     this.extraWords = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DictationsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String targetType,
     required String targetId,
@@ -6573,12 +6577,10 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
     required int correctWords,
     required int missedWords,
     required int extraWords,
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        targetType = Value(targetType),
        targetId = Value(targetId),
        referenceStartMs = Value(referenceStartMs),
@@ -6589,10 +6591,12 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
        accuracy = Value(accuracy),
        correctWords = Value(correctWords),
        missedWords = Value(missedWords),
-       extraWords = Value(extraWords),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       extraWords = Value(extraWords);
   static Insertable<DictationRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? targetType,
     Expression<String>? targetId,
@@ -6605,13 +6609,13 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
     Expression<int>? correctWords,
     Expression<int>? missedWords,
     Expression<int>? extraWords,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (targetType != null) 'target_type': targetType,
       if (targetId != null) 'target_id': targetId,
@@ -6625,15 +6629,15 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
       if (correctWords != null) 'correct_words': correctWords,
       if (missedWords != null) 'missed_words': missedWords,
       if (extraWords != null) 'extra_words': extraWords,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   DictationsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? targetType,
     Value<String>? targetId,
@@ -6646,13 +6650,13 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
     Value<int>? correctWords,
     Value<int>? missedWords,
     Value<int>? extraWords,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return DictationsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       targetType: targetType ?? this.targetType,
       targetId: targetId ?? this.targetId,
@@ -6665,10 +6669,6 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
       correctWords: correctWords ?? this.correctWords,
       missedWords: missedWords ?? this.missedWords,
       extraWords: extraWords ?? this.extraWords,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -6676,6 +6676,18 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -6712,18 +6724,6 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
     if (extraWords.present) {
       map['extra_words'] = Variable<int>(extraWords.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -6733,6 +6733,10 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
   @override
   String toString() {
     return (StringBuffer('DictationsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('targetType: $targetType, ')
           ..write('targetId: $targetId, ')
@@ -6745,10 +6749,6 @@ class DictationsCompanion extends UpdateCompanion<DictationRow> {
           ..write('correctWords: $correctWords, ')
           ..write('missedWords: $missedWords, ')
           ..write('extraWords: $extraWords, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8980,6 +8980,51 @@ class $VocabularyItemsTable extends VocabularyItems
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VocabularyItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -9107,53 +9152,12 @@ class $VocabularyItemsTable extends VocabularyItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     word,
     language,
@@ -9166,10 +9170,6 @@ class $VocabularyItemsTable extends VocabularyItems
     lastReviewedAt,
     contextsCount,
     explanation,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -9183,6 +9183,37 @@ class $VocabularyItemsTable extends VocabularyItems
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -9290,37 +9321,6 @@ class $VocabularyItemsTable extends VocabularyItems
         ),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -9330,6 +9330,22 @@ class $VocabularyItemsTable extends VocabularyItems
   VocabularyItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VocabularyItemRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -9378,22 +9394,6 @@ class $VocabularyItemsTable extends VocabularyItems
         DriftSqlType.string,
         data['${effectivePrefix}explanation'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -9405,6 +9405,10 @@ class $VocabularyItemsTable extends VocabularyItems
 
 class VocabularyItemRow extends DataClass
     implements Insertable<VocabularyItemRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String word;
   final String language;
@@ -9417,11 +9421,11 @@ class VocabularyItemRow extends DataClass
   final DateTime? lastReviewedAt;
   final int contextsCount;
   final String? explanation;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const VocabularyItemRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.word,
     required this.language,
@@ -9434,14 +9438,18 @@ class VocabularyItemRow extends DataClass
     this.lastReviewedAt,
     required this.contextsCount,
     this.explanation,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['word'] = Variable<String>(word);
     map['language'] = Variable<String>(language);
@@ -9458,19 +9466,19 @@ class VocabularyItemRow extends DataClass
     if (!nullToAbsent || explanation != null) {
       map['explanation'] = Variable<String>(explanation);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   VocabularyItemsCompanion toCompanion(bool nullToAbsent) {
     return VocabularyItemsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       word: Value(word),
       language: Value(language),
@@ -9487,14 +9495,6 @@ class VocabularyItemRow extends DataClass
       explanation: explanation == null && nullToAbsent
           ? const Value.absent()
           : Value(explanation),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -9504,6 +9504,10 @@ class VocabularyItemRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VocabularyItemRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       word: serializer.fromJson<String>(json['word']),
       language: serializer.fromJson<String>(json['language']),
@@ -9516,16 +9520,16 @@ class VocabularyItemRow extends DataClass
       lastReviewedAt: serializer.fromJson<DateTime?>(json['lastReviewedAt']),
       contextsCount: serializer.fromJson<int>(json['contextsCount']),
       explanation: serializer.fromJson<String?>(json['explanation']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'word': serializer.toJson<String>(word),
       'language': serializer.toJson<String>(language),
@@ -9538,14 +9542,14 @@ class VocabularyItemRow extends DataClass
       'lastReviewedAt': serializer.toJson<DateTime?>(lastReviewedAt),
       'contextsCount': serializer.toJson<int>(contextsCount),
       'explanation': serializer.toJson<String?>(explanation),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   VocabularyItemRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? word,
     String? language,
@@ -9558,11 +9562,13 @@ class VocabularyItemRow extends DataClass
     Value<DateTime?> lastReviewedAt = const Value.absent(),
     int? contextsCount,
     Value<String?> explanation = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => VocabularyItemRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     word: word ?? this.word,
     language: language ?? this.language,
@@ -9577,15 +9583,17 @@ class VocabularyItemRow extends DataClass
         : this.lastReviewedAt,
     contextsCount: contextsCount ?? this.contextsCount,
     explanation: explanation.present ? explanation.value : this.explanation,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   VocabularyItemRow copyWithCompanion(VocabularyItemsCompanion data) {
     return VocabularyItemRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       word: data.word.present ? data.word.value : this.word,
       language: data.language.present ? data.language.value : this.language,
@@ -9612,20 +9620,16 @@ class VocabularyItemRow extends DataClass
       explanation: data.explanation.present
           ? data.explanation.value
           : this.explanation,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('VocabularyItemRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('word: $word, ')
           ..write('language: $language, ')
@@ -9637,17 +9641,17 @@ class VocabularyItemRow extends DataClass
           ..write('reviewsCount: $reviewsCount, ')
           ..write('lastReviewedAt: $lastReviewedAt, ')
           ..write('contextsCount: $contextsCount, ')
-          ..write('explanation: $explanation, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('explanation: $explanation')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     word,
     language,
@@ -9660,15 +9664,15 @@ class VocabularyItemRow extends DataClass
     lastReviewedAt,
     contextsCount,
     explanation,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VocabularyItemRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.word == this.word &&
           other.language == this.language &&
@@ -9680,14 +9684,14 @@ class VocabularyItemRow extends DataClass
           other.reviewsCount == this.reviewsCount &&
           other.lastReviewedAt == this.lastReviewedAt &&
           other.contextsCount == this.contextsCount &&
-          other.explanation == this.explanation &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.explanation == this.explanation);
 }
 
 class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> word;
   final Value<String> language;
@@ -9700,12 +9704,12 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
   final Value<DateTime?> lastReviewedAt;
   final Value<int> contextsCount;
   final Value<String?> explanation;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const VocabularyItemsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.word = const Value.absent(),
     this.language = const Value.absent(),
@@ -9718,13 +9722,13 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
     this.lastReviewedAt = const Value.absent(),
     this.contextsCount = const Value.absent(),
     this.explanation = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VocabularyItemsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String word,
     required String language,
@@ -9737,12 +9741,10 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
     this.lastReviewedAt = const Value.absent(),
     required int contextsCount,
     this.explanation = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        word = Value(word),
        language = Value(language),
        targetLanguage = Value(targetLanguage),
@@ -9751,10 +9753,12 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
        interval = Value(interval),
        nextReviewAt = Value(nextReviewAt),
        reviewsCount = Value(reviewsCount),
-       contextsCount = Value(contextsCount),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       contextsCount = Value(contextsCount);
   static Insertable<VocabularyItemRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? word,
     Expression<String>? language,
@@ -9767,13 +9771,13 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
     Expression<DateTime>? lastReviewedAt,
     Expression<int>? contextsCount,
     Expression<String>? explanation,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (word != null) 'word': word,
       if (language != null) 'language': language,
@@ -9786,15 +9790,15 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
       if (lastReviewedAt != null) 'last_reviewed_at': lastReviewedAt,
       if (contextsCount != null) 'contexts_count': contextsCount,
       if (explanation != null) 'explanation': explanation,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   VocabularyItemsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? word,
     Value<String>? language,
@@ -9807,13 +9811,13 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
     Value<DateTime?>? lastReviewedAt,
     Value<int>? contextsCount,
     Value<String?>? explanation,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return VocabularyItemsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       word: word ?? this.word,
       language: language ?? this.language,
@@ -9826,10 +9830,6 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
       lastReviewedAt: lastReviewedAt ?? this.lastReviewedAt,
       contextsCount: contextsCount ?? this.contextsCount,
       explanation: explanation ?? this.explanation,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -9837,6 +9837,18 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -9873,18 +9885,6 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
     if (explanation.present) {
       map['explanation'] = Variable<String>(explanation.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -9894,6 +9894,10 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
   @override
   String toString() {
     return (StringBuffer('VocabularyItemsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('word: $word, ')
           ..write('language: $language, ')
@@ -9906,10 +9910,6 @@ class VocabularyItemsCompanion extends UpdateCompanion<VocabularyItemRow> {
           ..write('lastReviewedAt: $lastReviewedAt, ')
           ..write('contextsCount: $contextsCount, ')
           ..write('explanation: $explanation, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9922,6 +9922,51 @@ class $VocabularyContextsTable extends VocabularyContexts
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VocabularyContextsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -9997,53 +10042,12 @@ class $VocabularyContextsTable extends VocabularyContexts
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
-    'serverUpdatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> serverUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'server_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     vocabularyItemId,
     contextText,
@@ -10051,10 +10055,6 @@ class $VocabularyContextsTable extends VocabularyContexts
     sourceId,
     locatorJson,
     explanation,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -10068,6 +10068,37 @@ class $VocabularyContextsTable extends VocabularyContexts
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -10125,37 +10156,6 @@ class $VocabularyContextsTable extends VocabularyContexts
         ),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('server_updated_at')) {
-      context.handle(
-        _serverUpdatedAtMeta,
-        serverUpdatedAt.isAcceptableOrUnknown(
-          data['server_updated_at']!,
-          _serverUpdatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -10165,6 +10165,22 @@ class $VocabularyContextsTable extends VocabularyContexts
   VocabularyContextRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VocabularyContextRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -10193,22 +10209,6 @@ class $VocabularyContextsTable extends VocabularyContexts
         DriftSqlType.string,
         data['${effectivePrefix}explanation'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      serverUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}server_updated_at'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -10220,6 +10220,10 @@ class $VocabularyContextsTable extends VocabularyContexts
 
 class VocabularyContextRow extends DataClass
     implements Insertable<VocabularyContextRow> {
+  final String? syncStatus;
+  final DateTime? serverUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String vocabularyItemId;
 
@@ -10232,11 +10236,11 @@ class VocabularyContextRow extends DataClass
   /// JSON locator (`MediaLocator` or `EbookLocator`).
   final String locatorJson;
   final String? explanation;
-  final String? syncStatus;
-  final DateTime? serverUpdatedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const VocabularyContextRow({
+    this.syncStatus,
+    this.serverUpdatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.vocabularyItemId,
     required this.contextText,
@@ -10244,14 +10248,18 @@ class VocabularyContextRow extends DataClass
     required this.sourceId,
     required this.locatorJson,
     this.explanation,
-    this.syncStatus,
-    this.serverUpdatedAt,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['vocabulary_item_id'] = Variable<String>(vocabularyItemId);
     map['text'] = Variable<String>(contextText);
@@ -10261,19 +10269,19 @@ class VocabularyContextRow extends DataClass
     if (!nullToAbsent || explanation != null) {
       map['explanation'] = Variable<String>(explanation);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    if (!nullToAbsent || serverUpdatedAt != null) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   VocabularyContextsCompanion toCompanion(bool nullToAbsent) {
     return VocabularyContextsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverUpdatedAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       vocabularyItemId: Value(vocabularyItemId),
       contextText: Value(contextText),
@@ -10283,14 +10291,6 @@ class VocabularyContextRow extends DataClass
       explanation: explanation == null && nullToAbsent
           ? const Value.absent()
           : Value(explanation),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      serverUpdatedAt: serverUpdatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverUpdatedAt),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -10300,6 +10300,10 @@ class VocabularyContextRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VocabularyContextRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       vocabularyItemId: serializer.fromJson<String>(json['vocabularyItemId']),
       contextText: serializer.fromJson<String>(json['contextText']),
@@ -10307,16 +10311,16 @@ class VocabularyContextRow extends DataClass
       sourceId: serializer.fromJson<String>(json['sourceId']),
       locatorJson: serializer.fromJson<String>(json['locatorJson']),
       explanation: serializer.fromJson<String?>(json['explanation']),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'vocabularyItemId': serializer.toJson<String>(vocabularyItemId),
       'contextText': serializer.toJson<String>(contextText),
@@ -10324,14 +10328,14 @@ class VocabularyContextRow extends DataClass
       'sourceId': serializer.toJson<String>(sourceId),
       'locatorJson': serializer.toJson<String>(locatorJson),
       'explanation': serializer.toJson<String?>(explanation),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   VocabularyContextRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? vocabularyItemId,
     String? contextText,
@@ -10339,11 +10343,13 @@ class VocabularyContextRow extends DataClass
     String? sourceId,
     String? locatorJson,
     Value<String?> explanation = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    Value<DateTime?> serverUpdatedAt = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => VocabularyContextRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    serverUpdatedAt: serverUpdatedAt.present
+        ? serverUpdatedAt.value
+        : this.serverUpdatedAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
     contextText: contextText ?? this.contextText,
@@ -10351,15 +10357,17 @@ class VocabularyContextRow extends DataClass
     sourceId: sourceId ?? this.sourceId,
     locatorJson: locatorJson ?? this.locatorJson,
     explanation: explanation.present ? explanation.value : this.explanation,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    serverUpdatedAt: serverUpdatedAt.present
-        ? serverUpdatedAt.value
-        : this.serverUpdatedAt,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   VocabularyContextRow copyWithCompanion(VocabularyContextsCompanion data) {
     return VocabularyContextRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverUpdatedAt: data.serverUpdatedAt.present
+          ? data.serverUpdatedAt.value
+          : this.serverUpdatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       vocabularyItemId: data.vocabularyItemId.present
           ? data.vocabularyItemId.value
@@ -10377,37 +10385,33 @@ class VocabularyContextRow extends DataClass
       explanation: data.explanation.present
           ? data.explanation.value
           : this.explanation,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      serverUpdatedAt: data.serverUpdatedAt.present
-          ? data.serverUpdatedAt.value
-          : this.serverUpdatedAt,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('VocabularyContextRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vocabularyItemId: $vocabularyItemId, ')
           ..write('contextText: $contextText, ')
           ..write('sourceType: $sourceType, ')
           ..write('sourceId: $sourceId, ')
           ..write('locatorJson: $locatorJson, ')
-          ..write('explanation: $explanation, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('explanation: $explanation')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    serverUpdatedAt,
+    createdAt,
+    updatedAt,
     id,
     vocabularyItemId,
     contextText,
@@ -10415,30 +10419,30 @@ class VocabularyContextRow extends DataClass
     sourceId,
     locatorJson,
     explanation,
-    syncStatus,
-    serverUpdatedAt,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VocabularyContextRow &&
+          other.syncStatus == this.syncStatus &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.vocabularyItemId == this.vocabularyItemId &&
           other.contextText == this.contextText &&
           other.sourceType == this.sourceType &&
           other.sourceId == this.sourceId &&
           other.locatorJson == this.locatorJson &&
-          other.explanation == this.explanation &&
-          other.syncStatus == this.syncStatus &&
-          other.serverUpdatedAt == this.serverUpdatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.explanation == this.explanation);
 }
 
 class VocabularyContextsCompanion
     extends UpdateCompanion<VocabularyContextRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> vocabularyItemId;
   final Value<String> contextText;
@@ -10446,12 +10450,12 @@ class VocabularyContextsCompanion
   final Value<String> sourceId;
   final Value<String> locatorJson;
   final Value<String?> explanation;
-  final Value<String?> syncStatus;
-  final Value<DateTime?> serverUpdatedAt;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const VocabularyContextsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.vocabularyItemId = const Value.absent(),
     this.contextText = const Value.absent(),
@@ -10459,13 +10463,13 @@ class VocabularyContextsCompanion
     this.sourceId = const Value.absent(),
     this.locatorJson = const Value.absent(),
     this.explanation = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VocabularyContextsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String vocabularyItemId,
     required String contextText,
@@ -10473,20 +10477,20 @@ class VocabularyContextsCompanion
     required String sourceId,
     required String locatorJson,
     this.explanation = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.serverUpdatedAt = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        vocabularyItemId = Value(vocabularyItemId),
        contextText = Value(contextText),
        sourceType = Value(sourceType),
        sourceId = Value(sourceId),
-       locatorJson = Value(locatorJson),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       locatorJson = Value(locatorJson);
   static Insertable<VocabularyContextRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? vocabularyItemId,
     Expression<String>? contextText,
@@ -10494,13 +10498,13 @@ class VocabularyContextsCompanion
     Expression<String>? sourceId,
     Expression<String>? locatorJson,
     Expression<String>? explanation,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? serverUpdatedAt,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (vocabularyItemId != null) 'vocabulary_item_id': vocabularyItemId,
       if (contextText != null) 'text': contextText,
@@ -10508,15 +10512,15 @@ class VocabularyContextsCompanion
       if (sourceId != null) 'source_id': sourceId,
       if (locatorJson != null) 'locator': locatorJson,
       if (explanation != null) 'explanation': explanation,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   VocabularyContextsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? vocabularyItemId,
     Value<String>? contextText,
@@ -10524,13 +10528,13 @@ class VocabularyContextsCompanion
     Value<String>? sourceId,
     Value<String>? locatorJson,
     Value<String?>? explanation,
-    Value<String?>? syncStatus,
-    Value<DateTime?>? serverUpdatedAt,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return VocabularyContextsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
       contextText: contextText ?? this.contextText,
@@ -10538,10 +10542,6 @@ class VocabularyContextsCompanion
       sourceId: sourceId ?? this.sourceId,
       locatorJson: locatorJson ?? this.locatorJson,
       explanation: explanation ?? this.explanation,
-      syncStatus: syncStatus ?? this.syncStatus,
-      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10549,6 +10549,18 @@ class VocabularyContextsCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -10570,18 +10582,6 @@ class VocabularyContextsCompanion
     if (explanation.present) {
       map['explanation'] = Variable<String>(explanation.value);
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (serverUpdatedAt.present) {
-      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10591,6 +10591,10 @@ class VocabularyContextsCompanion
   @override
   String toString() {
     return (StringBuffer('VocabularyContextsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vocabularyItemId: $vocabularyItemId, ')
           ..write('contextText: $contextText, ')
@@ -10598,10 +10602,6 @@ class VocabularyContextsCompanion
           ..write('sourceId: $sourceId, ')
           ..write('locatorJson: $locatorJson, ')
           ..write('explanation: $explanation, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('serverUpdatedAt: $serverUpdatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10614,6 +10614,39 @@ class $VocabularyReviewsTable extends VocabularyReviews
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VocabularyReviewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -10717,41 +10750,11 @@ class $VocabularyReviewsTable extends VocabularyReviews
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
-  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
-    'syncStatus',
-  );
-  @override
-  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
-    'sync_status',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
+    syncStatus,
+    createdAt,
+    updatedAt,
     id,
     vocabularyItemId,
     rating,
@@ -10762,9 +10765,6 @@ class $VocabularyReviewsTable extends VocabularyReviews
     reviewsCountBefore,
     nextReviewAtBefore,
     lastReviewedAtBefore,
-    syncStatus,
-    createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -10778,6 +10778,28 @@ class $VocabularyReviewsTable extends VocabularyReviews
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -10871,28 +10893,6 @@ class $VocabularyReviewsTable extends VocabularyReviews
         ),
       );
     }
-    if (data.containsKey('sync_status')) {
-      context.handle(
-        _syncStatusMeta,
-        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
@@ -10902,6 +10902,18 @@ class $VocabularyReviewsTable extends VocabularyReviews
   VocabularyReviewRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VocabularyReviewRow(
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -10942,18 +10954,6 @@ class $VocabularyReviewsTable extends VocabularyReviews
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_reviewed_at_before'],
       ),
-      syncStatus: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}sync_status'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -10965,6 +10965,9 @@ class $VocabularyReviewsTable extends VocabularyReviews
 
 class VocabularyReviewRow extends DataClass
     implements Insertable<VocabularyReviewRow> {
+  final String? syncStatus;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   final String id;
   final String vocabularyItemId;
   final int rating;
@@ -10975,10 +10978,10 @@ class VocabularyReviewRow extends DataClass
   final int reviewsCountBefore;
   final DateTime nextReviewAtBefore;
   final DateTime? lastReviewedAtBefore;
-  final String? syncStatus;
-  final DateTime createdAt;
-  final DateTime updatedAt;
   const VocabularyReviewRow({
+    this.syncStatus,
+    required this.createdAt,
+    required this.updatedAt,
     required this.id,
     required this.vocabularyItemId,
     required this.rating,
@@ -10989,13 +10992,15 @@ class VocabularyReviewRow extends DataClass
     required this.reviewsCountBefore,
     required this.nextReviewAtBefore,
     this.lastReviewedAtBefore,
-    this.syncStatus,
-    required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || syncStatus != null) {
+      map['sync_status'] = Variable<String>(syncStatus);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['id'] = Variable<String>(id);
     map['vocabulary_item_id'] = Variable<String>(vocabularyItemId);
     map['rating'] = Variable<int>(rating);
@@ -11008,16 +11013,16 @@ class VocabularyReviewRow extends DataClass
     if (!nullToAbsent || lastReviewedAtBefore != null) {
       map['last_reviewed_at_before'] = Variable<DateTime>(lastReviewedAtBefore);
     }
-    if (!nullToAbsent || syncStatus != null) {
-      map['sync_status'] = Variable<String>(syncStatus);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   VocabularyReviewsCompanion toCompanion(bool nullToAbsent) {
     return VocabularyReviewsCompanion(
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       id: Value(id),
       vocabularyItemId: Value(vocabularyItemId),
       rating: Value(rating),
@@ -11030,11 +11035,6 @@ class VocabularyReviewRow extends DataClass
       lastReviewedAtBefore: lastReviewedAtBefore == null && nullToAbsent
           ? const Value.absent()
           : Value(lastReviewedAtBefore),
-      syncStatus: syncStatus == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncStatus),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -11044,6 +11044,9 @@ class VocabularyReviewRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VocabularyReviewRow(
+      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       id: serializer.fromJson<String>(json['id']),
       vocabularyItemId: serializer.fromJson<String>(json['vocabularyItemId']),
       rating: serializer.fromJson<int>(json['rating']),
@@ -11058,15 +11061,15 @@ class VocabularyReviewRow extends DataClass
       lastReviewedAtBefore: serializer.fromJson<DateTime?>(
         json['lastReviewedAtBefore'],
       ),
-      syncStatus: serializer.fromJson<String?>(json['syncStatus']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'syncStatus': serializer.toJson<String?>(syncStatus),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'id': serializer.toJson<String>(id),
       'vocabularyItemId': serializer.toJson<String>(vocabularyItemId),
       'rating': serializer.toJson<int>(rating),
@@ -11079,13 +11082,13 @@ class VocabularyReviewRow extends DataClass
       'lastReviewedAtBefore': serializer.toJson<DateTime?>(
         lastReviewedAtBefore,
       ),
-      'syncStatus': serializer.toJson<String?>(syncStatus),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   VocabularyReviewRow copyWith({
+    Value<String?> syncStatus = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? id,
     String? vocabularyItemId,
     int? rating,
@@ -11096,10 +11099,10 @@ class VocabularyReviewRow extends DataClass
     int? reviewsCountBefore,
     DateTime? nextReviewAtBefore,
     Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
-    Value<String?> syncStatus = const Value.absent(),
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) => VocabularyReviewRow(
+    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     id: id ?? this.id,
     vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
     rating: rating ?? this.rating,
@@ -11112,12 +11115,14 @@ class VocabularyReviewRow extends DataClass
     lastReviewedAtBefore: lastReviewedAtBefore.present
         ? lastReviewedAtBefore.value
         : this.lastReviewedAtBefore,
-    syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   VocabularyReviewRow copyWithCompanion(VocabularyReviewsCompanion data) {
     return VocabularyReviewRow(
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       id: data.id.present ? data.id.value : this.id,
       vocabularyItemId: data.vocabularyItemId.present
           ? data.vocabularyItemId.value
@@ -11142,17 +11147,15 @@ class VocabularyReviewRow extends DataClass
       lastReviewedAtBefore: data.lastReviewedAtBefore.present
           ? data.lastReviewedAtBefore.value
           : this.lastReviewedAtBefore,
-      syncStatus: data.syncStatus.present
-          ? data.syncStatus.value
-          : this.syncStatus,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('VocabularyReviewRow(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vocabularyItemId: $vocabularyItemId, ')
           ..write('rating: $rating, ')
@@ -11162,16 +11165,16 @@ class VocabularyReviewRow extends DataClass
           ..write('statusBefore: $statusBefore, ')
           ..write('reviewsCountBefore: $reviewsCountBefore, ')
           ..write('nextReviewAtBefore: $nextReviewAtBefore, ')
-          ..write('lastReviewedAtBefore: $lastReviewedAtBefore, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('lastReviewedAtBefore: $lastReviewedAtBefore')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
+    syncStatus,
+    createdAt,
+    updatedAt,
     id,
     vocabularyItemId,
     rating,
@@ -11182,14 +11185,14 @@ class VocabularyReviewRow extends DataClass
     reviewsCountBefore,
     nextReviewAtBefore,
     lastReviewedAtBefore,
-    syncStatus,
-    createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VocabularyReviewRow &&
+          other.syncStatus == this.syncStatus &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.id == this.id &&
           other.vocabularyItemId == this.vocabularyItemId &&
           other.rating == this.rating &&
@@ -11199,13 +11202,13 @@ class VocabularyReviewRow extends DataClass
           other.statusBefore == this.statusBefore &&
           other.reviewsCountBefore == this.reviewsCountBefore &&
           other.nextReviewAtBefore == this.nextReviewAtBefore &&
-          other.lastReviewedAtBefore == this.lastReviewedAtBefore &&
-          other.syncStatus == this.syncStatus &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.lastReviewedAtBefore == this.lastReviewedAtBefore);
 }
 
 class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
+  final Value<String?> syncStatus;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> id;
   final Value<String> vocabularyItemId;
   final Value<int> rating;
@@ -11216,11 +11219,11 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
   final Value<int> reviewsCountBefore;
   final Value<DateTime> nextReviewAtBefore;
   final Value<DateTime?> lastReviewedAtBefore;
-  final Value<String?> syncStatus;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const VocabularyReviewsCompanion({
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.id = const Value.absent(),
     this.vocabularyItemId = const Value.absent(),
     this.rating = const Value.absent(),
@@ -11231,12 +11234,12 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
     this.reviewsCountBefore = const Value.absent(),
     this.nextReviewAtBefore = const Value.absent(),
     this.lastReviewedAtBefore = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VocabularyReviewsCompanion.insert({
+    this.syncStatus = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
     required String id,
     required String vocabularyItemId,
     required int rating,
@@ -11247,11 +11250,10 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
     required int reviewsCountBefore,
     required DateTime nextReviewAtBefore,
     this.lastReviewedAtBefore = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       id = Value(id),
        vocabularyItemId = Value(vocabularyItemId),
        rating = Value(rating),
        at = Value(at),
@@ -11259,10 +11261,11 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
        intervalBefore = Value(intervalBefore),
        statusBefore = Value(statusBefore),
        reviewsCountBefore = Value(reviewsCountBefore),
-       nextReviewAtBefore = Value(nextReviewAtBefore),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
+       nextReviewAtBefore = Value(nextReviewAtBefore);
   static Insertable<VocabularyReviewRow> custom({
+    Expression<String>? syncStatus,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? id,
     Expression<String>? vocabularyItemId,
     Expression<int>? rating,
@@ -11273,12 +11276,12 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
     Expression<int>? reviewsCountBefore,
     Expression<DateTime>? nextReviewAtBefore,
     Expression<DateTime>? lastReviewedAtBefore,
-    Expression<String>? syncStatus,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (id != null) 'id': id,
       if (vocabularyItemId != null) 'vocabulary_item_id': vocabularyItemId,
       if (rating != null) 'rating': rating,
@@ -11292,14 +11295,14 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
         'next_review_at_before': nextReviewAtBefore,
       if (lastReviewedAtBefore != null)
         'last_reviewed_at_before': lastReviewedAtBefore,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   VocabularyReviewsCompanion copyWith({
+    Value<String?>? syncStatus,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<String>? id,
     Value<String>? vocabularyItemId,
     Value<int>? rating,
@@ -11310,12 +11313,12 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
     Value<int>? reviewsCountBefore,
     Value<DateTime>? nextReviewAtBefore,
     Value<DateTime?>? lastReviewedAtBefore,
-    Value<String?>? syncStatus,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return VocabularyReviewsCompanion(
+      syncStatus: syncStatus ?? this.syncStatus,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       vocabularyItemId: vocabularyItemId ?? this.vocabularyItemId,
       rating: rating ?? this.rating,
@@ -11326,9 +11329,6 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
       reviewsCountBefore: reviewsCountBefore ?? this.reviewsCountBefore,
       nextReviewAtBefore: nextReviewAtBefore ?? this.nextReviewAtBefore,
       lastReviewedAtBefore: lastReviewedAtBefore ?? this.lastReviewedAtBefore,
-      syncStatus: syncStatus ?? this.syncStatus,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -11336,6 +11336,15 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -11370,15 +11379,6 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
         lastReviewedAtBefore.value,
       );
     }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(syncStatus.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -11388,6 +11388,9 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
   @override
   String toString() {
     return (StringBuffer('VocabularyReviewsCompanion(')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('id: $id, ')
           ..write('vocabularyItemId: $vocabularyItemId, ')
           ..write('rating: $rating, ')
@@ -11398,9 +11401,6 @@ class VocabularyReviewsCompanion extends UpdateCompanion<VocabularyReviewRow> {
           ..write('reviewsCountBefore: $reviewsCountBefore, ')
           ..write('nextReviewAtBefore: $nextReviewAtBefore, ')
           ..write('lastReviewedAtBefore: $lastReviewedAtBefore, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11519,6 +11519,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$VideosTableCreateCompanionBuilder =
     VideosCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String vid,
       Value<String> provider,
@@ -11533,14 +11537,14 @@ typedef $$VideosTableCreateCompanionBuilder =
       Value<int?> size,
       Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$VideosTableUpdateCompanionBuilder =
     VideosCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> vid,
       Value<String> provider,
@@ -11555,10 +11559,6 @@ typedef $$VideosTableUpdateCompanionBuilder =
       Value<int?> size,
       Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -11571,6 +11571,26 @@ class $$VideosTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -11640,26 +11660,6 @@ class $$VideosTableFilterComposer
     column: $table.mediaUrl,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$VideosTableOrderingComposer
@@ -11671,6 +11671,26 @@ class $$VideosTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -11740,26 +11760,6 @@ class $$VideosTableOrderingComposer
     column: $table.mediaUrl,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$VideosTableAnnotationComposer
@@ -11771,6 +11771,22 @@ class $$VideosTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -11820,22 +11836,6 @@ class $$VideosTableAnnotationComposer
 
   GeneratedColumn<String> get mediaUrl =>
       $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$VideosTableTableManager
@@ -11866,6 +11866,10 @@ class $$VideosTableTableManager
               $$VideosTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> vid = const Value.absent(),
                 Value<String> provider = const Value.absent(),
@@ -11880,12 +11884,12 @@ class $$VideosTableTableManager
                 Value<int?> size = const Value.absent(),
                 Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VideosCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vid: vid,
                 provider: provider,
@@ -11900,14 +11904,14 @@ class $$VideosTableTableManager
                 size: size,
                 localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String vid,
                 Value<String> provider = const Value.absent(),
@@ -11922,12 +11926,12 @@ class $$VideosTableTableManager
                 Value<int?> size = const Value.absent(),
                 Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => VideosCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vid: vid,
                 provider: provider,
@@ -11942,10 +11946,6 @@ class $$VideosTableTableManager
                 size: size,
                 localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -11972,6 +11972,10 @@ typedef $$VideosTableProcessedTableManager =
     >;
 typedef $$AudiosTableCreateCompanionBuilder =
     AudiosCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String aid,
       Value<String> provider,
@@ -11989,14 +11993,14 @@ typedef $$AudiosTableCreateCompanionBuilder =
       Value<int?> size,
       Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$AudiosTableUpdateCompanionBuilder =
     AudiosCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> aid,
       Value<String> provider,
@@ -12014,10 +12018,6 @@ typedef $$AudiosTableUpdateCompanionBuilder =
       Value<int?> size,
       Value<int?> localMtimeMs,
       Value<String?> mediaUrl,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -12030,6 +12030,26 @@ class $$AudiosTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -12114,26 +12134,6 @@ class $$AudiosTableFilterComposer
     column: $table.mediaUrl,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$AudiosTableOrderingComposer
@@ -12145,6 +12145,26 @@ class $$AudiosTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -12229,26 +12249,6 @@ class $$AudiosTableOrderingComposer
     column: $table.mediaUrl,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$AudiosTableAnnotationComposer
@@ -12260,6 +12260,22 @@ class $$AudiosTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -12322,22 +12338,6 @@ class $$AudiosTableAnnotationComposer
 
   GeneratedColumn<String> get mediaUrl =>
       $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$AudiosTableTableManager
@@ -12368,6 +12368,10 @@ class $$AudiosTableTableManager
               $$AudiosTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> aid = const Value.absent(),
                 Value<String> provider = const Value.absent(),
@@ -12385,12 +12389,12 @@ class $$AudiosTableTableManager
                 Value<int?> size = const Value.absent(),
                 Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AudiosCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 aid: aid,
                 provider: provider,
@@ -12408,14 +12412,14 @@ class $$AudiosTableTableManager
                 size: size,
                 localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String aid,
                 Value<String> provider = const Value.absent(),
@@ -12433,12 +12437,12 @@ class $$AudiosTableTableManager
                 Value<int?> size = const Value.absent(),
                 Value<int?> localMtimeMs = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => AudiosCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 aid: aid,
                 provider: provider,
@@ -12456,10 +12460,6 @@ class $$AudiosTableTableManager
                 size: size,
                 localMtimeMs: localMtimeMs,
                 mediaUrl: mediaUrl,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12486,6 +12486,10 @@ typedef $$AudiosTableProcessedTableManager =
     >;
 typedef $$TranscriptsTableCreateCompanionBuilder =
     TranscriptsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String targetType,
       required String targetId,
@@ -12495,14 +12499,14 @@ typedef $$TranscriptsTableCreateCompanionBuilder =
       Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$TranscriptsTableUpdateCompanionBuilder =
     TranscriptsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> targetType,
       Value<String> targetId,
@@ -12512,10 +12516,6 @@ typedef $$TranscriptsTableUpdateCompanionBuilder =
       Value<String?> referenceId,
       Value<String> label,
       Value<int?> trackIndex,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -12528,6 +12528,26 @@ class $$TranscriptsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -12572,26 +12592,6 @@ class $$TranscriptsTableFilterComposer
     column: $table.trackIndex,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$TranscriptsTableOrderingComposer
@@ -12603,6 +12603,26 @@ class $$TranscriptsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -12647,26 +12667,6 @@ class $$TranscriptsTableOrderingComposer
     column: $table.trackIndex,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$TranscriptsTableAnnotationComposer
@@ -12678,6 +12678,22 @@ class $$TranscriptsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -12712,22 +12728,6 @@ class $$TranscriptsTableAnnotationComposer
     column: $table.trackIndex,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$TranscriptsTableTableManager
@@ -12761,6 +12761,10 @@ class $$TranscriptsTableTableManager
               $$TranscriptsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> targetType = const Value.absent(),
                 Value<String> targetId = const Value.absent(),
@@ -12770,12 +12774,12 @@ class $$TranscriptsTableTableManager
                 Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TranscriptsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -12785,14 +12789,14 @@ class $$TranscriptsTableTableManager
                 referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String targetType,
                 required String targetId,
@@ -12802,12 +12806,12 @@ class $$TranscriptsTableTableManager
                 Value<String?> referenceId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<int?> trackIndex = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => TranscriptsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -12817,10 +12821,6 @@ class $$TranscriptsTableTableManager
                 referenceId: referenceId,
                 label: label,
                 trackIndex: trackIndex,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13075,6 +13075,10 @@ typedef $$TranscriptFetchStatesTableProcessedTableManager =
     >;
 typedef $$EchoSessionsTableCreateCompanionBuilder =
     EchoSessionsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String targetType,
       required String targetId,
@@ -13097,14 +13101,14 @@ typedef $$EchoSessionsTableCreateCompanionBuilder =
       required DateTime startedAt,
       required DateTime lastActiveAt,
       Value<DateTime?> completedAt,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$EchoSessionsTableUpdateCompanionBuilder =
     EchoSessionsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> targetType,
       Value<String> targetId,
@@ -13127,10 +13131,6 @@ typedef $$EchoSessionsTableUpdateCompanionBuilder =
       Value<DateTime> startedAt,
       Value<DateTime> lastActiveAt,
       Value<DateTime?> completedAt,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -13143,6 +13143,26 @@ class $$EchoSessionsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -13252,26 +13272,6 @@ class $$EchoSessionsTableFilterComposer
     column: $table.completedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$EchoSessionsTableOrderingComposer
@@ -13283,6 +13283,26 @@ class $$EchoSessionsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -13392,26 +13412,6 @@ class $$EchoSessionsTableOrderingComposer
     column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$EchoSessionsTableAnnotationComposer
@@ -13423,6 +13423,22 @@ class $$EchoSessionsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -13520,22 +13536,6 @@ class $$EchoSessionsTableAnnotationComposer
     column: $table.completedAt,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$EchoSessionsTableTableManager
@@ -13569,6 +13569,10 @@ class $$EchoSessionsTableTableManager
               $$EchoSessionsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> targetType = const Value.absent(),
                 Value<String> targetId = const Value.absent(),
@@ -13591,12 +13595,12 @@ class $$EchoSessionsTableTableManager
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<DateTime> lastActiveAt = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EchoSessionsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -13619,14 +13623,14 @@ class $$EchoSessionsTableTableManager
                 startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
                 completedAt: completedAt,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String targetType,
                 required String targetId,
@@ -13649,12 +13653,12 @@ class $$EchoSessionsTableTableManager
                 required DateTime startedAt,
                 required DateTime lastActiveAt,
                 Value<DateTime?> completedAt = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => EchoSessionsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -13677,10 +13681,6 @@ class $$EchoSessionsTableTableManager
                 startedAt: startedAt,
                 lastActiveAt: lastActiveAt,
                 completedAt: completedAt,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13710,6 +13710,10 @@ typedef $$EchoSessionsTableProcessedTableManager =
     >;
 typedef $$RecordingsTableCreateCompanionBuilder =
     RecordingsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String targetType,
       required String targetId,
@@ -13723,14 +13727,14 @@ typedef $$RecordingsTableCreateCompanionBuilder =
       Value<int?> pronunciationScore,
       Value<String?> assessmentJson,
       Value<String?> localPath,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$RecordingsTableUpdateCompanionBuilder =
     RecordingsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> targetType,
       Value<String> targetId,
@@ -13744,10 +13748,6 @@ typedef $$RecordingsTableUpdateCompanionBuilder =
       Value<int?> pronunciationScore,
       Value<String?> assessmentJson,
       Value<String?> localPath,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -13760,6 +13760,26 @@ class $$RecordingsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -13824,26 +13844,6 @@ class $$RecordingsTableFilterComposer
     column: $table.localPath,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$RecordingsTableOrderingComposer
@@ -13855,6 +13855,26 @@ class $$RecordingsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -13919,26 +13939,6 @@ class $$RecordingsTableOrderingComposer
     column: $table.localPath,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$RecordingsTableAnnotationComposer
@@ -13950,6 +13950,22 @@ class $$RecordingsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -14000,22 +14016,6 @@ class $$RecordingsTableAnnotationComposer
 
   GeneratedColumn<String> get localPath =>
       $composableBuilder(column: $table.localPath, builder: (column) => column);
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$RecordingsTableTableManager
@@ -14049,6 +14049,10 @@ class $$RecordingsTableTableManager
               $$RecordingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> targetType = const Value.absent(),
                 Value<String> targetId = const Value.absent(),
@@ -14062,12 +14066,12 @@ class $$RecordingsTableTableManager
                 Value<int?> pronunciationScore = const Value.absent(),
                 Value<String?> assessmentJson = const Value.absent(),
                 Value<String?> localPath = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RecordingsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -14081,14 +14085,14 @@ class $$RecordingsTableTableManager
                 pronunciationScore: pronunciationScore,
                 assessmentJson: assessmentJson,
                 localPath: localPath,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String targetType,
                 required String targetId,
@@ -14102,12 +14106,12 @@ class $$RecordingsTableTableManager
                 Value<int?> pronunciationScore = const Value.absent(),
                 Value<String?> assessmentJson = const Value.absent(),
                 Value<String?> localPath = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => RecordingsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -14121,10 +14125,6 @@ class $$RecordingsTableTableManager
                 pronunciationScore: pronunciationScore,
                 assessmentJson: assessmentJson,
                 localPath: localPath,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -14154,6 +14154,10 @@ typedef $$RecordingsTableProcessedTableManager =
     >;
 typedef $$DictationsTableCreateCompanionBuilder =
     DictationsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String targetType,
       required String targetId,
@@ -14166,14 +14170,14 @@ typedef $$DictationsTableCreateCompanionBuilder =
       required int correctWords,
       required int missedWords,
       required int extraWords,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$DictationsTableUpdateCompanionBuilder =
     DictationsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> targetType,
       Value<String> targetId,
@@ -14186,10 +14190,6 @@ typedef $$DictationsTableUpdateCompanionBuilder =
       Value<int> correctWords,
       Value<int> missedWords,
       Value<int> extraWords,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -14202,6 +14202,26 @@ class $$DictationsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -14261,26 +14281,6 @@ class $$DictationsTableFilterComposer
     column: $table.extraWords,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$DictationsTableOrderingComposer
@@ -14292,6 +14292,26 @@ class $$DictationsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -14351,26 +14371,6 @@ class $$DictationsTableOrderingComposer
     column: $table.extraWords,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$DictationsTableAnnotationComposer
@@ -14382,6 +14382,22 @@ class $$DictationsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -14431,22 +14447,6 @@ class $$DictationsTableAnnotationComposer
     column: $table.extraWords,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$DictationsTableTableManager
@@ -14480,6 +14480,10 @@ class $$DictationsTableTableManager
               $$DictationsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> targetType = const Value.absent(),
                 Value<String> targetId = const Value.absent(),
@@ -14492,12 +14496,12 @@ class $$DictationsTableTableManager
                 Value<int> correctWords = const Value.absent(),
                 Value<int> missedWords = const Value.absent(),
                 Value<int> extraWords = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DictationsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -14510,14 +14514,14 @@ class $$DictationsTableTableManager
                 correctWords: correctWords,
                 missedWords: missedWords,
                 extraWords: extraWords,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String targetType,
                 required String targetId,
@@ -14530,12 +14534,12 @@ class $$DictationsTableTableManager
                 required int correctWords,
                 required int missedWords,
                 required int extraWords,
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => DictationsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 targetType: targetType,
                 targetId: targetId,
@@ -14548,10 +14552,6 @@ class $$DictationsTableTableManager
                 correctWords: correctWords,
                 missedWords: missedWords,
                 extraWords: extraWords,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -15745,6 +15745,10 @@ typedef $$AiCacheTableProcessedTableManager =
     >;
 typedef $$VocabularyItemsTableCreateCompanionBuilder =
     VocabularyItemsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String word,
       required String language,
@@ -15757,14 +15761,14 @@ typedef $$VocabularyItemsTableCreateCompanionBuilder =
       Value<DateTime?> lastReviewedAt,
       required int contextsCount,
       Value<String?> explanation,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$VocabularyItemsTableUpdateCompanionBuilder =
     VocabularyItemsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> word,
       Value<String> language,
@@ -15777,10 +15781,6 @@ typedef $$VocabularyItemsTableUpdateCompanionBuilder =
       Value<DateTime?> lastReviewedAt,
       Value<int> contextsCount,
       Value<String?> explanation,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -15793,6 +15793,26 @@ class $$VocabularyItemsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -15852,26 +15872,6 @@ class $$VocabularyItemsTableFilterComposer
     column: $table.explanation,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$VocabularyItemsTableOrderingComposer
@@ -15883,6 +15883,26 @@ class $$VocabularyItemsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -15942,26 +15962,6 @@ class $$VocabularyItemsTableOrderingComposer
     column: $table.explanation,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$VocabularyItemsTableAnnotationComposer
@@ -15973,6 +15973,22 @@ class $$VocabularyItemsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -16022,22 +16038,6 @@ class $$VocabularyItemsTableAnnotationComposer
     column: $table.explanation,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$VocabularyItemsTableTableManager
@@ -16077,6 +16077,10 @@ class $$VocabularyItemsTableTableManager
               $$VocabularyItemsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> word = const Value.absent(),
                 Value<String> language = const Value.absent(),
@@ -16089,12 +16093,12 @@ class $$VocabularyItemsTableTableManager
                 Value<DateTime?> lastReviewedAt = const Value.absent(),
                 Value<int> contextsCount = const Value.absent(),
                 Value<String?> explanation = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyItemsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 word: word,
                 language: language,
@@ -16107,14 +16111,14 @@ class $$VocabularyItemsTableTableManager
                 lastReviewedAt: lastReviewedAt,
                 contextsCount: contextsCount,
                 explanation: explanation,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String word,
                 required String language,
@@ -16127,12 +16131,12 @@ class $$VocabularyItemsTableTableManager
                 Value<DateTime?> lastReviewedAt = const Value.absent(),
                 required int contextsCount,
                 Value<String?> explanation = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyItemsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 word: word,
                 language: language,
@@ -16145,10 +16149,6 @@ class $$VocabularyItemsTableTableManager
                 lastReviewedAt: lastReviewedAt,
                 contextsCount: contextsCount,
                 explanation: explanation,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -16178,6 +16178,10 @@ typedef $$VocabularyItemsTableProcessedTableManager =
     >;
 typedef $$VocabularyContextsTableCreateCompanionBuilder =
     VocabularyContextsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String vocabularyItemId,
       required String contextText,
@@ -16185,14 +16189,14 @@ typedef $$VocabularyContextsTableCreateCompanionBuilder =
       required String sourceId,
       required String locatorJson,
       Value<String?> explanation,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$VocabularyContextsTableUpdateCompanionBuilder =
     VocabularyContextsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime?> serverUpdatedAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> vocabularyItemId,
       Value<String> contextText,
@@ -16200,10 +16204,6 @@ typedef $$VocabularyContextsTableUpdateCompanionBuilder =
       Value<String> sourceId,
       Value<String> locatorJson,
       Value<String?> explanation,
-      Value<String?> syncStatus,
-      Value<DateTime?> serverUpdatedAt,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -16216,6 +16216,26 @@ class $$VocabularyContextsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -16250,26 +16270,6 @@ class $$VocabularyContextsTableFilterComposer
     column: $table.explanation,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$VocabularyContextsTableOrderingComposer
@@ -16281,6 +16281,26 @@ class $$VocabularyContextsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -16315,26 +16335,6 @@ class $$VocabularyContextsTableOrderingComposer
     column: $table.explanation,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$VocabularyContextsTableAnnotationComposer
@@ -16346,6 +16346,22 @@ class $$VocabularyContextsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -16376,22 +16392,6 @@ class $$VocabularyContextsTableAnnotationComposer
     column: $table.explanation,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
-    column: $table.serverUpdatedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$VocabularyContextsTableTableManager
@@ -16434,6 +16434,10 @@ class $$VocabularyContextsTableTableManager
               ),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> vocabularyItemId = const Value.absent(),
                 Value<String> contextText = const Value.absent(),
@@ -16441,12 +16445,12 @@ class $$VocabularyContextsTableTableManager
                 Value<String> sourceId = const Value.absent(),
                 Value<String> locatorJson = const Value.absent(),
                 Value<String?> explanation = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyContextsCompanion(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vocabularyItemId: vocabularyItemId,
                 contextText: contextText,
@@ -16454,14 +16458,14 @@ class $$VocabularyContextsTableTableManager
                 sourceId: sourceId,
                 locatorJson: locatorJson,
                 explanation: explanation,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String vocabularyItemId,
                 required String contextText,
@@ -16469,12 +16473,12 @@ class $$VocabularyContextsTableTableManager
                 required String sourceId,
                 required String locatorJson,
                 Value<String?> explanation = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime?> serverUpdatedAt = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyContextsCompanion.insert(
+                syncStatus: syncStatus,
+                serverUpdatedAt: serverUpdatedAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vocabularyItemId: vocabularyItemId,
                 contextText: contextText,
@@ -16482,10 +16486,6 @@ class $$VocabularyContextsTableTableManager
                 sourceId: sourceId,
                 locatorJson: locatorJson,
                 explanation: explanation,
-                syncStatus: syncStatus,
-                serverUpdatedAt: serverUpdatedAt,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -16519,6 +16519,9 @@ typedef $$VocabularyContextsTableProcessedTableManager =
     >;
 typedef $$VocabularyReviewsTableCreateCompanionBuilder =
     VocabularyReviewsCompanion Function({
+      Value<String?> syncStatus,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       required String id,
       required String vocabularyItemId,
       required int rating,
@@ -16529,13 +16532,13 @@ typedef $$VocabularyReviewsTableCreateCompanionBuilder =
       required int reviewsCountBefore,
       required DateTime nextReviewAtBefore,
       Value<DateTime?> lastReviewedAtBefore,
-      Value<String?> syncStatus,
-      required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
 typedef $$VocabularyReviewsTableUpdateCompanionBuilder =
     VocabularyReviewsCompanion Function({
+      Value<String?> syncStatus,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<String> id,
       Value<String> vocabularyItemId,
       Value<int> rating,
@@ -16546,9 +16549,6 @@ typedef $$VocabularyReviewsTableUpdateCompanionBuilder =
       Value<int> reviewsCountBefore,
       Value<DateTime> nextReviewAtBefore,
       Value<DateTime?> lastReviewedAtBefore,
-      Value<String?> syncStatus,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -16561,6 +16561,21 @@ class $$VocabularyReviewsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -16610,21 +16625,6 @@ class $$VocabularyReviewsTableFilterComposer
     column: $table.lastReviewedAtBefore,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$VocabularyReviewsTableOrderingComposer
@@ -16636,6 +16636,21 @@ class $$VocabularyReviewsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -16685,21 +16700,6 @@ class $$VocabularyReviewsTableOrderingComposer
     column: $table.lastReviewedAtBefore,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$VocabularyReviewsTableAnnotationComposer
@@ -16711,6 +16711,17 @@ class $$VocabularyReviewsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -16754,17 +16765,6 @@ class $$VocabularyReviewsTableAnnotationComposer
     column: $table.lastReviewedAtBefore,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get syncStatus => $composableBuilder(
-    column: $table.syncStatus,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$VocabularyReviewsTableTableManager
@@ -16807,6 +16807,9 @@ class $$VocabularyReviewsTableTableManager
               ),
           updateCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> vocabularyItemId = const Value.absent(),
                 Value<int> rating = const Value.absent(),
@@ -16817,11 +16820,11 @@ class $$VocabularyReviewsTableTableManager
                 Value<int> reviewsCountBefore = const Value.absent(),
                 Value<DateTime> nextReviewAtBefore = const Value.absent(),
                 Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyReviewsCompanion(
+                syncStatus: syncStatus,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vocabularyItemId: vocabularyItemId,
                 rating: rating,
@@ -16832,13 +16835,13 @@ class $$VocabularyReviewsTableTableManager
                 reviewsCountBefore: reviewsCountBefore,
                 nextReviewAtBefore: nextReviewAtBefore,
                 lastReviewedAtBefore: lastReviewedAtBefore,
-                syncStatus: syncStatus,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<String?> syncStatus = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 required String id,
                 required String vocabularyItemId,
                 required int rating,
@@ -16849,11 +16852,11 @@ class $$VocabularyReviewsTableTableManager
                 required int reviewsCountBefore,
                 required DateTime nextReviewAtBefore,
                 Value<DateTime?> lastReviewedAtBefore = const Value.absent(),
-                Value<String?> syncStatus = const Value.absent(),
-                required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => VocabularyReviewsCompanion.insert(
+                syncStatus: syncStatus,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 id: id,
                 vocabularyItemId: vocabularyItemId,
                 rating: rating,
@@ -16864,9 +16867,6 @@ class $$VocabularyReviewsTableTableManager
                 reviewsCountBefore: reviewsCountBefore,
                 nextReviewAtBefore: nextReviewAtBefore,
                 lastReviewedAtBefore: lastReviewedAtBefore,
-                syncStatus: syncStatus,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
