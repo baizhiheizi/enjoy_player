@@ -55,12 +55,15 @@ sequenceDiagram
 | `youtube_feed_entries` | Append-only Discover feed cache keyed by video id ([ADR-0046](decisions/0046-discover-feed-append-only.md)) |
 | `transcript_fetch_states` | Per-target transcript fetch bookkeeping; composite index `idx_transcript_fetch_states_target` on `(target_type, target_id)` |
 | `ai_cache` | L2 AI result cache (`kind` + `key` PK, `payload_json`, `updated_at`) ([ADR-0045](decisions/0045-ai-result-cache-hierarchy.md)) |
+| `vocabulary_items` | SRS review items per word+language pair: `easeFactor`, `interval`, `nextReviewAt`, `reviewsCount`, `status`, optional `explanation` ([ADR-0052](decisions/0052-vocabulary-local-first-schema.md), [features/vocabulary.md](features/vocabulary.md)) |
+| `vocabulary_contexts` | Word appearances in media/ebook: `contextText`, `sourceType`, `sourceId`, `locatorJson`, FK to `vocabulary_items` via `vocabularyItemId` |
+| `vocabulary_reviews` | Local undo audit trail per review: `rating`, `easeFactorBefore`, `intervalBefore`, `nextReviewAtBefore`, FK to `vocabulary_items` via `vocabularyItemId` — never synced |
 
 `localUri` / `md5` / `size` predate schema v14 and store the playable reference plus SHA-256 fingerprint used for re-import / re-link matching. **v13 → v14** adds `localMtimeMs` for the cheap open trust check ([ADR-0050](decisions/0050-path-linked-local-media.md)).
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 14`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 15`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
 
 | Step | Change |
 |------|--------|
@@ -72,6 +75,7 @@ sequenceDiagram
 | v11 → v12 | Create `ai_cache` + `idx_ai_cache_kind_updated_at` ([ADR-0045](decisions/0045-ai-result-cache-hierarchy.md)) |
 | v12 → v13 | Add `source_type` / `feed_url`; backfill `feed_url` using SQL column `channel_id` ([ADR-0051](decisions/0051-youtube-worker-discovery.md)) |
 | v13 → v14 | Add `videos.local_mtime_ms` + `audios.local_mtime_ms` ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
+| v14 → v15 | Create `vocabulary_items` + `vocabulary_contexts` + `vocabulary_reviews` with 6 indexes; `vocabulary_reviews` (local audit) is never synced ([ADR-0052](decisions/0052-vocabulary-local-first-schema.md)) |
 
 ### Per-user database cache
 
