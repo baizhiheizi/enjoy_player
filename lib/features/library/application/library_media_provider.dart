@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/utils/collections.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 
@@ -30,7 +31,7 @@ final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
           ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
         return sorted.take(recentLimit).toList();
       })
-      .distinctBy(_listEqualsMedia);
+      .distinctBy(listEquals);
 });
 
 /// Pre-filtered audio/video lists for [LibraryScreen], newest [Media.updatedAt]
@@ -58,8 +59,8 @@ final libraryFilteredListsProvider =
             return (audio: audioItems, video: videoItems);
           })
           .distinctBy((prev, next) {
-            return _listEqualsMedia(prev.audio, next.audio) &&
-                _listEqualsMedia(prev.video, next.video);
+            return listEquals(prev.audio, next.audio) &&
+                listEquals(prev.video, next.video);
           });
     });
 
@@ -67,18 +68,4 @@ List<Media> _filterMediaByQuery(List<Media> items, String query) {
   if (query.isEmpty) return items;
   final lower = query.toLowerCase();
   return items.where((m) => m.title.toLowerCase().contains(lower)).toList();
-}
-
-/// Element-wise equality for two `List<Media>`.
-///
-/// `List` defaults to identity, and `Media` already overrides `==` / `hashCode`
-/// (added in the `perf(library): dedupe identical watchAll emissions` PR),
-/// so this is the right granularity — no need to pull in `package:collection`.
-bool _listEqualsMedia(List<Media> a, List<Media> b) {
-  if (identical(a, b)) return true;
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }

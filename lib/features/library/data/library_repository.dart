@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/utils/collections.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:logging/logging.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -28,41 +29,71 @@ import 'package:http/http.dart' as http;
 
 typedef YoutubeMetadataPatch = ({String title, String? thumbnailUrl});
 
-Media _mediaFromVideo(VideoRow row) {
-  return Media(
-    id: row.id,
-    kind: MediaKind.video,
-    title: row.title,
-    sourceUri: row.localUri ?? row.mediaUrl ?? '',
-    thumbnailPath: row.thumbnailUrl,
-    durationMs: row.durationSeconds * 1000,
-    language: row.language,
-    contentHash: row.vid,
-    fileSize: row.size ?? 0,
-    mediaUrl: row.mediaUrl,
-    source: row.source,
-    provider: row.provider,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  );
-}
+Media _mediaFromVideo(VideoRow row) => _mediaFromLibraryRow(
+  id: row.id,
+  kind: MediaKind.video,
+  title: row.title,
+  localUri: row.localUri,
+  mediaUrl: row.mediaUrl,
+  thumbnailUrl: row.thumbnailUrl,
+  durationSeconds: row.durationSeconds,
+  language: row.language,
+  contentHash: row.vid,
+  size: row.size,
+  source: row.source,
+  provider: row.provider,
+  createdAt: row.createdAt,
+  updatedAt: row.updatedAt,
+);
 
-Media _mediaFromAudio(AudioRow row) {
+Media _mediaFromAudio(AudioRow row) => _mediaFromLibraryRow(
+  id: row.id,
+  kind: MediaKind.audio,
+  title: row.title,
+  localUri: row.localUri,
+  mediaUrl: row.mediaUrl,
+  thumbnailUrl: row.thumbnailUrl,
+  durationSeconds: row.durationSeconds,
+  language: row.language,
+  contentHash: row.aid,
+  size: row.size,
+  source: row.source,
+  provider: row.provider,
+  createdAt: row.createdAt,
+  updatedAt: row.updatedAt,
+);
+
+Media _mediaFromLibraryRow({
+  required String id,
+  required MediaKind kind,
+  required String title,
+  required String? localUri,
+  required String? mediaUrl,
+  required String? thumbnailUrl,
+  required int durationSeconds,
+  required String language,
+  required String contentHash,
+  required int? size,
+  required String? source,
+  required String provider,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+}) {
   return Media(
-    id: row.id,
-    kind: MediaKind.audio,
-    title: row.title,
-    sourceUri: row.localUri ?? row.mediaUrl ?? '',
-    thumbnailPath: row.thumbnailUrl,
-    durationMs: row.durationSeconds * 1000,
-    language: row.language,
-    contentHash: row.aid,
-    fileSize: row.size ?? 0,
-    mediaUrl: row.mediaUrl,
-    source: row.source,
-    provider: row.provider,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    id: id,
+    kind: kind,
+    title: title,
+    sourceUri: localUri ?? mediaUrl ?? '',
+    thumbnailPath: thumbnailUrl,
+    durationMs: durationSeconds * 1000,
+    language: language,
+    contentHash: contentHash,
+    fileSize: size ?? 0,
+    mediaUrl: mediaUrl,
+    source: source,
+    provider: provider,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
   );
 }
 
@@ -108,7 +139,7 @@ class MediaLibraryRepository {
         ...videos.map(_mediaFromVideo),
         ...audios.map(_mediaFromAudio),
       ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      if (lastEmitted != null && _listEqualsMedia(lastEmitted!, merged)) {
+      if (lastEmitted != null && listEquals(lastEmitted!, merged)) {
         return;
       }
       lastEmitted = merged;
@@ -155,16 +186,57 @@ class MediaLibraryRepository {
         );
         final id = enjoyVideoId(vid: vid);
         final existing = await _db.videoDao.getById(id);
-        final previousUri = existing?.localUri;
-        final row = VideoRow(
+        await _db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: vid,
+            provider: 'user',
+            title: result.title,
+            description: existing?.description,
+            thumbnailUrl: existing?.thumbnailUrl,
+            durationSeconds: existing?.durationSeconds ?? 0,
+            language: canonicalMediaLanguageTag(contentLanguage),
+            source: existing?.source,
+            localUri: result.fileUri,
+            md5: contentHash,
+            size: result.fileSize,
+            localMtimeMs: result.mtimeMs,
+            mediaUrl: existing?.mediaUrl,
+            syncStatus: 'pending',
+            serverUpdatedAt: existing?.serverUpdatedAt,
+            createdAt: existing?.createdAt ?? now,
+            updatedAt: now,
+          ),
+        );
+        return _finalizeLocalImport(
           id: id,
-          vid: vid,
+          previousUri: existing?.localUri,
+          fileUri: result.fileUri,
+          video: true,
+          entityType: SyncEntityType.video,
+          isUpdate: existing != null,
+        );
+      }
+
+      final aid = enjoyLocalAudioAid(
+        contentHashHex: contentHash,
+        userId: signedInUserId,
+      );
+      final id = enjoyAudioId(aid: aid);
+      final existing = await _db.audioDao.getById(id);
+      await _db.audioDao.insertRow(
+        AudioRow(
+          id: id,
+          aid: aid,
           provider: 'user',
           title: result.title,
           description: existing?.description,
           thumbnailUrl: existing?.thumbnailUrl,
           durationSeconds: existing?.durationSeconds ?? 0,
           language: canonicalMediaLanguageTag(contentLanguage),
+          translationKey: existing?.translationKey,
+          sourceText: existing?.sourceText,
+          voice: existing?.voice,
           source: existing?.source,
           localUri: result.fileUri,
           md5: contentHash,
@@ -175,61 +247,16 @@ class MediaLibraryRepository {
           serverUpdatedAt: existing?.serverUpdatedAt,
           createdAt: existing?.createdAt ?? now,
           updatedAt: now,
-        );
-        await _db.videoDao.insertRow(row);
-        if (previousUri != null && previousUri != result.fileUri) {
-          await _maybeDeleteAppManagedMedia(previousUri);
-        }
-        unawaited(_probeAndPatchDuration(id, result.fileUri, video: true));
-        await _enqueueSync?.call(
-          SyncEntityType.video,
-          id,
-          existing != null ? SyncAction.update : SyncAction.create,
-        );
-        return id;
-      }
-
-      final aid = enjoyLocalAudioAid(
-        contentHashHex: contentHash,
-        userId: signedInUserId,
+        ),
       );
-      final id = enjoyAudioId(aid: aid);
-      final existing = await _db.audioDao.getById(id);
-      final previousUri = existing?.localUri;
-      final audioRow = AudioRow(
+      return _finalizeLocalImport(
         id: id,
-        aid: aid,
-        provider: 'user',
-        title: result.title,
-        description: existing?.description,
-        thumbnailUrl: existing?.thumbnailUrl,
-        durationSeconds: existing?.durationSeconds ?? 0,
-        language: canonicalMediaLanguageTag(contentLanguage),
-        translationKey: existing?.translationKey,
-        sourceText: existing?.sourceText,
-        voice: existing?.voice,
-        source: existing?.source,
-        localUri: result.fileUri,
-        md5: contentHash,
-        size: result.fileSize,
-        localMtimeMs: result.mtimeMs,
-        mediaUrl: existing?.mediaUrl,
-        syncStatus: 'pending',
-        serverUpdatedAt: existing?.serverUpdatedAt,
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now,
+        previousUri: existing?.localUri,
+        fileUri: result.fileUri,
+        video: false,
+        entityType: SyncEntityType.audio,
+        isUpdate: existing != null,
       );
-      await _db.audioDao.insertRow(audioRow);
-      if (previousUri != null && previousUri != result.fileUri) {
-        await _maybeDeleteAppManagedMedia(previousUri);
-      }
-      unawaited(_probeAndPatchDuration(id, result.fileUri, video: false));
-      await _enqueueSync?.call(
-        SyncEntityType.audio,
-        id,
-        existing != null ? SyncAction.update : SyncAction.create,
-      );
-      return id;
     } on AppFailure {
       rethrow;
     } catch (e, st) {
@@ -672,64 +699,40 @@ class MediaLibraryRepository {
     try {
       final video = await _db.videoDao.getById(mediaId);
       if (video != null) {
-        final hash = video.md5;
-        if (hash == null || hash.isEmpty) {
-          throw const FileFailure(
-            'Cannot locate file: this item has no content fingerprint.',
-          );
-        }
-        final previousUri = video.localUri;
-        final result = await _storage.importOrLinkPickedFile(
-          picked,
-          expectedHashHex: hash,
-        );
-        await _db.videoDao.insertRow(
-          video.copyWith(
-            localUri: Value(result.fileUri),
-            size: Value(result.fileSize),
-            localMtimeMs: Value(result.mtimeMs),
-            updatedAt: DateTime.now(),
+        await _relocateLinkedFile(
+          mediaId: mediaId,
+          md5: video.md5,
+          previousUri: video.localUri,
+          entityType: SyncEntityType.video,
+          picked: picked,
+          persist: (result) => _db.videoDao.insertRow(
+            video.copyWith(
+              localUri: Value(result.fileUri),
+              size: Value(result.fileSize),
+              localMtimeMs: Value(result.mtimeMs),
+              updatedAt: DateTime.now(),
+            ),
           ),
-        );
-        if (previousUri != null && previousUri != result.fileUri) {
-          await _maybeDeleteAppManagedMedia(previousUri);
-        }
-        await _enqueueSync?.call(
-          SyncEntityType.video,
-          mediaId,
-          SyncAction.update,
         );
         return;
       }
 
       final audio = await _db.audioDao.getById(mediaId);
       if (audio != null) {
-        final hash = audio.md5;
-        if (hash == null || hash.isEmpty) {
-          throw const FileFailure(
-            'Cannot locate file: this item has no content fingerprint.',
-          );
-        }
-        final previousUri = audio.localUri;
-        final result = await _storage.importOrLinkPickedFile(
-          picked,
-          expectedHashHex: hash,
-        );
-        await _db.audioDao.insertRow(
-          audio.copyWith(
-            localUri: Value(result.fileUri),
-            size: Value(result.fileSize),
-            localMtimeMs: Value(result.mtimeMs),
-            updatedAt: DateTime.now(),
+        await _relocateLinkedFile(
+          mediaId: mediaId,
+          md5: audio.md5,
+          previousUri: audio.localUri,
+          entityType: SyncEntityType.audio,
+          picked: picked,
+          persist: (result) => _db.audioDao.insertRow(
+            audio.copyWith(
+              localUri: Value(result.fileUri),
+              size: Value(result.fileSize),
+              localMtimeMs: Value(result.mtimeMs),
+              updatedAt: DateTime.now(),
+            ),
           ),
-        );
-        if (previousUri != null && previousUri != result.fileUri) {
-          await _maybeDeleteAppManagedMedia(previousUri);
-        }
-        await _enqueueSync?.call(
-          SyncEntityType.audio,
-          mediaId,
-          SyncAction.update,
         );
         return;
       }
@@ -741,17 +744,51 @@ class MediaLibraryRepository {
       Error.throwWithStackTrace(FileFailure('Relocate failed: $e'), st);
     }
   }
-}
 
-/// Element-wise comparison of two media lists without allocating. Avoids
-/// pulling in `package:collection`'s `ListEquality` for one call site.
-bool _listEqualsMedia(List<Media> a, List<Media> b) {
-  if (identical(a, b)) return true;
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
+  Future<String> _finalizeLocalImport({
+    required String id,
+    required String? previousUri,
+    required String fileUri,
+    required bool video,
+    required SyncEntityType entityType,
+    required bool isUpdate,
+  }) async {
+    if (previousUri != null && previousUri != fileUri) {
+      await _maybeDeleteAppManagedMedia(previousUri);
+    }
+    unawaited(_probeAndPatchDuration(id, fileUri, video: video));
+    await _enqueueSync?.call(
+      entityType,
+      id,
+      isUpdate ? SyncAction.update : SyncAction.create,
+    );
+    return id;
   }
-  return true;
+
+  Future<void> _relocateLinkedFile({
+    required String mediaId,
+    required String? md5,
+    required String? previousUri,
+    required SyncEntityType entityType,
+    required XFile picked,
+    required Future<void> Function(FileImportResult result) persist,
+  }) async {
+    final hash = md5;
+    if (hash == null || hash.isEmpty) {
+      throw const FileFailure(
+        'Cannot locate file: this item has no content fingerprint.',
+      );
+    }
+    final result = await _storage.importOrLinkPickedFile(
+      picked,
+      expectedHashHex: hash,
+    );
+    await persist(result);
+    if (previousUri != null && previousUri != result.fileUri) {
+      await _maybeDeleteAppManagedMedia(previousUri);
+    }
+    await _enqueueSync?.call(entityType, mediaId, SyncAction.update);
+  }
 }
 
 /// Top-level so it can be sent to a worker isolate via [Isolate.run].

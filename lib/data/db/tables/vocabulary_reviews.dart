@@ -3,12 +3,14 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @TableIndex(
   name: 'idx_vocabulary_reviews_item_at',
   columns: {#vocabularyItemId, #at},
 )
 @DataClassName('VocabularyReviewRow')
-class VocabularyReviews extends Table {
+class VocabularyReviews extends Table with LocalAuditColumns {
   @override
   String get tableName => 'vocabulary_reviews';
 
@@ -22,9 +24,6 @@ class VocabularyReviews extends Table {
   IntColumn get reviewsCountBefore => integer()();
   DateTimeColumn get nextReviewAtBefore => dateTime()();
   DateTimeColumn get lastReviewedAtBefore => dateTime().nullable()();
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

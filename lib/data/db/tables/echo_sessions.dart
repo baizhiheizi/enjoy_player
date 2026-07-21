@@ -3,8 +3,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @DataClassName('EchoSessionRow')
-class EchoSessions extends Table {
+class EchoSessions extends Table with SyncMetadataColumns {
   @override
   String get tableName => 'echo_sessions';
 
@@ -40,11 +42,6 @@ class EchoSessions extends Table {
   DateTimeColumn get startedAt => dateTime()();
   DateTimeColumn get lastActiveAt => dateTime()();
   DateTimeColumn get completedAt => dateTime().nullable()();
-
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

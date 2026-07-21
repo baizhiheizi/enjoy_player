@@ -3,8 +3,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @DataClassName('TranscriptRow')
-class Transcripts extends Table {
+class Transcripts extends Table with SyncMetadataColumns {
   @override
   String get tableName => 'transcripts';
 
@@ -23,10 +25,6 @@ class Transcripts extends Table {
   TextColumn get referenceId => text().nullable()();
   TextColumn get label => text().withDefault(const Constant(''))();
   IntColumn get trackIndex => integer().nullable()();
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

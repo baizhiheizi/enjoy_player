@@ -16,7 +16,7 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
             )
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .watch()
-          .distinctBy(_listEqualsRecordingRow);
+          .distinctBy(listEquals);
 
   Stream<List<RecordingRow>> watchByEchoRegion({
     required String targetType,
@@ -36,7 +36,7 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
             })
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .watch()
-          .distinctBy(_listEqualsRecordingRow);
+          .distinctBy(listEquals);
 
   Future<List<RecordingRow>> listByEchoRegion({
     required String targetType,
@@ -94,36 +94,4 @@ bool recordingOverlapsEchoRegion(
       : echoStartMs;
   final overlapEnd = recordingEnd < echoEndMs ? recordingEnd : echoEndMs;
   return overlapStart < overlapEnd;
-}
-
-bool _listEqualsRecordingRow(
-  List<RecordingRow> previous,
-  List<RecordingRow> current,
-) {
-  if (identical(previous, current)) return true;
-  if (previous.length != current.length) return false;
-  for (var i = 0; i < previous.length; i++) {
-    final a = previous[i];
-    final b = current[i];
-    if (a.id != b.id ||
-        a.targetType != b.targetType ||
-        a.targetId != b.targetId ||
-        a.referenceStart != b.referenceStart ||
-        a.referenceDuration != b.referenceDuration ||
-        a.referenceText != b.referenceText ||
-        a.language != b.language ||
-        a.duration != b.duration ||
-        a.md5 != b.md5 ||
-        a.audioUrl != b.audioUrl ||
-        a.pronunciationScore != b.pronunciationScore ||
-        a.assessmentJson != b.assessmentJson ||
-        a.localPath != b.localPath ||
-        a.syncStatus != b.syncStatus ||
-        a.serverUpdatedAt != b.serverUpdatedAt ||
-        a.createdAt != b.createdAt ||
-        a.updatedAt != b.updatedAt) {
-      return false;
-    }
-  }
-  return true;
 }

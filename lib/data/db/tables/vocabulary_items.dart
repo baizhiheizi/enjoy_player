@@ -3,6 +3,8 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'sync_metadata.dart';
+
 @TableIndex(
   name: 'idx_vocabulary_items_word_language',
   columns: {#word, #language},
@@ -13,7 +15,7 @@ import 'package:drift/drift.dart';
 )
 @TableIndex(name: 'idx_vocabulary_items_status', columns: {#status})
 @DataClassName('VocabularyItemRow')
-class VocabularyItems extends Table {
+class VocabularyItems extends Table with SyncMetadataColumns {
   @override
   String get tableName => 'vocabulary_items';
 
@@ -29,10 +31,6 @@ class VocabularyItems extends Table {
   DateTimeColumn get lastReviewedAt => dateTime().nullable()();
   IntColumn get contextsCount => integer()();
   TextColumn get explanation => text().nullable()();
-  TextColumn get syncStatus => text().nullable()();
-  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
