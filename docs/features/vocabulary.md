@@ -697,6 +697,23 @@ Port web fixtures from:
 | [ADR-0010](../decisions/0010-cloud-sync-mvp.md), [ADR-0054](../decisions/0054-vocabulary-cloud-sync.md), [sync.md](sync.md) | Sync scope (vocabulary included) |
 | [shadow-reading.md](shadow-reading.md), [subscription.md](subscription.md), [ai.md](ai.md) | Related features |
 
+#### Presentation (`lib/features/vocabulary/presentation/`)
+
+The flashcard and related UI were extracted from a single file into focused modules under a `widgets/` subdirectory (PR #402):
+
+| File | Role |
+|------|------|
+| [`vocabulary_flashcard.dart`](../../lib/features/vocabulary/presentation/vocabulary_flashcard.dart) | Top-level `VocabularyFlashcard` with front/back flip, rating bar, scrollable tab body |
+| [`widgets/vocabulary_flashcard_context_tab.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_flashcard_context_tab.dart) | `FlashcardContextTab` — context quote, source info, media actions, contextual translation |
+| [`widgets/vocabulary_flashcard_dictionary_tab.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_flashcard_dictionary_tab.dart) | `FlashcardDictionaryTab` — IPA, POS, senses, definitions, examples |
+| [`widgets/vocabulary_context_pager.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_context_pager.dart) | `VocabularyContextPager` — prev/next navigation for multi-context items |
+| [`widgets/vocabulary_practice_sheet.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_sheet.dart) | `VocabularyPracticeOverlay` + `VocabularyPracticeSheet` — in-route modal overlay for clip play / echo |
+| [`widgets/vocabulary_practice_clip_body.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_clip_body.dart) | `VocabularyPracticeClipBody` — clip mini-player body (video surface target) |
+| [`widgets/vocabulary_practice_echo_body.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_practice_echo_body.dart) | `VocabularyPracticeEchoBody` — recorder-only echo practice body |
+| [`widgets/vocabulary_stats_strip.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_stats_strip.dart) | `showVocabularyStatsSheet` + `VocabularyStatsBreakdown` — stats metrics grid |
+| [`widgets/vocabulary_empty_states.dart`](../../lib/features/vocabulary/presentation/widgets/vocabulary_empty_states.dart) | `VocabularyEmptyState` — reusable empty states (no words / no due / no matches) |
+| [`widgets/flashcard_soft_error.dart`](../../lib/features/vocabulary/presentation/widgets/flashcard_soft_error.dart) | `FlashcardSoftError` — reusable error banner widget |
+
 ---
 
 ## User-visible string inventory
