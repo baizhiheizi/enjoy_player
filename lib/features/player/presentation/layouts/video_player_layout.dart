@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/platform/player_content_layout.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -116,12 +116,16 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useSideBySide =
-            constraints.maxWidth > t.breakpointTranscriptSideBySide;
+        // Aspect of the layout constraints (not width breakpoint): landscape
+        // → side-by-side; portrait/square → stacked. Transport packing still
+        // uses breakpointTranscriptSideBySide elsewhere.
+        final useSideBySide = usePlayerSideBySideLayout(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+        );
 
         if (useSideBySide) {
           final total = constraints.maxWidth;
@@ -371,7 +375,10 @@ class _VideoStageWithChrome extends ConsumerWidget {
 
     return PlayerSurfaceTarget(
       id: PlayerSurfaceIds.expandedPlayer,
+      // opaque: false so empty regions pass hits through to the WebView
+      // below (YouTube needs a real WebView gesture; see docs/features/youtube.md).
       overlayBuilder: (ctx) => MouseRegion(
+        opaque: false,
         onEnter: onHoverChanged == null ? null : (_) => onHoverChanged!(true),
         onExit: onHoverChanged == null ? null : (_) => onHoverChanged!(false),
         child: Stack(

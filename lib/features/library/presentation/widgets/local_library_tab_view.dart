@@ -46,22 +46,22 @@ class LocalLibraryTabView extends ConsumerWidget {
         return TabBarView(
           controller: tabController,
           children: [
-            LocalAudioLibraryBody(
-              items: lists.audio,
-              searchQuery: query,
-              totalInLibraryOfKind: totalAudio,
-            ),
             LocalVideoLibraryBody(
               items: lists.video,
               searchQuery: query,
               totalInLibraryOfKind: totalVideo,
+            ),
+            LocalAudioLibraryBody(
+              items: lists.audio,
+              searchQuery: query,
+              totalInLibraryOfKind: totalAudio,
             ),
           ],
         );
       },
       loading: () => TabBarView(
         controller: tabController,
-        children: const [SkeletonMediaList(), SkeletonMediaGrid()],
+        children: const [SkeletonMediaGrid(), SkeletonMediaList()],
       ),
       error: (e, _) => Center(
         child: Padding(

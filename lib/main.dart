@@ -11,6 +11,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/platform/device_form_factor.dart';
 import 'core/recovery/widget_error_surface.dart';
 import 'core/logging/diagnostic_log_config.dart';
 import 'core/logging/diagnostic_session_header.dart';
@@ -26,6 +27,7 @@ final Logger _bootstrapLog = logNamed('bootstrap');
 
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await _applyDeviceOrientationPolicy();
   if (!kDebugMode) {
     installReleaseWidgetErrorBuilder();
   }
@@ -66,6 +68,31 @@ Future<void> _bootstrap() async {
     app = const ExcludeSemantics(child: root);
   }
   runApp(app);
+}
+
+/// Phone: portrait lock. Tablet: all orientations. Desktop: no-op.
+///
+/// Failures are logged and must not block [runApp].
+Future<void> _applyDeviceOrientationPolicy() async {
+  try {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    final shortest = views.isEmpty
+        ? 0.0
+        : logicalShortestSideFromView(views.first);
+    if (views.isEmpty || shortest <= 0) {
+      _bootstrapLog.warning(
+        'orientation policy: no usable view size; '
+        'defaulting mobile classification to phone',
+      );
+    }
+    final formFactor = resolveDeviceFormFactor(
+      platform: defaultTargetPlatform,
+      shortestSideLogical: shortest,
+    );
+    await applyPreferredOrientationsForFormFactor(formFactor);
+  } on Object catch (e, st) {
+    _bootstrapLog.warning('orientation policy failed', e, st);
+  }
 }
 
 void _installFrameworkErrorHandlers() {

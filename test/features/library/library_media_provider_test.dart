@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -148,6 +149,30 @@ void main() {
         );
 
         sub.close();
+      },
+    );
+
+    test(
+      'libraryFilteredListsProvider orders each kind by updatedAt desc',
+      () async {
+        final container = makeContainer();
+        addTearDown(container.dispose);
+        // watchAll() may emit a partial merge before both DAO watches fire;
+        // wait until both kinds are present.
+        late _FilteredLists lists;
+        final done = Completer<_FilteredLists>();
+        final sub = container.listen(libraryFilteredListsProvider, (_, next) {
+          if (!next.hasValue) return;
+          final v = next.requireValue;
+          if (v.audio.length == 2 && v.video.length == 1 && !done.isCompleted) {
+            done.complete(v);
+          }
+        }, fireImmediately: true);
+        addTearDown(sub.close);
+        lists = await done.future.timeout(const Duration(seconds: 5));
+        // Seeded: a-old @ Jan, b-new @ Jun — newest first (not title A→B).
+        expect(lists.audio.map((m) => m.id).toList(), ['b-new', 'a-old']);
+        expect(lists.video.map((m) => m.id).toList(), ['v-mid']);
       },
     );
 

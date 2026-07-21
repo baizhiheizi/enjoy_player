@@ -53,6 +53,13 @@ void main() {
         await fake.dispose();
       });
     }
+    // Ensure the test surface can host tall portrait fixtures (aspect layout).
+    final view = tester.view;
+    view.physicalSize = Size(width * 3, height * 3);
+    view.devicePixelRatio = 3;
+    addTearDown(view.resetPhysicalSize);
+    addTearDown(view.resetDevicePixelRatio);
+
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
     await tester.pumpWidget(
       ProviderScope(
@@ -93,7 +100,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  testWidgets('VideoPlayerLayout shows transcript beside video when wide', (
+  testWidgets('VideoPlayerLayout shows transcript beside video in landscape', (
     tester,
   ) async {
     await pumpLayout(tester, width: 900, height: 600);
@@ -101,7 +108,7 @@ void main() {
     expect(find.byType(Row), findsWidgets);
   });
 
-  testWidgets('VideoPlayerLayout stacks transcript when narrow', (
+  testWidgets('VideoPlayerLayout stacks transcript in portrait', (
     tester,
   ) async {
     await pumpLayout(tester, width: 500, height: 700);
@@ -110,21 +117,25 @@ void main() {
   });
 
   testWidgets(
-    'VideoPlayerLayout uses 16:9 stacked stage below transcript breakpoint',
+    'VideoPlayerLayout stacks in wide portrait (aspect, not 720 breakpoint)',
     (tester) async {
-      await pumpLayout(tester, width: 719, height: 700);
+      await pumpLayout(tester, width: 800, height: 1000);
       final layout = find.byType(VideoPlayerLayout);
       expect(
         find.descendant(of: layout, matching: find.byType(AspectRatio)),
         findsOneWidget,
       );
+      expect(
+        find.descendant(of: layout, matching: find.byType(Column)),
+        findsWidgets,
+      );
     },
   );
 
   testWidgets(
-    'VideoPlayerLayout uses side-by-side above transcript breakpoint',
+    'VideoPlayerLayout uses side-by-side in landscape below former 720 width',
     (tester) async {
-      await pumpLayout(tester, width: 721, height: 700);
+      await pumpLayout(tester, width: 700, height: 400);
       final layout = find.byType(VideoPlayerLayout);
       expect(
         find.descendant(of: layout, matching: find.byType(AspectRatio)),
@@ -133,6 +144,87 @@ void main() {
       expect(
         find.descendant(of: layout, matching: find.byType(Row)),
         findsWidgets,
+      );
+    },
+  );
+
+  testWidgets('VideoPlayerLayout stacks when square', (tester) async {
+    await pumpLayout(tester, width: 600, height: 600);
+    final layout = find.byType(VideoPlayerLayout);
+    expect(
+      find.descendant(of: layout, matching: find.byType(AspectRatio)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'layout and transcript survive landscape↔portrait without remount',
+    (tester) async {
+      final fake = FakePlayerEngine();
+      addTearDown(() async {
+        await fake.dispose();
+      });
+      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF003366));
+      final size = ValueNotifier(const Size(900, 600));
+      final view = tester.view;
+      view.physicalSize = const Size(1200 * 3, 1200 * 3);
+      view.devicePixelRatio = 3;
+      addTearDown(view.resetPhysicalSize);
+      addTearDown(view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [playerEngineTestDoubleProvider.overrideWithValue(fake)],
+          child: MaterialApp(
+            theme: ThemeData(
+              colorScheme: scheme,
+              extensions: [EnjoyThemeTokens.build(scheme)],
+            ),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder<Size>(
+                valueListenable: size,
+                builder: (context, s, _) {
+                  return Center(
+                    child: SizedBox(
+                      width: s.width,
+                      height: s.height,
+                      child: VideoPlayerLayout(
+                        engine: fake,
+                        transcript: const Text('TR_STUB'),
+                        initialTranscriptSplitWidthPx: 420,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final stateBefore = tester.state(find.byType(VideoPlayerLayout));
+      expect(find.byType(Row), findsWidgets);
+
+      size.value = const Size(800, 1000);
+      await tester.pump();
+      expect(find.byType(Column), findsWidgets);
+      expect(find.text('TR_STUB'), findsOneWidget);
+      expect(
+        identical(tester.state(find.byType(VideoPlayerLayout)), stateBefore),
+        isTrue,
+      );
+
+      size.value = const Size(900, 600);
+      await tester.pump();
+      expect(find.byType(Row), findsWidgets);
+      expect(find.text('TR_STUB'), findsOneWidget);
+      expect(
+        identical(tester.state(find.byType(VideoPlayerLayout)), stateBefore),
+        isTrue,
       );
     },
   );
@@ -182,6 +274,30 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'host overlay MouseRegion is pass-through so WebView can receive hits',
+    (tester) async {
+      await pumpLayout(tester, width: 900, height: 600);
+
+      final hostRegions = find.descendant(
+        of: find.byType(PlayerSurfaceHost),
+        matching: find.byType(MouseRegion),
+      );
+      expect(hostRegions, findsWidgets);
+
+      final passThrough = tester
+          .widgetList<MouseRegion>(hostRegions)
+          .where((r) => !r.opaque);
+      expect(
+        passThrough,
+        isNotEmpty,
+        reason:
+            'Host chrome MouseRegion must use opaque: false so empty '
+            'regions pass hits through to the YouTube WebView',
+      );
+    },
+  );
 
   testWidgets('extra video chrome is painted by the surface host', (
     tester,

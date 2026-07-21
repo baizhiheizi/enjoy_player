@@ -19,4 +19,4 @@ Browse **your** remote Enjoy **audio** and **video** metadata (`GET /api/v1/mine
 
 - [Sync](sync.md)
 - [ADR-0013](../decisions/0013-local-first-sync.md)
-- UI: [`CloudLibraryBody`](../../lib/features/cloud/presentation/cloud_library_body.dart) composed inside [`LibraryScreen`](../../lib/features/library/presentation/library_screen.dart) — same `MediaCard` row/tile primitives as local Library (editorial header, source + Audio/Video segments, generative covers).
+- UI: [`CloudLibraryBody`](../../lib/features/cloud/presentation/cloud_library_body.dart) composed inside [`LibraryScreen`](../../lib/features/library/presentation/library_screen.dart) — same `MediaCard` row/tile primitives as local Library (editorial header, source + Video/Audio segments with Video first, generative covers).

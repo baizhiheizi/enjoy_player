@@ -59,6 +59,13 @@ class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
     );
   }
 
+  /// Bumps [Videos.updatedAt] so Home "Recent media" can resurface the row.
+  Future<void> touchUpdatedAt(String id) async {
+    await (update(videos)..where((t) => t.id.equals(id))).write(
+      VideosCompanion(updatedAt: Value(DateTime.now())),
+    );
+  }
+
   Future<void> deleteId(String id) =>
       (delete(videos)..where((t) => t.id.equals(id))).go();
 

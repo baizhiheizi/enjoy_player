@@ -86,20 +86,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           emptySelectionAllowed: false,
           segments: [
             ButtonSegment<String>(
-              value: 'audio',
-              icon: const Icon(Icons.graphic_eq_rounded, size: 16),
-              label: Text(l10n.libraryTabAudio),
-            ),
-            ButtonSegment<String>(
               value: 'video',
               icon: const Icon(Icons.movie_outlined, size: 16),
               label: Text(l10n.libraryTabVideo),
             ),
+            ButtonSegment<String>(
+              value: 'audio',
+              icon: const Icon(Icons.graphic_eq_rounded, size: 16),
+              label: Text(l10n.libraryTabAudio),
+            ),
           ],
-          selected: {controller.index == 0 ? 'audio' : 'video'},
+          selected: {controller.index == 0 ? 'video' : 'audio'},
           onSelectionChanged: (next) {
             final v = next.single;
-            final i = v == 'audio' ? 0 : 1;
+            final i = v == 'video' ? 0 : 1;
             if (controller.index != i) {
               _setKindIndex(i);
             }

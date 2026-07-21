@@ -33,12 +33,13 @@ final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
       .distinctBy(_listEqualsMedia);
 });
 
-/// Pre-filtered + title-sorted audio/video lists for [LibraryScreen].
+/// Pre-filtered audio/video lists for [LibraryScreen], newest [Media.updatedAt]
+/// first (same ordering as Home recent media).
 ///
 /// `watchAll()` re-emits a new list on every Drift table change. A background
 /// `playbackSessionPersister` write or a duration probe on a non-matching row
 /// re-sorts both halves and rebuilds every library-tab widget, even when the
-/// filtered + title-sorted lists are byte-for-byte identical to the previous
+/// filtered + ordered lists are byte-for-byte identical to the previous
 /// emission. Dedupe on element equality of both halves to avoid that work.
 final libraryFilteredListsProvider =
     StreamProvider<({List<Media> audio, List<Media> video})>((ref) {
@@ -50,10 +51,10 @@ final libraryFilteredListsProvider =
             final filtered = _filterMediaByQuery(items, query);
             final audioItems =
                 filtered.where((m) => m.kind == MediaKind.audio).toList()
-                  ..sort((a, b) => a.title.compareTo(b.title));
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
             final videoItems =
                 filtered.where((m) => m.kind == MediaKind.video).toList()
-                  ..sort((a, b) => a.title.compareTo(b.title));
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
             return (audio: audioItems, video: videoItems);
           })
           .distinctBy((prev, next) {

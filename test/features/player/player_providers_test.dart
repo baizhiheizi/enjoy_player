@@ -53,6 +53,7 @@ void main() {
       if (pathProviderRoot.existsSync()) {
         pathProviderRoot.deleteSync(recursive: true);
       }
+      await pumpEventQueue();
       container.dispose();
       await db.close();
       await fake.dispose();

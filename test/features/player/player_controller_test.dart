@@ -134,6 +134,8 @@ void main() {
         pathProviderRoot.deleteSync(recursive: true);
       }
 
+      // Let fire-and-forget openMedia side effects settle before closing Drift.
+      await pumpEventQueue();
       container.dispose();
       await db.close();
       await fake.dispose();
@@ -161,6 +163,29 @@ void main() {
       await n.openMedia(id);
 
       expect(fake.openUris, [firstUri]);
+    });
+
+    test('openMedia bumps library updatedAt for Home recent media', () async {
+      final oldUpdated = DateTime.utc(2024, 1, 1);
+      final id = await insertMedia(id: 'm-recent');
+      final seeded = await db.audioDao.getById(id);
+      await db.audioDao.insertRow(seeded!.copyWith(updatedAt: oldUpdated));
+
+      final n = container.read(playerControllerProvider.notifier);
+      await n.openMedia(id);
+      await pumpEventQueue();
+
+      final afterOpen = await db.audioDao.getById(id);
+      expect(afterOpen!.updatedAt.isAfter(oldUpdated), isTrue);
+
+      // Same-id reopen must still bump (Home recent), without reloading URI.
+      await db.audioDao.insertRow(afterOpen.copyWith(updatedAt: oldUpdated));
+      await n.openMedia(id);
+      await pumpEventQueue();
+
+      final afterReopen = await db.audioDao.getById(id);
+      expect(afterReopen!.updatedAt.isAfter(oldUpdated), isTrue);
+      expect(fake.openUris, hasLength(1));
     });
 
     test('openMedia ignores stale completion when superseded', () async {

@@ -126,12 +126,12 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
     }
   }
 
-  /// Refreshes the audio or video tab matching [tabController.index].
+  /// Refreshes the video or audio tab matching [tabController.index].
   void refreshActiveTab() {
     if (widget.tabController.index == 0) {
-      unawaited(_loadAudioPage(reset: true));
-    } else {
       unawaited(_loadVideoPage(reset: true));
+    } else {
+      unawaited(_loadAudioPage(reset: true));
     }
   }
 
@@ -153,19 +153,19 @@ class CloudLibraryBodyState extends ConsumerState<CloudLibraryBody> {
         return TabBarView(
           controller: widget.tabController,
           children: [
-            _CloudAudioList(
-              items: _audios,
-              loading: _loadingAudio,
-              done: _audioDone,
-              onLoadMore: () => _loadAudioPage(reset: false),
-              onRefresh: () => _loadAudioPage(reset: true),
-            ),
             _CloudVideoGrid(
               items: _videos,
               loading: _loadingVideo,
               done: _videoDone,
               onLoadMore: () => _loadVideoPage(reset: false),
               onRefresh: () => _loadVideoPage(reset: true),
+            ),
+            _CloudAudioList(
+              items: _audios,
+              loading: _loadingAudio,
+              done: _audioDone,
+              onLoadMore: () => _loadAudioPage(reset: false),
+              onRefresh: () => _loadAudioPage(reset: true),
             ),
           ],
         );

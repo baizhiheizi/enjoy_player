@@ -13,7 +13,9 @@ import 'package:drift/drift.dart';
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
+import 'package:logging/logging.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
@@ -71,6 +73,8 @@ class MediaLibraryRepository {
     this._enqueueSync,
     this._oembedClient,
   });
+
+  static final Logger _log = logNamed('library.repository');
 
   final AppDatabase _db;
   final FileStorage _storage;
@@ -251,6 +255,8 @@ class MediaLibraryRepository {
         prefetchedTitle: prefetchedTitle,
         prefetchedThumbnailUrl: prefetchedThumbnailUrl,
       );
+      // Resurface on Home even when metadata was already complete (re-add).
+      await _db.videoDao.touchUpdatedAt(dup.id);
       return dup.id;
     }
 
@@ -571,6 +577,28 @@ class MediaLibraryRepository {
   ///
   /// Kept as a stable hook for call sites (e.g. cloud add-to-library) — no-op.
   Future<void> ensureVideoPosterAfterMetadataInsert(VideoRow _) async {}
+
+  /// Bumps library-row [updatedAt] so Home "Recent media" ranks recently opened
+  /// items without enqueueing a cloud sync update.
+  ///
+  /// Failures are swallowed (logged) so fire-and-forget callers from
+  /// [PlayerController.openMedia] cannot fail tests or tear-down when the DB
+  /// is already closed.
+  Future<void> touchMediaUpdatedAt(String mediaId) async {
+    try {
+      final video = await _db.videoDao.getById(mediaId);
+      if (video != null) {
+        await _db.videoDao.touchUpdatedAt(mediaId);
+        return;
+      }
+      final audio = await _db.audioDao.getById(mediaId);
+      if (audio != null) {
+        await _db.audioDao.touchUpdatedAt(mediaId);
+      }
+    } on Object catch (e, st) {
+      _log.warning('touchMediaUpdatedAt failed for $mediaId', e, st);
+    }
+  }
 
   Future<void> deleteMedia(String id) async {
     // Atomic: enqueue the sync row inside the same transaction as the

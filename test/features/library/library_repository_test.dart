@@ -462,6 +462,83 @@ void main() {
       expect(row.thumbnailUrl, 'https://i.ytimg.com/vi/$vid/hqdefault.jpg');
     });
 
+    test(
+      'importYoutubeVideo re-import bumps updatedAt for Home recents',
+      () async {
+        const vid = 'dQw4w9WgXcQ';
+        final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
+        final oldUpdated = DateTime.utc(2024, 1, 1);
+
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: mediaId,
+            vid: vid,
+            provider: 'youtube',
+            title: 'Existing Title',
+            description: null,
+            thumbnailUrl: 'https://i.ytimg.com/vi/$vid/hqdefault.jpg',
+            durationSeconds: 0,
+            language: 'und',
+            source: 'youtube',
+            localUri: null,
+            md5: null,
+            size: null,
+            mediaUrl: 'https://www.youtube.com/watch?v=$vid',
+            syncStatus: 'pending',
+            serverUpdatedAt: null,
+            createdAt: oldUpdated,
+            updatedAt: oldUpdated,
+          ),
+        );
+
+        final ytRepo = MediaLibraryRepository(
+          db,
+          FileStorage(),
+          oembedClient: MockClient((_) async => http.Response('', 500)),
+        );
+
+        final id = await ytRepo.importYoutubeVideo(vid);
+        expect(id, mediaId);
+
+        final row = await db.videoDao.getById(mediaId);
+        expect(row!.updatedAt.isAfter(oldUpdated), isTrue);
+      },
+    );
+
+    test('touchMediaUpdatedAt bumps video row for Home recents', () async {
+      const vid = 'dQw4w9WgXcQ';
+      final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
+      final oldUpdated = DateTime.utc(2024, 1, 1);
+
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: mediaId,
+          vid: vid,
+          provider: 'youtube',
+          title: 'Existing Title',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 0,
+          language: 'und',
+          source: 'youtube',
+          localUri: null,
+          md5: null,
+          size: null,
+          mediaUrl: 'https://www.youtube.com/watch?v=$vid',
+          syncStatus: 'pending',
+          serverUpdatedAt: null,
+          createdAt: oldUpdated,
+          updatedAt: oldUpdated,
+        ),
+      );
+
+      final repo = MediaLibraryRepository(db, FileStorage());
+      await repo.touchMediaUpdatedAt(mediaId);
+
+      final row = await db.videoDao.getById(mediaId);
+      expect(row!.updatedAt.isAfter(oldUpdated), isTrue);
+    });
+
     test('refreshYoutubeMetadataIfNeeded patches placeholder title', () async {
       const vid = 'dQw4w9WgXcQ';
       final mediaId = enjoyVideoId(provider: 'youtube', vid: vid);
