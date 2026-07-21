@@ -121,9 +121,21 @@ The periodic refresh is intentionally **passive**:
 - **Lifecycle-gated** — periodic ticks and the post-launch initial refresh are skipped while the app is not in the foreground.
 - **Idempotent launch** — only one post-frame launch refresh is scheduled per provider instance.
 
-### Concurrency
+### Single-flight guard
 
-Per-source worker feed fetches run with a bounded concurrency cap of 4 (`_kRefreshChannelConcurrency`), so a user with many subscriptions refreshes in ~`ceil(N / 4)` round-trips instead of N.
+`DiscoverRefreshState` applies a **single-flight guard** at the provider level: if a `refresh()` call is already in-flight, concurrent callers await the same future instead of starting a redundant second HTTP round-trip.
+
+```
+Caller A ──► refresh() ──► _pendingRefresh = refreshFeeds()
+Caller B ──► refresh() ──► return _pendingRefresh!  (same future)
+Caller C ──► refresh() ──► return _pendingRefresh!  (same future)
+                      │
+                      ▼  all await the one in-flight future
+```
+
+- The `_pendingRefresh` field is set before `await` — the guard holds from the instant the first call enters, not after `refreshFeeds` resolves.
+- The guard is cleared in a `finally` block, so it is released even on exceptions.
+- This sits **above** the per-source concurrency cap — it prevents duplicate orchestration work (e.g., overlapping periodic timer fire + pull-to-refresh, or rapid double-tap on the refresh button).
 
 ### Partial-failure surfacing
 
