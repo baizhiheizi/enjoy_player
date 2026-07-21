@@ -49,7 +49,7 @@ No `apt install`, no `sudo`, no Snap/Flatpak abstraction layer. The AppImage is 
 | Feature | Linux status |
 |---------|-------------|
 | **YouTube import / playback** | **Not available** (coming soon). The YouTube engine depends on `flutter_inappwebview`'s Linux backend, which requires `webkit2gtk-4.0` — not present on a default Ubuntu install. When you try to open a YouTube video on Linux, the app shows "YouTube is not yet available on Linux — coming soon." |
-| **In-app auto-update** | **Not available.** The `auto_updater: 0.2.1` plugin is Windows/macOS-only. To update, download a new AppImage from the landing page. AppImageUpdate integration is planned for a future release. |
+| **In-app auto-update** | **Not available.** The `auto_updater: ^1.0.0` plugin is Windows/macOS-only. To update, download a new AppImage from the landing page. AppImageUpdate integration is planned for a future release. |
 | **Package manager installs (.deb / .rpm / Flatpak / snap)** | Not available. Only AppImage for v1. |
 
 ## Developer setup (build from source)
