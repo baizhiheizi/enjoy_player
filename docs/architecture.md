@@ -77,6 +77,10 @@ sequenceDiagram
 | v13 → v14 | Add `videos.local_mtime_ms` + `audios.local_mtime_ms` ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
 | v14 → v15 | Create `vocabulary_items` + `vocabulary_contexts` + `vocabulary_reviews` with 6 indexes; `vocabulary_reviews` (local audit) is never synced ([ADR-0052](decisions/0052-vocabulary-local-first-schema.md)) |
 
+### Sync metadata mixins
+
+The sync / audit columns (`syncStatus`, `serverUpdatedAt`, `createdAt`, `updatedAt`) that appear on most Drift tables are defined once in [`SyncMetadataColumns`](../lib/data/db/tables/sync_metadata.dart) and applied via `with SyncMetadataColumns on Table`. Tables that are never cloud-synced (e.g. `vocabulary_reviews`) use the narrower [`LocalAuditColumns`](../lib/data/db/tables/sync_metadata.dart) mixin instead (same columns minus `serverUpdatedAt`). This avoids repeating the four-column declaration across the nine tables that share it — see [`sync_metadata.dart`](../lib/data/db/tables/sync_metadata.dart).
+
 ### Per-user database cache
 
 `app_database_provider.dart` keeps the most recent **two** per-user [`AppDatabase`](../lib/data/db/app_database.dart) instances in a bounded `LinkedHashMap`. On sign-in for a third account, the **oldest** entry is closed (and its Drift connections released) before the new one is inserted — see [ADR-0012](decisions/0012-per-user-sqlite-isolation.md) for the per-user isolation rationale. The cap keeps the file-handle / mmap footprint stable across guest ↔ account churn.
