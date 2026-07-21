@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-21
+
+### Changed
+
+- **Phone orientation and player layout** lock phones to portrait and switch video/transcript between stacked and side-by-side from window aspect instead of a fixed width breakpoint.
+- **Library** bumps recency on every open, sorts by recent activity, and defaults to the Video tab.
+
+### Fixed
+
+- **YouTube player overlays** pass host chrome hits through so embedded controls remain clickable.
+- **Expired Pro subscriptions** correctly use the free daily credits limit.
+- **Android release builds** clear stale plugin caches that could break AGP 9 packaging.
+
 ## [0.7.0] - 2026-07-19
 
 ### Added
