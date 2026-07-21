@@ -28,6 +28,17 @@ void main() {
       expect(status.subscriptionTier, SubscriptionTier.free);
       expect(status.dailyCreditsLimit, 1_000);
     });
+
+    test('expired pro uses free daily credits limit', () {
+      final status = SubscriptionStatus.fromJson({
+        'subscriptionActive': false,
+        'subscriptionTier': 'pro',
+        'subscriptionExpireDate': '2020-01-01T00:00:00.000Z',
+      });
+
+      expect(status.isPro, isFalse);
+      expect(status.dailyCreditsLimit, 1_000);
+    });
   });
 
   group('PaymentSession.fromJson', () {

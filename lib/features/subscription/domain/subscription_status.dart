@@ -27,8 +27,7 @@ class SubscriptionStatus {
   bool get isPro =>
       subscriptionTier == SubscriptionTier.pro && subscriptionActive;
 
-  int get dailyCreditsLimit =>
-      subscriptionTier == SubscriptionTier.pro ? 60_000 : 1_000;
+  int get dailyCreditsLimit => isPro ? 60_000 : 1_000;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
