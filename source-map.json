@@ -6,7 +6,7 @@
       { "path": "AGENTS.md", "hash": "agents-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Getting-Started": {
     "sourceFiles": [
@@ -15,7 +15,7 @@
       { "path": "AGENTS.md", "hash": "agents-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Architecture": {
     "sourceFiles": [
@@ -23,7 +23,7 @@
       { "path": "docs/conventions.md", "hash": "conv-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Player": {
     "sourceFiles": [
@@ -32,7 +32,7 @@
       { "path": "lib/features/player/application/player_controller.dart", "hash": "controller-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Transcripts": {
     "sourceFiles": [
@@ -40,7 +40,7 @@
       { "path": "lib/features/transcript/data/transcript_repository.dart", "hash": "transcript-repo-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Echo-Mode": {
     "sourceFiles": [
@@ -48,21 +48,21 @@
       { "path": "lib/features/player/domain/echo_window.dart", "hash": "echo-window-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Library": {
     "sourceFiles": [
       { "path": "docs/features/library.md", "hash": "library-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Sync": {
     "sourceFiles": [
       { "path": "docs/features/sync.md", "hash": "sync-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "AI-and-Lookup": {
     "sourceFiles": [
@@ -70,35 +70,35 @@
       { "path": "docs/features/dictionary-lookup.md", "hash": "dict-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Auth": {
     "sourceFiles": [
       { "path": "docs/features/auth.md", "hash": "auth-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Subscription": {
     "sourceFiles": [
       { "path": "docs/features/subscription.md", "hash": "sub-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Settings": {
     "sourceFiles": [
       { "path": "docs/features/settings.md", "hash": "settings-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Discover": {
     "sourceFiles": [
       { "path": "docs/features/discover.md", "hash": "discover-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Community-and-Credits": {
     "sourceFiles": [
@@ -106,28 +106,28 @@
       { "path": "docs/features/credits-usage.md", "hash": "credits-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Update": {
     "sourceFiles": [
       { "path": "docs/features/update.md", "hash": "update-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Share-Poster": {
     "sourceFiles": [
       { "path": "docs/features/share-poster.md", "hash": "share-poster-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Hotkeys": {
     "sourceFiles": [
       { "path": "docs/features/hotkeys.md", "hash": "hotkeys-doc-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Persistence": {
     "sourceFiles": [
@@ -136,7 +136,7 @@
       { "path": "lib/core/recovery/recovery_surface.dart", "hash": "recovery-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Core-Modules": {
     "sourceFiles": [
@@ -144,7 +144,7 @@
       { "path": "lib/core/routing/app_router.dart", "hash": "router-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Tech-Stack": {
     "sourceFiles": [
@@ -152,21 +152,21 @@
       { "path": "pubspec.yaml", "hash": "pubspec-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Conventions": {
     "sourceFiles": [
       { "path": "docs/conventions.md", "hash": "conv-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Testing": {
     "sourceFiles": [
       { "path": "docs/testing.md", "hash": "testing-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Release-and-CI": {
     "sourceFiles": [
@@ -177,7 +177,7 @@
       { "path": "docs/ci-self-hosted-runners.md", "hash": "ci-runners-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "Local-Packages": {
     "sourceFiles": [
@@ -185,27 +185,27 @@
       { "path": "packages/ffmpeg_kit_flutter_new/pubspec.yaml", "hash": "ffmpeg-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "For-Agents": {
     "sourceFiles": [
       { "path": ".github/agentic-wiki/PAGES.md", "hash": "pages-md-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "AGENTS.md": {
     "sourceFiles": [
       { "path": ".github/agentic-wiki/PAGES.md", "hash": "pages-md-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   },
   "llms.txt": {
     "sourceFiles": [
       { "path": ".github/agentic-wiki/PAGES.md", "hash": "pages-md-2026-07-18" }
     ],
     "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-18T00:00:00Z"
+    "generatedAt": "2026-07-21T12:00:00Z"
   }
 }
