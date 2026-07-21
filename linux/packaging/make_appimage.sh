@@ -36,9 +36,9 @@ trap 'rm -rf "$APPDIR"' EXIT
 echo "==> Preparing AppDir from $BUNDLE_DIR"
 cp -a "$BUNDLE_DIR"/* "$APPDIR"/
 
-# Desktop entry (required by AppImage spec)
+# Desktop entry (required by AppImage spec — must be at AppDir root AND in usr/share/applications)
 mkdir -p "$APPDIR"/usr/share/applications
-cat > "$APPDIR"/usr/share/applications/enjoy-player.desktop <<EOF
+cat > "$APPDIR"/enjoy-player.desktop <<EOF
 [Desktop Entry]
 Type=Application
 Name=Enjoy Player
@@ -48,6 +48,7 @@ Icon=enjoy_player
 Categories=AudioVideo;Player;Education;
 Terminal=false
 EOF
+cp "$APPDIR"/enjoy-player.desktop "$APPDIR"/usr/share/applications/enjoy-player.desktop
 
 # Icon (use the app's logo; a minimal placeholder if not found)
 mkdir -p "$APPDIR"/usr/share/icons/hicolor/256x256/apps
@@ -67,18 +68,25 @@ ln -sf enjoy_player "$APPDIR"/AppRun
 CACHE_DIR="${HOME}/.cache/appimagetool"
 mkdir -p "$CACHE_DIR"
 APPIMAGETOOL="${CACHE_DIR}/appimagetool-x86_64.AppImage"
+APPIMAGETOOL_BIN="${CACHE_DIR}/squashfs-root/AppRun"
 
-if [[ ! -x "$APPIMAGETOOL" ]]; then
-  echo "==> Downloading appimagetool..."
-  curl -fsSL -o "$APPIMAGETOOL" \
-    "https://github.com/AppImageCrafters/appimagetool/releases/latest/download/appimagetool-x86_64.AppImage"
-  chmod +x "$APPIMAGETOOL"
+if [[ ! -x "$APPIMAGETOOL_BIN" ]]; then
+  if [[ ! -f "$APPIMAGETOOL" ]]; then
+    echo "==> Downloading appimagetool..."
+    curl -fsSL -o "$APPIMAGETOOL" \
+      "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+    chmod +x "$APPIMAGETOOL"
+  fi
+  # Extract so we can run without FUSE
+  echo "==> Extracting appimagetool (no FUSE required)..."
+  (cd "$CACHE_DIR" && "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1) || \
+    (cd "$CACHE_DIR" && bash "$APPIMAGETOOL" --appimage-extract >/dev/null 2>&1)
 fi
 
 mkdir -p "$OUTPUT_DIR"
 
 echo "==> Building $APP_NAME.AppImage"
-ARCH=x86_64 "$APPIMAGETOOL" "$APPDIR" "$OUTPUT_DIR/$APP_NAME.AppImage"
+ARCH=x86_64 "$APPIMAGETOOL_BIN" "$APPDIR" "$OUTPUT_DIR/$APP_NAME.AppImage"
 
 echo "==> AppImage produced: $OUTPUT_DIR/$APP_NAME.AppImage"
 sha256sum "$OUTPUT_DIR/$APP_NAME.AppImage" | awk '{ print $1 }'
