@@ -28,12 +28,13 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 2. **Artwork palette off main isolate** (`lib/core/theme/dynamic_color/artwork_palette.dart`) — `palette_generator` 0.3.x has no isolate-safe API; needs maintainer sign-off for major bump or hand-rolled quantiser. **Deferred.**
 3. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (only generated `.g.dart` references it). When hooked up, needs `.distinctBy(equals)`.
 4. **JSON decode concurrency audit** (`lib/data/api/api_client.dart`) — `_decodeResponseBody` uses `compute()` for >48 KB. Threshold correct as-is.
-5. **Microbenchmark harness** — no `test/perf/` yet; structural tests cover Drift emission costs but no JIT microbenchmarks for hot regex/serialization paths.
-6. **Stream long-form ASR media instead of materializing bytes** — >=15-minute path materializes entire extracted audio into Uint8List/AsrRequest; 500 MiB extractor ceiling. Needs peak-RSS baseline first.
+5. **Stream long-form ASR media instead of materializing bytes** — >=15-minute path materializes entire extracted audio into Uint8List/AsrRequest; 500 MiB extractor ceiling. Needs peak-RSS baseline first.
+6. **Coalesce overlapping Discover refreshes** — startup, periodic, and manual triggers can overlap. Previous draft (2026-07-20) was ephemeral (worktree-local). Needs fresh implementation.
+7. **Microbenchmark harness** — `test/perf/` directory and CI regression job remain future work. Guide (`docs/perf-measurement.md`) now documents the pattern.
 
 ## Optimization Backlog — Addressed
 
-- ✅ **Coalesce overlapping Discover refreshes** — single-flight guard in `DiscoverRefreshState.refresh()`. Draft PR 2026-07-20. `_pendingRefresh` stores the in-flight future; concurrent callers share it.
+- ✅ **Measurement infrastructure guide** — `docs/perf-measurement.md` created (2026-07-21). Documents 4 structural perf test patterns, per-layer measurement strategies, and microbenchmark template. Draft PR on `perf-assist/measurement-infra-guide-2026-07-21`.
 - ✅ PR #56/#64/#65/#79/#137/#150 — media library, discover, recordings, transcript, grid stable keys (June 2026).
 - ✅ PR #188 (2026-07-02) — artwork palette LRU on `(path, size, mtime)`.
 - ✅ PR #208+#238 (2026-07-07) — `TranscriptTrack` `==`/`hashCode` + `.distinctBy(_listEqualsTranscriptTrack)` in `TranscriptRepository.watchTracks`. Closes #219.
@@ -43,13 +44,14 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 
 ## Measurement infrastructure status
 
-- 3 structural perf tests now: `transcript_blur_long_list_perf_test.dart`, `discover_dedupe_test.dart`, `discover_refresh_single_flight_test.dart`.
-- All measure via structural unit-test assertions (emissions.length before/after Drift write).
-- No `test/perf/` directory, microbenchmark harness, or CI perf-regression job.
+- 3 structural perf tests: `transcript_blur_long_list_perf_test.dart`, `discover_dedupe_test.dart`, `discover_refresh_single_flight_test.dart`.
+- New `docs/perf-measurement.md` (2026-07-21) documents 4 perf test patterns, per-layer strategies, microbenchmark template, and CI regression recommendations. Draft PR created.
+- No `test/perf/` directory, microbenchmark harness, or CI perf-regression job yet.
 
-## Run History (last 5)
+## Run History (last 6)
 
-- **2026-07-20** 18:46 UTC — run 29769067276. Drafted single-flight guard for DiscoverRefreshState.refresh() — _pendingRefresh stores in-flight future, concurrent callers share it. 2 structural tests. Local SDK read-only; changes verified by code review. Comment posted on #189.
+- **2026-07-21** 14:00 UTC — run 29855434099. Created `docs/perf-measurement.md` — structural perf test patterns guide with 4 documented patterns (emission counting, completer-barrier, large-list stress, value equality) + per-layer measurement strategies + microbenchmark template. Draft PR: `perf-assist/measurement-infra-guide-2026-07-21`. Task 4: no-op (no open PRs). Task 5: no-op (#355 closed by maintainer, #310 no new human comments). Monthly summary #189 updated.
+- **2026-07-20** 18:46 UTC — run 29769067276. Drafted single-flight guard for DiscoverRefreshState.refresh() — _pendingRefresh stores in-flight future, concurrent callers share it. 2 structural tests. Local SDK read-only; changes verified by code review. (Worktree-local, not pushed.)
 - **2026-07-20** 04:39 UTC — run 29690257927. Audited v0.7.0 code, identified discover refresh single-flight as candidate. Measurement inventory: 286 tests, 1 perf-named test. Task 5: no-op.
 - **2026-07-17** 12:00 UTC — run 29587195118. Verification only. PR #360 merged. Backlog audited.
 - **2026-07-15** 14:57 UTC — run 29423417496. Drafted batched feed entry upsert. 3 structural tests.
@@ -57,4 +59,4 @@ Local agentic SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable` is read-only; 
 
 ## Per-run safe-output checklist
 
-Always update issue #189 (monthly summary) with a new Run History entry. Use `update_issue` with `replace` operation, or fall back to `add_comment` if update limit reached. Update memory. Use `noop` only if no actions were taken.
+Always update issue #189 (monthly summary) with a new Run History entry. Use `update_issue` with `replace` operation. Update memory. Use `noop` only if no actions were taken.
