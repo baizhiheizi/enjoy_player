@@ -26,7 +26,10 @@ When the user opens a media item in the player **while signed in**, the app pull
 
 ### Import IDs (web parity)
 
-Local file fingerprints use the same **partial SHA-256** strategy as the Enjoy web `hashBlob` helper in `apps/web/src/db/id-generator.ts` (first / middle / last 4 MiB). Signed-in imports use `aid` / `vid` = `SHA-256(contentHash + ":" + userId)` then UUID v5 (`audio:user:{aid}` / `video:user:{vid}`), matching `generateLocalAudioAid` / `generateLocalVideoVid` on web. Imports require a signed-in session (ADR-0031); there is no signed-out import or re-key path.
+Local file fingerprints use the same **partial SHA-256** strategy as the Enjoy web `hashBlob` helper in `apps/web/src/db/id-generator.ts` (first / middle / last 4 MiB). Imports require a signed-in session (ADR-0031); there is no signed-out import or re-key path.
+
+- **Audio** (user-scoped): `aid = SHA-256(contentHash + ":" + userId)`, `id = uuid_v5(audio:user:{aid})` — matching `generateLocalAudioAid` on web.
+- **Video** (content-addressed, [ADR-0056](../decisions/0056-uservideo-library-membership.md)): `vid = contentHash` (no `userId` salt), `id = uuid_v5(video:user:{vid})`. Legacy per-user video upload ids on the server are left as-is.
 
 ## Sync status (Settings)
 
@@ -54,7 +57,7 @@ When the server accepts an upload but **omits** the `updatedAt` field in its res
 
 ### Library membership (UserVideo)
 
-Mine video APIs mean **library membership**, not exclusive ownership of the catalog `Video` row. Many users can enroll the same YouTube/Netflix (or new content-addressed upload) id. `DELETE /mine/videos/:id` leaves the library (soft-deletes membership); pulls may include `deletedAt` tombstones — the player removes the local row.
+Mine video APIs mean **library membership**, not exclusive ownership of the catalog `Video` row ([ADR-0056](../decisions/0056-uservideo-library-membership.md)). Many users can enroll the same YouTube/Netflix (or new content-addressed upload) id. `DELETE /mine/videos/:id` leaves the library (soft-deletes membership); pulls may include `deletedAt` tombstones — the player removes the local row.
 
 New local uploads use **content-addressed** ids: `vid = contentHash` (no `userId`), `id = uuid_v5(video:user:{vid})`. Legacy per-user upload ids on the server are left as-is.
 
@@ -67,6 +70,7 @@ On rare unique races during `POST /mine/videos`, the client retries with `GET /m
 - [ADR-0010](../decisions/0010-cloud-sync-mvp.md) (historical bidirectional download scope)
 - [ADR-0013](../decisions/0013-local-first-sync.md) (local-first + lazy recordings)
 - [ADR-0054](../decisions/0054-vocabulary-cloud-sync.md) (vocabulary items/contexts, SRS-preserving conflict, auto-pull exception)
+- [ADR-0056](../decisions/0056-uservideo-library-membership.md) (UserVideo library membership + content-addressed video uploads)
 - [Cloud index](cloud.md)
 - [Vocabulary](vocabulary.md)
 - Web reference: `enjoy` monorepo `apps/web/src/db/services/sync-*.ts`, `apps/web/src/db/id-generator.ts`

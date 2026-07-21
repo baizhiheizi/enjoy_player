@@ -79,7 +79,7 @@ Trade-offs, follow-up work, risks.
 | [0053](0053-vocabulary-secondary-route.md) | Vocabulary secondary route (Profile entry; not a primary shell tab) |
 | [0054](0054-vocabulary-cloud-sync.md) | Vocabulary cloud sync — SRS-preserving item conflict, LWW contexts, reviews never sync, auto-pull exception to ADR-0013 (extends ADR-0010) |
 | [0055](0055-adaptive-page-layout-system.md) | Adaptive page layout system (`EnjoyPage` / browse·hub·form widths) |
-| [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads |
+| [0056](0056-uservideo-library-membership.md) | UserVideo library membership + content-addressed video uploads (partially supersedes 0013 for video upload ids) |
 | [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |
 | [0058](0058-enjoy-deepgram-long-form-asr.md) | Enjoy long-form ASR via Worker Deepgram jobs (≥900s upload/submit/poll) |
 | [0059](0059-phone-tablet-orientation-and-player-aspect-layout.md) | Phone portrait lock / tablet rotate; player stack vs side-by-side by window aspect |
