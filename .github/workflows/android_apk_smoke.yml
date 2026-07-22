@@ -35,10 +35,7 @@ jobs:
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+      - uses: ./.github/actions/setup-java
 
       - uses: ./.github/actions/setup-flutter
 

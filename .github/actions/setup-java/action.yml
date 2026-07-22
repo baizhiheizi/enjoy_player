@@ -1,0 +1,61 @@
+name: Setup Java (Temurin 17)
+description: >-
+  Install Temurin JDK 17 with curl HTTP/1.1 and retry, cached on self-hosted
+  runners. Works around TLS/HTTP2 failures that break actions/setup-java on
+  flaky network runners.
+
+inputs:
+  java-version:
+    description: Major Java version to install
+    required: false
+    default: "17"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Temurin JDK (cached)
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        version="${{ inputs.java-version }}"
+        cache_root="${RUNNER_TOOL_CACHE:-${RUNNER_TEMP:-/tmp}}"
+        install_dir="$cache_root/jdk-temurin-${version}"
+        java_bin="$install_dir/bin/java"
+
+        if [ -x "$java_bin" ]; then
+          echo "Temurin JDK $version already cached at $install_dir"
+          echo "JAVA_HOME=$install_dir" >> "$GITHUB_ENV"
+          echo "$install_dir/bin" >> "$GITHUB_PATH"
+          "$java_bin" -version
+          exit 0
+        fi
+
+        rm -rf "$install_dir"
+        mkdir -p "$install_dir"
+
+        case "${{ runner.arch }}" in
+          X64)  arch="x64" ;;
+          ARM64) arch="aarch64" ;;
+          *)
+            echo "::error::Unsupported runner.arch: ${{ runner.arch }}"
+            exit 1
+            ;;
+        esac
+
+        url="https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/${arch}/jdk/hotspot/normal/eclipse"
+        archive="${RUNNER_TEMP:-/tmp}/temurin-${version}-${arch}.tar.gz"
+
+        echo "Downloading Temurin JDK $version ($arch)…"
+        curl -fsSL --http1.1 --retry 3 --retry-delay 5 -o "$archive" "$url"
+        tar -xzf "$archive" -C "$install_dir" --strip-components=1
+        rm -f "$archive"
+
+        if [ ! -x "$java_bin" ]; then
+          echo "::error::JDK extraction failed — no bin/java at $install_dir"
+          exit 1
+        fi
+
+        echo "JAVA_HOME=$install_dir" >> "$GITHUB_ENV"
+        echo "$install_dir/bin" >> "$GITHUB_PATH"
+        "$java_bin" -version
