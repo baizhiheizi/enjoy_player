@@ -136,26 +136,7 @@ class ApiClient {
     final pathUri = Uri.parse(path);
     final merged = uriBase.resolveUri(pathUri);
 
-    String? bearer;
-    if (sendAuthHeader && requireAuth) {
-      final token = await getAccessToken();
-      if (token == null || token.isEmpty) {
-        if (refreshAccessToken != null) {
-          final ok = await refreshAccessToken!();
-          if (ok) {
-            final newToken = await getAccessToken();
-            if (newToken != null && newToken.isNotEmpty) {
-              bearer = newToken;
-            }
-          }
-        }
-      } else {
-        bearer = token;
-      }
-      if (bearer == null) {
-        throw const ApiException(message: 'Not authenticated', statusCode: 401);
-      }
-    }
+    final bearer = await _ensureAuthenticated(requireAuth);
 
     final request = http.Request('PUT', merged)..bodyBytes = bytes;
     request.headers['Accept'] = 'application/json';
@@ -260,26 +241,7 @@ class ApiClient {
     final pathUri = Uri.parse(path);
     final merged = uriBase.resolveUri(pathUri);
 
-    String? bearer;
-    if (sendAuthHeader && requireAuth) {
-      final token = await getAccessToken();
-      if (token == null || token.isEmpty) {
-        if (refreshAccessToken != null) {
-          final ok = await refreshAccessToken!();
-          if (ok) {
-            final newToken = await getAccessToken();
-            if (newToken != null && newToken.isNotEmpty) {
-              bearer = newToken;
-            }
-          }
-        }
-      } else {
-        bearer = token;
-      }
-      if (bearer == null) {
-        throw const ApiException(message: 'Not authenticated', statusCode: 401);
-      }
-    }
+    final bearer = await _ensureAuthenticated(requireAuth);
 
     final request = http.MultipartRequest('POST', merged);
     request.headers['Accept'] = 'application/json';
@@ -346,6 +308,31 @@ class ApiClient {
       return compute(decodeJsonToCamel, raw);
     }
     return decodeJsonToCamel(raw);
+  }
+
+  /// Returns a bearer token to attach to the outgoing request, or `null`
+  /// when auth is disabled / not required for this call.
+  ///
+  /// When the cached token is missing or empty, attempts a single
+  /// [refreshAccessToken] and re-reads the token. If no usable token is
+  /// available after that, throws [ApiException] with status 401 — matching
+  /// the auth posture callers relied on before the three call sites were
+  /// deduplicated.
+  Future<String?> _ensureAuthenticated(bool requireAuth) async {
+    if (!sendAuthHeader || !requireAuth) return null;
+
+    final token = await getAccessToken();
+    if (token != null && token.isNotEmpty) return token;
+
+    if (refreshAccessToken != null) {
+      final ok = await refreshAccessToken!();
+      if (ok) {
+        final newToken = await getAccessToken();
+        if (newToken != null && newToken.isNotEmpty) return newToken;
+      }
+    }
+
+    throw const ApiException(message: 'Not authenticated', statusCode: 401);
   }
 
   Future<Map<String, dynamic>> _sendMap({
@@ -490,24 +477,9 @@ class ApiClient {
       if (body != null) 'Content-Type': 'application/json; charset=UTF-8',
     };
 
-    if (sendAuthHeader && requireAuth) {
-      final token = await getAccessToken();
-      if (token == null || token.isEmpty) {
-        if (refreshAccessToken != null) {
-          final ok = await refreshAccessToken!();
-          if (ok) {
-            final newToken = await getAccessToken();
-            if (newToken != null && newToken.isNotEmpty) {
-              headers['Authorization'] = 'Bearer $newToken';
-            }
-          }
-        }
-      } else {
-        headers['Authorization'] = 'Bearer $token';
-      }
-      if (!headers.containsKey('Authorization')) {
-        throw const ApiException(message: 'Not authenticated', statusCode: 401);
-      }
+    final bearer = await _ensureAuthenticated(requireAuth);
+    if (bearer != null) {
+      headers['Authorization'] = 'Bearer $bearer';
     }
 
     final bodyBytes = body == null
