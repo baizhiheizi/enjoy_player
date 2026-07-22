@@ -38,7 +38,7 @@ safe-outputs:
       runs-on: ubuntu-latest
       steps:
       - name: Checkout wiki
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: ${{ github.repository }}.wiki
           token: ${{ secrets.GITHUB_TOKEN }}
