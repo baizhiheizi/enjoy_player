@@ -17,6 +17,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [ci-self-hosted-runners.md](ci-self-hosted-runners.md) | Release / CI | Self-hosted runner setup for all workflows |
 | [testing.md](testing.md) | Contributors | Test strategy or CI commands change |
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
+| [superpowers/](superpowers/) | Contributors + agents | Large mechanical refactor specs & implementation plans |
 | [features/](features/) | Product + dev | Feature behavior changes |
 | [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
 | [features/skeleton-loading.md](features/skeleton-loading.md) | Product + dev | Skeleton widget API, prebuilt placeholders, or sliver-safe placement rules change |
