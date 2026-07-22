@@ -1,9 +1,8 @@
 {
-  "ai": "cursor-agent",
-  "ai_skills": true,
+  "ai": "qodercli",
   "feature_numbering": "sequential",
   "here": true,
-  "integration": "cursor-agent",
+  "integration": "qodercli",
   "script": "sh",
-  "speckit_version": "0.12.0"
+  "speckit_version": "0.13.2"
 }

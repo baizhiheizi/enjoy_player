@@ -1,25 +1,15 @@
 {
-  "version": "0.12.0",
+  "version": "0.13.2",
   "integration_state_schema": 1,
   "installed_integrations": [
-    "cursor-agent",
-    "opencode",
-    "claude"
+    "qodercli"
   ],
   "integration_settings": {
-    "cursor-agent": {
-      "script": "sh",
-      "invoke_separator": "-"
-    },
-    "opencode": {
+    "qodercli": {
       "script": "sh",
       "invoke_separator": "."
-    },
-    "claude": {
-      "script": "sh",
-      "invoke_separator": "-"
     }
   },
-  "integration": "cursor-agent",
-  "default_integration": "cursor-agent"
+  "integration": "qodercli",
+  "default_integration": "qodercli"
 }

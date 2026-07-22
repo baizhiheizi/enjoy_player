@@ -77,8 +77,6 @@
 
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
-- What happens with large libraries, long transcripts, slow storage, or offline use?
-- How does the feature behave across Android, iOS, macOS, and Windows input patterns?
 
 ## Requirements *(mandatory)*
 
@@ -100,14 +98,6 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
-### Quality, UX, and Performance Requirements
-
-- **QR-001**: Implementation MUST preserve Enjoy Player's feature-first architecture and avoid feature-to-feature shortcuts unless the plan documents an exception.
-- **QR-002**: Changed behavior MUST have automated tests or a documented manual verification reason.
-- **QR-003**: User-facing strings, controls, haptics, tooltips, and keyboard affordances MUST follow existing localization and shared UI patterns.
-- **QR-004**: User-visible flows MUST define measurable performance expectations for playback, startup, scrolling, transcript rendering, sync, import, or other affected paths.
-- **QR-005**: Feature behavior changes MUST update the matching documentation under `docs/features/`.
-
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
@@ -126,8 +116,6 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
-- **SC-005**: [UX consistency metric, e.g., "All new icon-only actions expose localized tooltips and keyboard hints where applicable"]
-- **SC-006**: [Performance metric, e.g., "Primary interaction remains responsive with [library/transcript size] on target platforms"]
 
 ## Assumptions
 
