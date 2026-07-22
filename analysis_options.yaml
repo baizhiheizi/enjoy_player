@@ -24,3 +24,4 @@ linter:
     cancel_subscriptions: true
     close_sinks: true
     depend_on_referenced_packages: true
+    use_null_aware_elements: false

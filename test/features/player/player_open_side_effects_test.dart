@@ -116,6 +116,7 @@ ProviderContainer _container({
       authCtrlProvider.overrideWith(
         signedIn ? _SignedInAuthCtrl.new : _SignedOutAuthCtrl.new,
       ),
+      // ignore: deprecated_member_use
       transcriptFetchCtrlProvider.overrideWith(_FakeTranscriptFetchCtrl.new),
       recordingTargetSyncServiceProvider.overrideWithValue(
         _FakeRecordingTargetSyncService(db),
