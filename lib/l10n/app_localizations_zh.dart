@@ -3244,6 +3244,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get subscriptionAutoRenewCancelConfirmAction => '取消自动续订';
 
   @override
+  String get subscriptionAutoRenewCancelKeep => '保持自动续订';
+
+  @override
   String subscriptionAutoRenewCancelSuccess(String date) {
     return '已取消自动续订。Pro 权益保留至 $date。';
   }
@@ -3256,6 +3259,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionAutoRenewPlansUnavailable => '自动续订方案暂不可用。';
+
+  @override
+  String get subscriptionProMemberTitle => '你已是 Pro';
+
+  @override
+  String subscriptionRenewsOn(String date) {
+    return '下次续费 $date';
+  }
+
+  @override
+  String subscriptionAccessUntil(String date) {
+    return '有效期至 $date';
+  }
+
+  @override
+  String get subscriptionAutoRenewEndingSoon => '已关闭自动续订 — Pro 权益保留至上方日期';
+
+  @override
+  String get subscriptionIncludedWithPro => 'Pro 已包含';
 
   @override
   String get subscriptionPayOnceTitle => '按月一次性购买';
@@ -6062,6 +6084,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get subscriptionAutoRenewCancelConfirmAction => '取消自动续订';
 
   @override
+  String get subscriptionAutoRenewCancelKeep => '保持自动续订';
+
+  @override
   String subscriptionAutoRenewCancelSuccess(String date) {
     return '已取消自动续订。Pro 权益保留至 $date。';
   }
@@ -6074,6 +6099,25 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get subscriptionAutoRenewPlansUnavailable => '自动续订方案暂不可用。';
+
+  @override
+  String get subscriptionProMemberTitle => '你已是 Pro';
+
+  @override
+  String subscriptionRenewsOn(String date) {
+    return '下次续费 $date';
+  }
+
+  @override
+  String subscriptionAccessUntil(String date) {
+    return '有效期至 $date';
+  }
+
+  @override
+  String get subscriptionAutoRenewEndingSoon => '已关闭自动续订 — Pro 权益保留至上方日期';
+
+  @override
+  String get subscriptionIncludedWithPro => 'Pro 已包含';
 
   @override
   String get subscriptionPayOnceTitle => '按月一次性购买';

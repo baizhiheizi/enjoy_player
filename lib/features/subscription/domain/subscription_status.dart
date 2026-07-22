@@ -38,6 +38,9 @@ class SubscriptionStatus {
   bool get isPro =>
       subscriptionTier == SubscriptionTier.pro && subscriptionActive;
 
+  /// True when the user has a living auto-renew Stripe subscription.
+  bool get hasActiveAutoRenewPlan => autoRenew?.isActivelyRenewing ?? false;
+
   int get dailyCreditsLimit => isPro ? 60_000 : 1_000;
 
   Map<String, dynamic> toJson() {

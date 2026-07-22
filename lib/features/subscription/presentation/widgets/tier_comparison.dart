@@ -1,4 +1,7 @@
 /// Free vs Pro plan comparison with platform-aware upgrade actions.
+///
+/// Hidden when the user already has an active auto-renew Pro plan — membership
+/// is shown on [SubscriptionStatusCard] instead.
 library;
 
 import 'package:flutter/material.dart';
@@ -7,7 +10,6 @@ import 'package:enjoy_player/core/platform/subscription_purchase_capability.dart
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
-import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/mobile_purchase_unavailable.dart';
@@ -20,31 +22,29 @@ class TierComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Pro members (auto-renew or prepaid) see a compact benefits list — not
+    // another Free vs Pro sales comparison. Extend lives on the status card.
+    if (status.isPro) {
+      return _ProBenefitsReminder(features: _proFeatures);
+    }
+
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    final currentTier = status.subscriptionTier;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.compare_arrows_rounded,
-              size: 22,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            SizedBox(width: t.space8),
-            Flexible(
-              child: Text(
-                l10n.subscriptionTierComparisonTitle,
-                style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
+        Text(
+          l10n.subscriptionTierComparisonTitle,
+          style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        SizedBox(height: t.space4),
+        Text(
+          l10n.subscriptionDescription,
+          style: tt.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         SizedBox(height: t.space16),
         LayoutBuilder(
@@ -56,14 +56,10 @@ class TierComparison extends StatelessWidget {
               price: l10n.subscriptionTierFreePrice,
               dailyCredits: l10n.subscriptionTierFreeDailyCredits,
               features: _freeFeatures(l10n),
-              isCurrent: currentTier == SubscriptionTier.free,
+              isCurrent: true,
               stretchVertically: wide,
-              actionLabel: currentTier == SubscriptionTier.free
-                  ? l10n.subscriptionCurrentPlan
-                  : l10n.subscriptionUpgrade,
-              onAction: currentTier == SubscriptionTier.free
-                  ? null
-                  : () => _handleUpgrade(context),
+              actionLabel: l10n.subscriptionCurrentPlan,
+              onAction: null,
             );
             final proCard = _PlanCard(
               title: l10n.subscriptionTierProName,
@@ -71,13 +67,11 @@ class TierComparison extends StatelessWidget {
               price: l10n.subscriptionTierProPrice,
               dailyCredits: l10n.subscriptionTierProDailyCredits,
               features: _proFeatures(l10n),
-              isCurrent: currentTier == SubscriptionTier.pro,
+              isCurrent: false,
               emphasize: true,
-              showRecommended: currentTier == SubscriptionTier.free,
+              showRecommended: true,
               stretchVertically: wide,
-              actionLabel: currentTier == SubscriptionTier.pro
-                  ? l10n.subscriptionExtend
-                  : l10n.subscriptionUpgrade,
+              actionLabel: l10n.subscriptionUpgrade,
               onAction: () => _handleUpgrade(context),
             );
 
@@ -95,9 +89,9 @@ class TierComparison extends StatelessWidget {
             }
             return Column(
               children: [
-                freeCard,
-                SizedBox(height: t.space16),
                 proCard,
+                SizedBox(height: t.space16),
+                freeCard,
               ],
             );
           },
@@ -132,6 +126,47 @@ class TierComparison extends StatelessWidget {
     if (!supportsExternalSubscriptionPurchase()) return;
     if (!context.mounted) return;
     await showAutoRenewPlanSheet(context);
+  }
+}
+
+class _ProBenefitsReminder extends StatelessWidget {
+  const _ProBenefitsReminder({required this.features});
+
+  final List<String> Function(AppLocalizations l10n) features;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final items = features(l10n);
+
+    return EnjoyCard(
+      padding: EdgeInsets.all(t.space20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.subscriptionIncludedWithPro,
+            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          SizedBox(height: t.space12),
+          for (final feature in items) ...[
+            Padding(
+              padding: EdgeInsets.only(bottom: t.space8),
+              child: Row(
+                children: [
+                  Icon(Icons.check_rounded, size: 18, color: cs.primary),
+                  SizedBox(width: t.space8),
+                  Expanded(child: Text(feature, style: tt.bodyMedium)),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

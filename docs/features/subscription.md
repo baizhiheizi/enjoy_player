@@ -31,8 +31,9 @@ All tier indicators (sidebar chip, profile hero card, subscription screen) read 
 
 ### Desktop (Windows, macOS, Linux)
 
-- **Upgrade / Extend** opens the **auto-renew plan sheet** (primary): choose monthly ($9.99) or yearly ($99.99), confirm, external Stripe Checkout via `pay_url`.
-- **Pay for months once** (secondary): existing prepaid duration + Stripe/Cryptocurrency (`mixin` on wire) sheet.
+- **Upgrade** (Free) opens the **auto-renew plan sheet** (primary): choose monthly ($9.99) or yearly ($99.99), confirm, external Stripe Checkout via `pay_url`.
+- **Pay for months once** (secondary on the plan sheet): prepaid months — **hidden while an auto-renew plan is actively renewing** (`hasActiveAutoRenewPlan`).
+- **Pro membership card**: renew date / credits; **Cancel auto-renew** is a low-emphasis text action (not a primary/secondary button). Extend appears only when the user is Pro without active auto-renew.
 - **Credits packages**: confirm price/credits → external Checkout; subscription unchanged.
 - Platform gate: `supportsExternalSubscriptionPurchase` → Windows || macOS || Linux ([ADR-0032](../decisions/0032-platform-scoped-subscription-purchase.md)).
 

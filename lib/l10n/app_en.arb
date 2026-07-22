@@ -1595,6 +1595,7 @@
     }
   },
   "subscriptionAutoRenewCancelConfirmAction": "Cancel auto-renew",
+  "subscriptionAutoRenewCancelKeep": "Keep auto-renew",
   "subscriptionAutoRenewCancelSuccess": "Auto-renew canceled. Pro remains until {date}.",
   "@subscriptionAutoRenewCancelSuccess": {
     "placeholders": {
@@ -1604,6 +1605,21 @@
   "subscriptionAutoRenewCancelFailed": "Could not cancel auto-renew. Try again.",
   "subscriptionAutoRenewConflict": "You already have an active auto-renew subscription.",
   "subscriptionAutoRenewPlansUnavailable": "Auto-renew plans are not available right now.",
+  "subscriptionProMemberTitle": "You're on Pro",
+  "subscriptionRenewsOn": "Renews on {date}",
+  "@subscriptionRenewsOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionAccessUntil": "Access until {date}",
+  "@subscriptionAccessUntil": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewEndingSoon": "Auto-renew is off — Pro continues until the date above",
+  "subscriptionIncludedWithPro": "Included with Pro",
   "subscriptionPayOnceTitle": "Pay for months once",
   "subscriptionPayOnceSubtitle": "One-time prepaid months (no auto-renew)",
   "creditsPackagesTitle": "Credits packages",

@@ -90,6 +90,8 @@ class CreditsPackagesSection extends ConsumerWidget {
     final summaryAsync = ref.watch(creditsSummaryProvider);
     final busy = ref.watch(creditsPackagePurchaseCtrlProvider).isLoading;
 
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -100,24 +102,32 @@ class CreditsPackagesSection extends ConsumerWidget {
         SizedBox(height: t.space4),
         Text(
           l10n.creditsPackagesSubtitle,
-          style: tt.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
         ),
         summaryAsync.when(
           data: (s) => Padding(
-            padding: EdgeInsets.only(top: t.space8),
-            child: Text(
-              l10n.creditsPermanentAvailable(
-                NumberFormat.decimalPattern().format(s.permanentAvailable),
+            padding: EdgeInsets.only(top: t.space12),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: t.space12,
+                vertical: t.space8,
               ),
-              style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                l10n.creditsPermanentAvailable(
+                  NumberFormat.decimalPattern().format(s.permanentAvailable),
+                ),
+                style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
           ),
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
         ),
-        SizedBox(height: t.space12),
+        SizedBox(height: t.space16),
         packagesAsync.when(
           data: (packages) {
             if (packages.isEmpty) return const SizedBox.shrink();
@@ -125,18 +135,35 @@ class CreditsPackagesSection extends ConsumerWidget {
               children: [
                 for (final pkg in packages) ...[
                   EnjoyCard(
-                    padding: EdgeInsets.all(t.space16),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: t.space16,
+                      vertical: t.space12,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            l10n.creditsPackagePriceCredits(
-                              pkg.amount,
-                              NumberFormat.decimalPattern().format(pkg.credits),
-                            ),
-                            style: tt.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${pkg.amount} USD',
+                                style: tt.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: t.space4),
+                              Text(
+                                l10n.creditsPackagePriceCredits(
+                                  pkg.amount,
+                                  NumberFormat.decimalPattern().format(
+                                    pkg.credits,
+                                  ),
+                                ),
+                                style: tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         EnjoyButton.secondary(

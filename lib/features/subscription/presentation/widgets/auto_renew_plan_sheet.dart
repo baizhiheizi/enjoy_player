@@ -8,12 +8,14 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/platform/subscription_purchase_capability.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_plans_provider.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_purchase_provider.dart';
+import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_plan.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/mobile_purchase_unavailable.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_sheet.dart';
@@ -88,6 +90,8 @@ class _AutoRenewPlanSheetBodyState
     final tt = Theme.of(context).textTheme;
     final plansAsync = ref.watch(subscriptionPlansProvider);
     final busy = ref.watch(subscriptionPurchaseCtrlProvider).isLoading;
+    final status = ref.watch(subscriptionStatusProvider).valueOrNull;
+    final showPrepaid = status == null || !status.hasActiveAutoRenewPlan;
 
     return SafeArea(
       child: Padding(
@@ -141,24 +145,26 @@ class _AutoRenewPlanSheetBodyState
                             : l10n.subscriptionAutoRenewSubscribe,
                       ),
                     ),
-                    SizedBox(height: t.space12),
-                    TextButton(
-                      onPressed: busy
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              if (!context.mounted) return;
-                              await showSubscriptionPurchaseSheet(context);
-                            },
-                      child: Text(l10n.subscriptionPayOnceTitle),
-                    ),
-                    Text(
-                      l10n.subscriptionPayOnceSubtitle,
-                      style: tt.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    if (showPrepaid) ...[
+                      SizedBox(height: t.space12),
+                      TextButton(
+                        onPressed: busy
+                            ? null
+                            : () async {
+                                Navigator.pop(context);
+                                if (!context.mounted) return;
+                                await showSubscriptionPurchaseSheet(context);
+                              },
+                        child: Text(l10n.subscriptionPayOnceTitle),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                      Text(
+                        l10n.subscriptionPayOnceSubtitle,
+                        style: tt.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ],
                 );
               },

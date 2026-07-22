@@ -57,6 +57,7 @@ void main() {
       });
       expect(status.autoRenew?.interval, 'year');
       expect(status.autoRenew?.amount, 99.99);
+      expect(status.hasActiveAutoRenewPlan, isTrue);
     });
 
     test('null autoRenew for prepaid-only', () {
@@ -66,6 +67,24 @@ void main() {
         'autoRenew': null,
       });
       expect(status.autoRenew, isNull);
+      expect(status.hasActiveAutoRenewPlan, isFalse);
+    });
+
+    test('cancel-at-period-end is not actively renewing', () {
+      final status = SubscriptionStatus.fromJson({
+        'subscriptionActive': true,
+        'subscriptionTier': 'pro',
+        'autoRenew': {
+          'active': true,
+          'provider': 'stripe',
+          'status': 'active',
+          'autoRenew': false,
+          'cancelAtPeriodEnd': true,
+          'interval': 'month',
+          'tier': 'pro',
+        },
+      });
+      expect(status.hasActiveAutoRenewPlan, isFalse);
     });
   });
 

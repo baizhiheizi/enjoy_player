@@ -51,6 +51,17 @@ class AutoRenewBilling {
       status != 'ended' &&
       status != 'canceled';
 
+  /// Actively billed auto-renew (not already set to end at period close).
+  ///
+  /// Used to hide prepaid / one-time purchase options that do not make sense
+  /// alongside a living Stripe subscription.
+  bool get isActivelyRenewing =>
+      active &&
+      autoRenew &&
+      !cancelAtPeriodEnd &&
+      status != 'ended' &&
+      status != 'canceled';
+
   bool get isIncomplete => status == 'incomplete';
 
   Map<String, dynamic> toJson() => {

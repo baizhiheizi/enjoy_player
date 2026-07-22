@@ -6273,6 +6273,12 @@ abstract class AppLocalizations {
   /// **'Cancel auto-renew'**
   String get subscriptionAutoRenewCancelConfirmAction;
 
+  /// No description provided for @subscriptionAutoRenewCancelKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep auto-renew'**
+  String get subscriptionAutoRenewCancelKeep;
+
   /// No description provided for @subscriptionAutoRenewCancelSuccess.
   ///
   /// In en, this message translates to:
@@ -6296,6 +6302,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto-renew plans are not available right now.'**
   String get subscriptionAutoRenewPlansUnavailable;
+
+  /// No description provided for @subscriptionProMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on Pro'**
+  String get subscriptionProMemberTitle;
+
+  /// No description provided for @subscriptionRenewsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String subscriptionRenewsOn(String date);
+
+  /// No description provided for @subscriptionAccessUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Access until {date}'**
+  String subscriptionAccessUntil(String date);
+
+  /// No description provided for @subscriptionAutoRenewEndingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew is off — Pro continues until the date above'**
+  String get subscriptionAutoRenewEndingSoon;
+
+  /// No description provided for @subscriptionIncludedWithPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Included with Pro'**
+  String get subscriptionIncludedWithPro;
 
   /// No description provided for @subscriptionPayOnceTitle.
   ///

@@ -3385,6 +3385,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionAutoRenewCancelConfirmAction => 'Cancel auto-renew';
 
   @override
+  String get subscriptionAutoRenewCancelKeep => 'Keep auto-renew';
+
+  @override
   String subscriptionAutoRenewCancelSuccess(String date) {
     return 'Auto-renew canceled. Pro remains until $date.';
   }
@@ -3400,6 +3403,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get subscriptionAutoRenewPlansUnavailable =>
       'Auto-renew plans are not available right now.';
+
+  @override
+  String get subscriptionProMemberTitle => 'You\'re on Pro';
+
+  @override
+  String subscriptionRenewsOn(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String subscriptionAccessUntil(String date) {
+    return 'Access until $date';
+  }
+
+  @override
+  String get subscriptionAutoRenewEndingSoon =>
+      'Auto-renew is off — Pro continues until the date above';
+
+  @override
+  String get subscriptionIncludedWithPro => 'Included with Pro';
 
   @override
   String get subscriptionPayOnceTitle => 'Pay for months once';

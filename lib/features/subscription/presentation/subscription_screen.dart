@@ -1,4 +1,4 @@
-/// Subscription management: status, plan comparison, and platform-scoped purchase.
+/// Subscription management: membership, plans, and credits packages.
 library;
 
 import 'package:flutter/material.dart';
@@ -11,14 +11,16 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
-import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
 import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/credits_packages_section.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/mobile_purchase_unavailable.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/subscription_status_card.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_comparison.dart';
+import 'package:enjoy_player/core/platform/subscription_purchase_capability.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
@@ -80,20 +82,23 @@ class _SubscriptionBody extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: statusAsync.when(
-        data: (status) => ListView(
-          padding: pad,
-          children: [
-            _SubscriptionHeroHeader(
-              isPro: status.subscriptionTier == SubscriptionTier.pro,
-            ),
-            SizedBox(height: t.space20),
-            SubscriptionStatusCard(status: status),
-            SizedBox(height: t.space24),
-            TierComparison(status: status),
-            SizedBox(height: t.space32),
-            const CreditsPackagesSection(),
-          ],
-        ),
+        data: (status) {
+          final isPro = status.isPro;
+          return ListView(
+            padding: pad,
+            children: [
+              if (!isPro) ...[
+                const _FreeUpgradeHero(),
+                SizedBox(height: t.space20),
+              ],
+              SubscriptionStatusCard(status: status),
+              SizedBox(height: t.space24),
+              TierComparison(status: status),
+              SizedBox(height: t.space32),
+              const CreditsPackagesSection(),
+            ],
+          );
+        },
         loading: () => ListView(
           padding: pad,
           children: [
@@ -122,10 +127,9 @@ class _SubscriptionBody extends ConsumerWidget {
   }
 }
 
-class _SubscriptionHeroHeader extends StatelessWidget {
-  const _SubscriptionHeroHeader({required this.isPro});
-
-  final bool isPro;
+/// Compact upgrade pitch for free users (membership card covers Pro).
+class _FreeUpgradeHero extends StatelessWidget {
+  const _FreeUpgradeHero();
 
   @override
   Widget build(BuildContext context) {
@@ -141,66 +145,78 @@ class _SubscriptionHeroHeader extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isPro
-                ? [
-                    cs.primary.withValues(alpha: 0.28),
-                    cs.tertiary.withValues(alpha: 0.22),
-                  ]
-                : [
-                    t.gradientStart.withValues(alpha: 0.55),
-                    t.gradientEnd.withValues(alpha: 0.45),
-                  ],
+            colors: [
+              t.gradientStart.withValues(alpha: 0.55),
+              t.gradientEnd.withValues(alpha: 0.45),
+            ],
           ),
           border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
         ),
         child: Padding(
           padding: EdgeInsets.all(t.space20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: cs.surface.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(t.radiusMd),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(t.space12),
-                  child: Icon(
-                    isPro
-                        ? Icons.verified_rounded
-                        : Icons.workspace_premium_rounded,
-                    color: isPro ? cs.primary : cs.onSurface,
-                    size: 28,
+              Row(
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: cs.surface.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(t.radiusMd),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(t.space12),
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        color: cs.onSurface,
+                        size: 26,
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(width: t.space16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.subscriptionUpgrade,
+                          style: tt.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        SizedBox(height: t.space4),
+                        Text(
+                          l10n.subscriptionTierProDescription,
+                          style: tt.bodyMedium?.copyWith(
+                            color: cs.onSurface.withValues(alpha: 0.82),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: t.space16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.subscriptionTitle,
-                      style: tt.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    SizedBox(height: t.space4),
-                    Text(
-                      l10n.subscriptionDescription,
-                      style: tt.bodyMedium?.copyWith(
-                        color: cs.onSurface.withValues(alpha: 0.82),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
+              SizedBox(height: t.space16),
+              EnjoyButton.primary(
+                onPressed: () => _openUpgrade(context),
+                child: Text(l10n.subscriptionUpgrade),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _openUpgrade(BuildContext context) async {
+    if (showsMobilePurchaseUnavailable()) {
+      await showMobilePurchaseUnavailableDialog(context);
+      return;
+    }
+    if (!supportsExternalSubscriptionPurchase()) return;
+    if (!context.mounted) return;
+    await showAutoRenewPlanSheet(context);
   }
 }
