@@ -97,6 +97,16 @@ The sync / audit columns (`syncStatus`, `serverUpdatedAt`, `createdAt`, `updated
 
 [`GoRouter`](../lib/core/routing/app_router.dart) + [`ShellRoute`](../lib/features/player/presentation/root_shell.dart): routes render beside an extended sidebar at wide breakpoints; [`GlobalTransportBar`](../lib/features/player/presentation/widgets/global_transport_bar.dart) spans the bottom when a playback session exists. An **`errorBuilder`** at the router root renders [`NotFoundScreen`](../lib/core/routing/not_found_screen.dart) (localized en / zh / zh-CN) for unknown locations; the screen surfaces the attempted URI and offers a single primary action to return to `/`.
 
+### Player surface host (ADR-0057)
+
+[`RootShell`](../lib/features/player/presentation/root_shell.dart) mounts one permanent [`PlayerSurfaceHost`](../lib/features/player/presentation/widgets/player_surface_host.dart) — the sole owner of `buildVideoStage()` for the active engine, keyed by engine identity so an engine swap disposes the old surface before mounting the new one. Viewports (vocabulary review clip, expanded player, loading stage) register [`PlayerSurfaceTarget`](../lib/features/player/presentation/widgets/player_surface_target.dart) geometry via [`playerSurfaceRegistryProvider`](../lib/features/player/application/player_surface_registry.dart); the host moves one permanent `Positioned` stage to the global target bounds and parks it off-corner when no target is attached (no follower transforms, which keeps WebView2 bounds correct under Windows display scaling). Open-in-player is a single `context.replace` with a typed [`PlayerLaunchRequest`](../lib/features/player/domain/player_launch_request.dart). Feature code must not build `media_kit` `Video` / `InAppWebView` surfaces outside the host — see [ADR-0057](decisions/0057-permanent-player-surface-host.md).
+
+## Form factor & orientation (ADR-0059)
+
+Android/iOS devices are classified by logical shortest side — **≥ 600 → tablet, else phone** ([`kTabletShortestSideLogical`](../lib/core/platform/device_form_factor.dart)). Phones prefer portrait only (`SystemChrome` on Android, `Info.plist` on iPhone); tablets allow all orientations; desktop never calls `setPreferredOrientations`.
+
+Player **content** layout (stacked vs side-by-side video + transcript) is driven by the player layout constraints' aspect — `width > height` → side-by-side — via [`player_content_layout.dart`](../lib/core/platform/player_content_layout.dart), not by the 720-width breakpoint. The 720 breakpoint (`breakpointTranscriptSideBySide`) is retained for width-driven chrome such as transport-bar packing. Net effect: portrait tablets stack video over transcript even when wider than 720, and narrow landscape windows can lay out side-by-side below 720 — see [ADR-0059](decisions/0059-phone-tablet-orientation-and-player-aspect-layout.md).
+
 ## Manual providers
 
 [`libraryMediaProvider`](../lib/features/library/application/library_media_provider.dart) is a hand-written `StreamProvider` because `riverpod_generator` + Drift row types hit an `InvalidTypeException` in codegen — keep this pattern documented if more stream providers need the same workaround.
