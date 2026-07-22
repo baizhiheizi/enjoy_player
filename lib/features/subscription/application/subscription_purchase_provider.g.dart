@@ -42,7 +42,7 @@ final class SubscriptionPurchaseCtrlProvider
 }
 
 String _$subscriptionPurchaseCtrlHash() =>
-    r'c62f4971e7e7e71e60ebd8755f580e23ce282375';
+    r'8a1b0b2f68e2a4ae42c8d560da71d880f0725af5';
 
 abstract class _$SubscriptionPurchaseCtrl extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();
