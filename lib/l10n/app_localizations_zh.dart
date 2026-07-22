@@ -3189,6 +3189,128 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get errorGenericLoadFailed => '加载失败，请重试。';
+
+  @override
+  String get subscriptionAutoRenewTitle => '自动续订 Pro';
+
+  @override
+  String get subscriptionAutoRenewMonthly => '月付';
+
+  @override
+  String get subscriptionAutoRenewYearly => '年付';
+
+  @override
+  String subscriptionAutoRenewPriceMonth(String amount) {
+    return '$amount 美元/月';
+  }
+
+  @override
+  String subscriptionAutoRenewPriceYear(String amount) {
+    return '$amount 美元/年';
+  }
+
+  @override
+  String get subscriptionAutoRenewSubscribe => '开通自动续订';
+
+  @override
+  String get subscriptionAutoRenewOn => '自动续订已开启';
+
+  @override
+  String get subscriptionAutoRenewOff => '自动续订已关闭';
+
+  @override
+  String get subscriptionAutoRenewIntervalMonth => '月付方案';
+
+  @override
+  String get subscriptionAutoRenewIntervalYear => '年付方案';
+
+  @override
+  String subscriptionAutoRenewProvider(String provider) {
+    return '通过 $provider 扣款';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancel => '取消自动续订';
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmTitle => '取消自动续订？';
+
+  @override
+  String subscriptionAutoRenewCancelConfirmMessage(String date) {
+    return 'Pro 权益将保留至 $date，之后不会再次扣款。';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmAction => '取消自动续订';
+
+  @override
+  String subscriptionAutoRenewCancelSuccess(String date) {
+    return '已取消自动续订。Pro 权益保留至 $date。';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelFailed => '无法取消自动续订，请重试。';
+
+  @override
+  String get subscriptionAutoRenewConflict => '你已有进行中的自动续订。';
+
+  @override
+  String get subscriptionAutoRenewPlansUnavailable => '自动续订方案暂不可用。';
+
+  @override
+  String get subscriptionPayOnceTitle => '按月一次性购买';
+
+  @override
+  String get subscriptionPayOnceSubtitle => '预付月数（不自动续订）';
+
+  @override
+  String get creditsPackagesTitle => '积分包';
+
+  @override
+  String get creditsPackagesSubtitle => '一次性永久积分 — 不是订阅';
+
+  @override
+  String creditsPackagePriceCredits(String price, String credits) {
+    return '$price 美元 · $credits 永久积分';
+  }
+
+  @override
+  String get creditsPackageBuy => '购买积分';
+
+  @override
+  String get creditsPackageConfirmTitle => '购买积分包？';
+
+  @override
+  String creditsPackageConfirmMessage(String price, String credits) {
+    return '支付 $price 美元获得 $credits 永久积分。不会改变你的订阅。';
+  }
+
+  @override
+  String get creditsPackageConfirmAction => '继续支付';
+
+  @override
+  String get creditsPackageVerifying => '正在确认积分购买…';
+
+  @override
+  String get creditsPackageVerifyTimeout => '尚未确认积分到账，请下拉刷新或稍后再看。';
+
+  @override
+  String get creditsPackagePurchaseSuccess => '永久积分已更新。';
+
+  @override
+  String get creditsPackagePurchaseFailed => '积分包购买失败';
+
+  @override
+  String creditsPermanentAvailable(String count) {
+    return '可用永久积分 $count';
+  }
+
+  @override
+  String get subscriptionCreditsLimitMessageWithPackages =>
+      'AI 积分已用完。可升级 Pro 或购买积分包继续使用。';
+
+  @override
+  String get subscriptionViewPlansAndPackages => '查看方案与积分包';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -5885,4 +6007,126 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get errorGenericLoadFailed => '加载失败，请重试。';
+
+  @override
+  String get subscriptionAutoRenewTitle => '自动续订 Pro';
+
+  @override
+  String get subscriptionAutoRenewMonthly => '月付';
+
+  @override
+  String get subscriptionAutoRenewYearly => '年付';
+
+  @override
+  String subscriptionAutoRenewPriceMonth(String amount) {
+    return '$amount 美元/月';
+  }
+
+  @override
+  String subscriptionAutoRenewPriceYear(String amount) {
+    return '$amount 美元/年';
+  }
+
+  @override
+  String get subscriptionAutoRenewSubscribe => '开通自动续订';
+
+  @override
+  String get subscriptionAutoRenewOn => '自动续订已开启';
+
+  @override
+  String get subscriptionAutoRenewOff => '自动续订已关闭';
+
+  @override
+  String get subscriptionAutoRenewIntervalMonth => '月付方案';
+
+  @override
+  String get subscriptionAutoRenewIntervalYear => '年付方案';
+
+  @override
+  String subscriptionAutoRenewProvider(String provider) {
+    return '通过 $provider 扣款';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancel => '取消自动续订';
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmTitle => '取消自动续订？';
+
+  @override
+  String subscriptionAutoRenewCancelConfirmMessage(String date) {
+    return 'Pro 权益将保留至 $date，之后不会再次扣款。';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmAction => '取消自动续订';
+
+  @override
+  String subscriptionAutoRenewCancelSuccess(String date) {
+    return '已取消自动续订。Pro 权益保留至 $date。';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelFailed => '无法取消自动续订，请重试。';
+
+  @override
+  String get subscriptionAutoRenewConflict => '你已有进行中的自动续订。';
+
+  @override
+  String get subscriptionAutoRenewPlansUnavailable => '自动续订方案暂不可用。';
+
+  @override
+  String get subscriptionPayOnceTitle => '按月一次性购买';
+
+  @override
+  String get subscriptionPayOnceSubtitle => '预付月数（不自动续订）';
+
+  @override
+  String get creditsPackagesTitle => '积分包';
+
+  @override
+  String get creditsPackagesSubtitle => '一次性永久积分 — 不是订阅';
+
+  @override
+  String creditsPackagePriceCredits(String price, String credits) {
+    return '$price 美元 · $credits 永久积分';
+  }
+
+  @override
+  String get creditsPackageBuy => '购买积分';
+
+  @override
+  String get creditsPackageConfirmTitle => '购买积分包？';
+
+  @override
+  String creditsPackageConfirmMessage(String price, String credits) {
+    return '支付 $price 美元获得 $credits 永久积分。不会改变你的订阅。';
+  }
+
+  @override
+  String get creditsPackageConfirmAction => '继续支付';
+
+  @override
+  String get creditsPackageVerifying => '正在确认积分购买…';
+
+  @override
+  String get creditsPackageVerifyTimeout => '尚未确认积分到账，请下拉刷新或稍后再看。';
+
+  @override
+  String get creditsPackagePurchaseSuccess => '永久积分已更新。';
+
+  @override
+  String get creditsPackagePurchaseFailed => '积分包购买失败';
+
+  @override
+  String creditsPermanentAvailable(String count) {
+    return '可用永久积分 $count';
+  }
+
+  @override
+  String get subscriptionCreditsLimitMessageWithPackages =>
+      'AI 积分已用完。可升级 Pro 或购买积分包继续使用。';
+
+  @override
+  String get subscriptionViewPlansAndPackages => '查看方案与积分包';
 }

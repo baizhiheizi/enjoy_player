@@ -6182,6 +6182,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errorGenericLoadFailed;
+
+  /// No description provided for @subscriptionAutoRenewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew Pro'**
+  String get subscriptionAutoRenewTitle;
+
+  /// No description provided for @subscriptionAutoRenewMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subscriptionAutoRenewMonthly;
+
+  /// No description provided for @subscriptionAutoRenewYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subscriptionAutoRenewYearly;
+
+  /// No description provided for @subscriptionAutoRenewPriceMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} USD/month'**
+  String subscriptionAutoRenewPriceMonth(String amount);
+
+  /// No description provided for @subscriptionAutoRenewPriceYear.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} USD/year'**
+  String subscriptionAutoRenewPriceYear(String amount);
+
+  /// No description provided for @subscriptionAutoRenewSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe with auto-renew'**
+  String get subscriptionAutoRenewSubscribe;
+
+  /// No description provided for @subscriptionAutoRenewOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew on'**
+  String get subscriptionAutoRenewOn;
+
+  /// No description provided for @subscriptionAutoRenewOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew off'**
+  String get subscriptionAutoRenewOff;
+
+  /// No description provided for @subscriptionAutoRenewIntervalMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly plan'**
+  String get subscriptionAutoRenewIntervalMonth;
+
+  /// No description provided for @subscriptionAutoRenewIntervalYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly plan'**
+  String get subscriptionAutoRenewIntervalYear;
+
+  /// No description provided for @subscriptionAutoRenewProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed via {provider}'**
+  String subscriptionAutoRenewProvider(String provider);
+
+  /// No description provided for @subscriptionAutoRenewCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel auto-renew'**
+  String get subscriptionAutoRenewCancel;
+
+  /// No description provided for @subscriptionAutoRenewCancelConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel auto-renew?'**
+  String get subscriptionAutoRenewCancelConfirmTitle;
+
+  /// No description provided for @subscriptionAutoRenewCancelConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You keep Pro until {date}. You will not be charged again for this subscription.'**
+  String subscriptionAutoRenewCancelConfirmMessage(String date);
+
+  /// No description provided for @subscriptionAutoRenewCancelConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel auto-renew'**
+  String get subscriptionAutoRenewCancelConfirmAction;
+
+  /// No description provided for @subscriptionAutoRenewCancelSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew canceled. Pro remains until {date}.'**
+  String subscriptionAutoRenewCancelSuccess(String date);
+
+  /// No description provided for @subscriptionAutoRenewCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel auto-renew. Try again.'**
+  String get subscriptionAutoRenewCancelFailed;
+
+  /// No description provided for @subscriptionAutoRenewConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an active auto-renew subscription.'**
+  String get subscriptionAutoRenewConflict;
+
+  /// No description provided for @subscriptionAutoRenewPlansUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renew plans are not available right now.'**
+  String get subscriptionAutoRenewPlansUnavailable;
+
+  /// No description provided for @subscriptionPayOnceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay for months once'**
+  String get subscriptionPayOnceTitle;
+
+  /// No description provided for @subscriptionPayOnceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time prepaid months (no auto-renew)'**
+  String get subscriptionPayOnceSubtitle;
+
+  /// No description provided for @creditsPackagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits packages'**
+  String get creditsPackagesTitle;
+
+  /// No description provided for @creditsPackagesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time permanent credits — not a subscription'**
+  String get creditsPackagesSubtitle;
+
+  /// No description provided for @creditsPackagePriceCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} USD · {credits} permanent credits'**
+  String creditsPackagePriceCredits(String price, String credits);
+
+  /// No description provided for @creditsPackageBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy credits'**
+  String get creditsPackageBuy;
+
+  /// No description provided for @creditsPackageConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy credits package?'**
+  String get creditsPackageConfirmTitle;
+
+  /// No description provided for @creditsPackageConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {price} USD for {credits} permanent credits. This does not change your subscription.'**
+  String creditsPackageConfirmMessage(String price, String credits);
+
+  /// No description provided for @creditsPackageConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to payment'**
+  String get creditsPackageConfirmAction;
+
+  /// No description provided for @creditsPackageVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying your credits purchase…'**
+  String get creditsPackageVerifying;
+
+  /// No description provided for @creditsPackageVerifyTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm credits yet — pull to refresh or check again shortly.'**
+  String get creditsPackageVerifyTimeout;
+
+  /// No description provided for @creditsPackagePurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent credits updated.'**
+  String get creditsPackagePurchaseSuccess;
+
+  /// No description provided for @creditsPackagePurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits package purchase failed'**
+  String get creditsPackagePurchaseFailed;
+
+  /// No description provided for @creditsPermanentAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} permanent credits available'**
+  String creditsPermanentAvailable(String count);
+
+  /// No description provided for @subscriptionCreditsLimitMessageWithPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'AI credits limit reached. Upgrade to Pro or buy a credits package to continue.'**
+  String get subscriptionCreditsLimitMessageWithPackages;
+
+  /// No description provided for @subscriptionViewPlansAndPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'View plans & packages'**
+  String get subscriptionViewPlansAndPackages;
 }
 
 class _AppLocalizationsDelegate

@@ -173,3 +173,51 @@ final class SubscriptionApiProvider
 }
 
 String _$subscriptionApiHash() => r'5f8b0690c51890e7d76326084dfb73238be30c4c';
+
+@ProviderFor(creditsPackagesApi)
+final creditsPackagesApiProvider = CreditsPackagesApiProvider._();
+
+final class CreditsPackagesApiProvider
+    extends
+        $FunctionalProvider<
+          CreditsPackagesApi,
+          CreditsPackagesApi,
+          CreditsPackagesApi
+        >
+    with $Provider<CreditsPackagesApi> {
+  CreditsPackagesApiProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'creditsPackagesApiProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$creditsPackagesApiHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreditsPackagesApi> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CreditsPackagesApi create(Ref ref) {
+    return creditsPackagesApi(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreditsPackagesApi value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreditsPackagesApi>(value),
+    );
+  }
+}
+
+String _$creditsPackagesApiHash() =>
+    r'04dadba8211a4987347f37a2f8ba676e4525111d';

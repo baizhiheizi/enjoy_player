@@ -55,7 +55,7 @@ void main() {
 
     final l10n = lookupAppLocalizations(const Locale('en'));
     expect(find.text('Daily limit reached'), findsOneWidget);
-    expect(find.text(l10n.subscriptionViewPlans), findsOneWidget);
+    expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
 
     final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
     snackBar.action!.onPressed();

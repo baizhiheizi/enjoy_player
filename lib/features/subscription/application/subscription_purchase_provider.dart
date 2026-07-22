@@ -1,4 +1,4 @@
-/// External checkout mutations for Pro subscription.
+/// External checkout mutations for Pro subscription (prepaid + auto-renew).
 library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:enjoy_player/features/subscription/application/tier_reconcile_provider.dart';
 import 'package:enjoy_player/features/subscription/data/subscription_repository.dart';
+import 'package:enjoy_player/features/subscription/domain/auto_renew_start_result.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_processor.dart';
 import 'package:enjoy_player/features/subscription/domain/payment_session.dart';
 import 'package:enjoy_player/features/subscription/domain/purchase_request.dart';
@@ -28,29 +29,55 @@ class SubscriptionPurchaseCtrl extends _$SubscriptionPurchaseCtrl {
         PurchaseRequest(months: months, processor: processor),
       );
       state = const AsyncData(null);
-
-      final url = session.payUrl;
-      if (url == null || url.isEmpty) {
-        throw StateError('missing_pay_url');
-      }
-      final uri = Uri.tryParse(url);
-      if (uri == null) {
-        throw StateError('invalid_pay_url');
-      }
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      if (!launched) {
-        throw StateError('launch_failed');
-      }
-      // Mark a purchase as pending so the next app resume reconciles eagerly
-      // (polls the status endpoint for fast confirmation). See ADR-0041.
+      await _launchPayUrl(session.payUrl);
       ref.read(tierReconcileCtrlProvider.notifier).markPurchasePending();
       return session;
     } catch (e, st) {
       state = AsyncError(e, st);
       rethrow;
+    }
+  }
+
+  Future<AutoRenewStartResult?> startAutoRenewExternal({
+    required String planId,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final repo = ref.read(subscriptionRepositoryProvider);
+      final result = await repo.startAutoRenew(planId: planId);
+      state = const AsyncData(null);
+      await _launchPayUrl(result.payUrl);
+      ref.read(tierReconcileCtrlProvider.notifier).markPurchasePending();
+      return result;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> cancelAutoRenew() async {
+    state = const AsyncLoading();
+    try {
+      final repo = ref.read(subscriptionRepositoryProvider);
+      await repo.cancelAutoRenew();
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> _launchPayUrl(String? url) async {
+    if (url == null || url.isEmpty) {
+      throw StateError('missing_pay_url');
+    }
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      throw StateError('invalid_pay_url');
+    }
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      throw StateError('launch_failed');
     }
   }
 }

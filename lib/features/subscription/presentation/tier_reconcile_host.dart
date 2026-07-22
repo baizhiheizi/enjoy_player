@@ -56,15 +56,6 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
     }
   }
 
-  /// Captures the baseline tier + kicks off a background reconcile when already
-  /// signed in at mount (auth resolved during bootstrap, before this widget's
-  /// listeners attached). Also covers the cold-start case where the live tier
-  /// has already advanced past the cached baseline by the time we mount.
-  ///
-  /// Uses [??=] so the [authCtrlProvider] listener (registered in [build]) can
-  /// seed [_lastEmittedTier] first when auth resolves before the post-frame
-  /// callback fires. Without this guard both paths can detect the same
-  /// free→Pro transition independently, causing a double celebration.
   void _onFirstFrame() {
     if (!mounted) return;
     final auth = ref.read(authCtrlProvider).valueOrNull;
@@ -88,16 +79,30 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
     }
   }
 
-  /// App-initiated purchase just returned: show a verifying notice, poll for
-  /// confirmation, then celebrate or surface a soft timeout. The actual free
-  /// → Pro celebration is also handled by the [currentTierProvider] listener,
-  /// which dedupes via [_lastEmittedTier].
   Future<void> _eagerReconcile() async {
     final l10n = AppLocalizations.of(context)!;
-    AppNotice.info(context, l10n.subscriptionVerifyingUpgrade);
-    await ref.read(tierReconcileCtrlProvider.notifier).reconcile(eager: true);
+    final notifier = ref.read(tierReconcileCtrlProvider.notifier);
+    final packagePending = notifier.hasPendingPackagePurchase;
+    AppNotice.info(
+      context,
+      packagePending
+          ? l10n.creditsPackageVerifying
+          : l10n.subscriptionVerifyingUpgrade,
+    );
+    final confirmed = await notifier.reconcile(eager: true);
     if (!mounted) return;
-    if (ref.read(currentTierProvider) != SubscriptionTier.pro) {
+    // `null` means reconcile was skipped (already running / already handled) —
+    // do not surface a false verify-timeout notice.
+    if (confirmed == null) return;
+    if (packagePending) {
+      if (confirmed) {
+        AppNotice.success(context, l10n.creditsPackagePurchaseSuccess);
+      } else {
+        AppNotice.info(context, l10n.creditsPackageVerifyTimeout);
+      }
+      return;
+    }
+    if (!confirmed && ref.read(currentTierProvider) != SubscriptionTier.pro) {
       AppNotice.info(context, l10n.subscriptionVerifyTimeout);
     }
   }
@@ -110,8 +115,6 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
 
   @override
   Widget build(BuildContext context) {
-    // Capture the cached-profile tier as the baseline whenever the user (re)
-    // signs in, so a stale "free" baseline from a previous session is reset.
     ref.listen<AsyncValue<AuthState>>(authCtrlProvider, (prev, next) {
       final prevAuth = prev?.valueOrNull;
       final nextAuth = next.valueOrNull;
@@ -124,7 +127,6 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
       }
     });
 
-    // Celebrate genuine free → Pro transitions only.
     ref.listen<SubscriptionTier>(currentTierProvider, (prev, next) {
       if (_lastEmittedTier == null) return;
       if (next == SubscriptionTier.pro &&

@@ -3,10 +3,13 @@ library;
 
 import 'package:flutter/foundation.dart';
 
-/// Windows and macOS direct-download builds may use external Enjoy checkout.
+/// Windows, macOS, and Linux direct-download builds may use external Enjoy
+/// checkout (see ADR-0032).
 bool supportsExternalSubscriptionPurchase({TargetPlatform? platform}) {
   final p = platform ?? defaultTargetPlatform;
-  return p == TargetPlatform.windows || p == TargetPlatform.macOS;
+  return p == TargetPlatform.windows ||
+      p == TargetPlatform.macOS ||
+      p == TargetPlatform.linux;
 }
 
 /// iOS and Android show coming-soon instead of external checkout in v1.

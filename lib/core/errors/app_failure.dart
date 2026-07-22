@@ -72,3 +72,8 @@ final class AuthFailure extends AppFailure {
 final class CreditsFailure extends AppFailure {
   const CreditsFailure(super.message);
 }
+
+/// Rails returned HTTP 409 (e.g. second auto-renew while one is active).
+final class SubscriptionConflictFailure extends AppFailure {
+  const SubscriptionConflictFailure(super.message);
+}
