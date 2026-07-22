@@ -212,6 +212,26 @@ void main() {
   });
 
   group('mergeVocabularyContextLastWriteWins', () {
+    test('null local returns server row as new insert', () {
+      final serverTime = DateTime.utc(2026, 1, 5);
+      final merged = mergeVocabularyContextLastWriteWins(
+        local: null,
+        server: {
+          'id': 'ctx-new',
+          'vocabularyItemId': 'item-1',
+          'text': 'New context from server.',
+          'sourceType': 'Audio',
+          'sourceId': 'a1',
+          'locator': {'type': 'text', 'start': 5},
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+      expect(merged.id, 'ctx-new');
+      expect(merged.contextText, 'New context from server.');
+      expect(merged.sourceType, 'Audio');
+    });
+
     test('server wins on ties (matches web resolveConflict)', () {
       final t = DateTime.utc(2026, 1, 1);
       final local = _contextRow(
@@ -257,6 +277,264 @@ void main() {
         },
       );
       expect(merged.contextText, 'Local text');
+    });
+  });
+
+  group('mergeVocabularyItemConflict adoptServerMetadata', () {
+    test('local SRS newer but server.updatedAt after localSrsReference '
+        'adopts server word/explanation', () {
+      final localReviewTime = DateTime.utc(2026, 1, 10);
+      final localUpdatedAt = DateTime.utc(2026, 1, 10);
+      final serverTime = DateTime.utc(2026, 1, 20);
+      final local = _itemRow(
+        word: 'Local Word',
+        explanation: 'Local explanation',
+        easeFactor: 3.0,
+        interval: 15,
+        reviewsCount: 5,
+        lastReviewedAt: localReviewTime,
+        createdAt: localUpdatedAt,
+        updatedAt: localUpdatedAt,
+      );
+
+      final merged = mergeVocabularyItemConflict(
+        local: local,
+        server: {
+          'id': 'item-1',
+          'word': 'Server Word',
+          'language': 'en',
+          'targetLanguage': 'zh-CN',
+          'status': 'learning',
+          'easeFactor': 2.5,
+          'interval': 1,
+          'nextReviewAt': serverTime.toIso8601String(),
+          'reviewsCount': 2,
+          'lastReviewedAt': DateTime.utc(2026, 1, 5).toIso8601String(),
+          'contextsCount': 3,
+          'explanation': 'Server explanation',
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+
+      expect(merged.word, 'Server Word');
+      expect(merged.explanation, 'Server explanation');
+      expect(merged.easeFactor, 3.0);
+      expect(merged.interval, 15);
+      expect(merged.reviewsCount, 5);
+      expect(merged.syncStatus, 'synced');
+    });
+
+    test('local SRS newer and server.updatedAt before localSrsReference '
+        'keeps local word/explanation', () {
+      final localReviewTime = DateTime.utc(2026, 2, 1);
+      final serverTime = DateTime.utc(2026, 1, 15);
+      final local = _itemRow(
+        word: 'Local Word',
+        explanation: 'Local explanation',
+        easeFactor: 3.0,
+        interval: 15,
+        reviewsCount: 5,
+        lastReviewedAt: localReviewTime,
+        createdAt: localReviewTime,
+        updatedAt: localReviewTime,
+      );
+
+      final merged = mergeVocabularyItemConflict(
+        local: local,
+        server: {
+          'id': 'item-1',
+          'word': 'Server Word',
+          'language': 'en',
+          'targetLanguage': 'zh-CN',
+          'status': 'learning',
+          'easeFactor': 2.5,
+          'interval': 1,
+          'nextReviewAt': serverTime.toIso8601String(),
+          'reviewsCount': 2,
+          'lastReviewedAt': DateTime.utc(2026, 1, 5).toIso8601String(),
+          'contextsCount': 3,
+          'explanation': 'Server explanation',
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+
+      expect(merged.word, 'Local Word');
+      expect(merged.explanation, 'Local explanation');
+      expect(merged.easeFactor, 3.0);
+      expect(merged.interval, 15);
+    });
+
+    test('neither side reviewed: higher reviewsCount wins SRS', () {
+      final localTime = DateTime.utc(2026, 1, 10);
+      final serverTime = DateTime.utc(2026, 1, 20);
+      final local = _itemRow(
+        word: 'Local Word',
+        reviewsCount: 10,
+        lastReviewedAt: null,
+        createdAt: localTime,
+        updatedAt: localTime,
+      );
+
+      final merged = mergeVocabularyItemConflict(
+        local: local,
+        server: {
+          'id': 'item-1',
+          'word': 'Server Word',
+          'language': 'en',
+          'targetLanguage': 'zh-CN',
+          'status': 'learning',
+          'easeFactor': 2.5,
+          'interval': 1,
+          'nextReviewAt': serverTime.toIso8601String(),
+          'reviewsCount': 3,
+          'contextsCount': 1,
+          'createdAt': serverTime.toIso8601String(),
+          'updatedAt': serverTime.toIso8601String(),
+        },
+      );
+
+      expect(merged.reviewsCount, 10);
+      expect(merged.easeFactor, 2.5);
+      expect(merged.syncStatus, 'synced');
+    });
+  });
+
+  group('vocabularyContextRowFromServerJson', () {
+    test('handles null locator as empty JSON object', () {
+      final t = DateTime.utc(2026, 1, 1);
+      final row = vocabularyContextRowFromServerJson({
+        'id': 'ctx-1',
+        'vocabularyItemId': 'item-1',
+        'text': 'Hello',
+        'sourceType': 'Video',
+        'sourceId': 'v1',
+        'locator': null,
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.locatorJson, '{}');
+    });
+
+    test('handles String locator passthrough', () {
+      final t = DateTime.utc(2026, 1, 1);
+      final row = vocabularyContextRowFromServerJson({
+        'id': 'ctx-2',
+        'vocabularyItemId': 'item-1',
+        'text': 'Hello',
+        'sourceType': 'Video',
+        'sourceId': 'v1',
+        'locator': '{"type":"text","start":5}',
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.locatorJson, '{"type":"text","start":5}');
+    });
+
+    test('handles Map locator by encoding to JSON', () {
+      final t = DateTime.utc(2026, 1, 1);
+      final row = vocabularyContextRowFromServerJson({
+        'id': 'ctx-3',
+        'vocabularyItemId': 'item-1',
+        'text': 'Hello',
+        'sourceType': 'Audio',
+        'sourceId': 'a1',
+        'locator': {'type': 'media', 'start': 0, 'duration': 2000},
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.locatorJson, contains('"type":"media"'));
+      expect(row.locatorJson, contains('"duration":2000'));
+    });
+
+    test('applies defaults for missing fields', () {
+      final row = vocabularyContextRowFromServerJson({'id': 'ctx-4'});
+      expect(row.vocabularyItemId, '');
+      expect(row.contextText, '');
+      expect(row.sourceType, 'Video');
+      expect(row.sourceId, '');
+      expect(row.locatorJson, '{}');
+      expect(row.explanation, isNull);
+      expect(row.syncStatus, 'synced');
+      expect(row.serverUpdatedAt, isNull);
+    });
+  });
+
+  group('vocabularyItemRowFromServerJson', () {
+    test('applies defaults for missing fields', () {
+      final row = vocabularyItemRowFromServerJson({'id': 'item-x'});
+      expect(row.word, '');
+      expect(row.language, 'und');
+      expect(row.targetLanguage, 'und');
+      expect(row.status, 'new');
+      expect(row.easeFactor, 2.5);
+      expect(row.interval, 0);
+      expect(row.reviewsCount, 0);
+      expect(row.lastReviewedAt, isNull);
+      expect(row.contextsCount, 0);
+      expect(row.explanation, isNull);
+      expect(row.syncStatus, 'synced');
+      expect(row.serverUpdatedAt, isNull);
+    });
+
+    test('parses numeric fields from num types', () {
+      final t = DateTime.utc(2026, 1, 1);
+      final row = vocabularyItemRowFromServerJson({
+        'id': 'item-y',
+        'word': 'test',
+        'easeFactor': 3,
+        'interval': 5.0,
+        'reviewsCount': 2.0,
+        'contextsCount': 1.5,
+        'nextReviewAt': t.toIso8601String(),
+        'createdAt': t.toIso8601String(),
+        'updatedAt': t.toIso8601String(),
+      });
+      expect(row.easeFactor, 3.0);
+      expect(row.interval, 5);
+      expect(row.reviewsCount, 2);
+      expect(row.contextsCount, 1);
+    });
+  });
+
+  group('prepareForSyncVocabularyItemMap with optional fields', () {
+    test('includes lastReviewedAt and explanation when present', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final reviewed = DateTime.utc(2025, 12, 25);
+      final row = _itemRow(
+        lastReviewedAt: reviewed,
+        explanation: 'A greeting',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final m = prepareForSyncVocabularyItemMap(row);
+      expect(m['lastReviewedAt'], reviewed.toUtc().toIso8601String());
+      expect(m['explanation'], 'A greeting');
+    });
+  });
+
+  group('prepareForSyncVocabularyContextMap with explanation', () {
+    test('includes explanation when present', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final row = _contextRow(
+        explanation: 'Used as a greeting',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final m = prepareForSyncVocabularyContextMap(row);
+      expect(m['explanation'], 'Used as a greeting');
+    });
+
+    test('omits explanation when null', () {
+      final now = DateTime.utc(2026, 1, 1);
+      final row = _contextRow(
+        explanation: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+      final m = prepareForSyncVocabularyContextMap(row);
+      expect(m.containsKey('explanation'), isFalse);
     });
   });
 }

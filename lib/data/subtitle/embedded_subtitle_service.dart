@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:media_kit/media_kit.dart' show SubtitleTrack;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -129,9 +130,9 @@ class EmbeddedSubtitleService {
         continue;
       }
 
-      final label = _trackLabelFromParts(track.title, track.language, i);
+      final label = trackLabelFromParts(track.title, track.language, i);
       results.add(
-        _rowForExtracted(
+        rowForExtracted(
           targetId: targetId,
           targetTypeDexie: targetTypeDexie,
           language: language,
@@ -204,15 +205,15 @@ class EmbeddedSubtitleService {
       }
 
       var language = probe[i].language ?? 'und';
-      language = _allocateLanguageCode(language, seenLanguages);
+      language = allocateLanguageCode(language, seenLanguages);
 
-      final label = _trackLabelFromParts(
+      final label = trackLabelFromParts(
         null,
         language == 'und' ? null : language,
         i,
       );
       results.add(
-        _rowForExtracted(
+        rowForExtracted(
           targetId: targetId,
           targetTypeDexie: targetTypeDexie,
           language: language,
@@ -273,7 +274,8 @@ class EmbeddedSubtitleService {
   }
 
   /// Reserves a unique language key for [enjoyTranscriptId] (mutates [used]).
-  static String _allocateLanguageCode(String language, Set<String> used) {
+  @visibleForTesting
+  static String allocateLanguageCode(String language, Set<String> used) {
     var base = language.isEmpty ? 'und' : language;
     if (!used.contains(base)) {
       used.add(base);
@@ -307,7 +309,8 @@ class EmbeddedSubtitleService {
     return null;
   }
 
-  static TranscriptRow _rowForExtracted({
+  @visibleForTesting
+  static TranscriptRow rowForExtracted({
     required String targetId,
     required String targetTypeDexie,
     required String language,
@@ -425,7 +428,8 @@ class EmbeddedSubtitleService {
     }
   }
 
-  static String _trackLabelFromParts(
+  @visibleForTesting
+  static String trackLabelFromParts(
     String? title,
     String? language,
     int index,
