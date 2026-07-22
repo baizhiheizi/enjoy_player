@@ -1,4 +1,12 @@
-/// Persist imported subtitles for a media item.
+/// Local transcript repository: track watching, resolution on open, cloud /
+/// YouTube fetching, subtitle import, and auto-translate track management.
+///
+/// The implementation is split across part files by responsibility (see the
+/// `part` directives below). Methods declared in the public extensions —
+/// [TranscriptRepositorySubtitleImport] and
+/// [TranscriptRepositoryAutoTranslate] — are part of the repository's API
+/// surface but use static extension dispatch, so they cannot be overridden
+/// in subclasses.
 library;
 
 import 'dart:async';
@@ -111,6 +119,12 @@ final Logger _log = logNamed('TranscriptRepository');
 /// Matches Worker `YOUTUBE_ID_RE` / `VideoRow.vid` for canonical imports.
 final RegExp _youtubeWorkerVideoIdRe = RegExp(r'^[a-zA-Z0-9_-]{11}$');
 
+/// Owns transcript rows for a media target: watching tracks, resolving the
+/// primary transcript on open, fetching cloud / YouTube transcripts,
+/// importing subtitles, and managing active tracks.
+///
+/// Subtitle import and auto-translate methods are declared in the public
+/// extensions of this library's part files and are non-virtual.
 class TranscriptRepository {
   TranscriptRepository(
     this._db, [
