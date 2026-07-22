@@ -20,7 +20,6 @@ import 'package:enjoy_player/features/asr/data/asr_long_form_attempt_store.dart'
 import 'package:enjoy_player/features/asr/domain/asr_long_form_job_exception.dart';
 import 'package:enjoy_player/features/asr/domain/asr_long_form_models.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 
 void main() {
   late AppDatabase db;

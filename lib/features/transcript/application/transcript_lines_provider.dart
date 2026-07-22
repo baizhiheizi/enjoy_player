@@ -10,7 +10,6 @@ import '../../../data/db/app_database.dart';
 import '../../../data/db/app_database_provider.dart';
 import '../../../data/db/media_target_resolver.dart';
 import '../../../data/subtitle/transcript_line.dart';
-import '../data/transcript_repository.dart';
 import 'transcript_repository_provider.dart';
 
 Future<List<TranscriptLine>> _computeLines(

@@ -18,7 +18,6 @@ import 'package:enjoy_player/features/asr/application/asr_generation_controller.
 import 'package:enjoy_player/features/asr/application/asr_generation_job.dart';
 import 'package:enjoy_player/features/asr/data/asr_audio_extractor.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 
 void main() {
   late AppDatabase db;
