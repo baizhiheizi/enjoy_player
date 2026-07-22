@@ -37,6 +37,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/settings.md](features/settings.md) | Product + dev | Settings hub, hotkeys / sync sub-screens, account hero, language / mic pickers, or developer API editors change |
 | [features/shadow-reading.md](features/shadow-reading.md) | Product + dev | Shadow reading panel, recording bus, pitch contour, or Azure pronunciation assessment behavior changes |
 | [features/update.md](features/update.md) | Product + dev | App update strategy (NoOp / Direct), manifest schema, evaluator rules, or prompt UX change |
+| [features/landing.md](features/landing.md) | Product + dev | Download landing page (get.enjoy.bot) links, manifest proxy, i18n, or deploy workflow change |
 | [features/share-poster.md](features/share-poster.md) | Product + dev | Shareable practice poster (echo-tailored cover + quote) behavior changes |
 | [features/player.md](features/player.md) | Product + dev | Player engine binding, expand/collapse, transport, echo enforcement, or wide-layout behavior changes |
 | [features/transcript.md](features/transcript.md) | Product + dev | Transcript loading, line navigation, auto-scroll, or cloud fetch behavior changes |
