@@ -578,7 +578,7 @@ final class DiscoverRefreshStateProvider
 }
 
 String _$discoverRefreshStateHash() =>
-    r'80ca9c0314ab01cd564d2b1fd7cd6b249abe42ef';
+    r'b4ded4ff642ff740385f05492ef3a8103945aa6e';
 
 abstract class _$DiscoverRefreshState extends $Notifier<bool> {
   bool build();
