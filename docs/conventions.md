@@ -44,6 +44,7 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 ## UI interaction
 
 - Prefer **`EnjoyTappableSurface` / `EnjoyTappableIcon`** (or **`EnjoyButton`**) for new tappable UI instead of ad-hoc `InkWell` + `GestureDetector` combinations — see [ADR-0018](decisions/0018-shared-interactive-primitives.md).
+- For **rail-style navigation surfaces** (sidebar nav rows, settings two-pane rail), prefer **`NavItemPill`** ([`core/theme/widgets/nav_item_pill.dart`](../lib/core/theme/widgets/nav_item_pill.dart)) — it consolidates the `Material` + `InkWell` + `AnimatedContainer` stack with consistent focus ring, hover/splash colors, and selected-tinted background. Supports configurable `iconSize`, `selectedIcon` fallback, and `maxLines`/`overflow` for label ellipsis.
 - Route light user feedback through **`Haptics`** (`selection`, `impactMedium`, `success`, `warning`) rather than calling `HapticFeedback` directly; it honors reduced motion / platform.
 - Icon-only controls should still expose **`Tooltip`** (and keyboard hints via `kbd_chip` / hotkey helpers where applicable).
 - Use **`LoadingIcon`** ([`core/presentation/loading_icon.dart`](../lib/core/presentation/loading_icon.dart)) for inline busy affordances (button labels, list rows, chips) instead of hand-rolling a `SizedBox` + `CircularProgressIndicator` pair — defaults to a compact 18×18 spinner, configurable via `size` / `strokeWidth` / `color`. See [app-ui.md § Widgets reference](features/app-ui.md#widgets-reference).
