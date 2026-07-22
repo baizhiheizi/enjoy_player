@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-07-22
+
+### Added
+
+- **Auto-renew subscription** with credits packages and membership tiers.
+- **Logging test infrastructure** with `TestLoggingScope` helper for asserting log output.
+
+### Changed
+
+- **Transcript repository** split into focused part files (auto-translate, subtitle import, YouTube fetch, worker cache).
+- **NavItemPill** extracted as shared widget between sidebar and settings rail.
+- **Bearer auth** acquisition centralized into `_ensureAuthenticated`.
+
+### Fixed
+
+- **YouTube login** no longer crashes by parking the surface host.
+- **Tablet orientation** no longer mis-locked to portrait at bootstrap.
+- **Android TLS** and **macOS SwiftPM** build failures resolved.
+
 ## [0.7.1] - 2026-07-21
 
 ### Changed
