@@ -103,7 +103,7 @@ The sync / audit columns (`syncStatus`, `serverUpdatedAt`, `createdAt`, `updated
 
 ## Form factor & orientation (ADR-0059)
 
-Android/iOS devices are classified by logical shortest side — **≥ 600 → tablet, else phone** ([`kTabletShortestSideLogical`](../lib/core/platform/device_form_factor.dart)). Phones prefer portrait only (`SystemChrome` on Android, `Info.plist` on iPhone); tablets allow all orientations; desktop never calls `setPreferredOrientations`.
+Android/iOS devices are classified by the **display** logical shortest side — **≥ 600 → tablet, else phone** ([`kTabletShortestSideLogical`](../lib/core/platform/device_form_factor.dart)). Classification uses `FlutterView.display` (not window `physicalSize`) so a zero-sized bootstrap window or letterboxed compatibility mode cannot mis-lock a tablet to portrait. When metrics are not ready yet, bootstrap defers the lock instead of guessing phone. Phones prefer portrait only (`SystemChrome` on Android, `Info.plist` on iPhone); tablets allow all orientations; desktop never calls `setPreferredOrientations`.
 
 Player **content** layout (stacked vs side-by-side video + transcript) is driven by the player layout constraints' aspect — `width > height` → side-by-side — via [`player_content_layout.dart`](../lib/core/platform/player_content_layout.dart), not by the 720-width breakpoint. The 720 breakpoint (`breakpointTranscriptSideBySide`) is retained for width-driven chrome such as transport-bar packing. Net effect: portrait tablets stack video over transcript even when wider than 720, and narrow landscape windows can lay out side-by-side below 720 — see [ADR-0059](decisions/0059-phone-tablet-orientation-and-player-aspect-layout.md).
 

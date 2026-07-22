@@ -54,20 +54,20 @@ void main() {
       }
     });
 
-    test('invalid shortest side defaults to phone on mobile', () {
+    test('invalid shortest side returns null on mobile (defer lock)', () {
       expect(
         resolveDeviceFormFactor(
           platform: TargetPlatform.android,
           shortestSideLogical: 0,
         ),
-        DeviceFormFactor.phone,
+        isNull,
       );
       expect(
         resolveDeviceFormFactor(
           platform: TargetPlatform.iOS,
           shortestSideLogical: double.nan,
         ),
-        DeviceFormFactor.phone,
+        isNull,
       );
     });
   });

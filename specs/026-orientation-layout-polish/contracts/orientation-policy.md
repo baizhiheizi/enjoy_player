@@ -7,14 +7,15 @@
 ## Classification
 
 ```text
-resolveDeviceFormFactor(platform, shortestSideLogical) → DeviceFormFactor
+resolveDeviceFormFactor(platform, shortestSideLogical) → DeviceFormFactor?
 ```
 
 | platform | shortestSideLogical | result |
 |----------|---------------------|--------|
 | windows / macOS / linux | (ignored) | `desktop` |
 | iOS / android | ≥ 600 | `tablet` |
-| iOS / android | &lt; 600 | `phone` |
+| iOS / android | &gt; 0 and &lt; 600 | `phone` |
+| iOS / android | ≤ 0 or non-finite | `null` (defer — do **not** guess phone) |
 
 Constant: tablet threshold = **600** logical pixels (shortest side).
 
@@ -33,10 +34,11 @@ preferredOrientationsFor(formFactor) → List<DeviceOrientation>?
 ## Bootstrap application
 
 1. After `WidgetsFlutterBinding.ensureInitialized()`.
-2. Read primary view logical size → `shortestSide`.
+2. Read primary view **display** logical shortest side (`view.display.size / dpr`), not window `physicalSize` (can be `Size.zero` at startup and letterboxed after a wrong lock).
 3. Resolve form factor with `defaultTargetPlatform`.
-4. If preferred list is non-null, `await SystemChrome.setPreferredOrientations(list)`.
-5. Failures MUST be logged via project logging helpers and MUST NOT prevent `runApp`.
+4. If result is `null`, defer via `onMetricsChanged` and do **not** call `setPreferredOrientations` (never default mobile to phone).
+5. If preferred list is non-null, `await SystemChrome.setPreferredOrientations(list)`.
+6. Failures MUST be logged via project logging helpers and MUST NOT prevent `runApp`.
 
 ## Out of scope
 
