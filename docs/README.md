@@ -16,6 +16,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [windows-release-ci.md](windows-release-ci.md) | Release | GitHub Actions Windows release workflow |
 | [ci-self-hosted-runners.md](ci-self-hosted-runners.md) | Release / CI | Self-hosted runner setup for all workflows |
 | [testing.md](testing.md) | Contributors | Test strategy or CI commands change |
+| [perf-measurement.md](perf-measurement.md) | Contributors | Perf test patterns (emission counting, barrier doubles, list stress) or hot-path verification guidance change |
 | [decisions/](decisions/) | Architects | Irreversible technical choices |
 | [features/](features/) | Product + dev | Feature behavior changes |
 | [features/app-ui.md](features/app-ui.md) | Product + dev | Shell, navigation chrome, or design tokens change |
