@@ -2,8 +2,8 @@
 library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import 'package:enjoy_player/core/utils/launch_pay_url.dart';
 import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
 import 'package:enjoy_player/features/credits/data/credits_packages_repository.dart';
 import 'package:enjoy_player/features/credits/domain/credits_package.dart';
@@ -55,21 +55,7 @@ class CreditsPackagePurchaseCtrl extends _$CreditsPackagePurchaseCtrl {
       final session = await repo.startPurchase(packageId: packageId);
       state = const AsyncData(null);
 
-      final url = session.payUrl;
-      if (url == null || url.isEmpty) {
-        throw StateError('missing_pay_url');
-      }
-      final uri = Uri.tryParse(url);
-      if (uri == null) {
-        throw StateError('invalid_pay_url');
-      }
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      if (!launched) {
-        throw StateError('launch_failed');
-      }
+      await launchPayUrl(session.payUrl);
       ref
           .read(tierReconcileCtrlProvider.notifier)
           .markPackagePurchasePending(
