@@ -2,27 +2,38 @@
 library;
 
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/subscription/domain/auto_renew_billing.dart';
 
 class SubscriptionStatus {
   const SubscriptionStatus({
     required this.subscriptionActive,
     required this.subscriptionTier,
     this.subscriptionExpireDate,
+    this.autoRenew,
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
+    final autoRenewRaw = json['autoRenew'];
+    AutoRenewBilling? autoRenew;
+    if (autoRenewRaw is Map) {
+      autoRenew = AutoRenewBilling.fromJson(
+        Map<String, dynamic>.from(autoRenewRaw),
+      );
+    }
     return SubscriptionStatus(
       subscriptionActive: json['subscriptionActive'] == true,
       subscriptionTier:
           _subscriptionTierFromJson(json['subscriptionTier']) ??
           SubscriptionTier.free,
       subscriptionExpireDate: json['subscriptionExpireDate'] as String?,
+      autoRenew: autoRenew,
     );
   }
 
   final bool subscriptionActive;
   final SubscriptionTier subscriptionTier;
   final String? subscriptionExpireDate;
+  final AutoRenewBilling? autoRenew;
 
   bool get isPro =>
       subscriptionTier == SubscriptionTier.pro && subscriptionActive;
@@ -35,6 +46,7 @@ class SubscriptionStatus {
       'subscriptionTier': subscriptionTier.name,
       if (subscriptionExpireDate != null)
         'subscriptionExpireDate': subscriptionExpireDate,
+      if (autoRenew != null) 'autoRenew': autoRenew!.toJson(),
     };
   }
 }

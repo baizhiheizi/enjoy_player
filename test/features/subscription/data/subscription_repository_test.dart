@@ -19,27 +19,71 @@ class _FakeSubscriptionApi implements SubscriptionApi {
   Future<Map<String, dynamic>> getStatus() => _handler('getStatus');
 
   @override
+  Future<Map<String, dynamic>> listPlans() => _handler('listPlans');
+
+  @override
   Future<Map<String, dynamic>> purchase({
     required int months,
     PaymentProcessor processor = PaymentProcessor.stripe,
   }) => _handler('purchase');
+
+  @override
+  Future<Map<String, dynamic>> startAutoRenew({required String planId}) =>
+      _handler('startAutoRenew');
+
+  @override
+  Future<Map<String, dynamic>> cancelAutoRenew() => _handler('cancelAutoRenew');
 }
 
 void main() {
   group('SubscriptionRepository', () {
-    test('getStatus returns parsed model', () async {
+    test('getStatus returns parsed model with autoRenew', () async {
       final repo = SubscriptionRepository(
         _FakeSubscriptionApi((_) async {
           return {
             'subscriptionActive': true,
             'subscriptionTier': 'pro',
             'subscriptionExpireDate': null,
+            'autoRenew': {
+              'active': true,
+              'provider': 'stripe',
+              'status': 'active',
+              'autoRenew': true,
+              'cancelAtPeriodEnd': false,
+              'planId': 'pro_month',
+              'tier': 'pro',
+              'interval': 'month',
+              'amount': 9.99,
+            },
           };
         }),
       );
 
       final status = await repo.getStatus();
       expect(status.isPro, isTrue);
+      expect(status.autoRenew?.interval, 'month');
+      expect(status.autoRenew?.isCancelable, isTrue);
+    });
+
+    test('listPlans parses catalog', () async {
+      final repo = SubscriptionRepository(
+        _FakeSubscriptionApi((method) async {
+          expect(method, 'listPlans');
+          return {
+            'plans': [
+              {
+                'id': 'pro_month',
+                'tier': 'pro',
+                'interval': 'month',
+                'amount': 9.99,
+              },
+            ],
+          };
+        }),
+      );
+      final plans = await repo.listPlans();
+      expect(plans, hasLength(1));
+      expect(plans.first.id, 'pro_month');
     });
 
     test('purchase returns payment session with payUrl', () async {
@@ -61,6 +105,16 @@ void main() {
         const PurchaseRequest(months: 1, processor: PaymentProcessor.stripe),
       );
       expect(session.payUrl, 'https://pay.example.com');
+    });
+
+    test('startAutoRenew maps 409 to SubscriptionConflictFailure', () async {
+      final repo = SubscriptionRepository(
+        _ThrowingApi(const ApiException(message: 'conflict', statusCode: 409)),
+      );
+      expect(
+        () => repo.startAutoRenew(planId: 'pro_month'),
+        throwsA(isA<SubscriptionConflictFailure>()),
+      );
     });
 
     test('maps 402 to CreditsFailure', () async {
@@ -85,8 +139,18 @@ class _ThrowingApi implements SubscriptionApi {
   Future<Map<String, dynamic>> getStatus() => throw error;
 
   @override
+  Future<Map<String, dynamic>> listPlans() => throw error;
+
+  @override
   Future<Map<String, dynamic>> purchase({
     required int months,
     PaymentProcessor processor = PaymentProcessor.stripe,
   }) => throw error;
+
+  @override
+  Future<Map<String, dynamic>> startAutoRenew({required String planId}) =>
+      throw error;
+
+  @override
+  Future<Map<String, dynamic>> cancelAutoRenew() => throw error;
 }

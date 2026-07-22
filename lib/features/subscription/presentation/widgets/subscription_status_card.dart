@@ -2,21 +2,82 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/subscription/application/subscription_purchase_provider.dart';
+import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
+import 'package:enjoy_player/features/subscription/domain/auto_renew_billing.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-class SubscriptionStatusCard extends StatelessWidget {
+class SubscriptionStatusCard extends ConsumerWidget {
   const SubscriptionStatusCard({required this.status, super.key});
 
   final SubscriptionStatus status;
 
+  Future<void> _cancel(
+    BuildContext context,
+    WidgetRef ref,
+    AutoRenewBilling ar,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final dateLabel =
+        _formatDate(context, ar.currentPeriodEnd) ??
+        _formatDate(context, status.subscriptionExpireDate) ??
+        l10n.subscriptionNeverExpires;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.subscriptionAutoRenewCancelConfirmTitle),
+        content: Text(
+          l10n.subscriptionAutoRenewCancelConfirmMessage(dateLabel),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.subscriptionAutoRenewCancelConfirmAction),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await ref
+          .read(subscriptionPurchaseCtrlProvider.notifier)
+          .cancelAutoRenew();
+      ref.invalidate(subscriptionStatusProvider);
+      if (!context.mounted) return;
+      AppNotice.success(
+        context,
+        l10n.subscriptionAutoRenewCancelSuccess(dateLabel),
+      );
+    } on AppFailure catch (e) {
+      if (!context.mounted) return;
+      AppNotice.error(
+        context,
+        e.message.isNotEmpty
+            ? e.message
+            : l10n.subscriptionAutoRenewCancelFailed,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      AppNotice.error(context, l10n.subscriptionAutoRenewCancelFailed);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
@@ -26,6 +87,8 @@ class SubscriptionStatusCard extends StatelessWidget {
     final tierLabel = isPro
         ? l10n.profileSubscriptionPro
         : l10n.profileSubscriptionFree;
+    final ar = status.autoRenew;
+    final cancelBusy = ref.watch(subscriptionPurchaseCtrlProvider).isLoading;
 
     return EnjoyCard(
       padding: EdgeInsets.zero,
@@ -114,6 +177,66 @@ class SubscriptionStatusCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (ar != null) ...[
+                  _DividerGap(tokens: t),
+                  _StatusRow(
+                    icon: Icons.autorenew_rounded,
+                    label: ar.autoRenew && !ar.cancelAtPeriodEnd
+                        ? l10n.subscriptionAutoRenewOn
+                        : l10n.subscriptionAutoRenewOff,
+                    child: Text(
+                      ar.interval == 'year'
+                          ? l10n.subscriptionAutoRenewIntervalYear
+                          : ar.interval == 'month'
+                          ? l10n.subscriptionAutoRenewIntervalMonth
+                          : ar.interval,
+                      style: tt.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  if (ar.amount != null) ...[
+                    _DividerGap(tokens: t),
+                    _StatusRow(
+                      icon: Icons.payments_outlined,
+                      label: ar.interval == 'year'
+                          ? l10n.subscriptionAutoRenewPriceYear(
+                              NumberFormat('0.00').format(ar.amount),
+                            )
+                          : l10n.subscriptionAutoRenewPriceMonth(
+                              NumberFormat('0.00').format(ar.amount),
+                            ),
+                      child: Text(
+                        ar.provider.isEmpty
+                            ? ''
+                            : l10n.subscriptionAutoRenewProvider(ar.provider),
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (ar.isCancelable) ...[
+                    SizedBox(height: t.space16),
+                    EnjoyButton.secondary(
+                      onPressed: cancelBusy
+                          ? null
+                          : () => _cancel(context, ref, ar),
+                      child: Text(l10n.subscriptionAutoRenewCancel),
+                    ),
+                  ],
+                ] else if (isPro) ...[
+                  _DividerGap(tokens: t),
+                  _StatusRow(
+                    icon: Icons.autorenew_rounded,
+                    label: l10n.subscriptionAutoRenewOff,
+                    child: Text(
+                      l10n.subscriptionPayOnceSubtitle,
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -124,16 +247,18 @@ class SubscriptionStatusCard extends StatelessWidget {
 
   String _formatExpiration(BuildContext context, String? iso) {
     final l10n = AppLocalizations.of(context)!;
-    if (iso == null || iso.isEmpty) {
-      return l10n.subscriptionNeverExpires;
-    }
+    final formatted = _formatDate(context, iso);
+    if (formatted == null) return l10n.subscriptionNeverExpires;
+    return l10n.subscriptionExpiresOn(formatted);
+  }
+
+  String? _formatDate(BuildContext context, String? iso) {
+    if (iso == null || iso.isEmpty) return null;
     try {
       final date = DateTime.parse(iso).toLocal();
-      return l10n.subscriptionExpiresOn(
-        DateFormat.yMMMMd(
-          Localizations.localeOf(context).toString(),
-        ).format(date),
-      );
+      return DateFormat.yMMMMd(
+        Localizations.localeOf(context).toString(),
+      ).format(date);
     } catch (_) {
       return iso;
     }

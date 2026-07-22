@@ -26,6 +26,10 @@ Future<void> showSubscriptionPurchaseSheet(BuildContext context) {
   );
 }
 
+/// Opens the one-time prepaid months sheet (secondary to auto-renew).
+Future<void> showPrepaidPurchaseSheet(BuildContext context) =>
+    showSubscriptionPurchaseSheet(context);
+
 class _PurchaseSheetBody extends ConsumerStatefulWidget {
   const _PurchaseSheetBody();
 
@@ -96,10 +100,15 @@ class _PurchaseSheetBodyState extends ConsumerState<_PurchaseSheetBody> {
           ),
           SizedBox(height: t.space16),
           Text(
-            l10n.subscriptionPurchaseTitle,
+            l10n.subscriptionPayOnceTitle,
             style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           SizedBox(height: t.space4),
+          Text(
+            l10n.subscriptionPayOnceSubtitle,
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          ),
+          SizedBox(height: t.space8),
           Text(
             l10n.subscriptionPurchaseSelectDuration,
             style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),

@@ -3330,4 +3330,132 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorGenericLoadFailed =>
       'Something went wrong. Please try again.';
+
+  @override
+  String get subscriptionAutoRenewTitle => 'Auto-renew Pro';
+
+  @override
+  String get subscriptionAutoRenewMonthly => 'Monthly';
+
+  @override
+  String get subscriptionAutoRenewYearly => 'Yearly';
+
+  @override
+  String subscriptionAutoRenewPriceMonth(String amount) {
+    return '$amount USD/month';
+  }
+
+  @override
+  String subscriptionAutoRenewPriceYear(String amount) {
+    return '$amount USD/year';
+  }
+
+  @override
+  String get subscriptionAutoRenewSubscribe => 'Subscribe with auto-renew';
+
+  @override
+  String get subscriptionAutoRenewOn => 'Auto-renew on';
+
+  @override
+  String get subscriptionAutoRenewOff => 'Auto-renew off';
+
+  @override
+  String get subscriptionAutoRenewIntervalMonth => 'Monthly plan';
+
+  @override
+  String get subscriptionAutoRenewIntervalYear => 'Yearly plan';
+
+  @override
+  String subscriptionAutoRenewProvider(String provider) {
+    return 'Billed via $provider';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancel => 'Cancel auto-renew';
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmTitle => 'Cancel auto-renew?';
+
+  @override
+  String subscriptionAutoRenewCancelConfirmMessage(String date) {
+    return 'You keep Pro until $date. You will not be charged again for this subscription.';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelConfirmAction => 'Cancel auto-renew';
+
+  @override
+  String subscriptionAutoRenewCancelSuccess(String date) {
+    return 'Auto-renew canceled. Pro remains until $date.';
+  }
+
+  @override
+  String get subscriptionAutoRenewCancelFailed =>
+      'Could not cancel auto-renew. Try again.';
+
+  @override
+  String get subscriptionAutoRenewConflict =>
+      'You already have an active auto-renew subscription.';
+
+  @override
+  String get subscriptionAutoRenewPlansUnavailable =>
+      'Auto-renew plans are not available right now.';
+
+  @override
+  String get subscriptionPayOnceTitle => 'Pay for months once';
+
+  @override
+  String get subscriptionPayOnceSubtitle =>
+      'One-time prepaid months (no auto-renew)';
+
+  @override
+  String get creditsPackagesTitle => 'Credits packages';
+
+  @override
+  String get creditsPackagesSubtitle =>
+      'One-time permanent credits — not a subscription';
+
+  @override
+  String creditsPackagePriceCredits(String price, String credits) {
+    return '$price USD · $credits permanent credits';
+  }
+
+  @override
+  String get creditsPackageBuy => 'Buy credits';
+
+  @override
+  String get creditsPackageConfirmTitle => 'Buy credits package?';
+
+  @override
+  String creditsPackageConfirmMessage(String price, String credits) {
+    return 'Pay $price USD for $credits permanent credits. This does not change your subscription.';
+  }
+
+  @override
+  String get creditsPackageConfirmAction => 'Continue to payment';
+
+  @override
+  String get creditsPackageVerifying => 'Verifying your credits purchase…';
+
+  @override
+  String get creditsPackageVerifyTimeout =>
+      'Couldn\'t confirm credits yet — pull to refresh or check again shortly.';
+
+  @override
+  String get creditsPackagePurchaseSuccess => 'Permanent credits updated.';
+
+  @override
+  String get creditsPackagePurchaseFailed => 'Credits package purchase failed';
+
+  @override
+  String creditsPermanentAvailable(String count) {
+    return '$count permanent credits available';
+  }
+
+  @override
+  String get subscriptionCreditsLimitMessageWithPackages =>
+      'AI credits limit reached. Upgrade to Pro or buy a credits package to continue.';
+
+  @override
+  String get subscriptionViewPlansAndPackages => 'View plans & packages';
 }

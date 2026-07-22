@@ -9,6 +9,7 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/data/api/api_client_provider.dart';
+import 'package:enjoy_player/data/api/services/credits_packages_api.dart';
 import 'package:enjoy_player/data/api/services/stats_api.dart';
 import 'package:enjoy_player/data/api/services/subscription_api.dart';
 import 'package:enjoy_player/data/api/services/transcript_api.dart';
@@ -29,3 +30,7 @@ TranscriptApi transcriptApi(Ref ref) =>
 @Riverpod(keepAlive: true)
 SubscriptionApi subscriptionApi(Ref ref) =>
     SubscriptionApi(ref.watch(apiClientProvider));
+
+@Riverpod(keepAlive: true)
+CreditsPackagesApi creditsPackagesApi(Ref ref) =>
+    CreditsPackagesApi(ref.watch(apiClientProvider));

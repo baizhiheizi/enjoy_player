@@ -1559,5 +1559,82 @@
   "errorGenericLoadFailed": "Something went wrong. Please try again.",
   "@errorGenericLoadFailed": {
     "description": "Generic fallback message when loading data fails in an unexpected way."
-  }
+  },
+  "subscriptionAutoRenewTitle": "Auto-renew Pro",
+  "subscriptionAutoRenewMonthly": "Monthly",
+  "subscriptionAutoRenewYearly": "Yearly",
+  "subscriptionAutoRenewPriceMonth": "{amount} USD/month",
+  "@subscriptionAutoRenewPriceMonth": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewPriceYear": "{amount} USD/year",
+  "@subscriptionAutoRenewPriceYear": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewSubscribe": "Subscribe with auto-renew",
+  "subscriptionAutoRenewOn": "Auto-renew on",
+  "subscriptionAutoRenewOff": "Auto-renew off",
+  "subscriptionAutoRenewIntervalMonth": "Monthly plan",
+  "subscriptionAutoRenewIntervalYear": "Yearly plan",
+  "subscriptionAutoRenewProvider": "Billed via {provider}",
+  "@subscriptionAutoRenewProvider": {
+    "placeholders": {
+      "provider": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewCancel": "Cancel auto-renew",
+  "subscriptionAutoRenewCancelConfirmTitle": "Cancel auto-renew?",
+  "subscriptionAutoRenewCancelConfirmMessage": "You keep Pro until {date}. You will not be charged again for this subscription.",
+  "@subscriptionAutoRenewCancelConfirmMessage": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewCancelConfirmAction": "Cancel auto-renew",
+  "subscriptionAutoRenewCancelSuccess": "Auto-renew canceled. Pro remains until {date}.",
+  "@subscriptionAutoRenewCancelSuccess": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionAutoRenewCancelFailed": "Could not cancel auto-renew. Try again.",
+  "subscriptionAutoRenewConflict": "You already have an active auto-renew subscription.",
+  "subscriptionAutoRenewPlansUnavailable": "Auto-renew plans are not available right now.",
+  "subscriptionPayOnceTitle": "Pay for months once",
+  "subscriptionPayOnceSubtitle": "One-time prepaid months (no auto-renew)",
+  "creditsPackagesTitle": "Credits packages",
+  "creditsPackagesSubtitle": "One-time permanent credits — not a subscription",
+  "creditsPackagePriceCredits": "{price} USD · {credits} permanent credits",
+  "@creditsPackagePriceCredits": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "credits": {"type": "String"}
+    }
+  },
+  "creditsPackageBuy": "Buy credits",
+  "creditsPackageConfirmTitle": "Buy credits package?",
+  "creditsPackageConfirmMessage": "Pay {price} USD for {credits} permanent credits. This does not change your subscription.",
+  "@creditsPackageConfirmMessage": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "credits": {"type": "String"}
+    }
+  },
+  "creditsPackageConfirmAction": "Continue to payment",
+  "creditsPackageVerifying": "Verifying your credits purchase…",
+  "creditsPackageVerifyTimeout": "Couldn't confirm credits yet — pull to refresh or check again shortly.",
+  "creditsPackagePurchaseSuccess": "Permanent credits updated.",
+  "creditsPackagePurchaseFailed": "Credits package purchase failed",
+  "creditsPermanentAvailable": "{count} permanent credits available",
+  "@creditsPermanentAvailable": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "subscriptionCreditsLimitMessageWithPackages": "AI credits limit reached. Upgrade to Pro or buy a credits package to continue.",
+  "subscriptionViewPlansAndPackages": "View plans & packages"
 }

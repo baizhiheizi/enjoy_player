@@ -17,9 +17,9 @@ void showCreditsFailureWithUpgradeAction(
     context,
     failure.message.isNotEmpty
         ? failure.message
-        : l10n.subscriptionCreditsLimitMessage,
+        : l10n.subscriptionCreditsLimitMessageWithPackages,
     action: SnackBarAction(
-      label: l10n.subscriptionViewPlans,
+      label: l10n.subscriptionViewPlansAndPackages,
       onPressed: () => context.push('/subscription'),
     ),
   );

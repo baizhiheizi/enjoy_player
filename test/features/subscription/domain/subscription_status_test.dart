@@ -39,6 +39,34 @@ void main() {
       expect(status.isPro, isFalse);
       expect(status.dailyCreditsLimit, 1_000);
     });
+
+    test('parses nested autoRenew', () {
+      final status = SubscriptionStatus.fromJson({
+        'subscriptionActive': true,
+        'subscriptionTier': 'pro',
+        'autoRenew': {
+          'active': true,
+          'provider': 'stripe',
+          'status': 'active',
+          'autoRenew': true,
+          'cancelAtPeriodEnd': false,
+          'interval': 'year',
+          'amount': 99.99,
+          'tier': 'pro',
+        },
+      });
+      expect(status.autoRenew?.interval, 'year');
+      expect(status.autoRenew?.amount, 99.99);
+    });
+
+    test('null autoRenew for prepaid-only', () {
+      final status = SubscriptionStatus.fromJson({
+        'subscriptionActive': true,
+        'subscriptionTier': 'pro',
+        'autoRenew': null,
+      });
+      expect(status.autoRenew, isNull);
+    });
   });
 
   group('PaymentSession.fromJson', () {

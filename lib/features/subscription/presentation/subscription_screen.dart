@@ -14,6 +14,9 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
 import 'package:enjoy_player/features/subscription/application/subscription_status_provider.dart';
+import 'package:enjoy_player/features/credits/application/credits_packages_provider.dart';
+import 'package:enjoy_player/features/credits/application/credits_summary_provider.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/credits_packages_section.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/subscription_status_card.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/tier_comparison.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -28,6 +31,8 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Future<void> _refresh() async {
     ref.invalidate(subscriptionStatusProvider);
+    ref.invalidate(creditsPackagesProvider);
+    ref.invalidate(creditsSummaryProvider);
     await ref.read(subscriptionStatusProvider.future);
   }
 
@@ -85,6 +90,8 @@ class _SubscriptionBody extends ConsumerWidget {
             SubscriptionStatusCard(status: status),
             SizedBox(height: t.space24),
             TierComparison(status: status),
+            SizedBox(height: t.space32),
+            const CreditsPackagesSection(),
           ],
         ),
         loading: () => ListView(

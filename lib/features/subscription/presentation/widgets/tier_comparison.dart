@@ -9,8 +9,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/domain/subscription_status.dart';
+import 'package:enjoy_player/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart';
 import 'package:enjoy_player/features/subscription/presentation/widgets/mobile_purchase_unavailable.dart';
-import 'package:enjoy_player/features/subscription/presentation/widgets/purchase_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class TierComparison extends StatelessWidget {
@@ -131,7 +131,7 @@ class TierComparison extends StatelessWidget {
     }
     if (!supportsExternalSubscriptionPurchase()) return;
     if (!context.mounted) return;
-    await showSubscriptionPurchaseSheet(context);
+    await showAutoRenewPlanSheet(context);
   }
 }
 

@@ -4,13 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('supportsExternalSubscriptionPurchase', () {
-    test('windows and macOS true', () {
+    test('windows, macOS, and linux true', () {
       expect(
         supportsExternalSubscriptionPurchase(platform: TargetPlatform.windows),
         isTrue,
       );
       expect(
         supportsExternalSubscriptionPurchase(platform: TargetPlatform.macOS),
+        isTrue,
+      );
+      expect(
+        supportsExternalSubscriptionPurchase(platform: TargetPlatform.linux),
         isTrue,
       );
     });

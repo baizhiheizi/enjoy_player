@@ -11,6 +11,8 @@ class SubscriptionApi extends RestApi {
 
   Future<Map<String, dynamic>> getStatus() => client.getJson(_path);
 
+  Future<Map<String, dynamic>> listPlans() => client.getJson('$_path/plans');
+
   Future<Map<String, dynamic>> purchase({
     required int months,
     PaymentProcessor processor = PaymentProcessor.stripe,
@@ -18,4 +20,10 @@ class SubscriptionApi extends RestApi {
     _path,
     body: {'months': months, 'processor': processor.apiValue},
   );
+
+  Future<Map<String, dynamic>> startAutoRenew({required String planId}) =>
+      client.postJson('$_path/auto_renew', body: {'planId': planId});
+
+  Future<Map<String, dynamic>> cancelAutoRenew() =>
+      client.postJson('$_path/cancel');
 }
