@@ -84,7 +84,7 @@ final class CreditsPackagePurchaseCtrlProvider
 }
 
 String _$creditsPackagePurchaseCtrlHash() =>
-    r'bd1202a8aa52a40a6c2256d5301bca360073397c';
+    r'6ea43fb3309b09c31915d248f04d624203834d06';
 
 abstract class _$CreditsPackagePurchaseCtrl
     extends $Notifier<AsyncValue<void>> {
