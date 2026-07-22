@@ -108,7 +108,7 @@ Missing BYOK credentials are surfaced **before** the capability runs, by the `By
 
 ## Consumers
 
-Feature screens should depend on `*ServiceProvider` types in `application/`, not on `ApiClient` directly, so modality and provider selection stay in one place. Transcript dictionary lookup uses the same services — see [dictionary-lookup](features/dictionary-lookup.md).
+Feature screens should depend on `*ServiceProvider` types in `application/`, not on `ApiClient` directly, so modality and provider selection stay in one place. Transcript dictionary lookup uses the same services — see [dictionary-lookup](dictionary-lookup.md).
 
 ## Verification
 
