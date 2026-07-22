@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
+import 'package:enjoy_player/core/theme/widgets/nav_item_pill.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/sidebar_account_chip.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
@@ -185,26 +185,29 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 ),
 
                 // Nav items
-                _SidebarNavItem(
+                NavItemPill(
                   icon: Icons.home_outlined,
                   selectedIcon: Icons.home_rounded,
                   label: l10n.homeTitle,
                   selected: path == '/',
+                  iconSize: 22,
                   onTap: () => context.go('/'),
                 ),
-                _SidebarNavItem(
+                NavItemPill(
                   icon: Icons.explore_outlined,
                   selectedIcon: Icons.explore_rounded,
                   label: l10n.discoverTitle,
                   selected: path.startsWith('/discover'),
+                  iconSize: 22,
                   onTap: () => context.go('/discover'),
                 ),
-                _SidebarNavItem(
+                NavItemPill(
                   icon: Icons.collections_bookmark_outlined,
                   selectedIcon: Icons.collections_bookmark_rounded,
                   label: l10n.libraryTitle,
                   selected:
                       path.startsWith('/library') || path.startsWith('/cloud'),
+                  iconSize: 22,
                   onTap: () => context.go('/library'),
                 ),
 
@@ -215,102 +218,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SidebarNavItem extends StatelessWidget {
-  const _SidebarNavItem({
-    required this.icon,
-    required this.selectedIcon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: 2),
-      child: Focus(
-        child: Builder(
-          builder: (focusContext) {
-            final focused = Focus.of(focusContext).hasFocus;
-            return Material(
-              color: Colors.transparent,
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(t.radiusFull),
-                side: focused && !selected
-                    ? BorderSide(
-                        color: cs.primary.withValues(alpha: 0.55),
-                        width: t.focusRingWidth,
-                      )
-                    : BorderSide.none,
-              ),
-              child: InkWell(
-                onTap: () {
-                  Haptics.selection(context);
-                  onTap();
-                },
-                borderRadius: BorderRadius.circular(t.radiusFull),
-                hoverColor: cs.onSurface.withValues(alpha: 0.06),
-                splashColor: cs.primary.withValues(alpha: 0.10),
-                highlightColor: cs.primary.withValues(alpha: 0.05),
-                child: AnimatedContainer(
-                  duration: t.motionFast,
-                  curve: Curves.easeOutCubic,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: t.space16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? cs.primaryContainer.withValues(alpha: 0.6)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(t.radiusFull),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        selected ? selectedIcon : icon,
-                        size: 22,
-                        color: selected
-                            ? cs.onPrimaryContainer
-                            : cs.onSurfaceVariant,
-                      ),
-                      SizedBox(width: t.space12),
-                      Expanded(
-                        child: Text(
-                          label,
-                          style: tt.labelLarge?.copyWith(
-                            fontWeight: selected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: selected
-                                ? cs.onSurface
-                                : cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
         ),
       ),
     );
