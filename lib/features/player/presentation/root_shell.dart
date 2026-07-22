@@ -182,9 +182,16 @@ class _RootShellState extends ConsumerState<RootShell> {
                   );
 
             // Permanent video/WebView surface — follows PlayerSurfaceTarget.
+            // Park while `/youtube/login` is open: that route pushes above the
+            // player page (target stays attached) but this host paints above
+            // the whole shell, so an unparked stage covers the login WebView.
+            final parkForYoutubeLogin = path.startsWith('/youtube/login');
             return Stack(
               fit: StackFit.expand,
-              children: [shell, const PlayerSurfaceHost()],
+              children: [
+                shell,
+                PlayerSurfaceHost(forcePark: parkForYoutubeLogin),
+              ],
             );
           },
         ),

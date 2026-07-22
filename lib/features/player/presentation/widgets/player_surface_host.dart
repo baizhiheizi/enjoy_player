@@ -15,8 +15,15 @@ import 'package:enjoy_player/features/player/application/player_surface_registry
 /// Follows [playerSurfaceRegistryProvider] when a target is attached; otherwise
 /// parks YouTube off-screen so WebView2 is not torn down. Never reparents the
 /// underlying [InAppWebView] / media_kit [Video] between routes.
+///
+/// Set [forcePark] when a shell route that owns its own platform view (e.g.
+/// `/youtube/login`) is on top of a still-mounted player page — otherwise this
+/// host stays above the shell [Stack] and covers that route.
 class PlayerSurfaceHost extends ConsumerWidget {
-  const PlayerSurfaceHost({super.key});
+  const PlayerSurfaceHost({super.key, this.forcePark = false});
+
+  /// When true, ignore any registry attachment and park off-screen.
+  final bool forcePark;
 
   static const double _parkWidth = 320;
   static const double _parkHeight = 180;
@@ -25,7 +32,9 @@ class PlayerSurfaceHost extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(playerEngineRevProvider);
     ref.watch(playerControllerProvider);
-    final attachment = ref.watch(playerSurfaceRegistryProvider);
+    final attachment = forcePark
+        ? null
+        : ref.watch(playerSurfaceRegistryProvider);
 
     // Prefer the real owned engine; fall back to the test double when set.
     final engine =
