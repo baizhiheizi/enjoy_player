@@ -11,7 +11,7 @@ Users **Import → From YouTube URL** and paste a watch URL, short URL, embed UR
 
 ## Login
 
-Optional **YouTube / Google** sign-in opens a **dedicated** WebView (`/youtube/login`) starting at Google ServiceLogin with `continue=https://m.youtube.com/`. Session cookies (`LOGIN_INFO` / `SID`) on `m.youtube.com` determine logged-in state. Logout clears **all** WebView cookies (see ADR-0015).
+Optional **YouTube / Google** sign-in opens a **dedicated** WebView (`/youtube/login`) starting at Google ServiceLogin with `continue=https://m.youtube.com/`. Session cookies (`LOGIN_INFO` / `SID`) on `m.youtube.com` determine logged-in state. Logout clears **all** WebView cookies (see ADR-0015). While that route is open, [`RootShell`](../../lib/features/player/presentation/root_shell.dart) **parks** the permanent player surface ([ADR-0057](../decisions/0057-permanent-player-surface-host.md)) so the player WebView cannot cover the login WebView.
 
 **Session persistence**: cookies live in the app WebView profile (`%LOCALAPPDATA%\…\WebView2` on Windows — see [`windows_webview_environment.dart`](../../lib/core/webview/windows_webview_environment.dart)) and normally survive app restarts until logout or Google expires the session. Enjoy account sign-in is separate.
 

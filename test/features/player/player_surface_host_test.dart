@@ -80,4 +80,50 @@ void main() {
       expect(engine.surfaceKey.currentContext, same(originalElement));
     },
   );
+
+  testWidgets(
+    'forcePark parks stage left of origin even when a target is attached',
+    (tester) async {
+      final engine = _KeyedSurfaceEngine();
+      addTearDown(engine.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [playerEngineTestDoubleProvider.overrideWithValue(engine)],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SizedBox(
+                      width: 320,
+                      height: 180,
+                      child: PlayerSurfaceTarget(
+                        id: PlayerSurfaceIds.expandedPlayer,
+                        child: ColoredBox(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  PlayerSurfaceHost(forcePark: true),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(engine.surfaceKey.currentContext, isNotNull);
+
+      final box =
+          engine.surfaceKey.currentContext!.findRenderObject()! as RenderBox;
+      final origin = box.localToGlobal(Offset.zero);
+      // Parked at Offset(-parkWidth - 64, 0) — must not sit on the target.
+      expect(origin.dx, lessThan(0));
+    },
+  );
 }

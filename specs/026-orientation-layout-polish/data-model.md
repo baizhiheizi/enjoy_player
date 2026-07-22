@@ -21,12 +21,12 @@ Logical device class for orientation policy.
 | Field | Type | Notes |
 |-------|------|-------|
 | `platform` | `TargetPlatform` | From `defaultTargetPlatform` |
-| `shortestSideLogical` | `double` | `min(width, height)` of the primary view in logical pixels |
+| `shortestSideLogical` | `double` | `min(width, height)` of the primary view's **display** in logical pixels |
 
 **Validation**:
 
 - Desktop platforms ignore `shortestSideLogical` for classification (always `desktop`).
-- On mobile, `shortestSideLogical` must be finite and &gt; 0; if unavailable at bootstrap, treat as `phone` (safe default: lock portrait) and log a warning.
+- On mobile, `shortestSideLogical` must be finite and &gt; 0; if unavailable at bootstrap, return `null` and **defer** the orientation lock (do not guess phone — that pillarboxes tablets).
 
 ---
 

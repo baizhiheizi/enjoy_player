@@ -72,25 +72,59 @@ Future<void> _bootstrap() async {
 
 /// Phone: portrait lock. Tablet: all orientations. Desktop: no-op.
 ///
+/// Uses the view's [Display] shortest side (not window [FlutterView.physicalSize])
+/// so a zero/letterboxed window cannot misclassify a tablet as a phone.
+/// When metrics are not ready yet, defers via [onMetricsChanged] instead of
+/// guessing phone — a wrong portrait lock pillarboxes tablets in landscape.
+///
 /// Failures are logged and must not block [runApp].
 Future<void> _applyDeviceOrientationPolicy() async {
   try {
-    final views = WidgetsBinding.instance.platformDispatcher.views;
-    final shortest = views.isEmpty
-        ? 0.0
-        : logicalShortestSideFromView(views.first);
-    if (views.isEmpty || shortest <= 0) {
-      _bootstrapLog.warning(
-        'orientation policy: no usable view size; '
-        'defaulting mobile classification to phone',
-      );
-    }
-    final formFactor = resolveDeviceFormFactor(
-      platform: defaultTargetPlatform,
-      shortestSideLogical: shortest,
+    if (await _tryApplyDeviceOrientationPolicy()) return;
+
+    _bootstrapLog.warning(
+      'orientation policy: no usable display size yet; '
+      'deferring until metrics are available',
     );
-    await applyPreferredOrientationsForFormFactor(formFactor);
+
+    final dispatcher = PlatformDispatcher.instance;
+    final previous = dispatcher.onMetricsChanged;
+    dispatcher.onMetricsChanged = () {
+      previous?.call();
+      unawaited(_applyDeferredOrientationPolicy(previous));
+    };
   } on Object catch (e, st) {
+    _bootstrapLog.warning('orientation policy failed', e, st);
+  }
+}
+
+/// Returns `true` when a form factor was resolved and orientations applied
+/// (or desktop no-op). Returns `false` when mobile metrics are still unknown.
+Future<bool> _tryApplyDeviceOrientationPolicy() async {
+  final views = WidgetsBinding.instance.platformDispatcher.views;
+  if (views.isEmpty) return false;
+
+  final shortest = logicalShortestSideFromView(views.first);
+  final formFactor = resolveDeviceFormFactor(
+    platform: defaultTargetPlatform,
+    shortestSideLogical: shortest,
+  );
+  if (formFactor == null) return false;
+
+  await applyPreferredOrientationsForFormFactor(formFactor);
+  return true;
+}
+
+Future<void> _applyDeferredOrientationPolicy(
+  void Function()? previousMetricsChanged,
+) async {
+  final dispatcher = PlatformDispatcher.instance;
+  try {
+    if (await _tryApplyDeviceOrientationPolicy()) {
+      dispatcher.onMetricsChanged = previousMetricsChanged;
+    }
+  } on Object catch (e, st) {
+    dispatcher.onMetricsChanged = previousMetricsChanged;
     _bootstrapLog.warning('orientation policy failed', e, st);
   }
 }

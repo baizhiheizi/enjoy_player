@@ -3,7 +3,7 @@
 /// See ADR-0059 and `specs/026-orientation-layout-polish/contracts/orientation-policy.md`.
 library;
 
-import 'dart:ui' show FlutterView, Size;
+import 'dart:ui' show Display, FlutterView, Size;
 
 import 'package:flutter/foundation.dart' show TargetPlatform;
 import 'package:flutter/services.dart' show DeviceOrientation, SystemChrome;
@@ -28,8 +28,9 @@ enum DeviceFormFactor {
 ///
 /// Desktop platforms always return [DeviceFormFactor.desktop] (shortest side
 /// is ignored). On mobile, [shortestSideLogical] must be finite and &gt; 0;
-/// otherwise the safe default is [DeviceFormFactor.phone].
-DeviceFormFactor resolveDeviceFormFactor({
+/// otherwise returns `null` so callers can defer applying a lock (never guess
+/// phone — that portrait-locks tablets when bootstrap metrics are still zero).
+DeviceFormFactor? resolveDeviceFormFactor({
   required TargetPlatform platform,
   required double shortestSideLogical,
 }) {
@@ -42,7 +43,7 @@ DeviceFormFactor resolveDeviceFormFactor({
     case TargetPlatform.iOS:
     case TargetPlatform.android:
       if (!shortestSideLogical.isFinite || shortestSideLogical <= 0) {
-        return DeviceFormFactor.phone;
+        return null;
       }
       return shortestSideLogical >= kTabletShortestSideLogical
           ? DeviceFormFactor.tablet
@@ -78,13 +79,24 @@ double logicalShortestSideOf(Size size) {
   return w < h ? w : h;
 }
 
-/// Logical shortest side of a [FlutterView], or `0` when the size is unusable.
-double logicalShortestSideFromView(FlutterView view) {
-  final dpr = view.devicePixelRatio;
+/// Logical shortest side of a [Display], or `0` when the size is unusable.
+///
+/// Prefer this over [logicalShortestSideFromView] when deciding whether to
+/// lock orientation: [FlutterView.physicalSize] can be [Size.zero] at
+/// startup and, after a wrong portrait lock, reports the letterboxed window
+/// instead of the device — see [SystemChrome.setPreferredOrientations].
+double logicalShortestSideFromDisplay(Display display) {
+  final dpr = display.devicePixelRatio;
   if (!dpr.isFinite || dpr <= 0) return 0;
-  final logical = view.physicalSize / dpr;
-  if (!logical.width.isFinite || !logical.height.isFinite) return 0;
-  return logicalShortestSideOf(logical);
+  final physical = display.size;
+  if (!physical.width.isFinite || !physical.height.isFinite) return 0;
+  if (physical.isEmpty) return 0;
+  return logicalShortestSideOf(physical / dpr);
+}
+
+/// Logical shortest side of a [FlutterView]'s [Display], or `0` when unusable.
+double logicalShortestSideFromView(FlutterView view) {
+  return logicalShortestSideFromDisplay(view.display);
 }
 
 /// Applies [preferredOrientationsFor] via [SystemChrome] when non-null.
