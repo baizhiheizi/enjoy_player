@@ -6,6 +6,8 @@ The community activity card surfaces **active learners** on the signed-in **Home
 
 ## MVP behavior
 
+### Endpoint
+
 - **Endpoint**: `GET /api/v1/users/active`, called with the device **IANA** timezone id (e.g. `Asia/Shanghai` via `clientTimezoneId()` / `flutter_timezone`). Abbreviations like `HKT`/`CST` are not sent — Rails rejects them and falls back to UTC. If the native plugin fails, the client sends a UTC offset (`+08:00`). The JSON shape is camelCase and decoded via the shared `convertKeysToCamel` helper (`lib/data/api/case_conversion.dart`).
 - **Timeout**: the request uses an **8-second client timeout**; on timeout (or any other error), the card hides / shows no data rather than a retry affordance (matches web parity).
 - **Variants**: `CommunityActivityCardVariant.card` (full stats + up to 8 avatars; tablet/desktop) and `CommunityActivityCardVariant.summary` (compact headline + up to 4 avatars; mobile insight strip).

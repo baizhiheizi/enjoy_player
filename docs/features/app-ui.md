@@ -12,6 +12,8 @@
 - **Dynamic accent** — extracted per-media via `palette_generator`; applied to now-playing ring glow, transcript active-line rail, and ambient backdrop tint.
 - **Echo accent** — `#E65100` orange kept for brand recognition, only on echo-mode affordances.
 
+### Typography
+
 **Typography**:
 - Display / UI: **Inter** (Google Fonts), `w600` tight-tracked for hero titles.
 - Transcript body: **Source Serif 4** (Google Fonts), default ON, toggleable.
