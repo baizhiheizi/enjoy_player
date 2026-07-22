@@ -55,42 +55,45 @@ void main() {
       await db.close();
     });
 
-    test('concurrent refresh calls are deduped to a single in-flight', () async {
-      final notifier = container.read(discoverRefreshStateProvider.notifier);
+    test(
+      'concurrent refresh calls are deduped to a single in-flight',
+      () async {
+        final notifier = container.read(discoverRefreshStateProvider.notifier);
 
-      // Launch the first refresh — it will stall at the barrier.
-      final firstFuture = notifier.refresh();
-      // Yield so the provider's async function enters refreshFeeds.
-      await Future<void>.delayed(Duration.zero);
+        // Launch the first refresh — it will stall at the barrier.
+        final firstFuture = notifier.refresh();
+        // Yield so the provider's async function enters refreshFeeds.
+        await Future<void>.delayed(Duration.zero);
 
-      // While the first is still in-flight, launch a second.
-      final secondFuture = notifier.refresh();
+        // While the first is still in-flight, launch a second.
+        final secondFuture = notifier.refresh();
 
-      // Not yet complete: only one refreshFeeds call should have started.
-      expect(
-        repo.refreshCallCount,
-        1,
-        reason: 'only one refreshFeeds call should have been initiated',
-      );
+        // Not yet complete: only one refreshFeeds call should have started.
+        expect(
+          repo.refreshCallCount,
+          1,
+          reason: 'only one refreshFeeds call should have been initiated',
+        );
 
-      // Release the barrier so the first (and only) refreshFeeds completes.
-      repo.barrier.complete();
+        // Release the barrier so the first (and only) refreshFeeds completes.
+        repo.barrier.complete();
 
-      // Both futures should resolve — they share the same underlying result.
-      final firstResult = await firstFuture;
-      final secondResult = await secondFuture;
+        // Both futures should resolve — they share the same underlying result.
+        final firstResult = await firstFuture;
+        final secondResult = await secondFuture;
 
-      expect(
-        firstResult,
-        same(secondResult),
-        reason: 'both callers should receive the identical result object',
-      );
-      expect(
-        repo.refreshCompleteCount,
-        1,
-        reason: 'refreshFeeds should have completed exactly once',
-      );
-    });
+        expect(
+          firstResult,
+          same(secondResult),
+          reason: 'both callers should receive the identical result object',
+        );
+        expect(
+          repo.refreshCompleteCount,
+          1,
+          reason: 'refreshFeeds should have completed exactly once',
+        );
+      },
+    );
 
     test('subsequent refresh works after in-flight completes', () async {
       final notifier = container.read(discoverRefreshStateProvider.notifier);

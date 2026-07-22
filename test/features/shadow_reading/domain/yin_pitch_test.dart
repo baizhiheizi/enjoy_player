@@ -43,8 +43,7 @@ void main() {
       expect(result.voicedProb.length, result.pitchHz.length);
     });
 
-    test('estimates pitch for a pure sine wave close to nominal frequency',
-        () {
+    test('estimates pitch for a pure sine wave close to nominal frequency', () {
       const sampleRate = 44100.0;
       const freq = 440.0;
       // One second of a 440 Hz sine wave.
@@ -59,9 +58,9 @@ void main() {
 
       // Find the first frame with a non-null pitch.
       final firstPitch = result.pitchHz.cast<double?>().firstWhere(
-            (p) => p != null,
-            orElse: () => null,
-          );
+        (p) => p != null,
+        orElse: () => null,
+      );
       expect(firstPitch, isNotNull);
       // Allow ±5% tolerance — border effects and interpolation can shift the
       // estimate a few Hz from the nominal frequency.
@@ -100,11 +99,7 @@ void main() {
 
       // threshold=0 means no frame's cumulative mean-normalised difference
       // will ever dip below 0, so all frames should be null.
-      final result = estimatePitchYin(
-        samples,
-        sampleRate,
-        yinThreshold: 0.0,
-      );
+      final result = estimatePitchYin(samples, sampleRate, yinThreshold: 0.0);
       expect(result.pitchHz, everyElement(isNull));
       expect(result.voicedProb, everyElement(0.0));
     });
@@ -117,8 +112,8 @@ void main() {
       int hopSize = 128,
       List<double?>? pitches,
     }) {
-      final p = pitches ??
-          List<double?>.generate(nFrames, (i) => 200.0 + i * 50.0);
+      final p =
+          pitches ?? List<double?>.generate(nFrames, (i) => 200.0 + i * 50.0);
       return YinPitchSeries(
         sampleRate: sampleRate,
         frameSize: 4096,
@@ -170,8 +165,14 @@ void main() {
       // Single frame.
       final yin = makeSeries(nFrames: 1, sampleRate: sr, hopSize: hop);
       final envelope = [
-        const WaveformPoint(t: -1.0, amp: 0.5), // before start → clamps to index 0
-        const WaveformPoint(t: 100.0, amp: 0.8), // way past end → clamps to index 0
+        const WaveformPoint(
+          t: -1.0,
+          amp: 0.5,
+        ), // before start → clamps to index 0
+        const WaveformPoint(
+          t: 100.0,
+          amp: 0.8,
+        ), // way past end → clamps to index 0
       ];
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
       expect(result, [200.0, 200.0]);
@@ -213,8 +214,10 @@ void main() {
         voicedProb: [0.9, 0.9, 0.9, 0.9, 0.9],
       );
       final hopSec = 128 / 44100;
-      final envelope = List<WaveformPoint>.generate(5,
-          (i) => WaveformPoint(t: i * hopSec, amp: 0.5));
+      final envelope = List<WaveformPoint>.generate(
+        5,
+        (i) => WaveformPoint(t: i * hopSec, amp: 0.5),
+      );
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
       expect(result, [
         200.0, // valid
