@@ -309,54 +309,35 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
             ),
     );
 
-    final prevButton = IconButton(
+    final prevButton = _LineNavButton(
       tooltip: ttPrev,
-      iconSize: 22,
-      onPressed: isBuffering || !hasTranscriptLines
-          ? null
-          : Haptics.wrapTap(
-              context,
-              () => ref.read(playerInteractionsProvider.notifier).prevLine(),
-            ),
-      icon: const Icon(Icons.skip_previous_rounded),
+      icon: Icons.skip_previous_rounded,
+      enabled: !isBuffering && hasTranscriptLines,
+      onTap: () => ref.read(playerInteractionsProvider.notifier).prevLine(),
     );
 
-    final nextButton = IconButton(
+    final nextButton = _LineNavButton(
       tooltip: ttNext,
-      iconSize: 22,
-      onPressed: isBuffering || !hasTranscriptLines
-          ? null
-          : Haptics.wrapTap(
-              context,
-              () => ref.read(playerInteractionsProvider.notifier).nextLine(),
-            ),
-      icon: const Icon(Icons.skip_next_rounded),
+      icon: Icons.skip_next_rounded,
+      enabled: !isBuffering && hasTranscriptLines,
+      onTap: () => ref.read(playerInteractionsProvider.notifier).nextLine(),
     );
 
-    final replayButton = IconButton(
+    final replayButton = _LineNavButton(
       tooltip: ttReplay,
-      iconSize: 22,
-      onPressed: isBuffering || !hasTranscriptLines
-          ? null
-          : Haptics.wrapTap(
-              context,
-              () => ref.read(playerInteractionsProvider.notifier).replayLine(),
-            ),
-      icon: const Icon(Icons.replay_rounded),
+      icon: Icons.replay_rounded,
+      enabled: !isBuffering && hasTranscriptLines,
+      onTap: () => ref.read(playerInteractionsProvider.notifier).replayLine(),
     );
 
     final transcriptControls = <Widget>[prevButton, nextButton, replayButton];
 
     final primaryTransport = <Widget>[playRing, ...transcriptControls];
 
-    final echoButton = IconButton(
+    final echoButton = _TransportToggleButton(
       tooltip: ttEcho,
-      color: echo.active ? t.echoActive : null,
-      style: echo.active
-          ? IconButton.styleFrom(
-              backgroundColor: t.echoActive.withValues(alpha: 0.18),
-            )
-          : null,
+      isActive: echo.active,
+      activeColor: t.echoActive,
       onPressed: echo.active || hasTranscriptLines
           ? Haptics.wrapTap(
               context,
@@ -366,14 +347,10 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       icon: const Icon(Icons.mic_none_rounded),
     );
 
-    final blurButton = IconButton(
+    final blurButton = _TransportToggleButton(
       tooltip: ttBlur,
-      color: blurEnabled ? t.blurActive : null,
-      style: blurEnabled
-          ? IconButton.styleFrom(
-              backgroundColor: t.blurActive.withValues(alpha: 0.18),
-            )
-          : null,
+      isActive: blurEnabled,
+      activeColor: t.blurActive,
       onPressed: blurEnabled || hasTranscriptLines
           ? Haptics.wrapTap(
               context,
@@ -686,6 +663,61 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         },
         child: transportContent,
       ),
+    );
+  }
+}
+
+class _LineNavButton extends StatelessWidget {
+  const _LineNavButton({
+    required this.tooltip,
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      iconSize: 22,
+      onPressed: enabled ? Haptics.wrapTap(context, onTap) : null,
+      icon: Icon(icon),
+    );
+  }
+}
+
+class _TransportToggleButton extends StatelessWidget {
+  const _TransportToggleButton({
+    required this.tooltip,
+    required this.isActive,
+    required this.activeColor,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String tooltip;
+  final bool isActive;
+  final Color activeColor;
+  final VoidCallback? onPressed;
+  final Widget icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      color: isActive ? activeColor : null,
+      style: isActive
+          ? IconButton.styleFrom(
+              backgroundColor: activeColor.withValues(alpha: 0.18),
+            )
+          : null,
+      onPressed: onPressed,
+      icon: icon,
     );
   }
 }
