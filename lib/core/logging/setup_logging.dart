@@ -18,6 +18,20 @@ import 'diagnostic_log_config.dart';
 import 'log_file_sink.dart';
 
 bool _loggingHooked = false;
+StreamSubscription<LogRecord>? _logSubscription;
+
+/// Resets the [Logger.root] listener so a subsequent [setupAppLogging] call
+/// re-attaches logging. Safe to call even when logging was never initialized.
+///
+/// Tests **must** call this between test runs (typically in [tearDown]) because
+/// [Logger.root] and [LogFileSink._instance] are process-global state.
+@visibleForTesting
+Future<void> debugResetAppLogging() async {
+  await _logSubscription?.cancel();
+  _logSubscription = null;
+  _loggingHooked = false;
+  DiagnosticLogConfig.verboseEnabled = false;
+}
 
 /// Call once after [WidgetsFlutterBinding.ensureInitialized].
 ///
@@ -29,7 +43,7 @@ Future<void> setupAppLogging() async {
   await LogFileSink.ensureInitialized();
 
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
-  Logger.root.onRecord.listen((record) {
+  _logSubscription = Logger.root.onRecord.listen((record) {
     final mirrorToStdout =
         record.level >= Level.INFO ||
         record.error != null ||

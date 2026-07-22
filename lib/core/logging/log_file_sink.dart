@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -28,6 +29,14 @@ class LogFileSink {
   static LogFileSink? _instance;
 
   static LogFileSink? get instance => _instance;
+
+  /// Resets the singleton so the next [ensureInitialized] call creates a fresh
+  /// instance. Tests **must** call this in [tearDown] after any test that
+  /// exercises [LogFileSink] or [setupAppLogging].
+  @visibleForTesting
+  static void debugResetInstance() {
+    _instance = null;
+  }
 
   static Future<LogFileSink?> ensureInitialized() async {
     if (_instance != null) return _instance;
