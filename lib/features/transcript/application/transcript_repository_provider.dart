@@ -11,6 +11,8 @@ import '../data/client_profile.dart';
 import '../data/transcript_repository.dart';
 import '../data/youtube_profiles_provider.dart';
 
+export '../data/transcript_repository.dart';
+
 part 'transcript_repository_provider.g.dart';
 
 @Riverpod(keepAlive: true)

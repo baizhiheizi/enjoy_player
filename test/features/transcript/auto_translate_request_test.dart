@@ -17,7 +17,6 @@ import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_playback_highlight_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

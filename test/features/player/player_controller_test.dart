@@ -14,7 +14,6 @@ import 'package:enjoy_player/features/player/application/player_preferences_prov
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
 import 'package:enjoy_player/features/player/domain/player_settings.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
-import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
