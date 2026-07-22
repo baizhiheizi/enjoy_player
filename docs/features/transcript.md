@@ -11,8 +11,12 @@
 - **Dictionary / translation lookup** ([ADR-0019](../decisions/0019-transcript-dictionary-lookup.md)): opened from transcript text selection. **Narrow**: `showEnjoySheet` + `DictionaryLookupSheet` (draggable). **Wide (≥ rail breakpoint)**: `showEnjoyDialog` with the same content in a bounded **dialog** (no double safe-area wrapper on the sheet body).
 - **Import subtitle language** dialog: the language field uses a visible **label** (`subtitlesImportLanguageFieldLabel`) in addition to the hint copy.
 - **Generate / re-generate transcript (ASR)**: local files with no transcript
-  expose **AI transcript** in the empty state; the subtitle picker always
-  exposes AI transcript or Re-generate depending on whether an `ai` track exists.
+  expose **AI transcript** in the empty state; remote media (including YouTube)
+  show a tailored hint explaining that ASR is unavailable for remote sources, with
+  UI actions scoped to what is available for that source type. The subtitle picker
+  always exposes AI transcript or Re-generate depending on whether an `ai` track
+  exists. See `TranscriptEmptyState` (`transcript_empty_state.dart`) for the
+  local vs remote branching (`noTranscriptHint` / `noTranscriptHintRemote`).
   Generated lines are stored as a first-class `source: ai` track and made
   primary. Re-generation uses the same deterministic row id, preserving the
   active echo-session reference while replacing the timeline in place. Remote

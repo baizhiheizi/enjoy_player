@@ -412,6 +412,11 @@ Offline: full local CRUD/review. AI dictionary / contextual translation require 
 
 ### Review entry + options
 
+On **mobile** the word list is the default landing tab; the Review tab provides
+statistics (total / due / status breakdown) as a collapsible detail within the
+review setup rather than a persistent banner, keeping the word list as the
+primary focus.
+
 Modes (selectable cards with short hints + live queue count):
 
 | Mode | Behavior |
@@ -442,7 +447,10 @@ Rating row: one-line chips (48px tall, max width 400, centered) with soft error 
 
 ### Word list
 
-- One toolbar: search + filter toggle + Export. Status/language menus appear only when filters are open (or already active). Gutters match `EnjoyPage` hub metrics.
+- One toolbar: search + filter toggle + Export. On **mobile** the filter
+  controls (status/language menus) are collapsed behind the toolbar toggle by
+  default to maximize word-list viewport — they expand inline when activated.
+  Gutters match `EnjoyPage` hub metrics.
 - Rows: word title; one status chip + muted secondary line (`contexts · reviews · next-review`); language trailing + overflow delete (confirm).
 - Localized load-failure + retry; no-match empty copy.
 
