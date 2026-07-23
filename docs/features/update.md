@@ -13,6 +13,8 @@ Enjoy Player distributes **direct** updates (not via a store) on **Windows**, **
 
 The channel is resolved by `DISTRIBUTION_CHANNEL` env / build flag (see [ADR-0023](../decisions/0023-app-update-distribution.md)). Android product flavors are `store` / `direct`.
 
+**Android permissions:** The `ota_update` plugin declares `REQUEST_INSTALL_PACKAGES` (and `INSTALL_PACKAGES`). Those are kept only on the **`direct`** flavor (`android/app/src/direct/AndroidManifest.xml`). The **`store`** flavor strips them with `tools:node="remove"` (`android/app/src/store/AndroidManifest.xml`) so Play AABs do not request package-install permissions.
+
 ## Manifest schema
 
 `latest.json` is fetched from the project's CDN; the schema is parsed by `version_manifest_repository.dart` into a `ReleaseManifest`:

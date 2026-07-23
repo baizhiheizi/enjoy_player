@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Play (store) builds must not declare package-install permissions.
+      The ota_update plugin merges these for sideload OTA; strip them here so
+      only the direct flavor keeps them (see src/direct/AndroidManifest.xml).
+      ADR-0023: store channel uses Play updates, not in-app APK install.
+    -->
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.INSTALL_PACKAGES"
+        tools:node="remove" />
+</manifest>
