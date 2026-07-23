@@ -1,15 +1,14 @@
 # Perf Improver State
 
-Updated: 2026-07-22 18:25 UTC
+Updated: 2026-07-23 18:40 UTC
 Repository: `baizhiheizi/enjoy_player`
 Current monthly summary: issue #189 (`[perf-improver] Monthly Activity 2026-07`)
 
 ## Round-robin cursor
 
-- This run (2026-07-22, run 29944478627): CI validation, backlog audit of Discover refresh (already implemented), memory update, monthly summary comment added.
-- Discover refresh single-flight already in `main` at `discover_providers.dart:149-176`. Tested in `discover_refresh_single_flight_test.dart`.
-- #355 closed by maintainer (an-lee, 2026-07-21). #310 still open, awaiting maintainer direction.
-- Draft PR from 2026-07-21 (`perf-assist/measurement-infra-guide-2026-07-21`): status unknown (cannot verify via unauthenticated gh).
+- This run (2026-07-23, run 30031975736): Created `test/perf/` microbenchmark directory with SRT/VTT parsing and case-conversion benchmarks. Updated `docs/perf-measurement.md`. PR: `perf-assist/microbenchmark-harness-2026-07-23`.
+- No open perf-improver PRs to maintain.
+- #310 still open, awaiting maintainer direction.
 
 ## Validated commands
 
@@ -31,19 +30,22 @@ Status: All gates pass on Linux AWF sandbox. 1707 tests pass, 2 skipped. Flutter
 2. **Artwork palette off main isolate** — blocked; needs maintainer sign-off.
 3. **Dictation watch dedupe** — only if consumer exists.
 4. **Stream long-form ASR media instead of materializing bytes** — needs peak-RSS baseline first.
-5. **Microbenchmark harness** — `test/perf/` directory and CI regression remain future work.
+5. **CI microbenchmark smoke job** — `test/perf/` now exists but no dedicated CI step.
 
 ### Recently addressed
+- ✅ **test/perf/ microbenchmark harness** — `test/perf/` directory created with `subtitle_parsing_benchmark.dart` and `case_conversion_benchmark.dart`. PR created.
 - ✅ **Coalesce overlapping Discover refreshes** — already implemented in `main` at `discover_providers.dart:149-176` with `_pendingRefresh` single-flight guard. Backlog item resolved.
-- ✅ **Measurement infrastructure guide** — `docs/perf-measurement.md` created (2026-07-21). Draft PR created.
+- ✅ **Measurement infrastructure guide** — `docs/perf-measurement.md` created (2026-07-21). Draft PR status unknown.
 
 ## Current actions and outputs
 
-- Comment added to issue #189: run summary for 2026-07-22.
-- Draft PR: `perf-assist/measurement-infra-guide-2026-07-21` — measurement infrastructure guide (status unknown).
+- PR created: `perf-assist/microbenchmark-harness-2026-07-23` — test/perf/ microbenchmark directory.
+- Memory updated.
+- Monthly summary issue #189 to be updated next.
 
 ## Completed performance work
 
+- ✅ test/perf/ microbenchmark harness — PR created (2026-07-23).
 - ✅ Discover refresh single-flight — in `main` (merged by maintainer).
 - PR #360 (2026-07-17): batched feed entry upsert in `YoutubeFeedEntryDao` + 3 tests. Merged.
 - PR #355 (2026-07-21): CI issue — closed by maintainer (resolved).

@@ -20,7 +20,7 @@ flutter test
 # Path packages: (cd packages/<name> && flutter pub get && flutter test)
 ```
 
-**Status 2026-07-22**: All CI gates verified on Linux AWF sandbox:
+**Status 2026-07-23**: All CI gates verified on Linux AWF sandbox:
 - `dart format` — clean
 - `flutter analyze` — 0 issues
 - `flutter test` — 1707 passed, 2 skipped
@@ -35,10 +35,11 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 3. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (only generated `.g.dart` references it). When hooked up, needs `.distinctBy(equals)`.
 4. **JSON decode concurrency audit** — `_decodeResponseBody` uses `compute()` for >48 KB. Threshold correct as-is.
 5. **Stream long-form ASR media instead of materializing bytes** — >=15-minute path materializes entire extracted audio into Uint8List/AsrRequest; 500 MiB extractor ceiling. Needs peak-RSS baseline first.
-6. **Microbenchmark harness** — `test/perf/` directory and CI regression job remain future work. Guide (`docs/perf-measurement.md`) documents the pattern.
+6. **Microbenchmark harness** — ✅ `test/perf/` directory created (2026-07-23). Two microbenchmarks added. CI regression job remains future work. Guide (`docs/perf-measurement.md`) updated.
 
 ## Optimization Backlog — Addressed
 
+- ✅ **Microbenchmark harness** (2026-07-23) — `test/perf/` directory with `subtitle_parsing_benchmark.dart` and `case_conversion_benchmark.dart`. PR created.
 - ✅ **Coalesce overlapping Discover refreshes** (2026-07-22) — Single-flight guard `DiscoverRefreshState._pendingRefresh` already implemented in `main` at `discover_providers.dart:149-176`. Two structural tests in `discover_refresh_single_flight_test.dart`. Previous draft from 2026-07-20 appears to have been merged by maintainer.
 - ✅ **Measurement infrastructure guide** — `docs/perf-measurement.md` created (2026-07-21). Documents 4 structural perf test patterns, per-layer measurement strategies, and microbenchmark template. Draft PR on `perf-assist/measurement-infra-guide-2026-07-21`.
 - ✅ PR #56/#64/#65/#79/#137/#150 — media library, discover, recordings, transcript, grid stable keys (June 2026).
@@ -51,11 +52,13 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 ## Measurement infrastructure status
 
 - 3 structural perf tests: `transcript_blur_long_list_perf_test.dart`, `discover_dedupe_test.dart`, `discover_refresh_single_flight_test.dart`.
+- `test/perf/` directory (created 2026-07-23): `subtitle_parsing_benchmark.dart`, `case_conversion_benchmark.dart`.
 - `docs/perf-measurement.md` (2026-07-21) documents 4 perf test patterns, per-layer strategies, microbenchmark template, and CI regression recommendations.
-- No `test/perf/` directory, microbenchmark harness, or CI perf-regression job yet.
+- No CI perf-regression job yet.
 
-## Run History (last 7)
+## Run History (last 8)
 
+- **2026-07-23** 18:40 UTC — run 30031975736. Created `test/perf/` microbenchmark directory with SRT/VTT parsing and case-conversion benchmarks. Updated `docs/perf-measurement.md`. PR: `perf-assist/microbenchmark-harness-2026-07-23`.
 - **2026-07-22** 18:25 UTC — run 29944478627. Audited Discover refresh — single-flight already implemented. Verified all CI gates on Linux AWF. Updated backlog: #6 (Discover coalescing) moved to ✅ Addressed. Updated memory + monthly summary.
 - **2026-07-21** 14:00 UTC — run 29855434099. Created `docs/perf-measurement.md` — structural perf test patterns guide. Draft PR: `perf-assist/measurement-infra-guide-2026-07-21`.
 - **2026-07-20** 18:46 UTC — run 29769067276. Drafted single-flight guard for DiscoverRefreshState.refresh(). 2 structural tests. (Worktree-local, not pushed.)
