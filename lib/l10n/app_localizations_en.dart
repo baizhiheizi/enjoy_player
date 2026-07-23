@@ -3328,6 +3328,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftSynthText => 'Text to synthesize';
 
   @override
+  String get craftModeExpress => 'Express';
+
+  @override
+  String get craftModeAdvanced => 'Advanced';
+
+  @override
+  String get craftStageCapture => 'Capture';
+
+  @override
+  String get craftStageRewrite => 'Rewrite';
+
+  @override
+  String get craftStageAudio => 'Audio';
+
+  @override
+  String get craftCaptureTitle => 'Say what\'s on your mind';
+
+  @override
+  String get craftCaptureSubtitle =>
+      'Tap to record. Speak naturally in your language.';
+
+  @override
+  String get craftCaptureStop => 'Stop';
+
+  @override
+  String get craftCaptureTypeInstead => 'Type instead';
+
+  @override
+  String get craftRewriteYourWords => 'Your words';
+
+  @override
+  String get craftRewriteTargetLabel => 'In your target language';
+
+  @override
+  String get craftRewriteRegenerate => 'Regenerate';
+
+  @override
+  String get craftRewriteReRecord => 'Re-record';
+
+  @override
+  String get craftRewriteGenerateAudio => 'Generate audio';
+
+  @override
+  String get craftAudioPreview => 'Preview';
+
+  @override
+  String get craftAudioSaySomethingElse => 'Say something else';
+
+  @override
+  String get craftAudioPracticeNow => 'Practice now';
+
+  @override
+  String get craftSavedToLibrary => 'Saved to library';
+
+  @override
+  String get craftStyleAuto => '✨ Auto';
+
+  @override
+  String get craftFailureAsr =>
+      'We couldn\'t hear you clearly. Try recording again.';
+
+  @override
+  String get craftFailureEmptyTranscript =>
+      'That was too short. Try speaking a bit longer.';
+
+  @override
+  String get craftRecordingMicDenied =>
+      'Microphone access denied. Please enable it in settings.';
+
+  @override
   String get errorGenericLoadFailed =>
       'Something went wrong. Please try again.';
 

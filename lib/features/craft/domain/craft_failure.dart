@@ -76,3 +76,17 @@ final class CraftVendorUnsupportedLanguageFailure extends CraftFailure {
   @override
   String message(AppLocalizations l10n) => l10n.craftFailureTts;
 }
+
+final class CraftAsrFailure extends CraftFailure {
+  const CraftAsrFailure() : super(CraftFailureAction.retry);
+
+  @override
+  String message(AppLocalizations l10n) => l10n.craftFailureAsr;
+}
+
+final class CraftEmptyTranscriptFailure extends CraftFailure {
+  const CraftEmptyTranscriptFailure() : super(CraftFailureAction.retry);
+
+  @override
+  String message(AppLocalizations l10n) => l10n.craftFailureEmptyTranscript;
+}

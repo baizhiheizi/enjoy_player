@@ -4,6 +4,8 @@ library;
 import 'package:flutter/foundation.dart';
 
 import 'craft_failure.dart';
+import 'craft_screen_mode.dart';
+import 'craft_stage.dart';
 import 'craft_synthesizer.dart';
 import 'translation_style.dart';
 
@@ -12,6 +14,9 @@ import 'translation_style.dart';
 @immutable
 class CraftJobState {
   const CraftJobState({
+    // Screen mode + stage (Express flow)
+    this.screenMode = CraftScreenMode.express,
+    this.stage = CraftStage.capture,
     // Translate tool
     this.sourceText = '',
     this.sourceLanguage,
@@ -20,6 +25,11 @@ class CraftJobState {
     this.customPrompt,
     this.translatedText,
     this.isTranslating = false,
+    // Express capture
+    this.capturedAudioBytes,
+    this.rawTranscript,
+    this.isCapturing = false,
+    this.isTranscribing = false,
     // Synthesize tool
     this.synthText = '',
     this.synthLanguage = 'en',
@@ -36,6 +46,10 @@ class CraftJobState {
     this.generation = 0,
   });
 
+  // --- Screen mode + stage (Express flow) ---
+  final CraftScreenMode screenMode;
+  final CraftStage stage;
+
   // --- Translate tool ---
   final String sourceText;
   final String? sourceLanguage;
@@ -44,6 +58,12 @@ class CraftJobState {
   final String? customPrompt;
   final String? translatedText;
   final bool isTranslating;
+
+  // --- Express capture ---
+  final Uint8List? capturedAudioBytes;
+  final String? rawTranscript;
+  final bool isCapturing;
+  final bool isTranscribing;
 
   // --- Synthesize tool ---
   final String synthText;
@@ -62,12 +82,20 @@ class CraftJobState {
   final int generation;
 
   // --- Derived ---
-  bool get isBusy => isTranslating || isSynthesizing || isSaving;
+  bool get isBusy =>
+      isCapturing ||
+      isTranscribing ||
+      isTranslating ||
+      isSynthesizing ||
+      isSaving;
   bool get hasPreview => previewAudioBytes != null;
   bool get hasTranslation =>
       translatedText != null && translatedText!.isNotEmpty;
+  bool get hasCapturedAudio => capturedAudioBytes != null;
 
   CraftJobState copyWith({
+    CraftScreenMode? screenMode,
+    CraftStage? stage,
     String? sourceText,
     String? sourceLanguage,
     String? targetLanguage,
@@ -75,6 +103,10 @@ class CraftJobState {
     String? customPrompt,
     String? translatedText,
     bool? isTranslating,
+    Uint8List? capturedAudioBytes,
+    String? rawTranscript,
+    bool? isCapturing,
+    bool? isTranscribing,
     String? synthText,
     String? synthLanguage,
     String? selectedVoice,
@@ -89,15 +121,32 @@ class CraftJobState {
     int? generation,
     bool clearPreview = false,
     bool clearFailure = false,
+    bool clearCapturedAudio = false,
+    bool clearRawTranscript = false,
+    bool clearTranslatedText = false,
+    bool clearResultMediaId = false,
+    bool clearDedupedExistingId = false,
   }) {
     return CraftJobState(
+      screenMode: screenMode ?? this.screenMode,
+      stage: stage ?? this.stage,
       sourceText: sourceText ?? this.sourceText,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
       style: style ?? this.style,
       customPrompt: customPrompt ?? this.customPrompt,
-      translatedText: translatedText ?? this.translatedText,
+      translatedText: clearTranslatedText
+          ? null
+          : (translatedText ?? this.translatedText),
       isTranslating: isTranslating ?? this.isTranslating,
+      capturedAudioBytes: clearCapturedAudio
+          ? null
+          : (capturedAudioBytes ?? this.capturedAudioBytes),
+      rawTranscript: clearRawTranscript
+          ? null
+          : (rawTranscript ?? this.rawTranscript),
+      isCapturing: isCapturing ?? this.isCapturing,
+      isTranscribing: isTranscribing ?? this.isTranscribing,
       synthText: synthText ?? this.synthText,
       synthLanguage: synthLanguage ?? this.synthLanguage,
       selectedVoice: selectedVoice ?? this.selectedVoice,
@@ -112,8 +161,12 @@ class CraftJobState {
           : (previewWordBoundaries ?? this.previewWordBoundaries),
       isSynthesizing: isSynthesizing ?? this.isSynthesizing,
       isSaving: isSaving ?? this.isSaving,
-      resultMediaId: resultMediaId ?? this.resultMediaId,
-      dedupedExistingId: dedupedExistingId ?? this.dedupedExistingId,
+      resultMediaId: clearResultMediaId
+          ? null
+          : (resultMediaId ?? this.resultMediaId),
+      dedupedExistingId: clearDedupedExistingId
+          ? null
+          : (dedupedExistingId ?? this.dedupedExistingId),
       failure: clearFailure ? null : (failure ?? this.failure),
       generation: generation ?? this.generation,
     );

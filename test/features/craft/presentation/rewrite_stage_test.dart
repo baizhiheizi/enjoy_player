@@ -1,0 +1,181 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/auth/domain/user_profile.dart';
+import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
+import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
+import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
+import 'package:enjoy_player/features/craft/domain/translation_style.dart';
+import 'package:enjoy_player/features/craft/presentation/rewrite_stage.dart';
+import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
+import 'package:enjoy_player/l10n/app_localizations.dart';
+
+// === Fakes ===
+
+class _AuthSignedInCtrl extends AuthCtrl {
+  @override
+  Future<AuthState> build() async => const AuthSignedIn(
+    profile: UserProfile(id: 'test-user', email: 't@example.com', name: 'Test'),
+  );
+}
+
+class _FakePrefsCtrl extends AppPreferencesCtrl {
+  @override
+  Future<AppPreferencesState> build() async => const AppPreferencesState(
+    locale: Locale('en'),
+    learningLanguage: 'en-US',
+    nativeLanguage: 'zh-CN',
+  );
+}
+
+class _FakeTranslator implements CraftTranslator {
+  @override
+  Future<String> translate({
+    required String text,
+    required String sourceLanguage,
+    required String targetLanguage,
+    TranslationStyle style = TranslationStyle.auto,
+    String? customPrompt,
+  }) async => 'Rewritten text in target language.';
+}
+
+class _FakeSynthesizer implements CraftSynthesizer {
+  @override
+  Future<CraftSynthesisResult> synthesize({
+    required String text,
+    required String language,
+    String? voice,
+  }) async => CraftSynthesisResult(
+    audioBytes: Uint8List.fromList(const [1, 2, 3, 4]),
+    format: 'wav',
+    wordBoundaries: const [],
+  );
+}
+
+class _FakeTranscriber implements CraftTranscriber {
+  @override
+  Future<String> transcribe({
+    required Uint8List audioBytes,
+    String? language,
+  }) async => 'I had a great day today.';
+}
+
+class _FakeLibraryRepository implements MediaLibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+// === Harness ===
+
+Widget _harness({required List<Override> overrides, required Widget child}) {
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
+  );
+}
+
+List<Override> _baseOverrides() => [
+  authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+  appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
+  craftTranslatorProvider.overrideWithValue(_FakeTranslator()),
+  craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
+  craftTranscriberProvider.overrideWithValue(_FakeTranscriber()),
+  mediaLibraryRepositoryProvider.overrideWithValue(_FakeLibraryRepository()),
+];
+
+void main() {
+  testWidgets(
+    'RewriteStage shows raw transcript and editable target text after rewrite',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const RewriteStage()),
+      );
+
+      // Drive the controller into the rewrite stage via text input.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(RewriteStage)),
+      );
+      await container
+          .read(craftControllerProvider.notifier)
+          .useTextInput('I had a wonderful day today.');
+      await tester.pumpAndSettle();
+
+      // Raw transcript card label.
+      expect(find.text('Your words'), findsOneWidget);
+
+      // Raw transcript text.
+      expect(find.text('I had a wonderful day today.'), findsOneWidget);
+
+      // Target text field should be present and editable.
+      expect(find.byType(TextField), findsOneWidget);
+
+      // The rewritten text should appear.
+      expect(find.text('Rewritten text in target language.'), findsOneWidget);
+
+      // Style label (collapsed).
+      expect(find.text('Style'), findsOneWidget);
+    },
+  );
+
+  testWidgets('RewriteStage shows action buttons', (tester) async {
+    await tester.pumpWidget(
+      _harness(overrides: _baseOverrides(), child: const RewriteStage()),
+    );
+
+    // Drive into rewrite stage.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RewriteStage)),
+    );
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('Some text to rewrite.');
+    await tester.pumpAndSettle();
+
+    // Generate audio button.
+    expect(find.text('Generate audio'), findsOneWidget);
+
+    // Re-record button.
+    expect(find.text('Re-record'), findsOneWidget);
+
+    // Regenerate button.
+    expect(find.text('Regenerate'), findsOneWidget);
+  });
+
+  testWidgets('RewriteStage style section expands on tap', (tester) async {
+    await tester.pumpWidget(
+      _harness(overrides: _baseOverrides(), child: const RewriteStage()),
+    );
+
+    // Drive into rewrite stage.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RewriteStage)),
+    );
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('Some text to rewrite.');
+    await tester.pumpAndSettle();
+
+    // Style section starts collapsed (no dropdown).
+    expect(find.byType(DropdownButton<TranslationStyle>), findsNothing);
+
+    // Tap the Style section to expand.
+    await tester.tap(find.text('Style'));
+    await tester.pumpAndSettle();
+
+    // Dropdown should now be visible.
+    expect(find.byType(DropdownButton<TranslationStyle>), findsOneWidget);
+  });
+}

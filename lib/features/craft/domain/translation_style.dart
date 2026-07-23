@@ -6,6 +6,7 @@ library;
 /// Ported from the web app's `TranslationStyle` type
 /// (`apps/web/src/types/db/common.ts`).
 enum TranslationStyle {
+  auto,
   literal,
   natural,
   casual,
@@ -17,6 +18,7 @@ enum TranslationStyle {
   /// Prompt instruction appended to the base translation request.
   /// Empty for [custom] — the learner supplies their own prompt.
   String get promptSuffix => switch (this) {
+    TranslationStyle.auto => '',
     TranslationStyle.literal =>
       'Translate the text as literally as possible, preserving the original sentence structure.',
     TranslationStyle.natural =>
@@ -33,10 +35,12 @@ enum TranslationStyle {
   };
 
   /// Whether this style reveals the custom prompt input.
-  bool get showsCustomPrompt => this == TranslationStyle.custom;
+  bool get showsCustomPrompt =>
+      this == TranslationStyle.custom || this == TranslationStyle.auto;
 
   /// ARB key for the localized label.
   String get l10nKey => switch (this) {
+    TranslationStyle.auto => 'craftStyleAuto',
     TranslationStyle.literal => 'craftStyleLiteral',
     TranslationStyle.natural => 'craftStyleNatural',
     TranslationStyle.casual => 'craftStyleCasual',

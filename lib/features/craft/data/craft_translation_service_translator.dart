@@ -29,7 +29,9 @@ final class CraftTranslationServiceTranslator implements CraftTranslator {
 
     // Build the system prompt based on the selected style.
     final String systemPrompt;
-    if (style == TranslationStyle.custom &&
+    if (style == TranslationStyle.auto) {
+      systemPrompt = _autoStylePrompt(sourceBase, targetBase);
+    } else if (style == TranslationStyle.custom &&
         customPrompt != null &&
         customPrompt.trim().isNotEmpty) {
       systemPrompt =
@@ -51,5 +53,18 @@ final class CraftTranslationServiceTranslator implements CraftTranslator {
       ],
     );
     return response.trim();
+  }
+
+  /// System prompt for [TranslationStyle.auto] — idiomatic spoken rewrite.
+  String _autoStylePrompt(String sourceBase, String targetBase) {
+    return 'You are a language partner. '
+        'The user recorded themselves thinking out loud in $sourceBase. '
+        'Read what they said, understand their real meaning and the way they naturally express themselves '
+        '(their personal style, register, tone). '
+        'Then rewrite it in $targetBase the way they would actually say it if they were a fluent $targetBase speaker — '
+        'idiomatic, natural spoken form. '
+        'Preserve their intent and personality. '
+        'Do NOT translate literally or robotically. '
+        'Reply with only the rewritten text — no quotes, labels, or explanation.';
   }
 }

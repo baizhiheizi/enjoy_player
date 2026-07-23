@@ -1,11 +1,15 @@
-/// Craft screen: full-screen route with Translate + Synthesize tools.
+/// Craft screen: full-screen route with Express + Advanced modes.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/features/craft/presentation/synthesize_tool.dart';
-import 'package:enjoy_player/features/craft/presentation/translate_tool.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
+import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
+import 'package:enjoy_player/features/craft/presentation/advanced_tools.dart';
+import 'package:enjoy_player/features/craft/presentation/express_flow.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Full-screen Craft route reached from the import chooser.
@@ -15,8 +19,7 @@ class CraftScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final width = MediaQuery.of(context).size.width;
-    final isWide = width >= 900;
+    final state = ref.watch(craftControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,26 +30,62 @@ class CraftScreen extends ConsumerWidget {
               ? Navigator.of(context).pop()
               : Navigator.of(context).pushNamed('/'),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Align(
+              alignment: Alignment.center,
+              child: SegmentedButton<CraftScreenMode>(
+                style: enjoySegmentedButtonStyle(context),
+                segments: [
+                  ButtonSegment(
+                    value: CraftScreenMode.express,
+                    icon: const Icon(Icons.mic_rounded, size: 18),
+                    label: Text(l10n.craftModeExpress),
+                  ),
+                  ButtonSegment(
+                    value: CraftScreenMode.advanced,
+                    icon: const Icon(Icons.edit_note_rounded, size: 18),
+                    label: Text(l10n.craftModeAdvanced),
+                  ),
+                ],
+                selected: {state.screenMode},
+                onSelectionChanged: (selection) {
+                  ref
+                      .read(craftControllerProvider.notifier)
+                      .setScreenMode(selection.first);
+                },
+              ),
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: isWide
-              ? const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: TranslateTool()),
-                    SizedBox(width: 16),
-                    Expanded(child: SynthesizeTool()),
-                  ],
-                )
-              : const Column(
-                  children: [
-                    TranslateTool(),
-                    SizedBox(height: 16),
-                    SynthesizeTool(),
-                  ],
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final paneWidth = constraints.maxWidth;
+
+            // Express mode: centered form column with adaptive gutters.
+            if (state.screenMode == CraftScreenMode.express) {
+              final metrics = EnjoyPageMetrics.of(
+                context,
+                kind: EnjoyPageKind.form,
+                paneWidth: paneWidth,
+              );
+              return SingleChildScrollView(
+                padding: metrics.padding(),
+                child: const Center(child: ExpressFlow()),
+              );
+            }
+
+            // Advanced mode: full-bleed with page gutters.
+            final gutter = pageGutterOf(context, paneWidth);
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(gutter),
+              child: const AdvancedTools(),
+            );
+          },
         ),
       ),
     );

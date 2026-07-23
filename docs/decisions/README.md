@@ -83,3 +83,4 @@ Trade-offs, follow-up work, risks.
 | [0057](0057-permanent-player-surface-host.md) | Permanent RootShell player surface host (clip portal + launch pipeline) |
 | [0058](0058-enjoy-deepgram-long-form-asr.md) | Enjoy long-form ASR via Worker Deepgram jobs (≥900s upload/submit/poll) |
 | [0059](0059-phone-tablet-orientation-and-player-aspect-layout.md) | Phone portrait lock / tablet rotate; player stack vs side-by-side by window aspect |
+| [0060](0060-craft-voice-express-dual-mode.md) | Craft Voice-Express dual-mode redesign — voice-first Express (default) + Advanced two-tool layout |

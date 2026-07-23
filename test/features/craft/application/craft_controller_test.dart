@@ -17,8 +17,11 @@ import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
+import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
+import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
+import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 
@@ -183,6 +186,29 @@ class _FakeLibraryRepository extends MediaLibraryRepository {
   }
 }
 
+class _FakeTranscriber implements CraftTranscriber {
+  _FakeTranscriber({this.result = 'I had a great day today.', this.error});
+
+  final String result;
+  final Object? error;
+
+  int callCount = 0;
+  Uint8List? lastAudioBytes;
+  String? lastLanguage;
+
+  @override
+  Future<String> transcribe({
+    required Uint8List audioBytes,
+    String? language,
+  }) async {
+    callCount++;
+    lastAudioBytes = audioBytes;
+    lastLanguage = language;
+    if (error != null) throw error!;
+    return result;
+  }
+}
+
 // === Test harness ===
 
 const _profile = UserProfile(id: 'user-1', email: 'a@b.com', name: 'Tester');
@@ -193,12 +219,14 @@ void main() {
   late AppDatabase db;
   late _FakeTranslator translator;
   late _FakeSynthesizer synthesizer;
+  late _FakeTranscriber transcriber;
   late _FakeLibraryRepository repo;
 
   setUp(() {
     db = AppDatabase(executor: NativeDatabase.memory());
     translator = _FakeTranslator();
     synthesizer = _FakeSynthesizer();
+    transcriber = _FakeTranscriber();
     repo = _FakeLibraryRepository(db, FileStorage());
   });
 
@@ -211,6 +239,7 @@ void main() {
       overrides: [
         craftTranslatorProvider.overrideWithValue(translator),
         craftSynthesizerProvider.overrideWithValue(synthesizer),
+        craftTranscriberProvider.overrideWithValue(transcriber),
         mediaLibraryRepositoryProvider.overrideWithValue(repo),
         if (profile == null)
           authCtrlProvider.overrideWith(_SignedOutAuthCtrl.new)
@@ -738,6 +767,7 @@ void main() {
       addTearDown(c.dispose);
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
+      n.setScreenMode(CraftScreenMode.advanced);
       n.setSynthLanguage('en-US');
       n.setSelectedVoice('en-US-JennyNeural');
       n.setSynthText('Hello world.');
@@ -783,6 +813,7 @@ void main() {
       addTearDown(c.dispose);
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
+      n.setScreenMode(CraftScreenMode.advanced);
       n.setSourceLanguage('en');
       n.setTargetLanguage('fr');
       n.setSourceText('Hello world, friend');
@@ -802,6 +833,7 @@ void main() {
         addTearDown(c.dispose);
         await c.read(authCtrlProvider.future);
         final n = notifierOf(c);
+        n.setScreenMode(CraftScreenMode.advanced);
         n.setSynthText('long enough text');
         await n.synthesize();
 
@@ -872,6 +904,269 @@ void main() {
 
       n.clearResult();
       expect(stateOf(c).failure, isNull);
+    });
+  });
+
+  // === Express mode tests ===
+
+  group('express capture', () {
+    test('startCapture sets isCapturing and clears previous data', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      n.startCapture();
+      final s = stateOf(c);
+      expect(s.isCapturing, isTrue);
+      expect(s.stage, CraftStage.capture);
+      expect(s.capturedAudioBytes, isNull);
+      expect(s.rawTranscript, isNull);
+    });
+
+    test(
+      'stopCapture stores bytes and triggers transcribeAndRewrite',
+      () async {
+        final c = container();
+        addTearDown(c.dispose);
+        await c.read(authCtrlProvider.future);
+        final n = notifierOf(c);
+
+        final audio = Uint8List.fromList(const [1, 2, 3]);
+        await n.stopCapture(audio);
+
+        // Allow async pipeline to settle.
+        await Future<void>.delayed(Duration.zero);
+
+        final s = stateOf(c);
+        expect(s.capturedAudioBytes, audio);
+        expect(s.isCapturing, isFalse);
+        expect(transcriber.callCount, 1);
+        expect(transcriber.lastAudioBytes, audio);
+      },
+    );
+
+    test(
+      'transcribeAndRewrite success: stores transcript and rewrite',
+      () async {
+        translator = _FakeTranslator(result: 'Hoy tuve un gran día.');
+        final c = container();
+        addTearDown(c.dispose);
+        await c.read(authCtrlProvider.future);
+        final n = notifierOf(c);
+
+        n.setSourceLanguage('en');
+        n.setTargetLanguage('es');
+        final audio = Uint8List.fromList(const [1, 2, 3]);
+        await n.stopCapture(audio);
+        await Future<void>.delayed(Duration.zero);
+
+        final s = stateOf(c);
+        expect(s.rawTranscript, 'I had a great day today.');
+        expect(s.translatedText, 'Hoy tuve un gran día.');
+        expect(s.stage, CraftStage.rewrite);
+        expect(s.isTranslating, isFalse);
+        expect(s.isTranscribing, isFalse);
+        expect(s.failure, isNull);
+      },
+    );
+
+    test('empty transcript → CraftEmptyTranscriptFailure', () async {
+      transcriber = _FakeTranscriber(result: 'short');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      await n.stopCapture(Uint8List.fromList(const [1]));
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.failure, isA<CraftEmptyTranscriptFailure>());
+      expect(s.isTranscribing, isFalse);
+      expect(translator.callCount, 0);
+    });
+
+    test('ASR throws → CraftAsrFailure', () async {
+      transcriber = _FakeTranscriber(error: Exception('ASR down'));
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      await n.stopCapture(Uint8List.fromList(const [1]));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(stateOf(c).failure, isA<CraftAsrFailure>());
+    });
+  });
+
+  group('resetForNextCapture', () {
+    test('clears working data but preserves session preferences', () async {
+      translator = _FakeTranslator(result: 'Hola mundo.');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      // Simulate a completed Express flow.
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      n.setStyle(TranslationStyle.casual);
+      n.setSelectedVoice('es-ES-ElviraNeural');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+
+      // Verify data exists.
+      expect(stateOf(c).rawTranscript, isNotNull);
+      expect(stateOf(c).translatedText, isNotNull);
+
+      // Reset.
+      n.resetForNextCapture();
+
+      final s = stateOf(c);
+      // Preserved.
+      expect(s.screenMode, CraftScreenMode.express);
+      expect(s.sourceLanguage, 'en');
+      expect(s.targetLanguage, 'es');
+      expect(s.style, TranslationStyle.casual);
+      expect(s.selectedVoice, 'es-ES-ElviraNeural');
+      // Cleared.
+      expect(s.stage, CraftStage.capture);
+      expect(s.capturedAudioBytes, isNull);
+      expect(s.rawTranscript, isNull);
+      expect(s.translatedText, isNull);
+      expect(s.previewAudioBytes, isNull);
+      expect(s.synthText, '');
+      expect(s.sourceText, '');
+      expect(s.failure, isNull);
+    });
+  });
+
+  group('saveAndCaptureNext', () {
+    test('saves then resets stage to capture', () async {
+      translator = _FakeTranslator(result: 'Hola mundo hoy.');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      // Run Express flow to produce audio.
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+      await n.generateAudio();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(stateOf(c).previewAudioBytes, isNotNull);
+
+      await n.saveAndCaptureNext();
+
+      expect(repo.importCalls, 1);
+      expect(repo.lastImportSourceFlag, 'craft-express');
+      expect(repo.lastImportText, 'I had a great day today.');
+      expect(stateOf(c).stage, CraftStage.capture);
+    });
+  });
+
+  group('saveAndPractice', () {
+    test('returns media ID for navigation', () async {
+      translator = _FakeTranslator(result: 'Hola mundo hoy.');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+      await n.generateAudio();
+      await Future<void>.delayed(Duration.zero);
+
+      final mediaId = await n.saveAndPractice();
+      expect(mediaId, 'media-new');
+      expect(repo.lastImportSourceFlag, 'craft-express');
+    });
+  });
+
+  group('generateAudio', () {
+    test('copies translatedText to synthText and auto-selects voice', () async {
+      translator = _FakeTranslator(result: 'Hola mundo hoy.');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+
+      await n.generateAudio();
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.synthText, 'Hola mundo hoy.');
+      expect(s.synthLanguage, 'es');
+      expect(s.selectedVoice, isNotNull);
+      expect(s.stage, CraftStage.audio);
+      expect(s.previewAudioBytes, isNotNull);
+    });
+  });
+
+  group('regenerate', () {
+    test('re-runs rewrite on existing transcript', () async {
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(translator.callCount, 1);
+
+      await n.regenerate();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(translator.callCount, 2);
+      expect(stateOf(c).generation, 1);
+    });
+  });
+
+  group('useTextInput', () {
+    test('sets raw transcript and triggers rewrite', () async {
+      translator = _FakeTranslator(result: ' rewritten result');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      n.setSourceLanguage('en');
+      n.setTargetLanguage('es');
+      await n.useTextInput('This is a test of text input mode.');
+      await Future<void>.delayed(Duration.zero);
+
+      final s = stateOf(c);
+      expect(s.rawTranscript, 'This is a test of text input mode.');
+      expect(s.translatedText, ' rewritten result');
+      expect(s.stage, CraftStage.rewrite);
+      expect(transcriber.callCount, 0); // No ASR call.
+    });
+  });
+
+  group('setScreenMode', () {
+    test('switches mode and clears failure', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      expect(stateOf(c).screenMode, CraftScreenMode.express);
+      n.setScreenMode(CraftScreenMode.advanced);
+      expect(stateOf(c).screenMode, CraftScreenMode.advanced);
     });
   });
 }

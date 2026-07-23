@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,13 +13,17 @@ import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/craft/data/craft_asr_service_transcriber.dart';
 import 'package:enjoy_player/features/craft/data/craft_translation_service_translator.dart';
 import 'package:enjoy_player/features/craft/data/craft_tts_service_synthesizer.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
+import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
+import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
+import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/transcript_timestamp_estimator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
@@ -34,6 +39,11 @@ final craftSynthesizerProvider = Provider<CraftSynthesizer>((ref) {
 /// Provider for the Craft translator (wraps ChatService / LLM API).
 final craftTranslatorProvider = Provider<CraftTranslator>((ref) {
   return CraftTranslationServiceTranslator(ref.read(chatServiceProvider));
+});
+
+/// Provider for the Craft transcriber (wraps AsrService).
+final craftTranscriberProvider = Provider<CraftTranscriber>((ref) {
+  return CraftAsrServiceTranscriber(ref.read(asrServiceProvider));
 });
 
 /// Two-tool Craft controller for the full-screen Craft route.
@@ -226,7 +236,13 @@ class CraftController extends Notifier<CraftJobState> {
           state.sourceLanguage!.isNotEmpty &&
           state.translatedText != null &&
           state.translatedText!.isNotEmpty;
-      final sourceFlag = hasSourceLang ? 'craft-translate' : 'craft-direct';
+      final sourceFlag = state.screenMode == CraftScreenMode.express
+          ? 'craft-express'
+          : (hasSourceLang ? 'craft-translate' : 'craft-direct');
+      // Express stores the original native transcript as sourceText.
+      final sourceTextForImport = state.screenMode == CraftScreenMode.express
+          ? (state.rawTranscript ?? state.synthText)
+          : state.synthText;
 
       final repo = ref.read(mediaLibraryRepositoryProvider);
 
@@ -247,7 +263,7 @@ class CraftController extends Notifier<CraftJobState> {
         audioFormat: state.previewFormat ?? 'wav',
         learningLanguage: state.synthLanguage,
         sourceLanguage: hasSourceLang ? state.sourceLanguage : null,
-        text: state.synthText,
+        text: sourceTextForImport,
         normalizedText: truncated,
         sourceFlag: sourceFlag,
         signedInUserId: auth.profile.id,
@@ -272,6 +288,199 @@ class CraftController extends Notifier<CraftJobState> {
       resultMediaId: null,
       dedupedExistingId: null,
       clearFailure: true,
+    );
+  }
+
+  // === Express mode actions ===
+
+  /// Switch between Express and Advanced screen layouts.
+  /// Resets all working state so each mode starts fresh, and sets the
+  /// default translation style for the target mode.
+  void setScreenMode(CraftScreenMode mode) {
+    if (mode == state.screenMode) return;
+    state = state.copyWith(
+      screenMode: mode,
+      stage: CraftStage.capture,
+      style: mode == CraftScreenMode.express
+          ? TranslationStyle.auto
+          : TranslationStyle.natural,
+      clearCapturedAudio: true,
+      clearRawTranscript: true,
+      clearTranslatedText: true,
+      clearPreview: true,
+      clearResultMediaId: true,
+      clearDedupedExistingId: true,
+      clearFailure: true,
+      sourceText: '',
+      synthText: '',
+    );
+  }
+
+  /// Begin voice capture — sets [isCapturing] flag and defaults the style
+  /// to [TranslationStyle.auto] for the Express flow.
+  /// The [CaptureStage] widget owns the actual AudioRecorder.
+  void startCapture() {
+    state = state.copyWith(
+      isCapturing: true,
+      style: TranslationStyle.auto,
+      clearFailure: true,
+      clearCapturedAudio: true,
+      clearRawTranscript: true,
+    );
+  }
+
+  /// Stop capture and store the recorded audio bytes.
+  /// Automatically kicks off transcription + rewrite.
+  Future<void> stopCapture(Uint8List audioBytes) async {
+    state = state.copyWith(isCapturing: false, capturedAudioBytes: audioBytes);
+    await transcribeAndRewrite();
+  }
+
+  /// Text fallback: skip ASR, advance directly to rewrite.
+  /// Uses [TranslationStyle.auto] as the Express default.
+  Future<void> useTextInput(String text) async {
+    final normalized = normalizeCraftText(text);
+    state = state.copyWith(
+      rawTranscript: normalized.isEmpty ? null : normalized,
+      sourceText: text,
+      style: TranslationStyle.auto,
+      isTranscribing: false,
+      clearFailure: true,
+    );
+    if (normalized.isEmpty) return;
+    // Run rewrite immediately.
+    await _rewriteTranscript(normalized);
+  }
+
+  /// ASR transcription + LLM rewrite pipeline.
+  Future<void> transcribeAndRewrite() async {
+    final audio = state.capturedAudioBytes;
+    if (audio == null) return;
+
+    state = state.copyWith(isTranscribing: true, clearFailure: true);
+
+    String transcript;
+    try {
+      final transcriber = ref.read(craftTranscriberProvider);
+      transcript = await transcriber.transcribe(
+        audioBytes: audio,
+        language: state.sourceLanguage,
+      );
+    } catch (e, st) {
+      logNamed('craft.asr').warning('ASR failed: $e', e, st);
+      state = state.copyWith(
+        isTranscribing: false,
+        failure: const CraftAsrFailure(),
+      );
+      return;
+    }
+
+    // Empty / too-short transcript guard.
+    if (transcript.trim().length < craftMinTextLength) {
+      state = state.copyWith(
+        isTranscribing: false,
+        rawTranscript: transcript.isEmpty ? null : transcript,
+        failure: const CraftEmptyTranscriptFailure(),
+      );
+      return;
+    }
+
+    state = state.copyWith(rawTranscript: transcript);
+    await _rewriteTranscript(transcript);
+  }
+
+  /// Internal: run LLM rewrite on [rawTranscript] → [translatedText].
+  Future<void> _rewriteTranscript(String transcript) async {
+    final src = state.sourceLanguage;
+    final target = state.targetLanguage;
+
+    state = state.copyWith(
+      isTranslating: true,
+      stage: CraftStage.rewrite,
+      clearFailure: true,
+    );
+
+    try {
+      final translator = ref.read(craftTranslatorProvider);
+      final result = await translator.translate(
+        text: transcript,
+        sourceLanguage: src ?? target,
+        targetLanguage: target,
+        style: state.style,
+        customPrompt: state.customPrompt,
+      );
+      state = state.copyWith(
+        translatedText: result,
+        isTranslating: false,
+        isTranscribing: false,
+        stage: CraftStage.rewrite,
+      );
+    } catch (e, st) {
+      logNamed('craft.rewrite').warning('Rewrite failed: $e', e, st);
+      state = state.copyWith(
+        isTranslating: false,
+        isTranscribing: false,
+        failure: const CraftTranslateFailure(),
+      );
+    }
+  }
+
+  /// Re-run the LLM rewrite on existing transcript with current style.
+  Future<void> regenerate() async {
+    final transcript = state.rawTranscript;
+    if (transcript == null || transcript.isEmpty) return;
+    state = state.copyWith(generation: state.generation + 1);
+    await _rewriteTranscript(transcript);
+  }
+
+  /// Copy [translatedText] → [synthText] and synthesize.
+  /// Auto-selects a default voice if none is set.
+  Future<void> generateAudio() async {
+    if (state.translatedText == null || state.translatedText!.isEmpty) return;
+
+    final target = state.targetLanguage;
+    final voice =
+        state.selectedVoice ??
+        defaultVoiceForLanguage(target.split('-').first.toLowerCase())?.id;
+
+    state = state.copyWith(
+      stage: CraftStage.audio,
+      synthText: state.translatedText!,
+      synthLanguage: target,
+      selectedVoice: voice,
+      clearPreview: true,
+      clearFailure: true,
+    );
+    await synthesize();
+  }
+
+  /// Save current item to library and return the media ID for navigation.
+  Future<String?> saveAndPractice() async {
+    return saveToLibrary();
+  }
+
+  /// Save current item, then reset for the next capture.
+  /// If the save fails, the failure is already in [state.failure] —
+  /// we return early so the user's work is NOT destroyed.
+  Future<void> saveAndCaptureNext() async {
+    final mediaId = await saveToLibrary();
+    if (mediaId == null) return; // failure already surfaced
+    resetForNextCapture();
+  }
+
+  /// Clear Express working data, preserve session preferences.
+  void resetForNextCapture() {
+    state = state.copyWith(
+      stage: CraftStage.capture,
+      clearCapturedAudio: true,
+      clearRawTranscript: true,
+      clearTranslatedText: true,
+      clearPreview: true,
+      clearResultMediaId: true,
+      clearDedupedExistingId: true,
+      clearFailure: true,
+      sourceText: '',
+      synthText: '',
     );
   }
 
