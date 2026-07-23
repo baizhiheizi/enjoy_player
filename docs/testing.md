@@ -46,6 +46,7 @@ CI uploads `coverage/lcov.info` to [Codecov](https://codecov.io) and fails when 
 | Sliver key index helper | `test/core/utils/sliver_key_index_test.dart` |
 | App smoke (EnjoyApp) | `test/widget_test.dart` |
 | Drift smoke | `test/data/db/app_database_test.dart` |
+| Logging test infrastructure (`TestLoggingScope`) | `test/support/test_logging.dart` |
 
 ## Pre-release (platform compile)
 
