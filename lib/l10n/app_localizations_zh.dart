@@ -3188,6 +3188,72 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftSynthText => '合成文本';
 
   @override
+  String get craftModeExpress => '快速';
+
+  @override
+  String get craftModeAdvanced => '高级';
+
+  @override
+  String get craftStageCapture => '录制';
+
+  @override
+  String get craftStageRewrite => '改写';
+
+  @override
+  String get craftStageAudio => '音频';
+
+  @override
+  String get craftCaptureTitle => '说出你的想法';
+
+  @override
+  String get craftCaptureSubtitle => '点击录音，用你的母语自然地表达。';
+
+  @override
+  String get craftCaptureStop => '停止';
+
+  @override
+  String get craftCaptureTypeInstead => '改为输入文字';
+
+  @override
+  String get craftRewriteYourWords => '你说的话';
+
+  @override
+  String get craftRewriteTargetLabel => '目标语言';
+
+  @override
+  String get craftRewriteRegenerate => '重新生成';
+
+  @override
+  String get craftRewriteReRecord => '重新录制';
+
+  @override
+  String get craftRewriteGenerateAudio => '生成音频';
+
+  @override
+  String get craftAudioPreview => '预览';
+
+  @override
+  String get craftAudioSaySomethingElse => '再说一条';
+
+  @override
+  String get craftAudioPracticeNow => '立即练习';
+
+  @override
+  String get craftSavedToLibrary => '已保存到资料库';
+
+  @override
+  String get craftStyleAuto => '✨ 自动';
+
+  @override
+  String get craftFailureAsr => '没有听清楚，请重新录制。';
+
+  @override
+  String get craftFailureEmptyTranscript => '录音太短了，请再多说一些。';
+
+  @override
+  String get craftRecordingMicDenied => '麦克风权限被拒绝，请在设置中开启。';
+
+  @override
   String get errorGenericLoadFailed => '加载失败，请重试。';
 
   @override

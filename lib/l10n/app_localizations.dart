@@ -6177,6 +6177,138 @@ abstract class AppLocalizations {
   /// **'Text to synthesize'**
   String get craftSynthText;
 
+  /// No description provided for @craftModeExpress.
+  ///
+  /// In en, this message translates to:
+  /// **'Express'**
+  String get craftModeExpress;
+
+  /// No description provided for @craftModeAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get craftModeAdvanced;
+
+  /// No description provided for @craftStageCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture'**
+  String get craftStageCapture;
+
+  /// No description provided for @craftStageRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite'**
+  String get craftStageRewrite;
+
+  /// No description provided for @craftStageAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get craftStageAudio;
+
+  /// No description provided for @craftCaptureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what\'s on your mind'**
+  String get craftCaptureTitle;
+
+  /// No description provided for @craftCaptureSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to record. Speak naturally in your language.'**
+  String get craftCaptureSubtitle;
+
+  /// No description provided for @craftCaptureStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get craftCaptureStop;
+
+  /// No description provided for @craftCaptureTypeInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Type instead'**
+  String get craftCaptureTypeInstead;
+
+  /// No description provided for @craftRewriteYourWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Your words'**
+  String get craftRewriteYourWords;
+
+  /// No description provided for @craftRewriteTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'In your target language'**
+  String get craftRewriteTargetLabel;
+
+  /// No description provided for @craftRewriteRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get craftRewriteRegenerate;
+
+  /// No description provided for @craftRewriteReRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-record'**
+  String get craftRewriteReRecord;
+
+  /// No description provided for @craftRewriteGenerateAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate audio'**
+  String get craftRewriteGenerateAudio;
+
+  /// No description provided for @craftAudioPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get craftAudioPreview;
+
+  /// No description provided for @craftAudioSaySomethingElse.
+  ///
+  /// In en, this message translates to:
+  /// **'Say something else'**
+  String get craftAudioSaySomethingElse;
+
+  /// No description provided for @craftAudioPracticeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice now'**
+  String get craftAudioPracticeNow;
+
+  /// No description provided for @craftSavedToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to library'**
+  String get craftSavedToLibrary;
+
+  /// No description provided for @craftStyleAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Auto'**
+  String get craftStyleAuto;
+
+  /// No description provided for @craftFailureAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t hear you clearly. Try recording again.'**
+  String get craftFailureAsr;
+
+  /// No description provided for @craftFailureEmptyTranscript.
+  ///
+  /// In en, this message translates to:
+  /// **'That was too short. Try speaking a bit longer.'**
+  String get craftFailureEmptyTranscript;
+
+  /// No description provided for @craftRecordingMicDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access denied. Please enable it in settings.'**
+  String get craftRecordingMicDenied;
+
   /// Generic fallback message when loading data fails in an unexpected way.
   ///
   /// In en, this message translates to:

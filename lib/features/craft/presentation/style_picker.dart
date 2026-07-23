@@ -43,6 +43,7 @@ class StylePicker extends StatelessWidget {
 
   String _label(AppLocalizations l10n, TranslationStyle style) {
     return switch (style) {
+      TranslationStyle.auto => l10n.craftStyleAuto,
       TranslationStyle.literal => l10n.craftStyleLiteral,
       TranslationStyle.natural => l10n.craftStyleNatural,
       TranslationStyle.casual => l10n.craftStyleCasual,
