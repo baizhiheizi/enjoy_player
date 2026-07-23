@@ -1,0 +1,107 @@
+<svg width="1024" height="500" viewBox="0 0 1024 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4797F5"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#08080E"/>
+      <stop offset="55%" stop-color="#0E0E18"/>
+      <stop offset="100%" stop-color="#141028"/>
+    </linearGradient>
+    <radialGradient id="glowLeft" cx="18%" cy="50%" r="42%">
+      <stop offset="0%" stop-color="#4797F5" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#4797F5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowRight" cx="88%" cy="40%" r="38%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4797F5" stop-opacity="0"/>
+      <stop offset="40%" stop-color="#4797F5" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bgGrad)"/>
+  <rect width="1024" height="500" fill="url(#glowLeft)"/>
+  <rect width="1024" height="500" fill="url(#glowRight)"/>
+
+  <!-- Soft grid / atmosphere (kept light so text stays readable) -->
+  <g opacity="0.12" stroke="#E8E8F2" stroke-width="1">
+    <line x1="120" y1="0" x2="120" y2="500"/>
+    <line x1="904" y1="0" x2="904" y2="500"/>
+    <line x1="0" y1="90" x2="1024" y2="90"/>
+    <line x1="0" y1="410" x2="1024" y2="410"/>
+  </g>
+
+  <!-- Decorative transcript bars (suggest listening / following along) -->
+  <g opacity="0.35">
+    <rect x="118" y="148" width="164" height="10" rx="5" fill="#4797F5"/>
+    <rect x="118" y="174" width="118" height="10" rx="5" fill="#A855F7"/>
+    <rect x="118" y="200" width="148" height="10" rx="5" fill="#4797F5"/>
+    <rect x="118" y="226" width="96" height="10" rx="5" fill="#A855F7"/>
+    <rect x="118" y="252" width="132" height="10" rx="5" fill="#4797F5"/>
+    <rect x="118" y="278" width="108" height="10" rx="5" fill="#A855F7"/>
+  </g>
+  <g opacity="0.28">
+    <rect x="742" y="160" width="150" height="10" rx="5" fill="#A855F7"/>
+    <rect x="778" y="186" width="114" height="10" rx="5" fill="#4797F5"/>
+    <rect x="756" y="212" width="136" height="10" rx="5" fill="#A855F7"/>
+    <rect x="802" y="238" width="90" height="10" rx="5" fill="#4797F5"/>
+    <rect x="768" y="264" width="124" height="10" rx="5" fill="#A855F7"/>
+    <rect x="790" y="290" width="102" height="10" rx="5" fill="#4797F5"/>
+  </g>
+
+  <!-- Center accent line -->
+  <rect x="312" y="248" width="400" height="2" rx="1" fill="url(#lineGrad)"/>
+
+  <!-- Logo mark (centered above title) -->
+  <g transform="translate(448, 78) scale(1.35)">
+    <g stroke="url(#brandGrad)" stroke-width="5" stroke-linejoin="round">
+      <polygon points="30,20 70,40 30,60" fill="url(#brandGrad)" opacity="0.35"/>
+      <polygon points="30,40 70,60 30,80" fill="url(#brandGrad)" opacity="0.65"/>
+      <polygon points="50,30 90,50 50,70" fill="url(#brandGrad)" opacity="1.0"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text
+    x="512"
+    y="292"
+    text-anchor="middle"
+    font-family="Segoe UI, Helvetica Neue, Arial, sans-serif"
+    font-size="56"
+    font-weight="700"
+    letter-spacing="0.5"
+    fill="#E8E8F2"
+  >Enjoy Player</text>
+
+  <!-- Value prop -->
+  <text
+    x="512"
+    y="348"
+    text-anchor="middle"
+    font-family="Segoe UI, Helvetica Neue, Arial, sans-serif"
+    font-size="28"
+    font-weight="500"
+    fill="#C8C8D8"
+  >Practice languages with media you love</text>
+
+  <!-- Feature chips -->
+  <g font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="600" fill="#E8E8F2">
+    <rect x="268" y="388" width="118" height="34" rx="17" fill="#1A1A28" stroke="#4797F5" stroke-opacity="0.45"/>
+    <text x="327" y="410" text-anchor="middle">Your files</text>
+
+    <rect x="402" y="388" width="108" height="34" rx="17" fill="#1A1A28" stroke="#7B6FF0" stroke-opacity="0.5"/>
+    <text x="456" y="410" text-anchor="middle">YouTube</text>
+
+    <rect x="526" y="388" width="128" height="34" rx="17" fill="#1A1A28" stroke="#A855F7" stroke-opacity="0.45"/>
+    <text x="590" y="410" text-anchor="middle">Transcripts</text>
+
+    <rect x="670" y="388" width="86" height="34" rx="17" fill="#1A1A28" stroke="#A855F7" stroke-opacity="0.45"/>
+    <text x="713" y="410" text-anchor="middle">Echo</text>
+  </g>
+</svg>
