@@ -107,6 +107,27 @@ touch HTTP manually inside a service:
   [`case_conversion.dart`](../../lib/data/api/case_conversion.dart).
 - Trace logging under the `api` logger ([`logNamed('api')`](../../lib/data/api/api_client.dart)).
 
+## Bearer auth
+
+Bearer token acquisition is centralized in
+[`ApiClient._ensureAuthenticated`](../../lib/data/api/api_client.dart). The three
+`*ApiClient` providers ([Choosing an `ApiClient`](#choosing-an-apiclient) above)
+differ only in whether they pass a refresh hook:
+
+- **`authApiClient`** and **`aiApiClient`**: send the access token when present
+  but never trigger a refresh. A stale or missing token surfaces as a 401 to the
+  caller.
+- **`apiClient`**: on 401 from any endpoint, calls
+  `AuthRepository.refreshSession()` once (single-flight across concurrent 401s),
+  re-reads the token, and retries. If the refresh itself fails, the caller sees
+  401.
+
+The single `_ensureAuthenticated` helper replaces three independent token
+lookups that previously lived inside each `EndpointApiClient` subclass — see
+[`auth_api.dart`](../../lib/data/api/services/auth_api.dart) reasoning in commit
+history. New services should not re-implement bearer resolution; pick the
+correct `*ApiClient` provider and call `client.getJson(...)` / etc. as usual.
+
 ## Anti-patterns
 
 - **Do not** declare a per-file `typedef JsonMap`. Import it from

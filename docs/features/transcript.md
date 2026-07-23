@@ -67,6 +67,23 @@ empty-tracks hint plus primary + translation section headers for a single
 track). The split is also recorded as
 [`2026-07-07-subtitle-track-picker-split-design.md`](../superpowers/specs/2026-07-07-subtitle-track-picker-split-design.md).
 
+### Transcript repository split
+
+[`TranscriptRepository`](../../lib/features/transcript/data/transcript_repository.dart)
+grew beyond a single file; three focused Dart part files are imported via
+`part` directives to keep the main class definition readable:
+
+| Part file | Responsibility |
+|-----------|----------------|
+| [`transcript_repository_auto_translate.dart`](../../lib/features/transcript/data/transcript_repository_auto_translate.dart) | Auto-translate track management: `_fetchAndCacheAutoTranslate`, inline refresh, viewport-driven line translation |
+| [`transcript_repository_subtitle_import.dart`](../../lib/features/transcript/data/transcript_repository_subtitle_import.dart) | Subtitle file import (SRT/VTT), embedded subtitle extraction (FFmpeg), sidecar discovery |
+| [`transcript_repository_youtube_fetch.dart`](../../lib/features/transcript/data/transcript_repository_youtube_fetch.dart) | YouTube transcript fetch orchestration: worker cache lookup, InnerTube direct fallback, worker upload, bilingual fetch |
+| [`transcript_repository_youtube_worker_cache.dart`](../../lib/features/transcript/data/transcript_repository_youtube_worker_cache.dart) | Worker cache-only API interaction (`GET /youtube/transcripts`, `POST /youtube/transcripts`, `GET /youtube/client-profiles`) |
+
+The main `transcript_repository.dart` retains the public API surface;
+`watchTracks`, `upsertAsrGeneratedTrack`, `resolveOnOpen`, and all other
+public methods are unchanged.
+
 ## Blur practice (listening-focus) mode
 
 A "Blur practice" toggle in the bottom transport bar (next to the Echo
