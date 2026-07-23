@@ -1566,6 +1566,18 @@
   "craftCaptureStop": "Stop",
   "craftCaptureCancel": "Cancel",
   "craftCaptureTypeInstead": "Type instead",
+  "craftLoadingTranscribing": "Transcribing…",
+  "@craftLoadingTranscribing": {
+    "description": "Loading hint under the spinner while ASR runs after capture."
+  },
+  "craftLoadingRewriting": "Crafting…",
+  "@craftLoadingRewriting": {
+    "description": "Loading hint under the spinner while the LLM rewrite runs."
+  },
+  "craftLoadingSynthesizing": "Generating audio…",
+  "@craftLoadingSynthesizing": {
+    "description": "Loading hint under the spinner while TTS synthesizes audio."
+  },
   "craftRewriteYourWords": "Your words",
   "craftRewriteTargetLabel": "In your target language",
   "craftRewriteRegenerate": "Regenerate",

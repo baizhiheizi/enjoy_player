@@ -3218,6 +3218,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftCaptureTypeInstead => '改为输入文字';
 
   @override
+  String get craftLoadingTranscribing => '正在听写…';
+
+  @override
+  String get craftLoadingRewriting => '正在改写…';
+
+  @override
+  String get craftLoadingSynthesizing => '正在生成音频…';
+
+  @override
   String get craftRewriteYourWords => '你说的话';
 
   @override

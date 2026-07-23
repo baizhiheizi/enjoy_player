@@ -1,13 +1,13 @@
-/// Advanced mode container: responsive two-tool layout.
+/// Advanced mode: stacked Translate + Synthesize panels (hub layout).
 ///
-/// Shows `TranslateTool` and `SynthesizeTool` side-by-side on wide screens
-/// (≥600px) and stacked on narrow screens. Uses `LayoutBuilder` for
-/// responsive breakpoints.
+/// Matches AI providers / settings section rhythm — one full-width
+/// [EnjoyCard] panel after another, not a cramped dual column.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/craft/presentation/synthesize_tool.dart';
 import 'package:enjoy_player/features/craft/presentation/translate_tool.dart';
 
@@ -17,26 +17,15 @@ class AdvancedTools extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 600;
+    final t = EnjoyThemeTokens.of(context);
 
-        if (isWide) {
-          return const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: TranslateTool()),
-              SizedBox(width: 16),
-              Expanded(child: SynthesizeTool()),
-            ],
-          );
-        }
-
-        return const Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [TranslateTool(), SizedBox(height: 16), SynthesizeTool()],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const TranslateTool(),
+        SizedBox(height: t.space16),
+        const SynthesizeTool(),
+      ],
     );
   }
 }

@@ -11,6 +11,9 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
@@ -71,132 +74,133 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
       _resultCtrl.text = state.translatedText!;
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.craftTranslateTool, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
+    final tokens = EnjoyThemeTokens.of(context);
+    final canTranslate =
+        !state.isTranslating &&
+        normalizeCraftText(state.sourceText).length >= craftMinTextLength;
 
-            // Language selectors with swap
-            _LanguageRow(
-              sourceLabel: l10n.craftSourceLanguageLabel,
-              targetLabel: l10n.craftTargetLanguageLabel,
-              sourceValue: state.sourceLanguage ?? '—',
-              targetValue: state.targetLanguage,
-              onSwap: controller.swapLanguages,
-              onPickSource: () =>
-                  _pickLanguage(isSource: true, current: state.sourceLanguage),
-              onPickTarget: () =>
-                  _pickLanguage(isSource: false, current: state.targetLanguage),
+    return EnjoyCard(
+      padding: EdgeInsets.all(tokens.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.craftTranslateTool,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 12),
-
-            // Style picker
-            StylePicker(value: state.style, onChanged: controller.setStyle),
-
-            // Custom prompt input
-            if (state.style == TranslationStyle.custom) ...[
-              const SizedBox(height: 8),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: l10n.craftCustomPromptHint,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
-                maxLines: 2,
-                onChanged: controller.setCustomPrompt,
-              ),
-            ],
-            const SizedBox(height: 12),
-
-            // Source text input
+          ),
+          SizedBox(height: tokens.space16),
+          _LanguageRow(
+            sourceLabel: l10n.craftSourceLanguageLabel,
+            targetLabel: l10n.craftTargetLanguageLabel,
+            sourceValue: state.sourceLanguage ?? '—',
+            targetValue: state.targetLanguage,
+            onSwap: controller.swapLanguages,
+            onPickSource: () =>
+                _pickLanguage(isSource: true, current: state.sourceLanguage),
+            onPickTarget: () =>
+                _pickLanguage(isSource: false, current: state.targetLanguage),
+          ),
+          SizedBox(height: tokens.space16),
+          StylePicker(value: state.style, onChanged: controller.setStyle),
+          if (state.style == TranslationStyle.custom) ...[
+            SizedBox(height: tokens.space8),
             TextField(
-              controller: _sourceCtrl,
-              maxLines: 4,
-              minLines: 2,
               decoration: InputDecoration(
-                labelText: l10n.craftSourceText,
-                hintText: l10n.craftTextInputHint,
+                hintText: l10n.craftCustomPromptHint,
                 border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.paste_rounded, size: 18),
-                  tooltip: l10n.craftPasteFromClipboard,
-                  onPressed: () =>
-                      _paste(_sourceCtrl, controller.setSourceText),
-                ),
+                isDense: true,
               ),
-              onChanged: controller.setSourceText,
+              maxLines: 2,
+              onChanged: controller.setCustomPrompt,
             ),
-            const SizedBox(height: 8),
-
-            // Translate button
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed:
-                    state.isTranslating ||
-                        normalizeCraftText(state.sourceText).length <
-                            craftMinTextLength
-                    ? null
-                    : controller.translate,
-                icon: state.isTranslating
-                    ? const LoadingIcon(size: 16)
-                    : const Icon(Icons.translate_rounded, size: 18),
-                label: Text(
-                  state.translatedText != null
-                      ? l10n.craftReTranslateButton
-                      : l10n.craftTranslateButton,
-                ),
-              ),
-            ),
-
-            // Result (editable)
-            if (state.translatedText != null) ...[
-              const SizedBox(height: 16),
-              Text(l10n.craftTranslatedText, style: theme.textTheme.bodySmall),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _resultCtrl,
-                maxLines: 6,
-                minLines: 3,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                onChanged: controller.setTranslatedText,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _copy(state.translatedText!, l10n),
-                    icon: const Icon(Icons.copy_rounded, size: 16),
-                    label: Text(l10n.craftCopyTranslation),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.tonalIcon(
-                    onPressed: controller.useTranslatedText,
-                    icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                    label: Text(l10n.craftUseTranslatedText),
-                  ),
-                ],
-              ),
-            ],
-
-            // Failure
-            if (state.failure != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  state.failure!.message(l10n),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
-              ),
           ],
-        ),
+          SizedBox(height: tokens.space16),
+          TextField(
+            controller: _sourceCtrl,
+            maxLines: 5,
+            minLines: 3,
+            decoration: InputDecoration(
+              labelText: l10n.craftSourceText,
+              hintText: l10n.craftTextInputHint,
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.paste_rounded, size: 18),
+                tooltip: l10n.craftPasteFromClipboard,
+                onPressed: () => _paste(_sourceCtrl, controller.setSourceText),
+              ),
+            ),
+            onChanged: controller.setSourceText,
+          ),
+          SizedBox(height: tokens.space16),
+          EnjoyButton.primary(
+            onPressed: canTranslate ? controller.translate : null,
+            icon: state.isTranslating ? null : Icons.translate_rounded,
+            child: state.isTranslating
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const LoadingIcon(size: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.craftLoadingRewriting),
+                    ],
+                  )
+                : Text(
+                    state.translatedText != null
+                        ? l10n.craftReTranslateButton
+                        : l10n.craftTranslateButton,
+                  ),
+          ),
+          if (state.translatedText != null) ...[
+            SizedBox(height: tokens.space20),
+            Text(
+              l10n.craftTranslatedText,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: tokens.space8),
+            TextField(
+              controller: _resultCtrl,
+              maxLines: 6,
+              minLines: 3,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              onChanged: controller.setTranslatedText,
+            ),
+            SizedBox(height: tokens.space12),
+            Row(
+              children: [
+                Expanded(
+                  child: EnjoyButton.ghost(
+                    onPressed: () => _copy(state.translatedText!, l10n),
+                    icon: Icons.copy_rounded,
+                    child: Text(l10n.craftCopyTranslation),
+                  ),
+                ),
+                SizedBox(width: tokens.space8),
+                Expanded(
+                  child: EnjoyButton.secondary(
+                    onPressed: controller.useTranslatedText,
+                    icon: Icons.arrow_downward_rounded,
+                    child: Text(l10n.craftUseTranslatedText),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (state.failure != null)
+            Padding(
+              padding: EdgeInsets.only(top: tokens.space12),
+              child: Text(
+                state.failure!.message(l10n),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -299,22 +303,34 @@ class _LangTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(t.radiusMd),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(t.radiusMd),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: t.space12,
+            vertical: t.space8,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                label,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
+              const SizedBox(height: 2),
               Text(
                 value,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),

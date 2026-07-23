@@ -6237,6 +6237,24 @@ abstract class AppLocalizations {
   /// **'Type instead'**
   String get craftCaptureTypeInstead;
 
+  /// Loading hint under the spinner while ASR runs after capture.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribing…'**
+  String get craftLoadingTranscribing;
+
+  /// Loading hint under the spinner while the LLM rewrite runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Crafting…'**
+  String get craftLoadingRewriting;
+
+  /// Loading hint under the spinner while TTS synthesizes audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating audio…'**
+  String get craftLoadingSynthesizing;
+
   /// No description provided for @craftRewriteYourWords.
   ///
   /// In en, this message translates to:

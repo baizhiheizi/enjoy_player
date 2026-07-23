@@ -329,6 +329,18 @@ void main() {
       expect(stateOf(c).failure, isNull);
     });
 
+    test('setTargetLanguage realigns selectedVoice to the new language', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      n.setSelectedVoice('zh-CN-XiaoxiaoNeural');
+      n.setTargetLanguage('en-US');
+      final voice = stateOf(c).selectedVoice;
+      expect(voice, isNotNull);
+      expect(voice!.startsWith('en-'), isTrue);
+    });
+
     test('setStyle updates style and clears failure', () async {
       final c = container();
       addTearDown(c.dispose);

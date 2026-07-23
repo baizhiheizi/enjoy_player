@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
@@ -195,7 +196,7 @@ class _LoadingView extends StatelessWidget {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            '…',
+            l10n.craftLoadingRewriting,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -308,84 +309,95 @@ class _TargetTextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final scheme = theme.colorScheme;
+    final fieldRadius = BorderRadius.circular(t.radiusMd);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.35)),
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(t.radiusLg),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.55),
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: ColoredBox(
-                color: scheme.primary,
-                child: const SizedBox(width: 3),
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              t.space16,
+              t.space16,
+              t.space16,
+              t.space12,
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: scheme.primary.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          targetBase,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          targetLabel,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: t.space8,
+                    vertical: 4,
                   ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    minLines: 3,
-                    maxLines: 10,
-                    textInputAction: TextInputAction.newline,
-                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
-                    onChanged: onChanged,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(t.radiusSm),
+                  ),
+                  child: Text(
+                    targetBase,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
+                ),
+                SizedBox(width: t.space8),
+                Expanded(
+                  child: Text(
+                    targetLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              minLines: 4,
+              maxLines: 10,
+              textInputAction: TextInputAction.newline,
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.55),
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: scheme.surface.withValues(alpha: 0.55),
+                isDense: false,
+                contentPadding: EdgeInsets.all(t.space16),
+                border: OutlineInputBorder(
+                  borderRadius: fieldRadius,
+                  borderSide: BorderSide(
+                    color: scheme.outlineVariant.withValues(alpha: 0.65),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: fieldRadius,
+                  borderSide: BorderSide(
+                    color: scheme.outlineVariant.withValues(alpha: 0.65),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: fieldRadius,
+                  borderSide: BorderSide(color: scheme.primary, width: 1.5),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

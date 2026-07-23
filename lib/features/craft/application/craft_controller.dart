@@ -62,7 +62,11 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   void setTargetLanguage(String lang) {
-    state = state.copyWith(targetLanguage: lang, clearFailure: true);
+    state = state.copyWith(
+      targetLanguage: lang,
+      selectedVoice: _voiceMatchingLanguage(lang, state.selectedVoice),
+      clearFailure: true,
+    );
   }
 
   void setStyle(TranslationStyle style) {
@@ -139,15 +143,9 @@ class CraftController extends Notifier<CraftJobState> {
 
   void setSynthLanguage(String lang) {
     // Auto-pick default voice for the new language if current voice doesn't match.
-    final voices = voicesForLanguage(lang.split('-').first.toLowerCase());
-    final currentVoice = state.selectedVoice;
-    final voiceMatches =
-        currentVoice != null && voices.any((v) => v.id == currentVoice);
     state = state.copyWith(
       synthLanguage: lang,
-      selectedVoice: voiceMatches
-          ? currentVoice
-          : defaultVoiceForLanguage(lang.split('-').first.toLowerCase())?.id,
+      selectedVoice: _voiceMatchingLanguage(lang, state.selectedVoice),
       clearPreview: true,
       clearFailure: true,
     );
@@ -425,15 +423,12 @@ class CraftController extends Notifier<CraftJobState> {
         style: state.style,
         customPrompt: state.customPrompt,
       );
-      final voice =
-          state.selectedVoice ??
-          defaultVoiceForLanguage(target.split('-').first.toLowerCase())?.id;
       state = state.copyWith(
         translatedText: result,
         isTranslating: false,
         isTranscribing: false,
         stage: CraftStage.rewrite,
-        selectedVoice: voice,
+        selectedVoice: _voiceMatchingLanguage(target, state.selectedVoice),
         synthLanguage: target,
       );
     } catch (e, st) {
@@ -460,15 +455,12 @@ class CraftController extends Notifier<CraftJobState> {
     if (state.translatedText == null || state.translatedText!.isEmpty) return;
 
     final target = state.targetLanguage;
-    final voice =
-        state.selectedVoice ??
-        defaultVoiceForLanguage(target.split('-').first.toLowerCase())?.id;
 
     state = state.copyWith(
       stage: CraftStage.audio,
       synthText: state.translatedText!,
       synthLanguage: target,
-      selectedVoice: voice,
+      selectedVoice: _voiceMatchingLanguage(target, state.selectedVoice),
       clearPreview: true,
       clearFailure: true,
     );
@@ -508,6 +500,16 @@ class CraftController extends Notifier<CraftJobState> {
   }
 
   // === Helpers ===
+
+  /// Keep [current] when it belongs to [language]; otherwise pick the default.
+  String? _voiceMatchingLanguage(String language, String? current) {
+    final base = language.split('-').first.toLowerCase();
+    final voices = voicesForLanguage(base);
+    if (current != null && voices.any((v) => v.id == current)) {
+      return current;
+    }
+    return defaultVoiceForLanguage(base)?.id;
+  }
 
   bool _sameBaseLanguage(String a, String b) {
     final aBase = a.split('-').first.toLowerCase();

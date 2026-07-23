@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -81,10 +82,11 @@ class _FakeLibraryRepository implements MediaLibraryRepository {
 Widget _harness({required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
-    child: const MaterialApp(
+    child: MaterialApp(
+      theme: buildAppTheme(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: CraftScreen(),
+      home: const CraftScreen(),
     ),
   );
 }

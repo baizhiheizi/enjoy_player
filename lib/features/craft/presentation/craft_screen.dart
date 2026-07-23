@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -22,7 +23,9 @@ class CraftScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final state = ref.watch(craftControllerProvider);
+    final isAdvanced = state.screenMode == CraftScreenMode.advanced;
 
     return PopScope(
       canPop: !state.isCapturing,
@@ -36,7 +39,8 @@ class CraftScreen extends ConsumerWidget {
         }
       },
       child: EnjoyPage(
-        kind: EnjoyPageKind.form,
+        // Express = form column; Advanced = hub width (matches AI settings).
+        kind: isAdvanced ? EnjoyPageKind.hub : EnjoyPageKind.form,
         showBack: true,
         title: l10n.craftScreenTitle,
         onBack: () {
@@ -54,12 +58,7 @@ class CraftScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(
-                  metrics.gutter,
-                  4,
-                  metrics.gutter,
-                  8,
-                ),
+                padding: metrics.padding(top: t.space8, bottom: t.space12),
                 child: Center(
                   child: SegmentedButton<CraftScreenMode>(
                     style: enjoySegmentedButtonStyle(context),
@@ -85,26 +84,15 @@ class CraftScreen extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: metrics.maxWidth ?? double.infinity,
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        metrics.gutter,
-                        0,
-                        metrics.gutter,
-                        metrics.gutter,
+                child: isAdvanced
+                    ? ListView(
+                        padding: metrics.padding(top: 0, bottom: t.space32),
+                        children: const [AdvancedTools()],
+                      )
+                    : Padding(
+                        padding: metrics.padding(top: 0, bottom: t.space24),
+                        child: const ExpressFlow(),
                       ),
-                      // Stages own their scroll — avoid nested ScrollViews.
-                      child: state.screenMode == CraftScreenMode.express
-                          ? const ExpressFlow()
-                          : const SingleChildScrollView(child: AdvancedTools()),
-                    ),
-                  ),
-                ),
               ),
             ],
           );

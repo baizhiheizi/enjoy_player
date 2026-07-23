@@ -69,7 +69,7 @@ Existing failures (`CraftTranslateFailure`, `CraftTtsFailure`, `CraftSaveFailure
 
 ## Advanced mode
 
-The original two-tool layout, retained for users who already have prepared text. Wrapped by `AdvancedTools` in a responsive container:
+Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (same width family as AI settings) with **stacked** `EnjoyCard` panels — Translate above Synthesize — instead of a cramped dual column.
 
 ### Translate tool (`TranslateTool`)
 

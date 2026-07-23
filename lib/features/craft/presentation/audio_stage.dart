@@ -7,6 +7,7 @@
 library;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -67,10 +68,20 @@ class _AudioStageState extends ConsumerState<AudioStage> {
       // Subscribe to streams on first play.
       if (_positionSub == null) {
         _positionSub = _player!.onPositionChanged.listen((pos) {
-          if (mounted) setState(() => _position = pos);
+          if (!mounted) return;
+          setState(() {
+            // Clamp: player callbacks can report position past duration.
+            _position = _duration > Duration.zero && pos > _duration
+                ? _duration
+                : pos;
+          });
         });
         _durationSub = _player!.onDurationChanged.listen((dur) {
-          if (mounted) setState(() => _duration = dur);
+          if (!mounted) return;
+          setState(() {
+            _duration = dur;
+            if (_position > dur) _position = dur;
+          });
         });
         _completeSub = _player!.onPlayerComplete.listen((_) {
           if (mounted) {
@@ -136,6 +147,24 @@ class _AudioStageState extends ConsumerState<AudioStage> {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(craftControllerProvider);
     final theme = Theme.of(context);
+
+    // Re-synth (voice change) replaces preview bytes — reset the local player.
+    ref.listen<Uint8List?>(
+      craftControllerProvider.select((s) => s.previewAudioBytes),
+      (prev, next) {
+        if (prev == next) return;
+        _cancelStreams();
+        unawaited(_player?.dispose());
+        _player = null;
+        if (mounted) {
+          setState(() {
+            _isPlaying = false;
+            _position = Duration.zero;
+            _duration = Duration.zero;
+          });
+        }
+      },
+    );
 
     if (state.isSynthesizing) {
       return _LoadingView(l10n: l10n);
@@ -275,7 +304,7 @@ class _LoadingView extends StatelessWidget {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            '…',
+            l10n.craftLoadingSynthesizing,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -516,12 +545,20 @@ class _PreviewPlayer extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
+                // Position can briefly overshoot duration from the player
+                // stream; Slider asserts if value > max.
                 Slider(
-                  value: position.inMilliseconds.toDouble(),
-                  max: (duration.inMilliseconds.toDouble().clamp(
-                    1,
+                  value: position.inMilliseconds.toDouble().clamp(
+                    0.0,
+                    duration.inMilliseconds.toDouble().clamp(
+                      1.0,
+                      double.infinity,
+                    ),
+                  ),
+                  max: duration.inMilliseconds.toDouble().clamp(
+                    1.0,
                     double.infinity,
-                  )),
+                  ),
                   onChanged: duration > Duration.zero
                       ? (v) => onSeek(Duration(milliseconds: v.round()))
                       : null,
@@ -530,7 +567,11 @@ class _PreviewPlayer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      fmt(position),
+                      fmt(
+                        position > duration && duration > Duration.zero
+                            ? duration
+                            : position,
+                      ),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         fontFeatures: const [FontFeature.tabularFigures()],

@@ -681,7 +681,7 @@ class _TranscribingIndicator extends StatelessWidget {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            '…',
+            l10n.craftLoadingTranscribing,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

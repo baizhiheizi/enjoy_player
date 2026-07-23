@@ -10,6 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
@@ -54,112 +57,115 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
       _textCtrl.text = state.synthText;
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.craftSynthesizeTool, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
+    final tokens = EnjoyThemeTokens.of(context);
+    final canSynthesize =
+        !state.isSynthesizing &&
+        !state.isSaving &&
+        normalizeCraftText(state.synthText).length >= craftMinTextLength;
 
-            // Language picker
-            _SynthLangTile(
-              label: l10n.craftTargetLanguageLabel,
-              value: state.synthLanguage.toUpperCase(),
-              onTap: () => _pickLanguage(state.synthLanguage, controller),
+    return EnjoyCard(
+      padding: EdgeInsets.all(tokens.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.craftSynthesizeTool,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 8),
-
-            // Voice picker
-            VoicePicker(
-              language: state.synthLanguage,
-              selectedVoice: state.selectedVoice,
-              onChanged: controller.setSelectedVoice,
-            ),
-            const SizedBox(height: 12),
-
-            // Text input
-            TextField(
-              controller: _textCtrl,
-              maxLines: 4,
-              minLines: 2,
-              decoration: InputDecoration(
-                labelText: l10n.craftSynthText,
-                hintText: l10n.craftTextInputHint,
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.paste_rounded, size: 18),
-                  tooltip: l10n.craftPasteFromClipboard,
-                  onPressed: () => _paste(controller),
-                ),
-              ),
-              onChanged: controller.setSynthText,
-            ),
-            const SizedBox(height: 8),
-
-            // Synthesize button
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed:
-                    state.isSynthesizing ||
-                        state.isSaving ||
-                        normalizeCraftText(state.synthText).length <
-                            craftMinTextLength
-                    ? null
-                    : () => _synthesizeWithOverlay(l10n),
-                icon: state.isSynthesizing
-                    ? const LoadingIcon(size: 16)
-                    : const Icon(Icons.record_voice_over_rounded, size: 18),
-                label: Text(
-                  state.hasPreview
-                      ? l10n.craftReSynthesizeButton
-                      : l10n.craftSynthesizeButton,
-                ),
+          ),
+          SizedBox(height: tokens.space16),
+          _SynthLangTile(
+            label: l10n.craftTargetLanguageLabel,
+            value: state.synthLanguage.toUpperCase(),
+            onTap: () => _pickLanguage(state.synthLanguage, controller),
+          ),
+          SizedBox(height: tokens.space12),
+          VoicePicker(
+            language: state.synthLanguage,
+            selectedVoice: state.selectedVoice,
+            onChanged: controller.setSelectedVoice,
+          ),
+          SizedBox(height: tokens.space16),
+          TextField(
+            controller: _textCtrl,
+            maxLines: 5,
+            minLines: 3,
+            decoration: InputDecoration(
+              labelText: l10n.craftSynthText,
+              hintText: l10n.craftTextInputHint,
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.paste_rounded, size: 18),
+                tooltip: l10n.craftPasteFromClipboard,
+                onPressed: () => _paste(controller),
               ),
             ),
-
-            // Audio preview
-            if (state.hasPreview) ...[
-              const SizedBox(height: 16),
-              Text(l10n.craftPreviewLabel, style: theme.textTheme.bodySmall),
-              const SizedBox(height: 4),
-              _PreviewPlayer(
-                audioBytes: state.previewAudioBytes!,
-                isPlaying: _isPlaying,
-                onPlayPause: _togglePlay,
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Save to library
-            if (state.hasPreview) ...[
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.icon(
-                  onPressed: state.isSaving ? null : _save,
-                  icon: state.isSaving
-                      ? const LoadingIcon(size: 16)
-                      : const Icon(Icons.save_rounded, size: 18),
-                  label: Text(l10n.craftSaveToLibrary),
-                ),
-              ),
-            ],
-
-            // Failure
-            if (state.failure != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  state.failure!.message(l10n),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+            onChanged: controller.setSynthText,
+          ),
+          SizedBox(height: tokens.space16),
+          EnjoyButton.primary(
+            onPressed: canSynthesize
+                ? () => _synthesizeWithOverlay(l10n)
+                : null,
+            icon: state.isSynthesizing ? null : Icons.record_voice_over_rounded,
+            child: state.isSynthesizing
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const LoadingIcon(size: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.craftLoadingSynthesizing),
+                    ],
+                  )
+                : Text(
+                    state.hasPreview
+                        ? l10n.craftReSynthesizeButton
+                        : l10n.craftSynthesizeButton,
                   ),
+          ),
+          if (state.hasPreview) ...[
+            SizedBox(height: tokens.space20),
+            Text(
+              l10n.craftPreviewLabel,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: tokens.space8),
+            _PreviewPlayer(
+              audioBytes: state.previewAudioBytes!,
+              isPlaying: _isPlaying,
+              onPlayPause: _togglePlay,
+            ),
+            SizedBox(height: tokens.space12),
+            EnjoyButton.secondary(
+              onPressed: state.isSaving ? null : _save,
+              icon: state.isSaving ? null : Icons.save_rounded,
+              child: state.isSaving
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LoadingIcon(size: 18),
+                        SizedBox(width: 8),
+                        Text('…'),
+                      ],
+                    )
+                  : Text(l10n.craftSaveToLibrary),
+            ),
+          ],
+          if (state.failure != null)
+            Padding(
+              padding: EdgeInsets.only(top: tokens.space12),
+              child: Text(
+                state.failure!.message(l10n),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -272,18 +278,44 @@ class _SynthLangTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        dense: true,
-        title: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        trailing: Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-        ),
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(t.radiusMd),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: t.space12,
+            vertical: t.space12,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ),
+              Text(
+                value,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              SizedBox(width: t.space4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: cs.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -302,28 +334,33 @@ class _PreviewPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(t.radiusMd),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.45)),
       ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: Icon(
-              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              ),
+              onPressed: onPlayPause,
             ),
-            onPressed: onPlayPause,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              AppLocalizations.of(context)!.craftPreviewLabel,
-              style: Theme.of(context).textTheme.bodySmall,
+            SizedBox(width: t.space8),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.craftPreviewLabel,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

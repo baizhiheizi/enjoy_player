@@ -3359,6 +3359,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftCaptureTypeInstead => 'Type instead';
 
   @override
+  String get craftLoadingTranscribing => 'Transcribing…';
+
+  @override
+  String get craftLoadingRewriting => 'Crafting…';
+
+  @override
+  String get craftLoadingSynthesizing => 'Generating audio…';
+
+  @override
   String get craftRewriteYourWords => 'Your words';
 
   @override
