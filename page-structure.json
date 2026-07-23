@@ -24,9 +24,9 @@
     { "slug": "Testing", "title": "Testing", "parent": null, "level": 1 },
     { "slug": "Release-and-CI", "title": "Release and CI", "parent": null, "level": 1 },
     { "slug": "Local-Packages", "title": "Local Packages", "parent": null, "level": 1 },
-    { "slug": "For-Agents", "title": "For Agents", "parent": null, "level": 1, "children": ["AGENTS.md", "llms.txt"] },
-    { "slug": "AGENTS.md", "title": "AGENTS.md", "parent": "For-Agents", "level": 2 },
-    { "slug": "llms.txt", "title": "llms.txt", "parent": "For-Agents", "level": 2 }
+    { "slug": "For-Agents", "title": "For Agents", "parent": null, "level": 1, "children": ["AGENTSmd", "llmstxt"] },
+    { "slug": "AGENTSmd", "title": "AGENTS.md", "parent": "For-Agents", "level": 2 },
+    { "slug": "llmstxt", "title": "llms.txt", "parent": "For-Agents", "level": 2 }
   ],
   "sidebarSections": [
     { "page": "Getting-Started", "section": "Prerequisites" },
