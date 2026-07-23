@@ -21,33 +21,49 @@ class VoicePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final baseLang = language.split('-').first.toLowerCase();
     final voices = voicesForLanguage(baseLang);
 
     return Row(
       children: [
+        Icon(
+          Icons.record_voice_over_rounded,
+          size: 18,
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
         Text(
           l10n.craftVoiceLabel,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: voices.isEmpty
               ? Text(
                   l10n.craftNoVoicesForLanguage,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
                   ),
                 )
-              : DropdownButton<String>(
-                  value: selectedVoice,
-                  isExpanded: true,
-                  items: voices.map((v) {
-                    return DropdownMenuItem(value: v.id, child: Text(v.label));
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) onChanged(v);
-                  },
+              : DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedVoice,
+                    isExpanded: true,
+                    borderRadius: BorderRadius.circular(12),
+                    items: voices.map((v) {
+                      return DropdownMenuItem(
+                        value: v.id,
+                        child: Text(v.label, overflow: TextOverflow.ellipsis),
+                      );
+                    }).toList(),
+                    onChanged: (v) {
+                      if (v != null) onChanged(v);
+                    },
+                  ),
                 ),
         ),
       ],

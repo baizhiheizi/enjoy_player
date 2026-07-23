@@ -15,26 +15,39 @@ class StylePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Row(
       children: [
+        Icon(
+          Icons.auto_awesome_rounded,
+          size: 18,
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
         Text(
           l10n.craftStyleLabel,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: DropdownButton<TranslationStyle>(
-            value: value,
-            isExpanded: true,
-            items: TranslationStyle.values.map((style) {
-              return DropdownMenuItem(
-                value: style,
-                child: Text(_label(l10n, style)),
-              );
-            }).toList(),
-            onChanged: (s) {
-              if (s != null) onChanged(s);
-            },
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<TranslationStyle>(
+              value: value,
+              isExpanded: true,
+              borderRadius: BorderRadius.circular(12),
+              items: TranslationStyle.values.map((style) {
+                return DropdownMenuItem(
+                  value: style,
+                  child: Text(_label(l10n, style)),
+                );
+              }).toList(),
+              onChanged: (s) {
+                if (s != null) onChanged(s);
+              },
+            ),
           ),
         ),
       ],

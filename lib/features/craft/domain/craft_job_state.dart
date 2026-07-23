@@ -30,6 +30,7 @@ class CraftJobState {
     this.rawTranscript,
     this.isCapturing = false,
     this.isTranscribing = false,
+    this.captureCancelTick = 0,
     // Synthesize tool
     this.synthText = '',
     this.synthLanguage = 'en',
@@ -64,6 +65,10 @@ class CraftJobState {
   final String? rawTranscript;
   final bool isCapturing;
   final bool isTranscribing;
+
+  /// Incremented by [CraftController.cancelCapture] so [CaptureStage] can
+  /// discard the live mic without committing ASR.
+  final int captureCancelTick;
 
   // --- Synthesize tool ---
   final String synthText;
@@ -107,6 +112,7 @@ class CraftJobState {
     String? rawTranscript,
     bool? isCapturing,
     bool? isTranscribing,
+    int? captureCancelTick,
     String? synthText,
     String? synthLanguage,
     String? selectedVoice,
@@ -147,6 +153,7 @@ class CraftJobState {
           : (rawTranscript ?? this.rawTranscript),
       isCapturing: isCapturing ?? this.isCapturing,
       isTranscribing: isTranscribing ?? this.isTranscribing,
+      captureCancelTick: captureCancelTick ?? this.captureCancelTick,
       synthText: synthText ?? this.synthText,
       synthLanguage: synthLanguage ?? this.synthLanguage,
       selectedVoice: selectedVoice ?? this.selectedVoice,

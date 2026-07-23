@@ -3353,6 +3353,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftCaptureStop => 'Stop';
 
   @override
+  String get craftCaptureCancel => 'Cancel';
+
+  @override
   String get craftCaptureTypeInstead => 'Type instead';
 
   @override

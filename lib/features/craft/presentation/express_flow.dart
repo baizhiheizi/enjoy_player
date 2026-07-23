@@ -20,11 +20,13 @@ class ExpressFlow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(craftControllerProvider);
 
-    return switch (state.stage) {
-      CraftStage.capture => const CaptureStage(),
-      CraftStage.rewrite => const RewriteStage(),
-      CraftStage.audio => const AudioStage(),
-      CraftStage.done => const SizedBox.shrink(),
-    };
+    return SizedBox.expand(
+      child: switch (state.stage) {
+        CraftStage.capture => const CaptureStage(),
+        CraftStage.rewrite => const RewriteStage(),
+        CraftStage.audio => const AudioStage(),
+        CraftStage.done => const SizedBox.shrink(),
+      },
+    );
   }
 }

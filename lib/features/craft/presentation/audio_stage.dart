@@ -15,6 +15,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -177,25 +178,24 @@ class _AudioStageState extends ConsumerState<AudioStage> {
         ? '${previewText.substring(0, 100)}…'
         : previewText;
 
+    final voiceLabel = _voiceDisplayLabel(state.selectedVoice);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Collapsed summary block.
               _SummaryBlock(
                 sourceLang: sourceLang,
                 targetLang: targetLang,
                 text: truncatedText,
-                voice: state.selectedVoice,
+                voice: voiceLabel,
                 theme: theme,
               ),
-              const SizedBox(height: 24),
-
-              // Inline preview player.
+              const SizedBox(height: 20),
               _PreviewPlayer(
                 isPlaying: _isPlaying,
                 position: _position,
@@ -209,12 +209,11 @@ class _AudioStageState extends ConsumerState<AudioStage> {
                 theme: theme,
               ),
               const SizedBox(height: 16),
-
-              // Collapsible voice chip — expand to reveal full VoicePicker.
               _VoiceChip(
                 expanded: _voiceExpanded,
                 synthLanguage: state.synthLanguage,
                 selectedVoice: state.selectedVoice,
+                voiceLabel: voiceLabel,
                 theme: theme,
                 onToggle: () {
                   setState(() => _voiceExpanded = !_voiceExpanded);
@@ -223,30 +222,25 @@ class _AudioStageState extends ConsumerState<AudioStage> {
                   ref
                       .read(craftControllerProvider.notifier)
                       .setSelectedVoice(voice);
-                  // Re-synthesize with the new voice.
                   unawaited(
                     ref.read(craftControllerProvider.notifier).generateAudio(),
                   );
                 },
               ),
               const SizedBox(height: 24),
-
-              // Action buttons.
               if (state.isSaving)
                 const Center(child: CircularProgressIndicator())
               else ...[
-                // Say something else (loop).
-                FilledButton.tonalIcon(
-                  onPressed: _saveAndCaptureNext,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(l10n.craftAudioSaySomethingElse),
-                ),
-                const SizedBox(height: 12),
-                // Practice now.
                 FilledButton.icon(
                   onPressed: _saveAndPractice,
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: Text(l10n.craftAudioPracticeNow),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  onPressed: _saveAndCaptureNext,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(l10n.craftAudioSaySomethingElse),
                 ),
               ],
             ],
@@ -255,6 +249,14 @@ class _AudioStageState extends ConsumerState<AudioStage> {
       ),
     );
   }
+}
+
+String? _voiceDisplayLabel(String? voiceId) {
+  if (voiceId == null || voiceId.isEmpty) return null;
+  for (final v in kAzureVoices) {
+    if (v.id == voiceId) return v.label;
+  }
+  return voiceId;
 }
 
 // === Sub-widgets ===
@@ -367,6 +369,7 @@ class _VoiceChip extends StatelessWidget {
     required this.expanded,
     required this.synthLanguage,
     required this.selectedVoice,
+    required this.voiceLabel,
     required this.theme,
     required this.onToggle,
     required this.onVoiceChanged,
@@ -375,6 +378,7 @@ class _VoiceChip extends StatelessWidget {
   final bool expanded;
   final String synthLanguage;
   final String? selectedVoice;
+  final String? voiceLabel;
   final ThemeData theme;
   final VoidCallback onToggle;
   final void Function(String) onVoiceChanged;
@@ -382,61 +386,71 @@ class _VoiceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.record_voice_over_rounded,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                if (selectedVoice != null)
-                  Flexible(
-                    child: Text(
-                      selectedVoice!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )
-                else
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.record_voice_over_rounded,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
                     l10n.craftVoiceLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                const SizedBox(width: 4),
-                Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      voiceLabel ?? l10n.craftVoiceLabel,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    expanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        if (expanded) ...[
-          const SizedBox(height: 4),
-          VoicePicker(
-            language: synthLanguage,
-            selectedVoice: selectedVoice,
-            onChanged: onVoiceChanged,
-          ),
+          if (expanded) ...[
+            const SizedBox(height: 8),
+            VoicePicker(
+              language: synthLanguage,
+              selectedVoice: selectedVoice,
+              onChanged: onVoiceChanged,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -462,63 +476,80 @@ class _PreviewPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Play/pause circle.
-        GestureDetector(
-          onTap: onToggle,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: theme.colorScheme.primary,
-            ),
-            child: Icon(
-              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              size: 32,
-              color: theme.colorScheme.onPrimary,
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onToggle,
+              customBorder: const CircleBorder(),
+              child: Ink(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: scheme.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  size: 32,
+                  color: scheme.onPrimary,
+                ),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        // Progress bar + time labels.
-        Expanded(
-          child: Column(
-            children: [
-              Slider(
-                value: position.inMilliseconds.toDouble(),
-                max: (duration.inMilliseconds.toDouble().clamp(
-                  1,
-                  double.infinity,
-                )),
-                onChanged: duration > Duration.zero
-                    ? (v) => onSeek(Duration(milliseconds: v.round()))
-                    : null,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    fmt(position),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              children: [
+                Slider(
+                  value: position.inMilliseconds.toDouble(),
+                  max: (duration.inMilliseconds.toDouble().clamp(
+                    1,
+                    double.infinity,
+                  )),
+                  onChanged: duration > Duration.zero
+                      ? (v) => onSeek(Duration(milliseconds: v.round()))
+                      : null,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      fmt(position),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
-                  ),
-                  Text(
-                    fmt(duration),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                    Text(
+                      fmt(duration),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

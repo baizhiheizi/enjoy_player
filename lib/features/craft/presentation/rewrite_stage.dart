@@ -1,8 +1,7 @@
-/// Rewrite stage: raw transcript + editable target text + style chip + actions.
+/// Rewrite stage: raw transcript + editable target text + style/voice + actions.
 ///
-/// Shows what the user said (muted, italic) and an editable AI-rewritten version
-/// in the target language. Includes a collapsible style chip and three actions:
-/// re-record, regenerate, and generate audio.
+/// Shows what the user said (compact, collapsible) and an editable AI-rewritten
+/// version in the target language, then style/voice controls and generate.
 library;
 
 import 'dart:async';
@@ -12,10 +11,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
-import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/style_picker.dart';
+import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Rewrite stage for the Express flow.
@@ -30,7 +30,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
   late final TextEditingController _targetCtrl;
   late final FocusNode _targetFocus;
   bool _targetInitialized = false;
-  bool _styleExpanded = false;
+  bool _rawExpanded = false;
   String? _lastSyncedText;
 
   @override
@@ -51,16 +51,32 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
     }
   }
 
+  void _seedVoiceIfNeeded(CraftJobState state) {
+    if (state.selectedVoice != null) return;
+    final defaultVoice = defaultVoiceForLanguage(
+      state.targetLanguage.split('-').first.toLowerCase(),
+    );
+    if (defaultVoice == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final current = ref.read(craftControllerProvider);
+      if (current.selectedVoice == null) {
+        ref
+            .read(craftControllerProvider.notifier)
+            .setSelectedVoice(defaultVoice.id);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(craftControllerProvider);
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     _ensureTargetController(state);
 
-    // Sync controller text when the translated text changes externally
-    // (e.g. after regenerate), but only if the field isn't being actively edited.
     final currentTranslated = state.translatedText ?? '';
     if (_lastSyncedText != currentTranslated && !_targetFocus.hasFocus) {
       _targetCtrl.text = currentTranslated;
@@ -79,81 +95,86 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
       );
     }
 
+    _seedVoiceIfNeeded(state);
+
     final targetBase = state.targetLanguage.split('-').first.toUpperCase();
+    final raw = state.rawTranscript;
+    final hasRaw = raw != null && raw.isNotEmpty;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Raw transcript card.
-              if (state.rawTranscript != null &&
-                  state.rawTranscript!.isNotEmpty) ...[
-                _RawTranscriptCard(
-                  text: state.rawTranscript!,
-                  l10n: l10n,
-                  theme: theme,
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 28),
+      children: [
+        if (hasRaw) ...[
+          _RawTranscriptCard(
+            text: raw,
+            l10n: l10n,
+            theme: theme,
+            expanded: _rawExpanded,
+            onToggle: () => setState(() => _rawExpanded = !_rawExpanded),
+          ),
+          const SizedBox(height: 14),
+        ],
+        _TargetTextCard(
+          controller: _targetCtrl,
+          focusNode: _targetFocus,
+          targetLabel: l10n.craftRewriteTargetLabel,
+          targetBase: targetBase,
+          theme: theme,
+          onChanged: (v) {
+            _lastSyncedText = v;
+            ref.read(craftControllerProvider.notifier).setTranslatedText(v);
+          },
+        ),
+        const SizedBox(height: 14),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                StylePicker(
+                  value: state.style,
+                  onChanged: (s) =>
+                      ref.read(craftControllerProvider.notifier).setStyle(s),
                 ),
-                const SizedBox(height: 20),
-              ],
-
-              // Target text card.
-              _TargetTextCard(
-                controller: _targetCtrl,
-                focusNode: _targetFocus,
-                targetLabel: l10n.craftRewriteTargetLabel,
-                targetBase: targetBase,
-                theme: theme,
-                onChanged: (v) {
-                  _lastSyncedText = v;
-                  ref
+                Divider(
+                  height: 20,
+                  color: scheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+                VoicePicker(
+                  language: state.targetLanguage,
+                  selectedVoice: state.selectedVoice,
+                  onChanged: (voice) => ref
                       .read(craftControllerProvider.notifier)
-                      .setTranslatedText(v);
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Collapsible style chip.
-              _StyleSection(
-                expanded: _styleExpanded,
-                state: state,
-                l10n: l10n,
-                onToggle: () =>
-                    setState(() => _styleExpanded = !_styleExpanded),
-                onStyleChanged: (s) =>
-                    ref.read(craftControllerProvider.notifier).setStyle(s),
-              ),
-              const SizedBox(height: 24),
-
-              // Action buttons.
-              _ActionButtons(
-                state: state,
-                l10n: l10n,
-                onReRecord: () => ref
-                    .read(craftControllerProvider.notifier)
-                    .resetForNextCapture(),
-                onRegenerate:
-                    state.rawTranscript != null &&
-                        state.rawTranscript!.isNotEmpty
-                    ? () => ref
-                          .read(craftControllerProvider.notifier)
-                          .regenerate()
-                    : null,
-                onGenerateAudio:
-                    state.translatedText != null &&
-                        state.translatedText!.trim().isNotEmpty
-                    ? () => ref
-                          .read(craftControllerProvider.notifier)
-                          .generateAudio()
-                    : null,
-              ),
-            ],
+                      .setSelectedVoice(voice),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 22),
+        _ActionButtons(
+          state: state,
+          l10n: l10n,
+          onReRecord: () =>
+              ref.read(craftControllerProvider.notifier).resetForNextCapture(),
+          onRegenerate: hasRaw
+              ? () => ref.read(craftControllerProvider.notifier).regenerate()
+              : null,
+          onGenerateAudio:
+              state.translatedText != null &&
+                  state.translatedText!.trim().isNotEmpty
+              ? () => ref.read(craftControllerProvider.notifier).generateAudio()
+              : null,
+        ),
+      ],
     );
   }
 }
@@ -190,49 +211,79 @@ class _RawTranscriptCard extends StatelessWidget {
     required this.text,
     required this.l10n,
     required this.theme,
+    required this.expanded,
+    required this.onToggle,
   });
 
   final String text;
   final AppLocalizations l10n;
   final ThemeData theme;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  static const _collapseAt = 140;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final scheme = theme.colorScheme;
+    final canCollapse = text.length > _collapseAt;
+    final showExpanded = expanded || !canCollapse;
+
+    return Material(
+      color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: canCollapse ? onToggle : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.record_voice_over_rounded,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
+              Row(
+                children: [
+                  Icon(
+                    Icons.format_quote_rounded,
+                    size: 16,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.craftRewriteYourWords,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  if (canCollapse)
+                    Icon(
+                      showExpanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      size: 20,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                ],
               ),
-              const SizedBox(width: 6),
+              const SizedBox(height: 8),
               Text(
-                l10n.craftRewriteYourWords,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+                text,
+                maxLines: showExpanded ? null : 3,
+                overflow: showExpanded
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: scheme.onSurfaceVariant,
+                  height: 1.4,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontStyle: FontStyle.italic,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -257,112 +308,85 @@ class _TargetTextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final scheme = theme.colorScheme;
+
+    return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(12),
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.35)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                targetBase,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: ColoredBox(
+                color: scheme.primary,
+                child: const SizedBox(width: 3),
               ),
-              const SizedBox(width: 8),
-              Text(
-                targetLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: controller,
-            focusNode: focusNode,
-            maxLines: null,
-            minLines: 3,
-            textInputAction: TextInputAction.newline,
-            style: theme.textTheme.bodyLarge,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
             ),
-            onChanged: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StyleSection extends StatelessWidget {
-  const _StyleSection({
-    required this.expanded,
-    required this.state,
-    required this.l10n,
-    required this.onToggle,
-    required this.onStyleChanged,
-  });
-
-  final bool expanded;
-  final CraftJobState state;
-  final AppLocalizations l10n;
-  final VoidCallback onToggle;
-  final ValueChanged<TranslationStyle> onStyleChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.craftStyleLabel,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          targetBase,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          targetLabel,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    minLines: 3,
+                    maxLines: 10,
+                    textInputAction: TextInputAction.newline,
+                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
+                    onChanged: onChanged,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-        if (expanded) ...[
-          const SizedBox(height: 4),
-          StylePicker(value: state.style, onChanged: onStyleChanged),
-        ],
-      ],
+      ),
     );
   }
 }
@@ -387,27 +411,43 @@ class _ActionButtons extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Primary: Generate audio.
         FilledButton.icon(
           onPressed: onGenerateAudio,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
           icon: const Icon(Icons.graphic_eq_rounded),
           label: Text(l10n.craftRewriteGenerateAudio),
         ),
-        const SizedBox(height: 12),
-        // Secondary actions row.
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: onReRecord,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 icon: const Icon(Icons.mic_rounded, size: 18),
                 label: Text(l10n.craftRewriteReRecord),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: onRegenerate,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: Text(l10n.craftRewriteRegenerate),
               ),

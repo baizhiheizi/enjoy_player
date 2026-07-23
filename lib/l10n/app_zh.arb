@@ -1279,6 +1279,7 @@
   "craftCaptureTitle": "说出你的想法",
   "craftCaptureSubtitle": "点击录音，用你的母语自然地表达。",
   "craftCaptureStop": "停止",
+  "craftCaptureCancel": "取消",
   "craftCaptureTypeInstead": "改为输入文字",
   "craftRewriteYourWords": "你说的话",
   "craftRewriteTargetLabel": "目标语言",

@@ -43,6 +43,11 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
   bool _textMode = false;
   bool _prefsSeeded = false;
 
+  /// True while this widget owns an in-flight capture on [CraftController].
+  /// Tracked locally so [dispose] can clear the session flag without [ref].
+  bool _sessionCapturing = false;
+  CraftController? _craft;
+
   DateTime? _recordingStartedAt;
   Duration _elapsed = Duration.zero;
   Ticker? _ticker;
@@ -53,12 +58,28 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
   final _focusNode = FocusNode();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _craft ??= ref.read(craftControllerProvider.notifier);
+  }
+
+  @override
   void dispose() {
     _stopTicker();
     _cancelAmplitudeStream();
     _textController.dispose();
     _focusNode.dispose();
+    // Leaving mid-record must clear the session-scoped isCapturing flag;
+    // otherwise reopen shows a dead Stop UI that can never recover.
+    // Do not use [ref] here — Riverpod forbids it during unmount.
+    if (_sessionCapturing) {
+      _craft?.cancelCapture();
+      _sessionCapturing = false;
+    }
     unawaited(() async {
+      try {
+        await _recorder.stop();
+      } catch (_) {}
       try {
         await _recorder.dispose();
       } catch (_) {}
@@ -146,6 +167,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
     _startAmplitudeStream();
 
     ref.read(craftControllerProvider.notifier).startCapture();
+    _sessionCapturing = true;
     if (mounted) setState(() {});
   }
 
@@ -160,11 +182,17 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
     _cancelAmplitudeStream();
     _recordingStartedAt = null;
     _amplitudeLevels = [];
+    _recordingPending = false;
 
     await _resetRecorderInstance();
 
     if (path == null || path.isEmpty) {
       _log.warning('recorder.stop returned no path');
+      // Defensive: clear stuck isCapturing when stop yields nothing
+      // (e.g. reopen after ESC disposed the previous recorder).
+      _sessionCapturing = false;
+      ref.read(craftControllerProvider.notifier).cancelCapture();
+      if (mounted) setState(() {});
       return;
     }
 
@@ -178,9 +206,47 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
     }
 
     if (bytes != null && bytes.isNotEmpty) {
+      _sessionCapturing = false;
       await ref.read(craftControllerProvider.notifier).stopCapture(bytes);
+    } else {
+      _sessionCapturing = false;
+      ref.read(craftControllerProvider.notifier).cancelCapture();
     }
     if (mounted) setState(() {});
+  }
+
+  /// Stop the mic and discard any temp file. Does not touch controller state
+  /// (used when [cancelCapture] already ran, e.g. via Escape).
+  Future<void> _discardMicOnly() async {
+    if (_recordingStartedAt == null && !_recordingPending) return;
+
+    _stopTicker();
+    _cancelAmplitudeStream();
+    _recordingStartedAt = null;
+    _amplitudeLevels = [];
+    _recordingPending = false;
+
+    String? path;
+    try {
+      path = await _recorder.stop();
+    } catch (e, st) {
+      _log.warning('recorder.stop on cancel failed', e, st);
+    }
+    await _resetRecorderInstance();
+
+    if (path != null && path.isNotEmpty) {
+      try {
+        await File(path).delete();
+      } catch (_) {}
+    }
+    if (mounted) setState(() {});
+  }
+
+  /// Discard the current recording without committing to ASR.
+  Future<void> _cancelRecording() async {
+    await _discardMicOnly();
+    _sessionCapturing = false;
+    ref.read(craftControllerProvider.notifier).cancelCapture();
   }
 
   Future<void> _resetRecorderInstance() async {
@@ -243,6 +309,18 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
     final theme = Theme.of(context);
     final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
 
+    // Escape / external cancelCapture: discard the live mic without re-entering
+    // cancelCapture (avoids a captureCancelTick feedback loop).
+    ref.listen<int>(
+      craftControllerProvider.select((s) => s.captureCancelTick),
+      (prev, next) {
+        if (prev != null && next > prev) {
+          _sessionCapturing = false;
+          unawaited(_discardMicOnly());
+        }
+      },
+    );
+
     // Show transcribing indicator.
     if (state.isTranscribing) {
       return _TranscribingIndicator(l10n: l10n);
@@ -276,6 +354,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage>
         l10n: l10n,
         theme: theme,
         onStop: _stopRecording,
+        onCancel: _cancelRecording,
       );
     }
 
@@ -320,67 +399,96 @@ class _IdleView extends StatelessWidget {
     final buttonSize = isTablet ? 88.0 : 72.0;
     final sourceLang = state.sourceLanguage?.toUpperCase() ?? '—';
     final targetLang = state.targetLanguage.toUpperCase();
+    final scheme = theme.colorScheme;
 
     return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Language pair.
-          Text(
-            '$sourceLang  →  $targetLang',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Text(
+              '$sourceLang  →  $targetLang',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
             ),
           ),
-          const SizedBox(height: 32),
-
-          // Title + subtitle.
+          const SizedBox(height: 28),
           Text(
             l10n.craftCaptureTitle,
-            style: theme.textTheme.headlineSmall,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
-            l10n.craftCaptureSubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 40),
-
-          // Mic button.
-          GestureDetector(
-            onTap: onMicTap,
-            child: Container(
-              width: buttonSize * 2,
-              height: buttonSize * 2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.primaryContainer,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Text(
+              l10n.craftCaptureSubtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+                height: 1.4,
               ),
-              child: Center(
-                child: Container(
-                  width: buttonSize,
-                  height: buttonSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.colorScheme.primary,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 44),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onMicTap,
+              customBorder: const CircleBorder(),
+              child: Ink(
+                width: buttonSize * 2.2,
+                height: buttonSize * 2.2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      scheme.primary.withValues(alpha: 0.28),
+                      scheme.primaryContainer.withValues(alpha: 0.12),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.35, 0.7, 1],
                   ),
-                  child: Icon(
-                    Icons.mic_rounded,
-                    size: buttonSize * 0.5,
-                    color: theme.colorScheme.onPrimary,
+                ),
+                child: Center(
+                  child: Container(
+                    width: buttonSize,
+                    height: buttonSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: scheme.primary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: scheme.primary.withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.mic_rounded,
+                      size: buttonSize * 0.48,
+                      color: scheme.onPrimary,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 32),
-
-          // Type instead link.
+          const SizedBox(height: 28),
           TextButton.icon(
             onPressed: onTypeInstead,
             icon: const Icon(Icons.keyboard_rounded, size: 18),
@@ -392,13 +500,14 @@ class _IdleView extends StatelessWidget {
   }
 }
 
-class _RecordingView extends StatelessWidget {
+class _RecordingView extends StatefulWidget {
   const _RecordingView({
     required this.elapsed,
     required this.levels,
     required this.l10n,
     required this.theme,
     required this.onStop,
+    required this.onCancel,
   });
 
   final Duration elapsed;
@@ -406,83 +515,151 @@ class _RecordingView extends StatelessWidget {
   final AppLocalizations l10n;
   final ThemeData theme;
   final VoidCallback onStop;
+  final VoidCallback onCancel;
+
+  @override
+  State<_RecordingView> createState() => _RecordingViewState();
+}
+
+class _RecordingViewState extends State<_RecordingView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    unawaited(_pulse.repeat(reverse: true));
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
   String get _timeString {
-    final m = elapsed.inMinutes;
-    final s = elapsed.inSeconds.remainder(60);
+    final m = widget.elapsed.inMinutes;
+    final s = widget.elapsed.inSeconds.remainder(60);
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = widget.theme;
+    final scheme = theme.colorScheme;
+    final levels = widget.levels;
+
     return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Timer.
           Text(
             _timeString,
             style: theme.textTheme.displaySmall?.copyWith(
               fontFeatures: const [FontFeature.tabularFigures()],
-              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w600,
+              color: scheme.error,
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Waveform animation.
+          const SizedBox(height: 28),
           SizedBox(
-            height: 48,
+            height: 56,
             child: levels.isEmpty
-                ? Center(
-                    child: Text(
-                      '...',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(12, (i) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        width: 3.5,
+                        height: 10 + (i % 3) * 6.0,
+                        decoration: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      );
+                    }),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: levels.map((level) {
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 100),
+                        duration: const Duration(milliseconds: 90),
                         margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                        width: 4,
-                        height: (level * 48).clamp(4.0, 48.0),
+                        width: 3.5,
+                        height: (level * 56).clamp(6.0, 56.0),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.error.withValues(alpha: 0.7),
+                          color: Color.lerp(
+                            scheme.primary.withValues(alpha: 0.45),
+                            scheme.primary,
+                            level,
+                          ),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       );
                     }).toList(),
                   ),
           ),
-          const SizedBox(height: 32),
-
-          // Stop button.
-          GestureDetector(
-            onTap: onStop,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.error,
-              ),
-              child: Icon(
-                Icons.stop_rounded,
-                size: 40,
-                color: theme.colorScheme.onError,
+          const SizedBox(height: 36),
+          AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, child) {
+              final t = _pulse.value;
+              return Container(
+                width: 96 + t * 8,
+                height: 96 + t * 8,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: scheme.error.withValues(alpha: 0.12 + t * 0.08),
+                ),
+                child: child,
+              );
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onStop,
+                customBorder: const CircleBorder(),
+                child: Ink(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: scheme.error,
+                    boxShadow: [
+                      BoxShadow(
+                        color: scheme.error.withValues(alpha: 0.35),
+                        blurRadius: 18,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.stop_rounded,
+                    size: 40,
+                    color: scheme.onError,
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
-            l10n.craftCaptureStop,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            widget.l10n.craftCaptureStop,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: widget.onCancel,
+            child: Text(widget.l10n.craftCaptureCancel),
           ),
         ],
       ),

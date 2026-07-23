@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/player/application/player_interactions.dar
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
+import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_review_practice.dart';
@@ -98,9 +99,9 @@ class _AppHotkeysKeyboardListenerState
         EscapeDismissalContext(
           cheatsheetOpen: hotkeysCheatsheetOpen.value,
           windowFullscreen: ref.read(windowFullscreenProvider),
-          isRecordingActive: ref
-              .read(shadowReadingHotkeyBusProvider)
-              .isRecordingActive,
+          isRecordingActive:
+              ref.read(shadowReadingHotkeyBusProvider).isRecordingActive ||
+              ref.read(craftControllerProvider).isCapturing,
           shellHasPopupRoute: navigatorHasTopPopupRoute(shellNav),
           rootHasPopupRoute: navigatorHasTopPopupRoute(rootNav),
           vocabularyPracticeOpen: ref
@@ -121,9 +122,14 @@ class _AppHotkeysKeyboardListenerState
           );
           return true;
         case EscapeDismissalAction.cancelRecording:
-          ref
-              .read(shadowReadingHotkeyBusProvider.notifier)
-              .pulseRecordingCancel();
+          if (ref.read(craftControllerProvider).isCapturing) {
+            ref.read(craftControllerProvider.notifier).cancelCapture();
+          }
+          if (ref.read(shadowReadingHotkeyBusProvider).isRecordingActive) {
+            ref
+                .read(shadowReadingHotkeyBusProvider.notifier)
+                .pulseRecordingCancel();
+          }
           return true;
         case EscapeDismissalAction.popShellPopup:
           if (shellNav != null) unawaited(shellNav.maybePop());

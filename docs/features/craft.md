@@ -26,19 +26,20 @@ A linear three-stage pipeline (`CraftStage` enum: `capture` → `rewrite` → `a
 
 - Large mic button (72px phone / 88px tablet+); tap to start, tap red stop button to finish
 - Live waveform animation + recording timer while recording
+- **Cancel** — discards the take without ASR (`CraftController.cancelCapture()`); also wired to Escape (cancel in place, same priority as shadow-reading cancel) and route leave / back (clears `isCapturing` so reopen cannot stick on a dead Stop UI)
 - **Text fallback** — "type instead" link replaces the mic with a `TextField` (skips ASR)
 - `AudioRecorder` is owned by the widget (not the controller), recreated after each stop — mirrors the `ShadowReadingPanel` pattern (16kHz mono WAV)
 - On stop, `CraftController.stopCapture(bytes)` stores the bytes and `transcribeAndRewrite()` runs ASR (`CraftTranscriber`) → guarded empty-transcript check → LLM rewrite (`CraftTranslator`) → advances to the rewrite stage
 
 ### Rewrite stage (`RewriteStage`)
 
-- **Raw transcript card** (muted, italic, labelled "Your words")
-- **Editable target text card** (labelled "In [target]…") — `TextEditingController` synced to `state.translatedText` only when the field is not focused, so user edits are preserved across regenerations
-- **Collapsible style chip** — reuses `StylePicker`; defaults to **Auto** (see below)
+- **Raw transcript card** (muted, italic, labelled "Your words") — long transcripts collapse to 3 lines and expand on tap
+- **Editable target text card** (labelled "In [target]…") — `TextEditingController` synced to `state.translatedText` only when the field is not focused, so user edits are preserved across regenerations; field is height-capped (`maxLines: 10`) to avoid layout overflow
+- **Options panel** — always-visible `StylePicker` + Azure Neural `VoicePicker` before Generate; style defaults to **Auto**; voice defaults via `defaultVoiceForLanguage` when unset
 - Three action buttons:
   - **Regenerate** → `controller.regenerate()` — re-runs the LLM rewrite on the existing raw transcript with the current style
   - **Re-record** → `controller.resetForNextCapture()` — back to the capture stage
-  - **Generate audio** → `controller.generateAudio()` — synthesizes and advances to the audio stage
+  - **Generate audio** → `controller.generateAudio()` — synthesizes with `selectedVoice` and advances to the audio stage
 
 ### "Auto" translation style
 
@@ -50,10 +51,10 @@ A new `TranslationStyle.auto` is the **default** for Express mode. Instead of a 
 
 - **Collapsed summary block** (language pair + style + truncated target text with a left-border accent)
 - **Inline preview player** — play/pause circle + progress slider + time labels, driven by `audiopackets` `AudioPlayer` reading `state.previewAudioBytes` from memory via `BytesSource`
-- **Voice info** chip (expandable to full `VoicePicker`)
+- **Voice** control (shows current voice label; expandable to full `VoicePicker` — changing voice re-synthesizes)
 - Two action buttons:
+  - **Practice now** (`saveAndPractice`) — primary CTA; saves and navigates to the player route with the new media ID
   - **Say something else** (`saveAndCaptureNext`) — saves to library, shows a snackbar confirmation ("Saved to library"), then resets to the capture stage while preserving session preferences (language pair, style, voice). This is the **rapid-capture loop** for building a personal library in quick succession.
-  - **Practice now** (`saveAndPractice`) — saves and navigates to the player route with the new media ID
 
 ### Failure handling in Express stages
 

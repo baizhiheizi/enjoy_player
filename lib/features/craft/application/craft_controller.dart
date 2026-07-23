@@ -304,6 +304,8 @@ class CraftController extends Notifier<CraftJobState> {
       style: mode == CraftScreenMode.express
           ? TranslationStyle.auto
           : TranslationStyle.natural,
+      isCapturing: false,
+      isTranscribing: false,
       clearCapturedAudio: true,
       clearRawTranscript: true,
       clearTranslatedText: true,
@@ -326,6 +328,20 @@ class CraftController extends Notifier<CraftJobState> {
       clearFailure: true,
       clearCapturedAudio: true,
       clearRawTranscript: true,
+    );
+  }
+
+  /// Discard an in-progress capture without running ASR.
+  ///
+  /// Bumps [CraftJobState.captureCancelTick] so [CaptureStage] can stop and
+  /// discard the live mic. Safe to call when not capturing (no-op for UI).
+  void cancelCapture() {
+    state = state.copyWith(
+      isCapturing: false,
+      isTranscribing: false,
+      captureCancelTick: state.captureCancelTick + 1,
+      clearCapturedAudio: true,
+      clearFailure: true,
     );
   }
 
@@ -409,11 +425,16 @@ class CraftController extends Notifier<CraftJobState> {
         style: state.style,
         customPrompt: state.customPrompt,
       );
+      final voice =
+          state.selectedVoice ??
+          defaultVoiceForLanguage(target.split('-').first.toLowerCase())?.id;
       state = state.copyWith(
         translatedText: result,
         isTranslating: false,
         isTranscribing: false,
         stage: CraftStage.rewrite,
+        selectedVoice: voice,
+        synthLanguage: target,
       );
     } catch (e, st) {
       logNamed('craft.rewrite').warning('Rewrite failed: $e', e, st);
@@ -472,6 +493,8 @@ class CraftController extends Notifier<CraftJobState> {
   void resetForNextCapture() {
     state = state.copyWith(
       stage: CraftStage.capture,
+      isCapturing: false,
+      isTranscribing: false,
       clearCapturedAudio: true,
       clearRawTranscript: true,
       clearTranslatedText: true,

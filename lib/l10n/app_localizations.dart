@@ -6225,6 +6225,12 @@ abstract class AppLocalizations {
   /// **'Stop'**
   String get craftCaptureStop;
 
+  /// No description provided for @craftCaptureCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get craftCaptureCancel;
+
   /// No description provided for @craftCaptureTypeInstead.
   ///
   /// In en, this message translates to:

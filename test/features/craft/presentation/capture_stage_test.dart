@@ -142,4 +142,30 @@ void main() {
     // TextField should appear.
     expect(find.byType(TextField), findsOneWidget);
   });
+
+  testWidgets(
+    'CaptureStage stuck isCapturing shows Cancel and Cancel clears flag',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(overrides: _baseOverrides(), child: const CaptureStage()),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CaptureStage)),
+      );
+      // Simulate reopen after ESC left isCapturing true without a live mic.
+      container.read(craftControllerProvider.notifier).startCapture();
+      await tester.pump();
+
+      expect(find.text('Stop'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(craftControllerProvider).isCapturing, isFalse);
+      expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+    },
+  );
 }

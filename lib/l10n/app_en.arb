@@ -1564,6 +1564,7 @@
   "craftCaptureTitle": "Say what's on your mind",
   "craftCaptureSubtitle": "Tap to record. Speak naturally in your language.",
   "craftCaptureStop": "Stop",
+  "craftCaptureCancel": "Cancel",
   "craftCaptureTypeInstead": "Type instead",
   "craftRewriteYourWords": "Your words",
   "craftRewriteTargetLabel": "In your target language",

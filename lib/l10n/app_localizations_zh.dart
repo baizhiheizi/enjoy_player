@@ -3212,6 +3212,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftCaptureStop => '停止';
 
   @override
+  String get craftCaptureCancel => '取消';
+
+  @override
   String get craftCaptureTypeInstead => '改为输入文字';
 
   @override

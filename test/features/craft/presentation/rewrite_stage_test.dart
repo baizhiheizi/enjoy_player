@@ -15,6 +15,7 @@ import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/presentation/rewrite_stage.dart';
+import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -125,8 +126,9 @@ void main() {
       // The rewritten text should appear.
       expect(find.text('Rewritten text in target language.'), findsOneWidget);
 
-      // Style label (collapsed).
+      // Style + voice options are always visible.
       expect(find.text('Style'), findsOneWidget);
+      expect(find.byType(DropdownButton<TranslationStyle>), findsOneWidget);
     },
   );
 
@@ -154,12 +156,13 @@ void main() {
     expect(find.text('Regenerate'), findsOneWidget);
   });
 
-  testWidgets('RewriteStage style section expands on tap', (tester) async {
+  testWidgets('RewriteStage shows voice picker before generate', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(overrides: _baseOverrides(), child: const RewriteStage()),
     );
 
-    // Drive into rewrite stage.
     final container = ProviderScope.containerOf(
       tester.element(find.byType(RewriteStage)),
     );
@@ -168,14 +171,27 @@ void main() {
         .useTextInput('Some text to rewrite.');
     await tester.pumpAndSettle();
 
-    // Style section starts collapsed (no dropdown).
-    expect(find.byType(DropdownButton<TranslationStyle>), findsNothing);
+    expect(find.byType(VoicePicker), findsOneWidget);
+    expect(find.text('Voice'), findsOneWidget);
+    expect(container.read(craftControllerProvider).selectedVoice, isNotNull);
+  });
 
-    // Tap the Style section to expand.
-    await tester.tap(find.text('Style'));
+  testWidgets('RewriteStage style and voice pickers are always visible', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(overrides: _baseOverrides(), child: const RewriteStage()),
+    );
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RewriteStage)),
+    );
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('Some text to rewrite.');
     await tester.pumpAndSettle();
 
-    // Dropdown should now be visible.
     expect(find.byType(DropdownButton<TranslationStyle>), findsOneWidget);
+    expect(find.byType(VoicePicker), findsOneWidget);
   });
 }

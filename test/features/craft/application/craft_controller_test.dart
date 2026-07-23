@@ -923,6 +923,42 @@ void main() {
       expect(s.rawTranscript, isNull);
     });
 
+    test('cancelCapture clears isCapturing and bumps captureCancelTick', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      n.startCapture();
+      final tickBefore = stateOf(c).captureCancelTick;
+      n.cancelCapture();
+      final s = stateOf(c);
+      expect(s.isCapturing, isFalse);
+      expect(s.isTranscribing, isFalse);
+      expect(s.captureCancelTick, tickBefore + 1);
+      expect(s.capturedAudioBytes, isNull);
+    });
+
+    test('resetForNextCapture clears stuck isCapturing', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      n.startCapture();
+      n.resetForNextCapture();
+      expect(stateOf(c).isCapturing, isFalse);
+    });
+
+    test('setScreenMode clears stuck isCapturing', () {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      n.startCapture();
+      n.setScreenMode(CraftScreenMode.advanced);
+      expect(stateOf(c).isCapturing, isFalse);
+      expect(stateOf(c).screenMode, CraftScreenMode.advanced);
+    });
+
     test(
       'stopCapture stores bytes and triggers transcribeAndRewrite',
       () async {
