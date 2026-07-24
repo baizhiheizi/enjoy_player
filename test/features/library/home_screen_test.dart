@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 class _SignedInAuthCtrl extends AuthCtrl {
   @override
@@ -34,6 +35,25 @@ Widget _themedHome({List<Override> overrides = const []}) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const HomeScreen(),
+    ),
+  );
+}
+
+Widget _themedHomeWithRouter(
+  GoRouter router, {
+  List<Override> overrides = const [],
+}) {
+  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF7B61FF));
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp.router(
+      routerConfig: router,
+      theme: ThemeData(
+        colorScheme: scheme,
+        extensions: [EnjoyThemeTokens.build(scheme)],
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     ),
   );
 }
@@ -74,5 +94,48 @@ void main() {
         expect(find.text(l10n.communityActivity), findsOneWidget);
       },
     );
+
+    testWidgets('Craft action navigates to /craft', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+          GoRoute(
+            path: '/craft',
+            builder: (context, state) =>
+                const Scaffold(body: Text('craft-open')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        _themedHomeWithRouter(
+          router,
+          overrides: [
+            authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+            libraryHomeRecentsProvider.overrideWith(
+              (ref) => Stream.value(<Media>[]),
+            ),
+            learningStatisticsProvider.overrideWith(
+              (ref) async => LearningStatistics.empty(),
+            ),
+            activeUsersProvider.overrideWith(
+              (ref) async => const ActiveUsersResponse(users: [], count: 0),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, l10n.homeCraftAction),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('craft-open'), findsOneWidget);
+      expect(router.state.uri.path, '/craft');
+    });
   });
 }

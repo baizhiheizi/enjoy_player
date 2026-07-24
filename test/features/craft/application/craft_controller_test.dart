@@ -24,6 +24,7 @@ import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
 import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
+import 'package:enjoy_player/features/library/domain/craft_edit_source.dart';
 
 // === Fakes ===
 
@@ -141,6 +142,53 @@ class _FakeLibraryRepository extends MediaLibraryRepository {
   String? lastImportVoice;
   String? lastImportSourceFlag;
   String? lastImportSignedInUserId;
+
+  // === Craft history edit fakes ===
+  CraftEditSource? editSource;
+  String updateResultId = 'media-updated';
+  Object? updateError;
+
+  int updateCalls = 0;
+  String? lastUpdateMediaId;
+  Uint8List? lastUpdateAudioBytes;
+  String? lastUpdateAudioFormat;
+  String? lastUpdateLearningLanguage;
+  String? lastUpdateText;
+  String? lastUpdateNormalizedText;
+  String? lastUpdateTimelineJson;
+  String? lastUpdateVoice;
+  String? lastUpdateSourceFlag;
+
+  @override
+  Future<CraftEditSource?> getCraftEditSource(String mediaId) async {
+    return editSource;
+  }
+
+  @override
+  Future<String> updateCraftedFromText({
+    required String mediaId,
+    required Uint8List audioBytes,
+    required String audioFormat,
+    required String learningLanguage,
+    required String text,
+    required String normalizedText,
+    String? primaryTimelineJson,
+    String? voice,
+    required String sourceFlag,
+  }) async {
+    updateCalls++;
+    lastUpdateMediaId = mediaId;
+    lastUpdateAudioBytes = audioBytes;
+    lastUpdateAudioFormat = audioFormat;
+    lastUpdateLearningLanguage = learningLanguage;
+    lastUpdateText = text;
+    lastUpdateNormalizedText = normalizedText;
+    lastUpdateTimelineJson = primaryTimelineJson;
+    lastUpdateVoice = voice;
+    lastUpdateSourceFlag = sourceFlag;
+    if (updateError != null) throw updateError!;
+    return updateResultId;
+  }
 
   @override
   Future<String?> findExistingCrafted({
@@ -1215,6 +1263,187 @@ void main() {
       expect(stateOf(c).screenMode, CraftScreenMode.express);
       n.setScreenMode(CraftScreenMode.advanced);
       expect(stateOf(c).screenMode, CraftScreenMode.advanced);
+    });
+
+    test('clears editingMediaId', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-1',
+        practiceText: 'Hola mundo.',
+        language: 'es-ES',
+        sourceFlag: 'craft-direct',
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('media-1');
+      expect(ok, isTrue);
+      expect(stateOf(c).editingMediaId, 'media-1');
+
+      n.setScreenMode(CraftScreenMode.express);
+      expect(stateOf(c).editingMediaId, isNull);
+    });
+  });
+
+  // === Craft history edit ===
+
+  group('loadForEdit', () {
+    test('returns false when the item no longer exists', () async {
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('missing-media');
+      expect(ok, isFalse);
+      expect(stateOf(c).editingMediaId, isNull);
+    });
+
+    test('prefills Advanced mode for craft-direct items', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-direct',
+        practiceText: 'Speak this text directly.',
+        language: 'en-US',
+        voice: 'en-US-JennyNeural',
+        sourceFlag: 'craft-direct',
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('media-direct');
+      expect(ok, isTrue);
+
+      final s = stateOf(c);
+      expect(s.editingMediaId, 'media-direct');
+      expect(s.screenMode, CraftScreenMode.advanced);
+      expect(s.synthText, 'Speak this text directly.');
+      expect(s.synthLanguage, 'en-US');
+      expect(s.targetLanguage, 'en-US');
+      expect(s.sourceText, '');
+      expect(s.selectedVoice, 'en-US-JennyNeural');
+    });
+
+    test('prefills Advanced mode for craft-translate items', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-translate',
+        practiceText: 'Bonjour le monde.',
+        sourceText: 'Hello world.',
+        language: 'fr-FR',
+        sourceFlag: 'craft-translate',
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('media-translate');
+      expect(ok, isTrue);
+
+      final s = stateOf(c);
+      expect(s.screenMode, CraftScreenMode.advanced);
+      expect(s.synthText, 'Bonjour le monde.');
+      expect(s.sourceText, 'Hello world.');
+      expect(s.synthLanguage, 'fr-FR');
+    });
+
+    test('prefills Express mode for craft-express items', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-express',
+        practiceText: 'Hoy tuve un gran día.',
+        sourceText: 'I had a great day today.',
+        language: 'es-ES',
+        voice: 'es-ES-ElviraNeural',
+        sourceFlag: 'craft-express',
+      );
+      final c = container();
+      addTearDown(c.dispose);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('media-express');
+      expect(ok, isTrue);
+
+      final s = stateOf(c);
+      expect(s.editingMediaId, 'media-express');
+      expect(s.screenMode, CraftScreenMode.express);
+      expect(s.stage, CraftStage.rewrite);
+      expect(s.style, TranslationStyle.auto);
+      expect(s.rawTranscript, 'I had a great day today.');
+      expect(s.translatedText, 'Hoy tuve un gran día.');
+      expect(s.synthText, 'Hoy tuve un gran día.');
+      expect(s.targetLanguage, 'es-ES');
+      expect(s.synthLanguage, 'es-ES');
+      expect(s.selectedVoice, 'es-ES-ElviraNeural');
+    });
+
+    test(
+      'treats craft-express without sourceText as Advanced (no native transcript)',
+      () async {
+        repo.editSource = const CraftEditSource(
+          mediaId: 'media-express-empty',
+          practiceText: 'Practice text only.',
+          language: 'en-US',
+          sourceFlag: 'craft-express',
+        );
+        final c = container();
+        addTearDown(c.dispose);
+        final n = notifierOf(c);
+
+        final ok = await n.loadForEdit('media-express-empty');
+        expect(ok, isTrue);
+        expect(stateOf(c).screenMode, CraftScreenMode.advanced);
+      },
+    );
+  });
+
+  group('saveToLibrary when editing', () {
+    test('updates the existing item instead of creating a new one', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-direct',
+        practiceText: 'Speak this text directly.',
+        language: 'en-US',
+        sourceFlag: 'craft-direct',
+      );
+      repo.updateResultId = 'media-direct';
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      final ok = await n.loadForEdit('media-direct');
+      expect(ok, isTrue);
+
+      await n.synthesize();
+      final result = await n.saveToLibrary();
+
+      expect(result, 'media-direct');
+      expect(repo.updateCalls, 1);
+      expect(repo.lastUpdateMediaId, 'media-direct');
+      expect(repo.importCalls, 0);
+      expect(repo.findExistingCalls, 0);
+      expect(stateOf(c).resultMediaId, 'media-direct');
+      // Editing state is preserved until an explicit reset.
+      expect(stateOf(c).editingMediaId, 'media-direct');
+    });
+
+    test('surfaces a save failure without touching create path', () async {
+      repo.editSource = const CraftEditSource(
+        mediaId: 'media-direct',
+        practiceText: 'Speak this text directly.',
+        language: 'en-US',
+        sourceFlag: 'craft-direct',
+      );
+      repo.updateError = StateError('disk full');
+      final c = container();
+      addTearDown(c.dispose);
+      await c.read(authCtrlProvider.future);
+      final n = notifierOf(c);
+
+      await n.loadForEdit('media-direct');
+      await n.synthesize();
+      final result = await n.saveToLibrary();
+
+      expect(result, isNull);
+      expect(stateOf(c).failure, isA<CraftSaveFailure>());
+      expect(repo.importCalls, 0);
     });
   });
 }

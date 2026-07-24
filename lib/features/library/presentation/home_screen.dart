@@ -51,10 +51,9 @@ class HomeScreen extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: EditorialHeader(
                     title: l10n.homeTitle,
-                    trailing: FilledButton.icon(
-                      onPressed: () => showImportChooser(context, ref),
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: Text(l10n.actionImport),
+                    trailing: _HomeHeaderActions(
+                      onCraft: () => context.push('/craft'),
+                      onImport: () => showImportChooser(context, ref),
                     ),
                   ),
                 ),
@@ -196,10 +195,9 @@ class _HomeLoadingScrollView extends ConsumerWidget {
             SliverToBoxAdapter(
               child: EditorialHeader(
                 title: l10n.homeTitle,
-                trailing: FilledButton.icon(
-                  onPressed: () => showImportChooser(context, ref),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(l10n.actionImport),
+                trailing: _HomeHeaderActions(
+                  onCraft: () => context.push('/craft'),
+                  onImport: () => showImportChooser(context, ref),
                 ),
               ),
             ),
@@ -237,6 +235,37 @@ class _HomeLoadingScrollView extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Home header trailing actions — Craft entry + Import — shared by the
+/// loaded and loading scroll views so both stay in sync.
+class _HomeHeaderActions extends StatelessWidget {
+  const _HomeHeaderActions({required this.onCraft, required this.onImport});
+
+  final VoidCallback onCraft;
+  final VoidCallback onImport;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlinedButton.icon(
+          onPressed: onCraft,
+          icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+          label: Text(l10n.homeCraftAction),
+        ),
+        SizedBox(width: t.space8),
+        FilledButton.icon(
+          onPressed: onImport,
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: Text(l10n.actionImport),
+        ),
+      ],
     );
   }
 }

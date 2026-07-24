@@ -22,6 +22,7 @@ import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/data/files/media_resolver.dart';
+import 'package:enjoy_player/features/library/domain/craft_edit_source.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/data/youtube_oembed_api.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -462,6 +463,161 @@ class MediaLibraryRepository {
     final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
     final existing = await _db.audioDao.getByMd5(contentHash);
     return existing?.id;
+  }
+
+  /// Loads an editable snapshot of an existing Crafted audio item.
+  ///
+  /// Returns `null` when [mediaId] does not exist or is not a
+  /// `provider = 'craft'` row — callers should treat this as "no longer
+  /// available" (e.g. deleted from another device).
+  Future<CraftEditSource?> getCraftEditSource(String mediaId) async {
+    final row = await _db.audioDao.getById(mediaId);
+    if (row == null || row.provider != 'craft') return null;
+
+    final transcripts = await _db.transcriptDao.listForTarget('Audio', mediaId);
+    final practiceText = _joinTimelineText(transcripts) ?? row.sourceText ?? '';
+
+    return CraftEditSource(
+      mediaId: mediaId,
+      practiceText: practiceText,
+      sourceText: row.sourceText,
+      language: row.language,
+      voice: row.voice,
+      sourceFlag: row.source,
+    );
+  }
+
+  /// Reconstructs the practice text by joining the primary transcript's
+  /// timeline segment text fields. Returns `null` when no transcript rows
+  /// exist or the timeline JSON cannot be parsed.
+  String? _joinTimelineText(List<TranscriptRow> transcripts) {
+    if (transcripts.isEmpty) return null;
+    final primary = transcripts.firstWhere(
+      (t) => t.source == 'ai',
+      orElse: () => transcripts.first,
+    );
+    try {
+      final decoded = jsonDecode(primary.timelineJson);
+      if (decoded is! List) return null;
+      final joined = decoded
+          .map((e) => (e is Map ? e['text'] : null)?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .join(' ');
+      return joined.isEmpty ? null : joined;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Updates an existing Crafted audio item in place — same media id, new
+  /// audio bytes + transcript. Used when editing an existing Craft item
+  /// from Craft history instead of creating a new library entry.
+  ///
+  /// Throws [StateError] when [mediaId] does not exist or is not a
+  /// `provider = 'craft'` row.
+  Future<String> updateCraftedFromText({
+    required String mediaId,
+    required Uint8List audioBytes,
+    required String audioFormat,
+    required String learningLanguage,
+    required String text,
+    required String normalizedText,
+    String? primaryTimelineJson,
+    String? voice,
+    required String sourceFlag,
+  }) async {
+    final existing = await _db.audioDao.getById(mediaId);
+    if (existing == null || existing.provider != 'craft') {
+      throw StateError('Craft media not found or not editable: $mediaId');
+    }
+
+    final previousUri = existing.localUri;
+    final importResult = await _storage.importBytes(
+      audioBytes,
+      extension: audioFormat,
+      title: _craftTitle(normalizedText),
+    );
+
+    final now = DateTime.now();
+    final canonicalLearning = canonicalMediaLanguageTag(learningLanguage);
+    final voiceKey = voice ?? '';
+    final dedupeKey =
+        '$sourceFlag|$canonicalLearning|$normalizedText|$voiceKey';
+    final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
+
+    final effectivePrimaryTimelineJson =
+        primaryTimelineJson ??
+        jsonEncode([
+          {'text': normalizedText, 'start': 0, 'duration': 0},
+        ]);
+    final primaryTranscriptId = enjoyTranscriptId(
+      targetType: 'Audio',
+      targetId: mediaId,
+      language: canonicalLearning,
+      source: 'ai',
+    );
+
+    await _db.transaction(() async {
+      await _db.audioDao.insertRow(
+        existing.copyWith(
+          title: importResult.title,
+          language: canonicalLearning,
+          translationKey: Value(canonicalLearning),
+          sourceText: Value(text),
+          voice: Value(voice),
+          source: Value(sourceFlag),
+          localUri: Value(importResult.fileUri),
+          md5: Value(contentHash),
+          size: Value(importResult.fileSize),
+          localMtimeMs: Value(importResult.mtimeMs),
+          durationSeconds: 0,
+          syncStatus: const Value('pending'),
+          updatedAt: now,
+        ),
+      );
+
+      // The learning language may have changed, which changes the
+      // transcript id (it's keyed by language) — drop stale rows from the
+      // previous language so an edit cannot leave an orphaned transcript.
+      final oldTranscripts = await _db.transcriptDao.listForTarget(
+        'Audio',
+        mediaId,
+      );
+      for (final t in oldTranscripts) {
+        if (t.id != primaryTranscriptId) {
+          await _db.transcriptDao.deleteId(t.id);
+        }
+      }
+
+      await _db.transcriptDao.upsert(
+        TranscriptRow(
+          id: primaryTranscriptId,
+          targetType: 'Audio',
+          targetId: mediaId,
+          language: canonicalLearning,
+          source: 'ai',
+          timelineJson: effectivePrimaryTimelineJson,
+          referenceId: null,
+          label: '',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    });
+
+    if (previousUri != null && previousUri != importResult.fileUri) {
+      await _maybeDeleteAppManagedMedia(previousUri);
+    }
+
+    unawaited(
+      _probeAndPatchDuration(mediaId, importResult.localPath, video: false),
+    );
+
+    await _enqueueSync?.call(SyncEntityType.audio, mediaId, SyncAction.update);
+    return mediaId;
   }
 
   /// Re-fetches oEmbed when title/thumbnail are still import placeholders.

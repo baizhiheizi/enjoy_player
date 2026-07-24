@@ -30,6 +30,7 @@ import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/features/craft/domain/wav_duration.dart';
 import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
+import 'package:enjoy_player/features/library/domain/craft_edit_source.dart';
 
 /// Provider for the Craft synthesizer (wraps TtsService).
 final craftSynthesizerProvider = Provider<CraftSynthesizer>((ref) {
@@ -244,6 +245,27 @@ class CraftController extends Notifier<CraftJobState> {
 
       final repo = ref.read(mediaLibraryRepositoryProvider);
 
+      // Editing an existing Craft item (from Craft history) — update it in
+      // place instead of creating a new library entry. Skip dedupe: the
+      // user is intentionally re-saving the same item, possibly with
+      // identical text.
+      final editingId = state.editingMediaId;
+      if (editingId != null) {
+        final mediaId = await repo.updateCraftedFromText(
+          mediaId: editingId,
+          audioBytes: state.previewAudioBytes!,
+          audioFormat: state.previewFormat ?? 'wav',
+          learningLanguage: state.synthLanguage,
+          text: sourceTextForImport,
+          normalizedText: truncated,
+          primaryTimelineJson: timelineJson,
+          voice: state.selectedVoice,
+          sourceFlag: sourceFlag,
+        );
+        state = state.copyWith(isSaving: false, resultMediaId: mediaId);
+        return mediaId;
+      }
+
       // Check dedupe before writing.
       final existingId = await repo.findExistingCrafted(
         learningLanguage: state.synthLanguage,
@@ -289,6 +311,63 @@ class CraftController extends Notifier<CraftJobState> {
     );
   }
 
+  // === Craft history edit ===
+
+  /// Loads an existing Crafted item for editing and prefills the working
+  /// state so [saveToLibrary] updates it in place instead of creating a
+  /// new library entry.
+  ///
+  /// Returns `false` when the item no longer exists (e.g. deleted from
+  /// another device) — callers should surface a "no longer available"
+  /// message and avoid navigating to the Craft screen.
+  Future<bool> loadForEdit(String mediaId) async {
+    final repo = ref.read(mediaLibraryRepositoryProvider);
+    final CraftEditSource? source = await repo.getCraftEditSource(mediaId);
+    if (source == null) return false;
+
+    final matchedVoice = _voiceMatchingLanguage(source.language, source.voice);
+    final isExpress =
+        source.sourceFlag == 'craft-express' &&
+        source.sourceText != null &&
+        source.sourceText!.isNotEmpty;
+
+    if (isExpress) {
+      state = state.copyWith(
+        editingMediaId: mediaId,
+        screenMode: CraftScreenMode.express,
+        stage: CraftStage.rewrite,
+        style: TranslationStyle.auto,
+        rawTranscript: source.sourceText,
+        translatedText: source.practiceText,
+        synthText: source.practiceText,
+        targetLanguage: source.language,
+        synthLanguage: source.language,
+        selectedVoice: matchedVoice,
+        clearPreview: true,
+        clearResultMediaId: true,
+        clearDedupedExistingId: true,
+        clearFailure: true,
+      );
+      return true;
+    }
+
+    state = state.copyWith(
+      editingMediaId: mediaId,
+      screenMode: CraftScreenMode.advanced,
+      sourceText: source.sourceText ?? '',
+      synthText: source.practiceText,
+      targetLanguage: source.language,
+      synthLanguage: source.language,
+      selectedVoice: matchedVoice,
+      clearPreview: true,
+      clearResultMediaId: true,
+      clearDedupedExistingId: true,
+      clearFailure: true,
+      clearTranslatedText: true,
+    );
+    return true;
+  }
+
   // === Express mode actions ===
 
   /// Switch between Express and Advanced screen layouts.
@@ -311,6 +390,7 @@ class CraftController extends Notifier<CraftJobState> {
       clearResultMediaId: true,
       clearDedupedExistingId: true,
       clearFailure: true,
+      clearEditingMediaId: true,
       sourceText: '',
       synthText: '',
     );
@@ -494,6 +574,7 @@ class CraftController extends Notifier<CraftJobState> {
       clearResultMediaId: true,
       clearDedupedExistingId: true,
       clearFailure: true,
+      clearEditingMediaId: true,
       sourceText: '',
       synthText: '',
     );

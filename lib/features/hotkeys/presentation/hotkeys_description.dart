@@ -12,6 +12,8 @@ String hotkeyDescription(AppLocalizations l10n, HotkeyDefinition d) {
       return l10n.hotkeysDescSearch;
     case 'settings':
       return l10n.hotkeysDescSettings;
+    case 'craft':
+      return l10n.hotkeysDescCraft;
     case 'togglePlay':
       return l10n.hotkeysDescTogglePlay;
     case 'toggleExpand':

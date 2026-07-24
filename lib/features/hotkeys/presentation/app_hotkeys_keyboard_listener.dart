@@ -167,6 +167,15 @@ class _AppHotkeysKeyboardListenerState
       return true;
     }
 
+    if (_matches(event, ctrl, 'global.craft')) {
+      final craftPath = goRouter.state.uri.path;
+      if (craftPath == '/craft' || craftPath.startsWith('/craft/')) {
+        return true;
+      }
+      goRouter.go('/craft');
+      return true;
+    }
+
     if (_matches(event, ctrl, 'global.search')) {
       if (navCtx != null) {
         final l10n = AppLocalizations.of(navCtx);

@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_screen.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/ai_providers_screen.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_history_screen.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_edit_screen.dart';
 import 'package:enjoy_player/features/auth/presentation/profile_preferences_screen.dart';
@@ -186,6 +187,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/craft',
             builder: (context, state) => const CraftScreen(),
+          ),
+          GoRoute(
+            path: '/craft/history',
+            builder: (context, state) => const CraftHistoryScreen(),
           ),
           GoRoute(
             path: '/settings',

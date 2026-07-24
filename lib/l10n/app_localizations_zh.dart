@@ -1055,6 +1055,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeysDescSettings => '打开设置';
 
   @override
+  String get hotkeysDescCraft => '打开 Craft';
+
+  @override
   String get hotkeysDescTogglePlay => '播放 / 暂停';
 
   @override
@@ -3029,7 +3032,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
 
   @override
-  String get importCraftFromText => '从文本自制…';
+  String get importCraftFromText => 'Craft…';
+
+  @override
+  String get homeCraftAction => 'Craft';
+
+  @override
+  String get craftHistoryTooltip => '历史';
+
+  @override
+  String get craftHistoryTitle => 'Craft 历史';
+
+  @override
+  String get craftHistoryEmptyTitle => '还没有 Craft';
+
+  @override
+  String get craftHistoryEmptyHint => '在 Craft 里创建音频后会显示在这里。';
+
+  @override
+  String get craftHistoryEmptyAction => '开始创建';
+
+  @override
+  String get craftEditUnavailable => '该 Craft 已不存在。';
 
   @override
   String get craftSheetTitle => '从文本合成音频';
@@ -3098,13 +3122,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftLengthCapNotice => '仅合成了前 5000 个字符，其余部分未合成。';
 
   @override
-  String get libraryProviderCraftBadge => '自制';
+  String get libraryProviderCraftBadge => 'Craft';
 
   @override
   String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
 
   @override
-  String get craftScreenTitle => '自制';
+  String get craftScreenTitle => 'Craft';
 
   @override
   String get craftTranslateTool => '翻译';
@@ -4231,6 +4255,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get hotkeysDescSettings => '打开设置';
+
+  @override
+  String get hotkeysDescCraft => '打开 Craft';
 
   @override
   String get hotkeysDescTogglePlay => '播放 / 暂停';
@@ -5947,7 +5974,28 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get transcriptBlurSemanticsOff => '听写练习已关闭。';
 
   @override
-  String get importCraftFromText => '从文本自制…';
+  String get importCraftFromText => 'Craft…';
+
+  @override
+  String get homeCraftAction => 'Craft';
+
+  @override
+  String get craftHistoryTooltip => '历史';
+
+  @override
+  String get craftHistoryTitle => 'Craft 历史';
+
+  @override
+  String get craftHistoryEmptyTitle => '还没有 Craft';
+
+  @override
+  String get craftHistoryEmptyHint => '在 Craft 里创建音频后会显示在这里。';
+
+  @override
+  String get craftHistoryEmptyAction => '开始创建';
+
+  @override
+  String get craftEditUnavailable => '该 Craft 已不存在。';
 
   @override
   String get craftSheetTitle => '从文本合成音频';
@@ -6016,13 +6064,13 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get craftLengthCapNotice => '仅合成了前 5000 个字符，其余部分未合成。';
 
   @override
-  String get libraryProviderCraftBadge => '自制';
+  String get libraryProviderCraftBadge => 'Craft';
 
   @override
   String get craftTtsSettingsHint => '合成使用下方的 TTS 提供商。';
 
   @override
-  String get craftScreenTitle => '自制';
+  String get craftScreenTitle => 'Craft';
 
   @override
   String get craftTranslateTool => '翻译';

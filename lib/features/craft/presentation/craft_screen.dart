@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -43,6 +44,13 @@ class CraftScreen extends ConsumerWidget {
         kind: isAdvanced ? EnjoyPageKind.hub : EnjoyPageKind.form,
         showBack: true,
         title: l10n.craftScreenTitle,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: l10n.craftHistoryTooltip,
+            onPressed: () => context.push('/craft/history'),
+          ),
+        ],
         onBack: () {
           if (ref.read(craftControllerProvider).isCapturing) {
             ref.read(craftControllerProvider.notifier).cancelCapture();

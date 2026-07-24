@@ -2073,6 +2073,12 @@ abstract class AppLocalizations {
   /// **'Open settings'**
   String get hotkeysDescSettings;
 
+  /// No description provided for @hotkeysDescCraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Craft'**
+  String get hotkeysDescCraft;
+
   /// No description provided for @hotkeysDescTogglePlay.
   ///
   /// In en, this message translates to:
@@ -5862,8 +5868,50 @@ abstract class AppLocalizations {
   /// No description provided for @importCraftFromText.
   ///
   /// In en, this message translates to:
-  /// **'Craft from text…'**
+  /// **'Craft…'**
   String get importCraftFromText;
+
+  /// No description provided for @homeCraftAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft'**
+  String get homeCraftAction;
+
+  /// No description provided for @craftHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get craftHistoryTooltip;
+
+  /// No description provided for @craftHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft history'**
+  String get craftHistoryTitle;
+
+  /// No description provided for @craftHistoryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Craft items yet'**
+  String get craftHistoryEmptyTitle;
+
+  /// No description provided for @craftHistoryEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create audio in Craft and it will show up here.'**
+  String get craftHistoryEmptyHint;
+
+  /// No description provided for @craftHistoryEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start crafting'**
+  String get craftHistoryEmptyAction;
+
+  /// No description provided for @craftEditUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This Craft item is no longer available.'**
+  String get craftEditUnavailable;
 
   /// No description provided for @craftSheetTitle.
   ///

@@ -32,6 +32,13 @@ final List<HotkeyDefinition> hotkeyDefinitions = [
     customizable: true,
   ),
   const HotkeyDefinition(
+    id: 'global.craft',
+    defaultKeys: 'c',
+    descriptionKey: 'craft',
+    scope: HotkeyScope.global,
+    customizable: true,
+  ),
+  const HotkeyDefinition(
     id: 'player.togglePlay',
     defaultKeys: 'space',
 

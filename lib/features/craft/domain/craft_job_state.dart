@@ -45,6 +45,8 @@ class CraftJobState {
     this.dedupedExistingId,
     this.failure,
     this.generation = 0,
+    // Editing an existing Craft item (from Craft history)
+    this.editingMediaId,
   });
 
   // --- Screen mode + stage (Express flow) ---
@@ -86,6 +88,11 @@ class CraftJobState {
   final CraftFailure? failure;
   final int generation;
 
+  /// Media id of the existing Crafted item being edited, or `null` when
+  /// this session is creating a new item. Set by
+  /// `CraftController.loadForEdit`; cleared on reset / mode switch.
+  final String? editingMediaId;
+
   // --- Derived ---
   bool get isBusy =>
       isCapturing ||
@@ -125,6 +132,7 @@ class CraftJobState {
     String? dedupedExistingId,
     CraftFailure? failure,
     int? generation,
+    String? editingMediaId,
     bool clearPreview = false,
     bool clearFailure = false,
     bool clearCapturedAudio = false,
@@ -132,6 +140,7 @@ class CraftJobState {
     bool clearTranslatedText = false,
     bool clearResultMediaId = false,
     bool clearDedupedExistingId = false,
+    bool clearEditingMediaId = false,
   }) {
     return CraftJobState(
       screenMode: screenMode ?? this.screenMode,
@@ -176,6 +185,9 @@ class CraftJobState {
           : (dedupedExistingId ?? this.dedupedExistingId),
       failure: clearFailure ? null : (failure ?? this.failure),
       generation: generation ?? this.generation,
+      editingMediaId: clearEditingMediaId
+          ? null
+          : (editingMediaId ?? this.editingMediaId),
     );
   }
 }

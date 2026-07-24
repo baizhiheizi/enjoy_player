@@ -1102,6 +1102,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeysDescSettings => 'Open settings';
 
   @override
+  String get hotkeysDescCraft => 'Open Craft';
+
+  @override
   String get hotkeysDescTogglePlay => 'Play / Pause';
 
   @override
@@ -3162,7 +3165,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transcriptBlurSemanticsOff => 'Blur practice off.';
 
   @override
-  String get importCraftFromText => 'Craft from text…';
+  String get importCraftFromText => 'Craft…';
+
+  @override
+  String get homeCraftAction => 'Craft';
+
+  @override
+  String get craftHistoryTooltip => 'History';
+
+  @override
+  String get craftHistoryTitle => 'Craft history';
+
+  @override
+  String get craftHistoryEmptyTitle => 'No Craft items yet';
+
+  @override
+  String get craftHistoryEmptyHint =>
+      'Create audio in Craft and it will show up here.';
+
+  @override
+  String get craftHistoryEmptyAction => 'Start crafting';
+
+  @override
+  String get craftEditUnavailable => 'This Craft item is no longer available.';
 
   @override
   String get craftSheetTitle => 'Craft audio from text';

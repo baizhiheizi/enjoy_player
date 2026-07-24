@@ -15,8 +15,27 @@ The mode is selected with a `SegmentedButton<CraftScreenMode>` in the app bar (`
 
 ## Navigation
 
-- Import chooser → **Craft from text…** → `/craft`
-- Flows as a full-screen route; back returns to the import chooser.
+Craft is a first-class entry point (see [ADR-0061](../decisions/0061-craft-first-class-history.md)), reachable from three places:
+
+- **Home header** — an `OutlinedButton.icon` labelled `homeCraftAction` sits before the `Import` button in both `EditorialHeader` trailing sites on Home (loaded and loading/skeleton states share a `_HomeHeaderActions` widget) → `/craft`.
+- **Global hotkey** — `c` (`global.craft` in `hotkey_definitions.dart`, scope `global`, customizable) opens Craft from anywhere in the app. No-op when already on `/craft` or a `/craft/*` route.
+- **Import chooser** → **Craft from text…** → `/craft` (original entry point, retained).
+
+Flows as a full-screen route; back returns to wherever the user came from.
+
+**Branding**: "Craft" is kept as an untranslated brand term in the Chinese locale (`craftScreenTitle` / `homeCraftAction` both render `"Craft"` in `app_zh.arb`), matching the existing `importCraftFromText` → `"Craft…"` convention — it is not translated to a Chinese word.
+
+### Craft history (`/craft/history`)
+
+An in-app-bar history `IconButton` (tooltip `craftHistoryTooltip`) on the Craft screen opens `CraftHistoryScreen`, which lists every media item where `Audios.provider == 'craft'`, newest-updated first (`craftHistoryProvider` — a thin `StreamProvider` over the existing `mediaLibraryRepositoryProvider.watchAll()`, no new query or schema). Empty state uses `craftHistoryEmptyTitle` / `craftHistoryEmptyHint` / `craftHistoryEmptyAction`.
+
+### Edit an existing Craft item
+
+Tapping a history item calls `CraftController.loadForEdit(mediaId)`:
+
+- Loads a `CraftEditSource` snapshot (`lib/features/library/domain/craft_edit_source.dart`) via `MediaLibraryRepository.getCraftEditSource` — returns `null` (surfaced as `craftEditUnavailable`) if the item no longer exists.
+- Prefills **Express** mode (stage `rewrite`) when the item's `sourceFlag == 'craft-express'` and it has a native-language transcript; otherwise prefills **Advanced** mode with the reconstructed practice text loaded into the Synthesize tool.
+- Sets `CraftJobState.editingMediaId`, which routes the next `saveToLibrary` call to `MediaLibraryRepository.updateCraftedFromText` (update the same media id, replacing audio + primary transcript) instead of `importCraftedFromText` — editing never creates a duplicate library entry. `editingMediaId` is cleared by `setScreenMode` and `resetForNextCapture`.
 
 ## Express mode
 
@@ -187,21 +206,24 @@ No `isWide` width calculations or ad-hoc max widths live in Craft widgets — al
 | Layer | Key files |
 |-------|----------|
 | **Domain** | `craft_mode.dart`, `craft_screen_mode.dart`, `craft_stage.dart`, `craft_transcriber.dart`, `craft_failure.dart`, `craft_request.dart`, `craft_job_state.dart`, `craft_job_status.dart`, `craft_translator.dart`, `craft_synthesizer.dart`, `azure_voice.dart`, `translation_style.dart`, `word_boundary_segmenter.dart`, `transcript_timestamp_estimator.dart`, `wav_duration.dart` |
-| **Application** | `craft_controller.dart` |
+| **Application** | `craft_controller.dart`, `craft_history_provider.dart` |
 | **Data** | `craft_translation_service_translator.dart`, `craft_tts_service_synthesizer.dart`, `craft_asr_service_transcriber.dart` |
-| **Presentation** | `craft_screen.dart`, `express_flow.dart`, `capture_stage.dart`, `rewrite_stage.dart`, `audio_stage.dart`, `advanced_tools.dart`, `translate_tool.dart`, `synthesize_tool.dart`, `voice_picker.dart`, `style_picker.dart` |
-| **Integration** | `LibraryRepository.importCraftedFromText()` (library data layer) |
+| **Presentation** | `craft_screen.dart`, `craft_history_screen.dart`, `express_flow.dart`, `capture_stage.dart`, `rewrite_stage.dart`, `audio_stage.dart`, `advanced_tools.dart`, `translate_tool.dart`, `synthesize_tool.dart`, `voice_picker.dart`, `style_picker.dart` |
+| **Integration** | `LibraryRepository.importCraftedFromText()`, `getCraftEditSource()`, `updateCraftedFromText()` (library data layer); `CraftEditSource` (library domain layer) |
 | **AI wiring** | `EnjoyTtsCapability` (`lib/features/ai/data/enjoy/`), `ChatService` / `TtsService` / `AsrService` providers |
 | **Native plugin** | [`packages/azure_speech`](../../packages/azure_speech/) (synthesize, word boundary events) |
 
 ## Test pointers
 
-- Unit tests: `test/features/craft/` — covers `CraftFailure` messages, `WordBoundarySegmenter` grouping, dedup hashing, `TranscriptTimestampEstimator`, Auto-style prompt, Express capture/rewrite/save/reset flow, ASR + empty-transcript failure mapping.
+- Unit tests: `test/features/craft/` — covers `CraftFailure` messages, `WordBoundarySegmenter` grouping, dedup hashing, `TranscriptTimestampEstimator`, Auto-style prompt, Express capture/rewrite/save/reset flow, ASR + empty-transcript failure mapping, `loadForEdit` mode inference + editing save path (`craft_controller_test.dart`), `craftHistoryProvider` filter/sort (`craft_history_provider_test.dart`).
 - Widget tests: `test/features/craft/` — covers CraftScreen mode toggle, CaptureStage idle state, RewriteStage editable target + actions, AudioStage preview + actions, AdvancedTools responsive layout, TranslateTool / SynthesizeTool.
+- Repository tests: `test/features/library/library_repository_craft_test.dart` — `getCraftEditSource` timeline reconstruction, `updateCraftedFromText` same-id update + stale-file cleanup.
+- Home / hotkey tests: `test/features/library/home_screen_test.dart` (Craft header action navigation), `test/features/hotkeys/global_craft_hotkey_test.dart` (hotkey registration).
 - Integration test surface: Craft import flow is exercised in the import-chooser integration test suite.
 
 ## Related
 
+- [ADR-0061: Craft first-class Home entry, history, edit](../decisions/0061-craft-first-class-history.md)
 - [ADR-0060: Craft Voice-Express dual-mode redesign](../decisions/0060-craft-voice-express-dual-mode.md)
 - [ADR-0043: Craft from Text Import](../decisions/0043-craft-from-text-import.md)
 - [ADR-0055: Adaptive page layout system](../decisions/0055-adaptive-page-layout-system.md)
