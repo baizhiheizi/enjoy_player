@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Craft Voice-Express dual-mode** redesign: a voice-first Express mode (speak → ASR → AI rewrite → TTS) is now the default, alongside the existing Advanced translate/synthesize tools. See [ADR-0060](docs/decisions/0060-craft-voice-express-dual-mode.md) and [docs/features/craft.md](docs/features/craft.md).
+
 ## [0.7.2] - 2026-07-22
 
 ### Added
