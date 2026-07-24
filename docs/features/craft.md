@@ -167,6 +167,7 @@ speech-to-text (never auto-starts ASR).
 | `Audios.provider` | `'craft'` |
 | `Audios.source` | `'craft-express'` (Express mode), `'craft-translate'` (Advanced translate mode), or `'craft-direct'` (Advanced speak directly) |
 | `Audios.sourceText` | Original text (retained for re-generation). In Express mode this is the raw ASR transcript; in Advanced translate mode it is the source text; in speak directly it is empty. |
+| `Audios.description` | Full practice/synth text (for history edit when the timed transcript is blank). |
 | Audio file | WAV in app audio directory |
 | Transcript | Optional primary track (`source = 'ai'`) when solid word timings exist; otherwise blank until STT generate. No secondary source-text track. |
 

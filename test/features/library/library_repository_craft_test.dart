@@ -296,6 +296,32 @@ void main() {
       expect(source.language.startsWith('en'), isTrue);
       expect(source.sourceFlag, 'craft-direct');
     });
+
+    test(
+      'blank Express save keeps practice text from description, not native sourceText',
+      () async {
+        final id = await repo.importCraftedFromText(
+          audioBytes: Uint8List.fromList([1, 2, 3]),
+          audioFormat: 'wav',
+          learningLanguage: 'es',
+          sourceLanguage: null,
+          text: 'I had a great day today.',
+          normalizedText: 'Hoy tuve un gran día.',
+          primaryTimelineJson: null,
+          sourceFlag: 'craft-express',
+          signedInUserId: _testUserId,
+        );
+
+        final transcripts = await db.transcriptDao.listForTarget('Audio', id);
+        expect(transcripts, isEmpty);
+
+        final source = await repo.getCraftEditSource(id);
+        expect(source, isNotNull);
+        expect(source!.practiceText, 'Hoy tuve un gran día.');
+        expect(source.sourceText, 'I had a great day today.');
+        expect(source.sourceFlag, 'craft-express');
+      },
+    );
   });
 
   group('MediaLibraryRepository.updateCraftedFromText', () {

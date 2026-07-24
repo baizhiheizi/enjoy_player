@@ -20,6 +20,7 @@ import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
+import 'package:enjoy_player/features/craft/domain/craft_save_result.dart';
 import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
 import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
@@ -192,7 +193,7 @@ class CraftController extends Notifier<CraftJobState> {
 
   // === Save action ===
 
-  Future<String?> saveToLibrary() async {
+  Future<CraftSaveResult?> saveToLibrary() async {
     if (state.previewAudioBytes == null) return null;
 
     final auth = ref.read(authCtrlProvider).valueOrNull;
@@ -214,6 +215,7 @@ class CraftController extends Notifier<CraftJobState> {
       final timelineJson = buildCraftPrimaryTimelineJson(
         state.previewWordBoundaries,
       );
+      final wroteSolid = timelineJson != null;
 
       // Determine if this is a translate-then-synthesize or direct synthesize.
       final hasSourceLang =
@@ -249,7 +251,10 @@ class CraftController extends Notifier<CraftJobState> {
           sourceFlag: sourceFlag,
         );
         state = state.copyWith(isSaving: false, resultMediaId: mediaId);
-        return mediaId;
+        return CraftSaveResult(
+          mediaId: mediaId,
+          wroteSolidTranscript: wroteSolid,
+        );
       }
 
       // Check dedupe before writing.
@@ -261,7 +266,11 @@ class CraftController extends Notifier<CraftJobState> {
       );
       if (existingId != null) {
         state = state.copyWith(isSaving: false, dedupedExistingId: existingId);
-        return existingId;
+        return CraftSaveResult(
+          mediaId: existingId,
+          wroteSolidTranscript: false,
+          wasDedupe: true,
+        );
       }
 
       final mediaId = await repo.importCraftedFromText(
@@ -278,7 +287,10 @@ class CraftController extends Notifier<CraftJobState> {
       );
 
       state = state.copyWith(isSaving: false, resultMediaId: mediaId);
-      return mediaId;
+      return CraftSaveResult(
+        mediaId: mediaId,
+        wroteSolidTranscript: wroteSolid,
+      );
     } catch (e, st) {
       logNamed('craft.save').warning('Save failed: $e', e, st);
       state = state.copyWith(
@@ -533,18 +545,22 @@ class CraftController extends Notifier<CraftJobState> {
     await synthesize();
   }
 
-  /// Save current item to library and return the media ID for navigation.
-  Future<String?> saveAndPractice() async {
+  /// Save current item to library and return the save outcome for navigation.
+  Future<CraftSaveResult?> saveAndPractice() async {
     return saveToLibrary();
   }
 
   /// Save current item, then reset for the next capture.
   /// If the save fails, the failure is already in [state.failure] —
   /// we return early so the user's work is NOT destroyed.
-  Future<void> saveAndCaptureNext() async {
-    final mediaId = await saveToLibrary();
-    if (mediaId == null) return; // failure already surfaced
+  ///
+  /// Returns the save outcome (including whether a solid transcript was
+  /// written) so callers can show hints before the reset clears preview.
+  Future<CraftSaveResult?> saveAndCaptureNext() async {
+    final result = await saveToLibrary();
+    if (result == null) return null; // failure already surfaced
     resetForNextCapture();
+    return result;
   }
 
   /// Clear Express working data, preserve session preferences.

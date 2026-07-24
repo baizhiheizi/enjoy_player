@@ -391,7 +391,9 @@ class MediaLibraryRepository {
         aid: aid,
         provider: 'craft',
         title: importResult.title,
-        description: null,
+        // Full practice/synth text for edit when the timed transcript is blank
+        // (Express stores native ASR in [sourceText], not practice wording).
+        description: normalizedText,
         thumbnailUrl: null,
         durationSeconds: 0,
         language: canonicalLearning,
@@ -473,7 +475,13 @@ class MediaLibraryRepository {
     if (row == null || row.provider != 'craft') return null;
 
     final transcripts = await _db.transcriptDao.listForTarget('Audio', mediaId);
-    final practiceText = _joinTimelineText(transcripts) ?? row.sourceText ?? '';
+    // Prefer timed AI cues; else description (full practice text); else
+    // sourceText (Advanced speak-direct / legacy rows).
+    final practiceText =
+        _joinTimelineText(transcripts) ??
+        row.description ??
+        row.sourceText ??
+        '';
 
     return CraftEditSource(
       mediaId: mediaId,
@@ -556,6 +564,7 @@ class MediaLibraryRepository {
           title: importResult.title,
           language: canonicalLearning,
           translationKey: Value(canonicalLearning),
+          description: Value(normalizedText),
           sourceText: Value(text),
           voice: Value(voice),
           source: Value(sourceFlag),

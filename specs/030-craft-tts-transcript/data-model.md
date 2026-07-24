@@ -11,7 +11,8 @@ No new Drift tables or columns. Behavior changes how Craft fills (or omits) exis
 | Field | Role |
 |-------|------|
 | `Audios.sourceText` | Original / express raw or advanced source text retained on the media row |
-| Normalized synth text | Dedup key input; wording source for solid cue lines |
+| `Audios.description` | Full practice/synth text (edit prefills when timed transcript is blank) |
+| Normalized synth text | Dedup key input; wording source for solid cue lines; stored in `description` |
 
 ### Synthesis timing token (`CraftWordBoundary`)
 
