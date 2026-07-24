@@ -54,14 +54,6 @@ void main() {
     });
   });
 
-  group('formatDuration', () {
-    test('behaves as an alias of formatDurationHms', () {
-      const d = Duration(minutes: 12, seconds: 34);
-      expect(formatDuration(d), formatDurationHms(d));
-      expect(formatDuration(d), '12:34');
-    });
-  });
-
   group('formatDurationHmsMs', () {
     test('matches formatDurationHms for the same millisecond value', () {
       expect(formatDurationHmsMs(0), '00:00');

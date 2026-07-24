@@ -10,9 +10,6 @@ String formatDurationHms(Duration d) {
   return '${two(m)}:${two(s)}';
 }
 
-/// Alias for [formatDurationHms] (legacy name).
-String formatDuration(Duration d) => formatDurationHms(d);
-
 /// Player-style `mm:ss` / `h:mm:ss` from a millisecond duration.
 String formatDurationHmsMs(int milliseconds) =>
     formatDurationHms(Duration(milliseconds: milliseconds));
