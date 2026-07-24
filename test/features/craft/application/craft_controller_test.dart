@@ -849,7 +849,7 @@ void main() {
     });
 
     test(
-      'falls back to duration-estimated timeline without boundaries',
+      'saves blank transcript (null timeline) without word boundaries',
       () async {
         synthesizer = _FakeSynthesizer(wordBoundaries: const []);
         final c = container();
@@ -862,8 +862,7 @@ void main() {
         final result = await n.saveToLibrary();
         expect(result, 'media-new');
         expect(repo.importCalls, 1);
-        final timeline = jsonDecode(repo.lastImportTimelineJson!) as List;
-        expect(timeline, isNotEmpty);
+        expect(repo.lastImportTimelineJson, isNull);
       },
     );
 

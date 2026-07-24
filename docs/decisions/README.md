@@ -86,3 +86,4 @@ Trade-offs, follow-up work, risks.
 | [0060](0060-craft-voice-express-dual-mode.md) | Craft Voice-Express dual-mode redesign — voice-first Express (default) + Advanced two-tool layout |
 | [0061](0061-craft-first-class-history.md) | Craft first-class Home entry, global hotkey, history list, edit-in-place |
 | [0062](0062-craft-history-remove-keeps-audio.md) | Remove Craft history record keeps practice audio (`provider` → `user`) |
+| [0063](0063-craft-blank-transcript-without-solid-timings.md) | Craft blank transcript without solid word timings (no duration estimates) |

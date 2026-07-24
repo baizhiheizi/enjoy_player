@@ -16,6 +16,8 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
+import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -249,10 +251,16 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
   }
 
   Future<void> _save() async {
+    final hadSolid =
+        buildCraftPrimaryTimelineJson(
+          ref.read(craftControllerProvider).previewWordBoundaries,
+        ) !=
+        null;
     final controller = ref.read(craftControllerProvider.notifier);
     final mediaId = await controller.saveToLibrary();
     if (!mounted || mediaId == null) return;
 
+    maybeShowCraftSolidTranscriptSttHint(context, savedSolidTimeline: hadSolid);
     controller.clearResult();
 
     final state = ref.read(craftControllerProvider);

@@ -1608,6 +1608,10 @@
   "craftAudioSaySomethingElse": "Say something else",
   "craftAudioPracticeNow": "Practice now",
   "craftSavedToLibrary": "Saved to library",
+  "craftSolidTranscriptSttHint": "If line timings look off, regenerate them with speech-to-text from the transcript panel.",
+  "@craftSolidTranscriptSttHint": {
+    "description": "Once-per-session snackbar after Craft save that wrote solid synthesis cues; points to STT replace, not re-TTS."
+  },
   "craftStyleAuto": "✨ Auto",
   "craftFailureAsr": "We couldn't hear you clearly. Try recording again.",
   "craftFailureEmptyTranscript": "That was too short. Try speaking a bit longer.",

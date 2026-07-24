@@ -18,6 +18,8 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
+import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -102,6 +104,11 @@ class _AudioStageState extends ConsumerState<AudioStage> {
   }
 
   Future<void> _saveAndCaptureNext() async {
+    final hadSolid =
+        buildCraftPrimaryTimelineJson(
+          ref.read(craftControllerProvider).previewWordBoundaries,
+        ) !=
+        null;
     await ref.read(craftControllerProvider.notifier).saveAndCaptureNext();
     if (!mounted) return;
     // If save failed, don't show success snackbar or tear down the player —
@@ -116,6 +123,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
         duration: const Duration(seconds: 2),
       ),
     );
+    maybeShowCraftSolidTranscriptSttHint(context, savedSolidTimeline: hadSolid);
     // Reset playback state for the next capture.
     _cancelStreams();
     unawaited(_player?.dispose());
@@ -126,11 +134,17 @@ class _AudioStageState extends ConsumerState<AudioStage> {
   }
 
   Future<void> _saveAndPractice() async {
+    final hadSolid =
+        buildCraftPrimaryTimelineJson(
+          ref.read(craftControllerProvider).previewWordBoundaries,
+        ) !=
+        null;
     final mediaId = await ref
         .read(craftControllerProvider.notifier)
         .saveAndPractice();
     if (!mounted || mediaId == null) return;
 
+    maybeShowCraftSolidTranscriptSttHint(context, savedSolidTimeline: hadSolid);
     final state = ref.read(craftControllerProvider);
     final targetId = state.dedupedExistingId ?? mediaId;
     if (mounted) openPlayerRoute(context, targetId);

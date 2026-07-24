@@ -18,33 +18,74 @@ class TranscriptSegment {
   final int durationMs;
 }
 
+final _sentenceEnd = RegExp(r'[.。！？!?]\s*$');
+final _punctuationOnly = RegExp(r'^[.。！？!?]+$');
+
+/// Whether [text] is sentence-ending / clause punctuation with no letters.
+bool isPunctuationOnlyToken(String text) =>
+    _punctuationOnly.hasMatch(text.trim());
+
+/// Merges punctuation-only tokens onto the previous word and extends timing
+/// so punctuation never starts a segment alone.
+List<CraftWordBoundary> mergePunctuationTokens(
+  List<CraftWordBoundary> wordBoundaries,
+) {
+  if (wordBoundaries.isEmpty) return const [];
+
+  final merged = <CraftWordBoundary>[];
+  for (final token in wordBoundaries) {
+    final trimmed = token.text.trim();
+    if (trimmed.isEmpty) continue;
+
+    if (isPunctuationOnlyToken(trimmed)) {
+      if (merged.isEmpty) {
+        // Leading punct with no prior word — skip so a line cannot start with it.
+        continue;
+      }
+      final prev = merged.removeLast();
+      final prevEnd = prev.audioOffsetMs + prev.durationMs;
+      final punctEnd = token.audioOffsetMs + token.durationMs;
+      final newEnd = punctEnd > prevEnd ? punctEnd : prevEnd;
+      merged.add(
+        CraftWordBoundary(
+          text: '${prev.text}$trimmed',
+          audioOffsetMs: prev.audioOffsetMs,
+          durationMs: newEnd - prev.audioOffsetMs,
+        ),
+      );
+      continue;
+    }
+
+    merged.add(token);
+  }
+  return merged;
+}
+
 /// Splits word boundaries into segments suitable for shadow-reading practice.
 ///
-/// Algorithm (simplified port of the web app's segmentation):
-/// 1. Group words into sentences based on sentence-ending punctuation.
-/// 2. Within each sentence, chunk into segments of `preferredWordsPerSegment`
-///    words (default 6) or at sentence boundaries if shorter.
-/// 3. Each segment's text is the joined words; start/duration come from the
-///    first/last word's Azure-provided timings.
+/// 1. Merge punctuation-only tokens onto the previous word.
+/// 2. Prefer flush at sentence-ending punctuation.
+/// 3. Within a long sentence, chunk every [preferredWordsPerSegment] words.
 ///
-/// Returns an empty list if [wordBoundaries] is empty.
+/// Returns an empty list if [wordBoundaries] is empty or only punctuation.
 List<TranscriptSegment> segmentWordBoundaries(
   List<CraftWordBoundary> wordBoundaries, {
   int preferredWordsPerSegment = 6,
 }) {
-  if (wordBoundaries.isEmpty) return [];
-
-  // Sentence boundaries.
-  final sentenceEnd = RegExp(r'[.。！？!?]\s*$');
+  final words = mergePunctuationTokens(wordBoundaries);
+  if (words.isEmpty) return [];
 
   final segments = <TranscriptSegment>[];
-  var currentStart = wordBoundaries.first.audioOffsetMs;
-  final currentWords = <CraftWordBoundary>[wordBoundaries.first];
+  var currentStart = words.first.audioOffsetMs;
+  final currentWords = <CraftWordBoundary>[words.first];
 
-  // Flush helper: emits a segment from currentWords if non-empty.
-  void flush(bool isLastWord) {
+  void flush() {
     if (currentWords.isEmpty) return;
-    final segmentText = currentWords.map((w) => w.text).join(' ');
+    final segmentText = currentWords.map((w) => w.text).join(' ').trim();
+    if (segmentText.isEmpty || isPunctuationOnlyToken(segmentText)) {
+      currentWords.clear();
+      return;
+    }
     final lastEnd =
         currentWords.last.audioOffsetMs + currentWords.last.durationMs;
     segments.add(
@@ -57,31 +98,29 @@ List<TranscriptSegment> segmentWordBoundaries(
     currentWords.clear();
   }
 
-  for (var i = 1; i < wordBoundaries.length; i++) {
-    final word = wordBoundaries[i];
-    // If currentWords is empty (after a previous flush), seed with the
-    // current segment's start time and add this word as the first.
+  for (var i = 1; i < words.length; i++) {
+    final word = words[i];
     if (currentWords.isEmpty) {
       currentStart = word.audioOffsetMs;
       currentWords.add(word);
       continue;
     }
-    // Check if the LAST word in currentWords ends a sentence; if so, the
-    // sentence boundary is between the previous word and this new word.
-    final previousEndsSentence = sentenceEnd.hasMatch(currentWords.last.text);
-    final reachedSegmentSize = currentWords.length >= preferredWordsPerSegment;
+
+    final previousEndsSentence = _sentenceEnd.hasMatch(currentWords.last.text);
+    // Prefer sentence breaks; only chop by word count inside a sentence.
+    final reachedSegmentSize =
+        !previousEndsSentence &&
+        currentWords.length >= preferredWordsPerSegment;
+
     if (previousEndsSentence || reachedSegmentSize) {
-      // Emit the current segment (without including the new word yet).
-      flush(false);
-      // Start a new segment at this word.
+      flush();
       currentStart = word.audioOffsetMs;
       currentWords.add(word);
     } else {
       currentWords.add(word);
     }
   }
-  // Flush the final segment.
-  flush(true);
+  flush();
 
   return segments;
 }
@@ -95,4 +134,20 @@ String segmentsToTimelineJson(List<TranscriptSegment> segments) {
         )
         .toList(),
   );
+}
+
+/// Builds Craft primary `timelineJson` when timings are solid.
+///
+/// Returns `null` when [wordBoundaries] is empty or segmentation yields no
+/// valid lines (blank transcript — learner generates via STT in the player).
+String? buildCraftPrimaryTimelineJson(
+  List<CraftWordBoundary> wordBoundaries, {
+  int preferredWordsPerSegment = 6,
+}) {
+  final segments = segmentWordBoundaries(
+    wordBoundaries,
+    preferredWordsPerSegment: preferredWordsPerSegment,
+  );
+  if (segments.isEmpty) return null;
+  return segmentsToTimelineJson(segments);
 }

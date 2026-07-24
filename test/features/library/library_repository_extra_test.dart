@@ -1234,28 +1234,23 @@ void main() {
         expect(transcripts.first.timelineJson, timeline);
       });
 
-      test(
-        'generates single-line timeline when primaryTimelineJson is null',
-        () async {
-          final id = await repo.importCraftedFromText(
-            audioBytes: Uint8List.fromList([4, 5, 6]),
-            audioFormat: 'wav',
-            learningLanguage: 'en',
-            text: 'Fallback timeline',
-            normalizedText: 'Fallback timeline',
-            primaryTimelineJson: null,
-            sourceFlag: 'craft-direct',
-            signedInUserId: _testUserId,
-          );
+      test('omits transcript when primaryTimelineJson is null', () async {
+        final id = await repo.importCraftedFromText(
+          audioBytes: Uint8List.fromList([4, 5, 6]),
+          audioFormat: 'wav',
+          learningLanguage: 'en',
+          text: 'Blank timeline',
+          normalizedText: 'Blank timeline',
+          primaryTimelineJson: null,
+          sourceFlag: 'craft-direct',
+          signedInUserId: _testUserId,
+        );
 
-          final transcripts = await db.transcriptDao.listForTarget('Audio', id);
-          expect(transcripts, hasLength(1));
-          final decoded =
-              jsonDecode(transcripts.first.timelineJson) as List<dynamic>;
-          expect(decoded, hasLength(1));
-          expect(decoded.first['text'], 'Fallback timeline');
-        },
-      );
+        final transcripts = await db.transcriptDao.listForTarget('Audio', id);
+        expect(transcripts, isEmpty);
+        final audio = await db.audioDao.getById(id);
+        expect(audio, isNotNull);
+      });
 
       test('voice participates in dedupe key', () async {
         final audioBytes = Uint8List.fromList([7, 8, 9]);

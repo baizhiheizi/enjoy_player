@@ -372,12 +372,8 @@ class MediaLibraryRepository {
     final now = DateTime.now();
     final canonicalLearning = canonicalMediaLanguageTag(learningLanguage);
 
-    // Use caller-provided timeline (timestamped) or fall back to single-line.
-    final effectivePrimaryTimelineJson =
-        primaryTimelineJson ??
-        jsonEncode([
-          {'text': normalizedText, 'start': 0, 'duration': 0},
-        ]);
+    // Solid timeline → AI transcript row. Null → blank (no fabricated cues);
+    // learner generates via STT in the player.
     final primaryTranscriptId = enjoyTranscriptId(
       targetType: 'Audio',
       targetId: id,
@@ -385,7 +381,7 @@ class MediaLibraryRepository {
       source: 'ai',
     );
 
-    // Single transaction: audio row + primary transcript only.
+    // Single transaction: audio row + optional primary transcript.
     // We do NOT save a secondary source-text transcript — without word-level
     // alignment between source and synthesized target text, a secondary
     // transcript with fabricated timestamps is worse than no secondary.
@@ -415,22 +411,24 @@ class MediaLibraryRepository {
       );
       await _db.audioDao.insertRow(audioRow);
 
-      final primaryRow = TranscriptRow(
-        id: primaryTranscriptId,
-        targetType: 'Audio',
-        targetId: id,
-        language: canonicalLearning,
-        source: 'ai',
-        timelineJson: effectivePrimaryTimelineJson,
-        referenceId: null,
-        label: '',
-        trackIndex: null,
-        syncStatus: 'local',
-        serverUpdatedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      );
-      await _db.transcriptDao.upsert(primaryRow);
+      if (primaryTimelineJson != null) {
+        final primaryRow = TranscriptRow(
+          id: primaryTranscriptId,
+          targetType: 'Audio',
+          targetId: id,
+          language: canonicalLearning,
+          source: 'ai',
+          timelineJson: primaryTimelineJson,
+          referenceId: null,
+          label: '',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await _db.transcriptDao.upsert(primaryRow);
+      }
     });
 
     // Probe duration asynchronously (same path as importMedia).
@@ -545,11 +543,6 @@ class MediaLibraryRepository {
         '$sourceFlag|$canonicalLearning|$normalizedText|$voiceKey';
     final contentHash = sha256.convert(utf8.encode(dedupeKey)).toString();
 
-    final effectivePrimaryTimelineJson =
-        primaryTimelineJson ??
-        jsonEncode([
-          {'text': normalizedText, 'start': 0, 'duration': 0},
-        ]);
     final primaryTranscriptId = enjoyTranscriptId(
       targetType: 'Audio',
       targetId: mediaId,
@@ -576,36 +569,35 @@ class MediaLibraryRepository {
         ),
       );
 
-      // The learning language may have changed, which changes the
-      // transcript id (it's keyed by language) — drop stale rows from the
-      // previous language so an edit cannot leave an orphaned transcript.
+      // Drop all prior transcripts for this media — solid rewrite replaces
+      // the primary track; blank clears estimated/stale cues entirely.
       final oldTranscripts = await _db.transcriptDao.listForTarget(
         'Audio',
         mediaId,
       );
       for (final t in oldTranscripts) {
-        if (t.id != primaryTranscriptId) {
-          await _db.transcriptDao.deleteId(t.id);
-        }
+        await _db.transcriptDao.deleteId(t.id);
       }
 
-      await _db.transcriptDao.upsert(
-        TranscriptRow(
-          id: primaryTranscriptId,
-          targetType: 'Audio',
-          targetId: mediaId,
-          language: canonicalLearning,
-          source: 'ai',
-          timelineJson: effectivePrimaryTimelineJson,
-          referenceId: null,
-          label: '',
-          trackIndex: null,
-          syncStatus: 'local',
-          serverUpdatedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      if (primaryTimelineJson != null) {
+        await _db.transcriptDao.upsert(
+          TranscriptRow(
+            id: primaryTranscriptId,
+            targetType: 'Audio',
+            targetId: mediaId,
+            language: canonicalLearning,
+            source: 'ai',
+            timelineJson: primaryTimelineJson,
+            referenceId: null,
+            label: '',
+            trackIndex: null,
+            syncStatus: 'local',
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
     });
 
     if (previousUri != null && previousUri != importResult.fileUri) {
