@@ -6393,6 +6393,12 @@ abstract class AppLocalizations {
   /// **'Saved to library'**
   String get craftSavedToLibrary;
 
+  /// Once-per-session snackbar after Craft save that wrote solid synthesis cues; points to STT replace, not re-TTS.
+  ///
+  /// In en, this message translates to:
+  /// **'If line timings look off, regenerate them with speech-to-text from the transcript panel.'**
+  String get craftSolidTranscriptSttHint;
+
   /// No description provided for @craftStyleAuto.
   ///
   /// In en, this message translates to:

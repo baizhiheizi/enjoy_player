@@ -16,6 +16,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/content_language_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -250,18 +251,16 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
 
   Future<void> _save() async {
     final controller = ref.read(craftControllerProvider.notifier);
-    final mediaId = await controller.saveToLibrary();
-    if (!mounted || mediaId == null) return;
+    final result = await controller.saveToLibrary();
+    if (!mounted || result == null) return;
 
+    maybeShowCraftSolidTranscriptSttHint(
+      context,
+      savedSolidTimeline: result.wroteSolidTranscript,
+    );
     controller.clearResult();
-
-    final state = ref.read(craftControllerProvider);
-    if (state.dedupedExistingId != null) {
-      // Already in library — open it.
-      openPlayerRoute(context, state.dedupedExistingId!);
-    } else {
-      openPlayerRoute(context, mediaId);
-    }
+    // Dedupe returns the existing id as [CraftSaveResult.mediaId].
+    openPlayerRoute(context, result.mediaId);
   }
 }
 

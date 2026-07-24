@@ -20,14 +20,13 @@ import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
+import 'package:enjoy_player/features/craft/domain/craft_save_result.dart';
 import 'package:enjoy_player/features/craft/domain/craft_screen_mode.dart';
 import 'package:enjoy_player/features/craft/domain/craft_stage.dart';
 import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
 import 'package:enjoy_player/features/craft/domain/craft_transcriber.dart';
 import 'package:enjoy_player/features/craft/domain/craft_translator.dart';
-import 'package:enjoy_player/features/craft/domain/transcript_timestamp_estimator.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
-import 'package:enjoy_player/features/craft/domain/wav_duration.dart';
 import 'package:enjoy_player/features/craft/domain/word_boundary_segmenter.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/library/domain/craft_edit_source.dart';
@@ -194,7 +193,7 @@ class CraftController extends Notifier<CraftJobState> {
 
   // === Save action ===
 
-  Future<String?> saveToLibrary() async {
+  Future<CraftSaveResult?> saveToLibrary() async {
     if (state.previewAudioBytes == null) return null;
 
     final auth = ref.read(authCtrlProvider).valueOrNull;
@@ -211,23 +210,12 @@ class CraftController extends Notifier<CraftJobState> {
           ? normalized.substring(0, craftMaxTextLength)
           : normalized;
 
-      // Build timestamped transcript from real Azure word boundaries.
-      // Falls back to WAV duration + sentence-split estimation if Azure did
-      // not fire wordBoundary events (e.g., older SDK or unsupported voice).
-      String timelineJson;
-      if (state.previewWordBoundaries.isNotEmpty) {
-        final segments = segmentWordBoundaries(state.previewWordBoundaries);
-        timelineJson = segmentsToTimelineJson(segments);
-      } else {
-        final audioDurationMs = wavDurationMs(state.previewAudioBytes!);
-        final fallbackDurationMs = audioDurationMs > 0
-            ? audioDurationMs
-            : (truncated.length / 12.5 * 1000).round();
-        timelineJson = encodeTimelineJson(
-          text: truncated,
-          totalDurationMs: fallbackDurationMs,
-        );
-      }
+      // Solid word timings → timed AI transcript. Otherwise blank (null):
+      // no fabricated duration estimates; learner generates via STT in player.
+      final timelineJson = buildCraftPrimaryTimelineJson(
+        state.previewWordBoundaries,
+      );
+      final wroteSolid = timelineJson != null;
 
       // Determine if this is a translate-then-synthesize or direct synthesize.
       final hasSourceLang =
@@ -263,7 +251,10 @@ class CraftController extends Notifier<CraftJobState> {
           sourceFlag: sourceFlag,
         );
         state = state.copyWith(isSaving: false, resultMediaId: mediaId);
-        return mediaId;
+        return CraftSaveResult(
+          mediaId: mediaId,
+          wroteSolidTranscript: wroteSolid,
+        );
       }
 
       // Check dedupe before writing.
@@ -275,7 +266,11 @@ class CraftController extends Notifier<CraftJobState> {
       );
       if (existingId != null) {
         state = state.copyWith(isSaving: false, dedupedExistingId: existingId);
-        return existingId;
+        return CraftSaveResult(
+          mediaId: existingId,
+          wroteSolidTranscript: false,
+          wasDedupe: true,
+        );
       }
 
       final mediaId = await repo.importCraftedFromText(
@@ -292,7 +287,10 @@ class CraftController extends Notifier<CraftJobState> {
       );
 
       state = state.copyWith(isSaving: false, resultMediaId: mediaId);
-      return mediaId;
+      return CraftSaveResult(
+        mediaId: mediaId,
+        wroteSolidTranscript: wroteSolid,
+      );
     } catch (e, st) {
       logNamed('craft.save').warning('Save failed: $e', e, st);
       state = state.copyWith(
@@ -547,18 +545,22 @@ class CraftController extends Notifier<CraftJobState> {
     await synthesize();
   }
 
-  /// Save current item to library and return the media ID for navigation.
-  Future<String?> saveAndPractice() async {
+  /// Save current item to library and return the save outcome for navigation.
+  Future<CraftSaveResult?> saveAndPractice() async {
     return saveToLibrary();
   }
 
   /// Save current item, then reset for the next capture.
   /// If the save fails, the failure is already in [state.failure] —
   /// we return early so the user's work is NOT destroyed.
-  Future<void> saveAndCaptureNext() async {
-    final mediaId = await saveToLibrary();
-    if (mediaId == null) return; // failure already surfaced
+  ///
+  /// Returns the save outcome (including whether a solid transcript was
+  /// written) so callers can show hints before the reset clears preview.
+  Future<CraftSaveResult?> saveAndCaptureNext() async {
+    final result = await saveToLibrary();
+    if (result == null) return null; // failure already surfaced
     resetForNextCapture();
+    return result;
   }
 
   /// Clear Express working data, preserve session preferences.

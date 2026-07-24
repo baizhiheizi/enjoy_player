@@ -18,6 +18,7 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
+import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
 import 'package:enjoy_player/features/craft/presentation/voice_picker.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -102,12 +103,13 @@ class _AudioStageState extends ConsumerState<AudioStage> {
   }
 
   Future<void> _saveAndCaptureNext() async {
-    await ref.read(craftControllerProvider.notifier).saveAndCaptureNext();
+    final result = await ref
+        .read(craftControllerProvider.notifier)
+        .saveAndCaptureNext();
     if (!mounted) return;
     // If save failed, don't show success snackbar or tear down the player —
     // the failure card will be shown by the build method instead.
-    final failure = ref.read(craftControllerProvider).failure;
-    if (failure != null) return;
+    if (result == null) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -115,6 +117,10 @@ class _AudioStageState extends ConsumerState<AudioStage> {
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
+    );
+    maybeShowCraftSolidTranscriptSttHint(
+      context,
+      savedSolidTimeline: result.wroteSolidTranscript,
     );
     // Reset playback state for the next capture.
     _cancelStreams();
@@ -126,13 +132,17 @@ class _AudioStageState extends ConsumerState<AudioStage> {
   }
 
   Future<void> _saveAndPractice() async {
-    final mediaId = await ref
+    final result = await ref
         .read(craftControllerProvider.notifier)
         .saveAndPractice();
-    if (!mounted || mediaId == null) return;
+    if (!mounted || result == null) return;
 
+    maybeShowCraftSolidTranscriptSttHint(
+      context,
+      savedSolidTimeline: result.wroteSolidTranscript,
+    );
     final state = ref.read(craftControllerProvider);
-    final targetId = state.dedupedExistingId ?? mediaId;
+    final targetId = state.dedupedExistingId ?? result.mediaId;
     if (mounted) openPlayerRoute(context, targetId);
   }
 

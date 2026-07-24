@@ -804,7 +804,9 @@ void main() {
       await n.synthesize();
 
       final result = await n.saveToLibrary();
-      expect(result, 'media-existing');
+      expect(result?.mediaId, 'media-existing');
+      expect(result?.wasDedupe, isTrue);
+      expect(result?.wroteSolidTranscript, isFalse);
       expect(stateOf(c).dedupedExistingId, 'media-existing');
       expect(stateOf(c).isSaving, isFalse);
       expect(repo.findExistingCalls, 1);
@@ -834,7 +836,9 @@ void main() {
       await n.synthesize();
 
       final result = await n.saveToLibrary();
-      expect(result, 'media-123');
+      expect(result?.mediaId, 'media-123');
+      expect(result?.wroteSolidTranscript, isTrue);
+      expect(result?.wasDedupe, isFalse);
       expect(stateOf(c).resultMediaId, 'media-123');
       expect(stateOf(c).isSaving, isFalse);
       expect(repo.importCalls, 1);
@@ -849,7 +853,7 @@ void main() {
     });
 
     test(
-      'falls back to duration-estimated timeline without boundaries',
+      'saves blank transcript (null timeline) without word boundaries',
       () async {
         synthesizer = _FakeSynthesizer(wordBoundaries: const []);
         final c = container();
@@ -860,10 +864,10 @@ void main() {
         await n.synthesize();
 
         final result = await n.saveToLibrary();
-        expect(result, 'media-new');
+        expect(result?.mediaId, 'media-new');
+        expect(result?.wroteSolidTranscript, isFalse);
         expect(repo.importCalls, 1);
-        final timeline = jsonDecode(repo.lastImportTimelineJson!) as List;
-        expect(timeline, isNotEmpty);
+        expect(repo.lastImportTimelineJson, isNull);
       },
     );
 
@@ -1180,8 +1184,8 @@ void main() {
       await n.generateAudio();
       await Future<void>.delayed(Duration.zero);
 
-      final mediaId = await n.saveAndPractice();
-      expect(mediaId, 'media-new');
+      final result = await n.saveAndPractice();
+      expect(result?.mediaId, 'media-new');
       expect(repo.lastImportSourceFlag, 'craft-express');
     });
   });
@@ -1414,7 +1418,7 @@ void main() {
       await n.synthesize();
       final result = await n.saveToLibrary();
 
-      expect(result, 'media-direct');
+      expect(result?.mediaId, 'media-direct');
       expect(repo.updateCalls, 1);
       expect(repo.lastUpdateMediaId, 'media-direct');
       expect(repo.importCalls, 0);

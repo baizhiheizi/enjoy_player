@@ -3298,6 +3298,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftSavedToLibrary => '已保存到资料库';
 
   @override
+  String get craftSolidTranscriptSttHint => '如果练习行时间轴不准确，可在字幕面板用语音识别重新生成。';
+
+  @override
   String get craftStyleAuto => '✨ 自动';
 
   @override
@@ -6192,6 +6195,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get craftSynthText => '合成文本';
+
+  @override
+  String get craftSolidTranscriptSttHint => '如果练习行时间轴不准确，可在字幕面板用语音识别重新生成。';
 
   @override
   String get errorGenericLoadFailed => '加载失败，请重试。';

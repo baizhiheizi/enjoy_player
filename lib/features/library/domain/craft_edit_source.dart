@@ -20,8 +20,9 @@ class CraftEditSource {
   /// Media id of the existing Crafted audio row.
   final String mediaId;
 
-  /// The learning-language text that was synthesized, reconstructed by
-  /// joining the primary transcript's timeline segments.
+  /// The learning-language text that was synthesized: timeline join when a
+  /// solid AI transcript exists, otherwise [Audios.description] (full practice
+  /// text), else [Audios.sourceText] for legacy/Advanced rows.
   final String practiceText;
 
   /// Native-language source text (`Audios.sourceText`) — the raw ASR

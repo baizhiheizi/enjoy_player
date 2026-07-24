@@ -1129,6 +1129,10 @@
   "craftSynthesizeButton": "合成",
   "craftReSynthesizeButton": "重新合成",
   "craftSaveToLibrary": "保存到资料库",
+  "craftSolidTranscriptSttHint": "如果练习行时间轴不准确，可在字幕面板用语音识别重新生成。",
+  "@craftSolidTranscriptSttHint": {
+    "description": "Once-per-session snackbar after Craft save that wrote solid synthesis cues; points to STT replace, not re-TTS."
+  },
   "craftSavingProgress": "正在保存…",
   "craftPreviewLabel": "预览",
   "craftSourceText": "原文",

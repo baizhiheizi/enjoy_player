@@ -3440,6 +3440,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftSavedToLibrary => 'Saved to library';
 
   @override
+  String get craftSolidTranscriptSttHint =>
+      'If line timings look off, regenerate them with speech-to-text from the transcript panel.';
+
+  @override
   String get craftStyleAuto => '✨ Auto';
 
   @override

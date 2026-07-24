@@ -1307,6 +1307,10 @@
   "craftAudioSaySomethingElse": "再说一条",
   "craftAudioPracticeNow": "立即练习",
   "craftSavedToLibrary": "已保存到资料库",
+  "craftSolidTranscriptSttHint": "如果练习行时间轴不准确，可在字幕面板用语音识别重新生成。",
+  "@craftSolidTranscriptSttHint": {
+    "description": "Once-per-session snackbar after Craft save that wrote solid synthesis cues; points to STT replace, not re-TTS."
+  },
   "craftStyleAuto": "✨ 自动",
   "craftFailureAsr": "没有听清楚，请重新录制。",
   "craftFailureEmptyTranscript": "录音太短了，请再多说一些。",

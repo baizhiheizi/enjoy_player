@@ -15,6 +15,10 @@ import '../../support/test_path_provider.dart';
 
 const _testUserId = 'test-user';
 
+String _solidTimeline([String text = 'Hello world.']) => jsonEncode([
+  {'text': text, 'start': 0, 'duration': 1000},
+]);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -50,6 +54,9 @@ void main() {
         sourceLanguage: null,
         text: 'Hello, this is a test sentence for synthesis.',
         normalizedText: 'Hello, this is a test sentence for synthesis.',
+        primaryTimelineJson: _solidTimeline(
+          'Hello, this is a test sentence for synthesis.',
+        ),
         sourceFlag: 'craft-direct',
         signedInUserId: _testUserId,
       );
@@ -84,6 +91,7 @@ void main() {
           sourceLanguage: 'en',
           text: 'Hello world this is a test.',
           normalizedText: 'Hello world this is a test.',
+          primaryTimelineJson: _solidTimeline('Hello world this is a test.'),
           sourceFlag: 'craft-translate',
           signedInUserId: _testUserId,
         );
@@ -203,6 +211,27 @@ void main() {
       expect(rows.first.title.length, lessThanOrEqualTo(41)); // 40 + ellipsis
       expect(rows.first.title.endsWith('…'), isTrue);
     });
+
+    test(
+      'null primaryTimelineJson imports audio with blank transcript',
+      () async {
+        final id = await repo.importCraftedFromText(
+          audioBytes: Uint8List.fromList([1, 2, 3]),
+          audioFormat: 'wav',
+          learningLanguage: 'en',
+          sourceLanguage: null,
+          text: 'Blank timeline item.',
+          normalizedText: 'Blank timeline item.',
+          primaryTimelineJson: null,
+          sourceFlag: 'craft-direct',
+          signedInUserId: _testUserId,
+        );
+        final audioRow = await db.audioDao.getById(id);
+        expect(audioRow, isNotNull);
+        final transcripts = await db.transcriptDao.listForTarget('Audio', id);
+        expect(transcripts, isEmpty);
+      },
+    );
   });
 
   group('MediaLibraryRepository.getCraftEditSource', () {
@@ -267,6 +296,32 @@ void main() {
       expect(source.language.startsWith('en'), isTrue);
       expect(source.sourceFlag, 'craft-direct');
     });
+
+    test(
+      'blank Express save keeps practice text from description, not native sourceText',
+      () async {
+        final id = await repo.importCraftedFromText(
+          audioBytes: Uint8List.fromList([1, 2, 3]),
+          audioFormat: 'wav',
+          learningLanguage: 'es',
+          sourceLanguage: null,
+          text: 'I had a great day today.',
+          normalizedText: 'Hoy tuve un gran día.',
+          primaryTimelineJson: null,
+          sourceFlag: 'craft-express',
+          signedInUserId: _testUserId,
+        );
+
+        final transcripts = await db.transcriptDao.listForTarget('Audio', id);
+        expect(transcripts, isEmpty);
+
+        final source = await repo.getCraftEditSource(id);
+        expect(source, isNotNull);
+        expect(source!.practiceText, 'Hoy tuve un gran día.');
+        expect(source.sourceText, 'I had a great day today.');
+        expect(source.sourceFlag, 'craft-express');
+      },
+    );
   });
 
   group('MediaLibraryRepository.updateCraftedFromText', () {
@@ -314,6 +369,7 @@ void main() {
         sourceLanguage: null,
         text: 'Original text for editing.',
         normalizedText: 'Original text for editing.',
+        primaryTimelineJson: _solidTimeline('Original text for editing.'),
         sourceFlag: 'craft-direct',
         signedInUserId: _testUserId,
       );
@@ -326,6 +382,7 @@ void main() {
         learningLanguage: 'en',
         text: 'Updated text after editing.',
         normalizedText: 'Updated text after editing.',
+        primaryTimelineJson: _solidTimeline('Updated text after editing.'),
         sourceFlag: 'craft-direct',
       );
 
@@ -379,6 +436,33 @@ void main() {
       expect(await updatedFile.exists(), isTrue);
       expect(await updatedFile.length(), 3);
     });
+
+    test('blank update deletes prior transcript rows', () async {
+      final id = await repo.importCraftedFromText(
+        audioBytes: Uint8List.fromList([1, 2, 3]),
+        audioFormat: 'wav',
+        learningLanguage: 'en',
+        sourceLanguage: null,
+        text: 'Has cues first.',
+        normalizedText: 'Has cues first.',
+        primaryTimelineJson: _solidTimeline('Has cues first.'),
+        sourceFlag: 'craft-direct',
+        signedInUserId: _testUserId,
+      );
+      expect(await db.transcriptDao.listForTarget('Audio', id), hasLength(1));
+
+      await repo.updateCraftedFromText(
+        mediaId: id,
+        audioBytes: Uint8List.fromList([4, 5, 6]),
+        audioFormat: 'wav',
+        learningLanguage: 'en',
+        text: 'Now blank cues.',
+        normalizedText: 'Now blank cues.',
+        primaryTimelineJson: null,
+        sourceFlag: 'craft-direct',
+      );
+      expect(await db.transcriptDao.listForTarget('Audio', id), isEmpty);
+    });
   });
 
   group('MediaLibraryRepository.removeCraftHistoryRecord', () {
@@ -412,6 +496,7 @@ void main() {
         sourceLanguage: null,
         text: 'Keep this audio for practice.',
         normalizedText: 'Keep this audio for practice.',
+        primaryTimelineJson: _solidTimeline('Keep this audio for practice.'),
         sourceFlag: 'craft-direct',
         signedInUserId: _testUserId,
       );
