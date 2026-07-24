@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Craft history remove**: clearing a Craft history record now keeps the library audio and transcript (it clears Craft provenance instead of deleting). See [ADR-0062](docs/decisions/0062-craft-history-remove-keeps-audio.md) and [docs/features/craft.md](docs/features/craft.md#craft-history-crafthistory).
+
 ## [0.7.2] - 2026-07-22
 
 ### Added
