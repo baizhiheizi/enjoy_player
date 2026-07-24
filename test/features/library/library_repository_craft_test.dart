@@ -380,4 +380,66 @@ void main() {
       expect(await updatedFile.length(), 3);
     });
   });
+
+  group('MediaLibraryRepository.removeCraftHistoryRecord', () {
+    late PathProviderPlatform original;
+    late Directory root;
+    late AppDatabase db;
+    late MediaLibraryRepository repo;
+
+    setUp(() {
+      original = PathProviderPlatform.instance;
+      root = Directory.systemTemp.createTempSync('enjoy_craft_remove_test');
+      PathProviderPlatform.instance = TestPathProvider(root.path);
+      db = AppDatabase(executor: NativeDatabase.memory());
+      repo = MediaLibraryRepository(db, FileStorage());
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = original;
+      await db.close();
+      if (root.existsSync()) {
+        root.deleteSync(recursive: true);
+      }
+    });
+
+    test('clears craft provider but keeps audio file and media id', () async {
+      final audioBytes = Uint8List.fromList([9, 8, 7]);
+      final id = await repo.importCraftedFromText(
+        audioBytes: audioBytes,
+        audioFormat: 'wav',
+        learningLanguage: 'en',
+        sourceLanguage: null,
+        text: 'Keep this audio for practice.',
+        normalizedText: 'Keep this audio for practice.',
+        sourceFlag: 'craft-direct',
+        signedInUserId: _testUserId,
+      );
+
+      final before = await db.audioDao.getById(id);
+      expect(before!.provider, 'craft');
+      final file = File.fromUri(Uri.parse(before.localUri!));
+      expect(await file.exists(), isTrue);
+
+      await repo.removeCraftHistoryRecord(id);
+
+      final after = await db.audioDao.getById(id);
+      expect(after, isNotNull);
+      expect(after!.id, id);
+      expect(after.provider, 'user');
+      expect(after.localUri, before.localUri);
+      expect(await file.exists(), isTrue);
+      expect(await file.length(), audioBytes.length);
+
+      final transcripts = await db.transcriptDao.listForTarget('Audio', id);
+      expect(transcripts, isNotEmpty);
+    });
+
+    test('throws when media is not a craft record', () async {
+      await expectLater(
+        repo.removeCraftHistoryRecord('missing'),
+        throwsStateError,
+      );
+    });
+  });
 }

@@ -620,6 +620,30 @@ class MediaLibraryRepository {
     return mediaId;
   }
 
+  /// Removes a Craft history record without deleting the practice audio.
+  ///
+  /// Clears Craft provenance (`provider` → `user`) so the item no longer
+  /// appears in Craft history or with a Craft badge, while keeping the
+  /// same media id, file, transcript, and library presence.
+  ///
+  /// Throws [StateError] when [mediaId] is missing or not `provider = 'craft'`.
+  Future<void> removeCraftHistoryRecord(String mediaId) async {
+    final existing = await _db.audioDao.getById(mediaId);
+    if (existing == null || existing.provider != 'craft') {
+      throw StateError('Craft history record not found: $mediaId');
+    }
+
+    final now = DateTime.now();
+    await _db.audioDao.insertRow(
+      existing.copyWith(
+        provider: 'user',
+        syncStatus: const Value('pending'),
+        updatedAt: now,
+      ),
+    );
+    await _enqueueSync?.call(SyncEntityType.audio, mediaId, SyncAction.update);
+  }
+
   /// Re-fetches oEmbed when title/thumbnail are still import placeholders.
   Future<YoutubeMetadataPatch?> refreshYoutubeMetadataIfNeeded(
     String mediaId,

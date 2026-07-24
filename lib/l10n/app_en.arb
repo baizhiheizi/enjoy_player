@@ -1510,6 +1510,19 @@
   "craftHistoryEmptyTitle": "No Craft items yet",
   "craftHistoryEmptyHint": "Create audio in Craft and it will show up here.",
   "craftHistoryEmptyAction": "Start crafting",
+  "craftHistoryRemoveTooltip": "Remove Craft record",
+  "craftHistoryRemoveTitle": "Remove Craft record?",
+  "craftHistoryRemoveMessage": "Remove the Craft record for \"{title}\". The practice audio stays in your library.",
+  "@craftHistoryRemoveMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "craftHistoryRemoveConfirm": "Remove",
+  "craftHistoryRemoved": "Craft record removed",
+  "craftHistoryRemoveFailed": "Could not remove this Craft record.",
   "craftEditUnavailable": "This Craft item is no longer available.",
   "craftSheetTitle": "Craft audio from text",
   "craftModeTranslateThenSpeak": "Translate then speak",

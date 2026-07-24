@@ -3053,6 +3053,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get craftHistoryEmptyAction => '开始创建';
 
   @override
+  String get craftHistoryRemoveTooltip => '移除 Craft 记录';
+
+  @override
+  String get craftHistoryRemoveTitle => '移除 Craft 记录？';
+
+  @override
+  String craftHistoryRemoveMessage(String title) {
+    return '移除「$title」的 Craft 记录。练习音频仍保留在资料库中。';
+  }
+
+  @override
+  String get craftHistoryRemoveConfirm => '移除';
+
+  @override
+  String get craftHistoryRemoved => '已移除 Craft 记录';
+
+  @override
+  String get craftHistoryRemoveFailed => '无法移除此 Craft 记录。';
+
+  @override
   String get craftEditUnavailable => '该 Craft 已不存在。';
 
   @override
@@ -5993,6 +6013,26 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get craftHistoryEmptyAction => '开始创建';
+
+  @override
+  String get craftHistoryRemoveTooltip => '移除 Craft 记录';
+
+  @override
+  String get craftHistoryRemoveTitle => '移除 Craft 记录？';
+
+  @override
+  String craftHistoryRemoveMessage(String title) {
+    return '移除「$title」的 Craft 记录。练习音频仍保留在资料库中。';
+  }
+
+  @override
+  String get craftHistoryRemoveConfirm => '移除';
+
+  @override
+  String get craftHistoryRemoved => '已移除 Craft 记录';
+
+  @override
+  String get craftHistoryRemoveFailed => '无法移除此 Craft 记录。';
 
   @override
   String get craftEditUnavailable => '该 Craft 已不存在。';

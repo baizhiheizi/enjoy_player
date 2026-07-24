@@ -87,4 +87,31 @@ void main() {
     expect(find.text('Newer craft line'), findsOneWidget);
     expect(find.text('Older craft line'), findsOneWidget);
   });
+
+  testWidgets('CraftHistoryScreen remove control opens confirm dialog', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        items: [
+          _craftMedia(
+            id: 'a',
+            title: 'Removable craft',
+            updatedAt: DateTime.utc(2026, 7, 23, 12),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.tap(find.byTooltip(l10n.craftHistoryRemoveTooltip));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.craftHistoryRemoveTitle), findsOneWidget);
+    expect(
+      find.text(l10n.craftHistoryRemoveMessage('Removable craft')),
+      findsOneWidget,
+    );
+  });
 }

@@ -58,6 +58,12 @@ Expected: analyze clean; new/updated tests for Home Craft CTA, `global.craft` de
 3. History / library still shows **one** item for that content lineage (same id); practice plays updated audio.
 4. `updatedAt` / ordering moves the item toward the top.
 
+### M4b — Remove Craft record (keep library audio)
+
+1. Open Craft history with ≥1 item; note the item also appears in the library.
+2. Tap **Remove Craft record** → confirm. Item leaves Craft history (no Craft badge).
+3. Confirm the same audio is still in the library for practice. Cancel leaves the Craft record unchanged.
+
 ### M5 — ZH branding (US5 / FR-014)
 
 1. Set UI language to Chinese.

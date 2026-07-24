@@ -3187,6 +3187,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get craftHistoryEmptyAction => 'Start crafting';
 
   @override
+  String get craftHistoryRemoveTooltip => 'Remove Craft record';
+
+  @override
+  String get craftHistoryRemoveTitle => 'Remove Craft record?';
+
+  @override
+  String craftHistoryRemoveMessage(String title) {
+    return 'Remove the Craft record for \"$title\". The practice audio stays in your library.';
+  }
+
+  @override
+  String get craftHistoryRemoveConfirm => 'Remove';
+
+  @override
+  String get craftHistoryRemoved => 'Craft record removed';
+
+  @override
+  String get craftHistoryRemoveFailed => 'Could not remove this Craft record.';
+
+  @override
   String get craftEditUnavailable => 'This Craft item is no longer available.';
 
   @override

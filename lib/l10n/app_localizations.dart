@@ -5907,6 +5907,42 @@ abstract class AppLocalizations {
   /// **'Start crafting'**
   String get craftHistoryEmptyAction;
 
+  /// No description provided for @craftHistoryRemoveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Craft record'**
+  String get craftHistoryRemoveTooltip;
+
+  /// No description provided for @craftHistoryRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Craft record?'**
+  String get craftHistoryRemoveTitle;
+
+  /// No description provided for @craftHistoryRemoveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the Craft record for \"{title}\". The practice audio stays in your library.'**
+  String craftHistoryRemoveMessage(String title);
+
+  /// No description provided for @craftHistoryRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get craftHistoryRemoveConfirm;
+
+  /// No description provided for @craftHistoryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft record removed'**
+  String get craftHistoryRemoved;
+
+  /// No description provided for @craftHistoryRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove this Craft record.'**
+  String get craftHistoryRemoveFailed;
+
   /// No description provided for @craftEditUnavailable.
   ///
   /// In en, this message translates to:
