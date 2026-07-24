@@ -35,7 +35,8 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 3. **Dictations DAO** — `DictationDao.watchByTarget` has no consumer in `lib/` today (only generated `.g.dart` references it). When hooked up, needs `.distinctBy(equals)`.
 4. **JSON decode concurrency audit** — `_decodeResponseBody` uses `compute()` for >48 KB. Threshold correct as-is.
 5. **Stream long-form ASR media instead of materializing bytes** — >=15-minute path materializes entire extracted audio into Uint8List/AsrRequest; 500 MiB extractor ceiling. Needs peak-RSS baseline first.
-6. **Microbenchmark harness** — ✅ `test/perf/` directory created (2026-07-23). Two microbenchmarks added. CI regression job remains future work. Guide (`docs/perf-measurement.md`) updated.
+   - **Investigation 2026-07-24**: Audio is extracted via FFmpeg→temp WAV→`out.readAsBytes()`→`AsrRequest.audioBytes`→HTTP PUT. Three 500 MiB checkpoints in `asr_audio_extractor.dart`. No `Stream`/`StreamedResponse`/chunked upload anywhere in the ASR pipe. Potential optimization: pipe FFmpeg stdout→HTTP upload body, skip the `Uint8List` materialization. Requires changes to `AsrRequest`, `AsrAudioExtractor`, `ApiClient.putBytesJson`, and `AsrMediaUploadApi`. Risk: high (architectural, touches 3 providers, error-handling surface). Recommended first step: add a `test/perf/asr_peak_rss_benchmark.dart` measuring peak RSS for 5/50/250 MiB synthetic WAV files via the current path, and optionally via a streaming pipe prototype.
+6. **Microbenchmark harness** — ✅ `test/perf/` directory created (2026-07-23). Two microbenchmarks added. CI regression job remains future work. Guide (`docs/perf-measurement.md`) updated. (Note: `test/perf/` not on `main` yet — exists on the draft PR branch from 2026-07-23.)
 
 ## Optimization Backlog — Addressed
 
@@ -56,8 +57,9 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 - `docs/perf-measurement.md` (2026-07-21) documents 4 perf test patterns, per-layer strategies, microbenchmark template, and CI regression recommendations.
 - No CI perf-regression job yet.
 
-## Run History (last 8)
+## Run History (last 9)
 
+- **2026-07-24** 18:10 UTC — run 30115609598. Investigated backlog item #5 (ASR streaming): full architecture audit of `asr_audio_extractor.dart`, `AsrRequest`, `ApiClient`, and all 3 provider capability paths. Documented peak-RSS measurement strategy. Updated memory + monthly summary.
 - **2026-07-23** 18:40 UTC — run 30031975736. Created `test/perf/` microbenchmark directory with SRT/VTT parsing and case-conversion benchmarks. Updated `docs/perf-measurement.md`. PR: `perf-assist/microbenchmark-harness-2026-07-23`.
 - **2026-07-22** 18:25 UTC — run 29944478627. Audited Discover refresh — single-flight already implemented. Verified all CI gates on Linux AWF. Updated backlog: #6 (Discover coalescing) moved to ✅ Addressed. Updated memory + monthly summary.
 - **2026-07-21** 14:00 UTC — run 29855434099. Created `docs/perf-measurement.md` — structural perf test patterns guide. Draft PR: `perf-assist/measurement-infra-guide-2026-07-21`.
