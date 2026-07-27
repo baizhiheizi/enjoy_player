@@ -1,1 +1,2 @@
 - [Run 2026-07-26-run2 (30205583718)](notes-2026-07-26-run2.md) — tasks 3/2/1+11: maintenance run, no comments or PRs, cleaned up monthly summary #165 (removed 12+ stale items), consolidated memory (deleted 23 old run notes files)
+- [Run 2026-07-27 (30237037564)](notes-2026-07-27.md) — tasks 9/4/2+11: created draft PR with 33 tests for `PlayerLaunchRequest` (player_launch_request.dart); PR #486 (stream subscription leak fix) was merged by an-lee
