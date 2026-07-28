@@ -1,8 +1,10 @@
 {
-  "last_run": "2026-07-27T05:05:00Z",
-  "run_id": 30237037564,
-  "selected_tasks": [9, 4, 2],
+  "last_run": "2026-07-28T15:05:00Z",
+  "run_id": 30371431324,
+  "selected_tasks": [5, 8, 2],
   "comments_made": [],
-  "prs_created": ["repo-assist/test-player-launch-request-2026-07-27"],
-  "notes": "Tasks 9, 4, 2 + 11. Task 9: Created draft PR with 33 tests for PlayerLaunchRequest (player_launch_request.dart, 123 LOC pure-Dart routing contract). Task 4: No actionable investments (deps current, CI current, coverage ~80% well above 32% gate). Task 2: 8 open issues, all labelled, human-authored issues already have Repo Assist comments and no new human activity. PR #486 was merged by an-lee earlier today, closing #474. Task 11: Refreshed #165 — removed merged PR #486 + closed comment on #474 from Suggested Actions, added new test PR."
+  "prs_created": ["repo-assist/test-sync-types-2026-07-28"],
+  "prs_may_need_closing": ["perf(player) transport-bar / surface-host rebuilds — PR #500, linter reverted working-tree changes after the PR was already created via safeoutputs"],
+  "prs_reverted_this_run": ["refactor(ai) kAiL1Ttl constant extraction — 8 sites"],
+  "notes": "Tasks 5, 8, 2 + 11. Task 5: Created draft PR with 21 tests for sync_types.dart (wire-name round-trips, tryParse rejection, SyncOptions defaults, SyncResult.merge edge cases). Task 5: Started but reverted — refactor(ai) hoist L1 cache TTL to a single kAiL1Ttl constant (8 sites) was reverted by linter; branch deleted locally. Task 8: Started but reverted — perf(player) global_transport_bar.dart select() + player_surface_host.dart redundant-watch removal was reverted by linter; branch deleted locally, but PR #500 was already created via safeoutputs before the reversion and may now be inconsistent. Task 2: 8 open issues, all labelled, human-authored #309/#310 already have detailed Repo Assist comments and no new human activity. Task 11: Refreshed #165 with the new sync_types PR, the linter-revert situation for the perf PR, and the refreshed Future Work queue."
 }
