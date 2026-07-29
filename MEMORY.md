@@ -1,3 +1,8 @@
-- [Run 2026-07-26-run2 (30205583718)](notes-2026-07-26-run2.md) — tasks 3/2/1+11: maintenance run, no comments or PRs, cleaned up monthly summary #165 (removed 12+ stale items), consolidated memory (deleted 23 old run notes files)
-- [Run 2026-07-27 (30237037564)](notes-2026-07-27.md) — tasks 9/4/2+11: created draft PR with 33 tests for `PlayerLaunchRequest` (player_launch_request.dart); PR #486 (stream subscription leak fix) was merged by an-lee
-- [Run 2026-07-28 (30371431324)](notes-2026-07-28.md) — tasks 5/8/2+11: created sync_types test PR (21 tests); AI TTL refactor and perf(player) PR were both reverted by linter; PR #500 may need to be closed
+# Repo Assist — Memory Index
+
+Last 4 runs. Older runs are in git history of this branch (`memory/repo-assist`).
+
+- [Run 2026-07-28 (30371431324)](notes-2026-07-29.md) — see current notes file for context; created sync_types tests + perf PR; both merged by an-lee on 2026-07-28
+- [Run 2026-07-29 (30420782272)](notes-2026-07-29.md) — addressed issue #501: setup-flutter load-bearing `flutter --version` comments; refreshed #165
+
+Plus: [compact backlog index](notes.md) and [machine-readable state](state.json).

@@ -1,10 +1,11 @@
 {
-  "last_run": "2026-07-28T15:05:00Z",
-  "run_id": 30371431324,
-  "selected_tasks": [5, 8, 2],
-  "comments_made": [],
-  "prs_created": ["repo-assist/test-sync-types-2026-07-28"],
-  "prs_may_need_closing": ["perf(player) transport-bar / surface-host rebuilds — PR #500, linter reverted working-tree changes after the PR was already created via safeoutputs"],
-  "prs_reverted_this_run": ["refactor(ai) kAiL1Ttl constant extraction — 8 sites"],
-  "notes": "Tasks 5, 8, 2 + 11. Task 5: Created draft PR with 21 tests for sync_types.dart (wire-name round-trips, tryParse rejection, SyncOptions defaults, SyncResult.merge edge cases). Task 5: Started but reverted — refactor(ai) hoist L1 cache TTL to a single kAiL1Ttl constant (8 sites) was reverted by linter; branch deleted locally. Task 8: Started but reverted — perf(player) global_transport_bar.dart select() + player_surface_host.dart redundant-watch removal was reverted by linter; branch deleted locally, but PR #500 was already created via safeoutputs before the reversion and may now be inconsistent. Task 2: 8 open issues, all labelled, human-authored #309/#310 already have detailed Repo Assist comments and no new human activity. Task 11: Refreshed #165 with the new sync_types PR, the linter-revert situation for the perf PR, and the refreshed Future Work queue."
+  "last_run": "2026-07-29T04:00:00Z",
+  "run_id": 30420782272,
+  "selected_tasks": [8, 10, 2],
+  "comments_made": [501],
+  "prs_created": ["repo-assist/setup-flutter-load-bearing-note-2026-07-29"],
+  "prs_may_need_closing": [],
+  "prs_reverted_this_run": [],
+  "corrections_from_prior_run": "Last run's notes-2026-07-28 incorrectly flagged PR #500 as 'may need to be closed' — both PR #499 (perf) and PR #500 (sync_types) were merged by an-lee on 2026-07-28 (commits 868aec4 / f256332 / c04a6b3 / b2dc4c9 are on main). The linter-revert theory for that run did not actually prevent the merges; the safeoutputs record was correct.",
+  "notes": "Tasks 8, 10, 2 + 11. Task 10 (Take the Repository Forward): Picked up issue #501 directly from an-lee — added an 8-line YAML comment above the bash `flutter --version` call (line 103) and a 7-line comment above the pwsh `flutterBat --version` call (line 151) in `.github/actions/setup-flutter/action.yml`. Records the load-bearing invariant (gh-aw mounts RUNNER_TOOL_CACHE :ro into the agent container, cold SDK EROFS on first invocation). Branch `repo-assist/setup-flutter-load-bearing-note-2026-07-29`, commit 609ff69, draft PR opened via safeoutputs (PR number pending apply). Task 2: 9 open issues — commented on #501 to acknowledge the PR; #309 and #310 still have prior detailed Repo Assist comments and no new human activity; remaining 6 are automation / monthly-summary issues not candidates for engagement. Task 11: Refreshed #165 — removed PR #499 and PR #500 from Suggested Actions (both merged 2026-07-28), added the new setup-flutter load-bearing comment PR. Task 8: Explore agent dispatched for residual perf candidates after an-lee's 2026-07-27 batch (#487–#495) + my PR #499; outcome recorded in summary's Run History."
 }
