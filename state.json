@@ -1,10 +1,10 @@
 {
-  "last_run": "2026-07-29T15:05:00Z",
-  "run_id": 30463357360,
-  "selected_tasks": [2, 3, 5],
+  "last_run": "2026-07-31T15:06:48Z",
+  "run_id": 30641485207,
+  "selected_tasks": [2, 4, 3],
   "comments_made": [],
-  "prs_created": ["repo-assist/perf-regex-hoist-disableanim-dateformat-cache-2026-07-29"],
+  "prs_created": [],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 2, 3, 5 + 11. Task 5 bundled the three Task 8 perf candidates queued from the prior run (PR-A DateFormat cache, PR-B disableAnimationsOf, PR-C RegExp hoist) plus a dedupe (drop duplicate _tagStripRegExp in transcript_markup.dart) into one cohesive PR. Branch repo-assist/perf-regex-hoist-disableanim-dateformat-cache-2026-07-29 @ b233b322, 7 files / +59 / -19, all behavior-preserving. Draft PR opened via safeoutputs (PR number pending apply). Task 2: 8 open issues scanned, no engagement candidates (309/310 prior detailed comments no new human activity, 72/82/144/166/189 are automation/aw tracking issues, 165 is the monthly summary itself). Task 3: no bug/help-wanted/good-first-issue to fix. Task 11: Refreshed #165 — removed setup-flutter load-bearing PR (#501 closed by an-lee's PR #503 merged 2026-07-29 09:57 UTC), added new bundled perf PR, dropped _formatPublishedLabel from Future Work. Prior run's PR #499/#500 'may need closing' worry remains unfounded; PR #503 (an-lee's replacement) merged cleanly. Agentic runner Flutter SDK read-only — dart format/analyze/test cannot run, same as #501/#503 documented."
+  "notes": "Tasks 2, 4, 3 + 11. No actionable work this run. Task 2: 8 open issues scanned, all either automation tracking (#72, #82, #144, #166, #189) or already-commented by Repo Assist with no new human activity (#309, #310 since 2026-07-13); #165 is the monthly summary itself. Task 3: no bug/help-wanted/good-first-issue to fix; the bundled perf PR from 2026-07-29-run2 landed cleanly as PR #504 (merged 2026-07-30 05:47 UTC by an-lee). Task 4: no Dependabot alerts visible (filtered); CI green; four maintainer PRs landed cleanly since last run (#506 CraftFailureCard, #509 CraftLoadingView, #510 shadow-friendly cues, #512 media_card split); v0.7.3 released today with CHANGELOG [Unreleased] intentionally empty between cuts; agentic runner Flutter SDK still read-only. Task 11: refreshed #165 — removed PR #504 from Suggested Actions (merged); Suggested Actions now empty; prepended this run's entry; noted maintainer activity."
 }
