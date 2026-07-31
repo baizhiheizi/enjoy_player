@@ -1,1 +1,1 @@
-- [Test Improver run state](test-improver-state.md) — last run 2026-07-22 21:22 UTC (vocabulary_models.dart: 49 tests, draft PR created), monthly issue #166 updated
+- [Test Improver run state](test-improver-state.md) — last run 2026-07-31 21:30 UTC (craft_job_state.dart: 41 tests, draft PR created), monthly issue #166 updated
