@@ -1,10 +1,10 @@
 {
-  "last_run": "2026-07-31T15:06:48Z",
-  "run_id": 30641485207,
-  "selected_tasks": [2, 4, 3],
+  "last_run": "2026-08-01T14:11:00Z",
+  "run_id": 30703178584,
+  "selected_tasks": [2, 3, 8],
   "comments_made": [],
-  "prs_created": [],
+  "prs_created": ["repo-assist/perf-regex-hoist-vol-select-2026-08-01"],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 2, 4, 3 + 11. No actionable work this run. Task 2: 8 open issues scanned, all either automation tracking (#72, #82, #144, #166, #189) or already-commented by Repo Assist with no new human activity (#309, #310 since 2026-07-13); #165 is the monthly summary itself. Task 3: no bug/help-wanted/good-first-issue to fix; the bundled perf PR from 2026-07-29-run2 landed cleanly as PR #504 (merged 2026-07-30 05:47 UTC by an-lee). Task 4: no Dependabot alerts visible (filtered); CI green; four maintainer PRs landed cleanly since last run (#506 CraftFailureCard, #509 CraftLoadingView, #510 shadow-friendly cues, #512 media_card split); v0.7.3 released today with CHANGELOG [Unreleased] intentionally empty between cuts; agentic runner Flutter SDK still read-only. Task 11: refreshed #165 — removed PR #504 from Suggested Actions (merged); Suggested Actions now empty; prepended this run's entry; noted maintainer activity."
+  "notes": "Tasks 2, 3, 8 + 11. Task 8: bundled perf PR on branch repo-assist/perf-regex-hoist-vol-select-2026-08-01 (commit 9b427e07, 4 files / +46 / -21) — json_feed_parser regex hoist (3 sites), subtitle_parser regex hoist (3 sites) + tagStripRegExp reuse, transport_volume_button scoped .select() on volume, community_activity_avatars regex hoist. All behavior-preserving. Task 2: 8 open issues scanned, all either automation tracking (#72, #82, #144, #166, #189) or already-commented by Repo Assist with no new human activity (#309, #310 since 2026-07-13); #165 is the monthly summary itself. Task 3: no bug/help-wanted/good-first-issue to fix. Task 11: refreshed #165 — added review entries for PR #515 (an-lee, lite subscription tier, mergeable_state unstable) and the new bundled perf PR; updated Future Work with three deferred perf candidates (_VirtualItems rebuild memoization, TransportScrollableList per-line post-frame translate requests, DiscoverFeedTile Image.network → CachedNetworkImage). dart format/analyze/test not run (read-only SDK); same invariant as PR #503."
 }
