@@ -36,11 +36,11 @@
   },
   "Transcripts": {
     "sourceFiles": [
-      { "path": "docs/features/transcript.md", "hash": "transcript-doc-2026-07-18" },
-      { "path": "lib/features/transcript/data/transcript_repository.dart", "hash": "transcript-repo-2026-07-18" }
+      { "path": "docs/features/transcript.md", "hash": "size:28908" },
+      { "path": "lib/features/transcript/presentation/transcript_line_tile.dart", "hash": "size:13447" }
     ],
-    "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-23T12:00:00Z"
+    "templateHash": "size:41788",
+    "generatedAt": "2026-08-04T17:19:00Z"
   },
   "Echo-Mode": {
     "sourceFiles": [
@@ -81,10 +81,19 @@
   },
   "Subscription": {
     "sourceFiles": [
-      { "path": "docs/features/subscription.md", "hash": "sub-doc-2026-07-18" }
+      { "path": "docs/features/subscription.md", "hash": "size:4690" },
+      { "path": "lib/features/subscription/domain/subscription_status.dart", "hash": "size:2282" },
+      { "path": "lib/features/subscription/domain/purchase_request.dart", "hash": "size:1172" },
+      { "path": "lib/features/subscription/presentation/widgets/tier_catalog.dart", "hash": "size:26651" },
+      { "path": "lib/features/subscription/presentation/widgets/auto_renew_plan_sheet.dart", "hash": "size:27214" },
+      { "path": "lib/features/subscription/presentation/widgets/subscription_status_card.dart", "hash": "size:14538" },
+      { "path": "lib/features/subscription/presentation/tier_reconcile_host.dart", "hash": "size:5133" },
+      { "path": "lib/features/subscription/application/tier_reconcile_provider.dart", "hash": "size:8911" },
+      { "path": "lib/features/subscription/data/subscription_repository.dart", "hash": "size:2741" },
+      { "path": "lib/data/api/services/subscription_api.dart", "hash": "size:1005" }
     ],
-    "templateHash": "pages-md-2026-07-18",
-    "generatedAt": "2026-07-23T12:00:00Z"
+    "templateHash": "size:41788",
+    "generatedAt": "2026-08-04T17:19:00Z"
   },
   "Settings": {
     "sourceFiles": [

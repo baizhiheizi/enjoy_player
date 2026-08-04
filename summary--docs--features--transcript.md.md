@@ -1,7 +1,9 @@
-<hash>size:23744</hash>
+<hash>size:28908</hash>
 
 # `docs/features/transcript.md`
 
-- Documents SRT/VTT import, subtitle picker behavior, cloud and YouTube resolution, ASR, lookup, translation, echo, blur practice, and accessibility.
-- Track and line streams use value equality and list dedupe to suppress no-op Drift updates.
-- YouTube captions are stored as separate source/language tracks with language-aware primary selection.
+- Defines transcript behavior for imported SRT/VTT, cloud and YouTube captions, AI ASR, lookup, auto-translate, blur practice, and echo-region rendering.
+- `watchTracks` uses value equality and stream dedupe so unchanged Drift emissions do not rebuild consumers.
+- Current line UI keeps 16 px horizontal padding; desktop/mobile density changes vertical padding, list gaps, typography height, and echo controls.
+- Active cues use a 3 px rail; secondary text uses an inset border; accessibility combines timing, cue text, state, and recording count.
+- Auto-translate requests viewport lines lazily with bounded concurrency and persists results in Drift.
