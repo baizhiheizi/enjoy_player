@@ -1,38 +1,29 @@
 # Repo Assist — Enjoy Player
 
 ## Backlog progress
-- Latest run (2026-08-08): shared whitespace normalization refactor on `repo-assist/improve-text-normalization` (`#aw_txtnorm1`, commit `159c5c3`); no new issue comments because #309, #310, and #527 had no new human activity.
-- Issues commented on: #309, #310, #355, #383, #474, #501, **#527** (2026-08-05 run2 — Phase 2 of IPA research shipped)
-- PRs created (merged by an-lee): #486 stream subscription leak, #496 PlayerLaunchRequest tests, #498 setup_logging dedupe, #499 perf transport-bar/surface-host, #500 sync_types tests, #503 ci/setup-flutter warm-cache invariant (closed #501), #504 perf regex-hoist/MediaQuery-scope/DateFormat-cache, #516 perf regex-hoist + vol-select (2026-08-02), **#521** typed PayUrlLaunchException (2026-08-04)
-- PRs created (draft, awaiting review):
-  - `repo-assist/improve-text-normalization` (`#aw_txtnorm1`, commit `159c5c3`, 11 files / +57 / -18) — shared cached whitespace normalization helper + four tests.
-  - `repo-assist/payurl-typed-exception-2026-08-04` (commit `efce7118`, 2 files / +135 / -6) — bundled coding+testing on `launchPayUrl`.
-  - `repo-assist/coding-and-tests-improvements-2026-08-02` (commit `1f659b6`, 4 files / +311 / -6) — bundled coding+testing (logNamed + typed YoutubeCaptionFetchException + 8 hotkey invariants).
-  - `repo-assist/perf-image-network-cache-2026-08-05` (commit `1bddded`, 3 files / +11 / -8) — Image.network → CachedNetworkImageProvider in discover_feed_tile + discover_channel_avatar + youtube_video_poster.
-  - **`repo-assist/ipa-phase2-word-timings-2026-08-05` (commit `f66b9fcf`, 4 files / +445 / -9)** — Phase 2 of issue #527: `TranscriptWord` model + optional `words: List<TranscriptWord>?` on `TranscriptLine` + per-word spans attached by `buildAsrTranscriptLines` + 13 tests.
+- Latest run (2026-08-08 run2, run id 31259673871): no-action run; confirmed PR #537 + #539 merged; refreshed monthly summary #522.
+- Run before that (2026-08-08, run id 31235204537): shared whitespace normalization refactor on `repo-assist/improve-text-normalization` (`#aw_txtnorm1`, commit `159c5c3`, now PR #539 — merged).
+- Issues commented on: #309, #310, #355, #383, #474, #501, **#527** (2026-08-05 run2).
+- PRs merged by an-lee: #486, #496, #498, #499, #500, #503, #504, #516, **#521** (2026-08-04), **#537** (2026-08-08), **#539** (2026-08-08).
+- Draft branches awaiting maintainer review (if recreated as PRs):
+  - `repo-assist/payurl-typed-exception-2026-08-04`
+  - `repo-assist/coding-and-tests-improvements-2026-08-02`
+  - `repo-assist/perf-image-network-cache-2026-08-05`
+  - `repo-assist/ipa-phase2-word-timings-2026-08-05` (Phase 2 of #527).
 
 ## Pending actions for maintainer
-- Review onboarding test PR #537.
-- Review draft `#aw_txtnorm1` shared normalization PR.
-- Review prior draft branches listed above if they are recreated as pull requests.
-- Check Repo Assist comments on #309, #310, and #527.
+- Review prior draft branches listed above if recreated as PRs.
+- Check Repo Assist comments on #309, #310, #527.
 - Decide whether to manually recreate ADR-0070 after workflow issue #535.
 
 ## Known environment limitations
-- Agentic runner Flutter SDK read-only → `dart format` / `analyze` / `test` may fail on cache writes. This is exactly the invariant #501 / #503 now documents.
+- Agentic runner Flutter SDK read-only → `dart format` / `analyze` / `test` may fail on cache writes (invariant #501 / #503).
 - No git credentials for network operations.
-- Linter pass may revert working-tree changes after a safe-outputs PR creates — confirmed cosmetic, NOT blocking merges (verified via PR #499, #500, #503).
+- Linter pass may revert working-tree changes after a safe-outputs PR creates — cosmetic, NOT blocking merges (verified via #499, #500, #503).
 
-## Carry-over perf candidates
-- Last carry-over shipped via this run (2026-08-05 PR): `_VideoThumbnail` / `_ChannelAvatar` `Image.network` → `CachedNetworkImageProvider`. ✅
-- Remaining perf queue (deferred):
-  - `_VirtualItems` rebuild memoization (transcript_scrollable_list already memoizes via `_cachedVirtualItems`; verify there's no per-frame rebuild outside the cached path).
-  - `TransportScrollableList` per-line post-frame translate requests.
-
-## Carry-over testing-impl candidates
-- `asr_generation_job.dart` model has no direct test, but `asr_generation_controller_test.dart` + `asr_generation_controller_long_form_test.dart` already exercise the model indirectly. Re-evaluate next run whether a dedicated model test is worth adding.
-
-## Future investigations
+## Carry-over queues
+- Perf: `_VirtualItems` rebuild memoization (transcript_scrollable_list already memoizes); `TransportScrollableList` per-line post-frame translate requests.
+- Testing: `asr_generation_job.dart` model has no direct test (covered indirectly by controller tests); reassess next run.
 - Architectural dedupe (#17, #39, #40).
-- `settings_screen.dart` below ~120 LOC requires per-section sliver extraction (prior proposal expired).
-- **Issue #527 follow-up (now unblocked by Phase 2 merge)**: extend `TranscriptWord` with `ipa?: String`; add Worker KV `(locale, word) → ipa` cache + LLM batched endpoint; extend `transcript_markup.dart` with a word-segmenting span builder; add the Settings toggle.
+- `settings_screen.dart` below ~120 LOC requires per-section sliver extraction.
+- Issue #527 follow-up (Phase 1): `TranscriptWord.ipa?: String` + Worker KV `(locale, word) → ipa` cache + LLM batched endpoint + renderer word-segmenting span builder + Settings toggle; gated on ADR-0070 maintainer decisions.
