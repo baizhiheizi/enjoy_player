@@ -1,14 +1,14 @@
 {
-  "last_run": "2026-08-10T03:03:00Z",
-  "run_id": "31351133413",
+  "last_run": "2026-08-11T03:00:00Z",
+  "run_id": "31453483418",
   "selected_tasks": [
-    2,
-    10,
+    8,
+    4,
     3
   ],
   "comments_made": [],
   "prs_created": [],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 2, 10, 3 + 11. Task 3 (Issue Fix) used the required Task 2 fallback because no open issue is labelled `bug`, `help wanted`, or `good first issue`. Task 2 reviewed every open issue; #309, #310, and #527 already have Repo Assist comments with no new human activity, and the remaining items (#72, #82, #144, #166, #189, #520, #522, #535) are automation or tracking reports. Task 10 scanned the backlog (IPA Phase 1 gated on ADR-0070, architectural dedupe, settings_screen.dart at 105 LOC, asr_generation_job.dart model tests, transport scroll list post-frame translate queue); no safe, low-risk improvement identified. Task 11 refreshed monthly summary issue #522: tightened the settings_screen.dart Future Work note to reflect the current 105-LOC file with `_EditorialHeaderSlot` already extracted, and prepended the 2026-08-10 03:03 UTC run history entry linking to run 31351133413."
+  "notes": "Tasks 8, 4, 3 + 11. Task 3 (Issue Fix) used the required Task 2 fallback because no open issue is labelled `bug`, `help wanted`, or `good first issue`. Task 8 re-verified `_virtualItems` memoization is in place in `transcript_scrollable_list.dart` and kept the `TransportScrollableList` per-line post-frame translate queue as a queued candidate (no benchmark signal). Task 4 confirmed `pubspec.yaml` is gated by the analyzer ^12 ceiling, no Dependabot config exists, and CI uses pinned actions + self-hosted setup-flutter cache — no actionable change. Task 2 scanned all three open issues (#522, #540, #542); #540 is a thorough maintainer-authored DTW Phase 3 proposal with decisions left open, #542 is a self-resolving auto-reported cache-miss guardrail; no new comments (anti-spam on documentation/automation items). Task 11 refreshed monthly summary issue #522: added Suggested Actions entries for #540 (triage DTW Phase 3) and #542 (close auto cache-miss), updated the Future Work queue to call out both #527 and #540 maintainer gating, and prepended the 2026-08-11 03:00 UTC run history entry linking to run 31453483418."
 }

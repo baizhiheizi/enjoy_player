@@ -1,5 +1,6 @@
 # Repo Assist — Memory Index
 
+- [Run 2026-08-11](notes-2026-08-11.md) — Task 8/4/3 no-action run; refreshed monthly summary #522 with #540 (DTW Phase 3) and #542 (auto cache-miss) entries
 - [Run 2026-08-10](notes-2026-08-10.md) — Task 2/3/10 no-action run; refreshed monthly summary #522 with tightened settings_screen Future Work note
 - [Run 2026-08-08 (run3)](notes-2026-08-08-run3.md) — no safe code, dependency, or CI improvement identified; monthly summary #522 remained current
 - [Run 2026-08-08 (run2)](notes-2026-08-08-run2.md) — no-action run; confirmed PR #537 + #539 merged; refreshed monthly summary #522
