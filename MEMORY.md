@@ -1,5 +1,6 @@
 # Repo Assist — Memory Index
 
+- [Run 2026-08-12](notes-2026-08-12.md) — opened test-only draft PR (parseYoutubeVideoId + negative minutes/seconds); refreshed monthly summary #522
 - [Run 2026-08-11 late](notes-2026-08-11-late.md) — added negative duration-component regression coverage; Flutter gate blocked by read-only SDK cache; no PR created
 - [Run 2026-08-10](notes-2026-08-10.md) — Task 2/3/10 no-action run; refreshed monthly summary #522 with tightened settings_screen Future Work note
 - [Run 2026-08-08 (run3)](notes-2026-08-08-run3.md) — no safe code, dependency, or CI improvement identified; monthly summary #522 remained current
