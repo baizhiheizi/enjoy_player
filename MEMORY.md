@@ -1,7 +1,8 @@
 # Repo Assist — Enjoy Player
 
 ## Backlog progress
-- Latest run (2026-08-13, run id 31663168346): no-action run; refreshed monthly summary #522 with the new #547 (Duplicate Code Detector auto-failure) entry.
+- Latest run (2026-08-13 run2, run id 31708273065): created draft PR on branch `repo-assist/perf-profile-avatars-cached-provider-2026-08-13` swapping the last two `NetworkImage(...)` profile avatars for `CachedNetworkImageProvider`; refreshed monthly summary #522.
+- Run before that (2026-08-13, run id 31663168346): no-action run; refreshed monthly summary #522 with the new #547 (Duplicate Code Detector auto-failure) entry.
 - Run before that (2026-08-12, run id 31604747330): opened test-only draft branch `repo-assist/test-youtube-id-and-negative-duration-2026-08-12` (`0cc213a`); Flutter gate blocked by read-only SDK cache.
 - Run before that (2026-08-11 late, run id 31499461058): local commit `0b34271` adds negative duration-component coverage; no PR opened.
 - Earlier 2026-08-08 (run2, run id 31259673871): no-action run; confirmed PR #537 + #539 merged; refreshed monthly summary #522.
