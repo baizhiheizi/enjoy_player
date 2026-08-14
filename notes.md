@@ -1,29 +1,28 @@
 # Repo Assist — Enjoy Player
 
 ## Backlog progress
-- Latest run (2026-08-08 run2, run id 31259673871): no-action run; confirmed PR #537 + #539 merged; refreshed monthly summary #522.
-- Run before that (2026-08-08, run id 31235204537): shared whitespace normalization refactor on `repo-assist/improve-text-normalization` (`#aw_txtnorm1`, commit `159c5c3`, now PR #539 — merged).
+- Latest run (2026-08-14 run2, run id 31807339220): created draft PR `repo-assist/perf-case-conversion-ascii-2026-08-14` (commit `537774e`) folding ASCII uppercase inline in the recursive JSON-key walkers (`_camelToSnakeToken` / `_snakeToCamelToken`) without per-char allocation; non-ASCII keys fall back to the original Unicode-aware path with a regression test locking that in. Refreshed monthly summary #522.
+- Run before that (2026-08-14, run id 31765982034): created draft PR `repo-assist/test-asr-generation-job-model-2026-08-14` (commit `58f92730`, merged via PR #550) adding direct unit tests for the `AsrGenerationJob` value object.
+- Run before that (2026-08-13 run2, run id 31708273065): created draft PR #548 on branch `repo-assist/perf-profile-avatars-cached-provider-2026-08-13` swapping the last two `NetworkImage(...)` profile avatars for `CachedNetworkImageProvider`.
 - Issues commented on: #309, #310, #355, #383, #474, #501, **#527** (2026-08-05 run2).
-- PRs merged by an-lee: #486, #496, #498, #499, #500, #503, #504, #516, **#521** (2026-08-04), **#537** (2026-08-08), **#539** (2026-08-08).
-- Draft branches awaiting maintainer review (if recreated as PRs):
-  - `repo-assist/payurl-typed-exception-2026-08-04`
-  - `repo-assist/coding-and-tests-improvements-2026-08-02`
-  - `repo-assist/perf-image-network-cache-2026-08-05`
-  - `repo-assist/ipa-phase2-word-timings-2026-08-05` (Phase 2 of #527).
+- PRs merged by an-lee: #486, #496, #498, #499, #500, #503, #504, #516, #521 (2026-08-04), #537 (2026-08-08), #539 (2026-08-08), #545 (2026-08-12), #548 (2026-08-14), **#550** (2026-08-14).
+- Open Repo Assist PRs: 1 — case_conversion ASCII folding.
 
 ## Pending actions for maintainer
-- Review prior draft branches listed above if recreated as PRs.
+- Review the case_conversion PR if/when the bridge records the number.
 - Check Repo Assist comments on #309, #310, #527.
+- Triage #540 (DTW Phase 3 design questions), #547 (Duplicate Code Detector auto-failure, self-managing), #549 (large-file-simplifier proposal for `assessment_result_dialog.dart`, expires 2026-08-15).
 - Decide whether to manually recreate ADR-0070 after workflow issue #535.
 
 ## Known environment limitations
 - Agentic runner Flutter SDK read-only → `dart format` / `analyze` / `test` may fail on cache writes (invariant #501 / #503).
-- No git credentials for network operations.
-- Linter pass may revert working-tree changes after a safe-outputs PR creates — cosmetic, NOT blocking merges (verified via #499, #500, #503).
+- No git credentials for network operations; use safeoutputs for PRs.
+- Linter pass may revert working-tree changes after a safe-outputs PR creates — cosmetic, NOT blocking merges (verified via #499, #500, #503, #550). The 2026-08-14 run2 lang-tag-separator refactor was reverted externally before the PR could be created; not a blocker.
 
 ## Carry-over queues
-- Perf: `_VirtualItems` rebuild memoization (transcript_scrollable_list already memoizes); `TransportScrollableList` per-line post-frame translate requests.
-- Testing: `asr_generation_job.dart` model has no direct test (covered indirectly by controller tests); reassess next run.
+- Perf: `_VirtualItems` rebuild memoization (transcript_scrollable_list already memoizes); `TransportScrollableList` per-line post-frame translate requests; case_conversion ASCII folding (in PR).
 - Architectural dedupe (#17, #39, #40).
-- `settings_screen.dart` below ~120 LOC requires per-section sliver extraction.
+- `settings_screen.dart` below ~120 LOC requires per-section sliver extraction (already 105 LOC with `_EditorialHeaderSlot`).
+- `app_language_catalog.dart` `kLanguageTagSeparator` shared constant — re-attempt if the post-commit lint pass stops reverting it; otherwise escalate.
 - Issue #527 follow-up (Phase 1): `TranscriptWord.ipa?: String` + Worker KV `(locale, word) → ipa` cache + LLM batched endpoint + renderer word-segmenting span builder + Settings toggle; gated on ADR-0070 maintainer decisions.
+- Issue #549 (large-file-simplifier proposal) is a candidate for a focused, surgical PR — the proposed splits are well-aligned with neighboring `score_level.dart` / `pitch_contour_section.dart` patterns; would only start once maintainer signals approval.

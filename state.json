@@ -1,10 +1,10 @@
 {
-  "last_run": "2026-08-14T03:16:00Z",
-  "run_id": "31765982034",
-  "selected_tasks": [1, 4, 10],
+  "last_run": "2026-08-14T14:09:00Z",
+  "run_id": "31807339220",
+  "selected_tasks": [5, 8, 4],
   "comments_made": [],
-  "prs_created": ["repo-assist/test-asr-generation-job-model-2026-08-14"],
+  "prs_created": ["repo-assist/perf-case-conversion-ascii-2026-08-14"],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 1, 4, 10 + 11. Task 1 fell back to Task 2 (all 4 open issues already labelled: #522, #540, #547, #549). Task 2 posted no comments because every open item is an automation/self-managing issue or a maintainer-authored proposal with no new human activity. Task 4 found no actionable dependency/CI/SDK change (pubspec constraints remain gated by analyzer ^12 ceiling; no Dependabot config; CI uses pinned actions). Task 10 picked the carry-over asr_generation_job.dart direct model test gap; added three test groups (copyWith, terminal phases, enum completeness) — 108 LOC, no production-code changes. Task 11 refreshed monthly summary #522 with Suggested Actions entries for #548, the new test PR, and #549."
+  "notes": "Tasks 5, 8, 4 + 11. Task 8 created draft PR on branch repo-assist/perf-case-conversion-ascii-2026-08-14 (commit 537774e) folding ASCII uppercase inline in the recursive JSON-key walkers without per-char allocation; non-ASCII keys fall back to the original Unicode-aware path, with a regression test locking that in. Task 5 drafted a kLanguageTagSeparator regex constant for app_language_catalog.dart (5 duplicated RegExp(r'[-_]') literals) — the working-tree edit was reverted by the post-commit lint pass / external linter before the PR could be created, so it was not shipped this run. Task 4 found no actionable dependency/CI/SDK change (pubspec constraints remain gated by analyzer ^12 ceiling; no Dependabot config; CI uses pinned actions). Task 11 refreshed monthly summary #522 with Suggested Actions entries for the new case_conversion PR."
 }
