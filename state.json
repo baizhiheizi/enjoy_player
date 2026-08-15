@@ -1,10 +1,12 @@
 {
-  "last_run": "2026-08-14T14:09:00Z",
-  "run_id": "31807339220",
-  "selected_tasks": [5, 8, 4],
+  "last_run": "2026-08-15T13:09:00Z",
+  "run_id": "31886709595",
+  "selected_tasks": [5, 9, 3],
   "comments_made": [],
-  "prs_created": ["repo-assist/perf-case-conversion-ascii-2026-08-14"],
+  "prs_created": [],
+  "branch_ready": "repo-assist/improve-language-tag-split-helper-2026-08-15",
+  "branch_commits": ["0523be6", "2fcdaf8"],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 5, 8, 4 + 11. Task 8 created draft PR on branch repo-assist/perf-case-conversion-ascii-2026-08-14 (commit 537774e) folding ASCII uppercase inline in the recursive JSON-key walkers without per-char allocation; non-ASCII keys fall back to the original Unicode-aware path, with a regression test locking that in. Task 5 drafted a kLanguageTagSeparator regex constant for app_language_catalog.dart (5 duplicated RegExp(r'[-_]') literals) — the working-tree edit was reverted by the post-commit lint pass / external linter before the PR could be created, so it was not shipped this run. Task 4 found no actionable dependency/CI/SDK change (pubspec constraints remain gated by analyzer ^12 ceiling; no Dependabot config; CI uses pinned actions). Task 11 refreshed monthly summary #522 with Suggested Actions entries for the new case_conversion PR."
+  "notes": "Tasks 5, 9, 3 + 11. Task 5 + 9 landed on branch repo-assist/improve-language-tag-split-helper-2026-08-15 (commits 0523be6, 2fcdaf8): one file-private _splitLanguageTag helper + _kLanguageTagSeparator instance in lib/core/application/app_language_catalog.dart (5 duplicated RegExp literals -> 1 shared pattern), plus direct unit tests for 5 previously-untested public helpers. The 2026-08-14 run2 carry-over succeeded by switching from a top-level public constant to a file-private helper so the post-commit lint pass has no public API to revert. Task 3 fell back: no fixable labelled bug/help-wanted/good-first-issue open; the 4 open issues (#540, #547, #549, #552) are all decision/automation items. Task 11 refreshed #522: removed merged #548 and #551 from Suggested Actions, added #552 (Test Improver auto-failure), prepended this run's Run History entry. Branch ready but no PR created this run; maintainer can pick it up as-is."
 }
