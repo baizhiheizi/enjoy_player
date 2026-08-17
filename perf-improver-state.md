@@ -39,7 +39,7 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 
 ## Optimization Backlog — Addressed
 
-- ✅ **VocabularyItem / VocabularyContext equality** (2026-08-10) — pinned field-by-field `==` / `hashCode` on both types. Branch `perf-assist/vocabulary-value-equality-2026-08-10`. 9 structural tests. Follows the same pattern as PRs #188, #208, #238, #291, and the recent `SyncQueueSnapshot` work.
+- ✅ **VocabularyItem / VocabularyContext equality** (2026-08-17, **re-landed**) — pinned field-by-field `==` / `hashCode` on both types. Branch `perf-assist/vocabulary-value-equality-2026-08-17`. 6 structural tests (identical-equal, hash-equals contract, per-field inequality for all 28 fields). 2026-08-10 entry was stale — the prior worktree-local branch did not survive; commit did not exist on any reachable ref when audited 2026-08-17.
 - ✅ **SyncQueueSnapshot equality** (2026-07-27) — Pinned `==` / `hashCode` on `SyncQueueSnapshot`. 3 structural tests.
 - ✅ **Microbenchmark harness docs** (2026-07-21) — `docs/perf-measurement.md` merged as PR #422.
 - ✅ **Coalesce overlapping Discover refreshes** (2026-07-22) — Single-flight guard `DiscoverRefreshState._pendingRefresh` already implemented in `main` at `discover_providers.dart:149-176`.
@@ -62,7 +62,8 @@ Flutter SDK at `/opt/hostedtoolcache/flutter-3.44.0-stable/` is read-only overla
 
 ## Run History (last 10)
 
-- **2026-08-10** 17:40 UTC — run 31415106711. Pinned field-by-field `==` / `hashCode` on `VocabularyItem` (16 fields) and `VocabularyContext` (12 fields). 9 structural tests. Branch `perf-assist/vocabulary-value-equality-2026-08-10`. Pre-existing CI failures on main confirmed unrelated.
+- **2026-08-17** 18:00 UTC — run 32049374878. Re-landed `VocabularyItem` / `VocabularyContext` field-by-field equality on `perf-assist/vocabulary-value-equality-2026-08-17`. 6 structural tests. Audited memory: 2026-08-10 entry was stale (worktree-local branch discarded, no commit on any reachable ref). All CI gates pass on the new branch.
+- **2026-08-10** 17:40 UTC — run 31415106711. (Stale — branch `perf-assist/vocabulary-value-equality-2026-08-10` did not survive; re-landed 2026-08-17.)
 - **2026-07-27** 18:30 UTC — run 30292923202. Pinned `SyncQueueSnapshot.==` / `hashCode` so Riverpod skips UI rebuilds when Drift re-emit doesn't change the visible state. 3 structural tests. Draft PR: `perf-assist/sync-queue-snapshot-sql-aggregate-2026-07-27`. Investigated SQL aggregate for `watchSnapshot` (counts + detail) and reverted — slight wall-clock regression at 1000 rows because the watch itself dominates. Memory + monthly summary updated.
 - **2026-07-24** 18:10 UTC — run 30115609598. Investigated backlog item #5 (ASR streaming): full architecture audit of `asr_audio_extractor.dart`, `AsrRequest`, `ApiClient`, and all 3 provider capability paths. Documented peak-RSS measurement strategy. Updated memory + monthly summary.
 - **2026-07-23** 18:40 UTC — run 30031975736. Created `test/perf/` microbenchmark directory with SRT/VTT parsing and case-conversion benchmarks. Updated `docs/perf-measurement.md`. PR: `perf-assist/microbenchmark-harness-2026-07-23`.
