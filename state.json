@@ -1,12 +1,12 @@
 {
-  "last_run": "2026-08-18T02:11:00Z",
-  "run_id": "32090446771",
-  "selected_tasks": [5, 10, 2],
-  "comments_made": [540],
-  "prs_created": ["repo-assist/improve-remove-orphan-toggle-word-loop-2026-08-18"],
-  "branch_ready": "repo-assist/improve-remove-orphan-toggle-word-loop-2026-08-18",
-  "branch_commits": ["14c0e842"],
+  "last_run": "2026-08-21T02:21:12Z",
+  "run_id": "32438930318",
+  "selected_tasks": [3, 4, 5],
+  "comments_made": [],
+  "prs_created": ["repo-assist/dedupe-language-tag-separator-2026-08-21"],
+  "branch_ready": "repo-assist/dedupe-language-tag-separator-2026-08-21",
+  "branch_commits": ["48f9f1d0"],
   "prs_may_need_closing": [],
   "prs_reverted_this_run": [],
-  "notes": "Tasks 5, 10, 2 + 11. Task 5 + 10 landed on branch repo-assist/improve-remove-orphan-toggle-word-loop-2026-08-18 (commit 14c0e842): removed orphan PlayerInteractions.toggleWordLoop (zero callers per #540 item 8 from an-lee's 2026-08-17 status review); supporting wiring preserved. Draft PR created via safeoutputs create_pull_request. Task 2: skipped re-engaging on #540 because an-lee's reply already covered the same ground. Task 11: refreshed #522, removed merged PR (test-media-resolver landed as #557/#564), removed closed #547/#549/#552/#555, promoted an-lee's 2026-08-17 review with three concrete sub-priorities (vendor eSpeak binaries, decide inert timelineEnrichment setting, decide wordBoundaries deprecation ADR). flutter analyze exits 0; dart format and flutter test exit non-zero from the read-only SDK cache wrapper (invariant). safeoutputs update_issue uses issue_number not item_number — caught this run, retried successfully."
+  "notes": "Tasks 3, 4, 5 + 11. Task 5 landed on branch repo-assist/dedupe-language-tag-separator-2026-08-21 (commit 48f9f1d0): collapsed five duplicated RegExp(r'[-_]') literals in lib/core/application/app_language_catalog.dart into one file-private _kLanguageTagSeparator + _splitLanguageTag helper; file-private on purpose (the 2026-08-14 attempt with a top-level public constant was reverted by the post-commit lint pass). Added direct unit tests for five previously-untested public helpers (primaryLanguageSubtag, normalizeBcp47Tag, tagsEqual, displayLocaleFromRawOrDefault, coerceNativeIfEqualsLearning). Net +118 / -5 across two files; pure refactor, no production behavior change. Draft PR created via safeoutputs create_pull_request. Task 4: reverted working-tree pubspec.lock drift (7 transitive packages downgraded by an unrelated flutter pub get against an older cached SDK) via plain git checkout -- pubspec.lock; no PR. Did not revert tool/untranslated_messages.json (real AI-providers settings content, not drift). Task 3: no fixable labelled bug/help wanted/good first issue open; the three open issues (#522 monthly summary, #573 Detection Runs auto, #585 large-file-simplifier proposal) are all decision/automation items, so fell back per the workflow substitution rules. Task 11: refreshed #522, added the new dedupe-language-tag-separator draft PR, added #585 to Future Work (will wait for maintainer signal before starting given prior #549 closed without merge), prepended this run's entry to Run History, preserved all prior pending actions. bash .github/scripts/check_dart_format.sh exits 0 after --fix. flutter analyze and flutter test exit non-zero from the read-only SDK cache wrapper (invariant) — change is mechanically safe: identical regex pattern r'[-_]', identical List<String> return type, every replacement is a 1-for-1 substitution."
 }
