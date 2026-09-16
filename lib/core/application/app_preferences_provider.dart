@@ -110,17 +110,15 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     }
 
     final db = ref.watch(appDatabaseProvider);
-    var localeRaw = await db.settingsDao.getValue(
-      SettingsKeys.prefsLocale.name,
+    var localeRaw = await db.settingsDao.readSetting(SettingsKeys.prefsLocale);
+    var learnRaw = await db.settingsDao.readSetting(
+      SettingsKeys.prefsLearningLanguage,
     );
-    var learnRaw = await db.settingsDao.getValue(
-      SettingsKeys.prefsLearningLanguage.name,
+    var nativeRaw = await db.settingsDao.readSetting(
+      SettingsKeys.prefsNativeLanguage,
     );
-    var nativeRaw = await db.settingsDao.getValue(
-      SettingsKeys.prefsNativeLanguage.name,
-    );
-    final themeRaw = await db.settingsDao.getValue(
-      SettingsKeys.prefsThemeMode.name,
+    final themeRaw = await db.settingsDao.readSetting(
+      SettingsKeys.prefsThemeMode,
     );
     final themeMode = themeModeFromStorage(themeRaw);
 
@@ -128,8 +126,8 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (learnRaw == null ||
         learnRaw.isEmpty ||
         !tagsEqual(learnRaw, learnCanonical)) {
-      await db.settingsDao.setValue(
-        SettingsKeys.prefsLearningLanguage.name,
+      await db.settingsDao.writeSetting(
+        SettingsKeys.prefsLearningLanguage,
         learnCanonical,
       );
       learnRaw = learnCanonical;
@@ -142,8 +140,8 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (nativeRaw == null ||
         nativeRaw.isEmpty ||
         !tagsEqual(nativeRaw, nativeCoerced)) {
-      await db.settingsDao.setValue(
-        SettingsKeys.prefsNativeLanguage.name,
+      await db.settingsDao.writeSetting(
+        SettingsKeys.prefsNativeLanguage,
         nativeCoerced,
       );
       nativeRaw = nativeCoerced;
@@ -154,8 +152,8 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (localeRaw == null ||
         localeRaw.isEmpty ||
         !tagsEqual(canonicalLocaleTag, localeRaw)) {
-      await db.settingsDao.setValue(
-        SettingsKeys.prefsLocale.name,
+      await db.settingsDao.writeSetting(
+        SettingsKeys.prefsLocale,
         canonicalLocaleTag,
       );
       localeRaw = canonicalLocaleTag;
@@ -200,7 +198,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsLocale.name, tag);
+        .writeSetting(SettingsKeys.prefsLocale, tag);
     await ref
         .read(authCtrlProvider.notifier)
         .syncLocaleToServerIfSignedIn(resolved);
@@ -222,12 +220,12 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     );
     state = AsyncData(next);
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
-      SettingsKeys.prefsLearningLanguage.name,
+    await db.settingsDao.writeSetting(
+      SettingsKeys.prefsLearningLanguage,
       canonical,
     );
-    await db.settingsDao.setValue(
-      SettingsKeys.prefsNativeLanguage.name,
+    await db.settingsDao.writeSetting(
+      SettingsKeys.prefsNativeLanguage,
       nativeCoerced,
     );
     await _syncLanguageFieldsToServerIfSignedIn(
@@ -254,7 +252,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsNativeLanguage.name, canonical);
+        .writeSetting(SettingsKeys.prefsNativeLanguage, canonical);
     await _syncLanguageFieldsToServerIfSignedIn(
       learningLanguage: learn,
       nativeLanguage: canonical,
@@ -269,7 +267,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsThemeMode.name, themeModeToStorage(mode));
+        .writeSetting(SettingsKeys.prefsThemeMode, themeModeToStorage(mode));
   }
 
   /// Ensures Drift + (when signed in) server use canonical learning + coerced native.
@@ -298,16 +296,16 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     );
     state = AsyncData(next);
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
-      SettingsKeys.prefsLocale.name,
+    await db.settingsDao.writeSetting(
+      SettingsKeys.prefsLocale,
       localeToBcp47(nextLocale ?? kAppDefaultDisplayLocale),
     );
-    await db.settingsDao.setValue(
-      SettingsKeys.prefsLearningLanguage.name,
+    await db.settingsDao.writeSetting(
+      SettingsKeys.prefsLearningLanguage,
       learnCanonical,
     );
-    await db.settingsDao.setValue(
-      SettingsKeys.prefsNativeLanguage.name,
+    await db.settingsDao.writeSetting(
+      SettingsKeys.prefsNativeLanguage,
       nativeCoerced,
     );
 
