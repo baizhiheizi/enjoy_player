@@ -218,6 +218,18 @@ SyncEngine _buildEngine(
   );
 }
 
+/// A [SyncQueueRepository] whose [pendingItems] returns a frozen snapshot —
+/// stands in for the drain's view of the queue before a producer refresh
+/// landed (the F3 race, without needing an in-flight upload to interleave).
+class _StaleSnapshotQueue extends SyncQueueRepository {
+  _StaleSnapshotQueue(super.db, this.snapshot);
+
+  final List<SyncQueueRow> snapshot;
+
+  @override
+  Future<List<SyncQueueRow>> pendingItems({int limit = 500}) async => snapshot;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -918,6 +930,93 @@ void main() {
         isEmpty,
         reason: 'malformed payload row is dropped',
       );
+    });
+
+    test('drop path keeps a row refreshed between snapshot and remove '
+        '(F3 guard applies to undecodable rows)', () async {
+      // Regression guard (post-merge review of #730): the decode-null drop
+      // path used to call unconditional `removeById`, so a youtube_upload
+      // row whose snapshot payload was malformed could delete a payload the
+      // producer refreshed in place after the snapshot. The drop must be
+      // conditional like the success path.
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queue = SyncQueueRepository(db);
+      final api = _FakeTranscriptsApi();
+
+      const videoId = 'dQw4w9WgXcQ';
+      const language = 'en';
+      // kind matches but required fields are missing — decode refuses it.
+      final stalePayload = jsonEncode({'kind': 'youtube_upload'});
+      final freshPayload = _youtubeUploadPayload(
+        videoId: videoId,
+        language: language,
+        timeline: [
+          {'text': 'fresh', 'start': 0, 'duration': 1000},
+        ],
+      );
+
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: '$videoId/$language',
+        action: 'update',
+        payloadJson: stalePayload,
+      );
+
+      // Freeze the drain's view on the malformed snapshot, then refresh the
+      // row in place (producer race) before the drain runs.
+      final staleSnapshot = await queue.pendingItems();
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: '$videoId/$language',
+        action: 'update',
+        payloadJson: freshPayload,
+      );
+
+      final engine = SyncEngine(
+        db: db,
+        queue: _StaleSnapshotQueue(db, staleSnapshot),
+        upload: SyncUploadService(
+          db: db,
+          audioApi: AudioApi(_testClient(_permissiveMock())),
+          videoApi: VideoApi(_testClient(_permissiveMock())),
+          recordingApi: RecordingApi(_testClient(_permissiveMock())),
+          vocabularyApi: VocabularyApi(_testClient(_permissiveMock())),
+        ),
+        download: SyncDownloadService(
+          db: db,
+          audioApi: AudioApi(_testClient(_permissiveMock())),
+          videoApi: VideoApi(_testClient(_permissiveMock())),
+          recordingApi: RecordingApi(_testClient(_permissiveMock())),
+          vocabularyApi: VocabularyApi(_testClient(_permissiveMock())),
+        ),
+        youtubeTranscripts: api,
+      );
+
+      final result = await engine.processQueue(const SyncOptions());
+
+      // The stale snapshot decodes to null → drop path; the payload-equality
+      // guard sees the refreshed row and leaves it in place.
+      expect(result.success, isTrue);
+      expect(api.uploads, isEmpty);
+      final afterDrop = await db.select(db.syncQueue).get();
+      expect(afterDrop, hasLength(1));
+      expect(
+        afterDrop.single.payloadJson,
+        freshPayload,
+        reason: 'refreshed payload must survive the undecodable snapshot',
+      );
+
+      // A second drain with a live view uploads the fresh payload.
+      final freshEngine = _buildEngine(
+        db,
+        _permissiveMock(),
+        youtubeTranscripts: api,
+      );
+      await freshEngine.processQueue(const SyncOptions());
+      expect(await db.select(db.syncQueue).get(), isEmpty);
+      expect(api.uploads, hasLength(1));
+      expect(api.uploads.single.timeline.single['text'], 'fresh');
     });
 
     test('F3: successful upload does not delete a refreshed payload '
