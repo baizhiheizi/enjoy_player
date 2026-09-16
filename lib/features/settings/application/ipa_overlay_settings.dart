@@ -22,7 +22,10 @@ class IpaOverlaySettings extends _$IpaOverlaySettings {
 
   Future<void> setEnabled(bool enabled) async {
     final db = ref.read(deviceGlobalAppDatabaseProvider);
-    await db.settingsDao.writeSetting(SettingsKeys.transcriptIpaOverlay, enabled);
+    await db.settingsDao.writeSetting(
+      SettingsKeys.transcriptIpaOverlay,
+      enabled,
+    );
     state = AsyncData(enabled);
   }
 }

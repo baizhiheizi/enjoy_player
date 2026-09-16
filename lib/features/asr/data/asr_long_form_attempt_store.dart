@@ -37,10 +37,7 @@ class AsrLongFormAttemptStore {
   }
 
   Future<void> save(AsrLongFormAttempt attempt) async {
-    await _db.settingsDao.writeSetting(
-      _key(attempt.mediaId),
-      attempt.toJson(),
-    );
+    await _db.settingsDao.writeSetting(_key(attempt.mediaId), attempt.toJson());
   }
 
   Future<void> clear(String mediaId) async {

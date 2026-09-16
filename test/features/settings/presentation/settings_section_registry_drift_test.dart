@@ -9,12 +9,13 @@
 /// localized + iconed with zero registry entries), a registry entry
 /// pointing at a removed id, or a missing visuals/localizer case all fail
 /// here instead of shipping as silent dead code or an unlabeled section.
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/features/settings/application/settings_registry_localizer.dart';
 import 'package:enjoy_player/features/settings/domain/settings_search_entry.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_visuals.dart';
-import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:enjoy_player/l10n/app_localizations_en.dart';
 
 void main() {
@@ -47,26 +48,29 @@ void main() {
       }
     });
 
-    test('every registry section id is a declared SettingsSectionIds value', () {
-      const declaredIds = {
-        SettingsSectionIds.cloudSync,
-        SettingsSectionIds.appearanceLanguage,
-        SettingsSectionIds.aiProviders,
-        SettingsSectionIds.recording,
-        SettingsSectionIds.keyboardShortcuts,
-        SettingsSectionIds.developer,
-        SettingsSectionIds.about,
-      };
-      for (final id in registeredSectionIds) {
-        expect(
-          declaredIds.contains(id),
-          isTrue,
-          reason:
-              'kSettingsRegistry references "$id" which is not a '
-              'SettingsSectionIds value',
-        );
-      }
-    });
+    test(
+      'every registry section id is a declared SettingsSectionIds value',
+      () {
+        const declaredIds = {
+          SettingsSectionIds.cloudSync,
+          SettingsSectionIds.appearanceLanguage,
+          SettingsSectionIds.aiProviders,
+          SettingsSectionIds.recording,
+          SettingsSectionIds.keyboardShortcuts,
+          SettingsSectionIds.developer,
+          SettingsSectionIds.about,
+        };
+        for (final id in registeredSectionIds) {
+          expect(
+            declaredIds.contains(id),
+            isTrue,
+            reason:
+                'kSettingsRegistry references "$id" which is not a '
+                'SettingsSectionIds value',
+          );
+        }
+      },
+    );
 
     test('row entries always belong to a registered section', () {
       for (final d in kSettingsRegistry) {

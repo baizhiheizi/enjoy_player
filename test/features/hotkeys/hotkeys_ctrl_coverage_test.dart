@@ -58,7 +58,10 @@ void main() {
     });
 
     test('returns empty map for empty string value', () async {
-      await db.settingsDao.setValue(SettingsKeys.hotkeysCustomBindings.name, '');
+      await db.settingsDao.setValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+        '',
+      );
       final container = makeContainer();
       addTearDown(container.dispose);
 
@@ -79,7 +82,10 @@ void main() {
     });
 
     test('returns empty map when JSON is not a Map', () async {
-      await db.settingsDao.setValue(SettingsKeys.hotkeysCustomBindings.name, '["a","b"]');
+      await db.settingsDao.setValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+        '["a","b"]',
+      );
       final container = makeContainer();
       addTearDown(container.dispose);
 
@@ -277,7 +283,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.setBinding('global.search', 'ctrl+j');
 
-      final raw = await db.settingsDao.getValue(SettingsKeys.hotkeysCustomBindings.name);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       expect(raw, isNotNull);
       final decoded = jsonDecode(raw!) as Map<String, dynamic>;
       expect(decoded['global.search'], 'ctrl+j');
@@ -384,7 +392,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.resetBinding('global.search');
 
-      final raw = await db.settingsDao.getValue(SettingsKeys.hotkeysCustomBindings.name);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       final decoded = jsonDecode(raw!) as Map<String, dynamic>;
       expect(decoded.containsKey('global.search'), isFalse);
       expect(decoded['global.help'], 'shift+a');
@@ -465,7 +475,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.resetAllBindings();
 
-      final raw = await db.settingsDao.getValue(SettingsKeys.hotkeysCustomBindings.name);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       expect(raw, '{}');
     });
 

@@ -46,9 +46,7 @@ void main() {
         .read(karaokeHighlightSettingsProvider.notifier)
         .setEnabled(false);
     expect(
-      await db.settingsDao.readSetting(
-        SettingsKeys.transcriptKaraokeHighlight,
-      ),
+      await db.settingsDao.readSetting(SettingsKeys.transcriptKaraokeHighlight),
       isFalse,
     );
   });
