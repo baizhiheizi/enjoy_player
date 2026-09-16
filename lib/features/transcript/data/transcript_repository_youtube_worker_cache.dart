@@ -151,23 +151,23 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
     required List<Map<String, dynamic>> timeline,
   }) async {
     try {
-      final payload = jsonEncode({
-        'kind': 'youtube_upload',
-        'videoId': videoId,
-        'language': language,
-        'source': source,
-        'timeline': timeline,
-      });
-      // addOrUpsert (not a plain insert): repeated failures of the same
+      // Typed seam (issue #718): the job encodes to the exact pre-seam wire
+      // row — entity `video`, entityId `$videoId/$language`, action
+      // `update`, payload `kind: youtube_upload` — so the drain decodes it
+      // back into a retry instead of a plain video update.
+      //
+      // addOrUpsert semantics (via addJob): repeated failures of the same
       // videoId/language must refresh the one existing row's payload instead
       // of stacking duplicate rows that each carry a full timeline JSON.
       // retryCount/lastAttempt/error are preserved on re-enqueue so a row
       // already exhausted against the worker is not silently re-armed.
-      await SyncQueueRepository(_db).addOrUpsert(
-        entityType: 'video',
-        entityId: '$videoId/$language',
-        action: 'update',
-        payloadJson: payload,
+      await SyncQueueRepository(_db).addJob(
+        SyncYoutubeUploadRetry(
+          videoId: videoId,
+          language: language,
+          source: source,
+          timeline: timeline,
+        ),
       );
     } on Object catch (e, st) {
       _log.warning(

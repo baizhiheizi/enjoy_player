@@ -41,6 +41,7 @@ import '../domain/auto_translate.dart';
 import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
 import '../../sync/data/sync_queue_repository.dart';
+import '../../sync/domain/sync_queue_job.dart';
 import 'sidecar_subtitle_discovery.dart';
 import 'transcript_timeline_parse.dart';
 import 'youtube_caption_fetcher.dart';
