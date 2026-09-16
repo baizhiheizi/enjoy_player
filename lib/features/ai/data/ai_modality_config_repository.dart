@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
@@ -20,15 +18,15 @@ class AiModalityConfigRepository {
   final ByokConfigValidator _validator;
 
   Future<AiModalityConfigs> load() async {
-    final raw = await _db.settingsDao.getValue(
-      SettingsKeys.aiModalityConfigsV1.name,
-    );
-    if (raw == null || raw.isEmpty) {
-      return AiModalityConfigs.defaults;
-    }
-
     try {
-      final map = jsonDecode(raw) as Map<String, dynamic>;
+      // Corrupt / non-object blobs throw in the JSON codec and fall through
+      // to the defaults; a missing row resolves to the declared null default.
+      final map = await _db.settingsDao.readSetting(
+        SettingsKeys.aiModalityConfigsV1,
+      );
+      if (map == null) {
+        return AiModalityConfigs.defaults;
+      }
       return _decodeSnapshot(map);
     } catch (_) {
       return AiModalityConfigs.defaults;
@@ -91,10 +89,9 @@ class AiModalityConfigRepository {
   }
 
   Future<void> _persist(AiModalityConfigs configs) async {
-    final json = _encodeSnapshot(configs);
-    await _db.settingsDao.setValue(
-      SettingsKeys.aiModalityConfigsV1.name,
-      jsonEncode(json),
+    await _db.settingsDao.writeSetting(
+      SettingsKeys.aiModalityConfigsV1,
+      _encodeSnapshot(configs),
     );
   }
 

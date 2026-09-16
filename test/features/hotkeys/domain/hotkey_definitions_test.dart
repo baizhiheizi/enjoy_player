@@ -11,6 +11,7 @@
 //
 // This file deliberately does not test dispatcher behaviour — that lives in
 // `hotkey_format_test.dart` and friends.
+import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,12 +120,15 @@ void main() {
       }
     });
 
-    test('kHotkeysCustomBindingsKey is a non-empty settings kv key', () {
-      // The string is consumed by SettingsRepo (JSON map of action id →
-      // binding string). Changing it silently migrates user customizations
+    test('hotkeys custom-bindings key keeps its storage name', () {
+      // Declared once in the typed settings registry (JSON map of action id
+      // → binding string). Changing it silently migrates user customizations
       // away forever — keep the test around as a tripwire.
-      expect(kHotkeysCustomBindingsKey, isNotEmpty);
-      expect(kHotkeysCustomBindingsKey, isNot(equals('')));
+      expect(SettingsKeys.hotkeysCustomBindings.name, isNotEmpty);
+      expect(
+        SettingsKeys.hotkeysCustomBindings.name,
+        'hotkeys_custom_bindings',
+      );
     });
   });
 }

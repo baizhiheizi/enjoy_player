@@ -3,9 +3,6 @@ library;
 
 import 'hotkey_definition.dart';
 
-/// Stable Settings KV key for JSON map of action id → binding string.
-const String kHotkeysCustomBindingsKey = 'hotkeys_custom_bindings';
-
 final List<HotkeyDefinition> hotkeyDefinitions = [
   const HotkeyDefinition(
     id: 'global.help',
