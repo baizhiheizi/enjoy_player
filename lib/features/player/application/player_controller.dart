@@ -10,11 +10,11 @@ import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/completion_loop.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/engine_swap_coordinator.dart';
 import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
-import 'package:enjoy_player/features/player/application/player_engine_binding.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
@@ -55,19 +55,23 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
   /// The open generation: bumped by [openMedia], [clear] and
   /// [abandonPendingOpen]; every async step of an open captures it at entry
   /// ([openGeneration] / [isOpenStale]) and bails when it has moved on. The
-  /// single-flight slot is unused here — see [_openInFlight].
+  /// single-flight slot is unused here — see [EngineSwapCoordinator] for the
+  /// swap-in-flight latch (issue #720).
   final SingleFlightGate _openGate = SingleFlightGate();
 
-  /// True between [openMedia] bumping the open generation and the session
-  /// being published (or the open failing): `state` is still `null`, so this
-  /// is the only signal that an engine swap is already coordinated and in
-  /// flight. [warmYoutubeSurface] consults it — issue #657.
-  ///
-  /// Deliberately *not* the gate's in-flight slot: it is a latch keyed by
-  /// generation (cleared in `finally` only when the open is still current, and
-  /// cleared unconditionally by [clear] with no future completing), which is
-  /// not the identity-guarded "one op owns the slot" contract the gate models.
-  bool _openInFlight = false;
+  /// Sole owner of engine-swap choreography (issue #720): install + bump,
+  /// surface-detach wait, wedged-engine replacement, open retry ladder, and
+  /// the swap-in-flight latch. Mechanics — what every caller agrees on — live
+  /// here; *policy* (clear, abandon, default MediaKit allocation, warm-only
+  /// when idle) stays in the controller.
+  late final EngineSwapCoordinator _engineSwap = EngineSwapCoordinator(
+    ref: ref,
+    getOwnedEngine: () => _ownedEngine,
+    setOwnedEngine: (next) => _ownedEngine = next,
+    getActiveEngine: () => activeEngine,
+    currentOpenGeneration: () => _openGate.generation,
+    abandonPendingOpen: abandonPendingOpen,
+  );
 
   /// Deterministic end-of-media loop (ADR-0044). Owns the playback
   /// generation counter, the cancelable `completed` await, and the repeat
@@ -113,6 +117,9 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
 
   @override
   PlayerPositionTracker get positionTracker => _positionTracker;
+
+  @override
+  EngineSwapCoordinator get engineSwap => _engineSwap;
 
   @override
   PlayerEngine get activeEngine {
@@ -199,8 +206,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     final gen = _openGate.bump();
     // Marked before the first await so a speculative [warmYoutubeSurface] that
     // lands inside this window sees the open that is already coordinating the
-    // engine (issue #657).
-    _openInFlight = true;
+    // engine (issue #657). Latch lives on the swap coordinator (issue #720).
+    _engineSwap.markOpenInFlight();
     _completionLoop.bump();
 
     try {
@@ -218,9 +225,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     } finally {
       // Only a still-current open clears the flag — an open superseded by a
       // newer one must not report "idle" while that newer one is still running.
-      if (!_openGate.isStale(gen)) {
-        _openInFlight = false;
-      }
+      _engineSwap.clearOpenInFlightIfCurrent(gen);
     }
 
     // Start the deterministic completion loop for the new playback stint
@@ -303,7 +308,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     // open's `finally` skips the reset (its generation is stale) and the latch
     // would otherwise disable speculative warming for the rest of the session
     // (issue #657).
-    _openInFlight = false;
+    _engineSwap.clearOpenInFlight();
 
     final engine = activeEngine;
 
@@ -327,7 +332,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     // hangs on the loading skeleton), and swapping `_ownedEngine` while an open
     // is in flight replaces the engine that open is about to drive — without
     // generation coordination there is nothing to undo it.
-    if (_disposed || state != null || _openInFlight) return;
+    if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
 
     final owned = _ownedEngine;
     if (owned != null && owned is YoutubePlaybackEngine) {
@@ -337,22 +342,19 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     if (owned != null) {
       // An idle MediaKit engine (cleared session, parked surface) is still
       // alive. Keep it — only the open path swaps engines, and it does so with
-      // generation coordination ([ensureEngineForPlayableSource]). A
-      // speculative warm that disposed mpv here would buy a WebView we may
-      // never use and leave the next local open rebuilding against a wedged
-      // pump (2026-08-29 field report).
+      // generation coordination ([EngineSwapCoordinator]). A speculative warm
+      // that disposed mpv here would buy a WebView we may never use and leave
+      // the next local open rebuilding against a wedged pump (2026-08-29
+      // field report).
       return;
     }
-    // Genuinely no engine yet — install the YouTube one. [EngineSwap.install]
-    // bumps the rev (ADR-0057) so PlayerSurfaceHost keys a stage for the new
-    // engine. There is no prior engine to tear down, and this path never
-    // calls [EngineSwap.discardWithoutAwaiting]: a speculative warm must not
-    // be able to dispose an engine even if the guards above rot.
-    EngineSwap(
-      ref: ref,
-      getOwnedEngine: () => _ownedEngine,
-      setOwnedEngine: (next) => _ownedEngine = next,
-    ).install(YoutubePlayerEngine());
+    // Genuinely no engine yet — install the YouTube one. The coordinator's
+    // [install] bumps the rev (ADR-0057) so PlayerSurfaceHost keys a stage for
+    // the new engine. There is no prior engine to tear down, and this path
+    // never calls [EngineSwapCoordinator.discardWithoutAwaiting]: a
+    // speculative warm must not be able to dispose an engine even if the
+    // guards above rot.
+    _engineSwap.install(YoutubePlayerEngine());
     _ownedEngine!.warmVideoSurface();
   }
 

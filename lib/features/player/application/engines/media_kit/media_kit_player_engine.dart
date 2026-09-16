@@ -40,7 +40,7 @@ class MediaKitPlayerEngine
   /// detached. Only the video stage consults it (via [nativeBackendAllowed]):
   /// the stream/snapshot getters read `__player` without ever constructing,
   /// and the command path ([_player]) allocates mpv unconditionally — the
-  /// WebView-detach wait lives in the swap (player_engine_binding), not in a
+  /// WebView-detach wait lives in the swap (EngineSwapCoordinator), not in a
   /// getter (2026-08-30 field report, issue #658).
   var _nativeBackendAllowed = false;
 
