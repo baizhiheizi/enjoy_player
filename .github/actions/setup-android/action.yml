@@ -9,6 +9,14 @@ description: >-
   backoff; once the packages persist on the runner's local disk, later runs
   skip the network entirely.
 
+  Since 2026-09 the dl.google.com dependency is inverted for the GFW'd runner
+  network (dl.google.com is TLS-reset): sdkmanager package downloads
+  (manifests, components, licenses) go to the Tencent Android SDK mirror via
+  SDK_TEST_BASE_URL (classic sdkmanager honors it), and a missing sdkmanager
+  is bootstrapped from the mirror zip first. android-actions/setup-android is
+  demoted to last-resort fallback for networks where the mirror is
+  unreachable but Google is not blocked.
+
 inputs:
   packages:
     description: >-
@@ -16,27 +24,56 @@ inputs:
       (same package ids sdkmanager takes, separated by whitespace).
     required: true
   cmdline-tools-version:
-    description: cmdline-tools version passed to android-actions/setup-android.
+    description: cmdline-tools version (build number) for the bootstrap; the mirror zip is commandlinetools-linux-<version>_latest.zip.
     required: false
     default: "12266719"
   attempts:
     description: sdkmanager install attempts before the step fails.
     required: false
     default: "5"
+  sdk_mirror_base_url:
+    description: >-
+      Base URL of an Android SDK repository mirror, used for SDK_TEST_BASE_URL
+      and the cmdline-tools bootstrap zip. A non-empty SDK_TEST_BASE_URL in the
+      environment wins over this input.
+    required: false
+    default: "https://mirrors.cloud.tencent.com/AndroidSDK/"
 
 runs:
   using: composite
   steps:
-    - name: Bootstrap SDK (manifest fetch may flake; retried below)
+    - name: Locate existing sdkmanager
+      id: probe
+      shell: bash
+      run: |
+        set -euo pipefail
+        sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/.android/sdk}}"
+        echo "sdk=$sdk" >> "$GITHUB_OUTPUT"
+        found="false"
+        for cand in "$sdk/cmdline-tools/latest/bin/sdkmanager" \
+          "$sdk"/cmdline-tools/*/bin/sdkmanager; do
+          if [ -x "$cand" ]; then found="true"; break; fi
+        done
+        echo "found=$found" >> "$GITHUB_OUTPUT"
+
+    # Last resort only: probed first, skipped when sdkmanager already exists
+    # (warm container), and the mirror bypass below runs first when it is
+    # missing. Kept for networks where the mirror is blocked but Google is
+    # reachable. Its cmdline-tools download targets dl.google.com, so on the
+    # GFW'd runner network this fails fast and is tolerated.
+    - name: Bootstrap SDK (android-actions fallback; dl.google.com)
+      if: steps.probe.outputs.found != 'true'
       uses: android-actions/setup-android@v3
       continue-on-error: true
+      env:
+        SDK_TEST_BASE_URL: ${{ env.SDK_TEST_BASE_URL || inputs.sdk_mirror_base_url }}
       with:
         packages: ${{ inputs.packages }}
         cmdline-tools-version: ${{ inputs.cmdline-tools-version }}
         accept-android-sdk-licenses: true
         log-accepted-android-sdk-licenses: true
 
-    - name: Install SDK packages (retry on flaky dl.google.com)
+    - name: Install SDK packages (mirror-backed, retry on transient failures)
       shell: bash
       env:
         PACKAGES: ${{ inputs.packages }}
@@ -44,20 +81,53 @@ runs:
       run: |
         set -euo pipefail
 
+        # Mirror: env wins, input provides the default. Classic sdkmanager
+        # honors SDK_TEST_BASE_URL for the repository manifest, component
+        # downloads, and license acceptance — this is what keeps
+        # dl.google.com (TLS-reset on this network) out of the critical path.
+        export SDK_TEST_BASE_URL="${SDK_TEST_BASE_URL:-${{ inputs.sdk_mirror_base_url }}}"
+
         # The bootstrap step exports ANDROID_HOME only when it fully succeeds;
         # fall back to its documented default location so a flaky bootstrap
         # that still installed cmdline-tools does not strand us.
         sdk="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/.android/sdk}}"
         echo "ANDROID_HOME=$sdk" >> "$GITHUB_ENV"
         echo "ANDROID_SDK_ROOT=$sdk" >> "$GITHUB_ENV"
+        echo "setup-android: SDK_TEST_BASE_URL=$SDK_TEST_BASE_URL"
 
-        sdkmanager_bin=""
-        for cand in "$sdk/cmdline-tools/latest/bin/sdkmanager" \
-          "$sdk"/cmdline-tools/*/bin/sdkmanager; do
-          if [ -x "$cand" ]; then sdkmanager_bin="$cand"; break; fi
-        done
+        find_sdkmanager() {
+          for cand in "$sdk/cmdline-tools/latest/bin/sdkmanager" \
+            "$sdk"/cmdline-tools/*/bin/sdkmanager; do
+            if [ -x "$cand" ]; then printf '%s' "$cand"; return 0; fi
+          done
+          return 1
+        }
+
+        sdkmanager_bin="$(find_sdkmanager || true)"
+
+        # cmdline-tools bootstrap bypass: no usable sdkmanager (typically the
+        # android-actions bootstrap failed on dl.google.com). Fetch the
+        # pinned cmdline-tools zip straight from the mirror — same bytes as
+        # Google publishes (unzip's CRCs are the integrity check) — and unpack
+        # it to the versioned dir, matching setup-android's layout.
         if [ -z "$sdkmanager_bin" ]; then
-          echo "::error::sdkmanager not found under $sdk/cmdline-tools — the bootstrap step failed before installing cmdline-tools"
+          version="${{ inputs.cmdline-tools-version }}"
+          zip_url="${SDK_TEST_BASE_URL%/}/commandlinetools-linux-${version}_latest.zip"
+          archive="${RUNNER_TEMP:-/tmp}/commandlinetools-linux-${version}_latest.zip"
+          echo "setup-android: no sdkmanager found — bootstrapping cmdline-tools $version from $zip_url"
+          curl -fsSL --http1.1 --retry 5 --retry-delay 10 --connect-timeout 20 \
+            -o "$archive" "$zip_url"
+          mkdir -p "$sdk/cmdline-tools"
+          rm -rf "$sdk/cmdline-tools/$version"
+          unzip -q "$archive" -d "$sdk/cmdline-tools"
+          # The zip ships a top-level cmdline-tools/ wrapper dir.
+          mv "$sdk/cmdline-tools/cmdline-tools" "$sdk/cmdline-tools/$version"
+          rm -f "$archive"
+          sdkmanager_bin="$(find_sdkmanager || true)"
+        fi
+
+        if [ -z "$sdkmanager_bin" ]; then
+          echo "::error::sdkmanager not found under $sdk/cmdline-tools — the android-actions bootstrap and the mirror bypass both failed"
           exit 1
         fi
 
@@ -81,7 +151,8 @@ runs:
         max="${ATTEMPTS:-5}"
         for attempt in $(seq 1 "$max"); do
           # License acceptance needs the remote manifest too, so only run it
-          # when no accepted licenses are on disk yet.
+          # when no accepted licenses are on disk yet. sdkmanager inherits
+          # SDK_TEST_BASE_URL, so this reads the mirror as well.
           if [ ! -d "$sdk/licenses" ] || [ -z "$(ls -A "$sdk/licenses" 2>/dev/null)" ]; then
             yes | "$sdkmanager_bin" --licenses >/dev/null || true
           fi
@@ -89,7 +160,7 @@ runs:
             echo "setup-android: SDK packages installed (attempt $attempt/$max)."
             exit 0
           fi
-          echo "::warning::sdkmanager install failed (attempt $attempt/$max) — flaky dl.google.com fetch; retrying in $((attempt * 15))s"
+          echo "::warning::sdkmanager install failed (attempt $attempt/$max) — retrying in $((attempt * 15))s"
           sleep "$((attempt * 15))"
         done
 
