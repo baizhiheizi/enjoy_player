@@ -16,6 +16,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
@@ -55,6 +56,90 @@ sealed class SyncQueueJob {
 
   /// The `sync_queue` wire columns for this job.
   SyncQueueJobWire encode();
+
+  /// Builds the delete job for [type] — deletes carry no payload snapshot.
+  ///
+  /// Absorbed from `enqueuePendingSync` (issue #718) so the per-type
+  /// incantations have exactly one owner, next to the variants they build.
+  static SyncQueueJob deleteFor(SyncEntityType type, String id) =>
+      switch (type) {
+        SyncEntityType.audio => SyncAudioDelete(id: id),
+        SyncEntityType.video => SyncVideoDelete(id: id),
+        SyncEntityType.recording => SyncRecordingDelete(id: id),
+        SyncEntityType.youtubeSubscription => SyncYoutubeSubscriptionDelete(
+          channelId: id,
+        ),
+        SyncEntityType.vocabularyItem => SyncVocabularyItemDelete(id: id),
+        SyncEntityType.vocabularyContext => SyncVocabularyContextDelete(id: id),
+      };
+
+  /// Reads the live row for [type] and builds the upsert job with a payload
+  /// snapshot, flipping the row's `syncStatus` to `pending`.
+  ///
+  /// Absorbed from `enqueuePendingSync` (issue #718). Returns `null` when
+  /// the row is missing locally — the caller must not enqueue anything
+  /// (pre-seam behavior: no row, no sync work). Snapshots are taken from the
+  /// row as read, before the `pending` flip; the serializers never include
+  /// `syncStatus`, so the payload is identical either way.
+  static Future<SyncQueueJob?> snapshotUpsert(
+    AppDatabase db,
+    SyncEntityType type,
+    String id,
+    SyncAction action,
+  ) async {
+    assert(
+      action == SyncAction.create || action == SyncAction.update,
+      'Upsert snapshots are create/update only; use deleteFor',
+    );
+    switch (type) {
+      case SyncEntityType.audio:
+        final row = await db.audioDao.getById(id);
+        if (row == null) return null;
+        final job = SyncAudioUpsert.snapshot(row, action: action);
+        await db.audioDao.insertRow(
+          row.copyWith(syncStatus: const Value('pending')),
+        );
+        return job;
+      case SyncEntityType.video:
+        final row = await db.videoDao.getById(id);
+        if (row == null) return null;
+        final job = SyncVideoUpsert.snapshot(row, action: action);
+        await db.videoDao.insertRow(
+          row.copyWith(syncStatus: const Value('pending')),
+        );
+        return job;
+      case SyncEntityType.recording:
+        final row = await db.recordingDao.getById(id);
+        if (row == null) return null;
+        final job = SyncRecordingUpsert.snapshot(row, action: action);
+        await db.recordingDao.insertRow(
+          row.copyWith(syncStatus: const Value('pending')),
+        );
+        return job;
+      case SyncEntityType.youtubeSubscription:
+        // Subscription sync deferred — snapshot only, no status flip (the
+        // table has no syncStatus column to flip).
+        final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
+        if (sub == null) return null;
+        return SyncYoutubeSubscriptionUpsert.snapshot(sub, action: action);
+      case SyncEntityType.vocabularyItem:
+        final row = await db.vocabularyItemDao.getById(id);
+        if (row == null) return null;
+        final job = SyncVocabularyItemUpsert.snapshot(row, action: action);
+        await db.vocabularyItemDao.updateRow(
+          row.copyWith(syncStatus: const Value('pending')),
+        );
+        return job;
+      case SyncEntityType.vocabularyContext:
+        final row = await db.vocabularyContextDao.getById(id);
+        if (row == null) return null;
+        final job = SyncVocabularyContextUpsert.snapshot(row, action: action);
+        await db.vocabularyContextDao.updateRow(
+          row.copyWith(syncStatus: const Value('pending')),
+        );
+        return job;
+    }
+  }
 
   /// Interprets a persisted [SyncQueueRow] as a typed job.
   ///

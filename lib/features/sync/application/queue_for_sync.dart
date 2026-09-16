@@ -2,19 +2,16 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/sync/application/sync_engine.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
-import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
+import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 /// Schedules [SyncEngine.processQueue] outside any ambient Drift transaction.
@@ -31,6 +28,12 @@ void scheduleSyncQueueDrain(SyncEngine engine) {
   });
 }
 
+/// Builds the typed job for `(type, id, action)` via the seam
+/// ([SyncQueueJob.deleteFor] / [SyncQueueJob.snapshotUpsert]) and persists it.
+///
+/// The per-type snapshot / pending-flip incantations live in the seam
+/// (issue #718); this wrapper only owns the read-modify order, the
+/// row-missing early return, and the signed-in drain scheduling.
 Future<void> enqueuePendingSync(
   Ref ref,
   SyncQueueRepository queue,
@@ -39,63 +42,21 @@ Future<void> enqueuePendingSync(
   String id,
   SyncAction action,
 ) async {
-  final db = ref.read(appDatabaseProvider);
-
-  String? payloadJson;
-  switch (action) {
-    case SyncAction.delete:
-      break;
-    case SyncAction.create:
-    case SyncAction.update:
-      switch (type) {
-        case SyncEntityType.audio:
-          final row = await db.audioDao.getById(id);
-          if (row == null) return;
-          payloadJson = jsonEncode(prepareForSyncAudioMap(row));
-          await MediaRegistry(
-            db,
-          ).upsertAudio(row.copyWith(syncStatus: const Value('pending')));
-        case SyncEntityType.video:
-          final row = await db.videoDao.getById(id);
-          if (row == null) return;
-          payloadJson = jsonEncode(prepareForSyncVideoMap(row));
-          await MediaRegistry(
-            db,
-          ).upsertVideo(row.copyWith(syncStatus: const Value('pending')));
-        case SyncEntityType.recording:
-          final row = await db.recordingDao.getById(id);
-          if (row == null) return;
-          payloadJson = jsonEncode(prepareForSyncRecordingMap(row));
-          await db.recordingDao.insertRow(
-            row.copyWith(syncStatus: const Value('pending')),
-          );
-        case SyncEntityType.youtubeSubscription:
-          final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
-          if (sub == null) return;
-          payloadJson = jsonEncode(prepareForSyncSubscriptionMap(sub));
-        case SyncEntityType.vocabularyItem:
-          final row = await db.vocabularyItemDao.getById(id);
-          if (row == null) return;
-          payloadJson = jsonEncode(prepareForSyncVocabularyItemMap(row));
-          await db.vocabularyItemDao.updateRow(
-            row.copyWith(syncStatus: const Value('pending')),
-          );
-        case SyncEntityType.vocabularyContext:
-          final row = await db.vocabularyContextDao.getById(id);
-          if (row == null) return;
-          payloadJson = jsonEncode(prepareForSyncVocabularyContextMap(row));
-          await db.vocabularyContextDao.updateRow(
-            row.copyWith(syncStatus: const Value('pending')),
-          );
-      }
+  final SyncQueueJob job;
+  if (action == SyncAction.delete) {
+    job = SyncQueueJob.deleteFor(type, id);
+  } else {
+    final upsert = await SyncQueueJob.snapshotUpsert(
+      ref.read(appDatabaseProvider),
+      type,
+      id,
+      action,
+    );
+    if (upsert == null) return;
+    job = upsert;
   }
 
-  await queue.addOrUpsert(
-    entityType: type.wireName,
-    entityId: id,
-    action: action.wireName,
-    payloadJson: payloadJson,
-  );
+  await queue.addJob(job);
 
   final auth = ref.read(authCtrlProvider).valueOrNull;
   if (auth is AuthSignedIn) {

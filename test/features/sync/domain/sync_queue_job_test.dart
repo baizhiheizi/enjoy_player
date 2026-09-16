@@ -10,7 +10,9 @@ library;
 
 import 'dart:convert';
 
+import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -383,6 +385,132 @@ void main() {
       expect(roundTripped.language, retry.language);
       expect(roundTripped.source, retry.source);
       expect(roundTripped.timeline, retry.timeline);
+    });
+  });
+
+  group('SyncQueueJob.deleteFor', () {
+    test('builds a null-payload delete job for every entity type', () {
+      final cases = <SyncEntityType, Matcher>{
+        SyncEntityType.audio: isA<SyncAudioDelete>(),
+        SyncEntityType.video: isA<SyncVideoDelete>(),
+        SyncEntityType.recording: isA<SyncRecordingDelete>(),
+        SyncEntityType.youtubeSubscription:
+            isA<SyncYoutubeSubscriptionDelete>(),
+        SyncEntityType.vocabularyItem: isA<SyncVocabularyItemDelete>(),
+        SyncEntityType.vocabularyContext: isA<SyncVocabularyContextDelete>(),
+      };
+      cases.forEach((type, matcher) {
+        final job = SyncQueueJob.deleteFor(type, 'entity-1');
+        expect(job, matcher, reason: type.name);
+        expect(job.encode().payloadJson, isNull, reason: type.name);
+        expect(job.encode().action, 'delete', reason: type.name);
+        expect(job.encode().entityId, 'entity-1', reason: type.name);
+      });
+    });
+  });
+
+  group('SyncQueueJob.snapshotUpsert (absorbed enqueuePendingSync)', () {
+    late AppDatabase db;
+
+    setUp(() {
+      db = AppDatabase(executor: NativeDatabase.memory());
+    });
+
+    tearDown(() async {
+      await db.close();
+    });
+
+    Future<AudioRow> insertAudio(String id) async {
+      final now = DateTime.utc(2026, 9, 16);
+      final row = AudioRow(
+        id: id,
+        aid: id,
+        provider: 'user',
+        title: 't',
+        description: null,
+        thumbnailUrl: null,
+        durationSeconds: 1,
+        language: 'en',
+        translationKey: null,
+        sourceText: null,
+        voice: null,
+        source: null,
+        localUri: null,
+        md5: null,
+        size: null,
+        localMtimeMs: null,
+        mediaUrl: null,
+        syncStatus: 'synced',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await db.audioDao.insertRow(row);
+      return row;
+    }
+
+    test('missing row returns null (caller must not enqueue)', () async {
+      expect(
+        await SyncQueueJob.snapshotUpsert(
+          db,
+          SyncEntityType.audio,
+          'missing',
+          SyncAction.create,
+        ),
+        isNull,
+      );
+      expect(await db.select(db.syncQueue).get(), isEmpty);
+    });
+
+    test('snapshots the payload and flips syncStatus to pending', () async {
+      await insertAudio('aud-1');
+
+      final job = await SyncQueueJob.snapshotUpsert(
+        db,
+        SyncEntityType.audio,
+        'aud-1',
+        SyncAction.update,
+      );
+
+      expect(job, isA<SyncAudioUpsert>());
+      final wire = job!.encode();
+      expect(wire.entityType, 'audio');
+      expect(wire.entityId, 'aud-1');
+      expect(wire.action, 'update');
+      final payload = jsonDecode(wire.payloadJson!) as Map<String, dynamic>;
+      expect(payload['id'], 'aud-1');
+
+      final row = await db.audioDao.getById('aud-1');
+      expect(row!.syncStatus, 'pending');
+    });
+
+    test('youtube_subscription snapshots without a status flip', () async {
+      final now = DateTime.utc(2026, 9, 16);
+      await db.youtubeChannelSubscriptionDao.upsert(
+        YoutubeChannelSubscriptionRow(
+          channelId: 'ch-1',
+          displayName: 'd',
+          thumbnailUrl: null,
+          source: YoutubeSubscriptionSource.user,
+          sourceType: YoutubeSourceType.channel,
+          feedUrl: null,
+          language: 'en',
+          subscribedAt: now,
+          lastFetchedAt: null,
+        ),
+      );
+
+      final job = await SyncQueueJob.snapshotUpsert(
+        db,
+        SyncEntityType.youtubeSubscription,
+        'ch-1',
+        SyncAction.create,
+      );
+
+      expect(job, isA<SyncYoutubeSubscriptionUpsert>());
+      final payload =
+          jsonDecode(job!.encode().payloadJson!) as Map<String, dynamic>;
+      expect(payload['channelId'], 'ch-1');
     });
   });
 }
