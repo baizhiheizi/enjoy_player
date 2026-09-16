@@ -174,7 +174,17 @@ class SyncEngine {
         'sync ${item.entityType}:${item.entityId} ${item.action}: '
         'undecodable queue row, drop',
       );
-      await _queue.removeById(item.id);
+      // Same issue-#717 producer race the success path guards against
+      // below: a youtube_upload row may have been refreshed with a valid
+      // payload between the `pendingItems()` snapshot and this remove, and
+      // dropping the row would lose that fresh retry. Rows without a
+      // payload (deletes, unknown triples) have no producer refresh, so
+      // they drop unconditionally as before the typed seam.
+      if (item.payloadJson == null) {
+        await _queue.removeById(item.id);
+      } else {
+        await _queue.removeByIdIfPayload(item.id, item.payloadJson!);
+      }
       return true;
     }
 
@@ -238,8 +248,10 @@ class SyncEngine {
           }
           await _upload.uploadVocabularyContext(row);
         case SyncYoutubeSubscriptionUpsert():
-          // Subscription sync deferred — server API not yet ready.
-          // Queue row is retained so it will sync when support is added.
+          // Subscription sync deferred — server API not yet ready. Nothing
+          // is uploaded; like every processed row, the queue row is removed
+          // below (no producer enqueues this variant today, and
+          // subscription deletion is the only wire shape web parity pins).
           break;
 
         case SyncYoutubeUploadRetry():

@@ -243,9 +243,6 @@ class YoutubeSession {
     return loop;
   }
 
-  /// True after [attachWebView] wired the poll loop.
-  bool get hasAttachedWebView => _webAttachment != null;
-
   // ---------------------------------------------------------------------------
   // Composition (issue #721).
   // ---------------------------------------------------------------------------
@@ -256,9 +253,12 @@ class YoutubeSession {
   /// the audibility's web-bound callbacks (reapplyVolume, healPlay) stay
   /// lazy and resolve through [attachment]. Idempotent — calling twice
   /// replaces the previous poll loop (the WebView lifecycle never needs
-  /// to attach twice in practice, but tests may swap fakes).
+  /// to attach twice in practice, but tests may swap fakes); a replaced
+  /// loop is stopped first so a running timer chain cannot outlive its
+  /// attachment and keep polling the stale controller.
   void attachWebView(YoutubeSessionWebAttachment attachment) {
     _webAttachment = attachment;
+    _pollLoop?.stop();
     _pollLoop = YoutubeWebViewPollLoop(
       session: this,
       webController: attachment.webController,

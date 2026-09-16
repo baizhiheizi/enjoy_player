@@ -13,18 +13,6 @@ import 'package:enjoy_player/features/player/application/player_engine_constants
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
-double aspectRatioFromVideoParams(mk.VideoParams vp, mk.PlayerState state) {
-  if (vp.aspect != null && vp.aspect! > 0) {
-    return vp.aspect!;
-  }
-  final ww = vp.dw ?? vp.w ?? state.width;
-  final hh = vp.dh ?? vp.h ?? state.height;
-  if (ww != null && hh != null && ww > 0 && hh > 0) {
-    return ww / hh;
-  }
-  return 16 / 9;
-}
-
 /// Single [mk.Player] instance — ADR-0003 / ADR-0015.
 ///
 /// The native mpv player is constructed lazily on first access (not in the
