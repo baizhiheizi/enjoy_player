@@ -76,7 +76,9 @@ void main() {
     );
     expect(result.isValid, isTrue);
 
-    final raw = await db.settingsDao.getValue(SettingsKeys.aiModalityConfigsV1);
+    final raw = await db.settingsDao.getValue(
+      SettingsKeys.aiModalityConfigsV1.name,
+    );
     expect(raw, isNotNull);
     expect(raw!, isNot(contains('sk-secret')));
     expect(raw, isNot(contains('apiKey')));

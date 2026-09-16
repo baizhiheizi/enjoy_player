@@ -54,7 +54,7 @@ void main() {
 
   test('persisted true is not treated as off after settings resolve', () async {
     await db.settingsDao.setValue(
-      SettingsKeys.transcriptKaraokeHighlight,
+      SettingsKeys.transcriptKaraokeHighlight.name,
       'true',
     );
     final container = containerWith(canTrust: true);
@@ -124,7 +124,7 @@ void main() {
 
   test('untrusted word times keep karaoke gated off', () async {
     await db.settingsDao.setValue(
-      SettingsKeys.transcriptKaraokeHighlight,
+      SettingsKeys.transcriptKaraokeHighlight.name,
       'true',
     );
     final container = containerWith(canTrust: false);

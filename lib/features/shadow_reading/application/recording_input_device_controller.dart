@@ -75,7 +75,7 @@ class RecordingInputDeviceCtrl extends _$RecordingInputDeviceCtrl {
   Future<void> selectDeviceId(String? deviceId) async {
     final normalized = (deviceId == null || deviceId.isEmpty) ? null : deviceId;
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsRecordingInputDeviceId,
       normalized ?? '',
     );
@@ -106,7 +106,7 @@ class RecordingInputDeviceCtrl extends _$RecordingInputDeviceCtrl {
     final raw = await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .getValue(SettingsKeys.prefsRecordingInputDeviceId);
+        .readSetting(SettingsKeys.prefsRecordingInputDeviceId);
     if (raw == null || raw.isEmpty) return null;
     return raw;
   }

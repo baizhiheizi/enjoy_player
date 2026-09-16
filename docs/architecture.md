@@ -50,7 +50,7 @@ sequenceDiagram
 | `recordings` | Pronunciation recordings (sync-ready); time fields `duration`, `referenceStart`, `referenceDuration` in ms, aligned with API |
 | `dictations` | Dictation attempts (sync-ready) |
 | `sync_queue` | Offline-first outbound sync queue (`SyncCtrl` + [`features/sync.md`](features/sync.md)) |
-| `settings` | Key/value JSON blobs (player prefs, hotkeys, **main API base URL**, **AI/Worker API base URL**, **auth profile cache**, app locale prefs) |
+| `settings` | Key/value JSON blobs (player prefs, hotkeys, **main API base URL**, **AI/Worker API base URL**, app locale prefs) |
 | `youtube_channel_subscriptions` | Discover subscriptions (`channelId`, `sourceType`, `feedUrl`, optional catalog `language`, fetch timestamps) |
 | `youtube_feed_entries` | Append-only Discover feed cache keyed by video id ([ADR-0046](decisions/0046-discover-feed-append-only.md)) |
 | `transcript_fetch_states` | Per-target transcript fetch bookkeeping; composite index `idx_transcript_fetch_states_target` on `(target_type, target_id)` |
@@ -63,7 +63,7 @@ sequenceDiagram
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 15`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 17`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
 
 | Step | Change |
 |------|--------|
@@ -76,6 +76,8 @@ sequenceDiagram
 | v12 → v13 | Add `source_type` / `feed_url`; backfill `feed_url` using SQL column `channel_id` ([ADR-0051](decisions/0051-youtube-worker-discovery.md)) |
 | v13 → v14 | Add `videos.local_mtime_ms` + `audios.local_mtime_ms` ([ADR-0050](decisions/0050-path-linked-local-media.md)) |
 | v14 → v15 | Create `vocabulary_items` + `vocabulary_contexts` + `vocabulary_reviews` with 6 indexes; `vocabulary_reviews` (local audit) is never synced ([ADR-0052](decisions/0052-vocabulary-local-first-schema.md)) |
+| v15 → v16 | Hot-read-path covering indexes (issue #467): 11 indexes across transcripts, recordings, echo_sessions, videos (provider,vid / local_uri), audios (local_uri / md5), dictations, youtube_feed_entries (channel+published / published), sync_queue (retry_count, created_at) |
+| v16 → v17 | Add videos.bookmark_data + audios.bookmark_data — macOS security-scoped bookmarks persisted at import and resolved on open ([ADR-0080](decisions/0080-macos-security-scoped-bookmarks.md)) |
 
 ### Sync metadata mixins
 

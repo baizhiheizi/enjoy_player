@@ -962,12 +962,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSectionRecordingHint => '跟读录音所使用的麦克风。';
 
   @override
-  String get settingsSectionTranscript => '字幕';
-
-  @override
-  String get settingsSectionTranscriptHint => '练习字幕时间轴选项。';
-
-  @override
   String get settingsTranscriptEnrichmentTitle => '对齐词级时间轴';
 
   @override
@@ -1854,12 +1848,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get creditsServiceTypeAssessment => '发音评估';
-
-  @override
-  String get settingsSectionAccount => '账号';
-
-  @override
-  String get settingsSectionAccountHint => '个人资料、订阅与退出登录';
 
   @override
   String get settingsSectionSyncHint => '上传队列、离线状态与手动同步';
@@ -4538,12 +4526,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsSectionRecordingHint => '跟读录音所使用的麦克风';
 
   @override
-  String get settingsSectionTranscript => '字幕';
-
-  @override
-  String get settingsSectionTranscriptHint => '练习字幕时间轴选项。';
-
-  @override
   String get settingsTranscriptEnrichmentTitle => '对齐词级时间轴';
 
   @override
@@ -5184,12 +5166,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get creditsServiceTypeAssessment => '发音评估';
-
-  @override
-  String get settingsSectionAccount => '账号';
-
-  @override
-  String get settingsSectionAccountHint => '个人资料、订阅与退出登录';
 
   @override
   String get settingsSectionSyncHint => '上传队列、离线状态与手动同步';

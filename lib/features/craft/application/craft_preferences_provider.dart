@@ -1,8 +1,11 @@
 /// Persisted Craft preferences (Drift settings KV, JSON blob).
+///
+/// Storage goes through the typed [SettingsKeys.craftPreferencesV1] key
+/// (per-user DB, JSON object codec); the [CraftPreferences] field mapping
+/// stays here.
 library;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -54,12 +57,13 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
     try {
       final auth = ref.read(authCtrlProvider).valueOrNull;
       if (auth is AuthSignedIn) {
-        final raw = await ref
+        // Corrupt / non-object blobs throw in the codec and fall through to
+        // the defaults below.
+        final decoded = await ref
             .read(appDatabaseProvider)
             .settingsDao
-            .getValue(SettingsKeys.craftPreferencesV1);
-        final decoded = raw == null ? null : jsonDecode(raw);
-        if (decoded is Map<String, dynamic>) {
+            .readSetting(SettingsKeys.craftPreferencesV1);
+        if (decoded != null) {
           loaded = CraftPreferences.fromJson(decoded);
         }
       }
@@ -88,10 +92,7 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
       await ref
           .read(appDatabaseProvider)
           .settingsDao
-          .setValue(
-            SettingsKeys.craftPreferencesV1,
-            jsonEncode(state.toJson()),
-          );
+          .writeSetting(SettingsKeys.craftPreferencesV1, state.toJson());
     });
 
     // Keep the chain alive even if a write fails.

@@ -1,18 +1,20 @@
 /// Persisted volume / speed / repeat (maps web persisted settings).
+///
+/// Storage goes through the typed [SettingsKeys.playerPreferencesV1] key
+/// (per-user DB, JSON object codec); the blob's field mapping stays here in
+/// [PlayerPreferences] terms.
 library;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/db/app_database_provider.dart';
+import '../../../data/db/settings_keys.dart';
 import '../domain/player_settings.dart';
 import 'player_engine_provider.dart';
 
 part 'player_preferences_provider.g.dart';
-
-const playerPreferencesStorageKey = 'player_preferences_v1';
 
 /// Field-wise comparison for [PlayerPreferences].
 ///
@@ -36,13 +38,15 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
   }
 
   Future<void> _hydrate() async {
-    // The read is inside the try on purpose: a Drift throw here would escape
-    // [build]'s microtask as an unhandled async error and kill the provider.
+    // The read is inside the try on purpose: a Drift or codec (corrupt blob)
+    // throw here would escape [build]'s microtask as an unhandled async
+    // error and kill the provider.
     try {
       final db = ref.read(appDatabaseProvider);
-      final raw = await db.settingsDao.getValue(playerPreferencesStorageKey);
-      if (raw == null) return;
-      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final map = await db.settingsDao.readSetting(
+        SettingsKeys.playerPreferencesV1,
+      );
+      if (map == null) return;
       final repeatIdx = (map['repeat'] as int?) ?? 0;
       final hydrated = PlayerPreferences(
         volume: ((map['volume'] as num?)?.toDouble() ?? 1).clamp(0, 1),
@@ -66,16 +70,13 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
 
   Future<void> _persist() async {
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
-      playerPreferencesStorageKey,
-      jsonEncode({
-        'volume': state.volume,
-        'rate': state.playbackRate,
-        'repeat': state.repeatMode.index,
-        if (state.videoTranscriptSplitWidthPx != null)
-          'splitPx': state.videoTranscriptSplitWidthPx,
-      }),
-    );
+    await db.settingsDao.writeSetting(SettingsKeys.playerPreferencesV1, {
+      'volume': state.volume,
+      'rate': state.playbackRate,
+      'repeat': state.repeatMode.index,
+      if (state.videoTranscriptSplitWidthPx != null)
+        'splitPx': state.videoTranscriptSplitWidthPx,
+    });
   }
 
   Future<void> applyCurrentToEngine() async {

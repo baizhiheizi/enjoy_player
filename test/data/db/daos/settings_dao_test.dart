@@ -18,55 +18,67 @@ void main() {
 
   group('SettingsDao', () {
     test('getValue returns null when no row exists', () async {
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('setValue + getValue round-trip', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.apiBaseUrl,
+        SettingsKeys.apiBaseUrl.name,
         'https://example.test/v1',
       );
       expect(
-        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl),
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
         'https://example.test/v1',
       );
     });
 
     test('setValue with insertOrReplace overwrites existing', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.apiBaseUrl,
+        SettingsKeys.apiBaseUrl.name,
         'https://first.test',
       );
       await db.settingsDao.setValue(
-        SettingsKeys.apiBaseUrl,
+        SettingsKeys.apiBaseUrl.name,
         'https://second.test',
       );
       expect(
-        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl),
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
         'https://second.test',
       );
     });
 
     test('setValue persists across distinct keys', () async {
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'A');
-      await db.settingsDao.setValue(SettingsKeys.apiAiBaseUrl, 'B');
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), 'A');
-      expect(await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl), 'B');
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'A');
+      await db.settingsDao.setValue(SettingsKeys.apiAiBaseUrl.name, 'B');
+      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name), 'A');
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl.name),
+        'B',
+      );
     });
 
     test('deleteValue removes the row', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.apiBaseUrl,
+        SettingsKeys.apiBaseUrl.name,
         'https://example.test',
       );
-      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl);
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl.name);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('deleteValue on missing key is a no-op', () async {
       // Should not throw.
-      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl);
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl.name);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('dynamic keys (sync.cursor.recording.*) are accepted', () async {
@@ -90,9 +102,9 @@ void main() {
     });
 
     test('all four SettingsKeys constants are recognised as known', () {
-      expect(SettingsKeys.isKnown(SettingsKeys.apiBaseUrl), isTrue);
-      expect(SettingsKeys.isKnown(SettingsKeys.apiAiBaseUrl), isTrue);
-      expect(SettingsKeys.isKnown(SettingsKeys.prefsLocale), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.apiBaseUrl.name), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.apiAiBaseUrl.name), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.prefsLocale.name), isTrue);
       expect(
         SettingsKeys.isKnown(
           SettingsKeys.syncCursorRecordingTarget('Video', 'm1'),

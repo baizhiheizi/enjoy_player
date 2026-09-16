@@ -43,7 +43,7 @@ void main() {
 
   test('AiApiBaseUrl honours a persisted apiAiBaseUrl override', () async {
     await db.settingsDao.setValue(
-      SettingsKeys.apiAiBaseUrl,
+      SettingsKeys.apiAiBaseUrl.name,
       'https://ai-staging.example.com',
     );
 
@@ -57,7 +57,7 @@ void main() {
     () async {
       // Seed an override so we have something to clear.
       await db.settingsDao.setValue(
-        SettingsKeys.apiAiBaseUrl,
+        SettingsKeys.apiAiBaseUrl.name,
         'https://ai-staging.example.com',
       );
       // Eagerly resolve to force the override to be picked up by build().
@@ -70,7 +70,10 @@ void main() {
 
       // The persisted row must actually be deleted (not just nulled) —
       // see `SettingsDao.deleteValue`'s contract on `abcdee4`.
-      expect(await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl), isNull);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl.name),
+        isNull,
+      );
 
       // Force the provider to rebuild so we exercise the no-override branch
       // of `build()` rather than the cached state set by `clearOverride`.

@@ -89,7 +89,7 @@ final class SyncLastFullSyncAtProvider
 }
 
 String _$syncLastFullSyncAtHash() =>
-    r'75ffa58beec95c48c8729915ab4888a656f566eb';
+    r'b4ca4fa9eab604f6c048eaff6d1203bafeaa075c';
 
 @ProviderFor(syncQueueSnapshot)
 final syncQueueSnapshotProvider = SyncQueueSnapshotProvider._();

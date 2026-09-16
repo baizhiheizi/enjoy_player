@@ -238,7 +238,7 @@ void main() {
       await service.downloadAudios();
 
       final cursor = await db.settingsDao.getValue(
-        SettingsKeys.syncCursorAudio,
+        SettingsKeys.syncCursorAudio.name,
       );
       expect(cursor, '2026-03-15T10:00:00.000Z');
     });
@@ -432,7 +432,7 @@ void main() {
 
   group('SyncDownloadService.downloadAllEntitiesFresh', () {
     test('resets cursors and downloads all entity types', () async {
-      await db.settingsDao.setValue(SettingsKeys.syncCursorAudio, 'old');
+      await db.settingsDao.setValue(SettingsKeys.syncCursorAudio.name, 'old');
 
       final service = buildService(
         audioApi: _FakeAudioApi([

@@ -1427,7 +1427,9 @@ void main() {
 
       expect(result.success, isTrue);
       // Verify timestamp was persisted.
-      final ts = await db.settingsDao.getValue(SettingsKeys.syncLastFullSyncAt);
+      final ts = await db.settingsDao.getValue(
+        SettingsKeys.syncLastFullSyncAt.name,
+      );
       expect(ts, isNotNull);
     });
 
@@ -1501,7 +1503,9 @@ void main() {
 
       expect(result.success, isFalse);
       // Timestamp should NOT be persisted on failure.
-      final ts = await db.settingsDao.getValue(SettingsKeys.syncLastFullSyncAt);
+      final ts = await db.settingsDao.getValue(
+        SettingsKeys.syncLastFullSyncAt.name,
+      );
       expect(ts, isNull);
     });
   });

@@ -110,21 +110,23 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     }
 
     final db = ref.watch(appDatabaseProvider);
-    var localeRaw = await db.settingsDao.getValue(SettingsKeys.prefsLocale);
-    var learnRaw = await db.settingsDao.getValue(
+    var localeRaw = await db.settingsDao.readSetting(SettingsKeys.prefsLocale);
+    var learnRaw = await db.settingsDao.readSetting(
       SettingsKeys.prefsLearningLanguage,
     );
-    var nativeRaw = await db.settingsDao.getValue(
+    var nativeRaw = await db.settingsDao.readSetting(
       SettingsKeys.prefsNativeLanguage,
     );
-    final themeRaw = await db.settingsDao.getValue(SettingsKeys.prefsThemeMode);
+    final themeRaw = await db.settingsDao.readSetting(
+      SettingsKeys.prefsThemeMode,
+    );
     final themeMode = themeModeFromStorage(themeRaw);
 
     final learnCanonical = canonicalFocusLanguageTag(learnRaw);
     if (learnRaw == null ||
         learnRaw.isEmpty ||
         !tagsEqual(learnRaw, learnCanonical)) {
-      await db.settingsDao.setValue(
+      await db.settingsDao.writeSetting(
         SettingsKeys.prefsLearningLanguage,
         learnCanonical,
       );
@@ -138,7 +140,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (nativeRaw == null ||
         nativeRaw.isEmpty ||
         !tagsEqual(nativeRaw, nativeCoerced)) {
-      await db.settingsDao.setValue(
+      await db.settingsDao.writeSetting(
         SettingsKeys.prefsNativeLanguage,
         nativeCoerced,
       );
@@ -150,7 +152,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     if (localeRaw == null ||
         localeRaw.isEmpty ||
         !tagsEqual(canonicalLocaleTag, localeRaw)) {
-      await db.settingsDao.setValue(
+      await db.settingsDao.writeSetting(
         SettingsKeys.prefsLocale,
         canonicalLocaleTag,
       );
@@ -196,7 +198,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsLocale, tag);
+        .writeSetting(SettingsKeys.prefsLocale, tag);
     await ref
         .read(authCtrlProvider.notifier)
         .syncLocaleToServerIfSignedIn(resolved);
@@ -218,11 +220,11 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     );
     state = AsyncData(next);
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsLearningLanguage,
       canonical,
     );
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsNativeLanguage,
       nativeCoerced,
     );
@@ -250,7 +252,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsNativeLanguage, canonical);
+        .writeSetting(SettingsKeys.prefsNativeLanguage, canonical);
     await _syncLanguageFieldsToServerIfSignedIn(
       learningLanguage: learn,
       nativeLanguage: canonical,
@@ -265,7 +267,7 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     await ref
         .read(appDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.prefsThemeMode, themeModeToStorage(mode));
+        .writeSetting(SettingsKeys.prefsThemeMode, themeModeToStorage(mode));
   }
 
   /// Ensures Drift + (when signed in) server use canonical learning + coerced native.
@@ -294,15 +296,15 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
     );
     state = AsyncData(next);
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsLocale,
       localeToBcp47(nextLocale ?? kAppDefaultDisplayLocale),
     );
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsLearningLanguage,
       learnCanonical,
     );
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.prefsNativeLanguage,
       nativeCoerced,
     );

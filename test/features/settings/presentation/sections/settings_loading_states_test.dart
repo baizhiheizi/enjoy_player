@@ -10,7 +10,6 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
-import 'package:enjoy_player/features/settings/presentation/widgets/sections/account_hero_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/cloud_sync_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
@@ -22,13 +21,6 @@ const _fakeProfile = UserProfile(
   email: 'reader@example.com',
   name: 'Reader',
 );
-
-/// Never resolves, so `auth`/`prefs` stay in their `loading` branch for the
-/// duration of the test.
-class _NeverAuthCtrl extends AuthCtrl {
-  @override
-  Future<AuthState> build() => Completer<AuthState>().future;
-}
 
 class _NeverPrefsCtrl extends AppPreferencesCtrl {
   @override
@@ -65,24 +57,6 @@ Widget _harness(Widget child, {overrides = const []}) {
 }
 
 void main() {
-  testWidgets(
-    'a loading account renders a skeleton hero, not a blank/broken card',
-    (tester) async {
-      await tester.pumpWidget(
-        _harness(
-          const AccountHeroSection(),
-          overrides: [authCtrlProvider.overrideWith(_NeverAuthCtrl.new)],
-        ),
-      );
-      // No pumpAndSettle: the skeleton's shimmer animation repeats forever.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-
-      expect(find.byType(Skeleton), findsWidgets);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
   testWidgets(
     'a loading language-prefs row renders skeleton lines, not a blank body',
     (tester) async {

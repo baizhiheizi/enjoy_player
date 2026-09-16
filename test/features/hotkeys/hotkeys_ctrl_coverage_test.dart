@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
-import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 
 void main() {
   late AppDatabase db;
@@ -58,7 +58,10 @@ void main() {
     });
 
     test('returns empty map for empty string value', () async {
-      await db.settingsDao.setValue(kHotkeysCustomBindingsKey, '');
+      await db.settingsDao.setValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+        '',
+      );
       final container = makeContainer();
       addTearDown(container.dispose);
 
@@ -68,7 +71,7 @@ void main() {
 
     test('returns empty map for invalid JSON', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         'not-valid-json{{{',
       );
       final container = makeContainer();
@@ -79,7 +82,10 @@ void main() {
     });
 
     test('returns empty map when JSON is not a Map', () async {
-      await db.settingsDao.setValue(kHotkeysCustomBindingsKey, '["a","b"]');
+      await db.settingsDao.setValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+        '["a","b"]',
+      );
       final container = makeContainer();
       addTearDown(container.dispose);
 
@@ -90,7 +96,7 @@ void main() {
     test('skips entries with non-string keys', () async {
       // JSON with a numeric key — jsonDecode produces int key
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         '{"123": "ctrl+k"}',
       );
       final container = makeContainer();
@@ -103,7 +109,7 @@ void main() {
 
     test('skips entries with non-string values', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         '{"global.search": 42}',
       );
       final container = makeContainer();
@@ -115,7 +121,7 @@ void main() {
 
     test('skips entries with unknown action ids', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'nonexistent.action': 'ctrl+x'}),
       );
       final container = makeContainer();
@@ -127,7 +133,7 @@ void main() {
 
     test('skips entries with invalid binding strings', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': ''}),
       );
       final container = makeContainer();
@@ -139,7 +145,7 @@ void main() {
 
     test('decodes valid bindings correctly', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j', 'player.togglePlay': 'enter'}),
       );
       final container = makeContainer();
@@ -151,7 +157,7 @@ void main() {
 
     test('filters valid from invalid entries in same map', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({
           'global.search': 'ctrl+j',
           'global.help': '',
@@ -179,7 +185,7 @@ void main() {
 
     test('returns custom binding when set', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -220,7 +226,7 @@ void main() {
 
     test('returns true when custom binding exists', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -241,7 +247,7 @@ void main() {
     test('returns false for empty string binding value', () async {
       // Manually set an empty-string binding (edge case)
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -277,7 +283,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.setBinding('global.search', 'ctrl+j');
 
-      final raw = await db.settingsDao.getValue(kHotkeysCustomBindingsKey);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       expect(raw, isNotNull);
       final decoded = jsonDecode(raw!) as Map<String, dynamic>;
       expect(decoded['global.search'], 'ctrl+j');
@@ -341,7 +349,7 @@ void main() {
 
     test('does not conflict with custom binding of same action', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -358,7 +366,7 @@ void main() {
   group('resetBinding', () {
     test('removes a custom binding', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -374,7 +382,7 @@ void main() {
 
     test('persists removal to database', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j', 'global.help': 'shift+a'}),
       );
       final container = makeContainer();
@@ -384,7 +392,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.resetBinding('global.search');
 
-      final raw = await db.settingsDao.getValue(kHotkeysCustomBindingsKey);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       final decoded = jsonDecode(raw!) as Map<String, dynamic>;
       expect(decoded.containsKey('global.search'), isFalse);
       expect(decoded['global.help'], 'shift+a');
@@ -392,7 +402,7 @@ void main() {
 
     test('does nothing for unknown action id', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -435,7 +445,7 @@ void main() {
   group('resetAllBindings', () {
     test('clears all custom bindings', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({
           'global.search': 'ctrl+j',
           'global.help': 'shift+a',
@@ -455,7 +465,7 @@ void main() {
 
     test('persists empty map to database', () async {
       await db.settingsDao.setValue(
-        kHotkeysCustomBindingsKey,
+        SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
       );
       final container = makeContainer();
@@ -465,7 +475,9 @@ void main() {
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       await ctrl.resetAllBindings();
 
-      final raw = await db.settingsDao.getValue(kHotkeysCustomBindingsKey);
+      final raw = await db.settingsDao.getValue(
+        SettingsKeys.hotkeysCustomBindings.name,
+      );
       expect(raw, '{}');
     });
 

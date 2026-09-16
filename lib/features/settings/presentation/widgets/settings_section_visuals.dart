@@ -27,12 +27,6 @@ SettingsSectionVisual settingsSectionVisual(
   AppLocalizations l10n,
 ) {
   switch (sectionId) {
-    case SettingsSectionIds.account:
-      return SettingsSectionVisual(
-        icon: Icons.person_outline_rounded,
-        title: l10n.settingsSectionAccount,
-        hint: l10n.settingsSectionAccountHint,
-      );
     case SettingsSectionIds.cloudSync:
       return SettingsSectionVisual(
         icon: Icons.cloud_sync_outlined,
@@ -56,12 +50,6 @@ SettingsSectionVisual settingsSectionVisual(
         icon: Icons.mic_none_rounded,
         title: l10n.settingsSectionRecording,
         hint: l10n.settingsSectionRecordingHint,
-      );
-    case SettingsSectionIds.transcript:
-      return SettingsSectionVisual(
-        icon: Icons.subtitles_outlined,
-        title: l10n.settingsSectionTranscript,
-        hint: l10n.settingsSectionTranscriptHint,
       );
     case SettingsSectionIds.keyboardShortcuts:
       return SettingsSectionVisual(

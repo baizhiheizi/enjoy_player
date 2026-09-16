@@ -43,7 +43,7 @@ void main() {
   });
 
   Future<String?> storedRaw() =>
-      db.settingsDao.getValue(SettingsKeys.craftPreferencesV1);
+      db.settingsDao.getValue(SettingsKeys.craftPreferencesV1.name);
 
   ProviderContainer container({UserProfile? profile = _profile}) {
     return ProviderContainer(
@@ -66,7 +66,7 @@ void main() {
         voices: {'en': 'en-US-GuyNeural'},
       );
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
 
@@ -89,7 +89,7 @@ void main() {
 
     test('falls back to defaults on a corrupt blob', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         'not json at all',
       );
       final c = container();

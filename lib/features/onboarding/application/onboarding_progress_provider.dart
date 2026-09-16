@@ -18,7 +18,7 @@ class OnboardingProgress extends _$OnboardingProgress {
   @override
   Future<TipProgressSnapshot> build() async {
     final db = ref.watch(appDatabaseProvider);
-    final raw = await db.settingsDao.getValue(
+    final raw = await db.settingsDao.readSetting(
       SettingsKeys.onboardingTipProgressV1,
     );
     final global = TipProgressSnapshot.decodeGlobalJson(raw);
@@ -42,8 +42,8 @@ class OnboardingProgress extends _$OnboardingProgress {
       return snap.statusOfEmptyTranscript(mediaId);
     }
     final db = ref.read(appDatabaseProvider);
-    final raw = await db.settingsDao.getValue(
-      SettingsKeys.onboardingEmptyTranscript(mediaId),
+    final raw = await db.settingsDao.readSetting(
+      SettingsKeys.onboardingEmptyTranscripts.keyFor(mediaId),
     );
     final status = TipStatus.parse(raw);
     final current = state.asData?.value ?? const TipProgressSnapshot();
@@ -63,7 +63,7 @@ class OnboardingProgress extends _$OnboardingProgress {
     final db = ref.read(appDatabaseProvider);
     // Re-read from DB so concurrent tip updates (e.g. import + craft) cannot
     // clobber each other with a stale in-memory snapshot.
-    final raw = await db.settingsDao.getValue(
+    final raw = await db.settingsDao.readSetting(
       SettingsKeys.onboardingTipProgressV1,
     );
     final fromDb = TipProgressSnapshot.decodeGlobalJson(raw);
@@ -73,7 +73,7 @@ class OnboardingProgress extends _$OnboardingProgress {
       ...memory,
       tip.id: status,
     };
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(
       SettingsKeys.onboardingTipProgressV1,
       TipProgressSnapshot.encodeGlobalJson(nextGlobal),
     );
@@ -85,8 +85,8 @@ class OnboardingProgress extends _$OnboardingProgress {
   Future<void> markEmptyTranscript(String mediaId, TipStatus status) async {
     if (mediaId.isEmpty || status == TipStatus.pending) return;
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.setValue(
-      SettingsKeys.onboardingEmptyTranscript(mediaId),
+    await db.settingsDao.writeSetting(
+      SettingsKeys.onboardingEmptyTranscripts.keyFor(mediaId),
       status.storageValue,
     );
     final current = state.asData?.value ?? const TipProgressSnapshot();
@@ -103,7 +103,7 @@ class OnboardingProgress extends _$OnboardingProgress {
 
   Future<void> resetAll() async {
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.deleteValue(SettingsKeys.onboardingTipProgressV1);
+    await db.settingsDao.deleteSetting(SettingsKeys.onboardingTipProgressV1);
     await db.settingsDao.deleteKeysWithPrefix(
       SettingsKeys.onboardingEmptyTranscriptPrefix,
     );

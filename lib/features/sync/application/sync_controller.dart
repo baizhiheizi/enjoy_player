@@ -110,7 +110,7 @@ class SyncCtrl extends _$SyncCtrl {
       await ref
           .read(appDatabaseProvider)
           .settingsDao
-          .setValue(
+          .writeSetting(
             SettingsKeys.syncLastFullSyncAt,
             DateTime.now().toUtc().toIso8601String(),
           );

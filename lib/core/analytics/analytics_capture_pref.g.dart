@@ -34,7 +34,7 @@ final class AnalyticsCapturePrefProvider
 }
 
 String _$analyticsCapturePrefHash() =>
-    r'da5280c44ce2549fc4b72701f6f6bdb59ac7846a';
+    r'bfc91173c80d9aabc005a9e267a0179d1465c5cd';
 
 abstract class _$AnalyticsCapturePref extends $AsyncNotifier<bool> {
   FutureOr<bool> build();

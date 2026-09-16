@@ -1718,7 +1718,7 @@ void main() {
   // === Remembered preferences ===
 
   Future<String?> storedRaw() =>
-      db.settingsDao.getValue(SettingsKeys.craftPreferencesV1);
+      db.settingsDao.getValue(SettingsKeys.craftPreferencesV1.name);
 
   group('preference hydration', () {
     test(
@@ -1746,7 +1746,7 @@ void main() {
           voices: {'en': 'en-US-GuyNeural'},
         );
         await db.settingsDao.setValue(
-          SettingsKeys.craftPreferencesV1,
+          SettingsKeys.craftPreferencesV1.name,
           jsonEncode(persisted.toJson()),
         );
 
@@ -1785,7 +1785,7 @@ void main() {
         advancedStyle: TranslationStyle.formal,
       );
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
 
@@ -1805,7 +1805,7 @@ void main() {
     test('user input before hydration wins', () async {
       const persisted = CraftPreferences(expressStyle: TranslationStyle.formal);
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
 
@@ -1835,7 +1835,7 @@ void main() {
         );
         final seededJson = jsonEncode(persisted.toJson());
         await db.settingsDao.setValue(
-          SettingsKeys.craftPreferencesV1,
+          SettingsKeys.craftPreferencesV1.name,
           seededJson,
         );
         repo.editSource = const CraftEditSource(
@@ -1890,7 +1890,7 @@ void main() {
         advancedStyle: TranslationStyle.formal,
       );
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
       final c = container();
@@ -1941,7 +1941,7 @@ void main() {
     test('remembered voice survives a target-language round trip', () async {
       const persisted = CraftPreferences(voices: {'en': 'en-US-GuyNeural'});
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
       final c = container();
@@ -1964,7 +1964,7 @@ void main() {
         voices: {'en': 'en-US-GuyNeural'},
       );
       await db.settingsDao.setValue(
-        SettingsKeys.craftPreferencesV1,
+        SettingsKeys.craftPreferencesV1.name,
         jsonEncode(persisted.toJson()),
       );
       final c = container();

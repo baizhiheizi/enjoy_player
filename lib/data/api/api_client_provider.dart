@@ -58,8 +58,9 @@ class ApiBaseUrl extends _$ApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    final raw = await db.settingsDao.getValue(SettingsKeys.apiBaseUrl);
-    return normalizeApiBaseUrl(raw ?? kDefaultApiBaseUrl, kDefaultApiBaseUrl);
+    // Missing row resolves to the key's declared default.
+    final raw = await db.settingsDao.readSetting(SettingsKeys.apiBaseUrl);
+    return normalizeApiBaseUrl(raw, kDefaultApiBaseUrl);
   }
 
   /// Persists and refreshes [apiClientProvider].
@@ -68,7 +69,7 @@ class ApiBaseUrl extends _$ApiBaseUrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.apiBaseUrl, normalized);
+        .writeSetting(SettingsKeys.apiBaseUrl, normalized);
     state = AsyncData(normalized);
     ref.invalidate(apiClientProvider);
   }
@@ -90,11 +91,8 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
     // explicitly via the "Use API URL" button — that calls
     // [clearOverride], which makes the in-memory state follow
     // [apiBaseUrl] until the next override. See #83, #105, #120.
-    final raw = await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl);
-    return normalizeApiBaseUrl(
-      raw ?? kDefaultAiApiBaseUrl,
-      kDefaultAiApiBaseUrl,
-    );
+    final raw = await db.settingsDao.readSetting(SettingsKeys.apiAiBaseUrl);
+    return normalizeApiBaseUrl(raw, kDefaultAiApiBaseUrl);
   }
 
   /// Persists and refreshes [aiApiClientProvider].
@@ -103,7 +101,7 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.apiAiBaseUrl, normalized);
+        .writeSetting(SettingsKeys.apiAiBaseUrl, normalized);
     state = AsyncData(normalized);
     ref.invalidate(aiApiClientProvider);
   }
@@ -111,7 +109,7 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   /// Clears the override and falls back to following [apiBaseUrlProvider].
   Future<void> clearOverride() async {
     final db = ref.read(deviceGlobalAppDatabaseProvider);
-    await db.settingsDao.deleteValue(SettingsKeys.apiAiBaseUrl);
+    await db.settingsDao.deleteSetting(SettingsKeys.apiAiBaseUrl);
     state = AsyncData(await ref.read(apiBaseUrlProvider.future));
     ref.invalidate(aiApiClientProvider);
   }

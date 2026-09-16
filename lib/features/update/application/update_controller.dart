@@ -51,11 +51,8 @@ class UpdateCtrl extends _$UpdateCtrl {
   Future<void> snoozeOptionalUpdate(AppRelease release) async {
     final until = DateTime.now().toUtc().add(kUpdateSnoozeDuration);
     final db = ref.read(deviceGlobalAppDatabaseProvider);
-    await db.settingsDao.setValue(
-      SettingsKeys.updateSnoozeUntil,
-      until.toIso8601String(),
-    );
-    await db.settingsDao.setValue(
+    await db.settingsDao.writeSetting(SettingsKeys.updateSnoozeUntil, until);
+    await db.settingsDao.writeSetting(
       SettingsKeys.updateSnoozeVersion,
       release.manifest.version,
     );
@@ -145,15 +142,12 @@ class UpdateCtrl extends _$UpdateCtrl {
 
   Future<({String? version, DateTime? until})> _readSnooze() async {
     final db = ref.read(deviceGlobalAppDatabaseProvider);
-    final version = await db.settingsDao.getValue(
+    final version = await db.settingsDao.readSetting(
       SettingsKeys.updateSnoozeVersion,
     );
-    final untilRaw = await db.settingsDao.getValue(
+    final until = await db.settingsDao.readSetting(
       SettingsKeys.updateSnoozeUntil,
     );
-    final until = untilRaw == null
-        ? null
-        : DateTime.tryParse(untilRaw)?.toUtc();
     return (version: version, until: until);
   }
 
@@ -161,7 +155,7 @@ class UpdateCtrl extends _$UpdateCtrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.updateLastCheckAt, at.toIso8601String());
+        .writeSetting(SettingsKeys.updateLastCheckAt, at);
   }
 }
 

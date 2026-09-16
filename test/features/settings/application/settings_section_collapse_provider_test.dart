@@ -16,7 +16,17 @@ void main() {
       expect(state[SettingsSectionIds.about], isTrue);
       expect(state[SettingsSectionIds.cloudSync], isFalse);
       expect(state[SettingsSectionIds.appearanceLanguage], isFalse);
-      expect(state.containsKey(SettingsSectionIds.transcript), isFalse);
+      // Seeded keys are exactly the registry's section headers — no orphan
+      // ids for sections that no longer exist (e.g. the removed Account /
+      // Transcript sections).
+      expect(
+        state.keys,
+        unorderedEquals(
+          kSettingsRegistry
+              .where((d) => d.isSectionHeader)
+              .map((d) => d.sectionId),
+        ),
+      );
     });
 
     test('toggle flips only the targeted section', () {
