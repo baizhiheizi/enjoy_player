@@ -175,9 +175,7 @@ class CraftLibraryRepository {
     });
 
     // Probe duration asynchronously (same path as library import).
-    unawaited(
-      probeAndPatchMediaDuration(_db, id, importResult.localPath, video: false),
-    );
+    unawaited(probeAndPatchMediaDuration(_db, id, importResult.localPath));
 
     // Enqueue sync.
     await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
@@ -319,14 +317,7 @@ class CraftLibraryRepository {
       );
     }
 
-    unawaited(
-      probeAndPatchMediaDuration(
-        _db,
-        mediaId,
-        importResult.localPath,
-        video: false,
-      ),
-    );
+    unawaited(probeAndPatchMediaDuration(_db, mediaId, importResult.localPath));
 
     await _enqueueSync?.call(SyncEntityType.audio, mediaId, SyncAction.update);
     return mediaId;

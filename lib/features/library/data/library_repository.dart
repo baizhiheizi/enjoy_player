@@ -491,7 +491,7 @@ class MediaLibraryRepository {
     if (previousUri != null && previousUri != fileUri) {
       await _maybeDeleteAppManagedMedia(previousUri);
     }
-    unawaited(probeAndPatchMediaDuration(_db, id, fileUri, video: video));
+    unawaited(probeAndPatchMediaDuration(_db, id, fileUri));
     await _enqueueSync?.call(
       entityType,
       id,

@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/video_poster_extract.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
@@ -108,7 +109,7 @@ class VideoPosterCaptureService {
       final f = File(outPath);
       await f.writeAsBytes(bytes, flush: true);
       final absoluteThumb = f.absolute.path;
-      await db.videoDao.updateLocalThumbnail(mediaId, absoluteThumb);
+      await MediaRegistry(db).updateVideoThumbnail(mediaId, absoluteThumb);
 
       if (gen == currentOpenGeneration() &&
           currentSessionMediaId() == mediaId) {
