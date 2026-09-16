@@ -81,10 +81,7 @@ void main() {
           appRouterProvider.overrideWithValue(
             GoRouter(
               routes: [
-                GoRoute(
-                  path: '/library',
-                  builder: (_, _) => const SizedBox(),
-                ),
+                GoRoute(path: '/library', builder: (_, _) => const SizedBox()),
               ],
             ),
           ),
@@ -121,12 +118,13 @@ void main() {
     testWidgets('consumed but no-ops when already on /craft', (tester) async {
       final h = await _mountHarness(tester, initialLocation: '/craft');
       const command = GlobalCraftHotkeyCommand();
-      expect(command.canExecute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
-      ), isTrue);
-      command.execute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
+      expect(
+        command.canExecute(
+          HotkeyCtx(read: h.container.read, listenerContext: null),
+        ),
+        isTrue,
       );
+      command.execute(HotkeyCtx(read: h.container.read, listenerContext: null));
       await tester.pumpAndSettle();
       expect(h.router.state.uri.path, '/craft');
     });

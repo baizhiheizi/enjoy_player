@@ -45,15 +45,12 @@ PlaybackSession _videoSession() => PlaybackSession(
 
 void main() {
   test('registry maps the four bus pulses in dispatch order', () {
-    expect(
-      shadowReadingHotkeyCommands.map((c) => c.actionId).toList(),
-      [
-        'player.toggleRecording',
-        'player.playRecording',
-        'player.togglePitchContour',
-        'player.toggleAssessment',
-      ],
-    );
+    expect(shadowReadingHotkeyCommands.map((c) => c.actionId).toList(), [
+      'player.toggleRecording',
+      'player.playRecording',
+      'player.togglePitchContour',
+      'player.toggleAssessment',
+    ]);
   });
 
   ({ProviderContainer container}) harness({
@@ -80,46 +77,34 @@ void main() {
   group('with an active player session', () {
     test('toggleRecording pulses recording', () {
       final h = harness(session: _videoSession());
-      commandFor('player.toggleRecording').execute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
-      );
-      expect(
-        h.container.read(shadowReadingHotkeyBusProvider).recording,
-        1,
-      );
+      commandFor(
+        'player.toggleRecording',
+      ).execute(HotkeyCtx(read: h.container.read, listenerContext: null));
+      expect(h.container.read(shadowReadingHotkeyBusProvider).recording, 1);
     });
 
     test('playRecording pulses playback', () {
       final h = harness(session: _videoSession());
-      commandFor('player.playRecording').execute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
-      );
-      expect(
-        h.container.read(shadowReadingHotkeyBusProvider).playback,
-        1,
-      );
+      commandFor(
+        'player.playRecording',
+      ).execute(HotkeyCtx(read: h.container.read, listenerContext: null));
+      expect(h.container.read(shadowReadingHotkeyBusProvider).playback, 1);
     });
 
     test('togglePitchContour pulses pitchContour', () {
       final h = harness(session: _videoSession());
-      commandFor('player.togglePitchContour').execute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
-      );
-      expect(
-        h.container.read(shadowReadingHotkeyBusProvider).pitchContour,
-        1,
-      );
+      commandFor(
+        'player.togglePitchContour',
+      ).execute(HotkeyCtx(read: h.container.read, listenerContext: null));
+      expect(h.container.read(shadowReadingHotkeyBusProvider).pitchContour, 1);
     });
 
     test('toggleAssessment pulses assessment', () {
       final h = harness(session: _videoSession());
-      commandFor('player.toggleAssessment').execute(
-        HotkeyCtx(read: h.container.read, listenerContext: null),
-      );
-      expect(
-        h.container.read(shadowReadingHotkeyBusProvider).assessment,
-        1,
-      );
+      commandFor(
+        'player.toggleAssessment',
+      ).execute(HotkeyCtx(read: h.container.read, listenerContext: null));
+      expect(h.container.read(shadowReadingHotkeyBusProvider).assessment, 1);
     });
   });
 
@@ -135,10 +120,7 @@ void main() {
       final command = commandFor('player.toggleRecording');
       expect(command.canExecute(ctx), isTrue);
       command.execute(ctx);
-      expect(
-        h.container.read(shadowReadingHotkeyBusProvider).recording,
-        1,
-      );
+      expect(h.container.read(shadowReadingHotkeyBusProvider).recording, 1);
     });
 
     test('no session and no echo practice → canExecute false, no pulse', () {

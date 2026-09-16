@@ -689,7 +689,6 @@ void main() {
     });
   });
 
-
   group('global.help', () {
     testWidgets('opens HotkeysHelpDialog', (tester) async {
       await _mountHarness(tester);
@@ -724,11 +723,6 @@ void main() {
       expect(harness.shadowBus.recordingCancelPulses, 0);
     });
   });
-
-
-
-
-
 
   group('player playback rate (slowDown / speedUp)', () {
     // Clamp coverage (0.25 floor / 2.0 ceiling / 0.05 step) lives with the D10
@@ -787,7 +781,6 @@ void main() {
       expect(harness.router.state.uri.path, '/craft');
     });
   });
-
 }
 
 PlaybackSession _videoSession() => PlaybackSession(

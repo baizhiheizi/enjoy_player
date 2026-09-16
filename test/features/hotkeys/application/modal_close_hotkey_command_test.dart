@@ -157,19 +157,20 @@ class _EscapeHotkeysCtrl extends HotkeysCtrl {
   Future<Map<String, String>> build() async => const {};
 
   @override
-  String effectiveKeys(String actionId) =>
-      actionId == 'modal.close'
+  String effectiveKeys(String actionId) => actionId == 'modal.close'
       ? hotkeyDefinitionMap['modal.close']!.defaultKeys
       : '';
 }
 
-Future<({
-  ProviderContainer container,
-  _FakeShadowReadingHotkeyBus shadowBus,
-  _FakeCraftController craftCtrl,
-  _FakeVocabularyReviewSession vocabSession,
-  _FakeWindowFullscreen fullscreen,
-})>
+Future<
+  ({
+    ProviderContainer container,
+    _FakeShadowReadingHotkeyBus shadowBus,
+    _FakeCraftController craftCtrl,
+    _FakeVocabularyReviewSession vocabSession,
+    _FakeWindowFullscreen fullscreen,
+  })
+>
 _mountHarness(
   WidgetTester tester, {
   String initialLocation = '/library',
@@ -243,9 +244,7 @@ _mountHarness(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: _PlatformResetter(
-        child: MaterialApp.router(routerConfig: router),
-      ),
+      child: _PlatformResetter(child: MaterialApp.router(routerConfig: router)),
     ),
   );
   await tester.pumpAndSettle();

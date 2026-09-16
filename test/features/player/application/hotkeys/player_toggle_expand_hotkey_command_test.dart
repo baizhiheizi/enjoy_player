@@ -101,9 +101,7 @@ _mountHarness(
       hotkeysCtrlProvider.overrideWith(() => _ToggleExpandHotkeysCtrl()),
       windowFullscreenProvider.overrideWith(() => _StubWindowFullscreen()),
       shadowReadingHotkeyBusProvider.overrideWith(() => _StubShadowBus()),
-      vocabularyReviewSessionProvider.overrideWith(
-        () => _StubVocabSession(),
-      ),
+      vocabularyReviewSessionProvider.overrideWith(() => _StubVocabSession()),
       playerControllerProvider.overrideWith(() => player),
       playerInteractionsProvider.overrideWith(
         (ref) => _FakePlayerInteractions(ref),
@@ -177,7 +175,9 @@ class _StubVocabSession extends VocabularyReviewSession {
 }
 
 void main() {
-  testWidgets('on player route → collapses the expanded player', (tester) async {
+  testWidgets('on player route → collapses the expanded player', (
+    tester,
+  ) async {
     BuildContext? builderContext;
     final h = await _mountHarness(
       tester,
@@ -243,9 +243,12 @@ void main() {
         onBuilderContext: (context) => builderContext = context,
       );
       expect(h.container.read(appRouterProvider).state.uri.path, '/library');
-      expect(const ToggleExpandHotkeyCommand().canExecute(
-        HotkeyCtx(read: h.container.read, listenerContext: builderContext),
-      ), isTrue);
+      expect(
+        const ToggleExpandHotkeyCommand().canExecute(
+          HotkeyCtx(read: h.container.read, listenerContext: builderContext),
+        ),
+        isTrue,
+      );
     },
   );
 }

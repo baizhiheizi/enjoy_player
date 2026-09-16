@@ -51,7 +51,10 @@ Future<({GoRouter router, ProviderContainer container})> _mountHarness(
   return (router: router, container: container);
 }
 
-Future<void> _runCommand(WidgetTester tester, ProviderContainer container) async {
+Future<void> _runCommand(
+  WidgetTester tester,
+  ProviderContainer container,
+) async {
   const LibrarySearchHotkeyCommand().execute(
     HotkeyCtx(read: container.read, listenerContext: null),
   );
@@ -65,10 +68,7 @@ void main() {
     final h = await _mountHarness(tester);
     expect(h.container.read(librarySearchFocusRequestProvider), 0);
     await _runCommand(tester, h.container);
-    expect(
-      h.container.read(librarySearchFocusRequestProvider),
-      greaterThan(0),
-    );
+    expect(h.container.read(librarySearchFocusRequestProvider), greaterThan(0));
   });
 
   testWidgets('on /player/:id → canExecute false, no pulse', (tester) async {

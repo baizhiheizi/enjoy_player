@@ -54,8 +54,11 @@ void main() {
 
   test('every HotkeyDefinition owns exactly one command', () {
     final commandIds = hotkeyCommands.map((c) => c.actionId).toList();
-    expect(commandIds.toSet().length, commandIds.length,
-        reason: 'duplicate actionId in the registry');
+    expect(
+      commandIds.toSet().length,
+      commandIds.length,
+      reason: 'duplicate actionId in the registry',
+    );
     expect(
       {for (final d in hotkeyDefinitions) d.id},
       unorderedEquals(commandIds),
@@ -102,8 +105,7 @@ void main() {
       addTearDown(container.dispose);
     });
 
-    HotkeyCtx ctx() =>
-        HotkeyCtx(read: container.read, listenerContext: null);
+    HotkeyCtx ctx() => HotkeyCtx(read: container.read, listenerContext: null);
 
     test('runs the first matching command and stops the scan', () {
       final first = _FakeCommand('a');
