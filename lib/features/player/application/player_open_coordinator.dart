@@ -11,12 +11,13 @@ import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/engine_swap_coordinator.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/playback_open_resolver.dart';
 import 'package:enjoy_player/features/player/application/playback_session_persister.dart';
-import 'package:enjoy_player/features/player/application/player_engine_binding.dart';
 import 'package:enjoy_player/features/player/application/player_open_side_effects.dart';
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
@@ -60,6 +61,9 @@ abstract interface class PlayerOpenHost {
   PlaybackSession? get session;
   set session(PlaybackSession? next);
   PlayerPositionTracker get positionTracker;
+
+  /// Sole owner of engine-swap choreography (issue #720).
+  EngineSwapCoordinator get engineSwap;
 }
 
 Future<void> runPlayerOpen(
@@ -137,13 +141,9 @@ Future<void> runPlayerOpen(
   // Do not wrap it in [engineCommandTimeout] — that would cut off
   // [prepareNativeBackend] and leave MediaKit allocating mpv while the
   // YouTube WebView is still destroying.
-  final swapped = await ensureEngineForPlayableSource(
-    ref,
+  final swapped = await host.engineSwap.ensureEngineForPlayableSource(
     playable: playable,
     openGeneration: gen,
-    currentOpenGeneration: () => host.openGeneration,
-    getOwnedEngine: () => host.ownedEngine,
-    setOwnedEngine: (e) => host.ownedEngine = e,
   );
   if (host.isOpenStale(gen)) return;
 
@@ -186,32 +186,14 @@ Future<void> runPlayerOpen(
   // Use the short command ceiling for that first attempt, then retry
   // once — reopen works because the native side has settled / a fresh
   // player is installed. A timeout must not fail the open on try 1.
-  final firstTimeout = swapped ? engineCommandTimeout : openTimeout;
-  try {
-    await engine.open(playable).timeout(firstTimeout);
-  } on TimeoutException {
-    _openLog.warning(
-      'engine.open timed out after $firstTimeout for media $mediaId '
-      '(${engine.runtimeType}); retrying once',
-    );
-    await replaceWedgedLocalEngine(
-      ref,
-      getOwnedEngine: () => host.ownedEngine,
-      setOwnedEngine: (e) => host.ownedEngine = e,
-    );
-    if (host.isOpenStale(gen)) return;
-    final retryEngine = host.activeEngine;
-    try {
-      await retryEngine.open(playable).timeout(openTimeout);
-    } on TimeoutException {
-      _openLog.severe(
-        'engine.open retry timed out after $openTimeout for media $mediaId '
-        '(${retryEngine.runtimeType}); invalidating open generation',
-      );
-      ref.read(playerControllerProvider.notifier).abandonPendingOpen();
-      rethrow;
-    }
-  }
+  await host.engineSwap.openEngineWithRetry(
+    engine: engine,
+    playable: playable,
+    openGeneration: gen,
+    swappedAfterInstall: swapped,
+    openTimeout: openTimeout,
+    engineCommandTimeout: engineCommandTimeout,
+  );
   if (host.isOpenStale(gen)) {
     try {
       await engine.stop();
@@ -221,10 +203,17 @@ Future<void> runPlayerOpen(
     return;
   }
 
-  if (engine.supportsSubtitleDisabling) {
+  // Subtitle control is a capability (issue #720): only the engine that owns
+  // a libmpv track list implements it — YouTube force-suppresses CC in the
+  // inject script instead, and the await is skipped entirely there.
+  final SubtitleTrackControl? subtitles = switch (engine) {
+    SubtitleTrackControl control => control,
+    _ => null,
+  };
+  if (subtitles != null) {
     await runBoundedEngineStep(
       'disableRenderedSubtitles',
-      engine.disableRenderedSubtitles,
+      subtitles.disableRenderedSubtitles,
       limit: engineCommandTimeout,
     );
     if (host.isOpenStale(gen)) return;
@@ -308,9 +297,10 @@ Future<void> runPlayerOpen(
     );
   }
 
-  if (kind == MediaKind.video &&
-      video != null &&
-      engine.supportsVideoPosterCapture) {
+  // Frame capture is a capability (issue #720): the YouTube WebView shot
+  // would capture only the HTML chrome, so engines without [PosterCapture]
+  // never schedule one.
+  if (kind == MediaKind.video && video != null && engine is PosterCapture) {
     ref
         .read(videoPosterCaptureServiceProvider)
         .scheduleCapture(

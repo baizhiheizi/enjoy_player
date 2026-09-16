@@ -17,6 +17,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/share_poster/application/practice_poster_builder.dart';
 import 'package:enjoy_player/features/share_poster/application/practice_poster_echo_frame_capture.dart';
@@ -72,8 +73,15 @@ class _PracticePosterPreviewSheetState
       final echo = session?.mediaId == widget.mediaId
           ? ref.read(echoModeProvider)
           : EchoState.inactive;
+      final engine = ref.read(playerEngineProvider);
+      final PosterCapture? capture = switch (engine) {
+        PosterCapture posterCapture => posterCapture,
+        _ => null,
+      };
       final echoCoverBytes = await capturePracticePosterEchoFrame(
-        engine: ref.read(playerEngineProvider),
+        // Frame capture is a capability (issue #720): engines without it
+        // (YouTube) fall through to the cover thumbnail.
+        capture: capture,
         echo: echo,
         session: session,
         mediaId: widget.mediaId,

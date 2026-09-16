@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 
 /// Video stage mounted for a [MediaKitPlayerEngine].

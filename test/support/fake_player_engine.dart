@@ -5,16 +5,20 @@ import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 
-/// Test double with controllable streams ([mkTracksStream] is null — no embedded extract).
+/// Test double with controllable streams, shaped like [MediaKitPlayerEngine]:
+/// frame capture + embedded-subtitle control, **no** metadata capability
+/// ([PlayerEngine.metadata] is `null`) and not a [YoutubePlaybackEngine]
+/// (issue #720 — fakes model one honest engine flavor each).
 ///
-/// Implements [PlayerEngineMetadata] like [YoutubePlayerEngine] does, so tests
-/// that need a loading poster / source identity can still drive them.
-class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
+/// For the YouTube flavor use [FakeYoutubeEngine].
+class FakePlayerEngine
+    implements PlayerEngine, PosterCapture, SubtitleTrackControl {
   FakePlayerEngine();
 
   @override
-  PlayerEngineMetadata get metadata => this;
+  PlayerEngineMetadata? get metadata => null;
 
   final StreamController<Duration> _position =
       StreamController<Duration>.broadcast();
@@ -75,9 +79,6 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   @override
   Stream<void> get completed => _completed.stream;
 
-  @override
-  Stream<mk.Tracks>? get mkTracksStream => null;
-
   bool supportsVideoPosterCaptureValue = true;
 
   @override
@@ -86,10 +87,9 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   @override
   bool get supportsSubtitleDisabling => true;
 
-  bool supportsYouTubePlaybackValue = false;
-
+  /// The fake has no media_kit player behind it — no embedded track list.
   @override
-  bool get supportsYouTubePlayback => supportsYouTubePlaybackValue;
+  Stream<mk.Tracks>? get mkTracksStream => null;
 
   @override
   Future<void> awaitSurfaceReady() async {}
@@ -105,28 +105,6 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
 
   @override
   void prepareNativeBackend() {}
-
-  String? posterUrlValue;
-
-  @override
-  String? get posterUrl => posterUrlValue;
-
-  @override
-  void setPosterUrl(String? url) {
-    posterUrlValue = url;
-  }
-
-  String currentVideoIdValue = '';
-
-  @override
-  String get currentVideoId => currentVideoIdValue;
-
-  int markOpenTimingStartCallCount = 0;
-
-  @override
-  void markOpenTimingStart() {
-    markOpenTimingStartCallCount++;
-  }
 
   int resetCompletionFlagCallCount = 0;
 
@@ -151,9 +129,6 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   @override
   ({bool playing, bool buffering}) get transportSnapshot =>
       (playing: false, buffering: false);
-
-  @override
-  Stream<double> get videoAspectRatioStream => Stream<double>.value(16 / 9);
 
   void _recordUriFromSource(PlayableSource source) {
     switch (source) {
@@ -250,5 +225,40 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
     await _playing.close();
     await _buffering.close();
     await _completed.close();
+  }
+}
+
+/// YouTube-flavored test double (issue #720): implements
+/// [PlayerEngineMetadata] and the [YoutubePlaybackEngine] marker like
+/// [YoutubePlayerEngine] does, and inherits the transport + swap-lifecycle
+/// recording surface from [FakePlayerEngine]. Frame capture / embedded
+/// subtitle control are *not* overridden away here because the base fake
+/// implements them — tests that need "YouTube cannot capture" assert on the
+/// production [YoutubePlayerEngine] instead.
+class FakeYoutubeEngine extends FakePlayerEngine
+    implements PlayerEngineMetadata, YoutubePlaybackEngine {
+  @override
+  PlayerEngineMetadata get metadata => this;
+
+  String? posterUrlValue;
+
+  @override
+  String? get posterUrl => posterUrlValue;
+
+  @override
+  void setPosterUrl(String? url) {
+    posterUrlValue = url;
+  }
+
+  String currentVideoIdValue = '';
+
+  @override
+  String get currentVideoId => currentVideoIdValue;
+
+  int markOpenTimingStartCallCount = 0;
+
+  @override
+  void markOpenTimingStart() {
+    markOpenTimingStartCallCount++;
   }
 }

@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
+import 'package:enjoy_player/features/player/application/engine_swap_coordinator.dart';
 import 'package:enjoy_player/features/player/application/playback_session_persister.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
@@ -85,6 +86,23 @@ class _Host implements PlayerOpenHost {
 
   @override
   PlaybackSession? session;
+
+  @override
+  late final EngineSwapCoordinator engineSwap = EngineSwapCoordinator(
+    ref: ref,
+    getOwnedEngine: () => _ownedEngine,
+    setOwnedEngine: (next) => _ownedEngine = next,
+    getActiveEngine: () => engine,
+    currentOpenGeneration: () => openGeneration,
+    // In production the controller wires `abandonPendingOpen: abandonPendingOpen`
+    // so the real `_openGate` bumps too — bridge the same path here so the
+    // test asserts the same stale-generation contract (the host's check
+    // AND the real controller's bump must both move).
+    abandonPendingOpen: () {
+      openGeneration++;
+      ref.read(playerControllerProvider.notifier).abandonPendingOpen();
+    },
+  );
 
   @override
   PlayerPositionTracker get positionTracker => PlayerPositionTracker(

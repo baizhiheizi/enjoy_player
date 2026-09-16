@@ -10,6 +10,7 @@ import 'package:media_kit/media_kit.dart' as mk;
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_repository_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -30,7 +31,14 @@ Future<void> runEmbeddedSubtitleExtract({
     return;
   }
 
-  final tracksStream = ref.read(playerEngineProvider).mkTracksStream;
+  // Embedded track listing is a MediaKit capability (issue #720): the
+  // WebView engine has no libmpv track list and reports none.
+  final engine = ref.read(playerEngineProvider);
+  final SubtitleTrackControl? subtitles = switch (engine) {
+    SubtitleTrackControl control => control,
+    _ => null,
+  };
+  final tracksStream = subtitles?.mkTracksStream;
   var playerSubs = <mk.SubtitleTrack>[];
   if (tracksStream != null) {
     try {

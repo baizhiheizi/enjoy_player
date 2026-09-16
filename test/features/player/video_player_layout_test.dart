@@ -310,7 +310,7 @@ void main() {
   testWidgets(
     'YouTube login chrome sits bottom-right on the stage for YouTube video',
     (tester) async {
-      final fake = FakePlayerEngine()..supportsYouTubePlaybackValue = true;
+      final fake = FakeYoutubeEngine();
       addTearDown(() async {
         await fake.dispose();
       });

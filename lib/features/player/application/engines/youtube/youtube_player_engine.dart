@@ -2,13 +2,11 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
-
-import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:enjoy_player/features/player/domain/youtube_playback_unavailable_exception.dart';
@@ -23,7 +21,8 @@ final _logYoutube = logNamed('YouTubePlayerEngine');
 ///
 /// Also implements [PlayerEngineMetadata]: YouTube is the only engine with a
 /// loading poster, a source identity, and open-time init instrumentation.
-class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
+class YoutubePlayerEngine
+    implements PlayerEngine, PlayerEngineMetadata, YoutubePlaybackEngine {
   /// [session] is injectable so tests can drive the mount signal without a
   /// WebView backend.
   YoutubePlayerEngine({YoutubeSession? session})
@@ -84,9 +83,6 @@ class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   PlayerEngineMetadata get metadata => this;
 
   @override
-  bool get supportsYouTubePlayback => true;
-
-  @override
   Stream<Duration> get position => _session.position;
 
   @override
@@ -102,23 +98,11 @@ class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   Stream<void> get completed => _session.completed;
 
   @override
-  Stream<mk.Tracks>? get mkTracksStream => null;
-
-  @override
-  bool get supportsVideoPosterCapture => false;
-
-  @override
-  bool get supportsSubtitleDisabling => false;
-
-  @override
   bool get keepSurfaceWhenParked => true;
 
   @override
   ({bool playing, bool buffering}) get transportSnapshot =>
       _session.transportSnapshot;
-
-  @override
-  Stream<double> get videoAspectRatioStream => _session.aspectStream;
 
   @override
   void setPosterUrl(String? url) => _session.setPosterUrl(url);
@@ -193,9 +177,6 @@ class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
       await _webView.loadCurrentVideoIfAttached();
     }
   }
-
-  @override
-  Future<void> disableRenderedSubtitles() async {}
 
   @override
   Future<void> seek(Duration target) async {
@@ -352,9 +333,6 @@ class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
     _session.emitPosition(Duration.zero);
     _session.resetCompletionFlag();
   }
-
-  @override
-  Future<Uint8List?> screenshot({String? format}) async => null;
 
   @override
   void warmVideoSurface() => _ensureWebViewAttached();

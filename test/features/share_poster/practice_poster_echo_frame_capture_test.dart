@@ -30,7 +30,7 @@ void main() {
       fake.screenshotReturnValue = Uint8List.fromList(const [1, 2, 3]);
 
       final bytes = await capturePracticePosterEchoFrame(
-        engine: fake,
+        capture: fake,
         echo: EchoState.inactive,
         session: _videoSession(mediaId: 'm1'),
         mediaId: 'm1',
@@ -52,7 +52,7 @@ void main() {
       final now = DateTime.utc(2026, 1, 1);
 
       final bytes = await capturePracticePosterEchoFrame(
-        engine: fake,
+        capture: fake,
         echo: echo,
         session: PlaybackSession(
           mediaId: 'm1',
@@ -85,7 +85,7 @@ void main() {
       );
 
       final bytes = await capturePracticePosterEchoFrame(
-        engine: fake,
+        capture: fake,
         echo: echo,
         session: _videoSession(mediaId: 'm1'),
         mediaId: 'm1',
@@ -108,7 +108,7 @@ void main() {
       );
 
       final bytes = await capturePracticePosterEchoFrame(
-        engine: fake,
+        capture: fake,
         echo: echo,
         session: _videoSession(mediaId: 'm1'),
         mediaId: 'm1',
