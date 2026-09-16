@@ -10,6 +10,13 @@ import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
+/// Downloads server rows into local Drift tables (paged, cursor-based).
+///
+/// Accepted bypass of the MediaRegistry seam (issue #723): the generic
+/// `_downloadEntityInternal` loop is driven by per-table typed row
+/// constructors, DAO callbacks (`getLocal` / `insertRow` / merge), and
+/// tombstone handlers, so routing its writes through the registry would
+/// just re-branch inside a generic that already knows its entity type.
 class SyncDownloadService {
   SyncDownloadService({
     required this._db,
