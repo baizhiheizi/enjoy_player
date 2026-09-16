@@ -2,6 +2,7 @@
 library;
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
@@ -57,13 +58,18 @@ class SyncQueueRepository {
   /// a row that was rejected by the server. To re-arm failed rows
   /// use [resetFailed].
   ///
-  /// The read+write pair runs inside a single Drift transaction so two
+/// The read+write pair runs inside a single Drift transaction so two
   /// concurrent enqueues for the same composite key cannot both observe
   /// "no row" and insert duplicates (issue #717 review followup). The
   /// earlier pre-#726 producer was insert-only; legacy installs may
   /// still carry those duplicates — the schema-version-18 migration in
   /// `AppDatabase._runMigrations` consolidates them so this `getSingleOrNull`
   /// never sees >1 row.
+  ///
+  /// Internal to the sync feature (issue #718): feature code must call
+  /// [addJob] with a typed [SyncQueueJob] instead. The string API stays
+  /// visible only because the seam test and the [addJob] shim need it.
+  @visibleForTesting
   Future<int> addOrUpsert({
     required String entityType,
     required String entityId,
