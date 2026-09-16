@@ -186,3 +186,64 @@ MediaEndDecision decideOnMediaEnd({required RepeatMode repeatMode}) {
 // ---------------------------------------------------------------------------
 // D8/D9 moved to youtube_play_retry_policy.dart (issue #665).
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// D10 — hotkey playback-rate step (player.slowDown / player.speedUp)
+// ---------------------------------------------------------------------------
+
+/// Direction of a hotkey playback-rate nudge.
+enum PlaybackRateDirection { slower, faster }
+
+/// Keyboard rate-nudge bounds (mirrors the clamp in
+/// `PlayerPreferencesCtrl.setPlaybackRate`).
+const double kPlaybackRateMin = 0.25;
+const double kPlaybackRateMax = 2.0;
+
+/// Size of one `shift+comma` / `shift+period` rate step.
+const double kPlaybackRateHotkeyStep = 0.05;
+
+sealed class PlaybackRateStepDecision {
+  const PlaybackRateStepDecision({required this.rate});
+
+  /// The next rate to apply — always inside [kPlaybackRateMin,
+  /// kPlaybackRateMax]. Callers apply it even when the nudge changed nothing
+  /// (the floor / ceiling cases), matching the pre-reducer hotkey behaviour.
+  final double rate;
+}
+
+/// Nudge landed inside the supported range.
+final class ValidRateStep extends PlaybackRateStepDecision {
+  const ValidRateStep({required super.rate});
+}
+
+/// Nudge cannot go lower — [rate] is the minimum.
+final class FloorRateStep extends PlaybackRateStepDecision {
+  const FloorRateStep({required super.rate});
+}
+
+/// Nudge cannot go higher — [rate] is the maximum.
+final class CeilingRateStep extends PlaybackRateStepDecision {
+  const CeilingRateStep({required super.rate});
+}
+
+/// Reduce a hotkey rate nudge (`player.slowDown` / `player.speedUp`) to the
+/// next playback rate. Pure so the clamp bounds are pinned by unit tests next
+/// to the other transport decisions; the imperative consumer is the playback
+/// rate hotkey command.
+PlaybackRateStepDecision decidePlaybackRateStep({
+  required double rate,
+  required PlaybackRateDirection direction,
+}) {
+  switch (direction) {
+    case PlaybackRateDirection.slower:
+      final raw = rate - kPlaybackRateHotkeyStep;
+      return raw <= kPlaybackRateMin
+          ? const FloorRateStep(rate: kPlaybackRateMin)
+          : ValidRateStep(rate: raw);
+    case PlaybackRateDirection.faster:
+      final raw = rate + kPlaybackRateHotkeyStep;
+      return raw >= kPlaybackRateMax
+          ? const CeilingRateStep(rate: kPlaybackRateMax)
+          : ValidRateStep(rate: raw);
+  }
+}

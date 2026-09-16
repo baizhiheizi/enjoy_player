@@ -15,7 +15,7 @@ import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
-import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_cheatsheet_open.dart';
+import 'package:enjoy_player/features/hotkeys/application/hotkeys_cheatsheet_open.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 

@@ -4,6 +4,8 @@ library;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart'
+    show ProviderListenable;
 
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
@@ -29,8 +31,13 @@ void ensureLibraryRouteForSearch(GoRouter router) {
 }
 
 /// Hotkey handler: go to Library (if needed), then pulse focus request.
-void requestLibrarySearchFocus(WidgetRef ref) {
-  final router = ref.read(appRouterProvider);
+///
+/// [read] is a `ref.read` tear-off — a [WidgetRef] from the widget tree or a
+/// [ProviderContainer] in tests / the hotkey command interface.
+void requestLibrarySearchFocus(
+  T Function<T>(ProviderListenable<T> provider) read,
+) {
+  final router = read(appRouterProvider);
   final path = router.state.uri.path;
   if (!librarySearchHotkeyEnabledForPath(path)) return;
 
@@ -38,7 +45,7 @@ void requestLibrarySearchFocus(WidgetRef ref) {
 
   SchedulerBinding.instance.scheduleFrameCallback((_) {
     SchedulerBinding.instance.scheduleFrameCallback((_) {
-      ref.read(librarySearchFocusRequestProvider.notifier).pulse();
+      read(librarySearchFocusRequestProvider.notifier).pulse();
     });
   });
 }
