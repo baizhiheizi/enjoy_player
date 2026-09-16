@@ -26,10 +26,9 @@ class DiagnosticLogConfig {
   static Future<void> loadFromDeviceGlobalSettings() async {
     try {
       await withDeviceGlobalAppDatabaseForBootstrap((db) async {
-        final raw = await db.settingsDao.getValue(
-          SettingsKeys.diagnosticsVerboseEnabled.name,
+        verboseEnabled = await db.settingsDao.readSetting(
+          SettingsKeys.diagnosticsVerboseEnabled,
         );
-        verboseEnabled = raw == 'true';
       });
     } on Object {
       // Runs before logging/error reporting is initialized, so any uncaught
