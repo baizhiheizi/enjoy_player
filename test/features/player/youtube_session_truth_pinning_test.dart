@@ -1,4 +1,4 @@
-/// Regression walls for the five invariants that must hold as
+/// Regression walls for four of the invariants that must hold as
 /// [YoutubeSession] becomes the single owner of Dart↔DOM playback truth
 /// (issue #721). These tests pin the surface so subsequent refactors in this
 /// area cannot silently regress the play-then-pause saga.
@@ -17,10 +17,12 @@
 /// 4. D9 direction latch — [YouTubePlayRetryPolicy.classifyTransportToggle]
 ///    classifies from the DOM direction the atomic toggle script
 ///    returned, never from session `playing` (issue #665 / D9).
-/// 5. Open-vs-warm invariant — [PlayerController] keeps the warm
-///    [YoutubePlayerEngine] alive across a stale-open-in-flight
-///    [abandonPendingOpen], because a speculative warm must not be
-///    disposable by a later guard check (issue #657, follow-up to #720).
+///
+/// The fifth open-vs-warm invariant (a speculative warm must not be
+/// disposable by a later guard check across a stale-open-in-flight
+/// `abandonPendingOpen`, issue #657) is controller policy, not session
+/// truth — it is pinned in `player_controller_test.dart`
+/// (`PlayerController.warmYoutubeSurface idle gate (issue #657)`).
 library;
 
 import 'dart:async';
@@ -42,7 +44,11 @@ void main() {
       final session = YoutubeSession();
       await session.closeStreams();
 
-      // Late verbs do not throw, do not emit, do not flip latches.
+      // Late verbs do not throw and do not emit on the closed streams.
+      // Scope note: not every latch is frozen after dispose —
+      // `markCompleted` / `beginUserPlay` still mutate internal flags —
+      // so the pinned contract here is exactly no-throw + no-emission +
+      // disposed/webViewMounted stability, not total latch immutability.
       var playingEvents = 0;
       var completedEvents = 0;
       final playingSub = session.playingStream.listen((_) => playingEvents++);
