@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/rest_api.dart';
 
 /// Module-level logger for worker transit calls.
@@ -106,20 +107,37 @@ class YoutubeTranscriptsApi extends RestApi
     'worker upload failed for $videoId/$language '
     '(source=$source, ${timeline.length} lines)',
     () async {
-      await client.postJson(
-        _transcriptsPath,
-        body: {
-          'format': 'enjoy',
-          'videoId': videoId,
-          'language': language,
-          'captionFetch': source == 'official' ? 'official' : 'auto',
-          'source': source,
-          'timeline': timeline,
-          'metadata': ?metadata,
-          'generatedAt': DateTime.now().toUtc().toIso8601String(),
-        },
-      );
-      return true;
+      try {
+        await client.postJson(
+          _transcriptsPath,
+          body: {
+            'format': 'enjoy',
+            'videoId': videoId,
+            'language': language,
+            'captionFetch': source == 'official' ? 'official' : 'auto',
+            'source': source,
+            'timeline': timeline,
+            'metadata': ?metadata,
+            'generatedAt': DateTime.now().toUtc().toIso8601String(),
+          },
+        );
+        return true;
+      } on ApiException catch (e) {
+        // The worker treats a replayed upload as idempotent and replies 409
+        // when the transcript is already cached. Without this branch the
+        // generic exception swallow turns a successful replay into `false`,
+        // the durable retry stays queued, and after 5 attempts the row is
+        // marked permanently failed even though the worker already has the
+        // transcript.
+        if (e.statusCode == 409) {
+          _log.info(
+            'worker upload replay accepted as 409 (idempotent) for '
+            '$videoId/$language (source=$source, ${timeline.length} lines)',
+          );
+          return true;
+        }
+        rethrow;
+      }
     },
     fallback: false,
   );

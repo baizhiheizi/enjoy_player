@@ -319,8 +319,12 @@ class SyncEngine {
   ///
   /// A `false`/thrown upload re-enters `_processOne`'s generic failure path
   /// (markAttempted + 5-strike exponential backoff) by throwing. A payload
-  /// missing required fields is dropped like the "missing locally" rows —
-  /// never crash the drain loop over an unrecoverable row.
+  /// missing required fields — or with any timeline entry that is not a
+  /// JSON object (the producer always emits `Map<String, dynamic>` shapes,
+  /// so a non-object is corruption, not a partial list) — is dropped like
+  /// the "missing locally" rows. Silently filtering bad entries with
+  /// `whereType<Map>` would let an incomplete payload replace the worker
+  /// cache; never crash the drain loop over an unrecoverable row.
   Future<bool> _retryYoutubeWorkerUpload(SyncQueueRow item) async {
     Map<String, dynamic>? payload;
     try {
@@ -332,12 +336,22 @@ class SyncEngine {
     final language = payload?['language'];
     final source = payload?['source'];
     final rawTimeline = payload?['timeline'];
-    final timeline = rawTimeline is List
-        ? rawTimeline
-              .map(castJsonObjectOrNull)
-              .whereType<Map<String, dynamic>>()
-              .toList(growable: false)
-        : null;
+    List<Map<String, dynamic>>? timeline;
+    if (rawTimeline is List) {
+      final parsed = <Map<String, dynamic>>[];
+      var tainted = false;
+      for (final entry in rawTimeline) {
+        final cast = castJsonObjectOrNull(entry);
+        if (cast == null) {
+          // One non-object entry taints the whole payload — drop instead
+          // of silently sending a partial timeline to the worker.
+          tainted = true;
+          break;
+        }
+        parsed.add(cast);
+      }
+      timeline = tainted ? null : parsed;
+    }
     if (videoId is! String ||
         videoId.isEmpty ||
         language is! String ||
@@ -350,7 +364,7 @@ class SyncEngine {
         'sync video ${item.entityId}: malformed youtube_upload payload, '
         'drop queue row',
       );
-      await _queue.removeById(item.id);
+      await _queue.removeByIdIfPayload(item.id, item.payloadJson ?? '');
       return true;
     }
 
@@ -370,7 +384,11 @@ class SyncEngine {
       'youtube_upload retry accepted for $videoId/$language '
       '(source=$source, ${timeline.length} lines)',
     );
-    await _queue.removeById(item.id);
+    // Conditional remove: a concurrent producer refresh may have replaced
+    // this row's payload with a newer timeline while the upload was in
+    // flight. Removing it would lose the latest retry. If the stored
+    // payload still matches, the row is ours to clear.
+    await _queue.removeByIdIfPayload(item.id, item.payloadJson ?? '');
     return true;
   }
 }
