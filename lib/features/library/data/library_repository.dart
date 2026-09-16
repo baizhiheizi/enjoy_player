@@ -443,13 +443,19 @@ class MediaLibraryRepository {
         picked: picked,
         // Relocate persist (all four fields, nulls clearing stale trust
         // metadata) lives on the registry — same write as before.
-        persist: (result) => registry.updateLocalFile(
-          mediaId,
-          localUri: result.fileUri,
-          bookmarkData: result.bookmarkData,
-          size: result.fileSize,
-          mtimeMs: result.mtimeMs,
-        ),
+        // Wrapped in an async block so the callback's declared
+        // `Future<void>` signature cleanly discards the
+        // `Future<MediaKind?>` returned by the registry write
+        // (Copilot review F8).
+        persist: (result) async {
+          await registry.updateLocalFile(
+            mediaId,
+            localUri: result.fileUri,
+            bookmarkData: result.bookmarkData,
+            size: result.fileSize,
+            mtimeMs: result.mtimeMs,
+          );
+        },
       );
     } on AppFailure {
       rethrow;

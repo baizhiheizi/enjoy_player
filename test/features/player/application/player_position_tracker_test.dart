@@ -16,7 +16,7 @@ class _ThrowingVideoDao extends VideoDao {
   int insertCalls = 0;
 
   @override
-  Future<void> insertRow(VideoRow row) async {
+  Future<bool> setDurationIfZero(String id, int durationSeconds) async {
     insertCalls++;
     throw StateError('disk I/O error');
   }
