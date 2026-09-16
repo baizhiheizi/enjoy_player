@@ -6,9 +6,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/player/application/echo_enforcer.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/word_loop_enforcer.dart';
@@ -102,9 +101,6 @@ class PlayerPositionTracker {
     required int openGeneration,
     required String mediaId,
     required String dexieTargetType,
-    required MediaKind kind,
-    required VideoRow? video,
-    required AudioRow? audio,
   }) {
     // Defensive: since #674 only the open coordinator calls this, and only
     // after [cancel] — but overwriting a live subscription would leak the
@@ -184,23 +180,13 @@ class PlayerPositionTracker {
         final sec = d.inMilliseconds ~/ 1000;
         setSession(getSession()?.copyWith(durationSeconds: newSec));
         final db = ref.read(appDatabaseProvider);
-        // One-off duration backfill. Guarded like the position tick above: a
-        // Drift throw must not surface as an uncaught async exception from a
-        // stream listener and take playback down with it.
+        // One-off duration backfill through the registry (same write-after-read
+        // as the ffmpeg probe; skips when the row already has a duration).
+        // Guarded like the position tick above: a Drift throw must not
+        // surface as an uncaught async exception from a stream listener and
+        // take playback down with it.
         try {
-          if (kind == MediaKind.video &&
-              video != null &&
-              video.durationSeconds == 0) {
-            await db.videoDao.insertRow(
-              video.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
-            );
-          } else if (kind == MediaKind.audio &&
-              audio != null &&
-              audio.durationSeconds == 0) {
-            await db.audioDao.insertRow(
-              audio.copyWith(durationSeconds: sec, updatedAt: DateTime.now()),
-            );
-          }
+          await MediaRegistry(db).patchDurationIfZero(mediaId, sec);
         } catch (e, st) {
           _positionLog.warning('duration backfill write failed', e, st);
         }

@@ -357,15 +357,7 @@ class MediaLibraryRepository {
   /// is already closed.
   Future<void> touchMediaUpdatedAt(String mediaId) async {
     try {
-      final video = await _db.videoDao.getById(mediaId);
-      if (video != null) {
-        await _db.videoDao.touchUpdatedAt(mediaId);
-        return;
-      }
-      final audio = await _db.audioDao.getById(mediaId);
-      if (audio != null) {
-        await _db.audioDao.touchUpdatedAt(mediaId);
-      }
+      await MediaRegistry(_db).touchUpdatedAt(mediaId);
     } on Object catch (e, st) {
       _log.warning('touchMediaUpdatedAt failed for $mediaId', e, st);
     }
@@ -377,21 +369,19 @@ class MediaLibraryRepository {
     // rolled back and the user can retry; previously, a sync row
     // could be left pointing at a media id that no longer exists
     // locally when the local delete threw between the two calls.
+    // Registry dispatch (video-first probe + which table to delete) runs
+    // inside the same zone, so it joins the transaction.
+    final registry = MediaRegistry(_db);
     String? localUri;
     await _db.transaction(() async {
-      final v = await _db.videoDao.getById(id);
-      if (v != null) {
-        localUri = v.localUri;
-        await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.delete);
-        await _db.videoDao.deleteId(id);
-        return;
-      }
-      final a = await _db.audioDao.getById(id);
-      if (a != null) {
-        localUri = a.localUri;
-        await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.delete);
-        await _db.audioDao.deleteId(id);
-        return;
+      localUri = await registry.localUriOf(id);
+      final kind = await registry.deleteById(id);
+      if (kind != null) {
+        await _enqueueSync?.call(
+          MediaRegistry.syncEntityTypeOf(kind),
+          id,
+          SyncAction.delete,
+        );
       }
     });
     await _maybeDeleteAppManagedMedia(localUri);
@@ -410,22 +400,27 @@ class MediaLibraryRepository {
   /// Updates content language on an existing audio or video row.
   Future<void> updateMediaLanguage(String id, String language) async {
     final canonical = canonicalMediaLanguageTag(language);
-    final video = await _db.videoDao.getById(id);
-    if (video != null) {
-      if (tagsEqual(video.language, canonical)) return;
-      await _db.videoDao.updateLanguage(id: id, language: canonical);
+    final registry = MediaRegistry(_db);
+    // Canonicalization, the same-tag short-circuit (skip the write, the
+    // fetch-state clear, and the sync enqueue), and the transcript
+    // fetch-state clear are repo-layer policy — the registry only owns the
+    // videos/audios write dispatch.
+    final hit = await registry.probeBoth(id);
+    final current = hit.video?.language ?? hit.audio?.language;
+    if (hit.video == null && hit.audio == null) {
+      throw const FileFailure('Media not found.');
+    }
+    if (tagsEqual(current!, canonical)) return;
+    final kind = await registry.updateLanguage(id, canonical);
+    if (kind == null) throw const FileFailure('Media not found.');
+    if (kind == MediaKind.video) {
       await _db.transcriptFetchStateDao.clearForTarget('video', id);
-      await _enqueueSync?.call(SyncEntityType.video, id, SyncAction.update);
-      return;
     }
-    final audio = await _db.audioDao.getById(id);
-    if (audio != null) {
-      if (tagsEqual(audio.language, canonical)) return;
-      await _db.audioDao.updateLanguage(id: id, language: canonical);
-      await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.update);
-      return;
-    }
-    throw const FileFailure('Media not found.');
+    await _enqueueSync?.call(
+      MediaRegistry.syncEntityTypeOf(kind),
+      id,
+      SyncAction.update,
+    );
   }
 
   /// Link or copy a user-picked file when its chunked SHA-256 matches the

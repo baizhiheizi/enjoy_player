@@ -1,7 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -111,15 +110,12 @@ void main() {
       final sub = Logger('PlayerPositionTracker').onRecord.listen(records.add);
       addTearDown(sub.cancel);
 
+      // The backfill is a registry write-after-read, so the row must exist in
+      // the table (seeded past the throwing DAO override).
+      await db.into(db.videos).insert(videoRow());
+
       final t = tracker();
-      t.subscribe(
-        openGeneration: 0,
-        mediaId: 'v1',
-        dexieTargetType: 'Video',
-        kind: MediaKind.video,
-        video: videoRow(),
-        audio: null,
-      );
+      t.subscribe(openGeneration: 0, mediaId: 'v1', dexieTargetType: 'Video');
 
       // An escaping Drift throw would surface as an unhandled async exception
       // and fail the test — passing is part of the assertion.

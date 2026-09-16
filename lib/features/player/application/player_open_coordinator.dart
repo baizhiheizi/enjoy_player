@@ -105,7 +105,6 @@ Future<void> runPlayerOpen(
   if (host.isOpenStale(gen)) return;
 
   final video = resolved.video;
-  final audio = resolved.audio;
   final kind = resolved.kind;
   final dexie = resolved.dexieTargetType;
   final title = resolved.title;
@@ -296,9 +295,6 @@ Future<void> runPlayerOpen(
     openGeneration: gen,
     mediaId: mediaId,
     dexieTargetType: dexie,
-    kind: kind,
-    video: video,
-    audio: audio,
   );
 
   if (playable is YoutubePlayableSource) {
