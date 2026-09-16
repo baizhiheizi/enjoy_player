@@ -49,7 +49,7 @@ sequenceDiagram
 | `echo_sessions` | Playback + echo window + primary/secondary transcript ids per target |
 | `recordings` | Pronunciation recordings (sync-ready); time fields `duration`, `referenceStart`, `referenceDuration` in ms, aligned with API |
 | `dictations` | Dictation attempts (sync-ready) |
-| `sync_queue` | Offline-first outbound sync queue (`SyncCtrl` + [`features/sync.md`](features/sync.md)) |
+| `sync_queue` | Offline-first outbound sync queue (`SyncCtrl` + [`features/sync.md`](features/sync.md)); producers construct typed `SyncQueueJob` variants — the drain's exhaustive switch is the only consumer |
 | `settings` | Key/value JSON blobs (player prefs, hotkeys, **main API base URL**, **AI/Worker API base URL**, app locale prefs) |
 | `youtube_channel_subscriptions` | Discover subscriptions (`channelId`, `sourceType`, `feedUrl`, optional catalog `language`, fetch timestamps) |
 | `youtube_feed_entries` | Append-only Discover feed cache keyed by video id ([ADR-0046](decisions/0046-discover-feed-append-only.md)) |
