@@ -5,7 +5,7 @@
 **Local-first** metadata sync for **audio**, **video**, and **recording** rows:
 
 - **Upload**: `POST /api/v1/mine/audios|videos|recordings` with JSON metadata only (no file blobs).
-- **Outbound queue**: Drift table `sync_queue` (`entityType`, `entityId`, `action`, optional `payloadJson`, retries).
+- **Outbound queue**: Drift table `sync_queue` (`entityType`, `entityId`, `action`, optional `payloadJson`, retries). Payload rows with `kind: youtube_upload` (entity `video`, enqueued by failed YouTube worker transcript uploads) are consumed by the worker transcripts API, not the cloud `/api/v1/mine` uploads — see [ADR-0049](../decisions/0049-youtube-language-aware-captions.md).
 - **No automatic library mirror**: signing in does **not** download every remote audio/video/recording into the Library. Remote browsing is opt-in via the [Cloud](cloud.md) screen.
 
 ### Vocabulary (items + contexts) — auto-pull exception

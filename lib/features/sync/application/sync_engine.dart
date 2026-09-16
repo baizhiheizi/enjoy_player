@@ -2,8 +2,11 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
@@ -46,18 +49,33 @@ void sortSyncQueueWork(List<SyncQueueRow> work) {
   });
 }
 
+/// Whether [payloadJson] is a durable YouTube worker-upload retry payload
+/// (see `_enqueueYoutubeUploadRetry` in
+/// `transcript_repository_youtube_worker_cache.dart`).
+bool isYoutubeUploadPayload(String? payloadJson) {
+  if (payloadJson == null) return false;
+  try {
+    return castJsonObjectOrNull(jsonDecode(payloadJson))?['kind'] ==
+        'youtube_upload';
+  } on Object {
+    return false;
+  }
+}
+
 class SyncEngine {
   SyncEngine({
     required this._db,
     required this._queue,
     required this._upload,
     required this._download,
+    required this._youtubeTranscripts,
   });
 
   final AppDatabase _db;
   final SyncQueueRepository _queue;
   final SyncUploadService _upload;
   final SyncDownloadService _download;
+  final YoutubeTranscriptsClient _youtubeTranscripts;
 
   Completer<SyncResult>? _drainGate;
   var _drainAgain = false;
@@ -199,6 +217,16 @@ class SyncEngine {
           }
           await _upload.uploadAudio(row);
         case SyncEntityType.video:
+          // Durable YouTube worker-upload retries (issue #717) carry their
+          // own payload: entityId is `'$videoId/$language'`, which never
+          // matches a local video row id (UUIDv5), so resolving them like a
+          // plain video update would always drop the row as "missing
+          // locally". Dispatch on the payload `kind` instead.
+          if (isYoutubeUploadPayload(item.payloadJson)) {
+            // `await`, not a bare return: a returned Future's error would
+            // skip the catch blocks below (and thus markAttempted).
+            return await _retryYoutubeWorkerUpload(item);
+          }
           final row = await _db.videoDao.getById(item.entityId);
           if (row == null) {
             _log.warning(
@@ -280,5 +308,69 @@ class SyncEngine {
       }
       return false;
     }
+  }
+
+  /// Re-uploads a durably-enqueued YouTube worker transcript (issue #717).
+  ///
+  /// The payload carries the full upload body (`videoId`, `language`,
+  /// `source`, `timeline`), so this never touches the local video row. The
+  /// worker treats a repeated upload as idempotent (409 == success), so
+  /// re-running a partially-applied upload is safe.
+  ///
+  /// A `false`/thrown upload re-enters `_processOne`'s generic failure path
+  /// (markAttempted + 5-strike exponential backoff) by throwing. A payload
+  /// missing required fields is dropped like the "missing locally" rows —
+  /// never crash the drain loop over an unrecoverable row.
+  Future<bool> _retryYoutubeWorkerUpload(SyncQueueRow item) async {
+    Map<String, dynamic>? payload;
+    try {
+      payload = castJsonObjectOrNull(jsonDecode(item.payloadJson ?? ''));
+    } on Object {
+      payload = null;
+    }
+    final videoId = payload?['videoId'];
+    final language = payload?['language'];
+    final source = payload?['source'];
+    final rawTimeline = payload?['timeline'];
+    final timeline = rawTimeline is List
+        ? rawTimeline
+              .map(castJsonObjectOrNull)
+              .whereType<Map<String, dynamic>>()
+              .toList(growable: false)
+        : null;
+    if (videoId is! String ||
+        videoId.isEmpty ||
+        language is! String ||
+        language.isEmpty ||
+        source is! String ||
+        source.isEmpty ||
+        timeline == null ||
+        timeline.isEmpty) {
+      _log.warning(
+        'sync video ${item.entityId}: malformed youtube_upload payload, '
+        'drop queue row',
+      );
+      await _queue.removeById(item.id);
+      return true;
+    }
+
+    final ok = await _youtubeTranscripts.uploadTranscript(
+      videoId: videoId,
+      language: language,
+      source: source,
+      timeline: timeline,
+    );
+    if (!ok) {
+      throw StateError(
+        'youtube_upload retry for $videoId/$language returned false '
+        '(worker rejected or transport failure)',
+      );
+    }
+    _log.info(
+      'youtube_upload retry accepted for $videoId/$language '
+      '(source=$source, ${timeline.length} lines)',
+    );
+    await _queue.removeById(item.id);
+    return true;
   }
 }

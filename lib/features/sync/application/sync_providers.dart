@@ -4,6 +4,7 @@ library;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/data/api/api_client_provider.dart';
+import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/api_providers.dart';
@@ -76,6 +77,7 @@ SyncEngine syncEngine(Ref ref) => SyncEngine(
   queue: ref.watch(syncQueueRepositoryProvider),
   upload: ref.watch(syncUploadServiceProvider),
   download: ref.watch(syncDownloadServiceProvider),
+  youtubeTranscripts: ref.watch(youtubeTranscriptsClientProvider),
 );
 
 @Riverpod(keepAlive: true)

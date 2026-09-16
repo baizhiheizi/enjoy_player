@@ -48,8 +48,11 @@ timed text) and cached on the worker. The chain has three tiers:
 3. **Worker upload** — every track downloaded in Tier 2 is fire-and-forget POSTed
    back to the worker so the next client (or this client on another device)
    hits Tier 1 instead. Failed uploads are durably enqueued via `sync_queue`
-   (entity `video`, payload `kind: youtube_upload`) and drained on the next
-   [SyncCtrl] periodic drain — see
+   (entity `video`, payload `kind: youtube_upload`; deduped per
+   `videoId/language` so repeated failures refresh one row) and re-uploaded by
+   the [SyncCtrl] periodic drain — `SyncEngine` dispatches the payload to
+   `YoutubeTranscriptsClient.uploadTranscript` (issue #717), with the queue's
+   regular 5-strike retry backoff on continued failure. See
    [`transcript_repository.dart`](../../lib/features/transcript/data/transcript_repository.dart).
 
 **Tier 2 always runs for YouTube rows**, even when `videos.language` is empty
