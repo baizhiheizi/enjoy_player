@@ -29,7 +29,11 @@ class _SignedInAuthCtrl extends AuthCtrl {
   );
 }
 
-Widget _wrap({required ProviderContainer container, required Widget child}) {
+Widget _wrap({
+  required ProviderContainer container,
+  required Widget child,
+  String mediaId = 'm1',
+}) {
   return UncontrolledProviderScope(
     container: container,
     child: MaterialApp(
@@ -47,7 +51,8 @@ Widget _wrap({required ProviderContainer container, required Widget child}) {
         body: Consumer(
           builder: (context, ref, _) => Center(
             child: ElevatedButton(
-              onPressed: () => launchAsrGeneration(context, ref, mediaId: 'm1'),
+              onPressed: () =>
+                  launchAsrGeneration(context, ref, mediaId: mediaId),
               child: const Text('launch'),
             ),
           ),
@@ -175,7 +180,7 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
-        _wrap(container: container, child: const SizedBox()),
+        _wrap(container: container, child: const SizedBox(), mediaId: 'yt-1'),
       );
       await tester.tap(find.text('launch'));
       await tester.pump();
@@ -189,13 +194,48 @@ void main() {
     },
   );
 
-  // Dialog interaction tests (language + long-media confirm) are excluded here
-  // because the Material AlertDialog + TextField + StatefulBuilder in
-  // showAsrLanguageDialog hang pumpAndSettle in the unit test even with
-  // disableAnimations. The dialog logic itself is covered by:
+  // Registry-mediated read, found-row branch: the launcher resolves the row
+  // via one MediaRegistry.getById (replacing kindOf + per-table
+  // language/duration lookups); a local row whose file is gone fails the
+  // source gate after the registry read succeeds — same unsupported-source
+  // notice as the missing-row branch, but past the registry lookup.
+  testWidgets(
+    'unsupported source: local row with an unresolvable file shows the notice',
+    (tester) async {
+      await _insertVideo(
+        db,
+        id: 'gone-1',
+        localUri: '${tempDir.path}/gone.mp4',
+      );
+      final container = _containerFor(
+        db,
+        repo,
+        _ResultAsrCapability(_emptyResult),
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        _wrap(container: container, child: const SizedBox(), mediaId: 'gone-1'),
+      );
+      await tester.tap(find.text('launch'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        container.read(asrGenerationControllerProvider('gone-1')).valueOrNull,
+        isNull,
+      );
+    },
+  );
+
+  // Full dialog interaction (typing a language, confirming long media) is
+  // excluded here because the Material AlertDialog + TextField +
+  // StatefulBuilder in showAsrLanguageDialog hang pumpAndSettle even with
+  // disableAnimations — the local-file test above stops at a single pump
+  // after the dialog opens. The dialog logic itself is covered by:
   //   - asr_long_media_dialog_test.dart (showAsrLongMediaConfirmDialog)
   //   - asr_generation_controller_test.dart (controller branches)
-  // and the launcher glue is the trivial early-return paths above.
 }
 
 const AsrResult _emptyResult = AsrResult(text: '');

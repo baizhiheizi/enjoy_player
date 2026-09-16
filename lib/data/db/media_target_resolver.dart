@@ -19,8 +19,9 @@ Future<PlayableSource?> resolvePlayableSource(
   AppDatabase db,
   String mediaId,
 ) async {
-  final video = await db.videoDao.getById(mediaId);
-  final audio = video == null ? await db.audioDao.getById(mediaId) : null;
+  final hit = await MediaRegistry(db).probeBoth(mediaId);
+  final video = hit.video;
+  final audio = hit.audio;
   if (video == null && audio == null) return null;
 
   if (video != null) {
@@ -78,8 +79,9 @@ Future<PlayableSource?> resolvePlayableSource(
 
 /// Same resolution as [PlayerController.openMedia] — for subtitle extraction, etc.
 Future<String?> resolvePlayableSourceUri(AppDatabase db, String mediaId) async {
-  final video = await db.videoDao.getById(mediaId);
-  final audio = video == null ? await db.audioDao.getById(mediaId) : null;
+  final hit = await MediaRegistry(db).probeBoth(mediaId);
+  final video = hit.video;
+  final audio = hit.audio;
   if (video == null && audio == null) return null;
 
   if (video != null) {

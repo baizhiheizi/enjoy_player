@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/domain/media_relocate_exception.dart';
@@ -43,8 +44,9 @@ Future<PlaybackOpenResolved?> resolvePlaybackOpen(
   AppDatabase db,
   String mediaId,
 ) async {
-  final video = await db.videoDao.getById(mediaId);
-  final audio = video == null ? await db.audioDao.getById(mediaId) : null;
+  final hit = await MediaRegistry(db).probeBoth(mediaId);
+  final video = hit.video;
+  final audio = hit.audio;
   if (video == null && audio == null) return null;
 
   final kind = video != null ? MediaKind.video : MediaKind.audio;

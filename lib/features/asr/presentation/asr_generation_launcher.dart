@@ -8,12 +8,15 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/features/asr/application/asr_failure_messages.dart';
 import 'package:enjoy_player/features/asr/application/asr_generation_controller.dart';
 import 'package:enjoy_player/features/asr/application/asr_generation_job.dart';
 import 'package:enjoy_player/features/asr/application/asr_long_media_dialog.dart';
 import 'package:enjoy_player/features/asr/data/asr_audio_extractor.dart';
+import 'package:enjoy_player/features/library/domain/media.dart'
+    as library_media;
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
@@ -26,9 +29,11 @@ Future<void> launchAsrGeneration(
   required String mediaId,
 }) async {
   final db = ref.read(appDatabaseProvider);
-  final targetType = await dexieTargetTypeForId(db, mediaId);
+  // One registry read replaces the kindOf + per-table language/duration
+  // lookups (getById maps language + durationSeconds -> durationMs).
+  final media = await MediaRegistry(db).getById(mediaId);
   final source = await resolvePlayableSource(db, mediaId);
-  if (targetType == null || source is! LocalFilePlayableSource) {
+  if (media == null || source is! LocalFilePlayableSource) {
     if (context.mounted) {
       AppNotice.error(
         context,
@@ -41,19 +46,18 @@ Future<void> launchAsrGeneration(
     return;
   }
 
-  final kind = targetType == 'Video' ? MediaKind.video : MediaKind.audio;
-  final storedLanguage = targetType == 'Video'
-      ? (await db.videoDao.getById(mediaId))?.language ?? 'en'
-      : (await db.audioDao.getById(mediaId))?.language ?? 'en';
+  // The ASR pipeline speaks its own MediaKind; map off the library kind.
+  final kind = media.kind == library_media.MediaKind.video
+      ? MediaKind.video
+      : MediaKind.audio;
+  final storedLanguage = media.language;
   if (!context.mounted) return;
   final language = await showAsrLanguageDialog(
     context,
     initialLanguage: storedLanguage,
   );
   if (language == null) return;
-  final durationSeconds = targetType == 'Video'
-      ? (await db.videoDao.getById(mediaId))?.durationSeconds ?? 0
-      : (await db.audioDao.getById(mediaId))?.durationSeconds ?? 0;
+  final durationSeconds = media.durationMs ~/ 1000;
   if (!context.mounted) return;
   final confirmed = await showAsrLongMediaConfirmDialog(
     context,
