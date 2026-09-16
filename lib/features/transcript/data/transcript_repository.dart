@@ -147,6 +147,21 @@ class TranscriptRepository {
     learningLanguage: learningLanguage,
   );
 
+  /// Whether the on-open cloud fetch is allowed to skip for [mediaId] (it
+  /// was previously fetched without erroring).
+  ///
+  /// The single owner of the skip-once-fetched predicate (issue #718). The
+  /// drain also uses this internally; the controller asks the repo instead
+  /// of repeating the `getForTarget` DAO round-trip and the
+  /// `lastStatus != 'error'` rule.
+  Future<bool> isCloudFetchSkippable(String mediaId) =>
+      _isCloudFetchSkippable(mediaId);
+
+  /// The persisted fetch-state row (used by the controller to hydrate UI
+  /// status without re-deriving the predicate).
+  Future<TranscriptFetchStateRow?> readCloudFetchState(String mediaId) =>
+      _readCloudFetchState(mediaId);
+
   // ---
   // Track / session management
   // ---
