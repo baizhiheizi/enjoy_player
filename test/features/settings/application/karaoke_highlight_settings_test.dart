@@ -18,28 +18,6 @@ void main() {
     await db.close();
   });
 
-  group('readKaraokeHighlightEnabledFromDb', () {
-    test('returns false when key is missing', () async {
-      expect(await readKaraokeHighlightEnabledFromDb(db), isFalse);
-    });
-
-    test('returns true when stored value is "true"', () async {
-      await db.settingsDao.setValue(
-        SettingsKeys.transcriptKaraokeHighlight.name,
-        'true',
-      );
-      expect(await readKaraokeHighlightEnabledFromDb(db), isTrue);
-    });
-
-    test('returns false when stored value is "false"', () async {
-      await db.settingsDao.setValue(
-        SettingsKeys.transcriptKaraokeHighlight.name,
-        'false',
-      );
-      expect(await readKaraokeHighlightEnabledFromDb(db), isFalse);
-    });
-  });
-
   test('setEnabled round-trips via SettingsDao', () async {
     final container = ProviderContainer(
       overrides: [deviceGlobalAppDatabaseProvider.overrideWithValue(db)],
@@ -67,7 +45,12 @@ void main() {
     await container
         .read(karaokeHighlightSettingsProvider.notifier)
         .setEnabled(false);
-    expect(await readKaraokeHighlightEnabledFromDb(db), isFalse);
+    expect(
+      await db.settingsDao.readSetting(
+        SettingsKeys.transcriptKaraokeHighlight,
+      ),
+      isFalse,
+    );
   });
 
   test('delayed true is not treated as off after await', () async {
