@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
@@ -115,7 +114,7 @@ class MediaLibraryRepository {
         );
         final id = enjoyVideoId(vid: vid);
         final existing = await _db.videoDao.getById(id);
-        await _db.videoDao.insertRow(
+        await MediaRegistry(_db).upsertVideo(
           VideoRow(
             id: id,
             vid: vid,
@@ -142,8 +141,7 @@ class MediaLibraryRepository {
           id: id,
           previousUri: existing?.localUri,
           fileUri: result.fileUri,
-          video: true,
-          entityType: SyncEntityType.video,
+          entityType: MediaRegistry.syncEntityTypeOf(kind),
           isUpdate: existing != null,
         );
       }
@@ -154,7 +152,7 @@ class MediaLibraryRepository {
       );
       final id = enjoyAudioId(aid: aid);
       final existing = await _db.audioDao.getById(id);
-      await _db.audioDao.insertRow(
+      await MediaRegistry(_db).upsertAudio(
         AudioRow(
           id: id,
           aid: aid,
@@ -184,8 +182,7 @@ class MediaLibraryRepository {
         id: id,
         previousUri: existing?.localUri,
         fileUri: result.fileUri,
-        video: false,
-        entityType: SyncEntityType.audio,
+        entityType: MediaRegistry.syncEntityTypeOf(kind),
         isUpdate: existing != null,
       );
     } on AppFailure {
@@ -430,49 +427,30 @@ class MediaLibraryRepository {
     required XFile picked,
   }) async {
     try {
-      final video = await _db.videoDao.getById(mediaId);
-      if (video != null) {
-        await _relocateLinkedFile(
-          mediaId: mediaId,
-          md5: video.md5,
-          previousUri: video.localUri,
-          entityType: SyncEntityType.video,
-          picked: picked,
-          persist: (result) => _db.videoDao.insertRow(
-            video.copyWith(
-              localUri: Value(result.fileUri),
-              bookmarkData: Value(result.bookmarkData),
-              size: Value(result.fileSize),
-              localMtimeMs: Value(result.mtimeMs),
-              updatedAt: DateTime.now(),
-            ),
-          ),
-        );
-        return;
+      final registry = MediaRegistry(_db);
+      final hit = await registry.probeBoth(mediaId);
+      final video = hit.video;
+      final audio = hit.audio;
+      if (video == null && audio == null) {
+        throw const FileFailure('Media not found.');
       }
-
-      final audio = await _db.audioDao.getById(mediaId);
-      if (audio != null) {
-        await _relocateLinkedFile(
-          mediaId: mediaId,
-          md5: audio.md5,
-          previousUri: audio.localUri,
-          entityType: SyncEntityType.audio,
-          picked: picked,
-          persist: (result) => _db.audioDao.insertRow(
-            audio.copyWith(
-              localUri: Value(result.fileUri),
-              bookmarkData: Value(result.bookmarkData),
-              size: Value(result.fileSize),
-              localMtimeMs: Value(result.mtimeMs),
-              updatedAt: DateTime.now(),
-            ),
-          ),
-        );
-        return;
-      }
-
-      throw const FileFailure('Media not found.');
+      final kind = video != null ? MediaKind.video : MediaKind.audio;
+      await _relocateLinkedFile(
+        mediaId: mediaId,
+        md5: video?.md5 ?? audio?.md5,
+        previousUri: video?.localUri ?? audio?.localUri,
+        kind: kind,
+        picked: picked,
+        // Relocate persist (all four fields, nulls clearing stale trust
+        // metadata) lives on the registry — same write as before.
+        persist: (result) => registry.updateLocalFile(
+          mediaId,
+          localUri: result.fileUri,
+          bookmarkData: result.bookmarkData,
+          size: result.fileSize,
+          mtimeMs: result.mtimeMs,
+        ),
+      );
     } on AppFailure {
       rethrow;
     } catch (e, st) {
@@ -484,7 +462,6 @@ class MediaLibraryRepository {
     required String id,
     required String? previousUri,
     required String fileUri,
-    required bool video,
     required SyncEntityType entityType,
     required bool isUpdate,
   }) async {
@@ -504,7 +481,7 @@ class MediaLibraryRepository {
     required String mediaId,
     required String? md5,
     required String? previousUri,
-    required SyncEntityType entityType,
+    required MediaKind kind,
     required XFile picked,
     required Future<void> Function(FileImportResult result) persist,
   }) async {
@@ -522,6 +499,10 @@ class MediaLibraryRepository {
     if (previousUri != null && previousUri != result.fileUri) {
       await _maybeDeleteAppManagedMedia(previousUri);
     }
-    await _enqueueSync?.call(entityType, mediaId, SyncAction.update);
+    await _enqueueSync?.call(
+      MediaRegistry.syncEntityTypeOf(kind),
+      mediaId,
+      SyncAction.update,
+    );
   }
 }
