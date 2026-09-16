@@ -226,12 +226,24 @@ sealed class SyncQueueJob {
     final language = payload['language'];
     final source = payload['source'];
     final rawTimeline = payload['timeline'];
-    final timeline = rawTimeline is List
-        ? rawTimeline
-              .map(castJsonObjectOrNull)
-              .whereType<Map<String, dynamic>>()
-              .toList(growable: false)
-        : null;
+    List<Map<String, dynamic>>? timeline;
+    if (rawTimeline is List) {
+      final parsed = <Map<String, dynamic>>[];
+      var tainted = false;
+      for (final entry in rawTimeline) {
+        final cast = castJsonObjectOrNull(entry);
+        if (cast == null) {
+          // One non-object entry taints the whole payload — drop instead
+          // of silently sending a partial timeline to the worker. The
+          // producer always emits `Map<String, dynamic>` shapes, so a
+          // non-object is corruption, not a partial list.
+          tainted = true;
+          break;
+        }
+        parsed.add(cast);
+      }
+      timeline = tainted ? null : parsed;
+    }
     if (videoId is! String ||
         videoId.isEmpty ||
         language is! String ||

@@ -233,6 +233,31 @@ void main() {
         ),
         isNull,
       );
+      // One non-Map timeline entry taints the whole payload — the producer
+      // always emits `Map<String, dynamic>` shapes, so a non-object is
+      // corruption, not a partial list (issue #726 review F1: a tainted
+      // payload must never replace the worker cache with an incomplete
+      // timeline). Decode refuses it; the drain drops the row.
+      expect(
+        SyncQueueJob.decode(
+          _row(
+            entityType: 'video',
+            entityId: 'broken/en',
+            action: 'update',
+            payloadJson: jsonEncode({
+              'kind': 'youtube_upload',
+              'videoId': 'v',
+              'language': 'en',
+              'source': 'official',
+              'timeline': <Object>[
+                {'text': 'a', 'start': 0, 'duration': 1},
+                7,
+              ],
+            }),
+          ),
+        ),
+        isNull,
+      );
       // Not JSON at all — the payload kind is unreadable, so the row keeps
       // flowing through the plain video path (pre-seam behavior:
       // isYoutubeUploadPayload returned false on a decode error).

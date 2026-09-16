@@ -58,7 +58,7 @@ class SyncQueueRepository {
   /// a row that was rejected by the server. To re-arm failed rows
   /// use [resetFailed].
   ///
-/// The read+write pair runs inside a single Drift transaction so two
+  /// The read+write pair runs inside a single Drift transaction so two
   /// concurrent enqueues for the same composite key cannot both observe
   /// "no row" and insert duplicates (issue #717 review followup). The
   /// earlier pre-#726 producer was insert-only; legacy installs may

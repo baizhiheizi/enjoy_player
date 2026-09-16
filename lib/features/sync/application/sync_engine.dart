@@ -294,7 +294,7 @@ class SyncEngine {
   /// (409 == success), so re-running a partially-applied upload is safe.
   ///
   /// A `false`/thrown upload re-enters `_processOne`'s generic failure path
-/// (markAttempted + 5-strike exponential backoff) by throwing. A malformed
+  /// (markAttempted + 5-strike exponential backoff) by throwing. A malformed
   /// payload never reaches here — [SyncQueueJob.decode] refuses it and
   /// `_processOne` drops the row.
   Future<bool> _retryYoutubeWorkerUpload(
