@@ -1,99 +1,120 @@
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Every declared static key, in one list, so the invariants below cover the
+/// whole registry. (The old per-constant `expect(c, 'literal')` tests only
+/// restated the declaration; these checks instead pin cross-consistency.)
+const _allStaticKeys = <String>[
+  SettingsKeys.apiBaseUrl,
+  SettingsKeys.apiAiBaseUrl,
+  SettingsKeys.prefsLocale,
+  SettingsKeys.prefsLearningLanguage,
+  SettingsKeys.prefsNativeLanguage,
+  SettingsKeys.prefsThemeMode,
+  SettingsKeys.prefsRecordingInputDeviceId,
+  SettingsKeys.syncCursorAudio,
+  SettingsKeys.syncCursorVideo,
+  SettingsKeys.syncCursorRecording,
+  SettingsKeys.syncCursorVocabularyItem,
+  SettingsKeys.syncCursorVocabularyContext,
+  SettingsKeys.syncLastFullSyncAt,
+  SettingsKeys.updateLastCheckAt,
+  SettingsKeys.updateSnoozeUntil,
+  SettingsKeys.updateSnoozeVersion,
+  SettingsKeys.diagnosticsVerboseEnabled,
+  SettingsKeys.analyticsCaptureEnabled,
+  SettingsKeys.transcriptKaraokeHighlight,
+  SettingsKeys.transcriptIpaOverlay,
+  SettingsKeys.playerPreferencesV1,
+  SettingsKeys.craftPreferencesV1,
+  SettingsKeys.hotkeysCustomBindings,
+  SettingsKeys.aiModalityConfigsV1,
+  SettingsKeys.onboardingTipProgressV1,
+];
+
+/// Key families (dotted prefixes, or the legacy snake_case blobs). Every
+/// declared key must belong to one — a key outside all families is usually a
+/// typo or a stray declaration nobody owns.
+const _knownFamilies = [
+  'api.',
+  'prefs.',
+  'sync.',
+  'update.',
+  'diagnostics.',
+  'analytics.',
+  'transcript.',
+  'player_',
+  'craft.',
+  'hotkeys_',
+  'ai.',
+  'onboarding.',
+];
+
 void main() {
-  group('SettingsKeys static constants', () {
-    test('apiBaseUrl / apiAiBaseUrl use canonical dotted names', () {
-      expect(SettingsKeys.apiBaseUrl, 'api.base_url');
-      expect(SettingsKeys.apiAiBaseUrl, 'api.ai_base_url');
+  group('SettingsKeys static constants (behavioral invariants)', () {
+    test('every declared key is unique', () {
+      expect(_allStaticKeys.toSet().length, _allStaticKeys.length);
     });
 
-    test('locale and language keys', () {
-      expect(SettingsKeys.prefsLocale, 'prefs.locale');
-      expect(SettingsKeys.prefsLearningLanguage, 'prefs.learning_language');
-      expect(SettingsKeys.prefsNativeLanguage, 'prefs.native_language');
+    test('every declared key belongs to a known family', () {
+      for (final key in _allStaticKeys) {
+        expect(
+          _knownFamilies.any((f) => key.startsWith(f)),
+          isTrue,
+          reason:
+              '$key does not start with any known settings family '
+              '($_knownFamilies)',
+        );
+      }
     });
 
-    test('recording input device id', () {
-      expect(
-        SettingsKeys.prefsRecordingInputDeviceId,
-        'prefs.recording_input_device_id',
-      );
+    test('every declared constant is recognized by isKnown', () {
+      // Catches adding a constant to [SettingsKeys] without registering it
+      // in the known-key set.
+      for (final key in _allStaticKeys) {
+        expect(SettingsKeys.isKnown(key), isTrue, reason: 'key: $key');
+      }
     });
 
-    test('sync cursor keys', () {
-      expect(SettingsKeys.syncCursorAudio, 'sync.cursor.audio');
-      expect(SettingsKeys.syncCursorVideo, 'sync.cursor.video');
-      expect(SettingsKeys.syncCursorRecording, 'sync.cursor.recording');
-      expect(
-        SettingsKeys.syncCursorVocabularyItem,
-        'sync.cursor.vocabulary_item',
-      );
-      expect(
-        SettingsKeys.syncCursorVocabularyContext,
-        'sync.cursor.vocabulary_context',
-      );
-    });
-
-    test('update keys', () {
-      expect(SettingsKeys.updateLastCheckAt, 'update.last_check_at');
-      expect(SettingsKeys.updateSnoozeUntil, 'update.snooze_until');
-      expect(SettingsKeys.updateSnoozeVersion, 'update.snooze_version');
-    });
-
-    test('transcript karaoke highlight key', () {
-      expect(
-        SettingsKeys.transcriptKaraokeHighlight,
-        'transcript.karaokeHighlight',
-      );
-    });
-
-    test('transcript IPA overlay key', () {
-      expect(SettingsKeys.transcriptIpaOverlay, 'transcript.ipaOverlay');
-    });
-
-    test('diagnostics / hotkeys / ai keys', () {
-      expect(
-        SettingsKeys.diagnosticsVerboseEnabled,
-        'diagnostics.verbose_enabled',
-      );
-      expect(SettingsKeys.hotkeysCustomBindings, 'hotkeys_custom_bindings');
-      expect(SettingsKeys.aiModalityConfigsV1, 'ai.modality_configs_v1');
-    });
-
-    test('player preferences v1', () {
-      expect(SettingsKeys.playerPreferencesV1, 'player_preferences_v1');
-    });
-
-    test('craft preferences v1', () {
-      expect(SettingsKeys.craftPreferencesV1, 'craft.preferences_v1');
+    test('near-miss mutations of declared keys are unknown', () {
+      // Exact-match knowledge: a declared name plus any suffix must not be
+      // accepted — except [SettingsKeys.syncCursorRecording], which is the
+      // declared root of the dynamic sync.cursor.recording.* family.
+      const familyRoots = {SettingsKeys.syncCursorRecording};
+      for (final key in _allStaticKeys.where((k) => !familyRoots.contains(k))) {
+        expect(SettingsKeys.isKnown('$key.x'), isFalse, reason: 'key: $key');
+      }
     });
   });
 
   group('SettingsKeys dynamic helpers', () {
-    test('syncCursorRecordingTarget formats dotted path', () {
-      expect(
-        SettingsKeys.syncCursorRecordingTarget('Video', 'abc'),
-        'sync.cursor.recording.Video.abc',
-      );
-      expect(
-        SettingsKeys.syncCursorRecordingTarget('Audio', 'xyz'),
-        'sync.cursor.recording.Audio.xyz',
-      );
+    test('recording-target cursors are distinct per target and known', () {
+      final a = SettingsKeys.syncCursorRecordingTarget('Video', 'm-1');
+      final b = SettingsKeys.syncCursorRecordingTarget('Video', 'm-2');
+      final c = SettingsKeys.syncCursorRecordingTarget('Audio', 'm-1');
+      expect(a, isNot(b));
+      expect(a, isNot(c));
+      expect(SettingsKeys.isKnown(a), isTrue);
+      expect(SettingsKeys.isKnown(b), isTrue);
+      expect(SettingsKeys.isKnown(c), isTrue);
     });
 
-    test('syncLastPullAtRecordingTarget formats dotted path', () {
-      expect(
-        SettingsKeys.syncLastPullAtRecordingTarget('Video', 'abc'),
-        'sync.last_pull_at.recording.Video.abc',
-      );
+    test('last-pull cooldown keys are distinct per target and known', () {
+      final a = SettingsKeys.syncLastPullAtRecordingTarget('Video', 'm-1');
+      final b = SettingsKeys.syncLastPullAtRecordingTarget('Audio', 'm-1');
+      expect(a, isNot(b));
+      expect(SettingsKeys.isKnown(a), isTrue);
+      expect(SettingsKeys.isKnown(b), isTrue);
+      // Cursor and cooldown families never collide for the same target.
+      expect(a, isNot(SettingsKeys.syncCursorRecordingTarget('Video', 'm-1')));
     });
 
-    test('asrLongFormAttempt formats dotted path', () {
-      expect(
-        SettingsKeys.asrLongFormAttempt('m-1'),
-        'asr.long_form.attempt.m-1',
-      );
+    test('asr long-form attempt keys are distinct per media and known', () {
+      final a = SettingsKeys.asrLongFormAttempt('m-1');
+      final b = SettingsKeys.asrLongFormAttempt('m-2');
+      expect(a, isNot(b));
+      expect(SettingsKeys.isKnown(a), isTrue);
+      expect(SettingsKeys.isKnown(b), isTrue);
     });
   });
 
