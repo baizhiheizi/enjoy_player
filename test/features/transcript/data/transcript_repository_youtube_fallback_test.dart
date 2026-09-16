@@ -359,6 +359,12 @@ void main() {
 
       final queued = await _waitForQueue(db);
       expect(queued, hasLength(1));
+      // Typed seam (issue #718): the producer constructs a
+      // SyncYoutubeUploadRetry; the encoded wire row must stay byte-identical
+      // to the pre-seam hand-rolled incantation.
+      expect(queued.single.entityType, 'video');
+      expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
+      expect(queued.single.action, 'update');
       final payload = jsonDecode(queued.single.payloadJson!);
       expect(payload['kind'], 'youtube_upload');
       expect(payload['videoId'], 'tIgO_Sjh3tQ');

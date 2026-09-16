@@ -5,6 +5,24 @@ part of 'transcript_repository.dart';
 /// reporting. The YouTube fallback chain lives in
 /// `_TranscriptRepositoryYoutubeFetch`.
 extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
+  /// Single owner of the skip-once-fetched predicate (issue #718): the
+  /// `lastStatus != 'error'` rule on the persisted [TranscriptFetchStateRow]
+  /// for this target. `false` covers both "no row yet" and "last fetch
+  /// errored" — both let the next open retry.
+  Future<bool> _isCloudFetchSkippable(String mediaId) async {
+    final state = await _readCloudFetchState(mediaId);
+    return state != null && state.lastStatus != 'error';
+  }
+
+  /// Reads the persisted fetch-state row, resolving the target type once.
+  /// The controller uses this for UI hydration; the predicate above uses it
+  /// for the skip gate.
+  Future<TranscriptFetchStateRow?> _readCloudFetchState(String mediaId) async {
+    final tt = await dexieTargetTypeForId(_db, mediaId);
+    if (tt == null) return null;
+    return _db.transcriptFetchStateDao.getForTarget(tt, mediaId);
+  }
+
   Future<TranscriptCloudFetchResult> _fetchCloudTranscripts(
     String mediaId, {
     bool force = false,
@@ -18,13 +36,10 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
       );
     }
 
-    if (!force) {
-      final state = await _db.transcriptFetchStateDao.getForTarget(tt, mediaId);
-      if (state != null && state.lastStatus != 'error') {
-        return const TranscriptCloudFetchResult(
-          status: TranscriptCloudFetchStatus.skipped,
-        );
-      }
+    if (!force && await _isCloudFetchSkippable(mediaId)) {
+      return const TranscriptCloudFetchResult(
+        status: TranscriptCloudFetchStatus.skipped,
+      );
     }
 
     if (tt == 'Video') {

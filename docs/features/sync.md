@@ -47,6 +47,10 @@ When signed out, the sync screen explains that sign-in is required and links to 
 - While signed in, queue drain repeats on a **5-minute** timer.
 - Library import/delete and shadow-reading recording save/delete call [`syncEnqueueProvider`](../../lib/features/sync/application/sync_providers.dart).
 
+## Typed enqueue seam (issue #718)
+
+`sync_queue` is a cross-module protocol with one typed enqueue surface: [`SyncQueueJob`](../../lib/features/sync/domain/sync_queue_job.dart) in the sync domain layer. Producers construct typed variants (`SyncAudioUpsert`, `SyncVocabularyItemDelete`, `SyncYoutubeUploadRetry`, …) — never hand-rolled `entityType` / `entityId` / `action` / `payloadJson` strings — and persist them through `SyncQueueRepository.addJob`; [`SyncEngine._processOne`](../../lib/features/sync/application/sync_engine.dart) decodes the row via `SyncQueueJob.decode` and switches exhaustively over the variant, so adding a producer without matching consumer handling is a compile error instead of a silent row drop. The `youtube_upload` worker retry rides the `video` entity (`action: update`, `payload.kind: youtube_upload`) and decodes via the video variant — no `SyncEntityType` value for the worker upload (web/Dexie wire parity pins the enum). `SyncQueueRepository.addOrUpsert` stays `@visibleForTesting` for the seam test and the failed-state-preservation contract tests.
+
 ## Conflict policy
 
 Server wins when `server.updatedAt >= local.updatedAt`; local-only paths (`localUri`, `localPath`) are preserved on merge.

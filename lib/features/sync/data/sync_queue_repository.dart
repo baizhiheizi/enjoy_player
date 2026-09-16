@@ -2,8 +2,10 @@
 library;
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
 
 /// Live counts + capped rows for sync status UI.
 final class SyncQueueSnapshot {
@@ -30,6 +32,22 @@ class SyncQueueRepository {
 
   final AppDatabase _db;
 
+  /// Typed enqueue seam (issue #718): persists [job]'s wire columns with the
+  /// same dedup / failed-state-preservation contract as [addOrUpsert].
+  ///
+  /// This is the only enqueue entry point feature code should use — the raw
+  /// string API below exists for the sync feature internals (the drain's
+  /// coalescing gate) and tests.
+  Future<int> addJob(SyncQueueJob job) {
+    final wire = job.encode();
+    return addOrUpsert(
+      entityType: wire.entityType,
+      entityId: wire.entityId,
+      action: wire.action,
+      payloadJson: wire.payloadJson,
+    );
+  }
+
   /// Adds or refreshes a queue row for `(entityType, entityId, action)` —
   /// mirrors web [addSyncQueueItem].
   ///
@@ -47,6 +65,11 @@ class SyncQueueRepository {
   /// still carry those duplicates — the schema-version-18 migration in
   /// `AppDatabase._runMigrations` consolidates them so this `getSingleOrNull`
   /// never sees >1 row.
+  ///
+  /// Internal to the sync feature (issue #718): feature code must call
+  /// [addJob] with a typed [SyncQueueJob] instead. The string API stays
+  /// visible only because the seam test and the [addJob] shim need it.
+  @visibleForTesting
   Future<int> addOrUpsert({
     required String entityType,
     required String entityId,
