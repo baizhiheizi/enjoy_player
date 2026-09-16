@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
+import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_binding.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';

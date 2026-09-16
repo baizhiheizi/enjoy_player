@@ -43,7 +43,6 @@ class YoutubeSession {
 
   final GlobalKey webViewHostKey = GlobalKey();
   final ValueNotifier<int> _mountTick = ValueNotifier(0);
-  final Stream<double> aspectStream = Stream<double>.value(16 / 9);
 
   String _videoId = '';
   String? _posterUrl;

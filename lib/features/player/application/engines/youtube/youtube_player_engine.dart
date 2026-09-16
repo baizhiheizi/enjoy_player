@@ -118,9 +118,6 @@ class YoutubePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
       _session.transportSnapshot;
 
   @override
-  Stream<double> get videoAspectRatioStream => _session.aspectStream;
-
-  @override
   void setPosterUrl(String? url) => _session.setPosterUrl(url);
 
   /// Clears the session's end-of-media latch so the next

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';

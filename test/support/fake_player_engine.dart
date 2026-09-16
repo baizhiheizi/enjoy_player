@@ -152,9 +152,6 @@ class FakePlayerEngine implements PlayerEngine, PlayerEngineMetadata {
   ({bool playing, bool buffering}) get transportSnapshot =>
       (playing: false, buffering: false);
 
-  @override
-  Stream<double> get videoAspectRatioStream => Stream<double>.value(16 / 9);
-
   void _recordUriFromSource(PlayableSource source) {
     switch (source) {
       case LocalFilePlayableSource(:final uri):
