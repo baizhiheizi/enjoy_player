@@ -48,6 +48,13 @@ class SyncDuplicateMissingError extends Error {
       'create said already exists but GET returned 404';
 }
 
+/// Uploads local rows to the Enjoy API (metadata only), persisting the
+/// server-acked state back into Drift.
+///
+/// Accepted bypass of the MediaRegistry seam (issue #723): the post-upload
+/// persists stamp several sync-only fields (`syncStatus`, `serverUpdatedAt`,
+/// server `mediaUrl`) onto a row the caller already holds, per entity type —
+/// a registry detour would add nothing over the typed `insertRow` replace.
 class SyncUploadService {
   SyncUploadService({
     required this._db,

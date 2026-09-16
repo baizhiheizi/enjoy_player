@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 
 /// Fills `duration_seconds` when still zero after import, using `ffmpeg -i`.
@@ -17,12 +18,15 @@ import 'package:enjoy_player/data/files/ffmpeg_media_probe.dart';
 /// Isolate.run pattern mirrors `lib/data/files/file_storage.dart:128`
 /// (chunked SHA-256 hashing) so the platform-channel hop is amortised
 /// across the import.
+///
+/// The persist step crosses [MediaRegistry.patchDurationIfZero] — the
+/// shared write-after-read that also serves the engine duration listener —
+/// so the caller no longer needs to know which table holds [mediaId].
 Future<void> probeAndPatchMediaDuration(
   AppDatabase db,
   String mediaId,
-  String fileUri, {
-  required bool video,
-}) async {
+  String fileUri,
+) async {
   final ffmpeg = await FfmpegMediaProbe.resolveFfmpegExecutable();
   if (ffmpeg == null) return;
   final input = FfmpegMediaProbe.mediaInputForFfmpeg(fileUri);
@@ -38,19 +42,7 @@ Future<void> probeAndPatchMediaDuration(
   }
   if (sec == null) return;
 
-  if (video) {
-    final row = await db.videoDao.getById(mediaId);
-    if (row == null || row.durationSeconds != 0) return;
-    await db.videoDao.insertRow(
-      row.copyWith(durationSeconds: sec.inSeconds, updatedAt: DateTime.now()),
-    );
-  } else {
-    final row = await db.audioDao.getById(mediaId);
-    if (row == null || row.durationSeconds != 0) return;
-    await db.audioDao.insertRow(
-      row.copyWith(durationSeconds: sec.inSeconds, updatedAt: DateTime.now()),
-    );
-  }
+  await MediaRegistry(db).patchDurationIfZero(mediaId, sec.inSeconds);
 }
 
 /// Top-level so it can be sent to a worker isolate via [Isolate.run].

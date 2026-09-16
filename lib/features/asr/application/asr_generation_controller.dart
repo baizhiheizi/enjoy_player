@@ -27,7 +27,6 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
-import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_long_form_phase.dart';
@@ -409,17 +408,13 @@ class AsrGenerationController extends _$AsrGenerationController {
   }) async {
     if (detected == null || detected.isEmpty) return;
     final db = ref.read(appDatabaseProvider);
-    final tt = await dexieTargetTypeForId(db, mediaId);
-    if (tt == null) return;
-    if (tt == 'Video') {
-      final row = await db.videoDao.getById(mediaId);
-      if (row == null || row.language == persistedLanguage) return;
-      await db.videoDao.updateLanguage(id: mediaId, language: detected);
-    } else if (tt == 'Audio') {
-      final row = await db.audioDao.getById(mediaId);
-      if (row == null || row.language == persistedLanguage) return;
-      await db.audioDao.updateLanguage(id: mediaId, language: detected);
-    }
+    final registry = MediaRegistry(db);
+    // Same-tag short-circuit stays here (repo-style caller policy); the
+    // registry owns only the videos/audios write dispatch.
+    final hit = await registry.probeBoth(mediaId);
+    final current = hit.video?.language ?? hit.audio?.language;
+    if (current == null || current == persistedLanguage) return;
+    await registry.updateLanguage(mediaId, detected);
   }
 
   /// Maps the worker's long-form failure categories onto the coarse
