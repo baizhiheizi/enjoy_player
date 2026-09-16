@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
@@ -83,7 +84,71 @@ MockClient _permissiveMock() => MockClient((request) async {
   return http.Response('not found', 404);
 });
 
-SyncEngine _buildEngine(AppDatabase db, MockClient mock) {
+/// Records `uploadTranscript` calls; flaggable failure for retry tests
+/// (same pattern as `transcript_repository_youtube_fallback_test.dart`).
+class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
+  bool uploadShouldFail = false;
+
+  final List<
+    ({
+      String videoId,
+      String language,
+      String source,
+      List<Map<String, dynamic>> timeline,
+    })
+  >
+  uploads = [];
+
+  @override
+  Future<Map<String, dynamic>?> getCachedTranscript({
+    required String videoId,
+    required String language,
+  }) async => null;
+
+  @override
+  Future<bool> uploadTranscript({
+    required String videoId,
+    required String language,
+    required String source,
+    required List<Map<String, dynamic>> timeline,
+    Map<String, dynamic>? metadata,
+  }) async {
+    uploads.add((
+      videoId: videoId,
+      language: language,
+      source: source,
+      timeline: [
+        for (final entry in timeline) Map<String, dynamic>.from(entry),
+      ],
+    ));
+    return !uploadShouldFail;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchClientProfiles() async =>
+      <Map<String, dynamic>>[];
+}
+
+/// The payload `_enqueueYoutubeUploadRetry` writes for a failed worker
+/// upload (issue #717).
+String _youtubeUploadPayload({
+  required String videoId,
+  required String language,
+  String source = 'official',
+  required List<Map<String, dynamic>> timeline,
+}) => jsonEncode({
+  'kind': 'youtube_upload',
+  'videoId': videoId,
+  'language': language,
+  'source': source,
+  'timeline': timeline,
+});
+
+SyncEngine _buildEngine(
+  AppDatabase db,
+  MockClient mock, {
+  YoutubeTranscriptsClient? youtubeTranscripts,
+}) {
   final client = _testClient(mock);
   return SyncEngine(
     db: db,
@@ -102,6 +167,7 @@ SyncEngine _buildEngine(AppDatabase db, MockClient mock) {
       recordingApi: RecordingApi(client),
       vocabularyApi: VocabularyApi(client),
     ),
+    youtubeTranscripts: youtubeTranscripts ?? _FakeTranscriptsApi(),
   );
 }
 
@@ -574,6 +640,191 @@ void main() {
       expect(result.success, isTrue);
       expect(result.synced, 1);
       // Row is removed after the no-op break (falls through to removeById).
+      expect(await queue.pendingItems(), isEmpty);
+    });
+  });
+
+  group('SyncEngine youtube_upload retry rows (issue #717)', () {
+    test(
+      'drain re-uploads payload timeline and clears row on success',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final api = _FakeTranscriptsApi();
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: _youtubeUploadPayload(
+            videoId: 'dQw4w9WgXcQ',
+            language: 'en',
+            timeline: const [
+              {'text': 'hello', 'start': 0, 'duration': 1000},
+              {'text': 'world', 'start': 1000, 'duration': 1500},
+            ],
+          ),
+        );
+
+        final engine = _buildEngine(
+          db,
+          _permissiveMock(),
+          youtubeTranscripts: api,
+        );
+        final result = await engine.processQueue(const SyncOptions());
+
+        expect(result.success, isTrue);
+        expect(result.synced, 1);
+        // The upload was re-attempted with the payload's videoId/language/
+        // source/timeline — not resolved against a local video row.
+        expect(api.uploads, hasLength(1));
+        expect(api.uploads.single.videoId, 'dQw4w9WgXcQ');
+        expect(api.uploads.single.language, 'en');
+        expect(api.uploads.single.source, 'official');
+        expect(api.uploads.single.timeline, [
+          {'text': 'hello', 'start': 0, 'duration': 1000},
+          {'text': 'world', 'start': 1000, 'duration': 1500},
+        ]);
+        // No local video row exists — the old path would have dropped the row.
+        expect(await db.videoDao.getById('dQw4w9WgXcQ/en'), isNull);
+        expect(await queue.pendingItems(), isEmpty);
+        expect(await db.select(db.syncQueue).get(), isEmpty);
+      },
+    );
+
+    test(
+      'failed retry marks row attempted (retryCount++), not removed',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final api = _FakeTranscriptsApi()..uploadShouldFail = true;
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: _youtubeUploadPayload(
+            videoId: 'dQw4w9WgXcQ',
+            language: 'en',
+            timeline: const [
+              {'text': 'hello', 'start': 0, 'duration': 1000},
+            ],
+          ),
+        );
+
+        final engine = _buildEngine(
+          db,
+          _permissiveMock(),
+          youtubeTranscripts: api,
+        );
+        final result = await engine.processQueue(const SyncOptions());
+
+        expect(result.success, isFalse);
+        expect(result.failed, 1);
+        expect(api.uploads, hasLength(1));
+        // Row survives with the attempt recorded for the backoff machinery.
+        final pending = await queue.pendingItems();
+        expect(pending, hasLength(1));
+        expect(pending.first.retryCount, 1);
+        expect(pending.first.error, isNotNull);
+      },
+    );
+
+    test(
+      'duplicate enqueue of same videoId/language keeps one row, latest wins',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final api = _FakeTranscriptsApi();
+
+        // Mirror the producer: SyncQueueRepository.addOrUpsert dedups on
+        // (entityType, entityId, action) and overwrites only the payload.
+        for (final text in ['stale', 'fresh']) {
+          await queue.addOrUpsert(
+            entityType: 'video',
+            entityId: 'dQw4w9WgXcQ/en',
+            action: 'update',
+            payloadJson: _youtubeUploadPayload(
+              videoId: 'dQw4w9WgXcQ',
+              language: 'en',
+              timeline: [
+                {'text': text, 'start': 0, 'duration': 1000},
+              ],
+            ),
+          );
+        }
+        expect(await db.select(db.syncQueue).get(), hasLength(1));
+
+        final engine = _buildEngine(
+          db,
+          _permissiveMock(),
+          youtubeTranscripts: api,
+        );
+        await engine.processQueue(const SyncOptions());
+
+        expect(api.uploads, hasLength(1));
+        expect(api.uploads.single.timeline.single['text'], 'fresh');
+        expect(await db.select(db.syncQueue).get(), isEmpty);
+      },
+    );
+
+    test(
+      'malformed youtube_upload payload is dropped, never crashes drain',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final api = _FakeTranscriptsApi();
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'broken/en',
+          action: 'update',
+          // kind matches but required fields are missing.
+          payloadJson: jsonEncode({'kind': 'youtube_upload'}),
+        );
+
+        final engine = _buildEngine(
+          db,
+          _permissiveMock(),
+          youtubeTranscripts: api,
+        );
+        final result = await engine.processQueue(const SyncOptions());
+
+        expect(result.success, isTrue);
+        expect(result.synced, 1);
+        expect(api.uploads, isEmpty);
+        expect(await db.select(db.syncQueue).get(), isEmpty);
+      },
+    );
+
+    test('payload-less video update rows still take the drop path', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queue = SyncQueueRepository(db);
+      final api = _FakeTranscriptsApi();
+
+      // Plain rows carry no `kind` — they must keep flowing through the
+      // entity-type resolution unchanged (missing locally → dropped).
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: 'missing-video',
+        action: 'update',
+      );
+
+      final engine = _buildEngine(
+        db,
+        _permissiveMock(),
+        youtubeTranscripts: api,
+      );
+      final result = await engine.processQueue(const SyncOptions());
+
+      expect(result.success, isTrue);
+      expect(result.synced, 1);
+      expect(api.uploads, isEmpty);
       expect(await queue.pendingItems(), isEmpty);
     });
   });

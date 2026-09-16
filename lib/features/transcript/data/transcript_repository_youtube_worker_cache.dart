@@ -158,7 +158,12 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
         'source': source,
         'timeline': timeline,
       });
-      await _db.syncQueueDao.enqueue(
+      // addOrUpsert (not a plain insert): repeated failures of the same
+      // videoId/language must refresh the one existing row's payload instead
+      // of stacking duplicate rows that each carry a full timeline JSON.
+      // retryCount/lastAttempt/error are preserved on re-enqueue so a row
+      // already exhausted against the worker is not silently re-armed.
+      await SyncQueueRepository(_db).addOrUpsert(
         entityType: 'video',
         entityId: '$videoId/$language',
         action: 'update',

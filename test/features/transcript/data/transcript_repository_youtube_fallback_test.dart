@@ -366,6 +366,42 @@ void main() {
     });
 
     test(
+      'F3: repeated failed uploads dedup to one queue row, latest timeline wins',
+      () async {
+        const mediaId = 'v-retry-dedup';
+        await db.videoDao.insertRow(_video(id: mediaId, language: 'en-US'));
+        final api = _FakeTranscriptsApi(uploadShouldFail: true);
+
+        for (final text in ['stale', 'fresh']) {
+          final fetcher = _StubYoutubeCaptionFetcher(
+            result: AllCaptionsResult(
+              results: [_track(language: 'en', text: text)],
+            ),
+          );
+          final repo = TranscriptRepository(db, null, api, fetcher);
+          await repo.fetchCloudTranscripts(mediaId, force: true);
+          await _drain();
+        }
+
+        final deadline = DateTime.now().add(const Duration(seconds: 2));
+        while (api.uploads.length < 2 && DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+        expect(api.uploads, hasLength(2));
+
+        final queued = await _waitForQueue(db);
+        // One row per (videoId, language) — the second failure refreshed
+        // the first row's payload instead of inserting a duplicate.
+        expect(queued, hasLength(1));
+        expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
+        final payload = jsonDecode(queued.single.payloadJson!);
+        expect(payload['timeline'], [
+          {'text': 'fresh', 'start': 0, 'duration': 1000},
+        ]);
+      },
+    );
+
+    test(
       'F3: empty InnerTube result skips upload retry (nothing to enqueue)',
       () async {
         const mediaId = 'v-empty-t2';

@@ -93,3 +93,17 @@ fetches `GET /youtube/client-profiles` on first YouTube open, caches in a
   `transcript_repository_youtube_fallback_test.dart`)
 - `dart format`: clean
 - Updated feature docs: `docs/features/youtube.md`
+
+## Amendments
+
+- **2026-09-16 (issue #717)**: decision 3's drain consumer did not exist when
+  this ADR landed — the retry rows are keyed `'$videoId/$language'`, but the
+  `SyncEntityType.video` drain resolves `entityId` against local video row ids
+  (UUIDv5), so every enqueued row was dropped as "missing locally" and the
+  payload destroyed. The consumer now exists: `SyncEngine._processOne`
+  dispatches `kind: youtube_upload` payloads (entity `video`, non-delete
+  action) directly to `YoutubeTranscriptsClient.uploadTranscript` — success
+  clears the row; failure reuses the regular 5-strike / exponential-backoff
+  machinery. The producer also switched from a plain insert to
+  `SyncQueueRepository.addOrUpsert` so repeated failures of the same
+  `videoId/language` refresh one row instead of stacking duplicates.

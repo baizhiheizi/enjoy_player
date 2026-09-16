@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:enjoy_player/data/api/api_client.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
@@ -171,6 +172,7 @@ void main() {
           queue: queue,
           upload: upload,
           download: download,
+          youtubeTranscripts: YoutubeTranscriptsApi(client),
         );
 
         final now = DateTime.utc(2026, 7, 1);
@@ -265,6 +267,7 @@ void main() {
           recordingApi: RecordingApi(client),
           vocabularyApi: VocabularyApi(client),
         ),
+        youtubeTranscripts: YoutubeTranscriptsApi(client),
       );
 
       await queue.addOrUpsert(
@@ -330,6 +333,7 @@ void main() {
             recordingApi: RecordingApi(client),
             vocabularyApi: VocabularyApi(client),
           ),
+          youtubeTranscripts: YoutubeTranscriptsApi(client),
         );
 
         await db.transaction(() async {
