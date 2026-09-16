@@ -83,10 +83,6 @@ abstract final class SettingsKeys {
   /// JSON blob: per-modality AI provider config (BYOK non-secrets only).
   static const String aiModalityConfigsV1 = 'ai.modality_configs_v1';
 
-  /// JSON array: cached YouTube InnerTube client profiles from worker
-  /// `GET /youtube/client-profiles`. Fall back to built-in defaults when absent.
-  static const String youtubeClientProfilesV1 = 'youtube.client_profiles_v1';
-
   /// In-flight Enjoy long-form ASR attempt JSON for [mediaId].
   static String asrLongFormAttempt(String mediaId) =>
       'asr.long_form.attempt.$mediaId';
@@ -127,7 +123,6 @@ abstract final class SettingsKeys {
     craftPreferencesV1,
     hotkeysCustomBindings,
     aiModalityConfigsV1,
-    youtubeClientProfilesV1,
     onboardingTipProgressV1,
   };
 

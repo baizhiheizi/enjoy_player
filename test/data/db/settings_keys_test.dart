@@ -52,17 +52,13 @@ void main() {
       expect(SettingsKeys.transcriptIpaOverlay, 'transcript.ipaOverlay');
     });
 
-    test('diagnostics / hotkeys / ai / youtube keys', () {
+    test('diagnostics / hotkeys / ai keys', () {
       expect(
         SettingsKeys.diagnosticsVerboseEnabled,
         'diagnostics.verbose_enabled',
       );
       expect(SettingsKeys.hotkeysCustomBindings, 'hotkeys_custom_bindings');
       expect(SettingsKeys.aiModalityConfigsV1, 'ai.modality_configs_v1');
-      expect(
-        SettingsKeys.youtubeClientProfilesV1,
-        'youtube.client_profiles_v1',
-      );
     });
 
     test('player preferences v1', () {
@@ -126,7 +122,7 @@ void main() {
         SettingsKeys.craftPreferencesV1,
         SettingsKeys.hotkeysCustomBindings,
         SettingsKeys.aiModalityConfigsV1,
-        SettingsKeys.youtubeClientProfilesV1,
+        SettingsKeys.onboardingTipProgressV1,
       ];
       for (final k in staticKeys) {
         expect(SettingsKeys.isKnown(k), isTrue, reason: 'key: $k');
