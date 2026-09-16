@@ -13,10 +13,20 @@ import 'package:flutter/services.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
+import 'package:enjoy_player/features/hotkeys/application/global_hotkey_commands.dart';
+import 'package:enjoy_player/features/hotkeys/application/modal_close_hotkey_command.dart';
+import 'package:enjoy_player/features/library/application/library_search_hotkey_command.dart';
 import 'package:enjoy_player/features/player/application/hotkeys/player_hotkey_commands.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_commands.dart';
 
 /// All registered commands, in dispatch (priority) order.
-final List<HotkeyCommand> hotkeyCommands = [...playerHotkeyCommands];
+final List<HotkeyCommand> hotkeyCommands = [
+  const ModalCloseHotkeyCommand(),
+  ...globalHotkeyCommands,
+  const LibrarySearchHotkeyCommand(),
+  ...shadowReadingHotkeyCommands,
+  ...playerHotkeyCommands,
+];
 
 /// Resolve [event] against [ctrl]'s effective bindings and run the first
 /// command (in [commands] order, defaulting to [hotkeyCommands]) whose action

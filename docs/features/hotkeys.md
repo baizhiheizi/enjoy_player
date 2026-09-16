@@ -23,3 +23,17 @@ Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings
 - Dispatch: `lib/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart` (`HardwareKeyboard.addHandler`); Escape priority in `lib/features/hotkeys/application/escape_dismissal.dart` (`navigatorHasTopPopupRoute` on shell then root via `GlobalKey.currentState`). Shell key: `enjoyShellNavigatorKey` in `lib/core/routing/app_router.dart`. Mounted via **`MaterialApp.router`'s `builder`** so the listener sits **under** `MaterialApp` / GoRouter (valid overlay + `ref.read(appRouterProvider)` for path/navigation — avoids `GoRouterState.of(context)` when context was above the router).
 - Player collapse helper: `lib/features/player/application/player_collapse.dart`
 - Cheatsheet UI: `lib/features/hotkeys/presentation/hotkeys_help_dialog.dart` (`showHotkeysHelpDialog`)
+
+## Dispatch: command interface (issue #719)
+
+The listener is a thin shell: it filters KeyUp / editable-text focus, then runs **one** `dispatchHotkey` call against the ordered `hotkeyCommands` registry (`lib/features/hotkeys/application/hotkey_commands.dart`). Registration order **is** dispatch priority, and matches the old if-chain exactly:
+
+1. `modal.close` — `ModalCloseHotkeyCommand` (priority logic in `escape_dismissal.dart`; the command gathers state into the context and applies the chosen arm).
+2. `global.*` — `global.help` / `global.settings` / `global.craft` / `global.search` (`global_hotkey_commands.dart`).
+3. `library.search` — `LibrarySearchHotkeyCommand` (`features/library/application/library_search_hotkey_command.dart`).
+4. Shadow-reading bus pulses — `player.toggleRecording` / `player.playRecording` / `player.togglePitchContour` / `player.toggleAssessment` (`features/shadow_reading/application/shadow_reading_hotkey_commands.dart`).
+5. Session-gated player keys — `player.togglePlay`, `player.toggleExpand`, `player.toggleFullscreen`, line / echo / playback rate (the rate reducer is `decidePlaybackRateStep` / D10 in `features/player/domain/transport_decisions.dart`) (`features/player/application/hotkeys/player_hotkey_commands.dart`).
+
+A matched binding whose `canExecute` gate fails does **not** consume the key — dispatch keeps scanning, matching the if-chain's fall-through. Two rebound bindings therefore can never flip behavior nondeterministically: the first command (in this order) whose `actionId` matches and whose gate passes wins.
+
+Each command owns its `canExecute` gate and its `execute` side effects, living next to the logic it calls. **Adding a new hotkey action is one `HotkeyDefinition` plus one `HotkeyCommand`** in the owning feature — no listener edit, no new if-branch in the chain.

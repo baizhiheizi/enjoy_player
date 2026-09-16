@@ -10,33 +10,39 @@
 // `test/features/player/application/hotkeys/`; this file keeps the arms that
 // are genuinely entangled with the mounted tree:
 //   - early returns (KeyUpEvent, primary focus on EditableText)
-//   - Escape (`modal.close`) → the 8 EscapeDismissalAction execution arms
-//     (priority logic itself is unit-tested in escape_dismissal_test.dart)
 //   - global.help cheatsheet open / close (dialog needs a navigator context)
-//   - global.settings / global.craft / global.search / library.search
-//   - shadow-reading bus pulses (recording / playback / pitch / assessment)
-//   - player.toggleExpand (collapse pops the router stack; the open arm
-//     intentionally uses the listener's own context above the router)
 //   - the playback-rate command wiring through the registry
+//   - the custom-binding remap flowing through dispatch
 //   - the `_onKey` return-false path when no shortcut matches
-import 'dart:async';
+//
+// Everything else has moved next to the code it executes:
+//   - Escape arms → test/features/hotkeys/application/
+//       modal_close_hotkey_command_test.dart
+//   - global settings / craft / search →
+//       test/features/hotkeys/application/global_hotkey_commands_test.dart
+//   - library.search →
+//       test/features/library/application/
+//       library_search_hotkey_command_test.dart
+//   - dispatch semantics + registry order →
+//       test/features/hotkeys/application/hotkey_commands_test.dart
+//   - shadow-reading bus pulses →
+//       test/features/shadow_reading/application/
+//       shadow_reading_hotkey_commands_test.dart
+//   - session-gated player keys →
+//       test/features/player/application/hotkeys/
+//       (player_hotkey_commands_test.dart, playback_rate_commands_test.dart,
+//       player_toggle_expand_hotkey_command_test.dart)
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
-import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
-import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
-import 'package:enjoy_player/features/hotkeys/application/shadow_reading_hotkey_policy.dart';
-import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart';
-import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_cheatsheet_open.dart';
-import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_help_dialog.dart';
-import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
+import 'package:enjoy_player/features/hotkeys/application/hotkeys_cheatsheet_open.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
@@ -409,19 +415,10 @@ Future<_Harness> _mountHarness(
   WidgetTester tester, {
   String initialLocation = '/library',
   Map<String, String> customBindings = const {},
-  bool isDesktop = true,
   PlaybackSession? session,
-  ReviewSessionState? vocabState,
-  ShadowReadingHotkeyTicks initialShadowTicks =
-      ShadowReadingHotkeyTicks.initial,
   double initialRate = 1.0,
-  bool fullscreen = false,
 }) async {
-  if (isDesktop) {
-    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-  } else {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-  }
+  debugDefaultTargetPlatformOverride = TargetPlatform.windows;
   // Reset handled by [_PlatformResetter] on dispose (see class comment).
 
   hotkeysCheatsheetOpen.value = false;
@@ -429,10 +426,10 @@ Future<_Harness> _mountHarness(
 
   final hotkeys = _RecordingHotkeysCtrl(customBindings);
 
-  final fakeFullscreen = _FakeWindowFullscreen(fullscreen: fullscreen);
-  final fakeShadow = _FakeShadowReadingHotkeyBus(initial: initialShadowTicks);
+  final fakeFullscreen = _FakeWindowFullscreen(fullscreen: false);
+  final fakeShadow = _FakeShadowReadingHotkeyBus();
   final fakeCraft = _FakeCraftController();
-  final fakeVocab = _FakeVocabularyReviewSession(initial: vocabState);
+  final fakeVocab = _FakeVocabularyReviewSession();
   final fakePlayer = _FakePlayerController(sessionOverride: session);
   // Assigned by the [playerInteractionsProvider] override, which is the only
   // place a [Ref] is available for the service (issue #668). The reads below
@@ -624,19 +621,6 @@ Future<void> _stroke(
   await tester.pump();
 }
 
-Future<void> _releaseAll(WidgetTester tester) async {
-  for (final key in HardwareKeyboard.instance.logicalKeysPressed.toList()) {
-    HardwareKeyboard.instance.handleKeyEvent(
-      KeyUpEvent(
-        physicalKey: _physicalFor(key),
-        logicalKey: key,
-        timeStamp: Duration.zero,
-      ),
-    );
-  }
-  await tester.pump();
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -705,101 +689,6 @@ void main() {
     });
   });
 
-  group('Escape (modal.close)', () {
-    testWidgets('cheatsheet open → closeCheatsheet pops root navigator', (
-      tester,
-    ) async {
-      final harness = await _mountHarness(tester);
-      hotkeysCheatsheetOpen.value = true;
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-      expect(harness.shadowBus.recordingCancelPulses, 0);
-      expect(harness.fullscreen.toggleCalls, 0);
-    });
-
-    testWidgets('fullscreen on desktop → exitFullscreen', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        fullscreen: true,
-        initialLocation: '/library',
-      );
-      expect(harness.fullscreen.state, isTrue);
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-      expect(harness.fullscreen.setFullscreenCalls, contains(false));
-    });
-
-    testWidgets('craft recording active → cancelCapture', (tester) async {
-      final harness = await _mountHarness(tester);
-      harness.craftCtrl.startCapture();
-      expect(harness.craftCtrl.isCapturing, isTrue);
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pump();
-      expect(harness.craftCtrl.cancelCaptureCalls, 1);
-    });
-
-    testWidgets('shadow-reading recording active → pulseRecordingCancel', (
-      tester,
-    ) async {
-      final harness = await _mountHarness(tester);
-      harness.shadowBus.setRecordingActive(true);
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pump();
-      expect(harness.shadowBus.recordingCancelPulses, 1);
-    });
-
-    testWidgets('shell popup → popShellPopup', (tester) async {
-      final harness = await _mountHarness(tester);
-      // Open a bottom sheet on the shell navigator to create a PopupRoute.
-      final shellState = enjoyShellNavigatorKey.currentState;
-      expect(shellState, isNotNull);
-      unawaited(
-        shellState!.push(
-          MaterialPageRoute<void>(
-            builder: (_) => const Scaffold(body: Text('pushed-page')),
-            fullscreenDialog: true,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('pushed-page'), findsOneWidget);
-
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-      // Pushed page was popped, library remains.
-      expect(find.text('pushed-page'), findsNothing);
-      expect(find.text('library'), findsOneWidget);
-      expect(harness.shadowBus.recordingCancelPulses, 0);
-    });
-
-    testWidgets(
-      'idle player route → noopOnPlayer (handler still returns true)',
-      (tester) async {
-        final harness = await _mountHarness(
-          tester,
-          initialLocation: '/player/abc',
-        );
-        expect(find.text('player'), findsOneWidget);
-        await _stroke(tester, [], LogicalKeyboardKey.escape);
-        await tester.pumpAndSettle();
-        expect(find.text('player'), findsOneWidget);
-        expect(harness.fullscreen.setFullscreenCalls, isEmpty);
-      },
-    );
-
-    testWidgets('vocabulary practice open → clearPractice', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        vocabState: const ReviewSessionState(
-          queue: [],
-          practicePhase: ReviewPracticePhase.clipOpening,
-        ),
-      );
-      await _stroke(tester, [], LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-      expect(harness.vocabSession.clearPracticeCalls, 1);
-    });
-  });
 
   group('global.help', () {
     testWidgets('opens HotkeysHelpDialog', (tester) async {
@@ -836,236 +725,10 @@ void main() {
     });
   });
 
-  group('global.settings', () {
-    testWidgets('navigates to /settings', (tester) async {
-      final harness = await _mountHarness(tester);
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.controlLeft],
-        LogicalKeyboardKey.comma,
-        character: ',',
-      );
-      await tester.pumpAndSettle();
-      expect(harness.router.state.uri.path, '/settings');
-    });
-  });
 
-  group('global.craft', () {
-    testWidgets('navigates to /craft from library', (tester) async {
-      final harness = await _mountHarness(tester);
-      expect(harness.router.state.uri.path, '/library');
-      await _stroke(tester, [], LogicalKeyboardKey.keyC, character: 'c');
-      await tester.pumpAndSettle();
-      expect(harness.router.state.uri.path, '/craft');
-    });
 
-    testWidgets('no-op when already on /craft', (tester) async {
-      final harness = await _mountHarness(tester, initialLocation: '/craft');
-      final before = harness.router.state.uri.path;
-      await _stroke(tester, [], LogicalKeyboardKey.keyC, character: 'c');
-      await tester.pumpAndSettle();
-      expect(harness.router.state.uri.path, before);
-    });
 
-    testWidgets('no-op when on /craft sub-route', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        initialLocation: '/craft/history',
-      );
-      await _stroke(tester, [], LogicalKeyboardKey.keyC, character: 'c');
-      await tester.pumpAndSettle();
-      expect(harness.router.state.uri.path, '/craft/history');
-    });
-  });
 
-  group('global.search', () {
-    testWidgets('shows AppNotice stub on ctrl+k', (tester) async {
-      await _mountHarness(tester);
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.controlLeft],
-        LogicalKeyboardKey.keyK,
-        character: 'k',
-      );
-      await tester.pumpAndSettle();
-      // AppNotice uses the global appScaffoldMessengerKey.
-      final messenger = appScaffoldMessengerKey.currentState;
-      expect(messenger, isNotNull);
-    });
-  });
-
-  group('library.search', () {
-    testWidgets('presses "/" on library → pulse focus request', (tester) async {
-      final harness = await _mountHarness(tester);
-      // Use the real librarySearchFocusRequestProvider (the test only swaps
-      // other providers).
-      expect(harness.container.read(librarySearchFocusRequestProvider), 0);
-      await _stroke(tester, [], LogicalKeyboardKey.slash, character: '/');
-      await tester.pump();
-      expect(
-        harness.container.read(librarySearchFocusRequestProvider),
-        greaterThan(0),
-      );
-    });
-
-    testWidgets('no-op on /player route', (tester) async {
-      final harness = await _mountHarness(tester, initialLocation: '/player/x');
-      final before = harness.container.read(librarySearchFocusRequestProvider);
-      await _stroke(tester, [], LogicalKeyboardKey.slash, character: '/');
-      await tester.pump();
-      expect(harness.container.read(librarySearchFocusRequestProvider), before);
-    });
-
-    testWidgets('no-op on /sign-in route', (tester) async {
-      final harness = await _mountHarness(tester, initialLocation: '/sign-in');
-      final before = harness.container.read(librarySearchFocusRequestProvider);
-      await _stroke(tester, [], LogicalKeyboardKey.slash, character: '/');
-      await tester.pump();
-      expect(harness.container.read(librarySearchFocusRequestProvider), before);
-    });
-  });
-
-  group('shadow-reading hotkey bus pulses', () {
-    testWidgets('r → pulseRecording when session present', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyR, character: 'r');
-      await tester.pump();
-      expect(harness.shadowBus.recordingPulses, 1);
-    });
-
-    testWidgets('g → pulsePlayback when session present', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyG, character: 'g');
-      await tester.pump();
-      expect(harness.shadowBus.playbackPulses, 1);
-    });
-
-    testWidgets('p → pulsePitchContour when session present', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyP, character: 'p');
-      await tester.pump();
-      expect(harness.shadowBus.pitchContourPulses, 1);
-    });
-
-    testWidgets('v → pulseAssessment when session present', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyV, character: 'v');
-      await tester.pump();
-      expect(harness.shadowBus.assessmentPulses, 1);
-    });
-
-    testWidgets('bus pulses also work when vocabulary echo practice open', (
-      tester,
-    ) async {
-      final harness = await _mountHarness(
-        tester,
-        vocabState: const ReviewSessionState(
-          queue: [],
-          practicePhase: ReviewPracticePhase.echo,
-        ),
-      );
-      await _stroke(tester, [], LogicalKeyboardKey.keyR, character: 'r');
-      await tester.pump();
-      expect(harness.shadowBus.recordingPulses, 1);
-    });
-
-    testWidgets(
-      'bus pulses NOT triggered when no session and no echo practice',
-      (tester) async {
-        final harness = await _mountHarness(tester);
-        await _stroke(tester, [], LogicalKeyboardKey.keyR, character: 'r');
-        await tester.pump();
-        expect(harness.shadowBus.recordingPulses, 0);
-      },
-    );
-  });
-
-  group('player.toggleExpand', () {
-    testWidgets('on player route → collapseExpandedPlayer (handler invoked, '
-        'pop() surfaces nothing-to-pop on the un-pushed stub route)', (
-      tester,
-    ) async {
-      final harness = await _mountHarness(
-        tester,
-        session: _videoSession(),
-        initialLocation: '/player/abc',
-      );
-      // Push a MaterialPageRoute onto the *root* navigator so [context.pop()]
-      // has something to pop. In production the player screen is pushed from
-      // a shell tab and the root stack contains both the shell and the
-      // pushed player page; here we simulate that by pushing a transparent
-      // page after the shell mounts.
-      final rootNav = harness.rootNavigatorKey.currentState;
-      expect(rootNav, isNotNull);
-      unawaited(
-        rootNav!.push(
-          MaterialPageRoute<void>(
-            builder: (_) => const Scaffold(body: Text('expanded-overlay')),
-            fullscreenDialog: true,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('expanded-overlay'), findsOneWidget);
-
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.keyP,
-        character: 'p',
-      );
-      // The handler fires [collapseExpandedPlayer], which awaits
-      // setFullscreen(false), tears the live session down, then pops the
-      // pushed page.
-      await tester.pumpAndSettle();
-      expect(harness.playerCtrl.clearCalls, 1);
-      // The pushed overlay is gone; the shell route (with the player screen)
-      // remains visible.
-      expect(find.text('expanded-overlay'), findsNothing);
-      expect(find.text('player'), findsOneWidget);
-    });
-
-    testWidgets('off player without session is a no-op', (tester) async {
-      final harness = await _mountHarness(tester);
-      expect(harness.router.state.uri.path, '/library');
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.keyP,
-        character: 'p',
-      );
-      await tester.pumpAndSettle();
-      expect(harness.router.state.uri.path, '/library');
-      expect(harness.playerCtrl.clearCalls, 0);
-      expect(harness.playerCtrl.togglePlayCalls, 0);
-    });
-
-    testWidgets('off player route → openPlayerRoute handler returns true '
-        '(openPlayerLaunch expects a GoRouter descendant context — surfaces '
-        'as recorded exception in this stub harness)', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      expect(harness.router.state.uri.path, '/library');
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.keyP,
-        character: 'p',
-      );
-      await tester.pumpAndSettle();
-      // The handler invokes [openPlayerRoute(context, ...)] where `context` is
-      // the listener's own BuildContext. That context lives above the
-      // [MaterialApp.router]'s [Builder] and therefore has no [GoRouter]
-      // ancestor — [GoRouterState.of] throws. The async exception surfaces
-      // after pumpAndSettle, so let microtasks drain before takeException.
-      await tester.pump();
-      tester.takeException();
-      // What we CAN assert: the handler matched the binding and returned true.
-      // We verify the *negative* path — no collapse happened, the route did
-      // not change, and the handler is wired correctly.
-      expect(harness.router.state.uri.path, '/library');
-      expect(harness.playerCtrl.clearCalls, 0);
-    });
-  });
 
   group('player playback rate (slowDown / speedUp)', () {
     // Clamp coverage (0.25 floor / 2.0 ceiling / 0.05 step) lives with the D10
@@ -1125,41 +788,6 @@ void main() {
     });
   });
 
-  group('policies (pure)', () {
-    test('shadowReadingBusHotkeysEnabled gates on session / echo practice', () {
-      expect(
-        shadowReadingBusHotkeysEnabled(
-          hasPlayerSession: false,
-          vocabularyEchoPracticeOpen: false,
-        ),
-        isFalse,
-      );
-      expect(
-        shadowReadingBusHotkeysEnabled(
-          hasPlayerSession: true,
-          vocabularyEchoPracticeOpen: false,
-        ),
-        isTrue,
-      );
-      expect(
-        shadowReadingBusHotkeysEnabled(
-          hasPlayerSession: false,
-          vocabularyEchoPracticeOpen: true,
-        ),
-        isTrue,
-      );
-    });
-  });
-
-  // Reference: ensure helpers used by app_hotkeys_keyboard_listener compile.
-  // ignore: unused_element
-  void silenceUnusedImports() {
-    showHotkeysHelpDialog;
-    openPlayerRoute;
-    hotkeyMatchesBinding;
-    EscapeDismissalAction;
-    _releaseAll;
-  }
 }
 
 PlaybackSession _videoSession() => PlaybackSession(
