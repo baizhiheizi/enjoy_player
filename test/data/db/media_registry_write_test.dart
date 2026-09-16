@@ -271,6 +271,41 @@ void main() {
       expect((await db.videoDao.getById('shared'))!.durationSeconds, 77);
       expect((await db.audioDao.getById('shared'))!.durationSeconds, 0);
     });
+
+    test('concurrent backfills do not double-write — only one wins', () async {
+      await seed(Fixture.videoOnly);
+      final results = await Future.wait([
+        registry.patchDurationIfZero('shared', 77),
+        registry.patchDurationIfZero('shared', 88),
+        registry.patchDurationIfZero('shared', 99),
+      ]);
+      // The shared WHERE duration_seconds = 0 guard means exactly one
+      // write touches the row; the others must report null.
+      expect(results.where((k) => k != null), hasLength(1));
+      expect(results.where((k) => k == null), hasLength(2));
+      final row = (await db.videoDao.getById('shared'))!;
+      expect(row.durationSeconds, anyOf(77, 88, 99));
+    });
+
+    test(
+      'unrelated field changes between the read and the patch are preserved',
+      () async {
+        // The pre-fix probe+copyWith could write a stale row back on top
+        // of a parallel change to another column. Seed an initial row,
+        // bump `title` (unrelated to duration), then patch — `title` must
+        // survive.
+        await db.videoDao.insertRow(
+          _videoRow().copyWith(title: 'Original Title'),
+        );
+        await db.videoDao.updateLocalThumbnail('shared', '/tmp/thumb.jpg');
+        final patched = await registry.patchDurationIfZero('shared', 77);
+        expect(patched, MediaKind.video);
+        final row = (await db.videoDao.getById('shared'))!;
+        expect(row.durationSeconds, 77);
+        expect(row.title, 'Original Title');
+        expect(row.thumbnailUrl, '/tmp/thumb.jpg');
+      },
+    );
   });
 
   group('upsertVideo / upsertAudio', () {

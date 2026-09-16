@@ -57,7 +57,25 @@ Future<void> launchAsrGeneration(
     initialLanguage: storedLanguage,
   );
   if (language == null) return;
-  final durationSeconds = media.durationMs ~/ 1000;
+  // Re-read after the language dialog so a duration backfilled (or any
+  // other row change) while the user was picking a language is reflected
+  // in the long-media confirmation — and so a row that was deleted
+  // while the dialog was open does not silently proceed.
+  if (!context.mounted) return;
+  final refreshed = await MediaRegistry(db).getById(mediaId);
+  if (refreshed == null) {
+    if (context.mounted) {
+      AppNotice.error(
+        context,
+        asrMessageForKey(
+          AppLocalizations.of(context)!,
+          'asrErrorUnsupportedSource',
+        ),
+      );
+    }
+    return;
+  }
+  final durationSeconds = refreshed.durationMs ~/ 1000;
   if (!context.mounted) return;
   final confirmed = await showAsrLongMediaConfirmDialog(
     context,

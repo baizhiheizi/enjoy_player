@@ -258,29 +258,25 @@ class MediaRegistry {
   ///
   /// Returns the kind patched, or `null` when the row is missing or already
   /// has a non-zero duration (first writer wins).
+  ///
+  /// Dispatches to the per-table `setDurationIfZero` DAO methods so the
+  /// "still zero?" guard is a `WHERE duration_seconds = 0` clause — the
+  /// conditional update is race-free (two concurrent callers cannot
+  /// double-write each other's snapshots) and preserves any unrelated
+  /// fields a parallel writer may have changed.
   Future<MediaKind?> patchDurationIfZero(String id, int durationSeconds) async {
     final hit = await _probe(id);
     final video = hit.video;
     if (video != null) {
-      if (video.durationSeconds != 0) return null;
-      await _db.videoDao.insertRow(
-        video.copyWith(
-          durationSeconds: durationSeconds,
-          updatedAt: DateTime.now(),
-        ),
-      );
-      return MediaKind.video;
+      return await _db.videoDao.setDurationIfZero(id, durationSeconds)
+          ? MediaKind.video
+          : null;
     }
     final audio = hit.audio;
     if (audio != null) {
-      if (audio.durationSeconds != 0) return null;
-      await _db.audioDao.insertRow(
-        audio.copyWith(
-          durationSeconds: durationSeconds,
-          updatedAt: DateTime.now(),
-        ),
-      );
-      return MediaKind.audio;
+      return await _db.audioDao.setDurationIfZero(id, durationSeconds)
+          ? MediaKind.audio
+          : null;
     }
     return null;
   }
