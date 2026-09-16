@@ -1,11 +1,11 @@
 /// Persists in-flight Enjoy long-form ASR attempts for resume after restart.
+///
+/// Rows go through the typed [SettingsKeys.asrLongFormAttempts] family
+/// (per-user DB, JSON object codec keyed by media id).
 library;
-
-import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -21,30 +21,30 @@ class AsrLongFormAttemptStore {
 
   final AppDatabase _db;
 
+  SettingKey<Map<String, dynamic>?> _key(String mediaId) =>
+      SettingsKeys.asrLongFormAttempts.keyFor(mediaId);
+
   Future<AsrLongFormAttempt?> load(String mediaId) async {
-    final raw = await _db.settingsDao.getValue(
-      SettingsKeys.asrLongFormAttempt(mediaId),
-    );
-    if (raw == null || raw.isEmpty) return null;
+    final Map<String, dynamic>? map;
     try {
-      final map = castJsonObjectOrNull(jsonDecode(raw));
-      if (map == null) return null;
-      return AsrLongFormAttempt.fromJson(map);
+      map = await _db.settingsDao.readSetting(_key(mediaId));
     } on Object catch (e, st) {
       _log.warning('Failed to decode long-form attempt for $mediaId', e, st);
       return null;
     }
+    if (map == null || map.isEmpty) return null;
+    return AsrLongFormAttempt.fromJson(map);
   }
 
   Future<void> save(AsrLongFormAttempt attempt) async {
-    await _db.settingsDao.setValue(
-      SettingsKeys.asrLongFormAttempt(attempt.mediaId),
-      jsonEncode(attempt.toJson()),
+    await _db.settingsDao.writeSetting(
+      _key(attempt.mediaId),
+      attempt.toJson(),
     );
   }
 
   Future<void> clear(String mediaId) async {
-    await _db.settingsDao.deleteValue(SettingsKeys.asrLongFormAttempt(mediaId));
+    await _db.settingsDao.deleteSetting(_key(mediaId));
   }
 }
 

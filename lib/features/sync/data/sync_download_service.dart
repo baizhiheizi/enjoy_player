@@ -1,3 +1,8 @@
+/// Incremental downloads for the cloud metadata sync ([SyncEngine]).
+///
+/// Per-entity cursors go through the typed per-user [SettingsKeys] cursor
+/// keys (`settings_schema.dart`), so reset/read/advance below share one
+/// declaration per entity instead of raw string rows.
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
@@ -47,7 +52,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<AudioRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorAudio.name,
+      cursorKey: SettingsKeys.syncCursorAudio,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _audioApi.audios(
           limit: limit,
@@ -64,7 +69,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadVideosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<VideoRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVideo.name,
+      cursorKey: SettingsKeys.syncCursorVideo,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _videoApi.videos(
           limit: limit,
@@ -83,7 +88,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadRecordingsInternal({required bool resetCursor}) {
     return _downloadEntityInternal<RecordingRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorRecording.name,
+      cursorKey: SettingsKeys.syncCursorRecording,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _recordingApi.recordings(
           limit: limit,
@@ -102,7 +107,7 @@ class SyncDownloadService {
   }) {
     return _downloadEntityInternal<VocabularyItemRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVocabularyItem.name,
+      cursorKey: SettingsKeys.syncCursorVocabularyItem,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _vocabularyApi.vocabularyItems(
           limit: limit,
@@ -123,7 +128,7 @@ class SyncDownloadService {
   }) {
     return _downloadEntityInternal<VocabularyContextRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVocabularyContext.name,
+      cursorKey: SettingsKeys.syncCursorVocabularyContext,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _vocabularyApi.vocabularyContexts(
           limit: limit,
@@ -139,7 +144,7 @@ class SyncDownloadService {
 
   Future<SyncResult> _downloadEntityInternal<E>({
     required bool resetCursor,
-    required String cursorKey,
+    required SettingKey<String?> cursorKey,
     required Future<List<Map<String, dynamic>>> Function({
       int? limit,
       String? updatedAfter,
@@ -158,9 +163,11 @@ class SyncDownloadService {
     var synced = 0;
     var failed = 0;
     if (resetCursor) {
-      await _db.settingsDao.setValue(cursorKey, '');
+      // An empty string means "re-download from scratch" (distinct from a
+      // missing row) and is normalized back to null below.
+      await _db.settingsDao.writeSetting(cursorKey, '');
     }
-    var cursor = await _db.settingsDao.getValue(cursorKey);
+    var cursor = await _db.settingsDao.readSetting(cursorKey);
     if (cursor != null && cursor.isEmpty) cursor = null;
 
     while (true) {
@@ -203,7 +210,7 @@ class SyncDownloadService {
       final maxIso = _maxUpdatedAtIso(batch);
       if (maxIso != null) {
         cursor = maxIso;
-        await _db.settingsDao.setValue(cursorKey, maxIso);
+        await _db.settingsDao.writeSetting(cursorKey, maxIso);
       }
 
       if (batch.length < _pageSize) break;

@@ -1,4 +1,9 @@
 /// Pull recording metadata for one library media target (lazy sync).
+///
+/// The per-target cursor and cooldown rows go through the typed
+/// [SettingsKeys.syncCursorRecordingTargets] /
+/// [SettingsKeys.syncLastPullAtRecordingTargets] families (per-user DB); the
+/// cooldown is decoded by the family's ISO date-time codec.
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
@@ -41,21 +46,16 @@ class RecordingTargetSyncService {
     final errors = <String>[];
     var synced = 0;
     var failed = 0;
-    final cursorKey = SettingsKeys.syncCursorRecordingTarget(
-      targetType,
-      targetId,
+    final cursorKey = SettingsKeys.syncCursorRecordingTargets.keyFor(
+      '$targetType.$targetId',
     );
-    final cooldownKey = SettingsKeys.syncLastPullAtRecordingTarget(
-      targetType,
-      targetId,
+    final cooldownKey = SettingsKeys.syncLastPullAtRecordingTargets.keyFor(
+      '$targetType.$targetId',
     );
 
     // Cooldown: short-circuit when we just pulled for this target.
     final clock = now ?? DateTime.now();
-    final lastPullRaw = await _db.settingsDao.getValue(cooldownKey);
-    final lastPull = lastPullRaw == null
-        ? null
-        : DateTime.tryParse(lastPullRaw)?.toUtc();
+    final lastPull = await _db.settingsDao.readSetting(cooldownKey);
     if (lastPull != null && clock.toUtc().difference(lastPull) < _kCooldown) {
       _log.fine(
         'pullRecordingsForTarget($targetType:$targetId): skipped, '
@@ -64,7 +64,7 @@ class RecordingTargetSyncService {
       return const SyncResult(success: true, synced: 0, failed: 0);
     }
 
-    var cursor = await _db.settingsDao.getValue(cursorKey);
+    var cursor = await _db.settingsDao.readSetting(cursorKey);
     if (cursor != null && cursor.isEmpty) cursor = null;
 
     var pages = 0;
@@ -107,7 +107,7 @@ class RecordingTargetSyncService {
       final maxIso = _maxUpdatedAtIso(batch);
       if (maxIso != null) {
         cursor = maxIso;
-        await _db.settingsDao.setValue(cursorKey, maxIso);
+        await _db.settingsDao.writeSetting(cursorKey, maxIso);
       }
 
       if (batch.length < _pageSize) break;
@@ -124,10 +124,7 @@ class RecordingTargetSyncService {
     // Persist the cooldown timestamp even on partial success so a
     // future open inside the cooldown window does not re-enter the
     // pagination loop.
-    await _db.settingsDao.setValue(
-      cooldownKey,
-      clock.toUtc().toIso8601String(),
-    );
+    await _db.settingsDao.writeSetting(cooldownKey, clock.toUtc());
 
     return SyncResult(
       success: failed == 0,
