@@ -2,6 +2,8 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart'
+    show ProviderListenable;
 
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_review_session.dart';
@@ -44,6 +46,22 @@ Future<void> clearLivePlaybackSession(Ref ref) {
         .read(vocabularyReviewSessionProvider)
         .practiceOwnsVideoStage,
     clear: () => ref.read(playerControllerProvider.notifier).clear(),
+  );
+}
+
+/// Reader variant of [clearLivePlaybackSession] for callers that hold neither
+/// a [WidgetRef] nor a [Ref] — e.g. the hotkey command interface, which reads
+/// through a plain `read` function. Never called on a player route.
+Future<void> clearLivePlaybackSessionWith(
+  T Function<T>(ProviderListenable<T> provider) read,
+) {
+  return _clearLiveSession(
+    onPlayerRoute: false,
+    hasLiveSession: read(playerControllerProvider) != null,
+    practiceOwnsVideoStage: read(
+      vocabularyReviewSessionProvider,
+    ).practiceOwnsVideoStage,
+    clear: () => read(playerControllerProvider.notifier).clear(),
   );
 }
 

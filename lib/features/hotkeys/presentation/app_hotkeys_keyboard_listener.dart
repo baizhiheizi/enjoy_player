@@ -10,18 +10,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
-import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_commands.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/application/shadow_reading_hotkey_policy.dart';
-import 'package:enjoy_player/features/player/application/player_collapse.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
-import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -222,78 +219,17 @@ class _AppHotkeysKeyboardListenerState
       }
     }
 
-    if (session != null) {
-      if (_matches(event, ctrl, 'player.togglePlay')) {
-        unawaited(ref.read(playerControllerProvider.notifier).togglePlay());
-        return true;
-      }
-
-      if (_matches(event, ctrl, 'player.toggleExpand')) {
-        final onPlayer = path.startsWith('/player/');
-        if (onPlayer) {
-          final ctx = navCtx ?? context;
-          unawaited(collapseExpandedPlayer(ref, ctx));
-        } else {
-          openPlayerRoute(context, session.mediaId);
-        }
-        return true;
-      }
-
-      if (_matches(event, ctrl, 'player.toggleFullscreen') &&
-          isDesktop &&
-          session.mediaType == 'video') {
-        unawaited(ref.read(windowFullscreenProvider.notifier).toggle());
-        return true;
-      }
-
-      if (_matches(event, ctrl, 'player.prevLine')) {
-        unawaited(ref.read(playerInteractionsProvider).prevLine());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.nextLine')) {
-        unawaited(ref.read(playerInteractionsProvider).nextLine());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.replayLine')) {
-        unawaited(ref.read(playerInteractionsProvider).replayLine());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleEchoMode')) {
-        unawaited(ref.read(playerInteractionsProvider).toggleEcho());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.toggleBlurPractice')) {
-        unawaited(ref.read(playerInteractionsProvider).toggleBlur());
-        return true;
-      }
-
-      // player.slowDown / player.speedUp → command registry (issue #719).
-      // This call sits at the rate commands' old chain position, so the
-      // registry's order and the remaining if-chain stay one total order.
-      if (dispatchHotkey(
-        event: event,
-        ctrl: ctrl,
-        ctx: HotkeyCtx(read: ref.read, listenerContext: context),
-      )) {
-        return true;
-      }
-
-      if (_matches(event, ctrl, 'player.expandEchoBackward')) {
-        unawaited(ref.read(playerInteractionsProvider).expandEchoBackward());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.expandEchoForward')) {
-        unawaited(ref.read(playerInteractionsProvider).expandEchoForward());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.shrinkEchoBackward')) {
-        unawaited(ref.read(playerInteractionsProvider).shrinkEchoBackward());
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.shrinkEchoForward')) {
-        unawaited(ref.read(playerInteractionsProvider).shrinkEchoForward());
-        return true;
-      }
+    // Session-gated player keys route through the command registry
+    // (issue #719); each command's gate absorbs the old `session != null`
+    // and platform / media-type checks. This call sits at the session
+    // block's old chain position, so the registry's order and the remaining
+    // if-chain stay one total order.
+    if (dispatchHotkey(
+      event: event,
+      ctrl: ctrl,
+      ctx: HotkeyCtx(read: ref.read, listenerContext: context),
+    )) {
+      return true;
     }
 
     return false;

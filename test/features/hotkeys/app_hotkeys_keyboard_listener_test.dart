@@ -1,23 +1,24 @@
-// Pure dispatch coverage for [AppHotkeysKeyboardListener] (the global keyboard
-// handler above MaterialApp.router's Navigator). Exercises every branch of the
-// internal `_onKey` method:
-//   - early returns (KeyUpEvent, primary focus on EditableText, empty binding)
-//   - Escape (`modal.close`) → 8 EscapeDismissalAction branches
-//   - global.help / global.settings / global.craft / global.search
-//   - library.search (`/`)
-//   - shadow-reading bus pulses (recording / playback / pitch / assessment)
-//   - player interactions (togglePlay / toggleExpand / toggleFullscreen /
-//     prevLine / nextLine / replayLine / toggleEcho / toggleBlur /
-//     echo expand/shrink)
-//   - the playback-rate commands routed through the command registry
-//     (clamp coverage lives in the per-command / reducer suites)
-//   - the `escape_dismissal.dart` "noop on player route" branch
-//   - the `_onKey` return-false path when no shortcut matches
+// End-to-end dispatch coverage for [AppHotkeysKeyboardListener] (the global
+// keyboard handler above MaterialApp.router's Navigator). Keys are dispatched
+// through [HardwareKeyboard.instance.handleKeyEvent] — the public API used by
+// the engine — which updates the `_pressedKeys` map (so `isControlPressed`
+// etc. reflect the simulated modifier state) AND calls every registered
+// `addHandler` callback in registration order.
 //
-// Keys are dispatched through [HardwareKeyboard.instance.handleKeyEvent] which
-// is the public API used by the engine — it updates the `_pressedKeys` map
-// (so `isControlPressed` etc. reflect the simulated modifier state) AND calls
-// every registered `addHandler` callback in registration order.
+// Session-gated player commands (togglePlay / toggleFullscreen / line / echo /
+// rate) have per-command suites under
+// `test/features/player/application/hotkeys/`; this file keeps the arms that
+// are genuinely entangled with the mounted tree:
+//   - early returns (KeyUpEvent, primary focus on EditableText)
+//   - Escape (`modal.close`) → the 8 EscapeDismissalAction execution arms
+//     (priority logic itself is unit-tested in escape_dismissal_test.dart)
+//   - global.help cheatsheet open / close (dialog needs a navigator context)
+//   - global.settings / global.craft / global.search / library.search
+//   - shadow-reading bus pulses (recording / playback / pitch / assessment)
+//   - player.toggleExpand (collapse pops the router stack; the open arm
+//     intentionally uses the listener's own context above the router)
+//   - the playback-rate command wiring through the registry
+//   - the `_onKey` return-false path when no shortcut matches
 import 'dart:async';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -979,22 +980,6 @@ void main() {
     );
   });
 
-  group('player.togglePlay', () {
-    testWidgets('space → togglePlay when session present', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.space, character: ' ');
-      await tester.pump();
-      expect(harness.playerCtrl.togglePlayCalls, 1);
-    });
-
-    testWidgets('space without session returns false', (tester) async {
-      final harness = await _mountHarness(tester);
-      await _stroke(tester, [], LogicalKeyboardKey.space, character: ' ');
-      await tester.pump();
-      expect(harness.playerCtrl.togglePlayCalls, 0);
-    });
-  });
-
   group('player.toggleExpand', () {
     testWidgets('on player route → collapseExpandedPlayer (handler invoked, '
         'pop() surfaces nothing-to-pop on the un-pushed stub route)', (
@@ -1082,84 +1067,6 @@ void main() {
     });
   });
 
-  group('player.toggleFullscreen', () {
-    testWidgets('f11 + video session on desktop → toggle()', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.f11);
-      await tester.pump();
-      expect(harness.fullscreen.toggleCalls, 1);
-    });
-
-    testWidgets('f11 + audio session → no toggle', (tester) async {
-      final harness = await _mountHarness(tester, session: _audioSession());
-      await _stroke(tester, [], LogicalKeyboardKey.f11);
-      await tester.pump();
-      expect(harness.fullscreen.toggleCalls, 0);
-    });
-
-    testWidgets('f11 on non-desktop → no toggle', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        session: _videoSession(),
-        isDesktop: false,
-      );
-      await _stroke(tester, [], LogicalKeyboardKey.f11);
-      await tester.pump();
-      expect(harness.fullscreen.toggleCalls, 0);
-    });
-
-    testWidgets('f11 without session → no toggle', (tester) async {
-      final harness = await _mountHarness(tester);
-      await _stroke(tester, [], LogicalKeyboardKey.f11);
-      await tester.pump();
-      expect(harness.fullscreen.toggleCalls, 0);
-    });
-  });
-
-  group('player line hotkeys', () {
-    testWidgets('a → prevLine', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyA, character: 'a');
-      await tester.pump();
-      expect(harness.playerInteractions.prevLineCalls, 1);
-    });
-
-    testWidgets('d → nextLine', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyD, character: 'd');
-      await tester.pump();
-      expect(harness.playerInteractions.nextLineCalls, 1);
-    });
-
-    testWidgets('s → replayLine', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyS, character: 's');
-      await tester.pump();
-      expect(harness.playerInteractions.replayLineCalls, 1);
-    });
-
-    testWidgets('e → toggleEcho', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyE, character: 'e');
-      await tester.pump();
-      expect(harness.playerInteractions.toggleEchoCalls, 1);
-    });
-
-    testWidgets('h → toggleBlur', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.keyH, character: 'h');
-      await tester.pump();
-      expect(harness.playerInteractions.toggleBlurCalls, 1);
-    });
-
-    testWidgets('line hotkeys without session → no calls', (tester) async {
-      final harness = await _mountHarness(tester);
-      await _stroke(tester, [], LogicalKeyboardKey.keyA, character: 'a');
-      await tester.pump();
-      expect(harness.playerInteractions.prevLineCalls, 0);
-    });
-  });
-
   group('player playback rate (slowDown / speedUp)', () {
     // Clamp coverage (0.25 floor / 2.0 ceiling / 0.05 step) lives with the D10
     // reducer and the playback-rate commands:
@@ -1183,52 +1090,6 @@ void main() {
       );
       await tester.pump();
       expect(harness.playerPrefs.setPlaybackRateCalls, [0.95]);
-    });
-  });
-
-  group('echo expand / shrink', () {
-    testWidgets('[ → expandEchoBackward', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(tester, [], LogicalKeyboardKey.bracketLeft, character: '[');
-      await tester.pump();
-      expect(harness.playerInteractions.expandEchoBackwardCalls, 1);
-    });
-
-    testWidgets('] → expandEchoForward', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(
-        tester,
-        [],
-        LogicalKeyboardKey.bracketRight,
-        character: ']',
-      );
-      await tester.pump();
-      expect(harness.playerInteractions.expandEchoForwardCalls, 1);
-    });
-
-    testWidgets('{ → shrinkEchoBackward (shift+[)', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      // hotkey chord parser maps "{" → shift+[
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.bracketLeft,
-        character: '[',
-      );
-      await tester.pump();
-      expect(harness.playerInteractions.shrinkEchoBackwardCalls, 1);
-    });
-
-    testWidgets('} → shrinkEchoForward (shift+])', (tester) async {
-      final harness = await _mountHarness(tester, session: _videoSession());
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.bracketRight,
-        character: ']',
-      );
-      await tester.pump();
-      expect(harness.playerInteractions.shrinkEchoForwardCalls, 1);
     });
   });
 
@@ -1306,19 +1167,6 @@ PlaybackSession _videoSession() => PlaybackSession(
   dexieTargetType: 'Video',
   mediaType: 'video',
   mediaTitle: 'Test',
-  durationSeconds: 60,
-  currentTimeSeconds: 0,
-  currentSegmentIndex: 0,
-  language: 'en',
-  startedAt: DateTime(2026),
-  lastActiveAt: DateTime(2026),
-);
-
-PlaybackSession _audioSession() => PlaybackSession(
-  mediaId: 'm1',
-  dexieTargetType: 'Audio',
-  mediaType: 'audio',
-  mediaTitle: 'Audio',
   durationSeconds: 60,
   currentTimeSeconds: 0,
   currentSegmentIndex: 0,

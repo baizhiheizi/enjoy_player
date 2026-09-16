@@ -13,10 +13,10 @@ import 'package:flutter/services.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
-import 'package:enjoy_player/features/player/application/hotkeys/playback_rate_commands.dart';
+import 'package:enjoy_player/features/player/application/hotkeys/player_hotkey_commands.dart';
 
 /// All registered commands, in dispatch (priority) order.
-final List<HotkeyCommand> hotkeyCommands = [...playbackRateHotkeyCommands];
+final List<HotkeyCommand> hotkeyCommands = [...playerHotkeyCommands];
 
 /// Resolve [event] against [ctrl]'s effective bindings and run the first
 /// command (in [commands] order, defaulting to [hotkeyCommands]) whose action
