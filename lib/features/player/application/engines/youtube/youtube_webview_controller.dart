@@ -1,4 +1,11 @@
 /// WebView lifecycle, navigation, and DOM polling for [YoutubePlayerEngine].
+///
+/// Composition (issue #721): the audible-start policy and the DOM poll loop
+/// are owned by [YoutubeSession] now — they reason about playback truth, not
+/// WebView lifecycle. The controller's only composition is the events,
+/// navigation, and stall watchdog (the WebView-bound observers), and it
+/// hands the session the WebView controller getter via
+/// [YoutubeSession.attachWebView] so the session-owned poll loop can poll.
 library;
 
 import 'dart:async';
@@ -7,7 +14,6 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
-import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_page_inject.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_playback_stall_watchdog.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
@@ -16,7 +22,6 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_events.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_navigation.dart';
-import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_poll_loop.dart';
 
 final _logWebView = logNamed('YouTubeWebViewController');
 
@@ -36,28 +41,20 @@ class YoutubeWebViewController {
            unawaited(onStallRecovery());
          },
        ) {
-    _audibility = YoutubeAudiblePlaybackPolicy(
-      session: session,
-      reapplyVolume: reapplyVolume,
-      healPlay: () => YoutubeWebViewBridge.play(_webController),
-    );
+    // The audible policy lives on the session now; the events / navigation
+    // observers stay here because they need WebView-bound actions
+    // (seekTo, controller-lookups, generation bumps).
     _events = YoutubeWebViewEvents(
       session: session,
       webController: () => _webController,
       onFirstPlaying: onFirstPlayingFromSession,
-      startPolling: () => _pollLoop.start(),
-      stopPolling: () => _pollLoop.stop(),
+      startPolling: () => session.pollLoop.start(),
+      stopPolling: () => session.pollLoop.stop(),
       seekTo: (d) => YoutubeWebViewBridge.seekToSeconds(
         _webController,
         d.inMilliseconds / 1000.0,
       ),
-      audibility: _audibility,
-    );
-    _pollLoop = YoutubeWebViewPollLoop(
-      session: session,
-      webController: () => _webController,
-      onFirstPlaying: onFirstPlayingFromSession,
-      onPlaybackProgress: _audibility.onPlaybackProgress,
+      audibility: session.audibility,
     );
     _navigation = YoutubeWebViewNavigation(
       session: session,
@@ -69,10 +66,13 @@ class YoutubeWebViewController {
       onStaleWebView: () {
         _webController = null;
         session.noteWebViewUnmounted();
-        _pollLoop.stop();
+        session.pollLoop.stop();
         session.bumpMountTick();
       },
     );
+    // Wire the session's poll loop to this controller. The poll loop
+    // lives on the session; the controller is its attachment.
+    session.attachWebView(_attachment());
   }
 
   final YoutubeSession session;
@@ -82,9 +82,7 @@ class YoutubeWebViewController {
   static const int maxStallRecoveries = 1;
 
   final YoutubePlaybackStallWatchdog _stallWatchdog;
-  late final YoutubeAudiblePlaybackPolicy _audibility;
   late final YoutubeWebViewEvents _events;
-  late final YoutubeWebViewPollLoop _pollLoop;
   late final YoutubeWebViewNavigation _navigation;
 
   InAppWebViewController? _webController;
@@ -95,10 +93,34 @@ class YoutubeWebViewController {
 
   InAppWebViewController? get webController => _webController;
 
+  // ---------------------------------------------------------------------------
+  // YoutubeSessionWebAttachment — the session's WebView controller getter and
+  // first-playing ack live here.
+  // ---------------------------------------------------------------------------
+
+  /// Adapts this controller to the session's attachment contract. Kept as a
+  /// method (not a stored field) so the lambda always reads the latest
+  /// [_webController].
+  YoutubeSessionWebAttachment _attachment() {
+    return YoutubeSessionWebAttachment(
+      webController: () => _webController,
+      onFirstPlaying: onFirstPlayingFromSession,
+      reapplyVolume: () async {
+        await YoutubeWebViewBridge.setVolume(
+          _webController,
+          session.volumeNormalized,
+        );
+      },
+      healPlay: () async {
+        await YoutubeWebViewBridge.play(_webController);
+      },
+    );
+  }
+
   void markOpenTimingStart() {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
-    _audibility.cancelPending();
+    session.audibility.cancelPending();
     _bumpVerifyGeneration();
     session.startInitTiming();
     session.resetWatchPageExpectations(firstPlaying: true);
@@ -112,7 +134,7 @@ class YoutubeWebViewController {
   }) {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
-    _audibility.cancelPending();
+    session.audibility.cancelPending();
     _bumpVerifyGeneration();
     session.resetWatchPageExpectations(firstPlaying: resetFirstPlaying);
     if (resetStallRecovery) {
@@ -134,16 +156,16 @@ class YoutubeWebViewController {
     session.markExplicitPlayAttempt();
     _navigation.cancelNudge();
     _stallWatchdog.cancel();
-    _pollLoop.start();
+    session.pollLoop.start();
   }
 
   Future<void> idleAfterClear({bool keepMounted = false}) async {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
-    _audibility.cancelPending();
+    session.audibility.cancelPending();
     _bumpVerifyGeneration();
     session.resetForClear(keepMounted: keepMounted);
-    _pollLoop.stop();
+    session.pollLoop.stop();
     final navGen = ++_navGeneration;
     final controller = _webController;
     if (controller == null) return;
@@ -167,9 +189,9 @@ class YoutubeWebViewController {
   Future<void> dispose() async {
     _stallWatchdog.cancel();
     _navigation.cancelNudge();
-    _audibility.cancelPending();
+    session.audibility.cancelPending();
     _bumpVerifyGeneration();
-    _pollLoop.stop();
+    session.pollLoop.stop();
   }
 
   Future<void> onSignInNavigationBlocked(InAppWebViewController controller) =>
@@ -252,9 +274,9 @@ class YoutubeWebViewController {
       session.noteWebViewUnmounted();
       session.clearAwaitingColdInitialNavigation();
       _navigation.cancelNudge();
-      _audibility.cancelPending();
+      session.audibility.cancelPending();
       _bumpVerifyGeneration();
-      _pollLoop.stop();
+      session.pollLoop.stop();
       // Defer: notifying during StatefulElement.unmount locks the tree
       // (ValueListenableBuilder markNeedsBuild assertion).
       session.scheduleMountTickBump();
@@ -286,7 +308,7 @@ class YoutubeWebViewController {
       _navigation.cancelNudge();
     }
     await injectYoutubeMobileWatchPage(controller);
-    _pollLoop.scheduleKick();
+    session.pollLoop.scheduleKick();
   }
 
   Future<void> recoverStalledPlayback() async {
@@ -304,13 +326,6 @@ class YoutubeWebViewController {
 
   Future<void> loadCurrentVideoIfAttached() =>
       _navigation.loadCurrentVideoIfAttached();
-
-  Future<void> reapplyVolume() async {
-    await YoutubeWebViewBridge.setVolume(
-      _webController,
-      session.volumeNormalized,
-    );
-  }
 
   Future<void> exitNativeFullscreen(InAppWebViewController controller) async {
     if (_rejectingNativeFullscreen) return;
@@ -331,7 +346,7 @@ class YoutubeWebViewController {
     }
   }
 
-  void stopPolling() => _pollLoop.stop();
+  void stopPolling() => session.pollLoop.stop();
 
   void _bumpVerifyGeneration() => _verifyGeneration++;
 }

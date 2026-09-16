@@ -10,21 +10,86 @@
 /// too restless to keep inline: its budget, attribution, escalation, and
 /// clocks live in the composed [playRetry] policy (issue #665), and the verbs
 /// below delegate to it so transport intents still enter through this class.
+///
+/// ## Composition (issue #721)
+///
+/// The audible-start choreography ([audibility]) and the DOM poll loop
+/// ([pollLoop]) are session-owned: their decisions are about *playback truth*
+/// (mute/restore/heal, retry budget), so they live here, not in the WebView
+/// lifecycle layer. The [YoutubeWebViewController] attaches them via
+/// [attachWebView] once the WebView is wired (the policies need the
+/// WebView controller getter; the audibility's web-bound callbacks stay
+/// lazy until the attachment is set). The engine and webView controller
+/// no longer import the policy classes directly — they reach them through
+/// this object.
 library;
 
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_poll_loop.dart';
+
+/// Per-session webView attachment contract.
+///
+/// The session composes the audible policy and the poll loop, both of which
+/// need WebView-bound actions (reapply volume, play, controller lookup,
+/// first-playing ack). The webView controller builds a [YoutubeSessionWebAttachment]
+/// and passes it to [YoutubeSession.attachWebView] once it owns an
+/// [InAppWebViewController]. Concrete class (not abstract) so the controller
+/// can adapt its existing `webController` getter without overriding.
+class YoutubeSessionWebAttachment {
+  YoutubeSessionWebAttachment({
+    required this.webController,
+    required this.onFirstPlaying,
+    required this.reapplyVolume,
+    required this.healPlay,
+  });
+
+  /// Live controller getter (nullable — the WebView may be detached).
+  final InAppWebViewController? Function() webController;
+
+  /// Fires on the first authoritative `playing` after open.
+  final void Function() onFirstPlaying;
+
+  /// Re-applies the session's stored normalized volume to the WebView.
+  final Future<void> Function() reapplyVolume;
+
+  /// Re-issues a play after the volume-restore heal window.
+  final Future<void> Function() healPlay;
+}
 
 /// Owns YouTube open state, transport snapshot, and engine event streams.
 class YoutubeSession {
-  /// [playRetry] is injectable so tests can shorten the D8 budget's lifetime
-  /// or advance its clock (defaults to a fresh [YouTubePlayRetryPolicy]).
-  YoutubeSession({YouTubePlayRetryPolicy? playRetry})
-    : playRetry = playRetry ?? YouTubePlayRetryPolicy();
+  /// [playRetry], [audibilityClock], [volumeRestoreDelay],
+  /// [volumeRestoreFallback], and [postRestoreHealDelay] are injectable so
+  /// tests can shorten the protocol windows deterministically.
+  YoutubeSession({
+    YouTubePlayRetryPolicy? playRetry,
+    MonotonicClock? audibilityClock,
+    Duration? volumeRestoreDelay,
+    Duration? volumeRestoreFallback,
+    Duration? postRestoreHealDelay,
+  }) : playRetry = playRetry ?? YouTubePlayRetryPolicy() {
+    // Audible policy is session-owned (issue #721). Its WebView-bound
+    // callbacks resolve through [YoutubeSessionWebAttachment], set by
+    // [attachWebView]. Until then the callbacks are inert — audibility's
+    // own session.disposed / playing guards cover the rest.
+    _audibility = YoutubeAudiblePlaybackPolicy(
+      session: this,
+      reapplyVolume: _reapplyVolumeViaAttachment,
+      healPlay: _healPlayViaAttachment,
+      clock: audibilityClock,
+      volumeRestoreDelay: volumeRestoreDelay,
+      volumeRestoreFallback: volumeRestoreFallback,
+      postRestoreHealDelay: postRestoreHealDelay,
+    );
+  }
 
   /// The immediate-pause retry protocol: budget, attribution, escalation,
   /// and its monotonic clocks. Storage verbs below delegate here; the poll
@@ -102,6 +167,16 @@ class YoutubeSession {
 
   Stopwatch? _initStopwatch;
 
+  /// Audible-start choreography — owns mute/restore/heal.
+  late final YoutubeAudiblePlaybackPolicy _audibility;
+
+  /// DOM poll loop — owned by session; wired in [attachWebView].
+  YoutubeWebViewPollLoop? _pollLoop;
+
+  /// WebView attachment for session-owned machinery. Set by
+  /// [attachWebView] once the WebView controller is ready; null before.
+  YoutubeSessionWebAttachment? _webAttachment;
+
   // ---------------------------------------------------------------------------
   // Read surface — the latches are private; writers must use the verbs below.
   // ---------------------------------------------------------------------------
@@ -155,6 +230,54 @@ class YoutubeSession {
   /// True when the current document still needs its first volume restore.
   bool get needsVolumeRestore =>
       _volumeRestoredDocGen != _documentGen && !_disposed;
+
+  /// Audible-start choreography owner. Read-only — owned by session.
+  YoutubeAudiblePlaybackPolicy get audibility => _audibility;
+
+  /// DOM poll loop. Throws [StateError] if accessed before [attachWebView].
+  YoutubeWebViewPollLoop get pollLoop {
+    final loop = _pollLoop;
+    if (loop == null) {
+      throw StateError('YoutubeSession.pollLoop accessed before attachWebView');
+    }
+    return loop;
+  }
+
+  /// True after [attachWebView] wired the poll loop.
+  bool get hasAttachedWebView => _webAttachment != null;
+
+  // ---------------------------------------------------------------------------
+  // Composition (issue #721).
+  // ---------------------------------------------------------------------------
+
+  /// Wires the session's DOM poll loop to a WebView controller.
+  ///
+  /// The poll loop needs the controller getter and the first-playing ack;
+  /// the audibility's web-bound callbacks (reapplyVolume, healPlay) stay
+  /// lazy and resolve through [attachment]. Idempotent — calling twice
+  /// replaces the previous poll loop (the WebView lifecycle never needs
+  /// to attach twice in practice, but tests may swap fakes).
+  void attachWebView(YoutubeSessionWebAttachment attachment) {
+    _webAttachment = attachment;
+    _pollLoop = YoutubeWebViewPollLoop(
+      session: this,
+      webController: attachment.webController,
+      onFirstPlaying: attachment.onFirstPlaying,
+      onPlaybackProgress: _audibility.onPlaybackProgress,
+    );
+  }
+
+  Future<void> _reapplyVolumeViaAttachment() async {
+    final attachment = _webAttachment;
+    if (attachment == null) return;
+    await attachment.reapplyVolume();
+  }
+
+  Future<void> _healPlayViaAttachment() async {
+    final attachment = _webAttachment;
+    if (attachment == null) return;
+    await attachment.healPlay();
+  }
 
   // ---------------------------------------------------------------------------
   // Open / clear lifecycle.
@@ -238,6 +361,42 @@ class YoutubeSession {
   /// budget and drops the escalation chain, so a deliberate pause is never
   /// auto-resumed.
   void noteUserPauseCommand() => playRetry.noteUserPauseCommand();
+
+  /// Play-after-end-of-media orchestration (engine [play] restart branch,
+  /// ADR-0044). Collapses the four transport transitions the engine
+  /// previously drove by hand: emit playing=false (so a stale true cannot
+  /// arm a budget against a fresh start), arm the D8 budget, emit
+  /// buffering=true to put the skeleton back. [emitPlaying] is fired first
+  /// so [beginUserPlay]'s "stale-buffering clear" branch (which depends on
+  /// !_playing) sees a stable not-playing state.
+  ///
+  /// The WebView reload + load stay in the engine / webView controller —
+  /// they need the bridge and the controller getter.
+  void beginPlayAfterEnd() {
+    emitPlaying(false);
+    beginUserPlay();
+    emitBuffering(true);
+  }
+
+  /// Stop-orchestration (engine [stop]). Consumes the pause-intent so the
+  /// D8 budget cannot un-pause a deliberate stop, surfaces not-playing /
+  /// not-buffering, zeroes the position, and re-arms the completion latch
+  /// for the next open.
+  void stopPlayback() {
+    noteUserPauseCommand();
+    emitPlaying(false);
+    emitBuffering(false);
+    emitPosition(Duration.zero);
+    resetCompletionFlag();
+  }
+
+  /// Settles a transport-command failure (engine [playOrPause] / [play]):
+  /// any armed budget is consumed and buffering surfaces false. The
+  /// command failed, so the in-flight play is unresolved.
+  void noteCommandFailed() {
+    playRetry.noteUserPlayUnresolved();
+    emitBuffering(false);
+  }
 
   /// Records that the poll loop just spent the D8 budget on a retry.
   void noteAutoPlayRetry() => playRetry.noteAutoPlayRetry();

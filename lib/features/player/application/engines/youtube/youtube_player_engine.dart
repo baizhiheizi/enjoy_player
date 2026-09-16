@@ -250,7 +250,7 @@ class YoutubePlayerEngine
           );
         }
       } on Object catch (error, stackTrace) {
-        _session.emitBuffering(false);
+        _session.noteCommandFailed();
         _logYoutube.warning(
           'youtube playOrPause command failed vid=${_session.videoId}',
           error,
@@ -267,15 +267,13 @@ class YoutubePlayerEngine
     );
     if (restart) {
       _webView.prepareWatchReload(resetFirstPlaying: true);
-      _session.emitPlaying(false);
       _webView.onExplicitPlayAttempt();
       // A replay after end-of-media is a play-intent command like any
       // other: the fresh document can be page-corrected back to paused
       // inside the immediate window, and the D8 retry must cover it.
-      // Armed before emitBuffering(true) — beginUserPlay clears stale
-      // buffering, which here is the state we are about to arm.
-      _session.beginUserPlay();
-      _session.emitBuffering(true);
+      // The session owns the four latch transitions in lockstep so the
+      // engine does not have to remember the order.
+      _session.beginPlayAfterEnd();
       await _webView.loadCurrentVideoIfAttached();
     } else {
       final controller = _webView.webController;
@@ -296,7 +294,7 @@ class YoutubePlayerEngine
       try {
         await YoutubeWebViewBridge.play(controller);
       } on Object catch (error, stackTrace) {
-        _session.emitBuffering(false);
+        _session.noteCommandFailed();
         _logYoutube.warning(
           'youtube play command failed vid=${_session.videoId}',
           error,
@@ -326,12 +324,8 @@ class YoutubePlayerEngine
 
   @override
   Future<void> stop() async {
-    _session.noteUserPauseCommand();
+    _session.stopPlayback();
     await YoutubeWebViewBridge.stop(_webView.webController);
-    _session.emitPlaying(false);
-    _session.emitBuffering(false);
-    _session.emitPosition(Duration.zero);
-    _session.resetCompletionFlag();
   }
 
   @override
