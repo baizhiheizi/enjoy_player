@@ -200,4 +200,78 @@ void main() {
   // D8 (immediate-pause retry) and D9 (transport-toggle latch) moved to
   // youtube_play_retry_policy_test.dart with the protocol they decide about
   // (issue #665).
+
+  // ---------------------------------------------------------------------------
+  // D10 — decidePlaybackRateStep (player.slowDown / player.speedUp)
+  // ---------------------------------------------------------------------------
+  group('decidePlaybackRateStep', () {
+    test('slower steps down by 0.05 inside the range', () {
+      final d = decidePlaybackRateStep(
+        rate: 1.0,
+        direction: PlaybackRateDirection.slower,
+      );
+      expect(d, isA<ValidRateStep>());
+      expect(d.rate, 0.95);
+    });
+
+    test('faster steps up by 0.05 inside the range', () {
+      final d = decidePlaybackRateStep(
+        rate: 1.0,
+        direction: PlaybackRateDirection.faster,
+      );
+      expect(d, isA<ValidRateStep>());
+      expect(d.rate, 1.05);
+    });
+
+    test('slower clamps at the 0.25 floor', () {
+      final d = decidePlaybackRateStep(
+        rate: 0.25,
+        direction: PlaybackRateDirection.slower,
+      );
+      expect(d, isA<FloorRateStep>());
+      expect(d.rate, kPlaybackRateMin);
+    });
+
+    test('slower landing exactly on 0.25 is the floor', () {
+      final d = decidePlaybackRateStep(
+        rate: 0.3,
+        direction: PlaybackRateDirection.slower,
+      );
+      expect(d, isA<FloorRateStep>());
+      expect(d.rate, kPlaybackRateMin);
+    });
+
+    test('faster clamps at the 2.0 ceiling', () {
+      final d = decidePlaybackRateStep(
+        rate: 2.0,
+        direction: PlaybackRateDirection.faster,
+      );
+      expect(d, isA<CeilingRateStep>());
+      expect(d.rate, kPlaybackRateMax);
+    });
+
+    test('faster landing exactly on 2.0 is the ceiling', () {
+      final d = decidePlaybackRateStep(
+        rate: 1.95,
+        direction: PlaybackRateDirection.faster,
+      );
+      expect(d, isA<CeilingRateStep>());
+      expect(d.rate, kPlaybackRateMax);
+    });
+
+    test('floor / ceiling still apply the rate (no further movement)', () {
+      // The pre-reducer hotkey always called setPlaybackRate with the clamped
+      // value; the decision keeps that contract via `rate`.
+      final floor = decidePlaybackRateStep(
+        rate: 0.26,
+        direction: PlaybackRateDirection.slower,
+      );
+      expect(floor.rate, kPlaybackRateMin);
+      final ceiling = decidePlaybackRateStep(
+        rate: 1.99,
+        direction: PlaybackRateDirection.faster,
+      );
+      expect(ceiling.rate, kPlaybackRateMax);
+    });
+  });
 }

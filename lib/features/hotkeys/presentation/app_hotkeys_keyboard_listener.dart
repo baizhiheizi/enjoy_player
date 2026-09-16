@@ -2,7 +2,6 @@
 library;
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,8 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/hotkeys/application/escape_dismissal.dart';
+import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
+import 'package:enjoy_player/features/hotkeys/application/hotkey_commands.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_focus_policy.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/application/shadow_reading_hotkey_policy.dart';
@@ -21,7 +22,6 @@ import 'package:enjoy_player/features/hotkeys/domain/hotkey_chord.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
-import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/core/window/window_fullscreen_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -267,24 +267,14 @@ class _AppHotkeysKeyboardListenerState
         return true;
       }
 
-      if (_matches(event, ctrl, 'player.slowDown')) {
-        final rate = ref.read(playerPreferencesCtrlProvider).playbackRate;
-        final next = math.max(0.25, rate - 0.05);
-        unawaited(
-          ref
-              .read(playerPreferencesCtrlProvider.notifier)
-              .setPlaybackRate(next),
-        );
-        return true;
-      }
-      if (_matches(event, ctrl, 'player.speedUp')) {
-        final rate = ref.read(playerPreferencesCtrlProvider).playbackRate;
-        final next = math.min(2.0, rate + 0.05);
-        unawaited(
-          ref
-              .read(playerPreferencesCtrlProvider.notifier)
-              .setPlaybackRate(next),
-        );
+      // player.slowDown / player.speedUp → command registry (issue #719).
+      // This call sits at the rate commands' old chain position, so the
+      // registry's order and the remaining if-chain stay one total order.
+      if (dispatchHotkey(
+        event: event,
+        ctrl: ctrl,
+        ctx: HotkeyCtx(read: ref.read, listenerContext: context),
+      )) {
         return true;
       }
 

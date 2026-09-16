@@ -8,8 +8,9 @@
 //   - shadow-reading bus pulses (recording / playback / pitch / assessment)
 //   - player interactions (togglePlay / toggleExpand / toggleFullscreen /
 //     prevLine / nextLine / replayLine / toggleEcho / toggleBlur /
-//     slowDown / speedUp / echo expand/shrink)
-//   - the slow-down / speed-up rate clamps at 0.25 and 2.0
+//     echo expand/shrink)
+//   - the playback-rate commands routed through the command registry
+//     (clamp coverage lives in the per-command / reducer suites)
 //   - the `escape_dismissal.dart` "noop on player route" branch
 //   - the `_onKey` return-false path when no shortcut matches
 //
@@ -1160,7 +1161,15 @@ void main() {
   });
 
   group('player playback rate (slowDown / speedUp)', () {
-    testWidgets('shift+comma → slowDown decreases by 0.05', (tester) async {
+    // Clamp coverage (0.25 floor / 2.0 ceiling / 0.05 step) lives with the D10
+    // reducer and the playback-rate commands:
+    //   - test/features/player/transport_decisions_test.dart
+    //   - test/features/player/application/hotkeys/playback_rate_commands_test.dart
+    // This end-to-end test pins the wiring: key stroke → listener dispatch →
+    // command registry → preference notifier.
+    testWidgets('shift+comma → registry slowDown command applies 0.95', (
+      tester,
+    ) async {
       final harness = await _mountHarness(
         tester,
         session: _videoSession(),
@@ -1174,56 +1183,6 @@ void main() {
       );
       await tester.pump();
       expect(harness.playerPrefs.setPlaybackRateCalls, [0.95]);
-    });
-
-    testWidgets('slowDown clamps at 0.25 (no further decrease)', (
-      tester,
-    ) async {
-      final harness = await _mountHarness(
-        tester,
-        session: _videoSession(),
-        initialRate: 0.25,
-      );
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.comma,
-        character: ',',
-      );
-      await tester.pump();
-      expect(harness.playerPrefs.setPlaybackRateCalls, [0.25]);
-    });
-
-    testWidgets('shift+period → speedUp increases by 0.05', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        session: _videoSession(),
-        initialRate: 1.0,
-      );
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.period,
-        character: '.',
-      );
-      await tester.pump();
-      expect(harness.playerPrefs.setPlaybackRateCalls, [1.05]);
-    });
-
-    testWidgets('speedUp clamps at 2.0 (no further increase)', (tester) async {
-      final harness = await _mountHarness(
-        tester,
-        session: _videoSession(),
-        initialRate: 2.0,
-      );
-      await _stroke(
-        tester,
-        [LogicalKeyboardKey.shiftLeft],
-        LogicalKeyboardKey.period,
-        character: '.',
-      );
-      await tester.pump();
-      expect(harness.playerPrefs.setPlaybackRateCalls, [2.0]);
     });
   });
 
