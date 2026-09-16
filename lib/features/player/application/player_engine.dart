@@ -1,9 +1,10 @@
 /// Abstraction over playback backends: [MediaKitPlayerEngine] (default) and [YouTubePlayerEngine].
+///
+/// Transport + streams + swap-lifecycle only. What only *some* engines can do
+/// (frame capture, embedded-subtitle control, YouTube playback) lives in
+/// `player_engine_capabilities.dart` as capability interfaces call sites
+/// branch on with `is` (issue #720).
 library;
-
-import 'dart:typed_data';
-
-import 'package:media_kit/media_kit.dart' as mk;
 
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
@@ -30,12 +31,14 @@ abstract interface class PlayerEngineMetadata {
 
 /// Contract implemented by [MediaKitPlayerEngine] / [YouTubePlayerEngine]; fakes in tests.
 ///
-/// Transport + streams + capabilities only. Widget building is *not* part of
-/// the contract: the presentation layer mounts a per-engine stage for the
-/// active engine (see `buildPlayerVideoStage`, issue #664) and reads the
-/// non-widget inputs each concrete engine publishes. Source identity, poster
-/// plumbing and init timing live behind the optional [PlayerEngineMetadata]
-/// capability.
+/// Transport + streams + swap lifecycle only — the members every engine
+/// implements identically in kind. Widget building is *not* part of the
+/// contract: the presentation layer mounts a per-engine stage for the active
+/// engine (see `buildPlayerVideoStage`, issue #664) and reads the non-widget
+/// inputs each concrete engine publishes. Source identity, poster plumbing
+/// and init timing live behind the optional [PlayerEngineMetadata]
+/// capability; frame capture, embedded-subtitle control, and YouTube playback
+/// live in `player_engine_capabilities.dart` (issue #720).
 abstract class PlayerEngine {
   Stream<Duration> get position;
 
@@ -54,20 +57,6 @@ abstract class PlayerEngine {
   /// May fire duplicate or late events across seeks; callers must guard with a
   /// generation counter (see `PlayerController._playbackGen`).
   Stream<void> get completed;
-
-  /// libmpv / media_kit subtitle tracks; `null` when unsupported (e.g. WebView).
-  Stream<mk.Tracks>? get mkTracksStream;
-
-  /// Whether [screenshot] can produce stored video thumbnails (false for WebView).
-  bool get supportsVideoPosterCapture;
-
-  /// Whether [disableRenderedSubtitles] does anything. YouTube / WebView
-  /// engines have no embedded subtitle track to disable.
-  bool get supportsSubtitleDisabling;
-
-  /// Whether this engine plays YouTube sources (WebView-backed). Capability
-  /// flag so call sites never need to know the concrete engine class.
-  bool get supportsYouTubePlayback;
 
   /// Completes when the engine's video surface is usable after `open`.
   /// Native engines are ready immediately; the WebView engine awaits mount.
@@ -106,8 +95,6 @@ abstract class PlayerEngine {
 
   Future<void> open(PlayableSource source);
 
-  Future<void> disableRenderedSubtitles();
-
   Future<void> seek(Duration target);
 
   Future<void> setRate(double rate);
@@ -122,9 +109,6 @@ abstract class PlayerEngine {
   Future<void> pause();
 
   Future<void> stop();
-
-  /// Encoded frame capture (`image/jpeg`, `image/png`, or raw when [format] is null).
-  Future<Uint8List?> screenshot({String? format});
 
   /// YouTube: attach the WebView. MediaKit: no-op — [VideoController] is
   /// created when the on-screen [Video] stage builds.

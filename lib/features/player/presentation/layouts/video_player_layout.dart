@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities_provider.dart';
 import 'package:enjoy_player/features/player/application/player_state_providers.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
@@ -298,8 +299,7 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   PlayerSurfaceOverlayBuilder? _overlayBuilder;
 
   void _rebuildOverlayBuilder() {
-    final engine = widget.engine;
-    final isYoutube = engine.supportsYouTubePlayback;
+    final isYoutube = ref.read(playerEnginePlaysYoutubeProvider);
     _overlayBuilder = (ctx) => MouseRegion(
       // opaque: false so empty regions pass hits through to the WebView
       // below (YouTube needs a real WebView gesture; see
@@ -349,8 +349,11 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   @override
   void didUpdateWidget(covariant _VideoStageWithChrome oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A new engine can flip `supportsYouTubePlayback`; the chrome depends on
-    // it, so the builder must be re-created with it.
+    // Keyed on engine identity only (issue #720): a swap can change which
+    // capabilities are live (YouTube chrome, tap-to-toggle), so the builder
+    // must be re-created for the new engine. The capability values themselves
+    // come from [playerEnginePlaysYoutubeProvider], never from the engine's
+    // type tag.
     if (!identical(oldWidget.engine, widget.engine)) {
       _rebuildOverlayBuilder();
     }
@@ -359,7 +362,10 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   @override
   Widget build(BuildContext context) {
     final engine = widget.engine;
-    final isYoutube = engine.supportsYouTubePlayback;
+    // Watch, not read off the engine: presentation must not depend on the
+    // engine's type tag (issue #720). The provider rebuilds when the active
+    // engine identity changes (it watches the rev-seeded engine provider).
+    final isYoutube = ref.watch(playerEnginePlaysYoutubeProvider);
 
     return PlayerSurfaceTarget(
       id: PlayerSurfaceIds.expandedPlayer,

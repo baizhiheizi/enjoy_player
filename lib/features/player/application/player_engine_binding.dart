@@ -12,6 +12,7 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 
@@ -130,7 +131,7 @@ Future<bool> ensureEngineForPlayableSource(
 
   final wantYt = playable is YoutubePlayableSource;
   final owned = getOwnedEngine();
-  final haveYt = owned?.supportsYouTubePlayback ?? false;
+  final haveYt = owned is YoutubePlaybackEngine;
 
   // ADR-0048 defense in depth: no WebView backend exists on opted-out
   // platforms, so a YouTube engine can never mount. Installing one would
@@ -190,7 +191,7 @@ Future<void> replaceWedgedLocalEngine(
 }) async {
   if (ref.read(playerEngineTestDoubleProvider) != null) return;
   final old = getOwnedEngine();
-  if (old == null || old.supportsYouTubePlayback) return;
+  if (old == null || old is YoutubePlaybackEngine) return;
   final swap = EngineSwap(
     ref: ref,
     getOwnedEngine: getOwnedEngine,

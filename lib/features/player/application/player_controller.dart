@@ -13,6 +13,7 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_binding.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
@@ -329,7 +330,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     if (_disposed || state != null || _openInFlight) return;
 
     final owned = _ownedEngine;
-    if (owned != null && owned.supportsYouTubePlayback) {
+    if (owned != null && owned is YoutubePlaybackEngine) {
       owned.warmVideoSurface();
       return;
     }

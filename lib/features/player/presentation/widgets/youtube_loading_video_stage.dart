@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/features/player/application/player_engine_capabilities_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/application/youtube_open_preview_provider.dart';
@@ -57,8 +58,8 @@ class _YoutubeLoadingVideoStageState
   @override
   Widget build(BuildContext context) {
     final preview = ref.watch(youtubeOpenPreviewProvider(widget.mediaId));
-    final engine = ref.watch(playerEngineProvider);
-    final isYoutube = engine.supportsYouTubePlayback;
+    // Capability via provider, not engine type tag (issue #720).
+    final isYoutube = ref.watch(playerEnginePlaysYoutubeProvider);
 
     final thumb = preview.maybeWhen(
       data: (p) => p?.thumbnailUrl,

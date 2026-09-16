@@ -1,4 +1,5 @@
-/// Best-effort JPEG poster from [PlayerEngine.screenshot] for local video rows.
+/// Best-effort JPEG poster from the engine's [PosterCapture] capability for
+/// local video rows.
 library;
 
 import 'dart:async';
@@ -14,6 +15,7 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/files/video_poster_extract.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 
 final _log = logNamed('VideoPosterCapture');
 
@@ -63,6 +65,12 @@ class VideoPosterCaptureService {
     required void Function(String absoluteThumbPath) onSessionThumbnail,
   }) async {
     var soughtForPoster = false;
+    // Frame capture is a capability (issue #720): the caller gates on it, but
+    // re-check here so a mismatch degrades to "no poster" instead of throwing.
+    final PosterCapture? capture = switch (activeEngine) {
+      PosterCapture posterCapture => posterCapture,
+      _ => null,
+    };
     try {
       // Opening at position 0 while echo is active makes the capture seek (and
       // the seek-back-to-zero below) fight the live enforcer: the seek is
@@ -92,7 +100,7 @@ class VideoPosterCaptureService {
         if (currentSessionMediaId() != mediaId) return;
       }
 
-      final bytes = await activeEngine.screenshot(format: 'image/jpeg');
+      final bytes = await capture?.screenshot(format: 'image/jpeg');
       if (bytes == null || bytes.isEmpty) return;
       if (gen != currentOpenGeneration()) return;
 

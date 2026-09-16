@@ -8,6 +8,7 @@ import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'package:enjoy_player/data/files/security_scoped_bookmark.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
@@ -29,7 +30,8 @@ double aspectRatioFromVideoParams(mk.VideoParams vp, mk.PlayerState state) {
 /// The native mpv player is constructed lazily on first access (not in the
 /// constructor) so swapping between YouTube and local media does not stall the
 /// main isolate with an unnecessary native allocation (issue #283, P8).
-class MediaKitPlayerEngine implements PlayerEngine {
+class MediaKitPlayerEngine
+    implements PlayerEngine, PosterCapture, SubtitleTrackControl {
   MediaKitPlayerEngine();
 
   mk.Player? __player;
@@ -125,9 +127,6 @@ class MediaKitPlayerEngine implements PlayerEngine {
 
   @override
   bool get supportsSubtitleDisabling => true;
-
-  @override
-  bool get supportsYouTubePlayback => false;
 
   @override
   Future<void> awaitSurfaceReady() async {}

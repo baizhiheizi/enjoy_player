@@ -118,7 +118,7 @@ void main() {
       final ref = _refOf(container);
 
       final gate = Completer<void>();
-      final prior = FakePlayerEngine()..supportsYouTubePlaybackValue = true;
+      final prior = FakeYoutubeEngine();
       prior.surfaceDetachGate = gate;
       addTearDown(() async {
         if (!gate.isCompleted) gate.complete();
@@ -160,7 +160,7 @@ void main() {
       final ref = _refOf(container);
 
       final hang = Completer<void>();
-      final prior = FakePlayerEngine()..supportsYouTubePlaybackValue = true;
+      final prior = FakeYoutubeEngine();
       prior.disposeGate = hang;
       addTearDown(() {
         if (!hang.isCompleted) hang.complete();

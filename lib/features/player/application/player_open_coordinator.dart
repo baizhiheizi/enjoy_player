@@ -13,6 +13,7 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/playback_open_resolver.dart';
 import 'package:enjoy_player/features/player/application/playback_session_persister.dart';
@@ -222,10 +223,17 @@ Future<void> runPlayerOpen(
     return;
   }
 
-  if (engine.supportsSubtitleDisabling) {
+  // Subtitle control is a capability (issue #720): only the engine that owns
+  // a libmpv track list implements it — YouTube force-suppresses CC in the
+  // inject script instead, and the await is skipped entirely there.
+  final SubtitleTrackControl? subtitles = switch (engine) {
+    SubtitleTrackControl control => control,
+    _ => null,
+  };
+  if (subtitles != null) {
     await runBoundedEngineStep(
       'disableRenderedSubtitles',
-      engine.disableRenderedSubtitles,
+      subtitles.disableRenderedSubtitles,
       limit: engineCommandTimeout,
     );
     if (host.isOpenStale(gen)) return;
@@ -312,9 +320,10 @@ Future<void> runPlayerOpen(
     );
   }
 
-  if (kind == MediaKind.video &&
-      video != null &&
-      engine.supportsVideoPosterCapture) {
+  // Frame capture is a capability (issue #720): the YouTube WebView shot
+  // would capture only the HTML chrome, so engines without [PosterCapture]
+  // never schedule one.
+  if (kind == MediaKind.video && video != null && engine is PosterCapture) {
     ref
         .read(videoPosterCaptureServiceProvider)
         .scheduleCapture(
