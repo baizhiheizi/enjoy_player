@@ -214,4 +214,140 @@ void main() {
     expect(snapshot.isFullyCaughtUp, isFalse);
     expect(snapshot.detailRows, hasLength(2));
   });
+
+  group('SyncQueueRepository concurrent addOrUpsert (issue #717 F4)', () {
+    test('two concurrent addOrUpsert calls for the same composite key '
+        'yield exactly one row', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = SyncQueueRepository(db);
+
+      // Without the transaction wrapping the read+write in
+      // addOrUpsert, both calls would observe "no row" and insert
+      // duplicates. With the wrap, the SQLite executor serializes
+      // them and the second call observes the first's insert.
+      final results = await Future.wait([
+        repo.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: '{"v":1}',
+        ),
+        repo.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: '{"v":2}',
+        ),
+      ]);
+
+      // Same row id is returned to both callers.
+      expect(results[0], equals(results[1]));
+      final rows = await db.select(db.syncQueue).get();
+      expect(rows, hasLength(1));
+      // Last-writer-wins on payload (matches the single-threaded
+      // addOrUpsert contract).
+      expect(rows.single.payloadJson, anyOf('{"v":1}', '{"v":2}'));
+    });
+
+    test(
+      'concurrent addOrUpsert for different composite keys stays separate',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final repo = SyncQueueRepository(db);
+
+        await Future.wait([
+          repo.addOrUpsert(
+            entityType: 'video',
+            entityId: 'vid-A',
+            action: 'update',
+            payloadJson: '{"v":"A"}',
+          ),
+          repo.addOrUpsert(
+            entityType: 'video',
+            entityId: 'vid-B',
+            action: 'update',
+            payloadJson: '{"v":"B"}',
+          ),
+          repo.addOrUpsert(
+            entityType: 'video',
+            entityId: 'vid-A',
+            action: 'delete',
+            payloadJson: null,
+          ),
+        ]);
+
+        final rows = await db.select(db.syncQueue).get();
+        expect(rows, hasLength(3));
+        expect(rows.map((r) => '${r.entityId}/${r.action}').toSet(), {
+          'vid-A/update',
+          'vid-B/update',
+          'vid-A/delete',
+        });
+      },
+    );
+  });
+
+  group('SyncQueueRepository.removeByIdIfPayload (issue #717 F3)', () {
+    test('removes the row and returns it when the payload matches', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = SyncQueueRepository(db);
+
+      final id = await repo.addOrUpsert(
+        entityType: 'video',
+        entityId: 'dQw4w9WgXcQ/en',
+        action: 'update',
+        payloadJson: '{"v":1}',
+      );
+
+      final removed = await repo.removeByIdIfPayload(id, '{"v":1}');
+      expect(removed, isNotNull);
+      expect(removed!.id, id);
+      expect(removed.payloadJson, '{"v":1}');
+      expect(await db.select(db.syncQueue).get(), isEmpty);
+    });
+
+    test(
+      'returns null and keeps the row when the payload has been refreshed',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final repo = SyncQueueRepository(db);
+
+        final id = await repo.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: '{"v":1}',
+        );
+
+        // Concurrent refresh — addOrUpsert overwrites payload only.
+        await repo.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: '{"v":2}',
+        );
+
+        // The older payload no longer matches — conditional remove must
+        // leave the refreshed row in place so the next drain retries it.
+        final removed = await repo.removeByIdIfPayload(id, '{"v":1}');
+        expect(removed, isNull);
+        final rows = await db.select(db.syncQueue).get();
+        expect(rows, hasLength(1));
+        expect(rows.single.payloadJson, '{"v":2}');
+      },
+    );
+
+    test('returns null when the row is missing', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = SyncQueueRepository(db);
+
+      final removed = await repo.removeByIdIfPayload(99999, '{"v":1}');
+      expect(removed, isNull);
+    });
+  });
 }

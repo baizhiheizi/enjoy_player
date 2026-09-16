@@ -39,12 +39,20 @@ class SyncQueueRepository {
   /// edited locally — editing the entity should not silently re-arm
   /// a row that was rejected by the server. To re-arm failed rows
   /// use [resetFailed].
+  ///
+  /// The read+write pair runs inside a single Drift transaction so two
+  /// concurrent enqueues for the same composite key cannot both observe
+  /// "no row" and insert duplicates (issue #717 review followup). The
+  /// earlier pre-#726 producer was insert-only; legacy installs may
+  /// still carry those duplicates — the schema-version-18 migration in
+  /// `AppDatabase._runMigrations` consolidates them so this `getSingleOrNull`
+  /// never sees >1 row.
   Future<int> addOrUpsert({
     required String entityType,
     required String entityId,
     required String action,
     String? payloadJson,
-  }) async {
+  }) => _db.transaction(() async {
     final existing =
         await (_db.select(_db.syncQueue)..where(
               (t) =>
@@ -71,7 +79,7 @@ class SyncQueueRepository {
             createdAt: DateTime.now(),
           ),
         );
-  }
+  });
 
   /// Rows that may still be retried (`retryCount < 5`), oldest first.
   Future<List<SyncQueueRow>> pendingItems({int limit = 500}) {
@@ -108,6 +116,29 @@ class SyncQueueRepository {
   }
 
   Future<void> removeById(int id) => _db.syncQueueDao.deleteId(id);
+
+  /// Removes the row with [id] only if its stored `payload_json` still
+  /// equals [expectedPayloadJson]. Returns the deleted row, or `null` when
+  /// the row is missing or its payload has been refreshed since [item] was
+  /// snapshotted (issue #717 review followup, race in `_processOne`).
+  ///
+  /// Used by `SyncEngine._retryYoutubeWorkerUpload` so a successful upload
+  /// of an older payload does not delete a newer payload that the producer
+  /// wrote while the upload was in flight. Comparison is string equality —
+  /// the producer always `jsonEncode`s the same map structure for the same
+  /// content, so a different JSON string means a different timeline.
+  Future<SyncQueueRow?> removeByIdIfPayload(
+    int id,
+    String expectedPayloadJson,
+  ) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.syncQueue,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) return null;
+    if (row.payloadJson != expectedPayloadJson) return null;
+    await _db.syncQueueDao.deleteId(id);
+    return row;
+  });
 
   Future<void> markAttempted(int id, {String? error}) =>
       _db.syncQueueDao.markAttempted(id, error: error);

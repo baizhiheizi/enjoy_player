@@ -129,6 +129,53 @@ class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
       <Map<String, dynamic>>[];
 }
 
+/// Variant whose `uploadTranscript` blocks on a caller-supplied gate so
+/// the test can refresh the queue row mid-flight (issue #717 review F3).
+class _BlockingFakeTranscriptsApi implements YoutubeTranscriptsClient {
+  _BlockingFakeTranscriptsApi({required this.onUpload});
+
+  final Future<bool> Function() onUpload;
+
+  final List<
+    ({
+      String videoId,
+      String language,
+      String source,
+      List<Map<String, dynamic>> timeline,
+    })
+  >
+  uploads = [];
+
+  @override
+  Future<Map<String, dynamic>?> getCachedTranscript({
+    required String videoId,
+    required String language,
+  }) async => null;
+
+  @override
+  Future<bool> uploadTranscript({
+    required String videoId,
+    required String language,
+    required String source,
+    required List<Map<String, dynamic>> timeline,
+    Map<String, dynamic>? metadata,
+  }) async {
+    uploads.add((
+      videoId: videoId,
+      language: language,
+      source: source,
+      timeline: [
+        for (final entry in timeline) Map<String, dynamic>.from(entry),
+      ],
+    ));
+    return await onUpload();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchClientProfiles() async =>
+      <Map<String, dynamic>>[];
+}
+
 /// The payload `_enqueueYoutubeUploadRetry` writes for a failed worker
 /// upload (issue #717).
 String _youtubeUploadPayload({
@@ -826,6 +873,143 @@ void main() {
       expect(result.synced, 1);
       expect(api.uploads, isEmpty);
       expect(await queue.pendingItems(), isEmpty);
+    });
+
+    test('F1: timeline entry that is not a Map drops the whole payload '
+        '(no partial upload)', () async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queue = SyncQueueRepository(db);
+      final api = _FakeTranscriptsApi();
+
+      // One valid entry followed by an int — the producer always emits
+      // `Map<String, dynamic>` shapes, so a non-object entry is
+      // corruption. The old `.whereType<Map>` filter silently dropped
+      // the int, leaving a one-line timeline and replacing the worker
+      // cache with incomplete data.
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: 'dQw4w9WgXcQ/en',
+        action: 'update',
+        payloadJson: jsonEncode({
+          'kind': 'youtube_upload',
+          'videoId': 'dQw4w9WgXcQ',
+          'language': 'en',
+          'source': 'official',
+          'timeline': [
+            {'text': 'hello', 'start': 0, 'duration': 1000},
+            7,
+          ],
+        }),
+      );
+
+      final engine = _buildEngine(
+        db,
+        _permissiveMock(),
+        youtubeTranscripts: api,
+      );
+      final result = await engine.processQueue(const SyncOptions());
+
+      expect(result.success, isTrue);
+      expect(result.synced, 1);
+      expect(api.uploads, isEmpty, reason: 'malformed payload → no upload');
+      expect(
+        await db.select(db.syncQueue).get(),
+        isEmpty,
+        reason: 'malformed payload row is dropped',
+      );
+    });
+
+    test('F3: successful upload does not delete a refreshed payload '
+        '(refresh-during-upload race)', () async {
+      // Mirror the producer's race: enqueue with a stale payload, start
+      // the drain, while the upload is in-flight refresh with a fresher
+      // payload, then complete the upload. The unconditional
+      // `removeById` would delete the refreshed payload and lose the
+      // durable retry. Conditional remove must keep it.
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queue = SyncQueueRepository(db);
+
+      const videoId = 'dQw4w9WgXcQ';
+      const language = 'en';
+      final stalePayload = _youtubeUploadPayload(
+        videoId: videoId,
+        language: language,
+        timeline: [
+          {'text': 'stale', 'start': 0, 'duration': 1000},
+        ],
+      );
+      final freshPayload = _youtubeUploadPayload(
+        videoId: videoId,
+        language: language,
+        timeline: [
+          {'text': 'fresh', 'start': 0, 'duration': 1000},
+        ],
+      );
+
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: '$videoId/$language',
+        action: 'update',
+        payloadJson: stalePayload,
+      );
+
+      final uploadStarted = Completer<void>();
+      final releaseUpload = Completer<void>();
+      final api = _BlockingFakeTranscriptsApi(
+        onUpload: () async {
+          if (!uploadStarted.isCompleted) uploadStarted.complete();
+          await releaseUpload.future;
+          return true;
+        },
+      );
+
+      final engine = _buildEngine(
+        db,
+        _permissiveMock(),
+        youtubeTranscripts: api,
+      );
+
+      final drainFuture = engine.processQueue(const SyncOptions());
+      await uploadStarted.future;
+
+      // Producer refreshes the queue row with a newer payload while
+      // the upload is in flight. addOrUpsert refreshes in place — same
+      // id, new payload.
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: '$videoId/$language',
+        action: 'update',
+        payloadJson: freshPayload,
+      );
+
+      // Sanity check: the stored row now carries the fresh payload.
+      final beforeRelease = await db.select(db.syncQueue).get();
+      expect(beforeRelease, hasLength(1));
+      expect(beforeRelease.single.payloadJson, freshPayload);
+
+      // Complete the upload; conditional remove must observe the
+      // payload mismatch and leave the row in place.
+      releaseUpload.complete();
+      final result = await drainFuture;
+
+      expect(result.success, isTrue);
+      expect(api.uploads, hasLength(1));
+      expect(api.uploads.single.timeline.single['text'], 'stale');
+      final after = await db.select(db.syncQueue).get();
+      expect(after, hasLength(1));
+      expect(
+        after.single.payloadJson,
+        freshPayload,
+        reason: 'refreshed payload must survive the older upload success',
+      );
+
+      // A second drain retries the fresh payload and clears the row.
+      await engine.processQueue(const SyncOptions());
+      expect(await db.select(db.syncQueue).get(), isEmpty);
+      expect(api.uploads, hasLength(2));
+      expect(api.uploads.last.timeline.single['text'], 'fresh');
     });
   });
 

@@ -104,7 +104,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -273,6 +273,22 @@ class AppDatabase extends _$AppDatabase {
         // every open via `lib/data/files/security_scoped_bookmark.dart`.
         await _addColumnIfMissing(m, videos, videos.bookmarkData);
         await _addColumnIfMissing(m, audios, audios.bookmarkData);
+      } else if (next == 18) {
+        // Issue #717 review followup (F5): the pre-#726 sync queue
+        // producer inserted a fresh row on every failure, leaving
+        // installs with several rows for the same `(entity_type,
+        // entity_id, action)`. The post-fix `addOrUpsert` does
+        // `getSingleOrNull(...)` on that composite key, which throws
+        // when duplicates exist; the producer's catch then silently
+        // drops the latest retry payload. Keep the newest row per
+        // composite (highest `id` is the most recent insert since the
+        // column is auto-increment and SQLite never reuses ids) and
+        // delete the rest. No-op on a clean queue.
+        await m.database.customStatement(
+          'DELETE FROM sync_queue WHERE id NOT IN ('
+          'SELECT MAX(id) FROM sync_queue '
+          'GROUP BY entity_type, entity_id, action)',
+        );
       }
       current = next;
     }
