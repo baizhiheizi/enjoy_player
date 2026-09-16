@@ -34,7 +34,7 @@ final class IpaOverlaySettingsProvider
 }
 
 String _$ipaOverlaySettingsHash() =>
-    r'5d59c15118846bb7d92d1bb0a5249136cf73bd27';
+    r'96156c255ddf8760aff4ae44644c4c1a60a157ce';
 
 abstract class _$IpaOverlaySettings extends $AsyncNotifier<bool> {
   FutureOr<bool> build();

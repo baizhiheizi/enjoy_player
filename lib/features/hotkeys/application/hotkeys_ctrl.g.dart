@@ -33,7 +33,7 @@ final class HotkeysCtrlProvider
   HotkeysCtrl create() => HotkeysCtrl();
 }
 
-String _$hotkeysCtrlHash() => r'1dece0f4ec3d5b5345ecc4ebcccff1ce55cc752e';
+String _$hotkeysCtrlHash() => r'e08884e4036665111cb094b95d04ad9fb57feb97';
 
 abstract class _$HotkeysCtrl extends $AsyncNotifier<Map<String, String>> {
   FutureOr<Map<String, String>> build();

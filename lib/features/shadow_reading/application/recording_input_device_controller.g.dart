@@ -38,7 +38,7 @@ final class RecordingInputDeviceCtrlProvider
 }
 
 String _$recordingInputDeviceCtrlHash() =>
-    r'a3c2e5e8c700a8fb69e26bfc2047cfe518e91c04';
+    r'645aa06a11ddc340deefa8b8ac7a2c477cedd810';
 
 abstract class _$RecordingInputDeviceCtrl
     extends $AsyncNotifier<RecordingInputDeviceState> {

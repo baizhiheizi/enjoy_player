@@ -34,7 +34,7 @@ final class KaraokeHighlightSettingsProvider
 }
 
 String _$karaokeHighlightSettingsHash() =>
-    r'4454bb1ae2bd406a48f43c52ff6899ee7bb4f518';
+    r'8cf72838af818928b54fc7212f6e7efc86fe3564';
 
 abstract class _$KaraokeHighlightSettings extends $AsyncNotifier<bool> {
   FutureOr<bool> build();
