@@ -47,16 +47,12 @@ final _swapLog = logNamed('EngineSwapCoordinator');
 class EngineSwapCoordinator {
   EngineSwapCoordinator({
     required this.ref,
-    required PlayerEngine? Function() getOwnedEngine,
-    required void Function(PlayerEngine? next) setOwnedEngine,
-    required PlayerEngine Function() getActiveEngine,
-    required int Function() currentOpenGeneration,
-    required void Function() abandonPendingOpen,
-  }) : _getOwnedEngine = getOwnedEngine,
-       _setOwnedEngine = setOwnedEngine,
-       _getActiveEngine = getActiveEngine,
-       _currentOpenGeneration = currentOpenGeneration,
-       _abandonPendingOpen = abandonPendingOpen;
+    required this._getOwnedEngine,
+    required this._setOwnedEngine,
+    required this._getActiveEngine,
+    required this._currentOpenGeneration,
+    required this._abandonPendingOpen,
+  });
 
   final Ref ref;
   final PlayerEngine? Function() _getOwnedEngine;

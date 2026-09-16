@@ -31,7 +31,8 @@ Ref _refOf(ProviderContainer container) {
   PlayerEngine? Function() getOwned,
   void Function(PlayerEngine?) setOwned,
   EngineSwapCoordinator coordinator,
-}) _wire(ProviderContainer container) {
+})
+_wire(ProviderContainer container) {
   PlayerEngine? owned;
   var openGen = 1;
   final coordinator = EngineSwapCoordinator(
