@@ -363,6 +363,42 @@ class YoutubeSession {
   /// auto-resumed.
   void noteUserPauseCommand() => playRetry.noteUserPauseCommand();
 
+  /// Play-after-end-of-media orchestration (engine [play] restart branch,
+  /// ADR-0044). Collapses the four transport transitions the engine
+  /// previously drove by hand: emit playing=false (so a stale true cannot
+  /// arm a budget against a fresh start), arm the D8 budget, emit
+  /// buffering=true to put the skeleton back. [emitPlaying] is fired first
+  /// so [beginUserPlay]'s "stale-buffering clear" branch (which depends on
+  /// !_playing) sees a stable not-playing state.
+  ///
+  /// The WebView reload + load stay in the engine / webView controller —
+  /// they need the bridge and the controller getter.
+  void beginPlayAfterEnd() {
+    emitPlaying(false);
+    beginUserPlay();
+    emitBuffering(true);
+  }
+
+  /// Stop-orchestration (engine [stop]). Consumes the pause-intent so the
+  /// D8 budget cannot un-pause a deliberate stop, surfaces not-playing /
+  /// not-buffering, zeroes the position, and re-arms the completion latch
+  /// for the next open.
+  void stopPlayback() {
+    noteUserPauseCommand();
+    emitPlaying(false);
+    emitBuffering(false);
+    emitPosition(Duration.zero);
+    resetCompletionFlag();
+  }
+
+  /// Settles a transport-command failure (engine [playOrPause] / [play]):
+  /// any armed budget is consumed and buffering surfaces false. The
+  /// command failed, so the in-flight play is unresolved.
+  void noteCommandFailed() {
+    playRetry.noteUserPlayUnresolved();
+    emitBuffering(false);
+  }
+
   /// Records that the poll loop just spent the D8 budget on a retry.
   void noteAutoPlayRetry() => playRetry.noteAutoPlayRetry();
 
