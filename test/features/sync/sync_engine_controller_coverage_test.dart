@@ -1343,6 +1343,79 @@ void main() {
       expect(updated!.syncStatus, 'synced');
     });
 
+    test('video create uploads and removes queue row', () async {
+      final mock = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path == '/api/v1/mine/videos') {
+          return http.Response(
+            jsonEncode({
+              'video': {
+                'id': 'vid-ok',
+                'vid': 'vid-ok',
+                'provider': 'youtube',
+                'title': 'Test',
+                'duration': 10,
+                'language': 'en',
+                'updated_at': '2026-07-01T00:00:00.000Z',
+                'created_at': '2026-07-01T00:00:00.000Z',
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.method == 'GET') {
+          return http.Response(
+            '[]',
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('unexpected', 500);
+      });
+
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+      final queue = SyncQueueRepository(db);
+
+      final now = DateTime.utc(2026, 1, 1);
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: 'vid-ok',
+          vid: 'vid-ok',
+          provider: 'youtube',
+          title: 'Test',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 10,
+          language: 'en',
+          source: null,
+          localUri: null,
+          md5: null,
+          size: null,
+          mediaUrl: null,
+          syncStatus: 'pending',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await queue.addOrUpsert(
+        entityType: 'video',
+        entityId: 'vid-ok',
+        action: 'create',
+      );
+
+      final engine = _buildEngine(db, mock);
+      final result = await engine.processQueue(const SyncOptions());
+
+      expect(result.success, isTrue);
+      expect(result.synced, 1);
+      expect(await queue.pendingItems(), isEmpty);
+      final updated = await db.videoDao.getById('vid-ok');
+      expect(updated!.syncStatus, 'synced');
+    });
+
     test('recording create uploads and removes queue row', () async {
       final mock = MockClient((request) async {
         if (request.method == 'POST' &&
