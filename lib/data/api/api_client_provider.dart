@@ -58,7 +58,7 @@ class ApiBaseUrl extends _$ApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    final raw = await db.settingsDao.getValue(SettingsKeys.apiBaseUrl);
+    final raw = await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name);
     return normalizeApiBaseUrl(raw ?? kDefaultApiBaseUrl, kDefaultApiBaseUrl);
   }
 
@@ -68,7 +68,7 @@ class ApiBaseUrl extends _$ApiBaseUrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.apiBaseUrl, normalized);
+        .setValue(SettingsKeys.apiBaseUrl.name, normalized);
     state = AsyncData(normalized);
     ref.invalidate(apiClientProvider);
   }
@@ -90,7 +90,7 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
     // explicitly via the "Use API URL" button — that calls
     // [clearOverride], which makes the in-memory state follow
     // [apiBaseUrl] until the next override. See #83, #105, #120.
-    final raw = await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl);
+    final raw = await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl.name);
     return normalizeApiBaseUrl(
       raw ?? kDefaultAiApiBaseUrl,
       kDefaultAiApiBaseUrl,
@@ -103,7 +103,7 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.apiAiBaseUrl, normalized);
+        .setValue(SettingsKeys.apiAiBaseUrl.name, normalized);
     state = AsyncData(normalized);
     ref.invalidate(aiApiClientProvider);
   }
@@ -111,7 +111,7 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   /// Clears the override and falls back to following [apiBaseUrlProvider].
   Future<void> clearOverride() async {
     final db = ref.read(deviceGlobalAppDatabaseProvider);
-    await db.settingsDao.deleteValue(SettingsKeys.apiAiBaseUrl);
+    await db.settingsDao.deleteValue(SettingsKeys.apiAiBaseUrl.name);
     state = AsyncData(await ref.read(apiBaseUrlProvider.future));
     ref.invalidate(aiApiClientProvider);
   }

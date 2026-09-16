@@ -25,7 +25,7 @@ void main() {
 
     test('returns true when stored value is "true"', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.transcriptKaraokeHighlight,
+        SettingsKeys.transcriptKaraokeHighlight.name,
         'true',
       );
       expect(await readKaraokeHighlightEnabledFromDb(db), isTrue);
@@ -33,7 +33,7 @@ void main() {
 
     test('returns false when stored value is "false"', () async {
       await db.settingsDao.setValue(
-        SettingsKeys.transcriptKaraokeHighlight,
+        SettingsKeys.transcriptKaraokeHighlight.name,
         'false',
       );
       expect(await readKaraokeHighlightEnabledFromDb(db), isFalse);
@@ -58,7 +58,9 @@ void main() {
       isTrue,
     );
     expect(
-      await db.settingsDao.getValue(SettingsKeys.transcriptKaraokeHighlight),
+      await db.settingsDao.getValue(
+        SettingsKeys.transcriptKaraokeHighlight.name,
+      ),
       'true',
     );
 
@@ -70,7 +72,7 @@ void main() {
 
   test('delayed true is not treated as off after await', () async {
     await db.settingsDao.setValue(
-      SettingsKeys.transcriptKaraokeHighlight,
+      SettingsKeys.transcriptKaraokeHighlight.name,
       'true',
     );
     final container = ProviderContainer(

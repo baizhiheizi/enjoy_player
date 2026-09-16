@@ -27,7 +27,7 @@ class DiagnosticLogConfig {
     try {
       await withDeviceGlobalAppDatabaseForBootstrap((db) async {
         final raw = await db.settingsDao.getValue(
-          SettingsKeys.diagnosticsVerboseEnabled,
+          SettingsKeys.diagnosticsVerboseEnabled.name,
         );
         verboseEnabled = raw == 'true';
       });

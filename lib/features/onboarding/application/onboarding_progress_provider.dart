@@ -19,7 +19,7 @@ class OnboardingProgress extends _$OnboardingProgress {
   Future<TipProgressSnapshot> build() async {
     final db = ref.watch(appDatabaseProvider);
     final raw = await db.settingsDao.getValue(
-      SettingsKeys.onboardingTipProgressV1,
+      SettingsKeys.onboardingTipProgressV1.name,
     );
     final global = TipProgressSnapshot.decodeGlobalJson(raw);
 
@@ -64,7 +64,7 @@ class OnboardingProgress extends _$OnboardingProgress {
     // Re-read from DB so concurrent tip updates (e.g. import + craft) cannot
     // clobber each other with a stale in-memory snapshot.
     final raw = await db.settingsDao.getValue(
-      SettingsKeys.onboardingTipProgressV1,
+      SettingsKeys.onboardingTipProgressV1.name,
     );
     final fromDb = TipProgressSnapshot.decodeGlobalJson(raw);
     final memory = state.asData?.value.global ?? const <String, TipStatus>{};
@@ -74,7 +74,7 @@ class OnboardingProgress extends _$OnboardingProgress {
       tip.id: status,
     };
     await db.settingsDao.setValue(
-      SettingsKeys.onboardingTipProgressV1,
+      SettingsKeys.onboardingTipProgressV1.name,
       TipProgressSnapshot.encodeGlobalJson(nextGlobal),
     );
     final current = state.asData?.value ?? const TipProgressSnapshot();
@@ -103,7 +103,7 @@ class OnboardingProgress extends _$OnboardingProgress {
 
   Future<void> resetAll() async {
     final db = ref.read(appDatabaseProvider);
-    await db.settingsDao.deleteValue(SettingsKeys.onboardingTipProgressV1);
+    await db.settingsDao.deleteValue(SettingsKeys.onboardingTipProgressV1.name);
     await db.settingsDao.deleteKeysWithPrefix(
       SettingsKeys.onboardingEmptyTranscriptPrefix,
     );

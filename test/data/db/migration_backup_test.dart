@@ -99,7 +99,7 @@ void main() {
     test(
       'serializes a real Settings row through the date-time jsonify',
       () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'en-US');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'en-US');
         final path = await backupToJson(db, from: 8, to: 10);
         final json =
             jsonDecode(await File(path!).readAsString())

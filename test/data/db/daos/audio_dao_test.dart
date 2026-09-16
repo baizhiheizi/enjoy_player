@@ -137,42 +137,54 @@ void main() {
 
   group('SettingsDao', () {
     test('getValue returns null for unset key', () async {
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('setValue then getValue round-trips a string', () async {
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'https://x');
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'https://x');
       expect(
-        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl),
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
         'https://x',
       );
     });
 
     test('setValue with same key overwrites prior value', () async {
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'https://a');
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'https://b');
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'https://a');
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'https://b');
       expect(
-        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl),
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
         'https://b',
       );
     });
 
     test('setValue allows several distinct keys', () async {
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'a');
-      await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'zh-CN');
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), 'a');
-      expect(await db.settingsDao.getValue(SettingsKeys.prefsLocale), 'zh-CN');
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'a');
+      await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'zh-CN');
+      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name), 'a');
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.prefsLocale.name),
+        'zh-CN',
+      );
     });
 
     test('deleteValue removes a previously stored key', () async {
-      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl, 'x');
-      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl);
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      await db.settingsDao.setValue(SettingsKeys.apiBaseUrl.name, 'x');
+      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl.name);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('deleteValue is a no-op for unknown keys', () async {
-      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl);
-      expect(await db.settingsDao.getValue(SettingsKeys.apiBaseUrl), isNull);
+      await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl.name);
+      expect(
+        await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),
+        isNull,
+      );
     });
 
     test('dynamic sync cursor keys are accepted', () async {
@@ -185,9 +197,9 @@ void main() {
 
     test('SettingsKeys.isKnown covers static and dynamic families', () {
       // Static keys.
-      expect(SettingsKeys.isKnown(SettingsKeys.apiBaseUrl), isTrue);
-      expect(SettingsKeys.isKnown(SettingsKeys.prefsLocale), isTrue);
-      expect(SettingsKeys.isKnown(SettingsKeys.updateLastCheckAt), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.apiBaseUrl.name), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.prefsLocale.name), isTrue);
+      expect(SettingsKeys.isKnown(SettingsKeys.updateLastCheckAt.name), isTrue);
       // Dynamic families.
       expect(
         SettingsKeys.isKnown(

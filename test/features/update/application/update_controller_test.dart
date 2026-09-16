@@ -148,11 +148,11 @@ void main() {
           .snoozeOptionalUpdate(release);
 
       final until = await db.settingsDao.getValue(
-        SettingsKeys.updateSnoozeUntil,
+        SettingsKeys.updateSnoozeUntil.name,
       );
       expect(until, isNotNull);
       final version = await db.settingsDao.getValue(
-        SettingsKeys.updateSnoozeVersion,
+        SettingsKeys.updateSnoozeVersion.name,
       );
       expect(version, '1.2.3');
       expect(
@@ -178,7 +178,7 @@ void main() {
           .snoozeOptionalUpdate(release);
 
       final until = await db.settingsDao.getValue(
-        SettingsKeys.updateSnoozeUntil,
+        SettingsKeys.updateSnoozeUntil.name,
       );
       expect(until, isNotNull);
       expect(

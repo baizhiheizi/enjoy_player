@@ -24,12 +24,18 @@ void main() {
     });
 
     test('returns true when stored value is "true"', () async {
-      await db.settingsDao.setValue(SettingsKeys.transcriptIpaOverlay, 'true');
+      await db.settingsDao.setValue(
+        SettingsKeys.transcriptIpaOverlay.name,
+        'true',
+      );
       expect(await readIpaOverlayEnabledFromDb(db), isTrue);
     });
 
     test('returns false when stored value is "false"', () async {
-      await db.settingsDao.setValue(SettingsKeys.transcriptIpaOverlay, 'false');
+      await db.settingsDao.setValue(
+        SettingsKeys.transcriptIpaOverlay.name,
+        'false',
+      );
       expect(await readIpaOverlayEnabledFromDb(db), isFalse);
     });
   });
@@ -44,7 +50,7 @@ void main() {
     await container.read(ipaOverlaySettingsProvider.notifier).setEnabled(true);
     expect(await container.read(ipaOverlaySettingsProvider.future), isTrue);
     expect(
-      await db.settingsDao.getValue(SettingsKeys.transcriptIpaOverlay),
+      await db.settingsDao.getValue(SettingsKeys.transcriptIpaOverlay.name),
       'true',
     );
 
@@ -53,7 +59,10 @@ void main() {
   });
 
   test('delayed true is not treated as off after await', () async {
-    await db.settingsDao.setValue(SettingsKeys.transcriptIpaOverlay, 'true');
+    await db.settingsDao.setValue(
+      SettingsKeys.transcriptIpaOverlay.name,
+      'true',
+    );
     final container = ProviderContainer(
       overrides: [deviceGlobalAppDatabaseProvider.overrideWithValue(db)],
     );

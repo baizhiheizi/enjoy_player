@@ -21,7 +21,7 @@ class AiModalityConfigRepository {
 
   Future<AiModalityConfigs> load() async {
     final raw = await _db.settingsDao.getValue(
-      SettingsKeys.aiModalityConfigsV1,
+      SettingsKeys.aiModalityConfigsV1.name,
     );
     if (raw == null || raw.isEmpty) {
       return AiModalityConfigs.defaults;
@@ -93,7 +93,7 @@ class AiModalityConfigRepository {
   Future<void> _persist(AiModalityConfigs configs) async {
     final json = _encodeSnapshot(configs);
     await _db.settingsDao.setValue(
-      SettingsKeys.aiModalityConfigsV1,
+      SettingsKeys.aiModalityConfigsV1.name,
       jsonEncode(json),
     );
   }

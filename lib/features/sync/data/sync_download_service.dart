@@ -47,7 +47,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadAudiosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<AudioRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorAudio,
+      cursorKey: SettingsKeys.syncCursorAudio.name,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _audioApi.audios(
           limit: limit,
@@ -64,7 +64,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadVideosInternal({required bool resetCursor}) {
     return _downloadEntityInternal<VideoRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVideo,
+      cursorKey: SettingsKeys.syncCursorVideo.name,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _videoApi.videos(
           limit: limit,
@@ -83,7 +83,7 @@ class SyncDownloadService {
   Future<SyncResult> _downloadRecordingsInternal({required bool resetCursor}) {
     return _downloadEntityInternal<RecordingRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorRecording,
+      cursorKey: SettingsKeys.syncCursorRecording.name,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _recordingApi.recordings(
           limit: limit,
@@ -102,7 +102,7 @@ class SyncDownloadService {
   }) {
     return _downloadEntityInternal<VocabularyItemRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVocabularyItem,
+      cursorKey: SettingsKeys.syncCursorVocabularyItem.name,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _vocabularyApi.vocabularyItems(
           limit: limit,
@@ -123,7 +123,7 @@ class SyncDownloadService {
   }) {
     return _downloadEntityInternal<VocabularyContextRow>(
       resetCursor: resetCursor,
-      cursorKey: SettingsKeys.syncCursorVocabularyContext,
+      cursorKey: SettingsKeys.syncCursorVocabularyContext.name,
       fetchPage: ({int? limit, String? updatedAfter}) async {
         final raw = await _vocabularyApi.vocabularyContexts(
           limit: limit,

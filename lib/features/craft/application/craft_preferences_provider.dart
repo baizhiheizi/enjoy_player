@@ -57,7 +57,7 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
         final raw = await ref
             .read(appDatabaseProvider)
             .settingsDao
-            .getValue(SettingsKeys.craftPreferencesV1);
+            .getValue(SettingsKeys.craftPreferencesV1.name);
         final decoded = raw == null ? null : jsonDecode(raw);
         if (decoded is Map<String, dynamic>) {
           loaded = CraftPreferences.fromJson(decoded);
@@ -89,7 +89,7 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
           .read(appDatabaseProvider)
           .settingsDao
           .setValue(
-            SettingsKeys.craftPreferencesV1,
+            SettingsKeys.craftPreferencesV1.name,
             jsonEncode(state.toJson()),
           );
     });

@@ -10,7 +10,9 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 part 'ipa_overlay_settings.g.dart';
 
 Future<bool> readIpaOverlayEnabledFromDb(AppDatabase db) async {
-  final raw = await db.settingsDao.getValue(SettingsKeys.transcriptIpaOverlay);
+  final raw = await db.settingsDao.getValue(
+    SettingsKeys.transcriptIpaOverlay.name,
+  );
   return raw == 'true';
 }
 
@@ -19,7 +21,7 @@ Future<void> writeIpaOverlayEnabledToDb(
   required bool enabled,
 }) async {
   await db.settingsDao.setValue(
-    SettingsKeys.transcriptIpaOverlay,
+    SettingsKeys.transcriptIpaOverlay.name,
     enabled ? 'true' : 'false',
   );
 }

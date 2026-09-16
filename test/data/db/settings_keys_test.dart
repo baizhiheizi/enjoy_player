@@ -1,37 +1,6 @@
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Every declared static key, in one list, so the invariants below cover the
-/// whole registry. (The old per-constant `expect(c, 'literal')` tests only
-/// restated the declaration; these checks instead pin cross-consistency.)
-const _allStaticKeys = <String>[
-  SettingsKeys.apiBaseUrl,
-  SettingsKeys.apiAiBaseUrl,
-  SettingsKeys.prefsLocale,
-  SettingsKeys.prefsLearningLanguage,
-  SettingsKeys.prefsNativeLanguage,
-  SettingsKeys.prefsThemeMode,
-  SettingsKeys.prefsRecordingInputDeviceId,
-  SettingsKeys.syncCursorAudio,
-  SettingsKeys.syncCursorVideo,
-  SettingsKeys.syncCursorRecording,
-  SettingsKeys.syncCursorVocabularyItem,
-  SettingsKeys.syncCursorVocabularyContext,
-  SettingsKeys.syncLastFullSyncAt,
-  SettingsKeys.updateLastCheckAt,
-  SettingsKeys.updateSnoozeUntil,
-  SettingsKeys.updateSnoozeVersion,
-  SettingsKeys.diagnosticsVerboseEnabled,
-  SettingsKeys.analyticsCaptureEnabled,
-  SettingsKeys.transcriptKaraokeHighlight,
-  SettingsKeys.transcriptIpaOverlay,
-  SettingsKeys.playerPreferencesV1,
-  SettingsKeys.craftPreferencesV1,
-  SettingsKeys.hotkeysCustomBindings,
-  SettingsKeys.aiModalityConfigsV1,
-  SettingsKeys.onboardingTipProgressV1,
-];
-
 /// Key families (dotted prefixes, or the legacy snake_case blobs). Every
 /// declared key must belong to one — a key outside all families is usually a
 /// typo or a stray declaration nobody owns.
@@ -51,38 +20,54 @@ const _knownFamilies = [
 ];
 
 void main() {
-  group('SettingsKeys static constants (behavioral invariants)', () {
+  group('SettingsKeys declarations (behavioral invariants)', () {
     test('every declared key is unique', () {
-      expect(_allStaticKeys.toSet().length, _allStaticKeys.length);
+      final names = SettingsKeys.declaredKeys.map((k) => k.name).toList();
+      expect(names.toSet().length, names.length);
     });
 
     test('every declared key belongs to a known family', () {
-      for (final key in _allStaticKeys) {
+      for (final key in SettingsKeys.declaredKeys) {
         expect(
-          _knownFamilies.any((f) => key.startsWith(f)),
+          _knownFamilies.any((f) => key.name.startsWith(f)),
           isTrue,
           reason:
-              '$key does not start with any known settings family '
+              '${key.name} does not start with any known settings family '
               '($_knownFamilies)',
         );
       }
     });
 
     test('every declared constant is recognized by isKnown', () {
-      // Catches adding a constant to [SettingsKeys] without registering it
-      // in the known-key set.
-      for (final key in _allStaticKeys) {
-        expect(SettingsKeys.isKnown(key), isTrue, reason: 'key: $key');
+      // The known-key set derives from the same declarations, so this pins
+      // the derivation (a hand-rolled side list would drift).
+      for (final key in SettingsKeys.declaredKeys) {
+        expect(SettingsKeys.isKnown(key.name), isTrue, reason: '$key');
       }
     });
 
     test('near-miss mutations of declared keys are unknown', () {
       // Exact-match knowledge: a declared name plus any suffix must not be
-      // accepted — except [SettingsKeys.syncCursorRecording], which is the
-      // declared root of the dynamic sync.cursor.recording.* family.
-      const familyRoots = {SettingsKeys.syncCursorRecording};
-      for (final key in _allStaticKeys.where((k) => !familyRoots.contains(k))) {
-        expect(SettingsKeys.isKnown('$key.x'), isFalse, reason: 'key: $key');
+      // accepted — except declared dynamic-family roots.
+      const familyRoots = {'sync.cursor.recording'};
+      for (final key in SettingsKeys.declaredKeys.where(
+        (k) => !familyRoots.contains(k.name),
+      )) {
+        expect(SettingsKeys.isKnown('${key.name}.x'), isFalse, reason: '$key');
+      }
+    });
+
+    test('declared family prefixes do not shadow static keys', () {
+      for (final family in SettingsKeys.declaredFamilies) {
+        for (final key in SettingsKeys.declaredKeys) {
+          expect(
+            family.matches(key.name),
+            isFalse,
+            reason:
+                '${key.name} is both a static key and a member of the '
+                '${family.prefix} family',
+          );
+        }
       }
     });
   });
@@ -120,33 +105,8 @@ void main() {
 
   group('SettingsKeys.isKnown', () {
     test('recognizes every static key as known', () {
-      const staticKeys = <String>[
-        SettingsKeys.apiBaseUrl,
-        SettingsKeys.apiAiBaseUrl,
-        SettingsKeys.prefsLocale,
-        SettingsKeys.prefsLearningLanguage,
-        SettingsKeys.prefsNativeLanguage,
-        SettingsKeys.prefsRecordingInputDeviceId,
-        SettingsKeys.syncCursorAudio,
-        SettingsKeys.syncCursorVideo,
-        SettingsKeys.syncCursorRecording,
-        SettingsKeys.syncCursorVocabularyItem,
-        SettingsKeys.syncCursorVocabularyContext,
-        SettingsKeys.syncLastFullSyncAt,
-        SettingsKeys.updateLastCheckAt,
-        SettingsKeys.updateSnoozeUntil,
-        SettingsKeys.updateSnoozeVersion,
-        SettingsKeys.diagnosticsVerboseEnabled,
-        SettingsKeys.transcriptKaraokeHighlight,
-        SettingsKeys.transcriptIpaOverlay,
-        SettingsKeys.playerPreferencesV1,
-        SettingsKeys.craftPreferencesV1,
-        SettingsKeys.hotkeysCustomBindings,
-        SettingsKeys.aiModalityConfigsV1,
-        SettingsKeys.onboardingTipProgressV1,
-      ];
-      for (final k in staticKeys) {
-        expect(SettingsKeys.isKnown(k), isTrue, reason: 'key: $k');
+      for (final k in SettingsKeys.declaredKeys) {
+        expect(SettingsKeys.isKnown(k.name), isTrue, reason: 'key: ${k.name}');
       }
     });
 
@@ -202,6 +162,13 @@ void main() {
       expect(kDefaultAiApiBaseUrl, 'https://worker.enjoy.bot');
       expect(kDefaultApiBaseUrl.endsWith('/'), isFalse);
       expect(kDefaultAiApiBaseUrl.endsWith('/'), isFalse);
+    });
+
+    test('base-url keys default to the canonical origins', () {
+      expect(SettingsKeys.apiBaseUrl.defaultValue, kDefaultApiBaseUrl);
+      expect(SettingsKeys.apiAiBaseUrl.defaultValue, kDefaultAiApiBaseUrl);
+      expect(SettingsKeys.apiBaseUrl.scope, SettingsScope.device);
+      expect(SettingsKeys.apiAiBaseUrl.scope, SettingsScope.device);
     });
   });
 }

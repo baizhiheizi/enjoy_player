@@ -111,7 +111,7 @@ class SyncCtrl extends _$SyncCtrl {
           .read(appDatabaseProvider)
           .settingsDao
           .setValue(
-            SettingsKeys.syncLastFullSyncAt,
+            SettingsKeys.syncLastFullSyncAt.name,
             DateTime.now().toUtc().toIso8601String(),
           );
       ref.invalidate(syncLastFullSyncAtProvider);

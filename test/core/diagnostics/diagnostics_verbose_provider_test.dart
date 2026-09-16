@@ -17,7 +17,7 @@ void main() {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       await db.settingsDao.setValue(
-        SettingsKeys.diagnosticsVerboseEnabled,
+        SettingsKeys.diagnosticsVerboseEnabled.name,
         'true',
       );
       expect(await readDiagnosticsVerboseEnabledFromDb(db), isTrue);
@@ -27,7 +27,7 @@ void main() {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       await db.settingsDao.setValue(
-        SettingsKeys.diagnosticsVerboseEnabled,
+        SettingsKeys.diagnosticsVerboseEnabled.name,
         'false',
       );
       expect(await readDiagnosticsVerboseEnabledFromDb(db), isFalse);
@@ -37,7 +37,7 @@ void main() {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       await db.settingsDao.setValue(
-        SettingsKeys.diagnosticsVerboseEnabled,
+        SettingsKeys.diagnosticsVerboseEnabled.name,
         'yes-please',
       );
       expect(await readDiagnosticsVerboseEnabledFromDb(db), isFalse);
@@ -50,7 +50,9 @@ void main() {
       addTearDown(db.close);
       await writeDiagnosticsVerboseEnabledToDb(db, enabled: true);
       expect(
-        await db.settingsDao.getValue(SettingsKeys.diagnosticsVerboseEnabled),
+        await db.settingsDao.getValue(
+          SettingsKeys.diagnosticsVerboseEnabled.name,
+        ),
         'true',
       );
     });
@@ -60,7 +62,9 @@ void main() {
       addTearDown(db.close);
       await writeDiagnosticsVerboseEnabledToDb(db, enabled: false);
       expect(
-        await db.settingsDao.getValue(SettingsKeys.diagnosticsVerboseEnabled),
+        await db.settingsDao.getValue(
+          SettingsKeys.diagnosticsVerboseEnabled.name,
+        ),
         'false',
       );
     });

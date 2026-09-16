@@ -269,13 +269,13 @@ void main() {
       });
 
       test('reads and normalizes stored prefs when signed in', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'en-US');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'en-US');
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -291,7 +291,10 @@ void main() {
       });
 
       test('reads stored theme mode when signed in', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsThemeMode, 'light');
+        await db.settingsDao.setValue(
+          SettingsKeys.prefsThemeMode.name,
+          'light',
+        );
 
         final container = await signedInContainer();
         addTearDown(container.dispose);
@@ -304,11 +307,11 @@ void main() {
 
       test('canonicalizes non-standard learning language in DB', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'EN-us',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -319,18 +322,18 @@ void main() {
         await _pump();
 
         final stored = await db.settingsDao.getValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
         );
         expect(stored, 'en-US');
       });
 
       test('coerces native language when it equals learning in DB', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'en-US',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'en-US',
         );
 
@@ -341,7 +344,7 @@ void main() {
         await _pump();
 
         final stored = await db.settingsDao.getValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
         );
         expect(stored, isNot('en-US'));
         expect(kSupportedNativeLanguageTags, contains(stored));
@@ -370,7 +373,7 @@ void main() {
       });
 
       test('normalizes locale raw value in DB', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'en');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'en');
 
         final container = await signedInContainer(profile: _kEmptyProfile);
         addTearDown(container.dispose);
@@ -383,7 +386,7 @@ void main() {
       });
 
       test('falls back to default locale for unsupported raw value', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'fr-FR');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'fr-FR');
 
         final container = await signedInContainer(profile: _kEmptyProfile);
         addTearDown(container.dispose);
@@ -410,7 +413,9 @@ void main() {
         final state = container.read(appPreferencesCtrlProvider).valueOrNull;
         expect(state!.locale, const Locale('en', 'US'));
 
-        final stored = await db.settingsDao.getValue(SettingsKeys.prefsLocale);
+        final stored = await db.settingsDao.getValue(
+          SettingsKeys.prefsLocale.name,
+        );
         expect(stored, 'en-US');
       });
 
@@ -473,7 +478,7 @@ void main() {
         expect(state!.learningLanguage, 'ko-KR');
 
         final stored = await db.settingsDao.getValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
         );
         expect(stored, 'ko-KR');
       });
@@ -494,11 +499,11 @@ void main() {
 
       test('coerces native when it equals new learning language', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'en-US',
         );
 
@@ -519,11 +524,11 @@ void main() {
 
       test('persists coerced native language to DB', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'en-US',
         );
 
@@ -537,7 +542,7 @@ void main() {
             .setLearningLanguage('en-US');
 
         final storedNative = await db.settingsDao.getValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
         );
         expect(storedNative, isNot('en-US'));
       });
@@ -577,11 +582,11 @@ void main() {
     group('setNativeLanguage', () {
       test('updates state and persists to DB', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -598,18 +603,18 @@ void main() {
         expect(state!.nativeLanguage, 'en-US');
 
         final stored = await db.settingsDao.getValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
         );
         expect(stored, 'en-US');
       });
 
       test('rejects tag not in allowed native tags', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -628,11 +633,11 @@ void main() {
 
       test('no-op when native equals learning language', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'en-US',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -651,11 +656,11 @@ void main() {
 
       test('syncs language fields to server when signed in', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -704,7 +709,7 @@ void main() {
       });
 
       test('preserves current locale when profile locale is null', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'en-US');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'en-US');
 
         final container = await signedInContainer();
         addTearDown(container.dispose);
@@ -728,7 +733,7 @@ void main() {
       });
 
       test('preserves current locale when profile locale is blank', () async {
-        await db.settingsDao.setValue(SettingsKeys.prefsLocale, 'en-US');
+        await db.settingsDao.setValue(SettingsKeys.prefsLocale.name, 'en-US');
 
         final container = await signedInContainer();
         addTearDown(container.dispose);
@@ -817,13 +822,13 @@ void main() {
             );
 
         final storedLocale = await db.settingsDao.getValue(
-          SettingsKeys.prefsLocale,
+          SettingsKeys.prefsLocale.name,
         );
         final storedLearn = await db.settingsDao.getValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
         );
         final storedNative = await db.settingsDao.getValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
         );
         expect(storedLocale, 'zh-CN');
         expect(storedLearn, 'ko-KR');
@@ -883,11 +888,11 @@ void main() {
 
       test('uses previous learning when profile learning is null', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ko-KR',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 
@@ -913,11 +918,11 @@ void main() {
 
       test('uses previous native when profile native is null', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'en-US',
         );
 
@@ -955,7 +960,7 @@ void main() {
         final state = container.read(appPreferencesCtrlProvider).valueOrNull;
         expect(state!.themeMode, ThemeMode.light);
         expect(
-          await db.settingsDao.getValue(SettingsKeys.prefsThemeMode),
+          await db.settingsDao.getValue(SettingsKeys.prefsThemeMode.name),
           'light',
         );
       });
@@ -972,7 +977,7 @@ void main() {
         final state = container.read(appPreferencesCtrlProvider).valueOrNull;
         expect(state!.themeMode, ThemeMode.dark);
         expect(
-          await db.settingsDao.getValue(SettingsKeys.prefsThemeMode),
+          await db.settingsDao.getValue(SettingsKeys.prefsThemeMode.name),
           isNull,
         );
       });
@@ -997,11 +1002,11 @@ void main() {
 
       test('setNativeLanguage does not call server when signed out', () async {
         await db.settingsDao.setValue(
-          SettingsKeys.prefsLearningLanguage,
+          SettingsKeys.prefsLearningLanguage.name,
           'ja-JP',
         );
         await db.settingsDao.setValue(
-          SettingsKeys.prefsNativeLanguage,
+          SettingsKeys.prefsNativeLanguage.name,
           'zh-CN',
         );
 

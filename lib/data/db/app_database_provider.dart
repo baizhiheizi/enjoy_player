@@ -12,8 +12,22 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'app_database.dart';
+import 'settings_keys.dart';
 
 part 'app_database_provider.g.dart';
+
+/// The [AppDatabase] that owns [key], picked from the key's declared
+/// [SettingsScope].
+///
+/// Single place mapping settings scope → database provider, so feature code
+/// cannot hand a device-scoped key to the per-user database (or vice versa)
+/// by accident. `SettingsDao`'s placement assert backstops direct DAO access
+/// in debug builds.
+AppDatabase settingsDatabaseFor(Ref ref, SettingKey<dynamic> key) {
+  return key.scope == SettingsScope.device
+      ? ref.watch(deviceGlobalAppDatabaseProvider)
+      : ref.watch(appDatabaseProvider);
+}
 
 /// Maximum number of per-user [AppDatabase] instances kept open simultaneously.
 ///

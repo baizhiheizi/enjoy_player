@@ -68,11 +68,11 @@ void main() {
 
   test('transcript.karaokeHighlight settings key is allowlisted', () {
     expect(
-      SettingsKeys.transcriptKaraokeHighlight,
+      SettingsKeys.transcriptKaraokeHighlight.name,
       'transcript.karaokeHighlight',
     );
     expect(
-      SettingsKeys.isKnown(SettingsKeys.transcriptKaraokeHighlight),
+      SettingsKeys.isKnown(SettingsKeys.transcriptKaraokeHighlight.name),
       isTrue,
     );
     final settings = File('lib/data/db/settings_keys.dart').readAsStringSync();
@@ -80,8 +80,11 @@ void main() {
   });
 
   test('transcript IPA overlay key is allowlisted', () {
-    expect(SettingsKeys.transcriptIpaOverlay, 'transcript.ipaOverlay');
-    expect(SettingsKeys.isKnown(SettingsKeys.transcriptIpaOverlay), isTrue);
+    expect(SettingsKeys.transcriptIpaOverlay.name, 'transcript.ipaOverlay');
+    expect(
+      SettingsKeys.isKnown(SettingsKeys.transcriptIpaOverlay.name),
+      isTrue,
+    );
     final settings = File('lib/data/db/settings_keys.dart').readAsStringSync();
     expect(settings.contains('transcript.ipaOverlay'), isTrue);
   });

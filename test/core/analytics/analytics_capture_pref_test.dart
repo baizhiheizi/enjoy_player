@@ -43,7 +43,7 @@ void main() {
     expect(await c.read(analyticsCapturePrefProvider.future), isFalse);
 
     final raw = await db.settingsDao.getValue(
-      SettingsKeys.analyticsCaptureEnabled,
+      SettingsKeys.analyticsCaptureEnabled.name,
     );
     expect(raw, 'false');
   });

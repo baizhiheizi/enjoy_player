@@ -31,7 +31,7 @@ SyncQueueRepository syncQueueRepository(Ref ref) =>
 Future<String?> syncLastFullSyncAt(Ref ref) => ref
     .watch(appDatabaseProvider)
     .settingsDao
-    .getValue(SettingsKeys.syncLastFullSyncAt);
+    .getValue(SettingsKeys.syncLastFullSyncAt.name);
 
 @Riverpod(keepAlive: true)
 Stream<SyncQueueSnapshot> syncQueueSnapshot(Ref ref) =>

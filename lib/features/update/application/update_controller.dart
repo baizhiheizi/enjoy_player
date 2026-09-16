@@ -52,11 +52,11 @@ class UpdateCtrl extends _$UpdateCtrl {
     final until = DateTime.now().toUtc().add(kUpdateSnoozeDuration);
     final db = ref.read(deviceGlobalAppDatabaseProvider);
     await db.settingsDao.setValue(
-      SettingsKeys.updateSnoozeUntil,
+      SettingsKeys.updateSnoozeUntil.name,
       until.toIso8601String(),
     );
     await db.settingsDao.setValue(
-      SettingsKeys.updateSnoozeVersion,
+      SettingsKeys.updateSnoozeVersion.name,
       release.manifest.version,
     );
     // Keep [release] so the Settings badge remains visible while snoozed.
@@ -146,10 +146,10 @@ class UpdateCtrl extends _$UpdateCtrl {
   Future<({String? version, DateTime? until})> _readSnooze() async {
     final db = ref.read(deviceGlobalAppDatabaseProvider);
     final version = await db.settingsDao.getValue(
-      SettingsKeys.updateSnoozeVersion,
+      SettingsKeys.updateSnoozeVersion.name,
     );
     final untilRaw = await db.settingsDao.getValue(
-      SettingsKeys.updateSnoozeUntil,
+      SettingsKeys.updateSnoozeUntil.name,
     );
     final until = untilRaw == null
         ? null
@@ -161,7 +161,7 @@ class UpdateCtrl extends _$UpdateCtrl {
     await ref
         .read(deviceGlobalAppDatabaseProvider)
         .settingsDao
-        .setValue(SettingsKeys.updateLastCheckAt, at.toIso8601String());
+        .setValue(SettingsKeys.updateLastCheckAt.name, at.toIso8601String());
   }
 }
 

@@ -11,7 +11,7 @@ part 'karaoke_highlight_settings.g.dart';
 
 Future<bool> readKaraokeHighlightEnabledFromDb(AppDatabase db) async {
   final raw = await db.settingsDao.getValue(
-    SettingsKeys.transcriptKaraokeHighlight,
+    SettingsKeys.transcriptKaraokeHighlight.name,
   );
   return raw == 'true';
 }
@@ -21,7 +21,7 @@ Future<void> writeKaraokeHighlightEnabledToDb(
   required bool enabled,
 }) async {
   await db.settingsDao.setValue(
-    SettingsKeys.transcriptKaraokeHighlight,
+    SettingsKeys.transcriptKaraokeHighlight.name,
     enabled ? 'true' : 'false',
   );
 }

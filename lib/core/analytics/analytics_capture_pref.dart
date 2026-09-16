@@ -18,7 +18,7 @@ part 'analytics_capture_pref.g.dart';
 /// documented default; the Settings toggle is the opt-out).
 Future<bool> readAnalyticsCaptureEnabledFromDb(AppDatabase db) async {
   final raw = await db.settingsDao.getValue(
-    SettingsKeys.analyticsCaptureEnabled,
+    SettingsKeys.analyticsCaptureEnabled.name,
   );
   return raw != 'false';
 }
@@ -28,7 +28,7 @@ Future<void> writeAnalyticsCaptureEnabledToDb(
   required bool enabled,
 }) async {
   await db.settingsDao.setValue(
-    SettingsKeys.analyticsCaptureEnabled,
+    SettingsKeys.analyticsCaptureEnabled.name,
     enabled ? 'true' : 'false',
   );
 }

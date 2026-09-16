@@ -12,7 +12,7 @@ part 'diagnostics_verbose_provider.g.dart';
 
 Future<bool> readDiagnosticsVerboseEnabledFromDb(AppDatabase db) async {
   final raw = await db.settingsDao.getValue(
-    SettingsKeys.diagnosticsVerboseEnabled,
+    SettingsKeys.diagnosticsVerboseEnabled.name,
   );
   return raw == 'true';
 }
@@ -22,7 +22,7 @@ Future<void> writeDiagnosticsVerboseEnabledToDb(
   required bool enabled,
 }) async {
   await db.settingsDao.setValue(
-    SettingsKeys.diagnosticsVerboseEnabled,
+    SettingsKeys.diagnosticsVerboseEnabled.name,
     enabled ? 'true' : 'false',
   );
 }
