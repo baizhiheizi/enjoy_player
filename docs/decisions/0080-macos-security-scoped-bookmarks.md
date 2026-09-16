@@ -1,4 +1,4 @@
-# ADR-0060: macOS security-scoped bookmarks for path-linked local media
+# ADR-0080: macOS security-scoped bookmarks for path-linked local media
 
 > Originally filed as draft `0060`. Renumbered to `0080` to avoid colliding
 > with `0060-craft-voice-express-dual-mode.md`.
