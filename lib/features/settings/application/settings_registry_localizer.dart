@@ -19,10 +19,6 @@ class _Localized {
 
 _Localized _localize(SettingsEntryDescriptor d, AppLocalizations l10n) {
   switch (d.sectionId) {
-    case SettingsSectionIds.account:
-      return _Localized(l10n.settingsSectionAccount, [
-        l10n.settingsSectionAccountHint,
-      ]);
     case SettingsSectionIds.cloudSync:
       if (d.rowId == 'syncStatus') {
         return _Localized(l10n.syncSettingsTileTitle);

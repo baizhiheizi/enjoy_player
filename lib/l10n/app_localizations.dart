@@ -1899,18 +1899,6 @@ abstract class AppLocalizations {
   /// **'Microphone used for shadow-reading takes.'**
   String get settingsSectionRecordingHint;
 
-  /// Header for the transcript settings section.
-  ///
-  /// In en, this message translates to:
-  /// **'Transcript'**
-  String get settingsSectionTranscript;
-
-  /// Subtitle under the transcript section header.
-  ///
-  /// In en, this message translates to:
-  /// **'Options for practice transcript timing.'**
-  String get settingsSectionTranscriptHint;
-
   /// Settings switch title for opt-in Craft timeline enrichment.
   ///
   /// In en, this message translates to:
@@ -3614,18 +3602,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assessment'**
   String get creditsServiceTypeAssessment;
-
-  /// No description provided for @settingsSectionAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Account'**
-  String get settingsSectionAccount;
-
-  /// No description provided for @settingsSectionAccountHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Profile, subscription, and sign out'**
-  String get settingsSectionAccountHint;
 
   /// No description provided for @settingsSectionSyncHint.
   ///

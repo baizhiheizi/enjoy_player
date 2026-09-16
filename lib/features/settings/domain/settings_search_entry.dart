@@ -10,12 +10,10 @@ library;
 
 /// Stable section identifiers, in Settings hub display order.
 abstract final class SettingsSectionIds {
-  static const account = 'account';
   static const cloudSync = 'cloudSync';
   static const appearanceLanguage = 'appearanceLanguage';
   static const aiProviders = 'aiProviders';
   static const recording = 'recording';
-  static const transcript = 'transcript';
   static const keyboardShortcuts = 'keyboardShortcuts';
   static const developer = 'developer';
   static const about = 'about';

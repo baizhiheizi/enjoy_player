@@ -61,13 +61,26 @@ void main() {
   });
 
   group('kSettingsRegistry', () {
-    test('does not include Transcript section rows', () {
-      expect(
-        kSettingsRegistry.any(
-          (d) => d.sectionId == SettingsSectionIds.transcript,
-        ),
-        isFalse,
-      );
+    test('only references section ids that still exist', () {
+      const knownSectionIds = {
+        SettingsSectionIds.cloudSync,
+        SettingsSectionIds.appearanceLanguage,
+        SettingsSectionIds.aiProviders,
+        SettingsSectionIds.recording,
+        SettingsSectionIds.keyboardShortcuts,
+        SettingsSectionIds.developer,
+        SettingsSectionIds.about,
+      };
+      for (final d in kSettingsRegistry) {
+        expect(
+          knownSectionIds.contains(d.sectionId),
+          isTrue,
+          reason:
+              'registry references unknown section id: ${d.sectionId} — '
+              'either add the section to SettingsSectionIds or drop the '
+              'registry entry',
+        );
+      }
     });
   });
 }

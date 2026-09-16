@@ -1008,13 +1008,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Microphone used for shadow-reading takes.';
 
   @override
-  String get settingsSectionTranscript => 'Transcript';
-
-  @override
-  String get settingsSectionTranscriptHint =>
-      'Options for practice transcript timing.';
-
-  @override
   String get settingsTranscriptEnrichmentTitle => 'Enrich Craft word timings';
 
   @override
@@ -1936,13 +1929,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditsServiceTypeAssessment => 'Assessment';
-
-  @override
-  String get settingsSectionAccount => 'Account';
-
-  @override
-  String get settingsSectionAccountHint =>
-      'Profile, subscription, and sign out';
 
   @override
   String get settingsSectionSyncHint =>

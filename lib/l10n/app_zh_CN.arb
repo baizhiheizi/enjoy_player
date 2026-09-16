@@ -313,14 +313,6 @@
   "@settingsSectionRecordingHint": {
     "description": "Subtitle under the recording section header."
   },
-  "settingsSectionTranscript": "字幕",
-  "@settingsSectionTranscript": {
-    "description": "Header for the transcript settings section."
-  },
-  "settingsSectionTranscriptHint": "练习字幕时间轴选项。",
-  "@settingsSectionTranscriptHint": {
-    "description": "Subtitle under the transcript section header."
-  },
   "settingsTranscriptEnrichmentTitle": "对齐词级时间轴",
   "@settingsTranscriptEnrichmentTitle": {
     "description": "Settings switch title for opt-in Craft timeline enrichment."
@@ -657,8 +649,6 @@
   "creditsServiceTypeTranslation": "翻译",
   "creditsServiceTypeLlm": "大模型",
   "creditsServiceTypeAssessment": "发音评估",
-  "settingsSectionAccount": "账号",
-  "settingsSectionAccountHint": "个人资料、订阅与退出登录",
   "settingsSectionSyncHint": "上传队列、离线状态与手动同步",
   "settingsSectionAppearanceLanguageHint": "主题密度、字幕稿字体与区域设置",
   "hotkeysSectionKeyboardHint": "查看并自定义快捷键",

@@ -572,14 +572,6 @@
   "@settingsSectionRecordingHint": {
     "description": "Subtitle under the recording section header."
   },
-  "settingsSectionTranscript": "Transcript",
-  "@settingsSectionTranscript": {
-    "description": "Header for the transcript settings section."
-  },
-  "settingsSectionTranscriptHint": "Options for practice transcript timing.",
-  "@settingsSectionTranscriptHint": {
-    "description": "Subtitle under the transcript section header."
-  },
   "settingsTranscriptEnrichmentTitle": "Enrich Craft word timings",
   "@settingsTranscriptEnrichmentTitle": {
     "description": "Settings switch title for opt-in Craft timeline enrichment."
@@ -1079,8 +1071,6 @@
   "creditsServiceTypeTranslation": "Translation",
   "creditsServiceTypeLlm": "LLM",
   "creditsServiceTypeAssessment": "Assessment",
-  "settingsSectionAccount": "Account",
-  "settingsSectionAccountHint": "Profile, subscription, and sign out",
   "settingsSectionSyncHint": "Upload queue, offline state, and manual sync",
   "settingsSectionAppearanceLanguageHint": "Theme density, transcript font, and locale",
   "hotkeysSectionKeyboardHint": "Reference and customize shortcuts",
