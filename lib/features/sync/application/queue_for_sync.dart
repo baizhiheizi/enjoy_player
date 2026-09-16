@@ -9,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/sync/application/sync_engine.dart';
@@ -51,16 +52,16 @@ Future<void> enqueuePendingSync(
           final row = await db.audioDao.getById(id);
           if (row == null) return;
           payloadJson = jsonEncode(prepareForSyncAudioMap(row));
-          await db.audioDao.insertRow(
-            row.copyWith(syncStatus: const Value('pending')),
-          );
+          await MediaRegistry(
+            db,
+          ).upsertAudio(row.copyWith(syncStatus: const Value('pending')));
         case SyncEntityType.video:
           final row = await db.videoDao.getById(id);
           if (row == null) return;
           payloadJson = jsonEncode(prepareForSyncVideoMap(row));
-          await db.videoDao.insertRow(
-            row.copyWith(syncStatus: const Value('pending')),
-          );
+          await MediaRegistry(
+            db,
+          ).upsertVideo(row.copyWith(syncStatus: const Value('pending')));
         case SyncEntityType.recording:
           final row = await db.recordingDao.getById(id);
           if (row == null) return;

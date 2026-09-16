@@ -2,6 +2,7 @@
 library;
 
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/cloud/domain/remote_library_item.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 
@@ -19,12 +20,11 @@ class CloudAddToLibrary {
 
   /// Inserts metadata from the remote payload (`localUri` null; `mediaUrl` kept when set).
   Future<void> add(RemoteLibraryItem item) async {
+    final registry = MediaRegistry(_db);
     if (item.isVideo) {
-      final row = videoRowFromServerJson(item.rawJson);
-      await _db.videoDao.insertRow(row);
+      await registry.upsertVideo(videoRowFromServerJson(item.rawJson));
       return;
     }
-    final row = audioRowFromServerJson(item.rawJson);
-    await _db.audioDao.insertRow(row);
+    await registry.upsertAudio(audioRowFromServerJson(item.rawJson));
   }
 }
