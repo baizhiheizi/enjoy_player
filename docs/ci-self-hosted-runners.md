@@ -8,7 +8,8 @@ Shared workflow pieces:
 
 | Path | Purpose |
 |------|---------|
-| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from [`.github/flutter-version`](../.github/flutter-version). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, no GitHub cache API. Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). |
+| [`.github/actions/setup-flutter`](../.github/actions/setup-flutter) | Install/pin Flutter from the `flutter` entry in [`mise.toml`](../mise.toml). Installs into a persistent, version-keyed directory on the runner's local disk and **skips the download entirely** when that version is already present — no `subosito/flutter-action` cache, no GitHub cache API. Reinstalls if the cached tree is missing `bin/flutter` or a working `.git` (required by `flutter --version`). |
+| [mise](https://mise.jdx.dev) in [ci.yml](../.github/workflows/ci.yml) | Pilot: [ci.yml](../.github/workflows/ci.yml) installs the same mise.toml pin via `jdx/mise-action` instead of `setup-flutter`. Installs persist under `~/.local/share/mise` on the runner. If the pilot proves out, the remaining workflows migrate off `setup-flutter`. |
 | [`.github/actions/setup-android`](../.github/actions/setup-android) | Wrap `android-actions/setup-android` with retries: the upstream action fails the job when the flaky network cannot fetch dl.google.com package manifests; the wrapper tolerates that, retries the `sdkmanager` install with backoff, and skips the network entirely once the requested packages persist on the runner. |
 | [`.github/actions/setup-macos-runner-env`](../.github/actions/setup-macos-runner-env) | Homebrew PATH, UTF-8 locale, curl HTTP/1.1, `GIT_CONFIG_COUNT=0` (SwiftPM-safe) |
 | [`.github/scripts/apple_spm_hygiene.sh`](../.github/scripts/apple_spm_hygiene.sh) | Host lock + SPM cache clear + retry helpers for Apple CI/release |
@@ -16,7 +17,7 @@ Shared workflow pieces:
 | [`.github/scripts/ensure_nuget_feed.ps1`](../.github/scripts/ensure_nuget_feed.ps1) | Ensure NuGet.org feed on Windows |
 | [`.github/workflows/shared/runtime.md`](../.github/workflows/shared/runtime.md) | gh-aw shared Flutter pre-agent setup + `dart` network for agentic workflows |
 
-When you bump Flutter in `.github/flutter-version`, the next workflow run downloads that version once per runner/host and reuses it from local disk afterward.
+When you bump Flutter in `mise.toml`, the next workflow run downloads that version once per runner/host and reuses it from local disk afterward.
 
 ---
 
@@ -32,7 +33,7 @@ Because runners are self-hosted, dependencies that don't change often should liv
 
 ## Agentic workflows (gh-aw)
 
-GitHub **Agentic Workflows** (`gh-aw`) run on a Linux self-hosted runner with labels **`self-hosted`**, **`linux`**, and **`agentic`**. The same physical machine may also carry the **`Linux`** label used by deterministic CI — that is fine; both share the Flutter pin in [`.github/flutter-version`](../.github/flutter-version).
+GitHub **Agentic Workflows** (`gh-aw`) run on a Linux self-hosted runner with labels **`self-hosted`**, **`linux`**, and **`agentic`**. The same physical machine may also carry the **`Linux`** label used by deterministic CI — that is fine; both share the Flutter pin in [`mise.toml`](../mise.toml).
 
 Each agentic job runs pre-agent steps from [`shared/runtime.md`](../.github/workflows/shared/runtime.md) before the AI engine starts:
 
@@ -74,7 +75,8 @@ One machine (the shared gh-sr agentic pool) serves CI, codegen, and Android smok
 The Flutter build packages below are baked into the gh-sr container image via `container_runner_image.extra_apt_packages` in `runners.yml` — after `gh sr rebuild`, they no longer need manual installation or a per-job `apt-get`. This list is kept here for reference and for any non-gh-sr / native Linux host:
 
 ```bash
-# Flutter (pin to .github/flutter-version)
+# Flutter (pin lives in mise.toml; workflows install it themselves —
+# setup-flutter action, or mise in ci.yml)
 flutter --version
 flutter doctor
 

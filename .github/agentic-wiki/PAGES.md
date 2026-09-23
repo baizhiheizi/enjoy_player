@@ -41,7 +41,7 @@ Setup and first-run workflow for contributors.
 
 ## Prerequisites
 
-- Flutter SDK (stable, 3.x) — version pinned in [`.github/flutter-version`](https://github.com/baizhiheizi/enjoy_player/blob/main/.github/flutter-version)
+- Flutter SDK (stable, 3.x) — version pinned in [`mise.toml`](https://github.com/baizhiheizi/enjoy_player/blob/main/mise.toml)
 - Dart ^3.12 (matches `pubspec.yaml`)
 - **Apple (iOS + macOS)**: Xcode, CocoaPods, Apple Developer Program access for team **`46X685R747`**. See [packaging.md](https://github.com/baizhiheizi/enjoy_player/blob/main/docs/packaging.md#one-time-setup) for signing, TestFlight, and notarization.
 - **macOS desktop**: [Homebrew](https://brew.sh) plus FFmpeg kit deps — `brew bundle install --file=macos/Brewfile`
@@ -512,7 +512,7 @@ Dependencies and platform choices.
 
 | Concern | Choice | Notes |
 |---------|--------|-------|
-| Language | Dart ^3.12 | Strict analysis; pinned in `.github/flutter-version` |
+| Language | Dart ^3.12 | Strict analysis; pinned in `mise.toml` |
 | UI | Flutter 3.x / Material 3 + google_fonts | Dark-only theme |
 | State | flutter_riverpod + riverpod_annotation | @Riverpod notifiers, build_runner |
 | Navigation | go_router | Shell route for persistent mini player |

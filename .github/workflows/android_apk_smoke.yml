@@ -12,7 +12,7 @@ on:
       - "tool/patch_agp9_pub_plugins.sh"
       - "tool/prefetch_media_kit_android_libs.sh"
       - "tool/prefetch_sqlite3_libs.sh"
-      - ".github/flutter-version"
+      - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-android/**"
       - ".github/scripts/ensure_linux_tooling.sh"

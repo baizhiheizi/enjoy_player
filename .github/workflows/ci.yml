@@ -9,8 +9,7 @@ on:
       - "pubspec.yaml"
       - "pubspec.lock"
       - "analysis_options.yaml"
-      - ".github/flutter-version"
-      - ".github/actions/setup-flutter/**"
+      - "mise.toml"
       - ".github/scripts/ensure_linux_tooling.sh"
       - ".github/scripts/check_no_new_path_deps.sh"
       - ".github/scripts/check_dart_format.sh"
@@ -43,7 +42,25 @@ jobs:
       - name: Ensure Linux tooling
         run: bash .github/scripts/ensure_linux_tooling.sh
 
-      - uses: ./.github/actions/setup-flutter
+      # mise pilot: install the Flutter pinned in the repo-root mise.toml
+      # (single source of truth for local dev and CI). Installs persist in
+      # ~/.local/share/mise across runs on this self-hosted runner, so the
+      # archive is fetched once per version bump — same property the
+      # setup-flutter action provides for the other workflows. mise-action is
+      # pinned by commit; `version` pins mise itself.
+      - name: Setup Flutter (mise)
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          version: 2026.9.9
+          # Installs already persist on this self-hosted runner's disk; the
+          # GitHub cache would only add a dependency on the cache service.
+          cache: false
+
+      # Keep this executable probe: it warms Flutter's lazy bootstrap cache
+      # before any read-only-mount window (see the note in
+      # .github/actions/setup-flutter/action.yml and #501).
+      - name: Flutter version probe
+        run: flutter --version
 
       - name: Flutter pub get
         run: flutter pub get
