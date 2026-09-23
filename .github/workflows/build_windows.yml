@@ -12,6 +12,7 @@ on:
       - ".github/flutter-version"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/use_short_windows_workdir.ps1"
+      - ".github/scripts/ensure_vs_cpp_atl.ps1"
       - ".github/scripts/ensure_nuget_feed.ps1"
       - ".github/workflows/build_windows.yml"
   push:
@@ -35,6 +36,13 @@ jobs:
       - name: Short workspace path (Windows MAX_PATH)
         shell: pwsh
         run: .github/scripts/use_short_windows_workdir.ps1
+
+      # flutter_secure_storage_windows needs ATL (atlstr.h); the component can
+      # vanish from a self-hosted host after a VS update/re-provision, so
+      # detect-and-install idempotently before building.
+      - name: Ensure VS C++ ATL
+        shell: pwsh
+        run: .github/scripts/ensure_vs_cpp_atl.ps1
 
       - uses: ./.github/actions/setup-flutter
 
