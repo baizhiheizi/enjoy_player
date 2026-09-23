@@ -22,8 +22,8 @@ The workflow runs on the **self-hosted** `enjoy-player-win` runner (`runs-on: [s
 
 One-time setup on the `enjoy-player-win` runner host (see [ci-self-hosted-runners.md](ci-self-hosted-runners.md#windows-runner-checklist) for the full checklist):
 
-- **Visual Studio Build Tools** with the "Desktop development with C++" workload (required by `flutter build windows`)
-- **Flutter** (pinned via [`mise.toml`](../mise.toml)) — installed automatically by [`setup-flutter`](../.github/actions/setup-flutter) on first run and reused from local disk afterward
+- **Visual Studio Build Tools** with the "Desktop development with C++" workload **and the "C++ ATL for latest v143 build tools" component** (required by `flutter build windows`; `flutter_secure_storage_windows` needs ATL — the workflow's [`ensure_vs_cpp_atl.ps1`](../.github/scripts/ensure_vs_cpp_atl.ps1) self-heals a missing component)
+- **Flutter** (pinned via [`.github/flutter-version`](../.github/flutter-version)) — installed automatically by [`setup-flutter`](../.github/actions/setup-flutter) on first run and reused from local disk afterward
 - **NuGet CLI** on `PATH` (WebView2 restore) — the workflow runs [`ensure_nuget_feed.ps1`](../.github/scripts/ensure_nuget_feed.ps1), which configures the feed but does not install `nuget` itself
 - **Chocolatey** — **Inno Setup 6** installs automatically via [`ensure_inno_setup.ps1`](../.github/scripts/ensure_inno_setup.ps1) (`choco install innosetup`) if `iscc` isn't already on `PATH`; installing Inno Setup from [jrsoftware.org](https://jrsoftware.org/isinfo.php) ahead of time works too
 

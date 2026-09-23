@@ -39,6 +39,11 @@ jobs:
         shell: pwsh
         run: .github/scripts/use_short_windows_workdir.ps1
 
+      # Same ATL requirement as build_windows.yml (flutter_secure_storage_windows).
+      - name: Ensure VS C++ ATL
+        shell: pwsh
+        run: .github/scripts/ensure_vs_cpp_atl.ps1
+
       - uses: ./.github/actions/setup-flutter
 
       - name: Build Windows release

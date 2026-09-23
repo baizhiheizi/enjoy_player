@@ -125,7 +125,7 @@ Runner user must access Keychain certs when using `APPLE_USE_RUNNER_KEYCHAIN=tru
 
 `gh-sr` has no automated dependency-baking for native Windows runners (that's Linux/container-image only — see above), so the following is a **one-time manual setup** on the host before `gh sr setup enjoy-player-win`:
 
-- **Visual Studio Build Tools** with the **"Desktop development with C++"** workload (required by `flutter build windows`)
+- **Visual Studio Build Tools** with the **"Desktop development with C++"** workload (required by `flutter build windows`), **plus the "C++ ATL for latest v143 build tools" component** — `flutter_secure_storage_windows` compiles `<atlstr.h>`, which ships only with ATL. ATL can silently disappear when Build Tools updates or the host is re-provisioned; both Windows workflows run `ensure_vs_cpp_atl.ps1` to detect this and self-heal (needs an elevated runner service; otherwise install the component manually via the VS Installer).
 - **Git** on `PATH`
 - **NuGet CLI** on `PATH` (WebView2 / `azure_speech` restore) — `ensure_nuget_feed.ps1` only configures the feed, it does not install `nuget` itself
 - **Chocolatey** — `ensure_inno_setup.ps1` falls back to `choco install innosetup` when Inno Setup isn't already present
