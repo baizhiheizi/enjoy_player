@@ -1,0 +1,12 @@
+# Toolchain versions, pinned once for local dev and CI.
+#
+# ci.yml installs these via mise (jdx/mise-action). Every other workflow keeps
+# using .github/actions/setup-flutter, which reads the flutter pin below.
+# Bump the version here and both paths pick it up; nothing else to update.
+#
+# Local: run `mise install` after checkout (mise reads this file automatically).
+# Behind a firewall, point mise at the Flutter mirror in your *global* config:
+#   [settings.url_replacements]
+#   "https://storage.googleapis.com/" = "https://storage.flutter-io.cn/"
+[tools]
+flutter = "3.44.0"

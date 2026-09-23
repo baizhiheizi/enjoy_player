@@ -61,6 +61,9 @@ app.*.map.json
 /tool/node_modules/
 .venv-svg/
 
+# mise local overrides (machine-specific mirrors/proxies; mise reads it automatically)
+mise.local.toml
+
 # Local agentic planning scratch (Claude/Cursor/opencode session notes)
 /.zcode/
 

@@ -1,10 +1,10 @@
 name: Setup Flutter
 description: >-
-  Pin Flutter from .github/flutter-version without GitHub Actions cache.
-  Installs into a persistent, version-keyed directory on the runner's local
-  disk and skips the download entirely when that version is already there —
-  self-hosted runners keep this across jobs, so Flutter is only fetched once
-  per version bump.
+  Pin Flutter from the `flutter` entry in the repo-root mise.toml without
+  GitHub Actions cache. Installs into a persistent, version-keyed directory
+  on the runner's local disk and skips the download entirely when that
+  version is already there — self-hosted runners keep this across jobs, so
+  Flutter is only fetched once per version bump.
 
 runs:
   using: composite
@@ -13,15 +13,25 @@ runs:
       if: runner.os != 'Windows'
       id: flutter_version_unix
       shell: bash
-      run: echo "version=$(tr -d ' \n\r' < .github/flutter-version)" >> "$GITHUB_OUTPUT"
+      run: |
+        version="$(sed -nE 's/^[[:space:]]*flutter[[:space:]]*=[[:space:]]*"([^"]+)".*$/\1/p' mise.toml | head -n1)"
+        if [ -z "$version" ]; then
+          echo "::error::Could not read the flutter pin from mise.toml ([tools] flutter = \"...\")"
+          exit 1
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Read Flutter version (Windows)
       if: runner.os == 'Windows'
       id: flutter_version_windows
       shell: pwsh
       run: |
-        $version = (Get-Content -Path '.github/flutter-version' -Raw).Trim() -replace '\s', ''
-        "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $content = Get-Content -Path 'mise.toml' -Raw
+        $match = [regex]::Match($content, '(?m)^\s*flutter\s*=\s*"([^"]+)"')
+        if (-not $match.Success) {
+          throw "Could not read the flutter pin from mise.toml ([tools] flutter = `"...`")"
+        }
+        "version=$($match.Groups[1].Value)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Install Flutter (Linux/macOS)
       if: runner.os != 'Windows'

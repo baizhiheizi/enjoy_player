@@ -7,7 +7,7 @@ on:
       - "packages/**"
       - "pubspec.yaml"
       - "pubspec.lock"
-      - ".github/flutter-version"
+      - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/check_codegen_drift.sh"
       - ".github/scripts/validate_ci_gates.sh"

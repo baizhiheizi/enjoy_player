@@ -10,7 +10,7 @@ on:
       - "analysis_options.yaml"
       - "ios/**"
       - "macos/**"
-      - ".github/flutter-version"
+      - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-macos-runner-env/**"
       - ".github/scripts/ensure_ios_ci_toolchain.sh"

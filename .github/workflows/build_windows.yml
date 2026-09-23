@@ -9,7 +9,7 @@ on:
       - "pubspec.lock"
       - "analysis_options.yaml"
       - "windows/**"
-      - ".github/flutter-version"
+      - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/use_short_windows_workdir.ps1"
       - ".github/scripts/ensure_vs_cpp_atl.ps1"

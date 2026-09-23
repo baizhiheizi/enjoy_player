@@ -9,7 +9,7 @@ on:
       - "pubspec.lock"
       - "analysis_options.yaml"
       - "linux/**"
-      - ".github/flutter-version"
+      - "mise.toml"
       - ".github/actions/setup-flutter/**"
       - ".github/scripts/ensure_linux_tooling.sh"
       - ".github/workflows/build_linux.yml"
