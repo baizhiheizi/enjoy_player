@@ -3,10 +3,14 @@
 /// Ownership: [SyncQueueJob.decode] owns the interpretation of persisted
 /// queue rows. Producers construct typed variants — never hand-rolled
 /// `entityType` / `entityId` / `action` / `payloadJson` strings — and
-/// persist them via `SyncQueueRepository.addJob`; the drain
-/// (`SyncEngine._processOne`) switches exhaustively over the decoded
-/// variant, so adding a producer without matching consumer handling is a
-/// compile error instead of a silent row drop.
+/// persist them through the shared enqueue seam: the
+/// `syncEnqueueProvider` `(type, id, action)` form (snapshot built here via
+/// [deleteFor] / [snapshotUpsert]) or, for pre-built jobs, the job-shaped
+/// [SyncEnqueueJobFn] entry (`syncEnqueueJobProvider`, issue #749) — both
+/// run `SyncQueueRepository.addJob` plus the signed-in drain scheduling.
+/// The drain (`SyncEngine._processOne`) switches exhaustively over the
+/// decoded variant, so adding a producer without matching consumer handling
+/// is a compile error instead of a silent row drop.
 ///
 /// Payload snapshots on the upsert variants are fallback-only: the drain
 /// re-reads the live row before uploading, so `payloadJson` is decorative
@@ -18,6 +22,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
@@ -51,11 +56,28 @@ final class SyncQueueJobWire {
   int get hashCode => Object.hash(entityType, entityId, action, payloadJson);
 }
 
+/// Job-shaped entry of the typed enqueue seam (issue #749): hands a
+/// pre-built [SyncQueueJob] to the shared provider path instead of the
+/// `(type, id, action)` form. Why the pre-built form exists and what the
+/// persist/drain tail does: see the `syncEnqueueJobProvider` docstring
+/// (the canonical seam documentation).
+typedef SyncEnqueueJobFn = Future<void> Function(SyncQueueJob job);
+
 /// A typed sync_queue job: one variant per producible row kind.
 sealed class SyncQueueJob {
   const SyncQueueJob();
 
   /// The `sync_queue` wire columns for this job.
+  ///
+  /// **Encode stability (issue #749)**: `encode()` must be pure — the same
+  /// job content always yields the same bytes (same field set, same
+  /// `jsonEncode` key order), including after a `decode` → `encode` round
+  /// trip. The payload-match race guard
+  /// (`SyncQueueRepository.removeByIdIfPayload`) derives its expected
+  /// string from `job.encode().payloadJson` and string-compares it against
+  /// the stored row, so an unstable encode would make every success-path
+  /// remove look like a producer race (and leak rows) or, worse, delete a
+  /// refreshed payload. Pinned by test.
   SyncQueueJobWire encode();
 
   /// Builds the delete job for [type] — deletes carry no payload snapshot.
@@ -519,6 +541,60 @@ final class SyncYoutubeUploadRetry extends SyncQueueJob {
       'timeline': timeline,
     }),
   );
+
+  /// Dispatches this retry through [client]'s upload call — the single
+  /// binding of the four named upload parameters, so the drain passes
+  /// `job.toUploadCall(youtubeTranscripts)` instead of rebuilding the
+  /// field-by-field upload on every tick.
+  Future<bool> toUploadCall(YoutubeTranscriptsClient client) =>
+      client.uploadTranscript(
+        videoId: videoId,
+        language: language,
+        source: source,
+        timeline: timeline,
+      );
+
+  /// Retry-handling contract for the durable worker-upload row, absorbed
+  /// from `SyncEngine._processOne`'s tail (issue #749) so it lives next to
+  /// the wire shape it protects:
+  ///
+  /// - [upload] completing `false` → throw. The drain's generic failure
+  ///   path then records the attempt (`markAttempted` plus the queue's
+  ///   shared `SyncRetryPolicy` backoff / threshold — this job owns no
+  ///   policy of its own, issue #752).
+  /// - success → **conditional remove**: the expected payload is derived
+  ///   from this job's own [encode] call — the single source of truth —
+  ///   and handed to `SyncQueueRepository.removeByIdIfPayload`, whose
+  ///   transactional read-compare-delete keeps a producer refresh that
+  ///   landed while the upload was in flight (the [encode]-stability
+  ///   contract on [SyncQueueJob.encode] is what makes those bytes equal
+  ///   to the row the producer wrote).
+  ///
+  /// The transport arrives as an already-started [upload] future (the
+  /// caller builds it with [toUploadCall]), so this module still owns no
+  /// transport client and no Drift code; `SyncEngine._processOne`'s
+  /// exhaustive switch stays the only variant consumer and the only caller.
+  Future<void> processRetry({
+    required int rowId,
+    required Future<bool> upload,
+    required Future<void> Function(int id, String expectedPayloadJson)
+    removeByIdIfPayload,
+  }) async {
+    final ok = await upload;
+    if (!ok) {
+      throw StateError(
+        'youtube_upload retry for $videoId/$language returned '
+        'false (worker rejected or transport failure)',
+      );
+    }
+    final expected = encode().payloadJson;
+    if (expected == null) {
+      throw StateError(
+        'SyncYoutubeUploadRetry.encode() must produce a payload',
+      );
+    }
+    await removeByIdIfPayload(rowId, expected);
+  }
 }
 
 /// Delete jobs: cloud DELETE for the entity id. The wire payload is always

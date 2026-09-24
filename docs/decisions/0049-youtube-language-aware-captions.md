@@ -103,7 +103,21 @@ fetches `GET /youtube/client-profiles` on first YouTube open, caches in a
   payload destroyed. The consumer now exists: `SyncEngine._processOne`
   dispatches `kind: youtube_upload` payloads (entity `video`, non-delete
   action) directly to `YoutubeTranscriptsClient.uploadTranscript` — success
-  clears the row; failure reuses the regular 5-strike / exponential-backoff
-  machinery. The producer also switched from a plain insert to
-  `SyncQueueRepository.addOrUpsert` so repeated failures of the same
-  `videoId/language` refresh one row instead of stacking duplicates.
+  clears the row; failure reuses the queue's shared `SyncRetryPolicy`
+  threshold / exponential-backoff machinery (issue #752). The producer also
+  switched from a plain insert to `SyncQueueRepository.addOrUpsert` so
+  repeated failures of the same `videoId/language` refresh one row instead of
+  stacking duplicates.
+- **2026-09-24 (issue #749)**: the producer no longer constructs
+  `SyncQueueRepository` directly — it hands the pre-built
+  `SyncYoutubeUploadRetry` to the widened typed enqueue seam (the job-shaped
+  `syncEnqueueJobProvider` entry beside `syncEnqueueProvider`). The seam runs
+  the same `addJob` dedup contract and, **when signed in, schedules an
+  immediate queue drain**, so a failed worker upload retries as soon as the
+  enqueue lands instead of waiting up to 5 minutes for decision 3's periodic
+  `SyncCtrl` drain (that timer is now only the fallback). The retry-handling
+  contract (throw-on-false + payload-match conditional remove) moved from
+  `SyncEngine` into `SyncYoutubeUploadRetry.processRetry`, with the expected
+  payload derived from `encode()` — whose byte stability is documented and
+  tested. The wire shape pinned by decision 3 and the 2026-09-16 amendment is
+  unchanged, byte-for-byte.

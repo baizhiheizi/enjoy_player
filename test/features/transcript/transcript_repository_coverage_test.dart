@@ -201,7 +201,7 @@ void main() {
     test('reports error message when cloud fetch fails', () async {
       await _insertAudio(db, 'a2');
       final api = _transcriptApiThrowing('network down');
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
 
       final result = await repo.resolveOnOpen('a2', fetchCloud: true);
 
@@ -212,7 +212,7 @@ void main() {
     test('persists fetch outcome on non-skipped cloud status', () async {
       await _insertAudio(db, 'a3');
       final api = _transcriptApiReturning([]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
 
       await repo.resolveOnOpen('a3', fetchCloud: true);
 
@@ -277,7 +277,7 @@ void main() {
       final api = _transcriptApiReturning([
         _serverTranscriptItem(id: 'x', targetId: 'b1'),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b1');
 
       expect(result.status, TranscriptCloudFetchStatus.skipped);
@@ -296,7 +296,7 @@ void main() {
       final api = _transcriptApiReturning([
         _serverTranscriptItem(id: 'x2', targetId: 'b2'),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b2');
 
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -328,7 +328,7 @@ void main() {
           label: 'Spanish',
         ),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b4', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -341,7 +341,7 @@ void main() {
     test('returns empty when api returns empty list', () async {
       await _insertAudio(db, 'b5');
       final api = _transcriptApiReturning([]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b5', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.empty);
@@ -350,7 +350,7 @@ void main() {
     test('returns error when api throws', () async {
       await _insertAudio(db, 'b6');
       final api = _transcriptApiThrowing('timeout');
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b6', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.error);
@@ -364,7 +364,7 @@ void main() {
         {'id': null, 'targetType': 'Audio', 'targetId': 'b7'},
         {'id': 'x', 'targetType': null, 'targetId': 'b7'},
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b7', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.error);
@@ -380,7 +380,7 @@ void main() {
           source: 'mystery_source',
         ),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b8', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -398,7 +398,7 @@ void main() {
           updatedAt: '2025-07-01T12:00:00.000Z',
         ),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       await repo.fetchCloudTranscripts('b9', force: true);
 
       final row = await db.transcriptDao.getById('srv-dates');
@@ -431,7 +431,7 @@ void main() {
           'updatedAt': null,
         },
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       await repo.fetchCloudTranscripts('b10', force: true);
 
       final row = await db.transcriptDao.getById('srv-nodate');
@@ -455,7 +455,7 @@ void main() {
         ),
         _serverTranscriptItem(id: 'srv-good', targetId: 'b11', language: 'fr'),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('b11', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -470,7 +470,7 @@ void main() {
       final api = _transcriptApiReturning([
         _serverTranscriptItem(id: 'srv-pri', targetId: 'b12'),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       await repo.fetchCloudTranscripts('b12', force: true);
 
       final session = await db.echoSessionDao.getLatestForTarget(
@@ -1018,7 +1018,7 @@ void main() {
           targetId: 'v1',
         ),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
       final result = await repo.fetchCloudTranscripts('v1', force: true);
 
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -1070,7 +1070,7 @@ void main() {
     test('persists error status with error message', () async {
       await _insertAudio(db, 'p1');
       final api = _transcriptApiThrowing('server error');
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
 
       await repo.resolveOnOpen('p1', fetchCloud: true);
 
@@ -1088,7 +1088,7 @@ void main() {
       final api = _transcriptApiReturning([
         _serverTranscriptItem(id: 'srv-p2', targetId: 'p2'),
       ]);
-      final repo = TranscriptRepository(db, api);
+      final repo = TranscriptRepository(db, transcriptApi: api);
 
       await repo.resolveOnOpen('p2', fetchCloud: true);
 

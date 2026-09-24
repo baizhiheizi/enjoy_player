@@ -41,7 +41,6 @@ import '../../../data/subtitle/subtitle_filename.dart';
 import '../domain/auto_translate.dart';
 import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
-import '../../sync/data/sync_queue_repository.dart';
 import '../../sync/domain/sync_queue_job.dart';
 import 'sidecar_subtitle_discovery.dart';
 import 'transcript_timeline_parse.dart';
@@ -62,16 +61,25 @@ part 'transcript_repository_youtube_worker_cache.dart';
 /// importing subtitles, and managing active tracks.
 class TranscriptRepository {
   TranscriptRepository(
-    this._db, [
+    this._db, {
     this._transcriptApi,
     this._youtubeTranscripts,
     this._youtubeFetcher,
-  ]);
+    SyncEnqueueJobFn? enqueueJob,
+  }) : _enqueueSyncJob = enqueueJob;
 
   final AppDatabase _db;
   final TranscriptApi? _transcriptApi;
   final YoutubeTranscriptsClient? _youtubeTranscripts;
   final YoutubeCaptionFetcher? _youtubeFetcher;
+
+  /// Job-shaped sync enqueue seam entry (issue #749) — injected through the
+  /// named `enqueueJob` parameter (never a positional: seam wiring mistakes
+  /// must be un-transposable), wired in production by
+  /// `transcriptRepositoryProvider` (`syncEnqueueJobProvider`); `null` only
+  /// in tests that never reach the durable worker-upload retry — reaching
+  /// that path with a null seam throws `StateError`, never a silent drop.
+  final SyncEnqueueJobFn? _enqueueSyncJob;
 
   final Map<String, _LinesCacheEntry> _linesCache = {};
 

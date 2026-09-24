@@ -13,6 +13,7 @@
 /// shared `NativeDatabase.memory()` executor cannot affect assertions.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cross_file/cross_file.dart';
@@ -20,6 +21,7 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/transcript/data/client_profile.dart';
 import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:enjoy_player/features/transcript/data/youtube_caption_fetcher.dart';
@@ -171,7 +173,11 @@ void main() {
           ],
         ),
       );
-      final repo = TranscriptRepository(db, null, api, fetcher);
+      final repo = TranscriptRepository(
+        db,
+        youtubeTranscripts: api,
+        youtubeFetcher: fetcher,
+      );
 
       final result = await repo.fetchCloudTranscripts(mediaId, force: true);
       expect(result.status, TranscriptCloudFetchStatus.success);
@@ -190,7 +196,11 @@ void main() {
       final fetcher = _StubYoutubeCaptionFetcher(
         result: AllCaptionsResult(results: [_track(language: 'ja')]),
       );
-      final repo = TranscriptRepository(db, null, api, fetcher);
+      final repo = TranscriptRepository(
+        db,
+        youtubeTranscripts: api,
+        youtubeFetcher: fetcher,
+      );
 
       await repo.fetchCloudTranscripts(mediaId, force: true);
 
@@ -212,7 +222,11 @@ void main() {
             ],
           ),
         );
-        final repo = TranscriptRepository(db, null, api, fetcher);
+        final repo = TranscriptRepository(
+          db,
+          youtubeTranscripts: api,
+          youtubeFetcher: fetcher,
+        );
 
         await repo.fetchCloudTranscripts(
           mediaId,
@@ -247,7 +261,11 @@ void main() {
             ],
           ),
         );
-        final repo = TranscriptRepository(db, null, api, fetcher);
+        final repo = TranscriptRepository(
+          db,
+          youtubeTranscripts: api,
+          youtubeFetcher: fetcher,
+        );
 
         await repo.fetchCloudTranscripts(
           mediaId,
@@ -279,7 +297,11 @@ void main() {
             ],
           ),
         );
-        final repo = TranscriptRepository(db, null, api, fetcher);
+        final repo = TranscriptRepository(
+          db,
+          youtubeTranscripts: api,
+          youtubeFetcher: fetcher,
+        );
 
         await repo.fetchCloudTranscripts(
           mediaId,
@@ -311,7 +333,11 @@ void main() {
             ],
           ),
         );
-        final repo = TranscriptRepository(db, null, api, fetcher);
+        final repo = TranscriptRepository(
+          db,
+          youtubeTranscripts: api,
+          youtubeFetcher: fetcher,
+        );
 
         await repo.importSubtitle(
           mediaId: mediaId,
@@ -346,7 +372,17 @@ void main() {
       final fetcher = _StubYoutubeCaptionFetcher(
         result: AllCaptionsResult(results: [_track(language: 'en')]),
       );
-      final repo = TranscriptRepository(db, null, api, fetcher);
+      final queue = SyncQueueRepository(db);
+      final repo = TranscriptRepository(
+        db,
+        youtubeTranscripts: api,
+        youtubeFetcher: fetcher,
+        // Persist half of the widened seam (issue #749), signed-out form:
+        // addJob's dedup contract without the signed-in drain kick (that
+        // tail is covered end-to-end in
+        // test/features/sync/sync_enqueue_seam_test.dart).
+        enqueueJob: (job) => queue.addJob(job),
+      );
 
       await repo.fetchCloudTranscripts(mediaId, force: true);
       await _drain();
@@ -359,9 +395,10 @@ void main() {
 
       final queued = await _waitForQueue(db);
       expect(queued, hasLength(1));
-      // Typed seam (issue #718): the producer constructs a
-      // SyncYoutubeUploadRetry; the encoded wire row must stay byte-identical
-      // to the pre-seam hand-rolled incantation.
+      // Typed seam (issues #718/#749): the producer constructs a
+      // SyncYoutubeUploadRetry and hands it to the job-shaped seam entry;
+      // the encoded wire row must stay byte-identical to the pre-seam
+      // hand-rolled incantation.
       expect(queued.single.entityType, 'video');
       expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
       expect(queued.single.action, 'update');
@@ -377,6 +414,7 @@ void main() {
         const mediaId = 'v-retry-dedup';
         await db.videoDao.insertRow(_video(id: mediaId, language: 'en-US'));
         final api = _FakeTranscriptsApi(uploadShouldFail: true);
+        final queue = SyncQueueRepository(db);
 
         for (final text in ['stale', 'fresh']) {
           final fetcher = _StubYoutubeCaptionFetcher(
@@ -384,7 +422,12 @@ void main() {
               results: [_track(language: 'en', text: text)],
             ),
           );
-          final repo = TranscriptRepository(db, null, api, fetcher);
+          final repo = TranscriptRepository(
+            db,
+            youtubeTranscripts: api,
+            youtubeFetcher: fetcher,
+            enqueueJob: (job) => queue.addJob(job),
+          );
           await repo.fetchCloudTranscripts(mediaId, force: true);
           await _drain();
         }
@@ -407,6 +450,48 @@ void main() {
       },
     );
 
+    test('F3: unwired enqueue seam throws StateError instead of silently '
+        'dropping the retry', () async {
+      const mediaId = 'v-retry-unwired';
+      await db.videoDao.insertRow(_video(id: mediaId, language: 'en-US'));
+      final api = _FakeTranscriptsApi(uploadShouldFail: true);
+      final fetcher = _StubYoutubeCaptionFetcher(
+        result: AllCaptionsResult(results: [_track(language: 'en')]),
+      );
+      // Truly unwired seam (no enqueueJob): every other path that reaches
+      // the retry injects the persist half above, so this throw is only
+      // ever hit by a real wiring bug — and a wiring bug must fail loudly
+      // instead of swallowing a durable retry into a warning log.
+      final repo = TranscriptRepository(
+        db,
+        youtubeTranscripts: api,
+        youtubeFetcher: fetcher,
+      );
+
+      // The upload chain is fire-and-forget inside the repository, so the
+      // StateError surfaces as an uncaught error in the producer's zone;
+      // run the fetch in a guarded zone and pin it there.
+      final uncaught = Completer<Object>();
+      runZonedGuarded(
+        () {
+          unawaited(repo.fetchCloudTranscripts(mediaId, force: true));
+        },
+        (Object error, StackTrace stack) {
+          if (!uncaught.isCompleted) uncaught.complete(error);
+        },
+      );
+
+      final error = await uncaught.future.timeout(const Duration(seconds: 3));
+      expect(error, isA<StateError>());
+      expect(error.toString(), contains('sync enqueue seam not wired'));
+      expect(api.uploads, hasLength(1));
+      expect(
+        await db.syncQueueDao.peekBatch(limit: 1000),
+        isEmpty,
+        reason: 'nothing reached addJob — the throw fires before persist',
+      );
+    });
+
     test(
       'F3: empty InnerTube result skips upload retry (nothing to enqueue)',
       () async {
@@ -416,7 +501,11 @@ void main() {
         final fetcher = _StubYoutubeCaptionFetcher(
           result: const AllCaptionsResult(results: []),
         );
-        final repo = TranscriptRepository(db, null, api, fetcher);
+        final repo = TranscriptRepository(
+          db,
+          youtubeTranscripts: api,
+          youtubeFetcher: fetcher,
+        );
 
         await repo.fetchCloudTranscripts(mediaId, force: true);
         await _drain();

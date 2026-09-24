@@ -49,8 +49,10 @@ timed text) and cached on the worker. The chain has three tiers:
    back to the worker so the next client (or this client on another device)
    hits Tier 1 instead. Failed uploads are durably enqueued via `sync_queue`
    (entity `video`, payload `kind: youtube_upload`; deduped per
-   `videoId/language` so repeated failures refresh one row) and re-uploaded by
-   the [SyncCtrl] periodic drain — `SyncEngine` dispatches the payload to
+   `videoId/language` so repeated failures refresh one row) through the shared
+   sync enqueue seam — which schedules an **immediate** queue drain when
+   signed in (issue #749), with the [SyncCtrl] periodic drain as the
+   fallback — and re-uploaded by `SyncEngine`, which dispatches the payload to
    `YoutubeTranscriptsClient.uploadTranscript` (issue #717), with the queue's
    regular [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart)
    exponential backoff on continued failure (issue #752). See
