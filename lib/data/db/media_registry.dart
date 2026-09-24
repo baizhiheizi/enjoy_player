@@ -8,11 +8,13 @@
 /// data layer).
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 
 import 'app_database.dart';
 
@@ -147,6 +149,110 @@ class MediaRegistry {
   Future<String?> localUriOf(String id) async {
     final hit = await _probe(id);
     return hit.video?.localUri ?? hit.audio?.localUri;
+  }
+
+  /// Kind-known single-table read: the raw [VideoRow] with [id], or `null`.
+  ///
+  /// Callers that already know the row is a video (YouTube paths, poster
+  /// capture, video-only transcript fetch, sync upload of a
+  /// [SyncEntityType.video] entity) get one indexed `videos` lookup instead
+  /// of a probe — and an audio-only id reads as `null`, exactly as a direct
+  /// `videoDao.getById` would.
+  Future<VideoRow?> getVideoById(String id) => _db.videoDao.getById(id);
+
+  /// Kind-known single-table read: the raw [AudioRow] with [id], or `null`.
+  ///
+  /// The audio sibling of [getVideoById] — a video-only id reads as `null`
+  /// (direct-`audioDao.getById` semantics preserved).
+  Future<AudioRow?> getAudioById(String id) => _db.audioDao.getById(id);
+
+  /// Kind-known single-table read: the raw [AudioRow] whose content hash
+  /// equals [md5], or `null`.
+  ///
+  /// Audio-scoped deliberately (issue #753): Craft's dedupe key identifies
+  /// synthesized audio, so it must NOT fall through to a `videos` row that
+  /// happens to share an md5 — this stays the `audios`-only lookup
+  /// `CraftLibraryRepository` had, just behind the seam.
+  Future<AudioRow?> getAudioByMd5(String md5) => _db.audioDao.getByMd5(md5);
+
+  /// Kind-known single-table read: the raw YouTube video row whose platform
+  /// id (`vid`) equals [youtubeVid], or `null`.
+  ///
+  /// YouTube rows live only in `videos`, so this is a single-table lookup
+  /// (provider + vid index) — used by Discover's add-to-library bridge and
+  /// the library's re-import dedupe.
+  Future<VideoRow?> getYoutubeVideoByVid(String youtubeVid) =>
+      _db.videoDao.getYoutubeByVid(youtubeVid);
+
+  /// Whether any library row references [localUri] as its local file — the
+  /// current-DB half of the app-managed media GC's keep-or-delete probe
+  /// (issue #753).
+  ///
+  /// Video-first like every registry probe (both sides are indexed; the
+  /// result is a plain OR). The *cross-file* half of that probe — scanning
+  /// other per-user SQLite files the single-`AppDatabase` registry cannot
+  /// reach — stays a documented raw-SQL exception in
+  /// `app_managed_media_gc.dart` (ADR-0050 §5).
+  Future<bool> existsByLocalUri(String localUri) async =>
+      await _db.videoDao.existsByLocalUri(localUri) ||
+      await _db.audioDao.existsByLocalUri(localUri);
+
+  /// The merged `videos` + `audios` library as one stream of [Media],
+  /// `createdAt`-descending (issue #753).
+  ///
+  /// The single data-layer owner of the glue that used to live in
+  /// `MediaLibraryRepository.watchAll`: it subscribes both DAOs' `watchAll`
+  /// streams, merges, sorts, and re-emits only when the merged list actually
+  /// changes. Both comments below moved with the code — they pin the two
+  /// regressions the merge layer caused:
+  ///
+  /// * **Dedupe.** Both Drift streams re-query on ANY table change; without
+  ///   the `lastEmitted` cache a single row update (a
+  ///   `playbackSessionPersister` write bumping `updatedAt`, a duration
+  ///   probe flipping one row) re-emits the entire library — forcing
+  ///   `libraryHomeRecentsProvider` to re-sort and
+  ///   `libraryFilteredListsProvider` to re-filter + re-sort both lists.
+  /// * **Empty first emission.** `lastEmitted` is nullable (rather than
+  ///   starting as `const <Media>[]`) so an empty library still produces its
+  ///   first emission: when both DAOs' initial snapshots are empty,
+  ///   `merged` is `[]`, which used to compare equal to the empty starting
+  ///   value and get swallowed by the dedupe check — leaving `watchAll()`
+  ///   never emitting and every `StreamProvider` built on it stuck in
+  ///   `AsyncLoading` forever whenever the local library has zero rows
+  ///   (fixed in `a12634c3`, pinned by `library_repository_test.dart`).
+  Stream<List<Media>> watchAll() {
+    late StreamSubscription<List<VideoRow>> subV;
+    late StreamSubscription<List<AudioRow>> subA;
+    var videos = <VideoRow>[];
+    var audios = <AudioRow>[];
+    List<Media>? lastEmitted;
+
+    void emit(StreamController<List<Media>> c) {
+      final merged = <Media>[
+        ...videos.map(mediaFromVideo),
+        ...audios.map(mediaFromAudio),
+      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (lastEmitted != null && listEquals(lastEmitted!, merged)) {
+        return;
+      }
+      lastEmitted = merged;
+      c.add(merged);
+    }
+
+    return Stream<List<Media>>.multi((controller) {
+      subV = _db.videoDao.watchAll().listen((rows) {
+        videos = rows;
+        emit(controller);
+      }, onError: controller.addError);
+      subA = _db.audioDao.watchAll().listen((rows) {
+        audios = rows;
+        emit(controller);
+      }, onError: controller.addError);
+      controller.onCancel = () {
+        unawaited(subV.cancel());
+        unawaited(subA.cancel());
+      };
+    });
   }
 
   /// Insert-or-replace write choke points. Row construction stays with the
@@ -285,6 +391,22 @@ class MediaRegistry {
   /// poster capture has no audio counterpart). Bumps `updatedAt`.
   Future<void> updateVideoThumbnail(String id, String absoluteThumbPath) =>
       _db.videoDao.updateLocalThumbnail(id, absoluteThumbPath);
+
+  /// Patches oEmbed-resolved YouTube `title` / `thumbnailUrl` onto the video
+  /// row (video-only write — YouTube rows live only in `videos`, so there is
+  /// no audio counterpart to dispatch). Bumps `updatedAt`.
+  ///
+  /// A `null` [thumbnailUrl] leaves the stored thumbnail untouched (only the
+  /// title is refreshed) — matching `VideoDao.updateYoutubeMetadata`.
+  Future<void> updateYoutubeMetadata({
+    required String id,
+    required String title,
+    String? thumbnailUrl,
+  }) => _db.videoDao.updateYoutubeMetadata(
+    id: id,
+    title: title,
+    thumbnailUrl: thumbnailUrl,
+  );
 
   /// The cloud-sync entity matching [kind] — the one mapping enqueue sites
   /// need after a registry write returns the touched kind.

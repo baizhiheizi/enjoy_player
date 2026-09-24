@@ -15,8 +15,10 @@ VideoRow _video({
   String? localUri,
   int? size,
   String? mediaUrl,
+  String? md5,
+  DateTime? createdAt,
 }) {
-  final now = DateTime(2026, 7, 1);
+  final now = createdAt ?? DateTime(2026, 7, 1);
   return VideoRow(
     id: id,
     vid: vid,
@@ -28,6 +30,7 @@ VideoRow _video({
     localUri: localUri,
     size: size,
     mediaUrl: mediaUrl,
+    md5: md5,
     createdAt: now,
     updatedAt: now,
   );
@@ -43,8 +46,10 @@ AudioRow _audio({
   String? localUri,
   int? size,
   String? mediaUrl,
+  String? md5,
+  DateTime? createdAt,
 }) {
-  final now = DateTime(2026, 7, 1);
+  final now = createdAt ?? DateTime(2026, 7, 1);
   return AudioRow(
     id: id,
     aid: aid,
@@ -55,6 +60,7 @@ AudioRow _audio({
     localUri: localUri,
     size: size,
     mediaUrl: mediaUrl,
+    md5: md5,
     createdAt: now,
     updatedAt: now,
   );
@@ -162,6 +168,131 @@ void main() {
       await db.videoDao.insertRow(_video(id: 'remote-only'));
       expect(await registry.localUriOf('remote-only'), isNull);
       expect(await registry.localUriOf('missing'), isNull);
+    });
+  });
+
+  group('kind-known reads', () {
+    test('getVideoById / getAudioById read only their own table', () async {
+      await db.videoDao.insertRow(_video(id: 'v-1'));
+      await db.audioDao.insertRow(_audio(id: 'a-1'));
+      expect((await registry.getVideoById('v-1'))!.id, 'v-1');
+      expect((await registry.getAudioById('a-1'))!.id, 'a-1');
+    });
+
+    test(
+      'a kind-known read misses when the id lives in the other table',
+      () async {
+        // Direct-DAO semantics preserved: an audio id must read as null from
+        // the video side (and vice versa) — no cross-table fallback.
+        await db.audioDao.insertRow(_audio(id: 'a-only'));
+        await db.videoDao.insertRow(_video(id: 'v-only'));
+        expect(await registry.getVideoById('a-only'), isNull);
+        expect(await registry.getAudioById('v-only'), isNull);
+        expect(await registry.getVideoById('missing'), isNull);
+        expect(await registry.getAudioById('missing'), isNull);
+      },
+    );
+
+    test('getAudioByMd5 finds an audio row by content hash', () async {
+      await db.audioDao.insertRow(_audio(id: 'a-md5', md5: 'hash-1'));
+      expect((await registry.getAudioByMd5('hash-1'))!.id, 'a-md5');
+      expect(await registry.getAudioByMd5('nope'), isNull);
+    });
+
+    test('getAudioByMd5 ignores a video row sharing the md5', () async {
+      // Craft dedupe is audio-only by design — a videos row with the same
+      // hash must not shadow or satisfy the lookup.
+      await db.videoDao.insertRow(_video(id: 'v-md5', md5: 'hash-1'));
+      expect(await registry.getAudioByMd5('hash-1'), isNull);
+    });
+
+    test('getYoutubeVideoByVid matches provider=youtube rows only', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'yt-1', vid: 'plat1', provider: 'youtube'),
+      );
+      await db.videoDao.insertRow(
+        _video(id: 'user-1', vid: 'plat1', provider: 'user'),
+      );
+      expect((await registry.getYoutubeVideoByVid('plat1'))!.id, 'yt-1');
+      expect(await registry.getYoutubeVideoByVid('unknown'), isNull);
+    });
+  });
+
+  group('existsByLocalUri', () {
+    test('true when a video or audio row references the uri', () async {
+      await db.videoDao.insertRow(_video(localUri: '/tmp/v.mp4'));
+      await db.audioDao.insertRow(_audio(localUri: '/tmp/a.mp3'));
+      expect(await registry.existsByLocalUri('/tmp/v.mp4'), isTrue);
+      expect(await registry.existsByLocalUri('/tmp/a.mp3'), isTrue);
+    });
+
+    test('false when no row references the uri', () async {
+      await db.videoDao.insertRow(_video(localUri: '/tmp/v.mp4'));
+      expect(await registry.existsByLocalUri('/tmp/orphan.mp4'), isFalse);
+      expect(await registry.existsByLocalUri(''), isFalse);
+    });
+  });
+
+  group('watchAll', () {
+    test('emits once for an empty library', () async {
+      // Moved pin (issue #753): the merged stream now lives on the registry;
+      // `lastEmitted` staying nullable is what keeps a zero-row library from
+      // being swallowed by the dedupe check (see `a12634c3` and the
+      // library_repository_test copy of this pin).
+      final emissions = <List<Media>>[];
+      final sub = registry.watchAll().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single, isEmpty);
+
+      await sub.cancel();
+    });
+
+    test('deduplicates identical re-emissions', () async {
+      await db.audioDao.insertRow(_audio(id: 'dup-1', title: 'x'));
+
+      final emissions = <List<Media>>[];
+      final sub = registry.watchAll().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+      expect(emissions.first, hasLength(1));
+
+      // No-op write: same row, same fields. Both DAO streams re-query and
+      // push the unchanged merged list back — the registry must suppress it.
+      await db.audioDao.insertRow(_audio(id: 'dup-1', title: 'x'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+
+      // A real change must still emit.
+      await db.audioDao.insertRow(_audio(id: 'dup-1', title: 'renamed'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(2));
+      expect(emissions.last.single.title, 'renamed');
+
+      await sub.cancel();
+    });
+
+    test('merges both tables sorted by createdAt descending', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'v-old', createdAt: DateTime(2026, 7, 1)),
+      );
+      await db.videoDao.insertRow(
+        _video(id: 'v-mid', createdAt: DateTime(2026, 7, 2)),
+      );
+      await db.audioDao.insertRow(
+        _audio(id: 'a-new', createdAt: DateTime(2026, 7, 3)),
+      );
+
+      final emissions = <List<Media>>[];
+      final sub = registry.watchAll().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // The final emission carries the full merged, createdAt-desc list —
+      // the two DAO streams may have delivered one partial snapshot first.
+      expect(emissions.last.map((m) => m.id), ['a-new', 'v-mid', 'v-old']);
+
+      await sub.cancel();
     });
   });
 }
