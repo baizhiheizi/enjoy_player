@@ -28,41 +28,42 @@ Ref _refOf(ProviderContainer container) {
 }
 
 /// Mounts a coordinator in [container] with the given initial owner. Returns
-/// the owner slot and the coordinator so tests can drive both sides directly.
+/// the owned slot and the coordinator so tests can drive both sides directly.
 ///
-/// Installs publish through a real [PlayerEngineIdentity] (issue #751): the
-/// identity module is the sole owner of [playerEngineRevProvider] bumps, and
-/// the rev moves once per actual change of the owned slot. The raw `setOwned`
-/// returned here is the direct test seam (no notification), mirroring the
+/// Everything routes through a real [PlayerEngineIdentity] (issue #751): the
+/// identity module *owns* the slot, is the sole owner of
+/// [playerEngineRevProvider] bumps (the rev moves once per actual change of
+/// the owned slot), and answers every precedence question — the coordinator
+/// reads the slot via [PlayerEngineIdentity.owned] and resolves active
+/// engines via [PlayerEngineIdentity.resolve], never a hand-rolled
+/// `owned ?? default`. The raw `setOwned` returned here writes the module's
+/// slot directly — the direct test seam (no notification), mirroring the
 /// `controller.ownedEngine = …` writes in the controller tests.
 ({
   PlayerEngine? Function() getOwned,
-  void Function(PlayerEngine?) setOwned,
+  void Function(PlayerEngine) setOwned,
   EngineSwapCoordinator coordinator,
 })
 _wire(ProviderContainer container) {
-  PlayerEngine? owned;
   var openGen = 1;
   final ref = _refOf(container);
   final identity = PlayerEngineIdentity(
-    ref: ref,
-    owned: () => owned,
-    writeOwned: (next) => owned = next,
+    bumpRev: () => container.read(playerEngineRevProvider.notifier).bump(),
     testDouble: () => container.read(playerEngineTestDoubleProvider),
     allocateDefault: MediaKitPlayerEngine.new,
     isDisposed: () => false,
   );
   final coordinator = EngineSwapCoordinator(
     ref: ref,
-    getOwnedEngine: () => owned,
-    setOwnedEngine: (next) => identity.setOwned(next),
-    getActiveEngine: () => owned ?? MediaKitPlayerEngine(),
+    getOwnedEngine: () => identity.owned,
+    setOwnedEngine: identity.setOwned,
+    getActiveEngine: identity.resolve,
     currentOpenGeneration: () => openGen,
     abandonPendingOpen: () => openGen++,
   );
   return (
-    getOwned: () => owned,
-    setOwned: (next) => owned = next,
+    getOwned: () => identity.owned,
+    setOwned: (next) => identity.owned = next,
     coordinator: coordinator,
   );
 }

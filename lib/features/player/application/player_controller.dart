@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_identity.dart';
+import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
 import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
@@ -45,23 +46,24 @@ part 'player_controller.g.dart';
 /// duplicate `completed` event from mpv) is a no-op.
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController implements PlayerOpenScope {
-  /// Real engine (null until first open, or [PlayerEngine] tests override).
-  /// This is the *owned slot* of identity resolution, not the resolution
-  /// itself: which engine is live — including a test double — resolves
-  /// through [engineIdentity] (issue #751). Presentation reads go through
-  /// that module, never this field directly; the open scope deliberately
-  /// does not see it either (issue #750 narrowed it to two swap operations).
-  PlayerEngine? ownedEngine;
+  /// The owned engine — a thin view onto [engineIdentity]'s own slot
+  /// (issue #751): the module owns the field so precedence is resolved and
+  /// stored in one object, and which engine is live overall still resolves
+  /// through [engineIdentity] (including a test double — never this getter).
+  /// The raw setter is the `n.ownedEngine = fake` test seam and bypasses the
+  /// rev change signal on purpose; production installs publish through
+  /// [PlayerEngineIdentity.setOwned].
+  PlayerEngine? get ownedEngine => engineIdentity.owned;
+  set ownedEngine(PlayerEngine? next) => engineIdentity.owned = next;
 
   /// The one engine-identity resolver (issue #751): precedence
   /// **test double · owned · lazy default**, documented once on
-  /// [PlayerEngineIdentity], and the sole owner of [playerEngineRevProvider]
-  /// bumps — it notifies as the side effect of the owned slot actually
-  /// changing, so no caller hand-bumps the rev anymore.
+  /// [PlayerEngineIdentity] — which also owns the slot behind [ownedEngine]
+  /// and is the sole owner of [playerEngineRevProvider] bumps. It notifies
+  /// as the side effect of the owned slot actually changing, so no caller
+  /// hand-bumps the rev anymore.
   late final PlayerEngineIdentity engineIdentity = PlayerEngineIdentity(
-    ref: ref,
-    owned: () => ownedEngine,
-    writeOwned: (next) => ownedEngine = next,
+    bumpRev: () => ref.read(playerEngineRevProvider.notifier).bump(),
     testDouble: () => ref.read(playerEngineTestDoubleProvider),
     allocateDefault: MediaKitPlayerEngine.new,
     isDisposed: () => _disposed,

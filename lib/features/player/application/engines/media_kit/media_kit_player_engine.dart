@@ -4,7 +4,7 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show ChangeNotifier, Listenable;
+import 'package:flutter/foundation.dart' show Listenable, VoidCallback;
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -46,8 +46,8 @@ class MediaKitPlayerEngine
   /// stage listens to the input it actually reads instead.
   ///
   /// Deliberately never disposed: it lives exactly as long as this engine,
-  /// and a stage that unmounts after `dispose` only calls `removeListener`
-  /// (legal on a disposed `ChangeNotifier`).
+  /// and a stage that unmounts after `dispose` only calls `removeListener` —
+  /// always legal here, because the gate has no dispose protocol at all.
   Listenable get nativeBackendAllowedListenable => _nativeBackendGate;
 
   final _NativeBackendGate _nativeBackendGate = _NativeBackendGate();
@@ -241,8 +241,25 @@ class MediaKitPlayerEngine
 /// One-shot "native backend armed" signal behind
 /// [MediaKitPlayerEngine.nativeBackendAllowedListenable].
 ///
-/// A private `ChangeNotifier` subclass because `notifyListeners` is
-/// `@protected` — [arm] is the engine-facing entry point (issue #751).
-class _NativeBackendGate extends ChangeNotifier {
-  void arm() => notifyListeners();
+/// A minimal [Listenable]: a listener set plus add/remove is all the stage
+/// gate needs, so there is no `ChangeNotifier` inheritance and no dispose
+/// protocol to run — [arm] (the engine-facing entry point, issue #751)
+/// simply notifies the current listeners.
+class _NativeBackendGate implements Listenable {
+  final Set<VoidCallback> _listeners = <VoidCallback>{};
+
+  @override
+  void addListener(VoidCallback listener) => _listeners.add(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => _listeners.remove(listener);
+
+  void arm() => _notify();
+
+  void _notify() {
+    // Snapshot first: a listener may unregister itself while notifying.
+    for (final listener in _listeners.toList(growable: false)) {
+      listener();
+    }
+  }
 }

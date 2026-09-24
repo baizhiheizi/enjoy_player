@@ -6,22 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_player_engine.dart';
 
-/// Captures the [Ref] of an ad-hoc provider inside a [ProviderContainer].
-Ref _refOf(ProviderContainer container) {
-  late Ref captured;
-  container.read(
-    Provider<int>((ref) {
-      captured = ref;
-      return 0;
-    }),
-  );
-  return captured;
-}
-
 void main() {
   late ProviderContainer container;
   late List<FakePlayerEngine> fakes;
-  late PlayerEngine? owned;
   late PlayerEngine? testDouble;
   late int allocations;
   late PlayerEngineIdentity identity;
@@ -41,13 +28,13 @@ void main() {
         await fake.dispose();
       }
     });
-    owned = null;
     testDouble = null;
     allocations = 0;
+    // The module owns the slot now — only the things it cannot own are
+    // injected: the live test-double provider read, the lazy-default
+    // allocator, the disposed check, and the rev-bump action.
     identity = PlayerEngineIdentity(
-      ref: _refOf(container),
-      owned: () => owned,
-      writeOwned: (next) => owned = next,
+      bumpRev: () => container.read(playerEngineRevProvider.notifier).bump(),
       testDouble: () => testDouble,
       allocateDefault: () {
         allocations++;
@@ -61,7 +48,7 @@ void main() {
     final doubleEngine = makeFake();
     final ownedEngine = makeFake();
     testDouble = doubleEngine;
-    owned = ownedEngine;
+    identity.setOwned(ownedEngine);
 
     expect(identical(identity.resolve(), doubleEngine), isTrue);
     expect(identical(identity.resolveOrNull(), doubleEngine), isTrue);
@@ -74,14 +61,18 @@ void main() {
 
   test('resolveOrNull stops before the allocating tail (widget builds)', () {
     expect(identity.resolveOrNull(), isNull);
-    expect(owned, isNull, reason: 'must not allocate during a widget build');
+    expect(
+      identity.owned,
+      isNull,
+      reason: 'must not allocate during a widget build',
+    );
     expect(allocations, 0);
     expect(container.read(playerEngineRevProvider), 0);
   });
 
   test('resolve allocates the lazy default once and bumps deferred', () async {
     final first = identity.resolve();
-    expect(identical(owned, first), isTrue);
+    expect(identical(identity.owned, first), isTrue);
     expect(allocations, 1);
     // Microtask discipline (the old _ensureDefaultMediaKitEngine hack,
     // relocated into the module): never notify synchronously from a path
@@ -107,7 +98,7 @@ void main() {
 
     expect(identical(identity.resolve(), doubleEngine), isTrue);
     expect(allocations, 0);
-    expect(owned, isNull);
+    expect(identity.owned, isNull);
   });
 
   test('setOwned bumps synchronously only when the slot actually changes', () {
@@ -124,11 +115,22 @@ void main() {
     expect(container.read(playerEngineRevProvider), 2);
   });
 
+  test('the raw owned seam writes the slot without bumping the rev', () {
+    final seam = makeFake();
+
+    identity.owned = seam;
+
+    expect(identical(identity.owned, seam), isTrue);
+    expect(
+      container.read(playerEngineRevProvider),
+      0,
+      reason: 'mirrors the controller.ownedEngine = … test seam',
+    );
+  });
+
   test('the deferred bump never fires after the owner is disposed', () async {
     final disposedIdentity = PlayerEngineIdentity(
-      ref: _refOf(container),
-      owned: () => owned,
-      writeOwned: (next) => owned = next,
+      bumpRev: () => container.read(playerEngineRevProvider.notifier).bump(),
       testDouble: () => testDouble,
       allocateDefault: makeFake,
       isDisposed: () => true,
