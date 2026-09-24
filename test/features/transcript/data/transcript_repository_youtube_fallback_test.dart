@@ -20,6 +20,7 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/transcript/data/client_profile.dart';
 import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:enjoy_player/features/transcript/data/youtube_caption_fetcher.dart';
@@ -346,7 +347,18 @@ void main() {
       final fetcher = _StubYoutubeCaptionFetcher(
         result: AllCaptionsResult(results: [_track(language: 'en')]),
       );
-      final repo = TranscriptRepository(db, null, api, fetcher);
+      final queue = SyncQueueRepository(db);
+      final repo = TranscriptRepository(
+        db,
+        null,
+        api,
+        fetcher,
+        // Persist half of the widened seam (issue #749), signed-out form:
+        // addJob's dedup contract without the signed-in drain kick (that
+        // tail is covered end-to-end in
+        // test/features/sync/sync_enqueue_seam_test.dart).
+        (job) => queue.addJob(job),
+      );
 
       await repo.fetchCloudTranscripts(mediaId, force: true);
       await _drain();
@@ -359,9 +371,10 @@ void main() {
 
       final queued = await _waitForQueue(db);
       expect(queued, hasLength(1));
-      // Typed seam (issue #718): the producer constructs a
-      // SyncYoutubeUploadRetry; the encoded wire row must stay byte-identical
-      // to the pre-seam hand-rolled incantation.
+      // Typed seam (issues #718/#749): the producer constructs a
+      // SyncYoutubeUploadRetry and hands it to the job-shaped seam entry;
+      // the encoded wire row must stay byte-identical to the pre-seam
+      // hand-rolled incantation.
       expect(queued.single.entityType, 'video');
       expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
       expect(queued.single.action, 'update');
@@ -377,6 +390,7 @@ void main() {
         const mediaId = 'v-retry-dedup';
         await db.videoDao.insertRow(_video(id: mediaId, language: 'en-US'));
         final api = _FakeTranscriptsApi(uploadShouldFail: true);
+        final queue = SyncQueueRepository(db);
 
         for (final text in ['stale', 'fresh']) {
           final fetcher = _StubYoutubeCaptionFetcher(
@@ -384,7 +398,13 @@ void main() {
               results: [_track(language: 'en', text: text)],
             ),
           );
-          final repo = TranscriptRepository(db, null, api, fetcher);
+          final repo = TranscriptRepository(
+            db,
+            null,
+            api,
+            fetcher,
+            (job) => queue.addJob(job),
+          );
           await repo.fetchCloudTranscripts(mediaId, force: true);
           await _drain();
         }

@@ -411,6 +411,101 @@ void main() {
       expect(roundTripped.source, retry.source);
       expect(roundTripped.timeline, retry.timeline);
     });
+
+    test('encode is byte-stable: same content → same bytes, decode → encode '
+        'reproduces them (issue #749)', () {
+      const retry = SyncYoutubeUploadRetry(
+        videoId: 'dQw4w9WgXcQ',
+        language: 'en',
+        source: 'official',
+        timeline: [
+          {'text': 'hello', 'start': 0, 'duration': 1000},
+          {'text': 'world', 'start': 1000, 'duration': 1500},
+        ],
+      );
+      final original = retry.encode().payloadJson;
+
+      // Same content built independently → identical bytes.
+      final rebuilt = const SyncYoutubeUploadRetry(
+        videoId: 'dQw4w9WgXcQ',
+        language: 'en',
+        source: 'official',
+        timeline: [
+          {'text': 'hello', 'start': 0, 'duration': 1000},
+          {'text': 'world', 'start': 1000, 'duration': 1500},
+        ],
+      ).encode().payloadJson;
+      expect(rebuilt, original);
+
+      // decode → encode reproduces the exact bytes the producer wrote —
+      // the race guard string-compares `job.encode().payloadJson`
+      // against the stored row, so an unstable round trip would make
+      // every success-path remove look like a producer race (leak) or,
+      // worse, clear a refreshed payload.
+      final decoded = SyncQueueJob.decode(
+        _row(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: original,
+        ),
+      );
+      expect(decoded, isA<SyncYoutubeUploadRetry>());
+      expect(decoded!.encode().payloadJson, original);
+    });
+  });
+
+  group('SyncYoutubeUploadRetry.processRetry (issue #749)', () {
+    const retry = SyncYoutubeUploadRetry(
+      videoId: 'dQw4w9WgXcQ',
+      language: 'en',
+      source: 'official',
+      timeline: [
+        {'text': 'hello', 'start': 0, 'duration': 1000},
+      ],
+    );
+
+    test('derives the race-guard payload from this encode() call', () async {
+      var uploaded = false;
+      var removedId = -1;
+      String? removedPayload;
+
+      await retry.processRetry(
+        rowId: 7,
+        upload: (job) async {
+          uploaded = true;
+          expect(identical(job, retry), isTrue);
+          return true;
+        },
+        removeByIdIfPayload: (id, expectedPayloadJson) async {
+          removedId = id;
+          removedPayload = expectedPayloadJson;
+        },
+      );
+
+      expect(uploaded, isTrue);
+      expect(removedId, 7);
+      expect(removedPayload, retry.encode().payloadJson);
+    });
+
+    test(
+      'upload returning false throws and never reaches the remove',
+      () async {
+        var removed = false;
+
+        await expectLater(
+          retry.processRetry(
+            rowId: 7,
+            upload: (_) async => false,
+            removeByIdIfPayload: (id, expectedPayloadJson) async {
+              removed = true;
+            },
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(removed, isFalse);
+      },
+    );
   });
 
   group('SyncQueueJob.deleteFor', () {
