@@ -1,4 +1,7 @@
 import 'package:enjoy_player/core/player/player_surface_overlay_coordinator.dart';
+import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_provider.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_stage_resolver.dart';
@@ -523,6 +526,72 @@ void main() {
 
       expect(engine.surfaceKey.currentContext, same(original));
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'transport, provider, and surface resolve the SAME engine when a test '
+    'double and an owned engine are both set (issue #751)',
+    (tester) async {
+      // AC2 coherence pin: both slots set is possible only via the
+      // `ownedEngine` test seam. Before #751 transport and the provider
+      // resolved the double while this host mounted the owned engine (its
+      // branch was owned-first) — everyone must resolve the double now.
+      final doubleEngine = _KeyedSurfaceEngine();
+      final ownedEngine = _KeyedSurfaceEngine();
+      addTearDown(doubleEngine.dispose);
+      addTearDown(ownedEngine.dispose);
+
+      final container = ProviderContainer(
+        overrides: [
+          playerEngineTestDoubleProvider.overrideWithValue(doubleEngine),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final controller = container.read(playerControllerProvider.notifier);
+      controller.ownedEngine = ownedEngine;
+
+      final active = controller.activeEngine;
+      final provided = container.read(playerEngineProvider);
+      expect(
+        identical(active, doubleEngine),
+        isTrue,
+        reason: 'precedence: test double over owned',
+      );
+      expect(identical(provided, active), isTrue);
+
+      PlayerEngine? staged;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: PlayerSurfaceHost(
+                stageBuilder:
+                    (
+                      engine, {
+                      required double maxWidth,
+                      required double maxHeight,
+                    }) {
+                      staged = engine;
+                      return const ColoredBox(color: Colors.black);
+                    },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(identical(staged, doubleEngine), isTrue);
+      expect(
+        identical(staged, active),
+        isTrue,
+        reason: 'the surface must mount the same engine transport drives',
+      );
+      expect(identical(staged, provided), isTrue);
     },
   );
 }

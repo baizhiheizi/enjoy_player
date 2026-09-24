@@ -42,7 +42,10 @@ class VocabularyPracticeClipBody extends ConsumerWidget {
     final mediaError = ref.watch(
       vocabularyReviewSessionProvider.select((s) => s.mediaError),
     );
-    final engine = player.ownedEngine;
+    // Resolve through the one identity module (issue #751) — test double ·
+    // owned, without the allocating lazy default (this is a widget build).
+    // Was a direct ownedEngine read, the fourth ad-hoc identity answer.
+    final engine = player.engineIdentity.resolveOrNull();
     final claimSurface = phase == ReviewPracticePhase.clipReady;
     final opening = phase == ReviewPracticePhase.clipOpening;
 
