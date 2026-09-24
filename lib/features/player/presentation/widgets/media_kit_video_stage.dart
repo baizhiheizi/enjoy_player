@@ -13,9 +13,9 @@ import 'package:enjoy_player/features/player/application/player_engine_constants
 ///
 /// Moved out of the engine (issue #664): an application service must not build
 /// widgets. The engine only publishes the non-widget inputs this stage reads —
-/// [MediaKitPlayerEngine.nativeBackendAllowed] and
-/// [MediaKitPlayerEngine.videoController].
-class MediaKitVideoStage extends StatelessWidget {
+/// [MediaKitPlayerEngine.nativeBackendAllowed] (plus its listenable, below)
+/// and [MediaKitPlayerEngine.videoController].
+class MediaKitVideoStage extends StatefulWidget {
   const MediaKitVideoStage({
     super.key,
     required this.engine,
@@ -28,13 +28,56 @@ class MediaKitVideoStage extends StatelessWidget {
   final double maxHeight;
 
   @override
+  State<MediaKitVideoStage> createState() => _MediaKitStageGateState();
+}
+
+/// Gates the [Video] subtree on [MediaKitPlayerEngine.nativeBackendAllowed].
+///
+/// While the gate is closed the stage is a bare placeholder — mpv must not be
+/// allocated until the previous engine's WebView has detached. The swap arms
+/// the gate with `prepareNativeBackend()` *after* that detach; this state
+/// listens to [MediaKitPlayerEngine.nativeBackendAllowedListenable] so an
+/// already-mounted placeholder rebuilds and mounts [Video] immediately — the
+/// signal that used to ride a second hand-bumped `playerEngineRevProvider`
+/// bump (issue #751: the rev is now the identity module's change signal, and
+/// stage inputs notify through the engine that owns them). If the flip lands
+/// before the first build, [build] simply reads `true` and mounts directly.
+class _MediaKitStageGateState extends State<MediaKitVideoStage> {
+  @override
+  void initState() {
+    super.initState();
+    widget.engine.nativeBackendAllowedListenable.addListener(_rebuild);
+  }
+
+  @override
+  void didUpdateWidget(covariant MediaKitVideoStage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(oldWidget.engine, widget.engine)) return;
+    oldWidget.engine.nativeBackendAllowedListenable.removeListener(_rebuild);
+    widget.engine.nativeBackendAllowedListenable.addListener(_rebuild);
+  }
+
+  @override
+  void dispose() {
+    // removeListener is legal after the notifier is disposed (engine teardown
+    // can race the stage unmount); the swap itself unmounts the old stage via
+    // ADR-0057 re-keying before it disposes the engine.
+    widget.engine.nativeBackendAllowedListenable.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (maxWidth <= 0 || maxHeight <= 0) {
+    final engine = widget.engine;
+    if (widget.maxWidth <= 0 || widget.maxHeight <= 0) {
       return const SizedBox.shrink();
     }
     if (!engine.nativeBackendAllowed) {
-      // Host has already keyed to this engine (YouTube stage dropped) but
-      // mpv must not be allocated until the WebView has detached.
       return const ColoredBox(color: Colors.black);
     }
 
@@ -45,8 +88,8 @@ class MediaKitVideoStage extends StatelessWidget {
       color: Colors.black,
       child: _MediaKitVideoStage(
         controller: engine.videoController,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
+        maxWidth: widget.maxWidth,
+        maxHeight: widget.maxHeight,
       ),
     );
   }
