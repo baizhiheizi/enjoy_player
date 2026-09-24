@@ -16,6 +16,7 @@ import 'package:enjoy_player/features/player/application/engines/media_kit/media
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
+import 'package:enjoy_player/features/player/application/player_engine_identity.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
@@ -45,11 +46,28 @@ part 'player_controller.g.dart';
 /// duplicate `completed` event from mpv) is a no-op.
 @Riverpod(keepAlive: true)
 class PlayerController extends _$PlayerController implements PlayerOpenScope {
-  /// Real engine (null until first open, or [PlayerEngine] tests override).
-  /// Presentation and tests reach it directly; the open scope deliberately
-  /// does not (issue #750 narrowed it to two swap operations; issue #751 will
-  /// revisit engine identity separately).
-  PlayerEngine? ownedEngine;
+  /// The owned engine — a thin view onto [engineIdentity]'s own slot
+  /// (issue #751): the module owns the field so precedence is resolved and
+  /// stored in one object, and which engine is live overall still resolves
+  /// through [engineIdentity] (including a test double — never this getter).
+  /// The raw setter is the `n.ownedEngine = fake` test seam and bypasses the
+  /// rev change signal on purpose; production installs publish through
+  /// [PlayerEngineIdentity.setOwned].
+  PlayerEngine? get ownedEngine => engineIdentity.owned;
+  set ownedEngine(PlayerEngine? next) => engineIdentity.owned = next;
+
+  /// The one engine-identity resolver (issue #751): precedence
+  /// **test double · owned · lazy default**, documented once on
+  /// [PlayerEngineIdentity] — which also owns the slot behind [ownedEngine]
+  /// and is the sole owner of [playerEngineRevProvider] bumps. It notifies
+  /// as the side effect of the owned slot actually changing, so no caller
+  /// hand-bumps the rev anymore.
+  late final PlayerEngineIdentity engineIdentity = PlayerEngineIdentity(
+    bumpRev: () => ref.read(playerEngineRevProvider.notifier).bump(),
+    testDouble: () => ref.read(playerEngineTestDoubleProvider),
+    allocateDefault: MediaKitPlayerEngine.new,
+    isDisposed: () => _disposed,
+  );
 
   late final PlayerPositionTracker _positionTracker = PlayerPositionTracker(
     ref: ref,
@@ -66,15 +84,17 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   /// swap-in-flight latch (issue #720).
   final SingleFlightGate _openGate = SingleFlightGate();
 
-  /// Sole owner of engine-swap choreography (issue #720): install + bump,
+  /// Sole owner of engine-swap choreography (issue #720): install,
   /// surface-detach wait, wedged-engine replacement, open retry ladder, and
   /// the swap-in-flight latch. Mechanics — what every caller agrees on — live
   /// here; *policy* (clear, abandon, default MediaKit allocation, warm-only
-  /// when idle) stays in the controller.
+  /// when idle) stays in the controller. Installs publish through
+  /// [engineIdentity.setOwned], which bumps the rev as the change side
+  /// effect (issue #751) — the coordinator never bumps it itself.
   late final EngineSwapCoordinator _engineSwap = EngineSwapCoordinator(
     ref: ref,
     getOwnedEngine: () => ownedEngine,
-    setOwnedEngine: (next) => ownedEngine = next,
+    setOwnedEngine: engineIdentity.setOwned,
     getActiveEngine: () => activeEngine,
     currentOpenGeneration: () => _openGate.generation,
     abandonPendingOpen: abandonPendingOpen,
@@ -187,30 +207,12 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     engineCommandTimeout: engineCommandTimeout,
   );
 
+  /// The live engine — one precedence, resolved by [engineIdentity] (issue
+  /// #751): test double, else the owned engine, else the lazy MediaKit
+  /// default (allocated here only on this non-build path; widget builds use
+  /// `engineIdentity.resolveOrNull()`).
   @override
-  PlayerEngine get activeEngine {
-    final testDouble = ref.read(playerEngineTestDoubleProvider);
-    if (testDouble != null) return testDouble;
-    _ensureDefaultMediaKitEngine();
-    return ownedEngine!;
-  }
-
-  /// Allocates [MediaKitPlayerEngine] once when local/URL playback needs it.
-  /// Kept out of [build] so YouTube-only opens and headless tests avoid
-  /// [MediaKit.ensureInitialized] until a non-YouTube engine is required.
-  void _ensureDefaultMediaKitEngine() {
-    if (ownedEngine != null) return;
-    if (ref.read(playerEngineTestDoubleProvider) != null) return;
-    ownedEngine = MediaKitPlayerEngine();
-    // Host watches [playerEngineRevProvider], not ownedEngine. Defer the bump
-    // so we never notify during another provider's build.
-    unawaited(
-      Future<void>.microtask(() {
-        if (_disposed) return;
-        ref.read(playerEngineRevProvider.notifier).bump();
-      }),
-    );
-  }
+  PlayerEngine get activeEngine => engineIdentity.resolve();
 
   PlayerEngine get engine => activeEngine;
 
@@ -413,12 +415,12 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
       // field report).
       return;
     }
-    // Genuinely no engine yet — install the YouTube one. The coordinator's
-    // [install] bumps the rev (ADR-0057) so PlayerSurfaceHost keys a stage for
-    // the new engine. There is no prior engine to tear down, and this path
-    // never calls [EngineSwapCoordinator.discardWithoutAwaiting]: a
-    // speculative warm must not be able to dispose an engine even if the
-    // guards above rot.
+    // Genuinely no engine yet — install the YouTube one. The install
+    // publishes through [engineIdentity.setOwned], which bumps the rev
+    // (ADR-0057) so PlayerSurfaceHost keys a stage for the new engine. There
+    // is no prior engine to tear down, and this path never calls
+    // [EngineSwapCoordinator.discardWithoutAwaiting]: a speculative warm must
+    // not be able to dispose an engine even if the guards above rot.
     _engineSwap.install(YoutubePlayerEngine());
     ownedEngine!.warmVideoSurface();
   }

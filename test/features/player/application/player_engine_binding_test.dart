@@ -4,7 +4,9 @@ import 'package:enjoy_player/features/player/application/engines/media_kit/media
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engine_swap_coordinator.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
+import 'package:enjoy_player/features/player/application/player_engine_identity.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
+import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride, TargetPlatform;
@@ -26,26 +28,42 @@ Ref _refOf(ProviderContainer container) {
 }
 
 /// Mounts a coordinator in [container] with the given initial owner. Returns
-/// the owner slot and the coordinator so tests can drive both sides directly.
+/// the owned slot and the coordinator so tests can drive both sides directly.
+///
+/// Everything routes through a real [PlayerEngineIdentity] (issue #751): the
+/// identity module *owns* the slot, is the sole owner of
+/// [playerEngineRevProvider] bumps (the rev moves once per actual change of
+/// the owned slot), and answers every precedence question — the coordinator
+/// reads the slot via [PlayerEngineIdentity.owned] and resolves active
+/// engines via [PlayerEngineIdentity.resolve], never a hand-rolled
+/// `owned ?? default`. The raw `setOwned` returned here writes the module's
+/// slot directly — the direct test seam (no notification), mirroring the
+/// `controller.ownedEngine = …` writes in the controller tests.
 ({
   PlayerEngine? Function() getOwned,
-  void Function(PlayerEngine?) setOwned,
+  void Function(PlayerEngine) setOwned,
   EngineSwapCoordinator coordinator,
 })
 _wire(ProviderContainer container) {
-  PlayerEngine? owned;
   var openGen = 1;
+  final ref = _refOf(container);
+  final identity = PlayerEngineIdentity(
+    bumpRev: () => container.read(playerEngineRevProvider.notifier).bump(),
+    testDouble: () => container.read(playerEngineTestDoubleProvider),
+    allocateDefault: MediaKitPlayerEngine.new,
+    isDisposed: () => false,
+  );
   final coordinator = EngineSwapCoordinator(
-    ref: _refOf(container),
-    getOwnedEngine: () => owned,
-    setOwnedEngine: (next) => owned = next,
-    getActiveEngine: () => owned ?? MediaKitPlayerEngine(),
+    ref: ref,
+    getOwnedEngine: () => identity.owned,
+    setOwnedEngine: identity.setOwned,
+    getActiveEngine: identity.resolve,
     currentOpenGeneration: () => openGen,
     abandonPendingOpen: () => openGen++,
   );
   return (
-    getOwned: () => owned,
-    setOwned: (next) => owned = next,
+    getOwned: () => identity.owned,
+    setOwned: (next) => identity.owned = next,
     coordinator: coordinator,
   );
 }
@@ -66,8 +84,12 @@ void main() {
     final owned = wiring.getOwned();
     expect(owned, isA<MediaKitPlayerEngine>());
     expect(owned!.keepSurfaceWhenParked, isFalse);
-    // Install bump + prepareNativeBackend bump (Video may mount after).
-    expect(container.read(playerEngineRevProvider), revBefore + 2);
+    // One identity change (null → MediaKit), bumped by PlayerEngineIdentity —
+    // issue #751. The old "install bump + prepareNativeBackend bump" (+2) is
+    // retired: Video mounts after prepare through the engine's
+    // nativeBackendAllowed listenable, not a second rev bump. Intent kept:
+    // consumers re-watch on identity change.
+    expect(container.read(playerEngineRevProvider), revBefore + 1);
 
     await owned.dispose();
   });
@@ -113,8 +135,9 @@ void main() {
       final owned = wiring.getOwned();
       expect(owned, isA<MediaKitPlayerEngine>());
       expect(owned, isNot(same(youtube)));
-      // Drop-YouTube bump + prepareNativeBackend bump.
-      expect(container.read(playerEngineRevProvider), revBefore + 2);
+      // One identity change (YouTube → MediaKit) — the old +2 collapsed to
+      // +1 once the stage-mount signal moved to the engine (issue #751).
+      expect(container.read(playerEngineRevProvider), revBefore + 1);
 
       await owned?.dispose();
     },

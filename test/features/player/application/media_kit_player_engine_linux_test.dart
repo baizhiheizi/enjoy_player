@@ -30,6 +30,23 @@ void main() {
       },
     );
 
+    test('nativeBackendAllowedListenable fires when prepareNativeBackend arms '
+        'the gate (issue #751)', () {
+      // The mounted stage listens to this instead of a hand-bumped
+      // playerEngineRevProvider: the rev now signals identity changes only,
+      // so arming the backend must notify through the engine itself.
+      final engine = MediaKitPlayerEngine();
+      var fired = 0;
+      engine.nativeBackendAllowedListenable.addListener(() => fired++);
+
+      expect(engine.nativeBackendAllowed, isFalse);
+      expect(fired, 0);
+
+      engine.prepareNativeBackend();
+      expect(engine.nativeBackendAllowed, isTrue);
+      expect(fired, 1, reason: 'one notification per arm');
+    });
+
     testWidgets(
       'native backend gate lives in the video stage only (issue #658)',
       (tester) async {

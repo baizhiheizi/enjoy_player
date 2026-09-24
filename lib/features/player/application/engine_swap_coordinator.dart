@@ -11,14 +11,18 @@
 /// everything that coordinates an engine *identity* change lives here.
 ///
 /// Mechanics every engine swap shares: install [PlayerEngine] as the owned
-/// engine and bump [playerEngineRevProvider] so the permanent
-/// [PlayerSurfaceHost] re-keys its stage (ADR-0057), plus the teardown of the
-/// engine that was replaced. Three callers drive them:
+/// engine — published through `PlayerEngineIdentity.setOwned`, which bumps
+/// [playerEngineRevProvider] as the side effect of the identity change (issue
+/// #751; this coordinator never bumps it directly) so the permanent
+/// [PlayerSurfaceHost] re-keys its stage (ADR-0057) — plus the teardown of
+/// the engine that was replaced. Three callers drive them:
 ///
 /// - [ensureEngineForPlayableSource] runs the full open-path choreography:
-///   install + bump, let the host drop the old stage, wait for the prior
-///   surface to detach, settle, discard the old engine without awaiting it,
-///   prepare the native backend, bump again.
+///   install (identity bump), let the host drop the old stage, wait for the
+///   prior surface to detach, settle, discard the old engine without awaiting
+///   it, prepare the native backend (which flips the engine's
+///   `nativeBackendAllowed` listenable so a mounted MediaKit stage mounts
+///   `Video` — no second bump, issue #751).
 /// - `PlayerController.warmYoutubeSurface` installs only when there is no
 ///   engine at all and never discards the replaced engine — that is what
 ///   makes its "must never dispose a live / parked MediaKit engine" rule true
@@ -38,7 +42,6 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
-import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
@@ -57,7 +60,11 @@ class EngineSwapCoordinator {
 
   final Ref ref;
   final PlayerEngine? Function() _getOwnedEngine;
-  final void Function(PlayerEngine? next) _setOwnedEngine;
+
+  /// Installs a new owned engine — never `null`: clearing the slot is not
+  /// part of the swap choreography. Wired to
+  /// `PlayerEngineIdentity.setOwned`, which owns the change-notification.
+  final void Function(PlayerEngine next) _setOwnedEngine;
   final PlayerEngine Function() _getActiveEngine;
   final int Function() _currentOpenGeneration;
   final void Function() _abandonPendingOpen;
@@ -94,23 +101,17 @@ class EngineSwapCoordinator {
   /// (issue #657).
   void clearOpenInFlight() => _openInFlight = false;
 
-  /// Installs [next] as the owned engine and notifies the surface host.
-  /// Returns the engine that was replaced, or `null` when there was none —
-  /// the caller owns its teardown, under its own contract.
+  /// Installs [next] as the owned engine and lets the identity module notify
+  /// the surface host: the controller wires [_setOwnedEngine] to
+  /// `PlayerEngineIdentity.setOwned`, which bumps the rev as the side effect
+  /// of the slot actually changing (issue #751) — there is no separate
+  /// hand-bump anymore. Returns the engine that was replaced, or `null` when
+  /// there was none — the caller owns its teardown, under its own contract.
   PlayerEngine? install(PlayerEngine next) {
     final previous = _getOwnedEngine();
     _setOwnedEngine(next);
-    bumpRev();
     return previous;
   }
-
-  /// Notifies [PlayerSurfaceHost] that the engine identity changed.
-  ///
-  /// [ensureEngineForPlayableSource] bumps **twice**: the first bump drops the
-  /// old engine's video stage before teardown, the second follows
-  /// [PlayerEngine.prepareNativeBackend] so the MediaKit `Video` may mount
-  /// into the already-keyed loading stage.
-  void bumpRev() => ref.read(playerEngineRevProvider.notifier).bump();
 
   /// Waits for [previous]'s platform view to drop (bounded by
   /// [kEngineSurfaceDetachTimeout]) and lets the surface settle
@@ -140,8 +141,9 @@ class EngineSwapCoordinator {
     unawaited(previous.dispose());
   }
 
-  /// Ensures the owned engine matches [playable] (YouTube vs MediaKit),
-  /// bumping [playerEngineRevProvider] when the implementation changes.
+  /// Ensures the owned engine matches [playable] (YouTube vs MediaKit); an
+  /// actual change bumps [playerEngineRevProvider] through the identity
+  /// module's install path (issue #751).
   ///
   /// Returns `true` when a new engine was installed (first local open or a
   /// YouTube ↔ MediaKit swap). Returns `false` when the owned engine already
@@ -227,9 +229,10 @@ class EngineSwapCoordinator {
       return false;
     }
     next.prepareNativeBackend();
-    // Second bump: MediaKit Video may now mount (loading stage already has a
-    // target). First bump only dropped the YouTube WebView.
-    bumpRev();
+    // Arming the native backend flips the engine's nativeBackendAllowed
+    // listenable: an already-mounted MediaKit stage rebuilds and mounts
+    // Video right away (issue #751 — no second rev bump; the rev signals
+    // identity changes only).
     return true;
   }
 

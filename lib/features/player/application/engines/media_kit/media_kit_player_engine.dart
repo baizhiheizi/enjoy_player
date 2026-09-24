@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show Listenable, VoidCallback;
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -37,6 +38,19 @@ class MediaKitPlayerEngine
   /// so it mounts a plain black placeholder — never a [VideoController] —
   /// until the previous engine's WebView has detached.
   bool get nativeBackendAllowed => _nativeBackendAllowed;
+
+  /// Fires when [nativeBackendAllowed] flips to `true` so an already-mounted
+  /// stage rebuilds and mounts [Video] immediately (issue #751). The surface
+  /// host's `playerEngineRevProvider` is an identity-change signal owned by
+  /// `PlayerEngineIdentity` — nothing hand-bumps it for stage inputs, so the
+  /// stage listens to the input it actually reads instead.
+  ///
+  /// Deliberately never disposed: it lives exactly as long as this engine,
+  /// and a stage that unmounts after `dispose` only calls `removeListener` —
+  /// always legal here, because the gate has no dispose protocol at all.
+  Listenable get nativeBackendAllowedListenable => _nativeBackendGate;
+
+  final _NativeBackendGate _nativeBackendGate = _NativeBackendGate();
 
   mk.Player get _player => __player ??= mk.Player();
 
@@ -125,6 +139,7 @@ class MediaKitPlayerEngine
   @override
   void prepareNativeBackend() {
     _nativeBackendAllowed = true;
+    _nativeBackendGate.arm();
   }
 
   /// No metadata capability: MediaKit renders decoded frames directly, so
@@ -220,5 +235,31 @@ class MediaKitPlayerEngine
     }
     await __player?.dispose();
     __player = null;
+  }
+}
+
+/// One-shot "native backend armed" signal behind
+/// [MediaKitPlayerEngine.nativeBackendAllowedListenable].
+///
+/// A minimal [Listenable]: a listener set plus add/remove is all the stage
+/// gate needs, so there is no `ChangeNotifier` inheritance and no dispose
+/// protocol to run — [arm] (the engine-facing entry point, issue #751)
+/// simply notifies the current listeners.
+class _NativeBackendGate implements Listenable {
+  final Set<VoidCallback> _listeners = <VoidCallback>{};
+
+  @override
+  void addListener(VoidCallback listener) => _listeners.add(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => _listeners.remove(listener);
+
+  void arm() => _notify();
+
+  void _notify() {
+    // Snapshot first: a listener may unregister itself while notifying.
+    for (final listener in _listeners.toList(growable: false)) {
+      listener();
+    }
   }
 }

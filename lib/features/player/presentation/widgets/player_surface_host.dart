@@ -8,7 +8,6 @@ import 'package:enjoy_player/core/player/player_surface_overlay_coordinator.dart
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
-import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_stage_resolver.dart';
 
@@ -69,10 +68,15 @@ class PlayerSurfaceHost extends ConsumerWidget {
     final registry = ref.watch(playerSurfaceRegistryProvider);
     final attachment = (forcePark || parkForOverlay) ? null : registry;
 
-    // Prefer the real owned engine; fall back to the test double when set.
-    final engine =
-        ref.read(playerControllerProvider.notifier).ownedEngine ??
-        ref.read(playerEngineTestDoubleProvider);
+    // One precedence for everyone (issue #751): the identity module resolves
+    // test double · owned — this branch used to be owned-first, the inverted
+    // outlier against the controller. Truncated before the allocating lazy
+    // default: a widget build must not construct an engine. No engine yet →
+    // nothing to mount.
+    final engine = ref
+        .read(playerControllerProvider.notifier)
+        .engineIdentity
+        .resolveOrNull();
     if (engine == null) {
       return const SizedBox.shrink();
     }

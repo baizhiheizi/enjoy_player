@@ -4,6 +4,11 @@
 
 Accepted
 
+> **Wording refresh** (issue #751, post-#720): decision 2 restated to the
+> capability-interface split and the presentation-owned stage (issues #664 /
+> #720); decision 3 gains the single identity resolver. **No decision
+> change.**
+
 ## Context
 
 Enjoy Player historically targeted **local-first** media only ([ADR-0005](0005-mvp-scope-local-only.md)) and a **single `media_kit`** playback surface ([ADR-0003](0003-player-core-media-kit.md)). Users want **YouTube** videos for the same transcript + echo / shadow-reading workflows without downloading media files.
@@ -16,9 +21,9 @@ YouTube **embed** playback is unreliable inside embedded WebViews (policy errors
    - **`MediaKitPlayerEngine`** remains the **only** owner of `package:media_kit` `Player()` for local files and generic HTTP(S) URLs.  
    - **`YouTubePlayerEngine`** uses **`flutter_inappwebview`** to render and control playback; it **must not** construct `media_kit` `Player()`.
 
-2. **`PlayerEngine` is the abstraction** for transport, streams (`position`, `duration`, `playing`, `buffering`), optional embedded subtitle tracks (`MediaKitPlayerEngine` only), screenshot (media_kit only; YouTube returns null), and **`buildVideoStage`** for the video widget subtree.
+2. **`PlayerEngine` is the abstraction** for transport and its streams (`position`, `duration`, `playing`, `buffering`, `completed`) plus the swap-lifecycle hooks (`awaitSurfaceReady` / `awaitSurfaceDetached` / `prepareNativeBackend` / …) — *transport + streams + swap-lifecycle only* (issue #720). What only some engines can do lives in capability interfaces (`player_engine_capabilities.dart`): embedded subtitle control (`SubtitleTrackControl`, `media_kit` `Tracks` behind it), frame capture (`PosterCapture`, media_kit only; YouTube returns null), the YouTube playback marker, and `PlayerEngineMetadata`. The video widget subtree is **not** part of the engine contract either: presentation maps engine identity to a stage (`buildPlayerVideoStage`, issue #664) and stage mounting stays with the permanent `PlayerSurfaceHost` ([ADR-0057](0057-permanent-player-surface-host.md)).
 
-3. **Engine selection** happens when opening a media row: rows with `videos.provider == 'youtube'` resolve to `YoutubePlayableSource` and bind `YouTubePlayerEngine`; others use `MediaKitPlayerEngine`. The active engine is swapped when navigating between different source kinds.
+3. **Engine selection** happens when opening a media row: rows with `videos.provider == 'youtube'` resolve to `YoutubePlayableSource` and bind `YouTubePlayerEngine`; others use `MediaKitPlayerEngine`. The active engine is swapped when navigating between different source kinds, and *which* engine is live resolves through the single `PlayerEngineIdentity` precedence — test double · owned · lazy default (issue #751).
 
 4. **Import**  
    - Users paste a URL or id; we parse the canonical **11-character video id**, store `provider='youtube'`, `vid=<id>`, optional `mediaUrl` canonical watch URL for sync.  
