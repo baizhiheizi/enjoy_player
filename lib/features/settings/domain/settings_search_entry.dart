@@ -3,9 +3,11 @@
 /// Pure/UI-free: this file backs the search index, the two-pane rail, and
 /// the single-column default-collapse state (see
 /// specs/004-settings-redesign/contracts/settings-section-registry.md and
-/// contracts/settings-search.md). Localized titles/keywords are resolved
-/// separately in the application layer (`settings_registry_localizer.dart`)
-/// so this file has no Flutter dependency and stays trivially unit-testable.
+/// contracts/settings-search.md). Localized titles/keywords, icons, bodies,
+/// and visibility predicates are resolved separately through the
+/// presentation-layer section specs
+/// (`presentation/settings_section_spec.dart`) so this file has no Flutter
+/// dependency and stays trivially unit-testable.
 library;
 
 /// Stable section identifiers, in Settings hub display order.

@@ -656,6 +656,18 @@
   "settingsSectionDeveloperHint": "诊断与内部工具",
   "settingsSectionAboutHint": "版本、许可与链接",
   "settingsSectionSync": "云端同步",
+  "settingsSectionAi": "AI",
+  "@settingsSectionAi": {
+    "description": "Header for the AI provider settings section."
+  },
+  "settingsSectionAiHint": "选择 Enjoy AI 或自备 API 密钥。",
+  "@settingsSectionAiHint": {
+    "description": "Subtitle under the AI settings section header."
+  },
+  "settingsAiProvidersTileTitle": "AI 提供商",
+  "@settingsAiProvidersTileTitle": {
+    "description": "Settings tile title for AI provider configuration."
+  },
   "syncSettingsTileTitle": "同步状态",
   "syncSettingsTileSubtitleSignedOut": "登录后可同步资料库与录音",
   "syncSettingsTileSubtitleUpToDate": "已是最新",
