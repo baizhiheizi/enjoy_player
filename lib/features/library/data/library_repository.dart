@@ -9,7 +9,6 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:flutter/foundation.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:logging/logging.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -40,55 +39,10 @@ class MediaLibraryRepository {
   final SyncEnqueueFn? _enqueueSync;
   final http.Client? _oembedClient;
 
-  Stream<List<Media>> watchAll() {
-    late StreamSubscription<List<VideoRow>> subV;
-    late StreamSubscription<List<AudioRow>> subA;
-    var videos = <VideoRow>[];
-    var audios = <AudioRow>[];
-
-    // Cache the last emitted merged list so we can skip identical re-emissions.
-    // Both Drift `watchAll` streams re-query on ANY table change; without this,
-    // a single row update (e.g. a `playbackSessionPersister` write that bumps
-    // `updatedAt`, or a duration probe that flips one row) currently re-emits
-    // the entire library — forcing `libraryHomeRecentsProvider` to re-sort and
-    // `libraryFilteredListsProvider` to re-filter + re-sort both lists.
-    //
-    // `lastEmitted` is nullable (rather than starting as `const <Media>[]`) so
-    // an empty library still produces its first emission: when both DAOs'
-    // initial snapshots are empty, `merged` is `[]`, which used to compare
-    // equal to the empty starting value and get swallowed by the dedupe
-    // check — leaving `watchAll()` never emitting and every `StreamProvider`
-    // built on it (library home/recents/filtered lists) stuck in
-    // `AsyncLoading` forever whenever the local library has zero rows.
-    List<Media>? lastEmitted;
-
-    void emit(StreamController<List<Media>> c) {
-      final merged = <Media>[
-        ...videos.map(mediaFromVideo),
-        ...audios.map(mediaFromAudio),
-      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      if (lastEmitted != null && listEquals(lastEmitted!, merged)) {
-        return;
-      }
-      lastEmitted = merged;
-      c.add(merged);
-    }
-
-    return Stream<List<Media>>.multi((controller) {
-      subV = _db.videoDao.watchAll().listen((rows) {
-        videos = rows;
-        emit(controller);
-      }, onError: controller.addError);
-      subA = _db.audioDao.watchAll().listen((rows) {
-        audios = rows;
-        emit(controller);
-      }, onError: controller.addError);
-      controller.onCancel = () {
-        unawaited(subV.cancel());
-        unawaited(subA.cancel());
-      };
-    });
-  }
+  /// The whole library as one stream — delegates to
+  /// [MediaRegistry.watchAll], the single data-layer owner of the
+  /// dual-stream merge, `createdAt` sort, and emission dedupe (issue #753).
+  Stream<List<Media>> watchAll() => MediaRegistry(_db).watchAll();
 
   /// Imports a local file into the signed-in user's library.
   Future<String> importMedia(
@@ -113,7 +67,7 @@ class MediaLibraryRepository {
           userId: signedInUserId,
         );
         final id = enjoyVideoId(vid: vid);
-        final existing = await _db.videoDao.getById(id);
+        final existing = await MediaRegistry(_db).getVideoById(id);
         await MediaRegistry(_db).upsertVideo(
           VideoRow(
             id: id,
@@ -151,7 +105,7 @@ class MediaLibraryRepository {
         userId: signedInUserId,
       );
       final id = enjoyAudioId(aid: aid);
-      final existing = await _db.audioDao.getById(id);
+      final existing = await MediaRegistry(_db).getAudioById(id);
       await MediaRegistry(_db).upsertAudio(
         AudioRow(
           id: id,
@@ -203,7 +157,7 @@ class MediaLibraryRepository {
     if (id == null) {
       throw const FileFailure('Invalid YouTube URL or video ID.');
     }
-    final dup = await _db.videoDao.getYoutubeByVid(id);
+    final dup = await MediaRegistry(_db).getYoutubeVideoByVid(id);
     if (dup != null) {
       await _maybePatchYoutubeMetadata(
         dup,
@@ -211,7 +165,7 @@ class MediaLibraryRepository {
         prefetchedThumbnailUrl: prefetchedThumbnailUrl,
       );
       // Resurface on Home even when metadata was already complete (re-add).
-      await _db.videoDao.touchUpdatedAt(dup.id);
+      await MediaRegistry(_db).touchUpdatedAt(dup.id);
       return dup.id;
     }
 
@@ -248,7 +202,7 @@ class MediaLibraryRepository {
       createdAt: now,
       updatedAt: now,
     );
-    await _db.videoDao.insertRow(row);
+    await MediaRegistry(_db).upsertVideo(row);
     await _enqueueSync?.call(SyncEntityType.video, rowId, SyncAction.create);
     return rowId;
   }
@@ -257,7 +211,7 @@ class MediaLibraryRepository {
   Future<YoutubeMetadataPatch?> refreshYoutubeMetadataIfNeeded(
     String mediaId,
   ) async {
-    final row = await _db.videoDao.getById(mediaId);
+    final row = await MediaRegistry(_db).getVideoById(mediaId);
     if (row == null || row.provider.toLowerCase() != 'youtube') return null;
     if (!_youtubeMetadataNeedsRefresh(row)) return null;
 
@@ -266,11 +220,9 @@ class MediaLibraryRepository {
 
     final title = meta.title;
     final thumb = meta.thumbnailUrl ?? row.thumbnailUrl;
-    await _db.videoDao.updateYoutubeMetadata(
-      id: mediaId,
-      title: title,
-      thumbnailUrl: thumb,
-    );
+    await MediaRegistry(
+      _db,
+    ).updateYoutubeMetadata(id: mediaId, title: title, thumbnailUrl: thumb);
     await _enqueueYoutubeMetadataSync(row);
     return (title: title, thumbnailUrl: thumb);
   }
@@ -332,7 +284,7 @@ class MediaLibraryRepository {
 
     final resolvedTitle = needsTitle ? title : row.title;
     final resolvedThumb = needsThumb ? thumb : row.thumbnailUrl;
-    await _db.videoDao.updateYoutubeMetadata(
+    await MediaRegistry(_db).updateYoutubeMetadata(
       id: row.id,
       title: resolvedTitle,
       thumbnailUrl: resolvedThumb,

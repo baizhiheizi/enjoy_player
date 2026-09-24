@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show TableInfo, Variable;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
@@ -130,4 +131,101 @@ void main() {
     );
     expect(managed.existsSync(), isFalse);
   });
+
+  test('keeps media still referenced by a row in the current DB', () async {
+    // The current-DB half of the probe now routes through MediaRegistry
+    // (issue #753) — pin that the wiring still keeps a referenced file.
+    final mediaDir = Directory(p.join(root.path, 'media'))
+      ..createSync(recursive: true);
+    final managed = File(p.join(mediaDir.path, 'current.bin'));
+    await managed.writeAsBytes([4, 5, 6]);
+    final uri = Uri.file(managed.path).toString();
+
+    await db.videoDao.insertRow(
+      VideoRow(
+        id: 'v-current',
+        vid: 'vid-current',
+        provider: 'user',
+        title: 'Current ref',
+        durationSeconds: 0,
+        language: 'und',
+        localUri: uri,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      ),
+    );
+
+    expect(
+      await isAppManagedMediaStillReferenced(db: db, fileUri: uri),
+      isTrue,
+    );
+    await deleteAppManagedMediaIfUnreferenced(
+      db: db,
+      storage: FileStorage(),
+      fileUri: uri,
+    );
+    expect(managed.existsSync(), isTrue);
+  });
+
+  test(
+    'cross-file probe SQL matches the Drift schema (schema-drift guard)',
+    () async {
+      // Source of truth: the generated TableInfos registered on AppDatabase —
+      // the same mechanism `drift_tables_schema_test.dart` walks. The cross-
+      // file raw SQL (a documented MediaRegistry exception, ADR-0050 §5) is
+      // single-sourced in `crossFileProbeLibraryTables` /
+      // `crossFileProbeLocalUriSql`; this test fails if those tables or the
+      // `local_uri` column drift away from what Drift actually creates.
+      final tableInfos = <String, TableInfo>{
+        for (final entity in db.allSchemaEntities.whereType<TableInfo>())
+          entity.actualTableName: entity,
+      };
+
+      // The probe must keep covering exactly the two library tables — dropping
+      // one here would silently stop checking it before every delete.
+      expect(
+        crossFileProbeLibraryTables,
+        unorderedEquals(<String>['audios', 'videos']),
+      );
+
+      // An unknown table must be rejected by a real RUNTIME guard, not an
+      // `assert` (asserts are stripped in release/AOT builds, PR #756
+      // thread 1): an input outside the allowlist throws before any
+      // string can reach the interpolated SQL.
+      expect(
+        () => crossFileProbeLocalUriSql('sqlite_master'),
+        throwsArgumentError,
+        reason:
+            'crossFileProbeLocalUriSql must throw ArgumentError for a '
+            'table outside crossFileProbeLibraryTables in every build mode',
+      );
+
+      for (final table in crossFileProbeLibraryTables) {
+        final info = tableInfos[table];
+        expect(
+          info,
+          isNotNull,
+          reason: 'probe table `$table` is not registered on AppDatabase',
+        );
+        expect(
+          info!.$columns.map((c) => c.name),
+          contains(crossFileProbeLocalUriColumn),
+          reason:
+              'probe column `$crossFileProbeLocalUriColumn` missing from `$table`',
+        );
+
+        // Behavioral half: run the exact probe SQL against the live
+        // Drift-created schema. A renamed/dropped table or column makes
+        // SQLite throw here ("no such table" / "no such column"), failing
+        // the test instead of letting the cross-file probe degrade into a
+        // silent keep-or-delete bug.
+        await db
+            .customSelect(
+              crossFileProbeLocalUriSql(table),
+              variables: [Variable.withString('file:///drift-guard')],
+            )
+            .get();
+      }
+    },
+  );
 }

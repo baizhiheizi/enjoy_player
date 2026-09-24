@@ -335,6 +335,63 @@ void main() {
     });
   });
 
+  group('updateYoutubeMetadata', () {
+    test(
+      'writes title + thumbnail onto the video row and bumps updatedAt',
+      () async {
+        await db.videoDao.insertRow(_videoRow());
+        await registry.updateYoutubeMetadata(
+          id: 'shared',
+          title: 'Resolved title',
+          thumbnailUrl: '/tmp/yt-thumb.jpg',
+        );
+        final row = await db.videoDao.getById('shared');
+        expect(row!.title, 'Resolved title');
+        expect(row.thumbnailUrl, '/tmp/yt-thumb.jpg');
+        expect(row.updatedAt.isAfter(_base), isTrue);
+      },
+    );
+
+    test('a null thumbnail leaves the stored thumbnail untouched', () async {
+      await db.videoDao.insertRow(_videoRow());
+      await db.videoDao.updateLocalThumbnail('shared', '/tmp/old.jpg');
+      await registry.updateYoutubeMetadata(
+        id: 'shared',
+        title: 'Title only',
+        thumbnailUrl: null,
+      );
+      final row = await db.videoDao.getById('shared');
+      expect(row!.title, 'Title only');
+      expect(row.thumbnailUrl, '/tmp/old.jpg');
+    });
+
+    test('audio-only id is a silent no-op (video-only write)', () async {
+      await seed(Fixture.audioOnly);
+      await registry.updateYoutubeMetadata(
+        id: 'shared',
+        title: 'Nope',
+        thumbnailUrl: '/tmp/nope.jpg',
+      );
+      final row = await db.audioDao.getById('shared');
+      expect(row!.title, 'Audio shared');
+      expect(row.thumbnailUrl, isNull);
+    });
+
+    test(
+      'both tables: only the video row is rewritten (video first)',
+      () async {
+        await seed(Fixture.both);
+        await registry.updateYoutubeMetadata(
+          id: 'shared',
+          title: 'Video updated',
+          thumbnailUrl: null,
+        );
+        expect((await db.videoDao.getById('shared'))!.title, 'Video updated');
+        expect((await db.audioDao.getById('shared'))!.title, 'Audio shared');
+      },
+    );
+  });
+
   group('probeBoth', () {
     test('returns full rows for the holding table', () async {
       await seed(Fixture.audioOnly);

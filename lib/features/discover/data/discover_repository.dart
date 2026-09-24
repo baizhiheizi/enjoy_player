@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_feed_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:http/http.dart' as http;
@@ -258,7 +259,7 @@ class DiscoverRepository {
   }
 
   Future<bool> isVideoInLibrary(String videoId) async {
-    final row = await _db.videoDao.getYoutubeByVid(videoId);
+    final row = await MediaRegistry(_db).getYoutubeVideoByVid(videoId);
     return row != null;
   }
 

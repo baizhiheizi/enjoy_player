@@ -43,7 +43,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     }
 
     if (tt == 'Video') {
-      final video = await _db.videoDao.getById(mediaId);
+      final video = await MediaRegistry(_db).getVideoById(mediaId);
       if (video != null) {
         final ytPlayback = youtubePlaybackVideoId(
           provider: video.provider,
