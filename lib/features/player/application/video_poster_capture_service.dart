@@ -106,7 +106,7 @@ class VideoPosterCaptureService {
       if (gen != currentOpenGeneration()) return;
 
       final db = _ref.read(appDatabaseProvider);
-      final latest = await db.videoDao.getById(mediaId);
+      final latest = await MediaRegistry(db).getVideoById(mediaId);
       if (latest == null) return;
       if (isRemoteThumbnailUrl(latest.thumbnailUrl)) return;
       if (localThumbnailFile(latest.thumbnailUrl) != null) return;

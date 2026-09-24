@@ -61,7 +61,7 @@ class CraftLibraryRepository {
       normalizedText: normalizedText,
       voice: voice,
     );
-    final existing = await _db.audioDao.getByMd5(contentHash);
+    final existing = await MediaRegistry(_db).getAudioByMd5(contentHash);
     return existing?.id;
   }
 
@@ -94,7 +94,7 @@ class CraftLibraryRepository {
     );
 
     // Dedupe: if the same content hash exists, return the existing id.
-    final existing = await _db.audioDao.getByMd5(contentHash);
+    final existing = await MediaRegistry(_db).getAudioByMd5(contentHash);
     if (existing != null) {
       return existing.id;
     }
@@ -189,7 +189,7 @@ class CraftLibraryRepository {
   /// `provider = 'craft'` row — callers should treat this as "no longer
   /// available" (e.g. deleted from another device).
   Future<CraftEditSource?> getCraftEditSource(String mediaId) async {
-    final row = await _db.audioDao.getById(mediaId);
+    final row = await MediaRegistry(_db).getAudioById(mediaId);
     if (row == null || row.provider != 'craft') return null;
 
     final transcripts = await _db.transcriptDao.listForTarget('Audio', mediaId);
@@ -228,7 +228,7 @@ class CraftLibraryRepository {
     String? voice,
     required String sourceFlag,
   }) async {
-    final existing = await _db.audioDao.getById(mediaId);
+    final existing = await MediaRegistry(_db).getAudioById(mediaId);
     if (existing == null || existing.provider != 'craft') {
       throw StateError('Craft media not found or not editable: $mediaId');
     }
@@ -332,7 +332,7 @@ class CraftLibraryRepository {
   ///
   /// Throws [StateError] when [mediaId] is missing or not `provider = 'craft'`.
   Future<void> removeCraftHistoryRecord(String mediaId) async {
-    final existing = await _db.audioDao.getById(mediaId);
+    final existing = await MediaRegistry(_db).getAudioById(mediaId);
     if (existing == null || existing.provider != 'craft') {
       throw StateError('Craft history record not found: $mediaId');
     }

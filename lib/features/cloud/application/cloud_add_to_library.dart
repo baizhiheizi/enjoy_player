@@ -12,10 +12,11 @@ class CloudAddToLibrary {
   final AppDatabase _db;
 
   Future<bool> isInLibrary(RemoteLibraryItem item) async {
+    final registry = MediaRegistry(_db);
     if (item.isVideo) {
-      return (await _db.videoDao.getById(item.id)) != null;
+      return (await registry.getVideoById(item.id)) != null;
     }
-    return (await _db.audioDao.getById(item.id)) != null;
+    return (await registry.getAudioById(item.id)) != null;
   }
 
   /// Inserts metadata from the remote payload (`localUri` null; `mediaUrl` kept when set).

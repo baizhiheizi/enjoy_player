@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
@@ -204,7 +205,7 @@ class SyncEngine {
           await _upload.deleteVocabularyContext(id);
 
         case SyncAudioUpsert(:final id):
-          final row = await _db.audioDao.getById(id);
+          final row = await MediaRegistry(_db).getAudioById(id);
           if (row == null) {
             _log.warning('sync audio $id: missing locally, drop queue row');
             await _queue.removeById(item.id);
@@ -212,7 +213,7 @@ class SyncEngine {
           }
           await _upload.uploadAudio(row);
         case SyncVideoUpsert(:final id):
-          final row = await _db.videoDao.getById(id);
+          final row = await MediaRegistry(_db).getVideoById(id);
           if (row == null) {
             _log.warning('sync video $id: missing locally, drop queue row');
             await _queue.removeById(item.id);
