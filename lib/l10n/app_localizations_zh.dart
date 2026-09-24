@@ -4520,6 +4520,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   }
 
   @override
+  String get settingsSectionAi => 'AI';
+
+  @override
+  String get settingsSectionAiHint => '选择 Enjoy AI 或自备 API 密钥。';
+
+  @override
   String get settingsSectionRecording => '录音';
 
   @override
