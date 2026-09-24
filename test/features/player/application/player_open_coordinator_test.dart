@@ -7,8 +7,10 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/playback_session_persister.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
+import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'package:enjoy_player/features/player/application/position_buckets.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
@@ -62,6 +64,30 @@ class _CountingEchoDb extends AppDatabase {
 
   @override
   EchoSessionDao get echoSessionDao => countingDao;
+}
+
+/// [VideoPosterCaptureService] double: records each capture request the open
+/// choreography schedules and hands the `onSessionThumbnail` callback to the
+/// test, which fires it late to reproduce the stale-capture race.
+class _StubPosterCaptureService extends VideoPosterCaptureService {
+  _StubPosterCaptureService(super.ref);
+
+  final requests = <String, void Function(String absoluteThumbPath)>{};
+
+  @override
+  void scheduleCapture({
+    required String mediaId,
+    required VideoRow video,
+    required int restoredPositionMs,
+    required int gen,
+    required int Function() currentOpenGeneration,
+    required String? Function() currentSessionMediaId,
+    required double? Function() sessionDurationSeconds,
+    required PlayerEngine activeEngine,
+    required void Function(String absoluteThumbPath) onSessionThumbnail,
+  }) {
+    requests[mediaId] = onSessionThumbnail;
+  }
 }
 
 void main() {
@@ -781,6 +807,110 @@ void main() {
         expect(controller.session, isNotNull);
         expect(controller.session!.currentTimeSeconds, 9);
         expect(controller.session!.currentSegmentIndex, 5);
+      },
+    );
+  });
+
+  group('runPlayerOpen stale poster capture', () {
+    late AppDatabase db;
+    late FakePlayerEngine fake;
+    late ProviderContainer container;
+    late PathProviderPlatform originalPathProvider;
+    late _StubPosterCaptureService poster;
+
+    setUp(() async {
+      originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = TestPathProvider(
+        Directory.systemTemp.createTempSync('enjoy_player_open_poster').path,
+      );
+      db = AppDatabase(executor: NativeDatabase.memory());
+      fake = FakePlayerEngine();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          playerEngineTestDoubleProvider.overrideWithValue(fake),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+          videoPosterCaptureServiceProvider.overrideWith(
+            (ref) => poster = _StubPosterCaptureService(ref),
+          ),
+        ],
+      );
+
+      final now = DateTime.now();
+      for (final id in const ['media-a', 'media-b']) {
+        final file = File(
+          p.join(
+            Directory.systemTemp.path,
+            'enjoy_poster_${id}_${DateTime.now().microsecondsSinceEpoch}.mp4',
+          ),
+        );
+        await file.writeAsBytes([1]);
+        addTearDown(() async {
+          if (await file.exists()) await file.delete();
+        });
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'vid-$id',
+            provider: 'user',
+            title: id,
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 600,
+            language: 'en',
+            source: null,
+            localUri: Uri.file(file.path).toString(),
+            size: 1,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await pumpEventQueue();
+      container.dispose();
+      await db.close();
+      await fake.dispose();
+    });
+
+    test(
+      'a capture landing after a newer open cannot stomp the new session',
+      () async {
+        final controller = container.read(playerControllerProvider.notifier);
+
+        await runPlayerOpen(controller, 'media-a');
+        expect(poster.requests.keys, ['media-a']);
+        await runPlayerOpen(controller, 'media-b');
+        expect(poster.requests.keys, unorderedEquals(['media-a', 'media-b']));
+
+        // Media A's poster capture resolves while media B's session is live.
+        // Falsifiability: dropping the `live.mediaId != mediaId` gate in
+        // `runPlayerOpen`'s `onSessionThumbnail` turns this red — A's path
+        // lands on B's live session.
+        poster.requests['media-a']!('/stale-a.jpg');
+        final sessionAfterStale = controller.session;
+        expect(sessionAfterStale, isNotNull);
+        expect(sessionAfterStale!.mediaId, 'media-b');
+        expect(
+          sessionAfterStale.thumbnailUrl,
+          isNull,
+          reason: "media A's late capture must not stomp media B's session",
+        );
+
+        // The live media's own capture still applies.
+        poster.requests['media-b']!('/fresh-b.jpg');
+        final sessionAfterFresh = controller.session;
+        expect(sessionAfterFresh, isNotNull);
+        expect(sessionAfterFresh!.mediaId, 'media-b');
+        expect(sessionAfterFresh.thumbnailUrl, '/fresh-b.jpg');
       },
     );
   });

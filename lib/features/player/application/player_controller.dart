@@ -133,9 +133,9 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     posterService: ref.read(videoPosterCaptureServiceProvider),
     scheduleOpenSideEffects:
         ({
-          required openGeneration,
-          required mediaId,
-          required dexieTargetType,
+          required int openGeneration,
+          required String mediaId,
+          required String dexieTargetType,
         }) => schedulePlayerOpenSideEffects(
           ref,
           openGeneration: openGeneration,
@@ -144,15 +144,18 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
           dexieTargetType: dexieTargetType,
         ),
     scheduleYoutubeMetadata:
-        ({required openGeneration, required mediaId, required engine}) =>
-            scheduleYoutubeMetadataRefresh(
-              ref,
-              mediaId: mediaId,
-              openGeneration: openGeneration,
-              engine: engine,
-              currentOpenGeneration: () => this.openGeneration,
-              currentSessionMediaId: () => state?.mediaId,
-            ),
+        ({
+          required int openGeneration,
+          required String mediaId,
+          required PlayerEngine engine,
+        }) => scheduleYoutubeMetadataRefresh(
+          ref,
+          mediaId: mediaId,
+          openGeneration: openGeneration,
+          engine: engine,
+          currentOpenGeneration: () => this.openGeneration,
+          currentSessionMediaId: () => state?.mediaId,
+        ),
   );
 
   /// Engine-swap access for the open scope is exactly the two operations the

@@ -229,6 +229,13 @@ Future<void> runPlayerOpen(
     // state with the NEW media's values; a stale debounce/max-age timer firing
     // afterwards would write the new media's echo window + blur flag into the
     // old media's row (issue #653).
+    //
+    // BEST-EFFORT BY CONSTRUCTION: flushing the previous session must never
+    // abort opening the new media — a flush failure is logged and swallowed
+    // inside the step (see the catch below), so neither this guard nor
+    // `runPlayerOpenGuarded` ever surfaces it as an open failure. The
+    // [steps.run] wrapper here contributes only the generation guard (skip the
+    // flush for a superseded open), not a failure contract.
     await steps.run('flush previous playback session', () async {
       final previous = scope.session;
       if (previous == null) {
@@ -242,8 +249,9 @@ Future<void> runPlayerOpen(
           session: previous,
         );
       } catch (e, st) {
-        // Best-effort: opening the new media must not fail because the
-        // previous media's trailing position write hit the DB.
+        // Deliberately swallowed (best-effort by construction, see above):
+        // opening the new media must not fail because the previous media's
+        // trailing position write hit the DB.
         _openLog.warning('flushing previous playback session failed', e, st);
       }
     });
@@ -274,9 +282,17 @@ Future<void> runPlayerOpen(
     // every later local/URL open rebuilds MediaKit against a wedged native
     // event pump: `engine.open` never completes and the player screen stays
     // on the loading skeleton forever (2026-08-29 field report).
-    if (playable is YoutubePlayableSource && youTubeEngineOptedOutHere) {
-      throw const YouTubePlaybackUnavailableException.linuxOptedOut();
-    }
+    //
+    // Guarded like every other async boundary in the choreography: `run`'s
+    // pre-guard swallows a generation that went stale between
+    // `resolvePlaybackOpen` and this check (quiet unwind via
+    // [OpenSupersededException]), while a fresh generation lets the typed
+    // exception propagate as the open failure it is.
+    await steps.run('gate Linux YouTube open (ADR-0048)', () async {
+      if (playable is YoutubePlayableSource && youTubeEngineOptedOutHere) {
+        throw const YouTubePlaybackUnavailableException.linuxOptedOut();
+      }
+    });
 
     deps.scheduleOpenSideEffects(
       openGeneration: gen,
@@ -466,7 +482,20 @@ Future<void> runPlayerOpen(
         sessionDurationSeconds: () => scope.session?.durationSeconds,
         activeEngine: engine,
         onSessionThumbnail: (path) {
-          scope.publishSession(scope.session?.copyWith(thumbnailUrl: path));
+          // Stale-media gate: media A's late capture resolves after media B
+          // has published its own session — publishing A's poster path then
+          // would stomp B's thumbnailUrl. Only apply the capture while the
+          // live session still belongs to the capture's media; otherwise drop
+          // it (the DB write already landed for the rightful row).
+          final live = scope.session;
+          if (live == null || live.mediaId != mediaId) {
+            _openLog.fine(
+              'dropping late poster thumbnail for $mediaId: live session is '
+              '${live?.mediaId ?? 'null'}',
+            );
+            return;
+          }
+          scope.publishSession(live.copyWith(thumbnailUrl: path));
         },
       );
     }

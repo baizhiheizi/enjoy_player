@@ -248,6 +248,13 @@ class EngineSwapCoordinator {
     discardWithoutAwaiting(old);
   }
 
+  /// Whether [openGeneration] has been superseded by a newer open / clear /
+  /// abandon — the retry ladder's staleness check, comparing this open's
+  /// captured generation against the live one directly (see
+  /// [openEngineWithRetry] for why the ladder does not use [OpenSteps]).
+  bool _isStale(int openGeneration) =>
+      _currentOpenGeneration() != openGeneration;
+
   /// Drives `engine.open` with the wedged-open retry ladder.
   ///
   /// After a YouTube → MediaKit swap the first `open` races WebView
@@ -255,6 +262,17 @@ class EngineSwapCoordinator {
   /// Use the short command ceiling for that first attempt, then retry
   /// once — reopen works because the native side has settled / a fresh
   /// player is installed. A timeout must not fail the open on try 1.
+  ///
+  /// Staleness: this ladder checks the generation **directly** via
+  /// [_isStale] between its attempts — it deliberately does NOT run its
+  /// attempts through the shared [OpenSteps] `steps.run`/`runBounded`
+  /// mechanism, because the explicit `.timeout` on each attempt drives the
+  /// retry and a guarded wrapper would swallow it as a wedge. (The other
+  /// swap operation, [ensureEngineForPlayableSource], does run its awaits
+  /// through the shared `steps.run` mechanism.) The *caller* — the 'open
+  /// engine with retry' step in `runPlayerOpen` — wraps this whole ladder in
+  /// `steps.run`, which is what stops the engine when this open is
+  /// superseded after a successful open.
   Future<void> openEngineWithRetry({
     required PlayerEngine engine,
     required PlayableSource playable,
@@ -263,15 +281,6 @@ class EngineSwapCoordinator {
     required Duration openTimeout,
     required Duration engineCommandTimeout,
   }) async {
-    // The open attempts keep their explicit `.timeout` ladder (a timeout here
-    // drives the retry, it is not a swallowed wedge), but the staleness query
-    // delegates to the shared guarded-step mechanism (issue #750). The caller
-    // guards the return, which is what stops the engine when this open is
-    // superseded after a successful open.
-    final steps = OpenSteps(
-      isStale: () => _currentOpenGeneration() != openGeneration,
-      logWarning: _swapLog.warning,
-    );
     final firstTimeout = swappedAfterInstall
         ? engineCommandTimeout
         : openTimeout;
@@ -283,7 +292,7 @@ class EngineSwapCoordinator {
         '(${engine.runtimeType}); retrying once',
       );
       await replaceWedgedLocalEngine();
-      if (steps.isStale()) return;
+      if (_isStale(openGeneration)) return;
       final retryEngine = _getActiveEngine();
       try {
         await retryEngine.open(playable).timeout(openTimeout);
