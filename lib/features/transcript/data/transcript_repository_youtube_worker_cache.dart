@@ -75,9 +75,11 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
   /// swallows the exception into `return false` and `unawaited(...)` discards
   /// the bool.
   ///
-  /// On failure the payload is durably enqueued via `sync_queue` (entity
-  /// `video`, action `update`, payload `kind: youtube_upload`) so the next
-  /// [SyncCtrl] periodic drain reattempts the upload. This is the fix for
+  /// On failure the payload is durably enqueued via the shared sync
+  /// enqueue seam (issue #749): entity `video`, action `update`, payload
+  /// `kind: youtube_upload` — and, when signed in, the seam schedules an
+  /// immediate queue drain, so the retry does not wait for [SyncCtrl]'s
+  /// 5-minute timer (the timer is only the fallback). This is the fix for
   /// the Windows-fetches-but-Android-can't-serve-from-cache mode where the
   /// one-shot upload was lost on a transient worker failure.
   void _uploadToWorkerAfterDirectFetch({
@@ -150,18 +152,31 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
     required String source,
     required List<Map<String, dynamic>> timeline,
   }) async {
+    final enqueue = _enqueueSyncJob;
+    if (enqueue == null) {
+      _log.warning(
+        'YouTube worker upload retry for $videoId/$language dropped: '
+        'sync enqueue seam not wired',
+      );
+      return;
+    }
     try {
-      // Typed seam (issue #718): the job encodes to the exact pre-seam wire
-      // row — entity `video`, entityId `$videoId/$language`, action
-      // `update`, payload `kind: youtube_upload` — so the drain decodes it
-      // back into a retry instead of a plain video update.
+      // Typed seam (issues #718/#749): the pre-built
+      // SyncYoutubeUploadRetry goes through the shared job-shaped enqueue
+      // entry (`syncEnqueueJobProvider`) instead of a hand-built
+      // SyncQueueRepository — gaining addJob's dedup / failed-state
+      // preservation and, when signed in, the scheduleSyncQueueDrain kick.
+      // The job still encodes to the exact wire row: entity `video`,
+      // entityId `$videoId/$language`, action `update`, payload
+      // `kind: youtube_upload` (ADR-0049 §3 pins the shape), so the drain
+      // decodes it back into a retry instead of a plain video update.
       //
       // addOrUpsert semantics (via addJob): repeated failures of the same
-      // videoId/language must refresh the one existing row's payload instead
-      // of stacking duplicate rows that each carry a full timeline JSON.
+      // videoId/language refresh the one existing row's payload instead of
+      // stacking duplicate rows that each carry a full timeline JSON.
       // retryCount/lastAttempt/error are preserved on re-enqueue so a row
       // already exhausted against the worker is not silently re-armed.
-      await SyncQueueRepository(_db).addJob(
+      await enqueue(
         SyncYoutubeUploadRetry(
           videoId: videoId,
           language: language,

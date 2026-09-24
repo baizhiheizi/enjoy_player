@@ -158,11 +158,15 @@ class SyncQueueRepository {
   /// the row is missing or its payload has been refreshed since [item] was
   /// snapshotted (issue #717 review followup, race in `_processOne`).
   ///
-  /// Used by `SyncEngine._retryYoutubeWorkerUpload` so a successful upload
-  /// of an older payload does not delete a newer payload that the producer
-  /// wrote while the upload was in flight. Comparison is string equality —
-  /// the producer always `jsonEncode`s the same map structure for the same
-  /// content, so a different JSON string means a different timeline.
+  /// Used by `SyncYoutubeUploadRetry.processRetry` (and the decode-null
+  /// drop path) so a successful upload of an older payload does not delete
+  /// a newer payload that the producer wrote while the upload was in
+  /// flight. Comparison is string equality — the retry path derives
+  /// [expectedPayloadJson] from `job.encode().payloadJson`, whose encode
+  /// stability contract (documented and tested on `SyncQueueJob.encode`,
+  /// issue #749) guarantees a decode→encode round trip reproduces exactly
+  /// the bytes the producer wrote; a different JSON string means a
+  /// different timeline.
   Future<SyncQueueRow?> removeByIdIfPayload(
     int id,
     String expectedPayloadJson,

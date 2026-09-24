@@ -260,9 +260,26 @@ class SyncEngine {
           break;
 
         case SyncYoutubeUploadRetry():
-          // `await`, not a bare return: a returned Future's error would
-          // skip the catch blocks below (and thus markAttempted).
-          return await _retryYoutubeWorkerUpload(item, job);
+          // The retry contract (throw-on-false + encode-derived conditional
+          // remove) lives on the job module (issue #749); the switch stays
+          // the only variant consumer. `await` it — a returned Future's
+          // error would skip the catch blocks below (and thus
+          // markAttempted).
+          await job.processRetry(
+            rowId: item.id,
+            upload: (retry) => _youtubeTranscripts.uploadTranscript(
+              videoId: retry.videoId,
+              language: retry.language,
+              source: retry.source,
+              timeline: retry.timeline,
+            ),
+            removeByIdIfPayload: _queue.removeByIdIfPayload,
+          );
+          _log.info(
+            'youtube_upload retry accepted for ${job.videoId}/${job.language} '
+            '(source=${job.source}, ${job.timeline.length} lines)',
+          );
+          return true;
       }
 
       await _queue.removeById(item.id);
@@ -301,45 +318,5 @@ class SyncEngine {
       }
       return false;
     }
-  }
-
-  /// Re-uploads a durably-enqueued YouTube worker transcript (issue #717).
-  ///
-  /// The decoded [SyncYoutubeUploadRetry] carries the full upload body
-  /// (`videoId`, `language`, `source`, `timeline`), so this never touches
-  /// the local video row. The worker treats a repeated upload as idempotent
-  /// (409 == success), so re-running a partially-applied upload is safe.
-  ///
-  /// A `false`/thrown upload re-enters `_processOne`'s generic failure path
-  /// (markAttempted + [SyncRetryPolicy] exponential backoff, up to
-  /// [SyncRetryPolicy.maxRetries] strikes) by throwing. A malformed
-  /// payload never reaches here — [SyncQueueJob.decode] refuses it and
-  /// `_processOne` drops the row.
-  Future<bool> _retryYoutubeWorkerUpload(
-    SyncQueueRow item,
-    SyncYoutubeUploadRetry job,
-  ) async {
-    final ok = await _youtubeTranscripts.uploadTranscript(
-      videoId: job.videoId,
-      language: job.language,
-      source: job.source,
-      timeline: job.timeline,
-    );
-    if (!ok) {
-      throw StateError(
-        'youtube_upload retry for ${job.videoId}/${job.language} returned '
-        'false (worker rejected or transport failure)',
-      );
-    }
-    _log.info(
-      'youtube_upload retry accepted for ${job.videoId}/${job.language} '
-      '(source=${job.source}, ${job.timeline.length} lines)',
-    );
-    // Conditional remove: a concurrent producer refresh may have replaced
-    // this row's payload with a newer timeline while the upload was in
-    // flight. Removing it would lose the latest retry. If the stored
-    // payload still matches, the row is ours to clear.
-    await _queue.removeByIdIfPayload(item.id, item.payloadJson ?? '');
-    return true;
   }
 }

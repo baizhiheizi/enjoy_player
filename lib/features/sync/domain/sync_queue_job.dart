@@ -3,10 +3,14 @@
 /// Ownership: [SyncQueueJob.decode] owns the interpretation of persisted
 /// queue rows. Producers construct typed variants — never hand-rolled
 /// `entityType` / `entityId` / `action` / `payloadJson` strings — and
-/// persist them via `SyncQueueRepository.addJob`; the drain
-/// (`SyncEngine._processOne`) switches exhaustively over the decoded
-/// variant, so adding a producer without matching consumer handling is a
-/// compile error instead of a silent row drop.
+/// persist them through the shared enqueue seam: the
+/// `syncEnqueueProvider` `(type, id, action)` form (snapshot built here via
+/// [deleteFor] / [snapshotUpsert]) or, for pre-built jobs, the job-shaped
+/// [SyncEnqueueJobFn] entry (`syncEnqueueJobProvider`, issue #749) — both
+/// run `SyncQueueRepository.addJob` plus the signed-in drain scheduling.
+/// The drain (`SyncEngine._processOne`) switches exhaustively over the
+/// decoded variant, so adding a producer without matching consumer handling
+/// is a compile error instead of a silent row drop.
 ///
 /// Payload snapshots on the upsert variants are fallback-only: the drain
 /// re-reads the live row before uploading, so `payloadJson` is decorative
@@ -50,11 +54,32 @@ final class SyncQueueJobWire {
   int get hashCode => Object.hash(entityType, entityId, action, payloadJson);
 }
 
+/// Job-shaped entry of the typed enqueue seam (issue #749): hands a
+/// pre-built [SyncQueueJob] to the shared provider path
+/// (`syncEnqueueJobProvider`) instead of the `(type, id, action)` form.
+///
+/// Needed for variants whose payload *is* the job (e.g.
+/// [SyncYoutubeUploadRetry]): there is no local row for [snapshotUpsert] to
+/// re-read, so the producer builds the variant itself and this callback
+/// persists it (`addJob` dedup + failed-state preservation) and schedules
+/// the signed-in drain — the same tail as the `(type, id, action)` form.
+typedef SyncEnqueueJobFn = Future<void> Function(SyncQueueJob job);
+
 /// A typed sync_queue job: one variant per producible row kind.
 sealed class SyncQueueJob {
   const SyncQueueJob();
 
   /// The `sync_queue` wire columns for this job.
+  ///
+  /// **Encode stability (issue #749)**: `encode()` must be pure — the same
+  /// job content always yields the same bytes (same field set, same
+  /// `jsonEncode` key order), including after a `decode` → `encode` round
+  /// trip. The payload-match race guard
+  /// (`SyncQueueRepository.removeByIdIfPayload`) derives its expected
+  /// string from `job.encode().payloadJson` and string-compares it against
+  /// the stored row, so an unstable encode would make every success-path
+  /// remove look like a producer race (and leak rows) or, worse, delete a
+  /// refreshed payload. Pinned by test.
   SyncQueueJobWire encode();
 
   /// Builds the delete job for [type] — deletes carry no payload snapshot.
@@ -507,6 +532,41 @@ final class SyncYoutubeUploadRetry extends SyncQueueJob {
       'timeline': timeline,
     }),
   );
+
+  /// Retry-handling contract for the durable worker-upload row, absorbed
+  /// from `SyncEngine._processOne`'s tail (issue #749) so it lives next to
+  /// the wire shape it protects:
+  ///
+  /// - [upload] returning `false` → throw. The drain's generic failure path
+  ///   then records the attempt (`markAttempted` plus the queue's shared
+  ///   `SyncRetryPolicy` backoff / threshold — this job owns no policy of
+  ///   its own, issue #752).
+  /// - success → **conditional remove**: the expected payload is derived
+  ///   from this job's own [encode] call — the single source of truth —
+  ///   and handed to `SyncQueueRepository.removeByIdIfPayload`, whose
+  ///   transactional read-compare-delete keeps a producer refresh that
+  ///   landed while the upload was in flight (the [encode]-stability
+  ///   contract on [SyncQueueJob.encode] is what makes those bytes equal
+  ///   to the row the producer wrote).
+  ///
+  /// Collaborators are injected so this module owns no transport client and
+  /// no Drift code; `SyncEngine._processOne`'s exhaustive switch stays the
+  /// only variant consumer and the only caller.
+  Future<void> processRetry({
+    required int rowId,
+    required Future<bool> Function(SyncYoutubeUploadRetry job) upload,
+    required Future<void> Function(int id, String expectedPayloadJson)
+    removeByIdIfPayload,
+  }) async {
+    final ok = await upload(this);
+    if (!ok) {
+      throw StateError(
+        'youtube_upload retry for $videoId/$language returned '
+        'false (worker rejected or transport failure)',
+      );
+    }
+    await removeByIdIfPayload(rowId, encode().payloadJson!);
+  }
 }
 
 /// Delete jobs: cloud DELETE for the entity id. The wire payload is always

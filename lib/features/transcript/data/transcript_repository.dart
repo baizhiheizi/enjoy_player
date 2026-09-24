@@ -40,7 +40,6 @@ import '../../../data/subtitle/subtitle_filename.dart';
 import '../domain/auto_translate.dart';
 import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
-import '../../sync/data/sync_queue_repository.dart';
 import '../../sync/domain/sync_queue_job.dart';
 import 'sidecar_subtitle_discovery.dart';
 import 'transcript_timeline_parse.dart';
@@ -65,12 +64,19 @@ class TranscriptRepository {
     this._transcriptApi,
     this._youtubeTranscripts,
     this._youtubeFetcher,
+    this._enqueueSyncJob,
   ]);
 
   final AppDatabase _db;
   final TranscriptApi? _transcriptApi;
   final YoutubeTranscriptsClient? _youtubeTranscripts;
   final YoutubeCaptionFetcher? _youtubeFetcher;
+
+  /// Job-shaped sync enqueue seam entry (issue #749) — the 5th optional
+  /// positional arg, wired in production by `transcriptRepositoryProvider`
+  /// (`syncEnqueueJobProvider`); `null` only in tests that never exercise
+  /// the durable worker-upload retry.
+  final SyncEnqueueJobFn? _enqueueSyncJob;
 
   final Map<String, _LinesCacheEntry> _linesCache = {};
 

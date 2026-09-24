@@ -63,3 +63,26 @@ Future<void> enqueuePendingSync(
     scheduleSyncQueueDrain(engine);
   }
 }
+
+/// Job-shaped sibling of [enqueuePendingSync] (issue #749): persists a
+/// pre-built typed [SyncQueueJob] through the same dedup contract
+/// ([SyncQueueRepository.addJob]) and the same signed-in
+/// [scheduleSyncQueueDrain] tail as the `(type, id, action)` form.
+///
+/// The pre-built-job form exists for variants whose payload *is* the job
+/// (e.g. `SyncYoutubeUploadRetry`): there is no local row for
+/// [SyncQueueJob.snapshotUpsert] to re-read, so the producer constructs the
+/// variant itself. Exposed to features through `syncEnqueueJobProvider`.
+Future<void> enqueueSyncJob(
+  Ref ref,
+  SyncQueueRepository queue,
+  SyncEngine engine,
+  SyncQueueJob job,
+) async {
+  await queue.addJob(job);
+
+  final auth = ref.read(authCtrlProvider).valueOrNull;
+  if (auth is AuthSignedIn) {
+    scheduleSyncQueueDrain(engine);
+  }
+}

@@ -1,6 +1,7 @@
 /// Riverpod wiring for [SyncEngine] dependencies.
 library;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/data/api/api_client_provider.dart';
@@ -20,6 +21,7 @@ import 'package:enjoy_player/features/sync/data/recording_target_sync_service.da
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
+import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 part 'sync_providers.g.dart';
@@ -87,3 +89,20 @@ SyncEnqueueFn syncEnqueue(Ref ref) {
   return (type, id, action) =>
       enqueuePendingSync(ref, queue, engine, type, id, action);
 }
+
+/// Job-shaped entry of the typed enqueue seam (issue #749): persists a
+/// pre-built typed [SyncQueueJob] through the shared
+/// [SyncQueueRepository.addJob] dedup contract and — when signed in — the
+/// same [scheduleSyncQueueDrain] tail as `syncEnqueueProvider` above, so a
+/// durable retry starts draining immediately instead of waiting for
+/// `SyncCtrl`'s 5-minute timer.
+///
+/// A manual provider (same "avoids extra codegen" precedent as
+/// `cloud_providers.dart`): the generated `syncEnqueueProvider` and every
+/// `SyncEnqueueFn` consumer (craft, library, shadow_reading, vocabulary)
+/// keep their exact `(type, id, action)` surface.
+final syncEnqueueJobProvider = Provider<SyncEnqueueJobFn>((ref) {
+  final queue = ref.watch(syncQueueRepositoryProvider);
+  final engine = ref.watch(syncEngineProvider);
+  return (job) => enqueueSyncJob(ref, queue, engine, job);
+});
