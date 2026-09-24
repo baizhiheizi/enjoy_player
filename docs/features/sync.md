@@ -51,9 +51,9 @@ When signed out, the sync screen explains that sign-in is required and links to 
 
 Every "permanently failed" decision derives from one module — [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart):
 
-- **Threshold**: a row is permanently failed once `retryCount >= maxRetries` (behavior-preserving default: **5 attempts**). The sentinel written by `SyncQueueDao.markPermanentlyFailed` is `policy.sentinel`, which equals `maxRetries` by construction; the DAO receives it as a method parameter so `lib/data/db` never imports `lib/features`.
+- **Threshold**: a row is permanently failed once `retryCount >= maxRetries` (behavior-preserving default: **5 attempts**). The value written by `SyncQueueDao.markPermanentlyFailed` is `policy.maxRetries`, received as the DAO's `retryLimit` method parameter so `lib/data/db` never imports `lib/features`.
 - **Backoff**: `baseDelayMs × 2^retryCount` (behavior-preserving default base: **1000 ms**) measured against an injectable wall clock (`DateTime Function()`), so tests pin time deterministically instead of sleeping past real windows (same seam as `YouTubePlayRetryPolicy`).
-- **Consumers**: `shouldRetryQueueItem` (the full decision), the drain's backoff filter in `SyncEngine._drainOnce`, `SyncQueueRepository.pendingItems` / `watchSnapshot` / `resetFailed`, and the DAO sentinel all read the same policy. The drain path applies the threshold exactly once — in `pendingItems` (SQL) — plus the in-memory backoff filter; there is no second threshold check.
+- **Consumers**: `SyncRetryPolicy.shouldRetry` (the full decision), the drain's backoff filter in `SyncEngine._drainOnce`, `SyncQueueRepository.pendingItems` / `watchSnapshot` / `resetFailed` (both the Dart predicate and the SQL clauses derive from the policy), and the DAO `retryLimit` all read the same policy. The drain path applies the threshold exactly once — in `pendingItems` (SQL) — plus the in-memory backoff filter; there is no second threshold check.
 
 ## Typed enqueue seam (issue #718)
 

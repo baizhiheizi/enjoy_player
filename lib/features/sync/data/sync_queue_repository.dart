@@ -21,7 +21,7 @@ final class SyncQueueSnapshot {
   final int retryablePending;
 
   /// Exhausted retries — `retryCount` at
-  /// [SyncRetryPolicy.sentinel] ([SyncRetryPolicy.maxRetries]).
+  /// [SyncRetryPolicy.maxRetries].
   final int permanentlyFailed;
 
   /// Oldest-first subset for expandable UI (capped).
@@ -31,15 +31,15 @@ final class SyncQueueSnapshot {
 }
 
 class SyncQueueRepository {
-  /// [retryPolicy] supplies the threshold/sentinel every predicate below
-  /// derives from (issue #752); tests may inject one with a fake clock.
+  /// [retryPolicy] supplies the threshold every predicate below derives
+  /// from (issue #752); tests may inject one with a fake clock.
   SyncQueueRepository(this._db, {SyncRetryPolicy? retryPolicy})
     : _retryPolicy = retryPolicy ?? SyncRetryPolicy();
 
   final AppDatabase _db;
 
   /// Single source of the "permanently failed" threshold this repository's
-  /// Drift predicates and sentinel are written against.
+  /// Drift predicates and the DAO `retryLimit` are written against.
   final SyncRetryPolicy _retryPolicy;
 
   /// Typed enqueue seam (issue #718): persists [job]'s wire columns with the
@@ -118,9 +118,7 @@ class SyncQueueRepository {
   /// [SyncRetryPolicy.maxRetries], oldest first.
   Future<List<SyncQueueRow>> pendingItems({int limit = 500}) {
     return (_db.select(_db.syncQueue)
-          ..where(
-            (t) => t.retryCount.isSmallerThanValue(_retryPolicy.maxRetries),
-          )
+          ..where((t) => _retryPolicy.eligible(t.retryCount))
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
           ..limit(limit))
         .get();
@@ -180,13 +178,13 @@ class SyncQueueRepository {
       _db.syncQueueDao.markAttempted(id, error: error);
 
   /// Marks the row permanently failed by writing the policy's
-  /// [SyncRetryPolicy.sentinel] (== [SyncRetryPolicy.maxRetries]) as its
-  /// `retryCount`, so it agrees with [pendingItems] / [watchSnapshot] /
-  /// [resetFailed] by construction (issue #752).
+  /// [SyncRetryPolicy.maxRetries] as its `retryCount`, so it agrees with
+  /// [pendingItems] / [watchSnapshot] / [resetFailed] by construction
+  /// (issue #752).
   Future<void> markPermanentlyFailed(int id, {String? error}) =>
       _db.syncQueueDao.markPermanentlyFailed(
         id,
-        sentinelRetryCount: _retryPolicy.sentinel,
+        retryLimit: _retryPolicy.maxRetries,
         error: error,
       );
 
@@ -197,24 +195,19 @@ class SyncQueueRepository {
     final failed =
         await (_db.selectOnly(_db.syncQueue)
               ..addColumns([_db.syncQueue.id.count()])
-              ..where(
-                _db.syncQueue.retryCount.isBiggerOrEqualValue(
-                  _retryPolicy.maxRetries,
-                ),
-              ))
+              ..where(_retryPolicy.permanentlyFailed(_db.syncQueue.retryCount)))
             .map((row) => row.read<int>(_db.syncQueue.id.count()) ?? 0)
             .getSingle();
     if (failed == 0) return 0;
-    await (_db.update(_db.syncQueue)..where(
-          (t) => t.retryCount.isBiggerOrEqualValue(_retryPolicy.maxRetries),
-        ))
-        .write(
-          const SyncQueueCompanion(
-            retryCount: Value(0),
-            error: Value(null),
-            lastAttempt: Value(null),
-          ),
-        );
+    await (_db.update(
+      _db.syncQueue,
+    )..where((t) => _retryPolicy.permanentlyFailed(t.retryCount))).write(
+      const SyncQueueCompanion(
+        retryCount: Value(0),
+        error: Value(null),
+        lastAttempt: Value(null),
+      ),
+    );
     return failed;
   }
 }

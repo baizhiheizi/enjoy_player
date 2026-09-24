@@ -94,7 +94,7 @@ void main() {
     });
 
     test(
-      'markPermanentlyFailed sets retryCount to the policy sentinel',
+      'markPermanentlyFailed writes exactly retryLimit as retryCount',
       () async {
         final id = await db.syncQueueDao.enqueue(
           entityType: 'a',
@@ -103,11 +103,10 @@ void main() {
         );
         await db.syncQueueDao.markPermanentlyFailed(
           id,
-          sentinelRetryCount: policy.sentinel,
+          retryLimit: policy.maxRetries,
           error: 'fatal',
         );
         final batch = await db.syncQueueDao.peekBatch();
-        expect(batch.single.retryCount, policy.sentinel);
         expect(batch.single.retryCount, policy.maxRetries);
         expect(batch.single.error, 'fatal');
       },
@@ -116,7 +115,7 @@ void main() {
     test('markPermanentlyFailed on missing id is a no-op', () async {
       await db.syncQueueDao.markPermanentlyFailed(
         99999,
-        sentinelRetryCount: policy.sentinel,
+        retryLimit: policy.maxRetries,
       );
       expect(await db.syncQueueDao.peekBatch(), isEmpty);
     });

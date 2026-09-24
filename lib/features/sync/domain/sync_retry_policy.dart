@@ -1,25 +1,26 @@
-/// One owner for the outbound `sync_queue` retry protocol (issue #752).
-///
-/// The "permanently failed" threshold, the exponential backoff, and the wall
-/// clock the decision reads used to be spread across four files:
-/// `SyncEngine._kMaxRetries`/`_kRetryBaseMs` (library-private, so the
-/// repository could not share them), the hardcoded threshold literals in
-/// `SyncQueueRepository` (`pendingItems` / `watchSnapshot` / `resetFailed`),
-/// and the `SyncQueueDao.markPermanentlyFailed` sentinel — plus a bare
-/// `DateTime.now()` hidden inside `shouldRetryQueueItem`. Changing the
-/// threshold in that shape silently diverged from the repository predicates
-/// and the DAO sentinel (a moved threshold would leave "permanently failed"
-/// rows carrying the old sentinel and looking retryable).
-///
-/// All of it lives here now: engine, repository, and DAO derive their
-/// predicates/sentinel from this policy (the DAO takes the sentinel as a
-/// parameter so `lib/data/db` never imports `lib/features`), and the
-/// decision reads the injectable clock — the in-repo precedent for that seam
-/// is `YouTubePlayRetryPolicy` in the player feature.
-///
-/// Behavior is pinned to the pre-refactor defaults: [defaultMaxRetries] and
-/// [defaultBaseDelayMs] are the single spelling of each value in `lib/`.
-library;
+// One owner for the outbound `sync_queue` retry protocol (issue #752).
+//
+// The "permanently failed" threshold, the exponential backoff, and the wall
+// clock the decision reads used to be spread across four files:
+// `SyncEngine._kMaxRetries`/`_kRetryBaseMs` (library-private, so the
+// repository could not share them), the hardcoded threshold literals in
+// `SyncQueueRepository` (`pendingItems` / `watchSnapshot` / `resetFailed`),
+// and the hardcoded write in `SyncQueueDao.markPermanentlyFailed` — plus a
+// bare `DateTime.now()` hidden inside the old retry-decision helper.
+// Changing the threshold in that shape silently diverged from the
+// repository predicates and the DAO write (a moved threshold would leave
+// "permanently failed" rows carrying the old value and looking retryable).
+//
+// All of it lives here now: engine, repository, and DAO derive their
+// predicates and written retry count from this policy (the DAO takes the
+// threshold as a parameter so `lib/data/db` never imports `lib/features`),
+// and the decision reads the injectable clock — the in-repo precedent for
+// that seam is `YouTubePlayRetryPolicy` in the player feature.
+//
+// Behavior is pinned to the pre-refactor defaults: `defaultMaxRetries` and
+// `defaultBaseDelayMs` are the single spelling of each value in `lib/`.
+
+import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
 
@@ -46,26 +47,36 @@ class SyncRetryPolicy {
   final DateTime Function() _now;
 
   /// Attempts before a row counts as permanently failed: a row with
-  /// `retryCount >= maxRetries` is excluded from pending work.
+  /// `retryCount >= maxRetries` is excluded from pending work. Also the
+  /// value `SyncQueueDao.markPermanentlyFailed` writes (received as its
+  /// `retryLimit` parameter).
   final int maxRetries;
 
   /// Base of the exponential backoff, in milliseconds.
   final int baseDelayMs;
 
-  /// Sentinel `retry_count` written when a row is marked permanently failed
-  /// (`SyncQueueDao.markPermanentlyFailed` receives it as a parameter).
-  ///
-  /// Equals [maxRetries] by construction, so the sentinel, the
-  /// `pendingItems` / `watchSnapshot` / `resetFailed` predicates, and the
-  /// decision below can never disagree about what "permanently failed" means.
-  int get sentinel => maxRetries;
-
-  /// Whether a row with [retryCount] has exhausted its retry budget.
+  /// Dart form of the "permanently failed" threshold: a row with
+  /// `retryCount >= maxRetries` has exhausted its retry budget.
   bool isPermanentlyFailed(int retryCount) => retryCount >= maxRetries;
+
+  /// SQL form of [isPermanentlyFailed] so Drift predicates derive from the
+  /// same threshold instead of restating it (issue #752).
+  Expression<bool> permanentlyFailed(GeneratedColumn<int> retryCount) =>
+      retryCount.isBiggerOrEqualValue(maxRetries);
+
+  /// SQL complement of [permanentlyFailed] — rows still eligible for retry.
+  Expression<bool> eligible(GeneratedColumn<int> retryCount) =>
+      retryCount.isSmallerThanValue(maxRetries);
 
   /// Backoff before the next attempt: `baseDelayMs × 2^retryCount`
   /// (0 → 1000 ms, 1 → 2000 ms, 2 → 4000 ms, … with the defaults).
-  int backoffDelayMs(int retryCount) => baseDelayMs * (1 << retryCount);
+  ///
+  /// Throws [RangeError] outside `0..30`, where the shift would overflow.
+  int backoffDelayMs(int retryCount) {
+    // Cap the exponent so `baseDelayMs * (1 << retryCount)` cannot overflow.
+    RangeError.checkValueInInterval(retryCount, 0, 30, 'retryCount');
+    return baseDelayMs * (1 << retryCount);
+  }
 
   /// Whether [item]'s backoff window has elapsed, measured against the
   /// injected [now]. A row with no recorded attempt is immediately due.
@@ -81,7 +92,7 @@ class SyncRetryPolicy {
   /// Full retry decision: not [isPermanentlyFailed] AND [backoffElapsed].
   ///
   /// `elapsed == delayMs` is eligible (the comparison is `>=`, matching the
-  /// pre-refactor `shouldRetryQueueItem`). No `DateTime.now()` on this path —
+  /// pre-refactor decision). No `DateTime.now()` on this path —
   /// time comes from the injected [now].
   bool shouldRetry(SyncQueueRow item) =>
       !isPermanentlyFailed(item.retryCount) && backoffElapsed(item);

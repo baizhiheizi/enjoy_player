@@ -1,6 +1,5 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/features/sync/application/sync_engine.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
 import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
@@ -15,7 +14,7 @@ void main() {
   });
 
   test(
-    'markPermanentlyFailed sets retryCount to the policy sentinel',
+    'markPermanentlyFailed writes exactly policy.maxRetries as retryCount',
     () async {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
@@ -28,16 +27,20 @@ void main() {
         action: 'create',
         payloadJson: '{}',
       );
+      // Give the row prior retries so markPermanentlyFailed visibly pushes
+      // it over the limit (issue #752).
+      await repo.markAttempted(id, error: 'boom');
+      await repo.markAttempted(id, error: 'boom');
 
       await repo.markPermanentlyFailed(id, error: 'duplicate missing');
 
       final row = await (db.select(
         db.syncQueue,
       )..where((t) => t.id.equals(id))).getSingle();
-      expect(row.retryCount, policy.sentinel);
+      expect(row.retryCount, policy.maxRetries);
       expect(policy.isPermanentlyFailed(row.retryCount), isTrue);
       expect(row.error, 'duplicate missing');
-      expect(shouldRetryQueueItem(row, policy), isFalse);
+      expect(policy.shouldRetry(row), isFalse);
     },
   );
 }

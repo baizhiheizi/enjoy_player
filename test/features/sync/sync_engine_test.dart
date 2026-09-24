@@ -48,7 +48,7 @@ void main() {
     });
   });
 
-  group('shouldRetryQueueItem', () {
+  group('policy.shouldRetry', () {
     // Fixed wall clock: the decision reads the policy's injected now, so
     // these cases no longer fabricate lastAttempt values around the real
     // clock (issue #752).
@@ -56,22 +56,16 @@ void main() {
     final policy = SyncRetryPolicy(now: () => fakeNow);
 
     test('allows first attempt when lastAttempt is null', () {
-      expect(shouldRetryQueueItem(_row(id: 1), policy), isTrue);
+      expect(policy.shouldRetry(_row(id: 1)), isTrue);
     });
 
     test('blocks permanently failed rows (retryCount >= maxRetries)', () {
       expect(
-        shouldRetryQueueItem(
-          _row(id: 1, retryCount: policy.maxRetries),
-          policy,
-        ),
+        policy.shouldRetry(_row(id: 1, retryCount: policy.maxRetries)),
         isFalse,
       );
       expect(
-        shouldRetryQueueItem(
-          _row(id: 1, retryCount: policy.maxRetries - 1),
-          policy,
-        ),
+        policy.shouldRetry(_row(id: 1, retryCount: policy.maxRetries - 1)),
         isTrue,
       );
     });
@@ -79,20 +73,16 @@ void main() {
     test('applies exponential backoff from lastAttempt', () {
       // retryCount 1 → delay 2000 ms.
       expect(
-        shouldRetryQueueItem(
-          _row(id: 1, retryCount: 1, lastAttempt: fakeNow),
-          policy,
-        ),
+        policy.shouldRetry(_row(id: 1, retryCount: 1, lastAttempt: fakeNow)),
         isFalse,
       );
       expect(
-        shouldRetryQueueItem(
+        policy.shouldRetry(
           _row(
             id: 1,
             retryCount: 1,
             lastAttempt: fakeNow.subtract(const Duration(seconds: 3)),
           ),
-          policy,
         ),
         isTrue,
       );
@@ -101,24 +91,22 @@ void main() {
     test('elapsed == delayMs exactly is eligible', () {
       // retryCount 1 → delay 2000 ms; exactly 2000 ms elapsed passes.
       expect(
-        shouldRetryQueueItem(
+        policy.shouldRetry(
           _row(
             id: 1,
             retryCount: 1,
             lastAttempt: fakeNow.subtract(const Duration(milliseconds: 2000)),
           ),
-          policy,
         ),
         isTrue,
       );
       expect(
-        shouldRetryQueueItem(
+        policy.shouldRetry(
           _row(
             id: 1,
             retryCount: 1,
             lastAttempt: fakeNow.subtract(const Duration(milliseconds: 1999)),
           ),
-          policy,
         ),
         isFalse,
       );
@@ -127,24 +115,22 @@ void main() {
     test('backoff doubles with each retryCount', () {
       // retryCount 2 → delay 4000 ms.
       expect(
-        shouldRetryQueueItem(
+        policy.shouldRetry(
           _row(
             id: 1,
             retryCount: 2,
             lastAttempt: fakeNow.subtract(const Duration(seconds: 3)),
           ),
-          policy,
         ),
         isFalse,
       );
       expect(
-        shouldRetryQueueItem(
+        policy.shouldRetry(
           _row(
             id: 1,
             retryCount: 2,
             lastAttempt: fakeNow.subtract(const Duration(seconds: 5)),
           ),
-          policy,
         ),
         isTrue,
       );

@@ -53,21 +53,21 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase>
     }
   }
 
-  /// Sets the row's `retry_count` to [sentinelRetryCount] so it is no
+  /// Sets the row's `retry_count` to [retryLimit] so it is no
   /// longer eligible for retry. Direct UPDATE — no SELECT round-trip
   /// (issue #468).
   ///
-  /// The caller supplies the sentinel from its `SyncRetryPolicy`
-  /// (`sentinel == maxRetries`, issue #752) — this layer must not import
-  /// `lib/features`, so the threshold lives with the feature, not here.
+  /// The caller supplies the limit from its `SyncRetryPolicy`
+  /// (issue #752) — this layer must not import `lib/features`, so the
+  /// threshold lives with the feature, not here.
   Future<void> markPermanentlyFailed(
     int id, {
-    required int sentinelRetryCount,
+    required int retryLimit,
     String? error,
   }) async {
     await (update(syncQueue)..where((t) => t.id.equals(id))).write(
       SyncQueueCompanion(
-        retryCount: Value(sentinelRetryCount),
+        retryCount: Value(retryLimit),
         lastAttempt: Value(DateTime.now()),
         error: Value(error),
       ),

@@ -22,7 +22,7 @@ void main() {
   // hugely negative and every expectation below would flip to false.
   final fakeNow = DateTime.utc(2030, 6, 1);
 
-  group('SyncRetryPolicy threshold + sentinel', () {
+  group('SyncRetryPolicy threshold', () {
     test(
       'defaults pin the pre-refactor behavior (threshold 5, base 1000 ms)',
       () {
@@ -34,13 +34,6 @@ void main() {
       },
     );
 
-    test('sentinel equals threshold (invariant)', () {
-      expect(SyncRetryPolicy().sentinel, SyncRetryPolicy().maxRetries);
-      final custom = SyncRetryPolicy(maxRetries: 8);
-      expect(custom.sentinel, custom.maxRetries);
-      expect(custom.sentinel, 8);
-    });
-
     test('isPermanentlyFailed flips exactly at maxRetries', () {
       final policy = SyncRetryPolicy();
       expect(policy.isPermanentlyFailed(policy.maxRetries - 1), isFalse);
@@ -48,12 +41,12 @@ void main() {
       expect(policy.isPermanentlyFailed(policy.maxRetries + 1), isTrue);
     });
 
-    test('a sentinel row never retries, regardless of the clock', () {
+    test('a permanently failed row never retries, regardless of the clock', () {
       final policy = SyncRetryPolicy(now: () => fakeNow);
       expect(
         policy.shouldRetry(
           _row(
-            retryCount: policy.sentinel,
+            retryCount: policy.maxRetries,
             lastAttempt: fakeNow.subtract(const Duration(days: 1)),
           ),
         ),
@@ -71,6 +64,23 @@ void main() {
       expect(policy.backoffDelayMs(3), 8000);
       expect(policy.backoffDelayMs(4), 16000);
     });
+
+    test(
+      'backoffDelayMs rejects retryCount outside 0..30 (no shift overflow)',
+      () {
+        final policy = SyncRetryPolicy();
+        expect(() => policy.backoffDelayMs(-1), throwsRangeError);
+        expect(() => policy.backoffDelayMs(31), throwsRangeError);
+        expect(() => policy.backoffDelayMs(1 << 10), throwsRangeError);
+        // In-range values still yield the pinned schedule.
+        expect(policy.backoffDelayMs(0), 1000);
+        expect(policy.backoffDelayMs(1), 2000);
+        expect(policy.backoffDelayMs(2), 4000);
+        expect(policy.backoffDelayMs(3), 8000);
+        expect(policy.backoffDelayMs(4), 16000);
+        expect(policy.backoffDelayMs(30), 1000 * (1 << 30));
+      },
+    );
 
     test('elapsed == delayMs exactly is eligible (deterministic boundary)', () {
       final policy = SyncRetryPolicy(now: () => fakeNow);

@@ -1,5 +1,4 @@
-/// Coordinates download + upload queue processing.
-library;
+// Coordinates download + upload queue processing.
 
 import 'dart:async';
 
@@ -14,12 +13,6 @@ import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 final _log = logNamed('sync');
-
-/// Whether [item] may be retried now under [policy] — the full decision
-/// (threshold + exponential backoff), read against the policy's injected
-/// clock (issue #752); no bare `DateTime.now()` on this path.
-bool shouldRetryQueueItem(SyncQueueRow item, SyncRetryPolicy policy) =>
-    policy.shouldRetry(item);
 
 /// Prefer deletes before creates/updates for the same entity so a
 /// delete-then-reimport cannot race cloud DELETE with POST.
