@@ -301,6 +301,125 @@ void main() {
     );
   });
 
+  group('runPlayerOpen typed failure on unplayable media', () {
+    late AppDatabase db;
+    late FakePlayerEngine fake;
+    late ProviderContainer container;
+    late PathProviderPlatform originalPathProvider;
+
+    setUp(() async {
+      originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = TestPathProvider(
+        Directory.systemTemp
+            .createTempSync('enjoy_player_open_unplayable')
+            .path,
+      );
+      db = AppDatabase(executor: NativeDatabase.memory());
+      fake = FakePlayerEngine();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          playerEngineTestDoubleProvider.overrideWithValue(fake),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+        ],
+      );
+
+      // Unplayable row: the local file is gone, there is no remote fallback,
+      // and no md5 fingerprint — so the resolver returns null (no relocate).
+      final now = DateTime.now();
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: 'unplayable-1',
+          aid: 'x',
+          provider: 'user',
+          title: 'gone',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 600,
+          language: 'en',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: Uri.file(
+            p.join(
+              Directory.systemTemp.path,
+              'enjoy_gone_${DateTime.now().microsecondsSinceEpoch}.mp3',
+            ),
+          ).toString(),
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await pumpEventQueue();
+      container.dispose();
+      await db.close();
+      await fake.dispose();
+    });
+
+    test(
+      'an unknown media id fails with StateError instead of a silent success',
+      () async {
+        // Falsifiability: a silent success would leave ExpandedPlayerScreen on
+        // the loading skeleton forever — open completes, session never
+        // publishes (the exact bug the StateError contract exists for).
+        await expectLater(
+          runPlayerOpen(
+            container.read(playerControllerProvider.notifier),
+            _refOf(container),
+            'missing-id',
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('No playable source for media missing-id'),
+            ),
+          ),
+        );
+        expect(
+          container.read(playerControllerProvider),
+          isNull,
+          reason: 'no session may publish for an unknown media id',
+        );
+        expect(fake.openUris, isEmpty, reason: 'no engine command may run');
+      },
+    );
+
+    test(
+      'an unplayable row (missing file, no URL, no hash) throws StateError',
+      () async {
+        await expectLater(
+          runPlayerOpen(
+            container.read(playerControllerProvider.notifier),
+            _refOf(container),
+            'unplayable-1',
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('No playable source for media unplayable-1'),
+            ),
+          ),
+        );
+        expect(container.read(playerControllerProvider), isNull);
+        expect(fake.openUris, isEmpty);
+      },
+    );
+  });
+
   group('runPlayerOpen persister hand-off (issue #653)', () {
     late AppDatabase db;
     late FakePlayerEngine fake;
