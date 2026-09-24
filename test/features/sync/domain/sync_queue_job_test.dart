@@ -466,24 +466,18 @@ void main() {
     );
 
     test('derives the race-guard payload from this encode() call', () async {
-      var uploaded = false;
       var removedId = -1;
       String? removedPayload;
 
       await retry.processRetry(
         rowId: 7,
-        upload: (job) async {
-          uploaded = true;
-          expect(identical(job, retry), isTrue);
-          return true;
-        },
+        upload: Future<bool>.value(true),
         removeByIdIfPayload: (id, expectedPayloadJson) async {
           removedId = id;
           removedPayload = expectedPayloadJson;
         },
       );
 
-      expect(uploaded, isTrue);
       expect(removedId, 7);
       expect(removedPayload, retry.encode().payloadJson);
     });
@@ -496,7 +490,7 @@ void main() {
         await expectLater(
           retry.processRetry(
             rowId: 7,
-            upload: (_) async => false,
+            upload: Future<bool>.value(false),
             removeByIdIfPayload: (id, expectedPayloadJson) async {
               removed = true;
             },

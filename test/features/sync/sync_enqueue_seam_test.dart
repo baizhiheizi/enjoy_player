@@ -203,10 +203,9 @@ void main() {
     // entry (syncEnqueueJobProvider), never a hand-built repository.
     final repo = TranscriptRepository(
       db,
-      null,
-      producerApi,
-      fetcher,
-      container.read(syncEnqueueJobProvider),
+      youtubeTranscripts: producerApi,
+      youtubeFetcher: fetcher,
+      enqueueJob: container.read(syncEnqueueJobProvider),
     );
 
     await repo.fetchCloudTranscripts(mediaId, force: true);

@@ -261,18 +261,13 @@ class SyncEngine {
 
         case SyncYoutubeUploadRetry():
           // The retry contract (throw-on-false + encode-derived conditional
-          // remove) lives on the job module (issue #749); the switch stays
-          // the only variant consumer. `await` it — a returned Future's
-          // error would skip the catch blocks below (and thus
-          // markAttempted).
+          // remove) and the upload-call binding live on the job module
+          // (issue #749); the switch stays the only variant consumer.
+          // `await` it — a returned Future's error would skip the catch
+          // blocks below (and thus markAttempted).
           await job.processRetry(
             rowId: item.id,
-            upload: (retry) => _youtubeTranscripts.uploadTranscript(
-              videoId: retry.videoId,
-              language: retry.language,
-              source: retry.source,
-              timeline: retry.timeline,
-            ),
+            upload: job.toUploadCall(_youtubeTranscripts),
             removeByIdIfPayload: _queue.removeByIdIfPayload,
           );
           _log.info(

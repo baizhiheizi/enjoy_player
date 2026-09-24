@@ -69,10 +69,8 @@ Future<void> enqueuePendingSync(
 /// ([SyncQueueRepository.addJob]) and the same signed-in
 /// [scheduleSyncQueueDrain] tail as the `(type, id, action)` form.
 ///
-/// The pre-built-job form exists for variants whose payload *is* the job
-/// (e.g. `SyncYoutubeUploadRetry`): there is no local row for
-/// [SyncQueueJob.snapshotUpsert] to re-read, so the producer constructs the
-/// variant itself. Exposed to features through `syncEnqueueJobProvider`.
+/// Why the pre-built-job form exists and the feature-facing entry: see the
+/// `syncEnqueueJobProvider` docstring (the canonical seam documentation).
 Future<void> enqueueSyncJob(
   Ref ref,
   SyncQueueRepository queue,

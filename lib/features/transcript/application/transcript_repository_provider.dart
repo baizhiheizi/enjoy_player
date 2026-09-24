@@ -34,12 +34,12 @@ TranscriptRepository transcriptRepository(Ref ref) {
   );
   return TranscriptRepository(
     db,
-    api,
-    yt,
-    fetcher,
+    transcriptApi: api,
+    youtubeTranscripts: yt,
+    youtubeFetcher: fetcher,
     // Job-shaped sync enqueue seam (issue #749): durable YouTube upload
     // retries go through the shared provider path (dedup + signed-in
     // drain kick) instead of a hand-built SyncQueueRepository.
-    ref.watch(syncEnqueueJobProvider),
+    enqueueJob: ref.watch(syncEnqueueJobProvider),
   );
 }

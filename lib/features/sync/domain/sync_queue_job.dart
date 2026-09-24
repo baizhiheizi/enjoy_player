@@ -22,6 +22,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/data/api/services/ai/youtube_transcripts_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
@@ -55,14 +56,10 @@ final class SyncQueueJobWire {
 }
 
 /// Job-shaped entry of the typed enqueue seam (issue #749): hands a
-/// pre-built [SyncQueueJob] to the shared provider path
-/// (`syncEnqueueJobProvider`) instead of the `(type, id, action)` form.
-///
-/// Needed for variants whose payload *is* the job (e.g.
-/// [SyncYoutubeUploadRetry]): there is no local row for [snapshotUpsert] to
-/// re-read, so the producer builds the variant itself and this callback
-/// persists it (`addJob` dedup + failed-state preservation) and schedules
-/// the signed-in drain — the same tail as the `(type, id, action)` form.
+/// pre-built [SyncQueueJob] to the shared provider path instead of the
+/// `(type, id, action)` form. Why the pre-built form exists and what the
+/// persist/drain tail does: see the `syncEnqueueJobProvider` docstring
+/// (the canonical seam documentation).
 typedef SyncEnqueueJobFn = Future<void> Function(SyncQueueJob job);
 
 /// A typed sync_queue job: one variant per producible row kind.
@@ -533,14 +530,26 @@ final class SyncYoutubeUploadRetry extends SyncQueueJob {
     }),
   );
 
+  /// Dispatches this retry through [client]'s upload call — the single
+  /// binding of the four named upload parameters, so the drain passes
+  /// `job.toUploadCall(youtubeTranscripts)` instead of rebuilding the
+  /// field-by-field upload on every tick.
+  Future<bool> toUploadCall(YoutubeTranscriptsClient client) =>
+      client.uploadTranscript(
+        videoId: videoId,
+        language: language,
+        source: source,
+        timeline: timeline,
+      );
+
   /// Retry-handling contract for the durable worker-upload row, absorbed
   /// from `SyncEngine._processOne`'s tail (issue #749) so it lives next to
   /// the wire shape it protects:
   ///
-  /// - [upload] returning `false` → throw. The drain's generic failure path
-  ///   then records the attempt (`markAttempted` plus the queue's shared
-  ///   `SyncRetryPolicy` backoff / threshold — this job owns no policy of
-  ///   its own, issue #752).
+  /// - [upload] completing `false` → throw. The drain's generic failure
+  ///   path then records the attempt (`markAttempted` plus the queue's
+  ///   shared `SyncRetryPolicy` backoff / threshold — this job owns no
+  ///   policy of its own, issue #752).
   /// - success → **conditional remove**: the expected payload is derived
   ///   from this job's own [encode] call — the single source of truth —
   ///   and handed to `SyncQueueRepository.removeByIdIfPayload`, whose
@@ -549,23 +558,30 @@ final class SyncYoutubeUploadRetry extends SyncQueueJob {
   ///   contract on [SyncQueueJob.encode] is what makes those bytes equal
   ///   to the row the producer wrote).
   ///
-  /// Collaborators are injected so this module owns no transport client and
-  /// no Drift code; `SyncEngine._processOne`'s exhaustive switch stays the
-  /// only variant consumer and the only caller.
+  /// The transport arrives as an already-started [upload] future (the
+  /// caller builds it with [toUploadCall]), so this module still owns no
+  /// transport client and no Drift code; `SyncEngine._processOne`'s
+  /// exhaustive switch stays the only variant consumer and the only caller.
   Future<void> processRetry({
     required int rowId,
-    required Future<bool> Function(SyncYoutubeUploadRetry job) upload,
+    required Future<bool> upload,
     required Future<void> Function(int id, String expectedPayloadJson)
     removeByIdIfPayload,
   }) async {
-    final ok = await upload(this);
+    final ok = await upload;
     if (!ok) {
       throw StateError(
         'youtube_upload retry for $videoId/$language returned '
         'false (worker rejected or transport failure)',
       );
     }
-    await removeByIdIfPayload(rowId, encode().payloadJson!);
+    final expected = encode().payloadJson;
+    if (expected == null) {
+      throw StateError(
+        'SyncYoutubeUploadRetry.encode() must produce a payload',
+      );
+    }
+    await removeByIdIfPayload(rowId, expected);
   }
 }
 
