@@ -664,6 +664,10 @@
   "@settingsSectionAiHint": {
     "description": "Subtitle under the AI settings section header."
   },
+  "settingsAiProvidersTileTitle": "AI 提供商",
+  "@settingsAiProvidersTileTitle": {
+    "description": "Settings tile title for AI provider configuration."
+  },
   "syncSettingsTileTitle": "同步状态",
   "syncSettingsTileSubtitleSignedOut": "登录后可同步资料库与录音",
   "syncSettingsTileSubtitleUpToDate": "已是最新",

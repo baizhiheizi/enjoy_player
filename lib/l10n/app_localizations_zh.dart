@@ -4526,6 +4526,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get settingsSectionAiHint => '选择 Enjoy AI 或自备 API 密钥。';
 
   @override
+  String get settingsAiProvidersTileTitle => 'AI 提供商';
+
+  @override
   String get settingsSectionRecording => '录音';
 
   @override

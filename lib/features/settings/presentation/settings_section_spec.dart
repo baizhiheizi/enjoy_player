@@ -1,6 +1,6 @@
 /// Presentation-layer section specs for the Settings hub — icon, localized
-/// title/hint/keywords, visibility predicate, body builder, and card/collapse
-/// shape, one entry per top-level section.
+/// title/hint/searchable-text accessors, visibility predicate, body builder,
+/// and card/collapse shape, one entry per top-level section.
 ///
 /// The pure domain descriptors in `domain/settings_search_entry.dart` stay
 /// Flutter-free and back the search index and the default-collapse seed; this
@@ -26,12 +26,12 @@ import 'package:enjoy_player/features/settings/presentation/widgets/sections/rec
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// One searchable row of a section — the `rowId` of a
-/// [SettingsEntryDescriptor] plus its localized title and extra keywords.
+/// [SettingsEntryDescriptor] plus its localized title and extra search tokens.
 class SettingsRowSpec {
   const SettingsRowSpec({
     required this.rowId,
     required this.title,
-    this.keywords = const [],
+    this.searchableText,
   });
 
   /// Stable per-section row id (matches `kSettingsRegistry`).
@@ -40,9 +40,11 @@ class SettingsRowSpec {
   /// Resolved display title, used both for rendering and for search matching.
   final String Function(AppLocalizations l10n) title;
 
-  /// Extra localized synonyms matched by search but not displayed
-  /// (e.g. "mic" for the microphone picker row).
-  final List<String> keywords;
+  /// Extra localized search tokens matched by search but not displayed
+  /// (e.g. "mic"/"麦克风" for the microphone picker row). Locale-capable like
+  /// [SettingsSectionSpec.searchableText]; `null` means the row has no extra
+  /// tokens beyond its title.
+  final List<String> Function(AppLocalizations l10n)? searchableText;
 }
 
 /// Presentation shape of one top-level Settings section.
@@ -52,7 +54,7 @@ class SettingsSectionSpec {
     required this.icon,
     required this.title,
     required this.hint,
-    this.keywords,
+    this.searchableText,
     this.rows = const [],
     this.isVisible = _alwaysVisible,
     required this.body,
@@ -73,9 +75,10 @@ class SettingsSectionSpec {
   /// Resolved section header hint (subtitle).
   final String Function(AppLocalizations l10n) hint;
 
-  /// Extra search synonyms for the section header. Defaults to the hint (the
-  /// pre-spec localizer indexed every header by its hint text).
-  final List<String> Function(AppLocalizations l10n)? keywords;
+  /// Extra search tokens for the section header. Defaults to `hint(l10n)`
+  /// when omitted, so hint copy edits change search results — keep hints
+  /// short/distinctive or set explicit [searchableText].
+  final List<String> Function(AppLocalizations l10n)? searchableText;
 
   /// The section's rows for the search index — one per row descriptor in
   /// `kSettingsRegistry` (drift-checked by the section-registry drift test).
@@ -88,6 +91,14 @@ class SettingsSectionSpec {
 
   /// Builds the section's body content (the `widgets/sections/*.dart`
   /// widget). Layouts supply the card/collapse chrome around it.
+  ///
+  /// Specs must supply `() => const XSectionBody()`, never the
+  /// `XSectionBody.new` tear-off: constructor tear-offs do not preserve
+  /// `const`, so every `body()` call would allocate a fresh non-canonical
+  /// widget where the pre-spec layouts had `const XSectionBody()` literals.
+  /// The closure allocates once at list construction and the const
+  /// expression returns the same canonical instance on every call — the
+  /// section-registry drift test asserts that identity.
   final Widget Function() body;
 
   /// Whether the section body sits inside the shared card surface. `false`
@@ -102,9 +113,11 @@ class SettingsSectionSpec {
   /// `collapsedByDefault` (drift-checked).
   final bool collapsedByDefault;
 
-  /// Search keywords for the section header — the hint by default.
-  List<String> resolveKeywords(AppLocalizations l10n) =>
-      keywords?.call(l10n) ?? <String>[hint(l10n)];
+  /// Search tokens for the section header. Defaults to `hint(l10n)` when
+  /// [searchableText] is omitted, so hint copy edits change search results —
+  /// keep hints short/distinctive or set explicit [searchableText].
+  List<String> resolveSearchableText(AppLocalizations l10n) =>
+      searchableText?.call(l10n) ?? <String>[hint(l10n)];
 }
 
 bool _alwaysVisible() => true;
@@ -127,7 +140,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
         title: (l10n) => l10n.syncSettingsTileTitle,
       ),
     ],
-    body: CloudSyncSectionBody.new,
+    body: () => const CloudSyncSectionBody(),
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.appearanceLanguage,
@@ -148,7 +161,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
         title: (l10n) => l10n.settingsAppearanceNativeLanguage,
       ),
     ],
-    body: AppearanceLanguageSectionBody.new,
+    body: () => const AppearanceLanguageSectionBody(),
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.aiProviders,
@@ -161,7 +174,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
         title: (l10n) => l10n.settingsAiProvidersTileTitle,
       ),
     ],
-    body: AiProvidersSectionBody.new,
+    body: () => const AiProvidersSectionBody(),
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.recording,
@@ -172,10 +185,10 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       SettingsRowSpec(
         rowId: 'micPicker',
         title: (l10n) => l10n.settingsRecordingMicTitle,
-        keywords: ['mic'],
+        searchableText: (l10n) => const ['mic', '麦克风'],
       ),
     ],
-    body: RecordingSectionBody.new,
+    body: () => const RecordingSectionBody(),
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.keyboardShortcuts,
@@ -193,7 +206,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
         title: (l10n) => l10n.settingsKeyboardCustomizeTitle,
       ),
     ],
-    body: KeyboardShortcutsSectionBody.new,
+    body: () => const KeyboardShortcutsSectionBody(),
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.developer,
@@ -215,7 +228,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
         title: (l10n) => l10n.settingsAiPlaygroundTileTitle,
       ),
     ],
-    body: DeveloperSectionBody.new,
+    body: () => const DeveloperSectionBody(),
     collapsedByDefault: true,
   ),
   SettingsSectionSpec(
@@ -227,22 +240,36 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
       SettingsRowSpec(
         rowId: 'contact',
         title: (l10n) => l10n.settingsAboutContactTitle,
-        keywords: ['email', 'wechat', 'mixin', 'feedback', 'bug report'],
+        searchableText: (l10n) => const [
+          'email',
+          '邮件',
+          'wechat',
+          '微信',
+          'mixin',
+          'feedback',
+          '反馈',
+          'bug report',
+          'bug',
+        ],
       ),
       SettingsRowSpec(
         rowId: 'analyticsCapture',
         title: (l10n) => l10n.settingsAnalyticsCaptureTitle,
-        keywords: [
+        searchableText: (l10n) => const [
           'analytics',
+          '分析',
           'usage',
+          '使用',
           'privacy',
+          '隐私',
           'telemetry',
+          '遥测',
           'posthog',
           '数据',
         ],
       ),
     ],
-    body: AboutSectionBody.new,
+    body: () => const AboutSectionBody(),
     wrapInCard: false,
     collapsedByDefault: true,
   ),
@@ -271,22 +298,26 @@ List<SettingsSearchEntry> localizedSettingsRegistry(AppLocalizations l10n) {
         SettingsSearchEntry(
           descriptor: d,
           title: spec.title(l10n),
-          keywords: spec.resolveKeywords(l10n),
+          keywords: spec.resolveSearchableText(l10n),
         ),
       );
       continue;
     }
     var title = '';
-    var keywords = const <String>[];
+    var searchableText = const <String>[];
     for (final row in spec.rows) {
       if (row.rowId == d.rowId) {
         title = row.title(l10n);
-        keywords = row.keywords;
+        searchableText = row.searchableText?.call(l10n) ?? const <String>[];
         break;
       }
     }
     entries.add(
-      SettingsSearchEntry(descriptor: d, title: title, keywords: keywords),
+      SettingsSearchEntry(
+        descriptor: d,
+        title: title,
+        keywords: searchableText,
+      ),
     );
   }
   return entries;

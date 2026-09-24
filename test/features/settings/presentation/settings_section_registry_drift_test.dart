@@ -5,11 +5,14 @@
 /// ([kSettingsSectionSpecs]), and the three ARB files — there is no
 /// per-section `switch`/if-chain left to keep in sync. This test guards the
 /// cross-layer seams that remain: spec ↔ registry coverage (both directions,
-/// including rows and default-collapse flags) and per-locale title/hint
-/// resolution. The locale check reads the raw ARB files as well as the
-/// generated `AppLocalizations` classes, because zh_CN inherits missing keys
-/// from zh at runtime — a key dropped from one locale's ARB would otherwise
-/// silently fall back instead of failing here.
+/// including rows and default-collapse flags), per-locale title/hint
+/// resolution, and the const-body identity contract. The locale check reads
+/// the raw ARB files as well as the generated `AppLocalizations` classes,
+/// because zh_CN inherits missing keys from zh at runtime — a key dropped from
+/// one locale's ARB would otherwise silently fall back instead of failing
+/// here. The spec's message keys are discovered structurally by invoking each
+/// accessor on a recording `AppLocalizations`, so reformatting or rewriting
+/// the spec source cannot silently detach the test from the keys it guards.
 library;
 
 import 'dart:convert';
@@ -23,20 +26,33 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:enjoy_player/l10n/app_localizations_en.dart';
 import 'package:enjoy_player/l10n/app_localizations_zh.dart';
 
-/// The spec file's `title:`/`hint:` accessors, keyed by their ARB message
-/// name. Matches only the 4-space-indented top-level spec fields (row titles
-/// inside `rows:` are indented deeper) so the count below can be asserted
-/// against [kSettingsSectionSpecs] — if the spec file's formatting or the
-/// accessor style changes, this fails loudly instead of silently checking
-/// zero keys.
-List<String> _sectionMessageKeysFromSpecSource() {
-  final source = File(
-    'lib/features/settings/presentation/settings_section_spec.dart',
-  ).readAsStringSync();
-  return RegExp(
-    r'^    (?:title|hint): \(l10n\) => l10n\.(\w+),?$',
-    multiLine: true,
-  ).allMatches(source).map((m) => m.group(1)!).toList(growable: false);
+/// Records every l10n getter a spec accessor reads and answers `''` for each,
+/// so `title`/`hint`/`searchableText` closures can be invoked without a real
+/// locale. The recorded member names *are* the ARB message keys the spec
+/// depends on — a structural replacement for grepping the spec source, immune
+/// to reformatting.
+class _RecordingLocalizations implements AppLocalizations {
+  /// ARB message keys read so far, in invocation order (duplicates kept so
+  /// the per-spec guard below counts accesses, not distinct keys).
+  final List<String> accessed = <String>[];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    // Spec accessors only read getters; record the key and answer `''`.
+    if (invocation.isGetter) {
+      accessed.add(_symbolName(invocation.memberName));
+    }
+    return '';
+  }
+}
+
+/// `Symbol('foo').toString()` is `Symbol("foo")` on the Dart VM that
+/// `flutter test` runs on; fall back to the raw text so an unexpected format
+/// fails the ARB check visibly instead of passing a phantom key.
+String _symbolName(Symbol symbol) {
+  final text = symbol.toString();
+  final match = RegExp(r'^Symbol\("(.*)"\)$').firstMatch(text);
+  return match?.group(1) ?? text;
 }
 
 void main() {
@@ -114,6 +130,25 @@ void main() {
         );
       }
     });
+
+    test(
+      'body() returns the same canonical const widget instance per call',
+      () {
+        // `() => const XSectionBody()` closures return the canonical const
+        // instance; an `XSectionBody.new` tear-off would allocate a fresh
+        // widget per call (regression guard for the pre-spec `const` literals).
+        for (final spec in kSettingsSectionSpecs) {
+          expect(
+            identical(spec.body(), spec.body()),
+            isTrue,
+            reason:
+                '${spec.sectionId} body must be a `() => const XSectionBody()` '
+                'closure, not a constructor tear-off — tear-offs do not '
+                'preserve const, so each call would allocate a new widget',
+          );
+        }
+      },
+    );
   });
 
   group('per-locale title/hint resolution (en, zh, zh_CN)', () {
@@ -156,15 +191,32 @@ void main() {
       });
     }
 
-    test('every spec title/hint message key exists in all three ARB files', () {
-      final keys = _sectionMessageKeysFromSpecSource();
-      expect(
-        keys,
-        hasLength(2 * kSettingsSectionSpecs.length),
-        reason:
-            'expected exactly one title + one hint accessor per spec in the '
-            'spec source — the extraction regex above must cover them',
-      );
+    test('every l10n key read by the specs exists in all three ARB files', () {
+      // Discover keys structurally: invoke every l10n-reading accessor
+      // (section title/hint/searchable text, row titles/searchable text)
+      // against a recording AppLocalizations and collect the getters read.
+      final keys = <String>{};
+      for (final spec in kSettingsSectionSpecs) {
+        final rec = _RecordingLocalizations();
+        spec.title(rec);
+        spec.hint(rec);
+        spec.searchableText?.call(rec);
+        spec.resolveSearchableText(rec);
+        for (final row in spec.rows) {
+          row.title(rec);
+          row.searchableText?.call(rec);
+        }
+        expect(
+          rec.accessed.length,
+          greaterThanOrEqualTo(2),
+          reason:
+              '${spec.sectionId} title/hint accessors read fewer than two '
+              'l10n getters — spec accessors must resolve through '
+              'AppLocalizations, not literals (read: ${rec.accessed})',
+        );
+        keys.addAll(rec.accessed);
+      }
+      expect(keys, isNotEmpty);
       for (final path in [
         'lib/l10n/app_en.arb',
         'lib/l10n/app_zh.arb',
@@ -172,18 +224,67 @@ void main() {
       ]) {
         final arb =
             json.decode(File(path).readAsStringSync()) as Map<String, dynamic>;
-        for (final key in keys) {
+        final missing = <String>[
+          for (final key in keys)
+            if (arb[key] is! String || (arb[key] as String).isEmpty) key,
+        ];
+        expect(
+          missing,
+          isEmpty,
+          reason:
+              '$path is missing (or has an empty value for) spec message '
+              'keys: $missing',
+        );
+      }
+    });
+
+    test('row search tokens are bilingual and thread into zh search', () {
+      // Row searchableText is locale-resolved (a function of l10n): zh
+      // users must find rows via tokens their titles never contain.
+      final zhLocales = <String, AppLocalizations>{
+        'zh': AppLocalizationsZh(),
+        'zh_CN': AppLocalizationsZhCn(),
+      };
+      const zhTokensByRow = <String, List<String>>{
+        'micPicker': ['麦克风'],
+        'contact': ['邮件', '微信', '反馈'],
+        'analyticsCapture': ['数据', '遥测', '分析'],
+      };
+      final rowSpecs = {
+        for (final spec in kSettingsSectionSpecs)
+          for (final row in spec.rows) row.rowId: row,
+      };
+      for (final entry in zhLocales.entries) {
+        final l10n = entry.value;
+        for (final rowId in zhTokensByRow.keys) {
+          final row = rowSpecs[rowId];
+          expect(row, isNotNull, reason: 'row "$rowId" missing from specs');
+          final tokens = row!.searchableText?.call(l10n);
           expect(
-            arb.containsKey(key),
-            isTrue,
-            reason: '$path is missing the section message "$key"',
+            tokens,
+            isNotNull,
+            reason:
+                '${entry.key} row "$rowId" must define searchableText with '
+                'zh tokens',
           );
           expect(
-            arb[key],
-            isNotEmpty,
-            reason: '$path has an empty section message "$key"',
+            tokens,
+            containsAll(zhTokensByRow[rowId]!),
+            reason: '${entry.key} searchableText for row "$rowId"',
           );
         }
+        // "邮件" appears in no zh title (the contact title is 联系开发者),
+        // so this only passes if row tokens thread through
+        // localizedSettingsRegistry into filterSettingsEntries.
+        final matched = filterSettingsEntries(
+          '邮件',
+          localizedSettingsRegistry(l10n),
+        );
+        expect(
+          matched.map((e) => e.rowId),
+          contains('contact'),
+          reason: 'zh query "邮件" must find the contact row in ${entry.key}',
+        );
       }
     });
   });
