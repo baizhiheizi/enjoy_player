@@ -19,6 +19,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -91,20 +92,31 @@ sealed class SyncQueueJob {
       action == SyncAction.create || action == SyncAction.update,
       'Upsert snapshots are create/update only; use deleteFor',
     );
+    // Audio/video arms cross the MediaRegistry seam (issue #753): a
+    // kind-known read for the snapshot, then the flip through the registry's
+    // typed upsert (`syncStatus → pending` is a one-field insert-or-replace,
+    // exactly what `upsertAudio` / `upsertVideo` dispatch). Chosen over a
+    // third documented bypass (the `SyncUploadService` rationale): that
+    // service stamps several server-acked fields per entity type, whereas
+    // these two arms are straight-through kind-known read + replace where the
+    // registry detour re-branches nothing. Non-media arms (recording,
+    // vocabulary, subscriptions) stay on their own DAOs — the registry spans
+    // only `videos` / `audios`.
+    final registry = MediaRegistry(db);
     switch (type) {
       case SyncEntityType.audio:
-        final row = await db.audioDao.getById(id);
+        final row = await registry.getAudioById(id);
         if (row == null) return null;
         final job = SyncAudioUpsert.snapshot(row, action: action);
-        await db.audioDao.insertRow(
+        await registry.upsertAudio(
           row.copyWith(syncStatus: const Value('pending')),
         );
         return job;
       case SyncEntityType.video:
-        final row = await db.videoDao.getById(id);
+        final row = await registry.getVideoById(id);
         if (row == null) return null;
         final job = SyncVideoUpsert.snapshot(row, action: action);
-        await db.videoDao.insertRow(
+        await registry.upsertVideo(
           row.copyWith(syncStatus: const Value('pending')),
         );
         return job;
