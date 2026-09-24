@@ -40,6 +40,7 @@ import 'package:enjoy_player/features/player/application/player_engine_capabilit
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
+import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
 import 'package:enjoy_player/features/player/domain/playable_source.dart';
 
 final _swapLog = logNamed('EngineSwapCoordinator');
@@ -162,12 +163,22 @@ class EngineSwapCoordinator {
   /// so [PlayerSurfaceHost] can mount `Video` before decode starts. Creating
   /// [VideoController] with no [Video] widget binds a native texture that
   /// stays black on Windows/Android until a later layout.
+  ///
+  /// After-await staleness delegates to the choreography's shared
+  /// [OpenSteps] mechanism (issue #750): each guarded step disposes the
+  /// not-yet-live replacement through `onSuperseded` and unwinds with
+  /// [OpenSupersededException], which this method translates back into the
+  /// `false` = "no swap landed" contract.
   Future<bool> ensureEngineForPlayableSource({
     required PlayableSource playable,
     required int openGeneration,
   }) async {
     if (ref.read(playerEngineTestDoubleProvider) != null) return false;
-    if (_currentOpenGeneration() != openGeneration) return false;
+    final steps = OpenSteps(
+      isStale: () => _currentOpenGeneration() != openGeneration,
+      logWarning: _swapLog.warning,
+    );
+    if (steps.isStale()) return false;
 
     final wantYt = playable is YoutubePlayableSource;
     final owned = _getOwnedEngine();
@@ -183,27 +194,35 @@ class EngineSwapCoordinator {
     if (wantYt && youTubeEngineOptedOutHere) return false;
 
     if (owned != null && haveYt == wantYt) return false;
-    if (_currentOpenGeneration() != openGeneration) return false;
+    if (steps.isStale()) return false;
 
     final next = wantYt ? YoutubePlayerEngine() : MediaKitPlayerEngine();
     install(next);
     // Let PlayerSurfaceHost drop the old ObjectKey stage before teardown.
     // MediaKit must not allocate [Player] yet — [prepareNativeBackend] runs
     // only after the prior surface has detached.
-    await Future<void>.delayed(Duration.zero);
-    if (_currentOpenGeneration() != openGeneration) {
-      await next.dispose();
+    try {
+      await steps.run(
+        'yield to surface host',
+        () => Future<void>.delayed(Duration.zero),
+        onSuperseded: () => next.dispose(),
+      );
+    } on OpenSupersededException {
       return false;
     }
     if (owned != null) {
-      await awaitPriorSurfaceSettled(owned);
-      if (_currentOpenGeneration() != openGeneration) {
-        await next.dispose();
+      try {
+        await steps.run(
+          'await prior surface detach',
+          () => awaitPriorSurfaceSettled(owned),
+          onSuperseded: () => next.dispose(),
+        );
+      } on OpenSupersededException {
         return false;
       }
       discardWithoutAwaiting(owned);
     }
-    if (_currentOpenGeneration() != openGeneration) {
+    if (steps.isStale()) {
       await next.dispose();
       return false;
     }
@@ -244,6 +263,15 @@ class EngineSwapCoordinator {
     required Duration openTimeout,
     required Duration engineCommandTimeout,
   }) async {
+    // The open attempts keep their explicit `.timeout` ladder (a timeout here
+    // drives the retry, it is not a swallowed wedge), but the staleness query
+    // delegates to the shared guarded-step mechanism (issue #750). The caller
+    // guards the return, which is what stops the engine when this open is
+    // superseded after a successful open.
+    final steps = OpenSteps(
+      isStale: () => _currentOpenGeneration() != openGeneration,
+      logWarning: _swapLog.warning,
+    );
     final firstTimeout = swappedAfterInstall
         ? engineCommandTimeout
         : openTimeout;
@@ -255,7 +283,7 @@ class EngineSwapCoordinator {
         '(${engine.runtimeType}); retrying once',
       );
       await replaceWedgedLocalEngine();
-      if (_currentOpenGeneration() != openGeneration) return;
+      if (steps.isStale()) return;
       final retryEngine = _getActiveEngine();
       try {
         await retryEngine.open(playable).timeout(openTimeout);
