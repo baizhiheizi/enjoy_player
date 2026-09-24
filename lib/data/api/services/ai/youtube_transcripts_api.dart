@@ -126,8 +126,9 @@ class YoutubeTranscriptsApi extends RestApi
         // The worker treats a replayed upload as idempotent and replies 409
         // when the transcript is already cached. Without this branch the
         // generic exception swallow turns a successful replay into `false`,
-        // the durable retry stays queued, and after 5 attempts the row is
-        // marked permanently failed even though the worker already has the
+        // the durable retry stays queued, and once the sync retry threshold
+        // (`SyncRetryPolicy.maxRetries`) is reached the row is marked
+        // permanently failed even though the worker already has the
         // transcript.
         if (e.statusCode == 409) {
           _log.info(

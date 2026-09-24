@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 
 /// Live counts + capped rows for sync status UI.
 final class SyncQueueSnapshot {
@@ -15,10 +16,12 @@ final class SyncQueueSnapshot {
     required this.detailRows,
   });
 
-  /// Rows still eligible for retry (`retryCount < 5`).
+  /// Rows still eligible for retry — `retryCount` below
+  /// [SyncRetryPolicy.maxRetries].
   final int retryablePending;
 
-  /// Exhausted retries (`retryCount >= 5`).
+  /// Exhausted retries — `retryCount` at
+  /// [SyncRetryPolicy.sentinel] ([SyncRetryPolicy.maxRetries]).
   final int permanentlyFailed;
 
   /// Oldest-first subset for expandable UI (capped).
@@ -28,9 +31,16 @@ final class SyncQueueSnapshot {
 }
 
 class SyncQueueRepository {
-  SyncQueueRepository(this._db);
+  /// [retryPolicy] supplies the threshold/sentinel every predicate below
+  /// derives from (issue #752); tests may inject one with a fake clock.
+  SyncQueueRepository(this._db, {SyncRetryPolicy? retryPolicy})
+    : _retryPolicy = retryPolicy ?? SyncRetryPolicy();
 
   final AppDatabase _db;
+
+  /// Single source of the "permanently failed" threshold this repository's
+  /// Drift predicates and sentinel are written against.
+  final SyncRetryPolicy _retryPolicy;
 
   /// Typed enqueue seam (issue #718): persists [job]'s wire columns with the
   /// same dedup / failed-state-preservation contract as [addOrUpsert].
@@ -104,10 +114,13 @@ class SyncQueueRepository {
         );
   });
 
-  /// Rows that may still be retried (`retryCount < 5`), oldest first.
+  /// Rows that may still be retried — `retryCount` below
+  /// [SyncRetryPolicy.maxRetries], oldest first.
   Future<List<SyncQueueRow>> pendingItems({int limit = 500}) {
     return (_db.select(_db.syncQueue)
-          ..where((t) => t.retryCount.isSmallerThanValue(5))
+          ..where(
+            (t) => t.retryCount.isSmallerThanValue(_retryPolicy.maxRetries),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
           ..limit(limit))
         .get();
@@ -119,7 +132,7 @@ class SyncQueueRepository {
       var retryable = 0;
       var failed = 0;
       for (final r in rows) {
-        if (r.retryCount >= 5) {
+        if (_retryPolicy.isPermanentlyFailed(r.retryCount)) {
           failed++;
         } else {
           retryable++;
@@ -166,8 +179,16 @@ class SyncQueueRepository {
   Future<void> markAttempted(int id, {String? error}) =>
       _db.syncQueueDao.markAttempted(id, error: error);
 
+  /// Marks the row permanently failed by writing the policy's
+  /// [SyncRetryPolicy.sentinel] (== [SyncRetryPolicy.maxRetries]) as its
+  /// `retryCount`, so it agrees with [pendingItems] / [watchSnapshot] /
+  /// [resetFailed] by construction (issue #752).
   Future<void> markPermanentlyFailed(int id, {String? error}) =>
-      _db.syncQueueDao.markPermanentlyFailed(id, error: error);
+      _db.syncQueueDao.markPermanentlyFailed(
+        id,
+        sentinelRetryCount: _retryPolicy.sentinel,
+        error: error,
+      );
 
   /// Clears error state for permanently failed items so they retry again.
   ///
@@ -176,19 +197,24 @@ class SyncQueueRepository {
     final failed =
         await (_db.selectOnly(_db.syncQueue)
               ..addColumns([_db.syncQueue.id.count()])
-              ..where(_db.syncQueue.retryCount.isBiggerOrEqualValue(5)))
+              ..where(
+                _db.syncQueue.retryCount.isBiggerOrEqualValue(
+                  _retryPolicy.maxRetries,
+                ),
+              ))
             .map((row) => row.read<int>(_db.syncQueue.id.count()) ?? 0)
             .getSingle();
     if (failed == 0) return 0;
-    await (_db.update(
-      _db.syncQueue,
-    )..where((t) => t.retryCount.isBiggerOrEqualValue(5))).write(
-      const SyncQueueCompanion(
-        retryCount: Value(0),
-        error: Value(null),
-        lastAttempt: Value(null),
-      ),
-    );
+    await (_db.update(_db.syncQueue)..where(
+          (t) => t.retryCount.isBiggerOrEqualValue(_retryPolicy.maxRetries),
+        ))
+        .write(
+          const SyncQueueCompanion(
+            retryCount: Value(0),
+            error: Value(null),
+            lastAttempt: Value(null),
+          ),
+        );
     return failed;
   }
 }

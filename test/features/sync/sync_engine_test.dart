@@ -1,5 +1,6 @@
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/application/sync_engine.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 SyncQueueRow _row({
@@ -48,19 +49,40 @@ void main() {
   });
 
   group('shouldRetryQueueItem', () {
+    // Fixed wall clock: the decision reads the policy's injected now, so
+    // these cases no longer fabricate lastAttempt values around the real
+    // clock (issue #752).
+    final fakeNow = DateTime.utc(2030, 6, 1);
+    final policy = SyncRetryPolicy(now: () => fakeNow);
+
     test('allows first attempt when lastAttempt is null', () {
-      expect(shouldRetryQueueItem(_row(id: 1)), isTrue);
+      expect(shouldRetryQueueItem(_row(id: 1), policy), isTrue);
     });
 
-    test('blocks permanently failed rows (retryCount >= 5)', () {
-      expect(shouldRetryQueueItem(_row(id: 1, retryCount: 5)), isFalse);
+    test('blocks permanently failed rows (retryCount >= maxRetries)', () {
+      expect(
+        shouldRetryQueueItem(
+          _row(id: 1, retryCount: policy.maxRetries),
+          policy,
+        ),
+        isFalse,
+      );
+      expect(
+        shouldRetryQueueItem(
+          _row(id: 1, retryCount: policy.maxRetries - 1),
+          policy,
+        ),
+        isTrue,
+      );
     });
 
     test('applies exponential backoff from lastAttempt', () {
-      final now = DateTime.now();
-      // retryCount 1 → delay 2000 ms
+      // retryCount 1 → delay 2000 ms.
       expect(
-        shouldRetryQueueItem(_row(id: 1, retryCount: 1, lastAttempt: now)),
+        shouldRetryQueueItem(
+          _row(id: 1, retryCount: 1, lastAttempt: fakeNow),
+          policy,
+        ),
         isFalse,
       );
       expect(
@@ -68,23 +90,50 @@ void main() {
           _row(
             id: 1,
             retryCount: 1,
-            lastAttempt: now.subtract(const Duration(seconds: 3)),
+            lastAttempt: fakeNow.subtract(const Duration(seconds: 3)),
           ),
+          policy,
         ),
         isTrue,
       );
     });
 
+    test('elapsed == delayMs exactly is eligible', () {
+      // retryCount 1 → delay 2000 ms; exactly 2000 ms elapsed passes.
+      expect(
+        shouldRetryQueueItem(
+          _row(
+            id: 1,
+            retryCount: 1,
+            lastAttempt: fakeNow.subtract(const Duration(milliseconds: 2000)),
+          ),
+          policy,
+        ),
+        isTrue,
+      );
+      expect(
+        shouldRetryQueueItem(
+          _row(
+            id: 1,
+            retryCount: 1,
+            lastAttempt: fakeNow.subtract(const Duration(milliseconds: 1999)),
+          ),
+          policy,
+        ),
+        isFalse,
+      );
+    });
+
     test('backoff doubles with each retryCount', () {
-      final now = DateTime.now();
-      // retryCount 2 → delay 4000 ms
+      // retryCount 2 → delay 4000 ms.
       expect(
         shouldRetryQueueItem(
           _row(
             id: 1,
             retryCount: 2,
-            lastAttempt: now.subtract(const Duration(seconds: 3)),
+            lastAttempt: fakeNow.subtract(const Duration(seconds: 3)),
           ),
+          policy,
         ),
         isFalse,
       );
@@ -93,8 +142,9 @@ void main() {
           _row(
             id: 1,
             retryCount: 2,
-            lastAttempt: now.subtract(const Duration(seconds: 5)),
+            lastAttempt: fakeNow.subtract(const Duration(seconds: 5)),
           ),
+          policy,
         ),
         isTrue,
       );

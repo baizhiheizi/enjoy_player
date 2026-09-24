@@ -1,9 +1,11 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late AppDatabase db;
+  final policy = SyncRetryPolicy();
 
   setUp(() {
     db = AppDatabase(executor: NativeDatabase.memory());
@@ -91,20 +93,31 @@ void main() {
       expect(await db.syncQueueDao.peekBatch(), isEmpty);
     });
 
-    test('markPermanentlyFailed sets retryCount to 5', () async {
-      final id = await db.syncQueueDao.enqueue(
-        entityType: 'a',
-        entityId: '1',
-        action: 'upsert',
-      );
-      await db.syncQueueDao.markPermanentlyFailed(id, error: 'fatal');
-      final batch = await db.syncQueueDao.peekBatch();
-      expect(batch.single.retryCount, 5);
-      expect(batch.single.error, 'fatal');
-    });
+    test(
+      'markPermanentlyFailed sets retryCount to the policy sentinel',
+      () async {
+        final id = await db.syncQueueDao.enqueue(
+          entityType: 'a',
+          entityId: '1',
+          action: 'upsert',
+        );
+        await db.syncQueueDao.markPermanentlyFailed(
+          id,
+          sentinelRetryCount: policy.sentinel,
+          error: 'fatal',
+        );
+        final batch = await db.syncQueueDao.peekBatch();
+        expect(batch.single.retryCount, policy.sentinel);
+        expect(batch.single.retryCount, policy.maxRetries);
+        expect(batch.single.error, 'fatal');
+      },
+    );
 
     test('markPermanentlyFailed on missing id is a no-op', () async {
-      await db.syncQueueDao.markPermanentlyFailed(99999);
+      await db.syncQueueDao.markPermanentlyFailed(
+        99999,
+        sentinelRetryCount: policy.sentinel,
+      );
       expect(await db.syncQueueDao.peekBatch(), isEmpty);
     });
 

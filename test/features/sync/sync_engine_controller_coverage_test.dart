@@ -25,6 +25,7 @@ import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 // ---------------------------------------------------------------------------
@@ -276,7 +277,7 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Insert a permanently failed row (retryCount=5).
+      // Insert a permanently failed row (retryCount == policy sentinel).
       final id = await queue.addOrUpsert(
         entityType: 'video',
         entityId: 'v-reset',
@@ -287,7 +288,7 @@ void main() {
       var row = await (db.select(
         db.syncQueue,
       )..where((t) => t.id.equals(id))).getSingle();
-      expect(row.retryCount, 5);
+      expect(row.retryCount, SyncRetryPolicy().sentinel);
 
       final engine = _buildEngine(db, _permissiveMock());
       final result = await engine.processQueue(
@@ -1251,12 +1252,12 @@ void main() {
 
       expect(result.success, isFalse);
       expect(result.failed, 1);
-      // Row should be permanently failed (retryCount=5).
+      // Row should be permanently failed (retryCount == policy sentinel).
       final pending = await queue.pendingItems();
-      expect(pending, isEmpty); // retryCount >= 5 excluded from pendingItems
+      expect(pending, isEmpty); // sentinel rows are excluded from pendingItems
       final allRows = await db.select(db.syncQueue).get();
       expect(allRows, hasLength(1));
-      expect(allRows.first.retryCount, 5);
+      expect(allRows.first.retryCount, SyncRetryPolicy().sentinel);
       expect(allRows.first.error, contains('SyncDuplicateMissingError'));
     });
 
