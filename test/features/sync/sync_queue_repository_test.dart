@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -45,6 +46,7 @@ void main() {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       final repo = SyncQueueRepository(db);
+      final policy = SyncRetryPolicy();
 
       final id = await repo.addOrUpsert(
         entityType: 'audio',
@@ -52,7 +54,7 @@ void main() {
         action: 'create',
         payloadJson: '{"x":1}',
       );
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < policy.maxRetries; i++) {
         await db.syncQueueDao.markAttempted(id, error: 'fail $i');
       }
 
@@ -68,7 +70,7 @@ void main() {
         db.syncQueue,
       )..where((t) => t.id.equals(id))).getSingle();
       expect(row.payloadJson, '{"x":2}');
-      expect(row.retryCount, 5);
+      expect(row.retryCount, policy.maxRetries);
       expect(row.error, 'fail 4');
     },
   );
@@ -79,6 +81,7 @@ void main() {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       final repo = SyncQueueRepository(db);
+      final policy = SyncRetryPolicy();
 
       final id = await repo.addOrUpsert(
         entityType: 'audio',
@@ -86,7 +89,7 @@ void main() {
         action: 'create',
         payloadJson: '{"x":1}',
       );
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < policy.maxRetries; i++) {
         await db.syncQueueDao.markAttempted(id, error: 'fail');
       }
 
@@ -204,7 +207,7 @@ void main() {
       action: 'create',
     );
     await db.syncQueueDao.markAttempted(retryableId, error: 'once');
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < SyncRetryPolicy().maxRetries; i++) {
       await db.syncQueueDao.markAttempted(failedId, error: 'fail');
     }
 

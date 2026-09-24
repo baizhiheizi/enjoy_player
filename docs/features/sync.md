@@ -35,7 +35,7 @@ Local file fingerprints use the same **partial SHA-256** strategy as the Enjoy w
 
 **Settings → Cloud sync → Sync status** opens a screen that:
 
-- Streams live counts from the local `sync_queue` table (**waiting to upload** vs **failed permanently** after max retries).
+- Streams live counts from the local `sync_queue` table (**waiting to upload** vs **failed permanently** after hitting the [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart) threshold).
 - Shows **last successful full sync** time (stored in settings KV as `sync.last_full_sync_at` after a successful `fullSync`).
 - Offers **Sync now** (queue processing only) and **Retry failed items** (resets exhausted rows then runs `fullSync`).
 
@@ -46,6 +46,14 @@ When signed out, the sync screen explains that sign-in is required and links to 
 - Signing in schedules [`SyncEngine.fullSync`](../../lib/features/sync/application/sync_engine.dart) via [`SyncCtrl`](../../lib/features/sync/application/sync_controller.dart) on the **first frame after** auth transitions to signed-in (`addPostFrameCallback`).
 - While signed in, queue drain repeats on a **5-minute** timer.
 - Library import/delete and shadow-reading recording save/delete call [`syncEnqueueProvider`](../../lib/features/sync/application/sync_providers.dart).
+
+## Retry policy (issue #752)
+
+Every "permanently failed" decision derives from one module — [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart):
+
+- **Threshold**: a row is permanently failed once `retryCount >= maxRetries` (behavior-preserving default: **5 attempts**). The value written by `SyncQueueDao.markPermanentlyFailed` is `policy.maxRetries`, received as the DAO's `retryLimit` method parameter so `lib/data/db` never imports `lib/features`.
+- **Backoff**: `baseDelayMs × 2^retryCount` (behavior-preserving default base: **1000 ms**) measured against an injectable wall clock (`DateTime Function()`), so tests pin time deterministically instead of sleeping past real windows (same seam as `YouTubePlayRetryPolicy`).
+- **Consumers**: `SyncRetryPolicy.shouldRetry` (the full decision), the drain's backoff filter in `SyncEngine._drainOnce`, `SyncQueueRepository.pendingItems` / `watchSnapshot` / `resetFailed` (both the Dart predicate and the SQL clauses derive from the policy), and the DAO `retryLimit` all read the same policy. The drain path applies the threshold exactly once — in `pendingItems` (SQL) — plus the in-memory backoff filter; there is no second threshold check.
 
 ## Typed enqueue seam (issue #718)
 

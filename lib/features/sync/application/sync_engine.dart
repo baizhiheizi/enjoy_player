@@ -1,5 +1,4 @@
-/// Coordinates download + upload queue processing.
-library;
+// Coordinates download + upload queue processing.
 
 import 'dart:async';
 
@@ -10,20 +9,10 @@ import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
 import 'package:enjoy_player/features/sync/domain/sync_queue_job.dart';
+import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 final _log = logNamed('sync');
-
-const int _kMaxRetries = 5;
-const int _kRetryBaseMs = 1000;
-
-bool shouldRetryQueueItem(SyncQueueRow item) {
-  if (item.retryCount >= _kMaxRetries) return false;
-  if (item.lastAttempt == null) return true;
-  final delayMs = _kRetryBaseMs * (1 << item.retryCount);
-  final elapsed = DateTime.now().difference(item.lastAttempt!).inMilliseconds;
-  return elapsed >= delayMs;
-}
 
 /// Prefer deletes before creates/updates for the same entity so a
 /// delete-then-reimport cannot race cloud DELETE with POST.
@@ -55,13 +44,18 @@ class SyncEngine {
     required this._upload,
     required this._download,
     required this._youtubeTranscripts,
-  });
+    SyncRetryPolicy? retryPolicy,
+  }) : _retryPolicy = retryPolicy ?? SyncRetryPolicy();
 
   final AppDatabase _db;
   final SyncQueueRepository _queue;
   final SyncUploadService _upload;
   final SyncDownloadService _download;
   final YoutubeTranscriptsClient _youtubeTranscripts;
+
+  /// Threshold, backoff, and clock for every retry decision in the drain
+  /// (issue #752). Injectable so tests can pin wall time.
+  final SyncRetryPolicy _retryPolicy;
 
   Completer<SyncResult>? _drainGate;
   var _drainAgain = false;
@@ -139,10 +133,14 @@ class SyncEngine {
       }
     }
 
+    // One threshold filter + one backoff filter on this path: pendingItems
+    // already excludes permanently failed rows (policy threshold, SQL), so
+    // the in-memory filter is backoff-only — the old helper's dead threshold
+    // re-check is gone (issue #752).
     final pending = await _queue.pendingItems();
     final work = pending
         .where((row) => SyncEntityTypeWire.tryParse(row.entityType) != null)
-        .where(shouldRetryQueueItem)
+        .where(_retryPolicy.backoffElapsed)
         .toList();
     sortSyncQueueWork(work);
 
@@ -306,7 +304,8 @@ class SyncEngine {
   /// (409 == success), so re-running a partially-applied upload is safe.
   ///
   /// A `false`/thrown upload re-enters `_processOne`'s generic failure path
-  /// (markAttempted + 5-strike exponential backoff) by throwing. A malformed
+  /// (markAttempted + [SyncRetryPolicy] exponential backoff, up to
+  /// [SyncRetryPolicy.maxRetries] strikes) by throwing. A malformed
   /// payload never reaches here — [SyncQueueJob.decode] refuses it and
   /// `_processOne` drops the row.
   Future<bool> _retryYoutubeWorkerUpload(

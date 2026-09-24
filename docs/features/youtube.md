@@ -52,7 +52,8 @@ timed text) and cached on the worker. The chain has three tiers:
    `videoId/language` so repeated failures refresh one row) and re-uploaded by
    the [SyncCtrl] periodic drain — `SyncEngine` dispatches the payload to
    `YoutubeTranscriptsClient.uploadTranscript` (issue #717), with the queue's
-   regular 5-strike retry backoff on continued failure. See
+   regular [`SyncRetryPolicy`](../../lib/features/sync/domain/sync_retry_policy.dart)
+   exponential backoff on continued failure (issue #752). See
    [`transcript_repository.dart`](../../lib/features/transcript/data/transcript_repository.dart).
 
 **Tier 2 always runs for YouTube rows**, even when `videos.language` is empty
