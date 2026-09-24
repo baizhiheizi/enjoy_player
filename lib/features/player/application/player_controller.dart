@@ -7,6 +7,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/completion_loop.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
@@ -25,24 +26,30 @@ import 'package:enjoy_player/features/player/domain/echo_window.dart';
 import 'package:enjoy_player/features/player/domain/open_media_options.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/player/domain/player_launch_request.dart';
+import 'package:enjoy_player/features/player/domain/playable_source.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'open_media_provider.dart';
 import 'playback_session_persister.dart';
+import 'player_open_side_effects.dart';
+import 'video_poster_capture_service.dart';
 
 part 'player_controller.g.dart';
 
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
 /// Mirrors the generation-counter + single-flight pattern from
-/// [SingleFlightGate]: the transport drives itself off
-/// `await`ed completion futures instead of polling the position stream, and
-/// every in-flight await captures a generation id so a stale completion from a
-/// previous media (or a duplicate `completed` event from mpv) is a no-op.
+/// [SingleFlightGate]: the transport drives itself off `await`ed completion
+/// futures instead of polling the position stream, and every in-flight await
+/// captures a generation id so a stale completion from a previous media (or a
+/// duplicate `completed` event from mpv) is a no-op.
 @Riverpod(keepAlive: true)
-class PlayerController extends _$PlayerController implements PlayerOpenHost {
+class PlayerController extends _$PlayerController implements PlayerOpenScope {
   /// Real engine (null until first open, or [PlayerEngine] tests override).
-  PlayerEngine? _ownedEngine;
+  /// Presentation and tests reach it directly; the open scope deliberately
+  /// does not (issue #750 narrowed it to two swap operations; issue #751 will
+  /// revisit engine identity separately).
+  PlayerEngine? ownedEngine;
 
   late final PlayerPositionTracker _positionTracker = PlayerPositionTracker(
     ref: ref,
@@ -66,8 +73,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
   /// when idle) stays in the controller.
   late final EngineSwapCoordinator _engineSwap = EngineSwapCoordinator(
     ref: ref,
-    getOwnedEngine: () => _ownedEngine,
-    setOwnedEngine: (next) => _ownedEngine = next,
+    getOwnedEngine: () => ownedEngine,
+    setOwnedEngine: (next) => ownedEngine = next,
     getActiveEngine: () => activeEngine,
     currentOpenGeneration: () => _openGate.generation,
     abandonPendingOpen: abandonPendingOpen,
@@ -104,38 +111,97 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
   bool isOpenStale(int gen) => _openGate.isStale(gen);
 
   @override
-  PlayerEngine? get ownedEngine => _ownedEngine;
-
-  @override
-  set ownedEngine(PlayerEngine? engine) => _ownedEngine = engine;
-
-  @override
   PlaybackSession? get session => state;
 
   @override
-  set session(PlaybackSession? next) => state = next;
+  void publishSession(PlaybackSession? next) => state = next;
 
   @override
   PlayerPositionTracker get positionTracker => _positionTracker;
 
+  /// The single dependency channel of the open scope (issue #750): captured
+  /// lazily on first open so headless tests never touch providers they do
+  /// not use. The two scheduler closures bind this controller's own `Ref`,
+  /// which is what keeps raw `Ref` out of the choreography body.
   @override
-  EngineSwapCoordinator get engineSwap => _engineSwap;
+  late final PlayerOpenDeps deps = PlayerOpenDeps(
+    persister: ref.read(playbackSessionPersisterProvider),
+    db: ref.read(appDatabaseProvider),
+    preferences: ref.read(playerPreferencesCtrlProvider.notifier),
+    echoMode: ref.read(echoModeProvider.notifier),
+    blurMode: ref.read(transcriptBlurModeProvider.notifier),
+    posterService: ref.read(videoPosterCaptureServiceProvider),
+    scheduleOpenSideEffects:
+        ({
+          required int openGeneration,
+          required String mediaId,
+          required String dexieTargetType,
+        }) => schedulePlayerOpenSideEffects(
+          ref,
+          openGeneration: openGeneration,
+          isStale: () => isOpenStale(openGeneration),
+          mediaId: mediaId,
+          dexieTargetType: dexieTargetType,
+        ),
+    scheduleYoutubeMetadata:
+        ({
+          required int openGeneration,
+          required String mediaId,
+          required PlayerEngine engine,
+        }) => scheduleYoutubeMetadataRefresh(
+          ref,
+          mediaId: mediaId,
+          openGeneration: openGeneration,
+          engine: engine,
+          currentOpenGeneration: () => this.openGeneration,
+          currentSessionMediaId: () => state?.mediaId,
+        ),
+  );
+
+  /// Engine-swap access for the open scope is exactly the two operations the
+  /// choreography uses (issue #750); the swap itself stays owned by
+  /// [EngineSwapCoordinator] (issue #720).
+  @override
+  Future<bool> ensureEngineForPlayableSource({
+    required PlayableSource playable,
+    required int openGeneration,
+  }) => _engineSwap.ensureEngineForPlayableSource(
+    playable: playable,
+    openGeneration: openGeneration,
+  );
+
+  @override
+  Future<void> openEngineWithRetry({
+    required PlayerEngine engine,
+    required PlayableSource playable,
+    required int openGeneration,
+    required bool swappedAfterInstall,
+    required Duration openTimeout,
+    required Duration engineCommandTimeout,
+  }) => _engineSwap.openEngineWithRetry(
+    engine: engine,
+    playable: playable,
+    openGeneration: openGeneration,
+    swappedAfterInstall: swappedAfterInstall,
+    openTimeout: openTimeout,
+    engineCommandTimeout: engineCommandTimeout,
+  );
 
   @override
   PlayerEngine get activeEngine {
     final testDouble = ref.read(playerEngineTestDoubleProvider);
     if (testDouble != null) return testDouble;
     _ensureDefaultMediaKitEngine();
-    return _ownedEngine!;
+    return ownedEngine!;
   }
 
   /// Allocates [MediaKitPlayerEngine] once when local/URL playback needs it.
   /// Kept out of [build] so YouTube-only opens and headless tests avoid
   /// [MediaKit.ensureInitialized] until a non-YouTube engine is required.
   void _ensureDefaultMediaKitEngine() {
-    if (_ownedEngine != null) return;
+    if (ownedEngine != null) return;
     if (ref.read(playerEngineTestDoubleProvider) != null) return;
-    _ownedEngine = MediaKitPlayerEngine();
+    ownedEngine = MediaKitPlayerEngine();
     // Host watches [playerEngineRevProvider], not ownedEngine. Defer the bump
     // so we never notify during another provider's build.
     unawaited(
@@ -172,7 +238,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     _completionLoop.bump();
     persister.cancel();
     await _positionTracker.cancel();
-    await _ownedEngine?.dispose();
+    await ownedEngine?.dispose();
   }
 
   Future<void> relocateAndOpen(String mediaId, XFile picked) async {
@@ -213,7 +279,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     try {
       await runPlayerOpenGuarded(
         this,
-        ref,
         mediaId,
         options: options,
         onFailureResetSession: () {
@@ -329,12 +394,12 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     // Issue #657: warming is best-effort pre-work for a *possible* YouTube
     // open, so it must never disturb a live engine. Disposing MediaKit outside
     // the open path wedges the native mpv event pump (every later open then
-    // hangs on the loading skeleton), and swapping `_ownedEngine` while an open
+    // hangs on the loading skeleton), and swapping `ownedEngine` while an open
     // is in flight replaces the engine that open is about to drive — without
     // generation coordination there is nothing to undo it.
     if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
 
-    final owned = _ownedEngine;
+    final owned = ownedEngine;
     if (owned != null && owned is YoutubePlaybackEngine) {
       owned.warmVideoSurface();
       return;
@@ -355,7 +420,7 @@ class PlayerController extends _$PlayerController implements PlayerOpenHost {
     // speculative warm must not be able to dispose an engine even if the
     // guards above rot.
     _engineSwap.install(YoutubePlayerEngine());
-    _ownedEngine!.warmVideoSurface();
+    ownedEngine!.warmVideoSurface();
   }
 
   void abandonPendingOpen() {

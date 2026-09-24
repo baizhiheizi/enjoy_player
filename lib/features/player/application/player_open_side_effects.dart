@@ -92,7 +92,7 @@ Future<void> _runRecordingPull(
 /// Lazy oEmbed retry after YouTube WebView reports playback-ready.
 ///
 /// [engine] is the live playback engine and the freshness callbacks read the
-/// controller's state — both captured by the caller from the [PlayerOpenHost],
+/// controller's state — both captured by the caller from the [PlayerOpenScope],
 /// never via `ref.read(playerControllerProvider...)`: this runs on the
 /// controller's own [Ref], and Riverpod asserts "A provider cannot depend on
 /// itself" when a provider reads itself (issue #676).

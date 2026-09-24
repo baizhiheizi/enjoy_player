@@ -11,10 +11,10 @@ part of 'player_controller.dart';
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
 /// Mirrors the generation-counter + single-flight pattern from
-/// [SingleFlightGate]: the transport drives itself off
-/// `await`ed completion futures instead of polling the position stream, and
-/// every in-flight await captures a generation id so a stale completion from a
-/// previous media (or a duplicate `completed` event from mpv) is a no-op.
+/// [SingleFlightGate]: the transport drives itself off `await`ed completion
+/// futures instead of polling the position stream, and every in-flight await
+/// captures a generation id so a stale completion from a previous media (or a
+/// duplicate `completed` event from mpv) is a no-op.
 
 @ProviderFor(PlayerController)
 final playerControllerProvider = PlayerControllerProvider._();
@@ -22,19 +22,19 @@ final playerControllerProvider = PlayerControllerProvider._();
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
 /// Mirrors the generation-counter + single-flight pattern from
-/// [SingleFlightGate]: the transport drives itself off
-/// `await`ed completion futures instead of polling the position stream, and
-/// every in-flight await captures a generation id so a stale completion from a
-/// previous media (or a duplicate `completed` event from mpv) is a no-op.
+/// [SingleFlightGate]: the transport drives itself off `await`ed completion
+/// futures instead of polling the position stream, and every in-flight await
+/// captures a generation id so a stale completion from a previous media (or a
+/// duplicate `completed` event from mpv) is a no-op.
 final class PlayerControllerProvider
     extends $NotifierProvider<PlayerController, PlaybackSession?> {
   /// Deterministic end-of-media completion loop (ADR-0044).
   ///
   /// Mirrors the generation-counter + single-flight pattern from
-  /// [SingleFlightGate]: the transport drives itself off
-  /// `await`ed completion futures instead of polling the position stream, and
-  /// every in-flight await captures a generation id so a stale completion from a
-  /// previous media (or a duplicate `completed` event from mpv) is a no-op.
+  /// [SingleFlightGate]: the transport drives itself off `await`ed completion
+  /// futures instead of polling the position stream, and every in-flight await
+  /// captures a generation id so a stale completion from a previous media (or a
+  /// duplicate `completed` event from mpv) is a no-op.
   PlayerControllerProvider._()
     : super(
         from: null,
@@ -62,15 +62,15 @@ final class PlayerControllerProvider
   }
 }
 
-String _$playerControllerHash() => r'16b46b267ce804040180bd5d5900df8a68f31cb6';
+String _$playerControllerHash() => r'f9c84e7d75490aec8a2001e51e2bdee08b33683b';
 
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
 /// Mirrors the generation-counter + single-flight pattern from
-/// [SingleFlightGate]: the transport drives itself off
-/// `await`ed completion futures instead of polling the position stream, and
-/// every in-flight await captures a generation id so a stale completion from a
-/// previous media (or a duplicate `completed` event from mpv) is a no-op.
+/// [SingleFlightGate]: the transport drives itself off `await`ed completion
+/// futures instead of polling the position stream, and every in-flight await
+/// captures a generation id so a stale completion from a previous media (or a
+/// duplicate `completed` event from mpv) is a no-op.
 
 abstract class _$PlayerController extends $Notifier<PlaybackSession?> {
   PlaybackSession? build();

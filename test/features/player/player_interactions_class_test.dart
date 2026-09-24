@@ -144,10 +144,9 @@ void main() {
   });
 
   setUpSession({String forMedia = mediaId, double currentTime = 0.5}) {
-    container.read(playerControllerProvider.notifier).session = sessionFor(
-      forMedia,
-      currentTime: currentTime,
-    );
+    container
+        .read(playerControllerProvider.notifier)
+        .publishSession(sessionFor(forMedia, currentTime: currentTime));
   }
 
   /// Simulates a re-import: replaces the primary transcript with [importLines].
@@ -518,9 +517,9 @@ void main() {
 
   test('seekToProgressFraction bails out when duration <= 0', () async {
     await insertAudioRow(mediaId);
-    container.read(playerControllerProvider.notifier).session = sessionFor(
-      mediaId,
-    ).copyWith(durationSeconds: 0);
+    container
+        .read(playerControllerProvider.notifier)
+        .publishSession(sessionFor(mediaId).copyWith(durationSeconds: 0));
 
     final n = container.read(playerInteractionsProvider);
     await n.seekToProgressFraction(0.5);
@@ -596,10 +595,9 @@ void main() {
       await n.nextLine();
       expect(fake.seekCalls, hasLength(1));
 
-      container.read(playerControllerProvider.notifier).session = sessionFor(
-        altMediaId,
-        currentTime: 0.5,
-      );
+      container
+          .read(playerControllerProvider.notifier)
+          .publishSession(sessionFor(altMediaId, currentTime: 0.5));
       await n.nextLine();
       // No transcript for altMedia — _lines() returns [], method is no-op.
       expect(fake.seekCalls, hasLength(1));

@@ -5,13 +5,12 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
-import 'package:enjoy_player/features/player/application/engine_swap_coordinator.dart';
 import 'package:enjoy_player/features/player/application/playback_session_persister.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_open_coordinator.dart';
-import 'package:enjoy_player/features/player/application/player_position_tracker.dart';
+import 'package:enjoy_player/features/player/application/video_poster_capture_service.dart';
 import 'package:enjoy_player/features/player/application/position_buckets.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
@@ -23,6 +22,13 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 
 import '../../../support/fake_player_engine.dart';
 import '../../../support/test_path_provider.dart';
+
+// These tests drive [runPlayerOpen] against the REAL `PlayerController` as
+// the [PlayerOpenScope] — production wiring (deps channel, engine-swap
+// delegation, scheduler closures) with nothing hand-built or re-wired here
+// (issue #750). End-to-end coverage of the [PlayerController.openMedia]
+// entry (generation bump, open-in-flight latch, completion-loop arming)
+// lives in `test/features/player/player_controller_test.dart`.
 
 /// Echo-session DAO that records entries and can hold the read in flight —
 /// the barrier-controlled double from docs/perf-measurement.md (Pattern 3):
@@ -60,58 +66,28 @@ class _CountingEchoDb extends AppDatabase {
   EchoSessionDao get echoSessionDao => countingDao;
 }
 
-/// Minimal [PlayerOpenHost] driving [runPlayerOpen] without the controller.
-class _Host implements PlayerOpenHost {
-  _Host(this.ref, this.engine);
+/// [VideoPosterCaptureService] double: records each capture request the open
+/// choreography schedules and hands the `onSessionThumbnail` callback to the
+/// test, which fires it late to reproduce the stale-capture race.
+class _StubPosterCaptureService extends VideoPosterCaptureService {
+  _StubPosterCaptureService(super.ref);
 
-  final Ref ref;
-  final PlayerEngine engine;
-
-  @override
-  int openGeneration = 1;
+  final requests = <String, void Function(String absoluteThumbPath)>{};
 
   @override
-  bool isOpenStale(int gen) => gen != openGeneration;
-
-  @override
-  PlayerEngine get activeEngine => engine;
-
-  PlayerEngine? _ownedEngine;
-
-  @override
-  PlayerEngine? get ownedEngine => _ownedEngine;
-
-  @override
-  set ownedEngine(PlayerEngine? engine) => _ownedEngine = engine;
-
-  @override
-  PlaybackSession? session;
-
-  @override
-  late final EngineSwapCoordinator engineSwap = EngineSwapCoordinator(
-    ref: ref,
-    getOwnedEngine: () => _ownedEngine,
-    setOwnedEngine: (next) => _ownedEngine = next,
-    getActiveEngine: () => engine,
-    currentOpenGeneration: () => openGeneration,
-    // In production the controller wires `abandonPendingOpen: abandonPendingOpen`
-    // so the real `_openGate` bumps too — bridge the same path here so the
-    // test asserts the same stale-generation contract (the host's check
-    // AND the real controller's bump must both move).
-    abandonPendingOpen: () {
-      openGeneration++;
-      ref.read(playerControllerProvider.notifier).abandonPendingOpen();
-    },
-  );
-
-  @override
-  PlayerPositionTracker get positionTracker => PlayerPositionTracker(
-    ref: ref,
-    getEngine: () => engine,
-    getSession: () => session,
-    setSession: (next) => session = next,
-    currentOpenGeneration: () => openGeneration,
-  );
+  void scheduleCapture({
+    required String mediaId,
+    required VideoRow video,
+    required int restoredPositionMs,
+    required int gen,
+    required int Function() currentOpenGeneration,
+    required String? Function() currentSessionMediaId,
+    required double? Function() sessionDurationSeconds,
+    required PlayerEngine activeEngine,
+    required void Function(String absoluteThumbPath) onSessionThumbnail,
+  }) {
+    requests[mediaId] = onSessionThumbnail;
+  }
 }
 
 void main() {
@@ -190,28 +166,26 @@ void main() {
       final hang = Completer<void>();
       fake.openDelay = () => hang.future;
 
-      final host = _Host(_refOf(container), fake);
       final controller = container.read(playerControllerProvider.notifier);
       final genBefore = controller.openGeneration;
 
       await expectLater(
         runPlayerOpen(
-          host,
-          _refOf(container),
+          controller,
           'hang-1',
           openTimeout: const Duration(milliseconds: 50),
         ),
         throwsA(isA<TimeoutException>()),
       );
 
-      expect(host.session, isNull);
+      expect(controller.session, isNull);
       // The zombie open's continuation must be stale at its next check.
       expect(controller.openGeneration, greaterThan(genBefore));
 
       // Releasing the wedged open later must not publish a session.
       hang.complete();
       await pumpEventQueue();
-      expect(host.session, isNull);
+      expect(controller.session, isNull);
     });
 
     test(
@@ -229,17 +203,16 @@ void main() {
           }
         };
 
-        final host = _Host(_refOf(container), fake);
+        final controller = container.read(playerControllerProvider.notifier);
         await runPlayerOpen(
-          host,
-          _refOf(container),
+          controller,
           'hang-1',
           openTimeout: const Duration(milliseconds: 50),
         );
 
         expect(attempts, 2);
         expect(
-          host.session,
+          controller.session,
           isNotNull,
           reason: 'session must publish after the open retry',
         );
@@ -283,20 +256,136 @@ void main() {
           if (!gate.isCompleted) gate.complete();
         });
 
-        final host = _Host(_refOf(container), fake);
+        final controller = container.read(playerControllerProvider.notifier);
         await runPlayerOpen(
-          host,
-          _refOf(container),
+          controller,
           'hang-1',
           engineCommandTimeout: const Duration(milliseconds: 50),
         );
 
         expect(
-          host.session,
+          controller.session,
           isNotNull,
           reason: 'session must publish despite the never-completing seek',
         );
         expect(fake.seekCalls, isNotEmpty, reason: 'the seek was attempted');
+      },
+    );
+  });
+
+  group('runPlayerOpen typed failure on unplayable media', () {
+    late AppDatabase db;
+    late FakePlayerEngine fake;
+    late ProviderContainer container;
+    late PathProviderPlatform originalPathProvider;
+
+    setUp(() async {
+      originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = TestPathProvider(
+        Directory.systemTemp
+            .createTempSync('enjoy_player_open_unplayable')
+            .path,
+      );
+      db = AppDatabase(executor: NativeDatabase.memory());
+      fake = FakePlayerEngine();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          playerEngineTestDoubleProvider.overrideWithValue(fake),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+        ],
+      );
+
+      // Unplayable row: the local file is gone, there is no remote fallback,
+      // and no md5 fingerprint — so the resolver returns null (no relocate).
+      final now = DateTime.now();
+      await db.audioDao.insertRow(
+        AudioRow(
+          id: 'unplayable-1',
+          aid: 'x',
+          provider: 'user',
+          title: 'gone',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 600,
+          language: 'en',
+          translationKey: null,
+          sourceText: null,
+          voice: null,
+          source: null,
+          localUri: Uri.file(
+            p.join(
+              Directory.systemTemp.path,
+              'enjoy_gone_${DateTime.now().microsecondsSinceEpoch}.mp3',
+            ),
+          ).toString(),
+          md5: null,
+          size: 1,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await pumpEventQueue();
+      container.dispose();
+      await db.close();
+      await fake.dispose();
+    });
+
+    test(
+      'an unknown media id fails with StateError instead of a silent success',
+      () async {
+        // Falsifiability: a silent success would leave ExpandedPlayerScreen on
+        // the loading skeleton forever — open completes, session never
+        // publishes (the exact bug the StateError contract exists for).
+        await expectLater(
+          runPlayerOpen(
+            container.read(playerControllerProvider.notifier),
+            'missing-id',
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('No playable source for media missing-id'),
+            ),
+          ),
+        );
+        expect(
+          container.read(playerControllerProvider),
+          isNull,
+          reason: 'no session may publish for an unknown media id',
+        );
+        expect(fake.openUris, isEmpty, reason: 'no engine command may run');
+      },
+    );
+
+    test(
+      'an unplayable row (missing file, no URL, no hash) throws StateError',
+      () async {
+        await expectLater(
+          runPlayerOpen(
+            container.read(playerControllerProvider.notifier),
+            'unplayable-1',
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('No playable source for media unplayable-1'),
+            ),
+          ),
+        );
+        expect(container.read(playerControllerProvider), isNull);
+        expect(fake.openUris, isEmpty);
       },
     );
   });
@@ -416,7 +505,7 @@ void main() {
     test(
       'a pending write keeps the previous media echo/blur when new media opens',
       () async {
-        final ref = _refOf(container);
+        final controller = container.read(playerControllerProvider.notifier);
         final persister = container.read(playbackSessionPersisterProvider);
 
         // Media A is playing with an active echo window + transcript blur.
@@ -437,11 +526,10 @@ void main() {
           session: sessionA(),
         );
 
-        final host = _Host(ref, fake);
-        host.session = sessionA();
+        controller.publishSession(sessionA());
 
         // Opening B restores B's echo/blur into the live providers.
-        await runPlayerOpen(host, ref, 'media-b');
+        await runPlayerOpen(controller, 'media-b');
         final echo = container.read(echoModeProvider);
         expect(echo.active, isTrue);
         expect(
@@ -452,8 +540,8 @@ void main() {
         expect(container.read(transcriptBlurModeProvider), isFalse);
 
         // Advance past the debounce. Falsifiability (docs/perf-measurement.md
-        // Pattern 3): reverting the `runPlayerOpen` flush at the head of the
-        // open (lib/features/player/application/player_open_coordinator.dart)
+        // Pattern 3): reverting the flush at the head of the open
+        // (lib/features/player/application/player_open_coordinator.dart)
         // turns this test red — B's restored providers then write line `7`
         // (echoStartMs 30_000 + blurActive=false) into media-a's row instead
         // of lines 2–4 above. Verified against pre-fix code.
@@ -479,31 +567,91 @@ void main() {
     );
   });
 
-  group('runBoundedEngineStep', () {
-    test('completes when the step completes', () async {
+  group('OpenSteps', () {
+    test('run completes a step and returns its result while current', () async {
+      final steps = OpenSteps(isStale: () => false);
+      final value = await steps.run('x', () async => 7);
+      expect(value, 7);
+    });
+
+    test('runBounded completes when the step completes', () async {
       var ran = false;
-      await runBoundedEngineStep('x', () async => ran = true);
+      final steps = OpenSteps(isStale: () => false);
+      await steps.runBounded('x', () async => ran = true);
       expect(ran, isTrue);
     });
 
     test('a wedged step times out, logs, and does not throw', () async {
       final logs = <String>[];
-      await runBoundedEngineStep(
+      final steps = OpenSteps(isStale: () => false, logWarning: logs.add);
+      await steps.runBounded(
         'wedged step',
         () => Completer<void>().future,
         limit: const Duration(milliseconds: 20),
-        logWarning: logs.add,
       );
       expect(logs, hasLength(1));
       expect(logs.single, contains('wedged step timed out'));
     });
 
     test('a failing step still throws (only timeouts are swallowed)', () async {
+      final steps = OpenSteps(isStale: () => false);
       await expectLater(
-        runBoundedEngineStep('boom', () async => throw StateError('boom')),
+        steps.runBounded('boom', () async => throw StateError('boom')),
+        throwsStateError,
+      );
+      await expectLater(
+        steps.run('boom', () async => throw StateError('boom')),
         throwsStateError,
       );
     });
+
+    test('a step that completes after a generation bump runs its cleanup and '
+        'unwinds', () async {
+      var stale = false;
+      var cleaned = false;
+      final steps = OpenSteps(isStale: () => stale);
+      await expectLater(
+        steps.run(
+          'first',
+          () async => stale = true,
+          onSuperseded: () async => cleaned = true,
+        ),
+        throwsA(isA<OpenSupersededException>()),
+      );
+      expect(
+        cleaned,
+        isTrue,
+        reason: 'onSuperseded must run before the unwind',
+      );
+    });
+
+    test('later steps never run once the generation moved on', () async {
+      var stale = false;
+      var secondRan = false;
+      final steps = OpenSteps(isStale: () => stale);
+      await expectLater(() async {
+        await steps.run('first', () async => stale = true);
+        await steps.run('second', () async => secondRan = true);
+      }, throwsA(isA<OpenSupersededException>()));
+      expect(
+        secondRan,
+        isFalse,
+        reason: 'a new step through the mechanism cannot outlive a bump',
+      );
+    });
+
+    test(
+      'a step is skipped outright when the generation already moved on',
+      () async {
+        var ran = false;
+        final steps = OpenSteps(isStale: () => true);
+        await expectLater(
+          () => steps.run('never', () async => ran = true),
+          throwsA(isA<OpenSupersededException>()),
+        );
+        expect(ran, isFalse);
+      },
+    );
   });
 
   group('runPlayerOpen echo-session read overlap (issue #661)', () {
@@ -597,8 +745,8 @@ void main() {
           if (!openGate.isCompleted) openGate.complete();
         });
 
-        final host = _Host(_refOf(container), fake);
-        final open = runPlayerOpen(host, _refOf(container), 'hang-1');
+        final controller = container.read(playerControllerProvider.notifier);
+        final open = runPlayerOpen(controller, 'hang-1');
 
         // Walk the coordinator up to `engine.open`'s entry (the resolver and
         // the engine swap are immediate work on the in-memory DB).
@@ -618,7 +766,7 @@ void main() {
         db.countingDao.entryGate!.complete();
         openGate.complete();
         await expectLater(open, completes);
-        expect(host.session, isNotNull);
+        expect(controller.session, isNotNull);
       },
     );
 
@@ -651,26 +799,119 @@ void main() {
           ),
         );
 
-        final host = _Host(_refOf(container), fake);
-        await runPlayerOpen(host, _refOf(container), 'hang-1');
+        final controller = container.read(playerControllerProvider.notifier);
+        await runPlayerOpen(controller, 'hang-1');
 
         expect(db.countingDao.getLatestCalls, 1);
         expect(fake.seekCalls, [const Duration(milliseconds: 9000)]);
-        expect(host.session, isNotNull);
-        expect(host.session!.currentTimeSeconds, 9);
-        expect(host.session!.currentSegmentIndex, 5);
+        expect(controller.session, isNotNull);
+        expect(controller.session!.currentTimeSeconds, 9);
+        expect(controller.session!.currentSegmentIndex, 5);
       },
     );
   });
-}
 
-Ref _refOf(ProviderContainer container) {
-  late Ref captured;
-  container.read(
-    Provider<int>((ref) {
-      captured = ref;
-      return 0;
-    }),
-  );
-  return captured;
+  group('runPlayerOpen stale poster capture', () {
+    late AppDatabase db;
+    late FakePlayerEngine fake;
+    late ProviderContainer container;
+    late PathProviderPlatform originalPathProvider;
+    late _StubPosterCaptureService poster;
+
+    setUp(() async {
+      originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = TestPathProvider(
+        Directory.systemTemp.createTempSync('enjoy_player_open_poster').path,
+      );
+      db = AppDatabase(executor: NativeDatabase.memory());
+      fake = FakePlayerEngine();
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          playerEngineTestDoubleProvider.overrideWithValue(fake),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+          videoPosterCaptureServiceProvider.overrideWith(
+            (ref) => poster = _StubPosterCaptureService(ref),
+          ),
+        ],
+      );
+
+      final now = DateTime.now();
+      for (final id in const ['media-a', 'media-b']) {
+        final file = File(
+          p.join(
+            Directory.systemTemp.path,
+            'enjoy_poster_${id}_${DateTime.now().microsecondsSinceEpoch}.mp4',
+          ),
+        );
+        await file.writeAsBytes([1]);
+        addTearDown(() async {
+          if (await file.exists()) await file.delete();
+        });
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: id,
+            vid: 'vid-$id',
+            provider: 'user',
+            title: id,
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 600,
+            language: 'en',
+            source: null,
+            localUri: Uri.file(file.path).toString(),
+            size: 1,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await pumpEventQueue();
+      container.dispose();
+      await db.close();
+      await fake.dispose();
+    });
+
+    test(
+      'a capture landing after a newer open cannot stomp the new session',
+      () async {
+        final controller = container.read(playerControllerProvider.notifier);
+
+        await runPlayerOpen(controller, 'media-a');
+        expect(poster.requests.keys, ['media-a']);
+        await runPlayerOpen(controller, 'media-b');
+        expect(poster.requests.keys, unorderedEquals(['media-a', 'media-b']));
+
+        // Media A's poster capture resolves while media B's session is live.
+        // Falsifiability: dropping the `live.mediaId != mediaId` gate in
+        // `runPlayerOpen`'s `onSessionThumbnail` turns this red — A's path
+        // lands on B's live session.
+        poster.requests['media-a']!('/stale-a.jpg');
+        final sessionAfterStale = controller.session;
+        expect(sessionAfterStale, isNotNull);
+        expect(sessionAfterStale!.mediaId, 'media-b');
+        expect(
+          sessionAfterStale.thumbnailUrl,
+          isNull,
+          reason: "media A's late capture must not stomp media B's session",
+        );
+
+        // The live media's own capture still applies.
+        poster.requests['media-b']!('/fresh-b.jpg');
+        final sessionAfterFresh = controller.session;
+        expect(sessionAfterFresh, isNotNull);
+        expect(sessionAfterFresh!.mediaId, 'media-b');
+        expect(sessionAfterFresh.thumbnailUrl, '/fresh-b.jpg');
+      },
+    );
+  });
 }

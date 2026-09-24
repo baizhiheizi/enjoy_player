@@ -1081,7 +1081,7 @@ void main() {
   group('PlayerController.warmYoutubeSurface idle gate (issue #657)', () {
     // No playerEngineTestDoubleProvider override here either — the test double
     // short-circuits above the gates under test. Local engines are stand-ins
-    // ([FakePlayerEngine] installed through the [PlayerOpenHost] seam) so a
+    // ([FakePlayerEngine] installed through the [PlayerOpenScope] seam) so a
     // live session needs no real MediaKit/mpv to observe.
     late AppDatabase db;
     late ProviderContainer container;
@@ -1180,7 +1180,7 @@ void main() {
       final n = container.read(playerControllerProvider.notifier);
       final live = FakePlayerEngine();
       n.ownedEngine = live;
-      n.session = liveSession('local-live');
+      n.publishSession(liveSession('local-live'));
       final revBefore = container.read(playerEngineRevProvider);
 
       n.warmYoutubeSurface();
