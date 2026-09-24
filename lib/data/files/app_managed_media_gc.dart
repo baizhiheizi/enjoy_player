@@ -34,14 +34,18 @@ const crossFileProbeLocalUriColumn = 'local_uri';
 /// [crossFileProbeLibraryTables].
 ///
 /// Table names cannot be bound as parameters in SQLite, so [table] is
-/// interpolated — it must come from that const list (asserted below), which
-/// is what keeps the raw SQL single-sourced and drift-testable.
+/// interpolated — it must come from that const list (checked below with a
+/// runtime [ArgumentError] guard rather than an `assert`, which release /
+/// AOT builds strip), which is what keeps the raw SQL single-sourced and
+/// drift-testable.
 String crossFileProbeLocalUriSql(String table) {
-  assert(
-    crossFileProbeLibraryTables.contains(table),
-    'cross-file probe table must come from crossFileProbeLibraryTables: '
-    '$table',
-  );
+  if (!crossFileProbeLibraryTables.contains(table)) {
+    throw ArgumentError.value(
+      table,
+      'table',
+      'must come from crossFileProbeLibraryTables',
+    );
+  }
   return 'SELECT 1 FROM $table WHERE $crossFileProbeLocalUriColumn = ? '
       'LIMIT 1';
 }

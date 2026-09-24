@@ -188,6 +188,18 @@ void main() {
         unorderedEquals(<String>['audios', 'videos']),
       );
 
+      // An unknown table must be rejected by a real RUNTIME guard, not an
+      // `assert` (asserts are stripped in release/AOT builds, PR #756
+      // thread 1): an input outside the allowlist throws before any
+      // string can reach the interpolated SQL.
+      expect(
+        () => crossFileProbeLocalUriSql('sqlite_master'),
+        throwsArgumentError,
+        reason:
+            'crossFileProbeLocalUriSql must throw ArgumentError for a '
+            'table outside crossFileProbeLibraryTables in every build mode',
+      );
+
       for (final table in crossFileProbeLibraryTables) {
         final info = tableInfos[table];
         expect(

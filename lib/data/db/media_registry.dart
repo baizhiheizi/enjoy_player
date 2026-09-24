@@ -14,7 +14,6 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
-import 'package:flutter/foundation.dart' show listEquals;
 
 import 'app_database.dart';
 
@@ -188,14 +187,19 @@ class MediaRegistry {
   /// current-DB half of the app-managed media GC's keep-or-delete probe
   /// (issue #753).
   ///
-  /// Video-first like every registry probe (both sides are indexed; the
-  /// result is a plain OR). The *cross-file* half of that probe — scanning
-  /// other per-user SQLite files the single-`AppDatabase` registry cannot
-  /// reach — stays a documented raw-SQL exception in
+  /// The two per-table probes run concurrently (`Future.wait`, PR #756):
+  /// both sides are indexed and the result is a plain OR, so there is no
+  /// probe ordering to preserve. The *cross-file* half of that probe —
+  /// scanning other per-user SQLite files the single-`AppDatabase`
+  /// registry cannot reach — stays a documented raw-SQL exception in
   /// `app_managed_media_gc.dart` (ADR-0050 §5).
-  Future<bool> existsByLocalUri(String localUri) async =>
-      await _db.videoDao.existsByLocalUri(localUri) ||
-      await _db.audioDao.existsByLocalUri(localUri);
+  Future<bool> existsByLocalUri(String localUri) async {
+    final hits = await Future.wait([
+      _db.videoDao.existsByLocalUri(localUri),
+      _db.audioDao.existsByLocalUri(localUri),
+    ]);
+    return hits[0] || hits[1];
+  }
 
   /// The merged `videos` + `audios` library as one stream of [Media],
   /// `createdAt`-descending (issue #753).
@@ -203,13 +207,13 @@ class MediaRegistry {
   /// The single data-layer owner of the glue that used to live in
   /// `MediaLibraryRepository.watchAll`: it subscribes both DAOs' `watchAll`
   /// streams, merges, sorts, and re-emits only when the merged list actually
-  /// changes. Both comments below moved with the code — they pin the two
-  /// regressions the merge layer caused:
+  /// changes. The comments below pin the behaviors the merge layer must
+  /// keep, plus the same-turn coalescing added for the PR #756 review:
   ///
-  /// * **Dedupe.** Both Drift streams re-query on ANY table change; without
-  ///   the `lastEmitted` cache a single row update (a
+  /// * **Dedupe.** A re-query that pushes unchanged rows back (a
   ///   `playbackSessionPersister` write bumping `updatedAt`, a duration
-  ///   probe flipping one row) re-emits the entire library — forcing
+  ///   probe flipping one row, a no-op `insertOrReplace`) must not
+  ///   re-emit the entire library — forcing
   ///   `libraryHomeRecentsProvider` to re-sort and
   ///   `libraryFilteredListsProvider` to re-filter + re-sort both lists.
   /// * **Empty first emission.** `lastEmitted` is nullable (rather than
@@ -220,33 +224,80 @@ class MediaRegistry {
   ///   never emitting and every `StreamProvider` built on it stuck in
   ///   `AsyncLoading` forever whenever the local library has zero rows
   ///   (fixed in `a12634c3`, pinned by `library_repository_test.dart`).
+  /// * **Same-turn coalescing** (PR #756). The two DAO listeners below
+  ///   only buffer their snapshot and schedule ONE `emit` on a microtask,
+  ///   so a both-tables change that re-delivers on both streams within
+  ///   the same event-loop turn is merged into a single emission instead
+  ///   of a partial-then-full pair (characterized in
+  ///   `media_registry_test.dart`'s "characterizes Drift delivery" test:
+  ///   Drift's watch streams are per-table — a single-table write
+  ///   re-delivers only on that table's stream, and both-tables writes
+  ///   re-deliver in one turn). A microtask always runs before its turn
+  ///   ends, so single-table writes still emit immediately; waiting for
+  ///   the sibling stream "to have produced since the last emit" (the
+  ///   reviewer's literal suggestion) would deadlock single-table
+  ///   updates, whose sibling stream legitimately never re-emits. When
+  ///   deliveries do straddle microtask hops the old partial-then-full
+  ///   fallback stands — a redundant rebuild, which is strictly better
+  ///   than a stalled one.
   Stream<List<Media>> watchAll() {
     late StreamSubscription<List<VideoRow>> subV;
     late StreamSubscription<List<AudioRow>> subA;
     var videos = <VideoRow>[];
     var audios = <AudioRow>[];
     List<Media>? lastEmitted;
+    // Previous merge inputs (PR #756): content-compared before any
+    // allocation so an unchanged-input re-query skips merge+sort outright.
+    List<VideoRow>? lastVideos;
+    List<AudioRow>? lastAudios;
+    var emitScheduled = false;
 
     void emit(StreamController<List<Media>> c) {
+      // Input pre-check (PR #756): neither table's snapshot changed
+      // content-wise since the last processed event (the common re-query
+      // after a no-op write) — the merged+sorted output would be
+      // identical, so skip the allocation and O(n log n) sort before they
+      // even happen; the output-level dedupe below stays as the final
+      // gate for changed inputs that map to an equal `Media` list.
+      if (lastVideos != null &&
+          _listEquals(lastVideos!, videos) &&
+          _listEquals(lastAudios!, audios)) {
+        return;
+      }
+      lastVideos = videos;
+      lastAudios = audios;
       final merged = <Media>[
         ...videos.map(mediaFromVideo),
         ...audios.map(mediaFromAudio),
       ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      if (lastEmitted != null && listEquals(lastEmitted!, merged)) {
+      if (lastEmitted != null && _listEquals(lastEmitted!, merged)) {
         return;
       }
       lastEmitted = merged;
       c.add(merged);
     }
 
+    // Buffer-and-schedule: at most one emit is pending per event-loop
+    // turn; the first DAO delivery of a turn schedules it, any second
+    // delivery that lands before the microtask runs just refreshes its
+    // input buffer (see the same-turn coalescing note above).
+    void scheduleEmit(StreamController<List<Media>> c) {
+      if (emitScheduled) return;
+      emitScheduled = true;
+      scheduleMicrotask(() {
+        emitScheduled = false;
+        emit(c);
+      });
+    }
+
     return Stream<List<Media>>.multi((controller) {
       subV = _db.videoDao.watchAll().listen((rows) {
         videos = rows;
-        emit(controller);
+        scheduleEmit(controller);
       }, onError: controller.addError);
       subA = _db.audioDao.watchAll().listen((rows) {
         audios = rows;
-        emit(controller);
+        scheduleEmit(controller);
       }, onError: controller.addError);
       controller.onCancel = () {
         unawaited(subV.cancel());
@@ -419,4 +470,21 @@ class MediaRegistry {
     MediaKind.video => SyncEntityType.video,
     MediaKind.audio => SyncEntityType.audio,
   };
+}
+
+/// Element-wise list equality with `==` semantics (identical reference,
+/// then length, then per-index), mirroring `flutter/foundation`'s
+/// `listEquals`.
+///
+/// Lives here so `lib/data/db/` keeps no `package:flutter/` dependency
+/// (PR #756): the registry was the only consumer of the foundation import
+/// in this file. [VideoRow] / [AudioRow] / [Media] all implement value
+/// `==`, so the comparison is by content, not by instance.
+bool _listEquals<T>(List<T> a, List<T> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

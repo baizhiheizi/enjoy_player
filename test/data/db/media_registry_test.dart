@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
@@ -294,5 +296,119 @@ void main() {
 
       await sub.cancel();
     });
+
+    test(
+      'characterizes Drift delivery: single- vs both-table writes',
+      () async {
+        // Characterization first (PR #756 thread 2): this pins HOW Drift
+        // delivers re-query events to the registry's two DAO listeners
+        // before deciding whether `watchAll` may coalesce them:
+        //
+        // * (a) a single-table write, (b) a write touching both tables in
+        //   one go — the production shape being sequential awaited upserts
+        //   (`library_repository.importMedia`, `cloud_add_to_library`).
+        //
+        // `turn` counts event-loop iterations: a zero-duration periodic
+        // timer fires exactly once per iteration, strictly between
+        // microtask drains — so listener callbacks that observed the same
+        // `turn` value ran within ONE event-loop turn (no timer/IO
+        // boundary between them), while differing values mean the
+        // delivery spanned a turn boundary.
+        var turn = 0;
+        final turnTicker = Timer.periodic(Duration.zero, (_) => turn++);
+        addTearDown(turnTicker.cancel);
+
+        // stream name -> observed turn id per delivered snapshot
+        final daoEvents = <String, List<int>>{};
+        void recordDao(String stream) =>
+            daoEvents.putIfAbsent(stream, () => <int>[]).add(turn);
+
+        final emissions = <List<Media>>[];
+        final emissionTurns = <int>[];
+        final subV = db.videoDao.watchAll().listen((_) => recordDao('video'));
+        final subA = db.audioDao.watchAll().listen((_) => recordDao('audio'));
+        final subReg = registry.watchAll().listen((m) {
+          emissions.add(m);
+          emissionTurns.add(turn);
+        });
+        addTearDown(() async {
+          await subV.cancel();
+          await subA.cancel();
+          await subReg.cancel();
+        });
+
+        // Initial snapshots from both DAO streams + first merged emission.
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(
+          daoEvents.keys,
+          unorderedEquals(<String>['video', 'audio']),
+          reason: 'initial snapshots come from both DAO streams',
+        );
+        expect(emissions, hasLength(1));
+        daoEvents.clear();
+        emissions.clear();
+        emissionTurns.clear();
+
+        // (a) Single-table write: a videos-row insert.
+        await db.videoDao.insertRow(_video(id: 'v-single'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        final singleDaoEvents = {
+          for (final e in daoEvents.entries) e.key: List<int>.of(e.value),
+        };
+        final singleEmissions = List<List<Media>>.of(emissions);
+        final singleEmissionTurns = List<int>.of(emissionTurns);
+        daoEvents.clear();
+        emissions.clear();
+        emissionTurns.clear();
+
+        // (b) Both-tables write: one upsert per table, back to back.
+        await db.videoDao.insertRow(
+          _video(id: 'v-both', createdAt: DateTime(2026, 7, 2)),
+        );
+        await db.audioDao.insertRow(
+          _audio(id: 'a-both', createdAt: DateTime(2026, 7, 3)),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        final bothDaoEvents = {
+          for (final e in daoEvents.entries) e.key: List<int>.of(e.value),
+        };
+        final bothEmissions = List<List<Media>>.of(emissions);
+
+        // --- (a) pins ---
+        // A single-table write re-delivers ONLY on that table's DAO stream
+        // (Drift's watch is per-table: `select(videos)` is invalidated by
+        // `videos` updates only) and produces exactly one merged emission
+        // carrying the new row. The other side's cached snapshot is still
+        // accurate — its table did not change — so a single-table write
+        // can never emit a stale partial snapshot.
+        expect(singleDaoEvents.keys, equals(<String>['video']));
+        expect(singleDaoEvents['video'], hasLength(1));
+        expect(singleEmissions, hasLength(1));
+        expect(singleEmissions.single.map((m) => m.id), ['v-single']);
+        expect(singleEmissionTurns, hasLength(1));
+
+        // --- (b) pins ---
+        // THE decision criterion for PR #756 thread 2: do both DAO
+        // re-deliveries of a both-tables write land in the SAME
+        // event-loop turn (-> same-turn coalescing is possible) or in
+        // different turns (-> coalescing would stall one side)?
+        expect(bothDaoEvents.keys, unorderedEquals(<String>['video', 'audio']));
+        expect(
+          bothDaoEvents['video'],
+          bothDaoEvents['audio'],
+          reason:
+              'both-tables write: DAO re-deliveries observed in different '
+              'event-loop turns — the emit path must NOT wait for the '
+              'other side (it would stall single-table updates)',
+        );
+        // Whatever the turn story, the final state is correct and ordered
+        // (createdAt desc: a-both 07-03 > v-both 07-02 > v-single 07-01).
+        expect(bothEmissions.last.map((m) => m.id), [
+          'a-both',
+          'v-both',
+          'v-single',
+        ]);
+      },
+    );
   });
 }
