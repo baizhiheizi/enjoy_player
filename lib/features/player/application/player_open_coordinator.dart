@@ -133,8 +133,11 @@ final class PlayerOpenDeps {
   /// Previous-session flush / cancel before the new media's restore (#653).
   final PlaybackSessionPersister persister;
 
-  /// Library rows + echo-session reads for the open.
-  final AppDatabase db;
+  /// Library rows + echo-session reads for the open. A resolver, not an
+  /// instance: `appDatabaseProvider` is auth-scoped and closes the previous
+  /// per-user database on a session switch, while this keepAlive scope
+  /// outlives it — read at open time, like the side-effect schedulers do.
+  final AppDatabase Function() db;
 
   /// Applies persisted volume/rate to the freshly opened engine.
   final PlayerPreferencesCtrl preferences;
@@ -257,7 +260,7 @@ Future<void> runPlayerOpen(
     });
 
     final resolved = await steps.run('resolve playback open', () async {
-      final open = await resolvePlaybackOpen(deps.db, mediaId);
+      final open = await resolvePlaybackOpen(deps.db(), mediaId);
       if (open == null) {
         // Do not silently succeed — ExpandedPlayerScreen would stay on the
         // loading skeleton forever (open completes, session never publishes).
@@ -347,7 +350,7 @@ Future<void> runPlayerOpen(
     // unwind, or the open retry gave up) from surfacing as an unhandled async
     // error — the guarded consume below still sees the result and rethrows
     // failures.
-    final persistedFuture = deps.db.echoSessionDao.getLatestForTarget(
+    final persistedFuture = deps.db().echoSessionDao.getLatestForTarget(
       dexie,
       mediaId,
     )..ignore();

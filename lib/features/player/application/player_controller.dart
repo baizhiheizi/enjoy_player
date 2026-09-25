@@ -146,7 +146,10 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   @override
   late final PlayerOpenDeps deps = PlayerOpenDeps(
     persister: ref.read(playbackSessionPersisterProvider),
-    db: ref.read(appDatabaseProvider),
+    // A resolver, not an instance: the per-user database is closed and
+    // replaced on a session switch / recovery reset while this keepAlive
+    // controller survives, so every open must read the current one.
+    db: () => ref.read(appDatabaseProvider),
     preferences: ref.read(playerPreferencesCtrlProvider.notifier),
     echoMode: ref.read(echoModeProvider.notifier),
     blurMode: ref.read(transcriptBlurModeProvider.notifier),

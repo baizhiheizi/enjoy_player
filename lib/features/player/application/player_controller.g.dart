@@ -62,7 +62,7 @@ final class PlayerControllerProvider
   }
 }
 
-String _$playerControllerHash() => r'd538c8fbe9a758eda8b98ec1bf346986deab126a';
+String _$playerControllerHash() => r'bda0e83a13f061863abf3defabdaaa20c5987f5b';
 
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
