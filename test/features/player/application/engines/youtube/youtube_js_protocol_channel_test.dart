@@ -213,15 +213,12 @@ void main() {
       expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2}'), isNull);
       // Missing `d` is NOT drift: the page sends 0 for "no duration yet",
       // so absence decodes as (position, null duration) — the lenient key.
-      expect(
-        YoutubeWebViewBridge.decodePollSample('{"t":1,"s":1}'),
-        (
-          position: const Duration(seconds: 1),
-          duration: null,
-          paused: false,
-          ended: false,
-        ),
-      );
+      expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"s":1}'), (
+        position: const Duration(seconds: 1),
+        duration: null,
+        paused: false,
+        ended: false,
+      ));
       expect(
         YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":null}'),
         isNull,
