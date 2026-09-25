@@ -3,7 +3,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 
 /// Looks up the library media title for [sourceId].
 ///
@@ -13,7 +13,7 @@ final vocabularySourceTitleProvider = FutureProvider.autoDispose
     .family<String?, String>((ref, sourceId) async {
       final id = sourceId.trim();
       if (id.isEmpty) return null;
-      final media = await ref.watch(mediaLibraryRepositoryProvider).getById(id);
+      final media = await ref.watch(mediaRegistryProvider).getById(id);
       final title = media?.title.trim();
       if (title == null || title.isEmpty) return null;
       return title;

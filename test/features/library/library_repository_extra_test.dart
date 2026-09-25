@@ -8,6 +8,7 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -76,7 +77,7 @@ void main() {
           ),
         );
 
-        final media = await repo.getById(id);
+        final media = await MediaRegistry(db).getById(id);
         expect(media, isNotNull);
         expect(media!.kind, MediaKind.audio);
         expect(media.title, 'Song');
@@ -86,7 +87,7 @@ void main() {
       });
 
       test('returns null when neither video nor audio exists', () async {
-        final media = await repo.getById('nonexistent-id');
+        final media = await MediaRegistry(db).getById('nonexistent-id');
         expect(media, isNull);
       });
 
@@ -117,7 +118,7 @@ void main() {
             ),
           );
 
-          final media = await repo.getById(id);
+          final media = await MediaRegistry(db).getById(id);
           expect(media!.sourceUri, 'https://www.youtube.com/watch?v=abc');
           expect(media.mediaUrl, 'https://www.youtube.com/watch?v=abc');
           expect(media.fileSize, 0);
@@ -144,7 +145,7 @@ void main() {
         );
         expect(id, expectedId);
 
-        final media = await repo.getById(id);
+        final media = await MediaRegistry(db).getById(id);
         expect(media, isNotNull);
         expect(media!.kind, MediaKind.video);
       });
@@ -500,7 +501,7 @@ void main() {
         );
 
         await syncRepo.deleteMedia(id);
-        expect(await repo.getById(id), isNull);
+        expect(await MediaRegistry(db).getById(id), isNull);
         expect(
           syncLog,
           contains((SyncEntityType.video, id, SyncAction.delete)),
@@ -545,7 +546,7 @@ void main() {
         );
 
         await syncRepo.deleteMedia(id);
-        expect(await repo.getById(id), isNull);
+        expect(await MediaRegistry(db).getById(id), isNull);
         expect(
           syncLog,
           contains((SyncEntityType.audio, id, SyncAction.delete)),
@@ -977,7 +978,7 @@ void main() {
         );
 
         final emissions = <List<Media>>[];
-        final sub = repo.watchAll().listen(emissions.add);
+        final sub = MediaRegistry(db).watchAll().listen(emissions.add);
         await Future<void>.delayed(const Duration(milliseconds: 80));
 
         expect(emissions, isNotEmpty);

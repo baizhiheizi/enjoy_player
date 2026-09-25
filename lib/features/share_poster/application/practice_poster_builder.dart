@@ -4,9 +4,9 @@ library;
 import 'package:drift/drift.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/share_poster/domain/practice_poster_data.dart';
@@ -47,13 +47,12 @@ Future<List<TranscriptLine>> primaryTranscriptLinesForMedia({
 /// Builds poster data for [mediaId], or `null` when media is missing.
 Future<PracticePosterData?> buildPracticePosterData({
   required AppDatabase db,
-  required MediaLibraryRepository library,
   required TranscriptRepository transcriptRepo,
   required String mediaId,
   EchoState? echo,
   Uint8List? echoCoverBytes,
 }) async {
-  final media = await library.getById(mediaId);
+  final media = await MediaRegistry(db).getById(mediaId);
   if (media == null) return null;
 
   final targetType = media.dexieTargetType;

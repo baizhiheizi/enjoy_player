@@ -3,8 +3,6 @@ import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/files/file_storage.dart';
-import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/share_poster/application/practice_poster_builder.dart';
 import 'package:enjoy_player/features/transcript/data/transcript_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,12 +138,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late AppDatabase db;
-  late MediaLibraryRepository repo;
   late TranscriptRepository transcriptRepo;
 
   setUp(() {
     db = AppDatabase(executor: NativeDatabase.memory());
-    repo = MediaLibraryRepository(db, FileStorage());
     transcriptRepo = TranscriptRepository(db);
   });
 
@@ -273,7 +269,6 @@ void main() {
     test('returns null when mediaId is unknown', () async {
       final data = await buildPracticePosterData(
         db: db,
-        library: repo,
         transcriptRepo: transcriptRepo,
         mediaId: 'missing',
       );
@@ -284,7 +279,6 @@ void main() {
       await db.videoDao.insertRow(_video(id: 'v1'));
       final data = await buildPracticePosterData(
         db: db,
-        library: repo,
         transcriptRepo: transcriptRepo,
         mediaId: 'v1',
       );
@@ -305,7 +299,6 @@ void main() {
 
       final data = await buildPracticePosterData(
         db: db,
-        library: repo,
         transcriptRepo: transcriptRepo,
         mediaId: 'v1',
       );
@@ -322,7 +315,6 @@ void main() {
 
       final data = await buildPracticePosterData(
         db: db,
-        library: repo,
         transcriptRepo: transcriptRepo,
         mediaId: 'v1',
         echoCoverBytes: Uint8List.fromList([1, 2, 3]),
@@ -384,7 +376,6 @@ void main() {
 
       final data = await buildPracticePosterData(
         db: db,
-        library: repo,
         transcriptRepo: transcriptRepo,
         mediaId: 'a1',
       );
