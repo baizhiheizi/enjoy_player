@@ -1,4 +1,9 @@
-/// Imports media files into Drift + local storage.
+/// Import + relink policy for library media (oEmbed resolution, placeholder
+/// detection, hashing, storage GC, delete/language transaction policy).
+///
+/// Reads and row writes cross the [MediaRegistry] seam directly — this module
+/// no longer relays them (issue #765). The whole-library watch lives on the
+/// registry (`MediaRegistry.watchAll`, issue #753).
 library;
 
 import 'dart:async';
@@ -39,10 +44,9 @@ class MediaLibraryRepository {
   final SyncEnqueueFn? _enqueueSync;
   final http.Client? _oembedClient;
 
-  /// The whole library as one stream — delegates to
-  /// [MediaRegistry.watchAll], the single data-layer owner of the
-  /// dual-stream merge, `createdAt` sort, and emission dedupe (issue #753).
-  Stream<List<Media>> watchAll() => MediaRegistry(_db).watchAll();
+  /// The registry is `const`-constructible and stateless; one field replaces
+  /// the per-call constructions this file used to spell (issue #765).
+  late final MediaRegistry _registry = MediaRegistry(_db);
 
   /// Imports a local file into the signed-in user's library.
   Future<String> importMedia(
@@ -67,8 +71,8 @@ class MediaLibraryRepository {
           userId: signedInUserId,
         );
         final id = enjoyVideoId(vid: vid);
-        final existing = await MediaRegistry(_db).getVideoById(id);
-        await MediaRegistry(_db).upsertVideo(
+        final existing = await _registry.getVideoById(id);
+        await _registry.upsertVideo(
           VideoRow(
             id: id,
             vid: vid,
@@ -105,8 +109,8 @@ class MediaLibraryRepository {
         userId: signedInUserId,
       );
       final id = enjoyAudioId(aid: aid);
-      final existing = await MediaRegistry(_db).getAudioById(id);
-      await MediaRegistry(_db).upsertAudio(
+      final existing = await _registry.getAudioById(id);
+      await _registry.upsertAudio(
         AudioRow(
           id: id,
           aid: aid,
@@ -157,7 +161,7 @@ class MediaLibraryRepository {
     if (id == null) {
       throw const FileFailure('Invalid YouTube URL or video ID.');
     }
-    final dup = await MediaRegistry(_db).getYoutubeVideoByVid(id);
+    final dup = await _registry.getYoutubeVideoByVid(id);
     if (dup != null) {
       await _maybePatchYoutubeMetadata(
         dup,
@@ -165,7 +169,7 @@ class MediaLibraryRepository {
         prefetchedThumbnailUrl: prefetchedThumbnailUrl,
       );
       // Resurface on Home even when metadata was already complete (re-add).
-      await MediaRegistry(_db).touchUpdatedAt(dup.id);
+      await _registry.touchUpdatedAt(dup.id);
       return dup.id;
     }
 
@@ -202,7 +206,7 @@ class MediaLibraryRepository {
       createdAt: now,
       updatedAt: now,
     );
-    await MediaRegistry(_db).upsertVideo(row);
+    await _registry.upsertVideo(row);
     await _enqueueSync?.call(SyncEntityType.video, rowId, SyncAction.create);
     return rowId;
   }
@@ -211,7 +215,7 @@ class MediaLibraryRepository {
   Future<YoutubeMetadataPatch?> refreshYoutubeMetadataIfNeeded(
     String mediaId,
   ) async {
-    final row = await MediaRegistry(_db).getVideoById(mediaId);
+    final row = await _registry.getVideoById(mediaId);
     if (row == null || row.provider.toLowerCase() != 'youtube') return null;
     if (!_youtubeMetadataNeedsRefresh(row)) return null;
 
@@ -220,9 +224,11 @@ class MediaLibraryRepository {
 
     final title = meta.title;
     final thumb = meta.thumbnailUrl ?? row.thumbnailUrl;
-    await MediaRegistry(
-      _db,
-    ).updateYoutubeMetadata(id: mediaId, title: title, thumbnailUrl: thumb);
+    await _registry.updateYoutubeMetadata(
+      id: mediaId,
+      title: title,
+      thumbnailUrl: thumb,
+    );
     await _enqueueYoutubeMetadataSync(row);
     return (title: title, thumbnailUrl: thumb);
   }
@@ -284,7 +290,7 @@ class MediaLibraryRepository {
 
     final resolvedTitle = needsTitle ? title : row.title;
     final resolvedThumb = needsThumb ? thumb : row.thumbnailUrl;
-    await MediaRegistry(_db).updateYoutubeMetadata(
+    await _registry.updateYoutubeMetadata(
       id: row.id,
       title: resolvedTitle,
       thumbnailUrl: resolvedThumb,
@@ -306,7 +312,7 @@ class MediaLibraryRepository {
   /// is already closed.
   Future<void> touchMediaUpdatedAt(String mediaId) async {
     try {
-      await MediaRegistry(_db).touchUpdatedAt(mediaId);
+      await _registry.touchUpdatedAt(mediaId);
     } on Object catch (e, st) {
       _log.warning('touchMediaUpdatedAt failed for $mediaId', e, st);
     }
@@ -320,11 +326,10 @@ class MediaLibraryRepository {
     // locally when the local delete threw between the two calls.
     // Registry dispatch (video-first probe + which table to delete) runs
     // inside the same zone, so it joins the transaction.
-    final registry = MediaRegistry(_db);
     String? localUri;
     await _db.transaction(() async {
-      localUri = await registry.localUriOf(id);
-      final kind = await registry.deleteById(id);
+      localUri = await _registry.localUriOf(id);
+      final kind = await _registry.deleteById(id);
       if (kind != null) {
         await _enqueueSync?.call(
           MediaRegistry.syncEntityTypeOf(kind),
@@ -344,23 +349,20 @@ class MediaLibraryRepository {
     );
   }
 
-  Future<Media?> getById(String id) async => MediaRegistry(_db).getById(id);
-
   /// Updates content language on an existing audio or video row.
   Future<void> updateMediaLanguage(String id, String language) async {
     final canonical = canonicalMediaLanguageTag(language);
-    final registry = MediaRegistry(_db);
     // Canonicalization, the same-tag short-circuit (skip the write, the
     // fetch-state clear, and the sync enqueue), and the transcript
     // fetch-state clear are repo-layer policy — the registry only owns the
     // videos/audios write dispatch.
-    final hit = await registry.probeBoth(id);
+    final hit = await _registry.probeBoth(id);
     final current = hit.video?.language ?? hit.audio?.language;
     if (hit.video == null && hit.audio == null) {
       throw const FileFailure('Media not found.');
     }
     if (tagsEqual(current!, canonical)) return;
-    final kind = await registry.updateLanguage(id, canonical);
+    final kind = await _registry.updateLanguage(id, canonical);
     if (kind == null) throw const FileFailure('Media not found.');
     if (kind == MediaKind.video) {
       await _db.transcriptFetchStateDao.clearForTarget('video', id);
@@ -379,8 +381,7 @@ class MediaLibraryRepository {
     required XFile picked,
   }) async {
     try {
-      final registry = MediaRegistry(_db);
-      final hit = await registry.probeBoth(mediaId);
+      final hit = await _registry.probeBoth(mediaId);
       final video = hit.video;
       final audio = hit.audio;
       if (video == null && audio == null) {
@@ -400,7 +401,7 @@ class MediaLibraryRepository {
         // `Future<MediaKind?>` returned by the registry write
         // (Copilot review F8).
         persist: (result) async {
-          await registry.updateLocalFile(
+          await _registry.updateLocalFile(
             mediaId,
             localUri: result.fileUri,
             bookmarkData: result.bookmarkData,

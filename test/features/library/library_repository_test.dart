@@ -8,6 +8,7 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
@@ -71,7 +72,7 @@ void main() {
         ),
       );
 
-      final media = await repo.getById(id);
+      final media = await MediaRegistry(db).getById(id);
       expect(media, isNotNull);
       expect(media!.kind, MediaKind.video);
       expect(media.title, 'Clip');
@@ -96,7 +97,7 @@ void main() {
       );
       expect(id, expectedId);
 
-      final media = await repo.getById(id);
+      final media = await MediaRegistry(db).getById(id);
       expect(media, isNotNull);
       expect(media!.contentHash, expectedAid);
       expect(media.kind, MediaKind.audio);
@@ -312,7 +313,7 @@ void main() {
       );
 
       await repo.deleteMedia(id);
-      expect(await repo.getById(id), isNull);
+      expect(await MediaRegistry(db).getById(id), isNull);
     });
 
     test(
@@ -627,14 +628,15 @@ void main() {
       );
 
       final emissions = <List<Media>>[];
-      final sub = repo.watchAll().listen(emissions.add);
+      final sub = MediaRegistry(db).watchAll().listen(emissions.add);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(emissions, hasLength(1));
       expect(emissions.first, hasLength(1));
 
       // No-op write: same row, same fields. Drift re-queries both tables and
-      // pushes the unchanged merged list back through watchAll. The repo
-      // should suppress the duplicate so home/library providers don't re-sort.
+      // pushes the unchanged merged list back through watchAll. The
+      // registry's merge layer should suppress the duplicate so
+      // home/library providers don't re-sort.
       await db.audioDao.insertRow(
         AudioRow(
           id: id,
@@ -701,7 +703,7 @@ void main() {
       // brand-new/empty library and every provider built on it (home
       // recents, filtered lists) stayed stuck in `AsyncLoading` forever.
       final emissions = <List<Media>>[];
-      final sub = repo.watchAll().listen(emissions.add);
+      final sub = MediaRegistry(db).watchAll().listen(emissions.add);
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(emissions, hasLength(1));
@@ -720,7 +722,7 @@ void main() {
         signedInUserId: _testUserId,
         contentLanguage: 'ja',
       );
-      final media = await repo.getById(id);
+      final media = await MediaRegistry(db).getById(id);
       expect(media!.language, 'ja-JP');
     });
 

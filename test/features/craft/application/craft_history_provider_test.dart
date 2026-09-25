@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_history_provider.dart';
-import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
-import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,8 +32,8 @@ Future<List<Media>> _firstValue(
   }
 }
 
-class _FakeLibraryRepository extends MediaLibraryRepository {
-  _FakeLibraryRepository(super.db, super.storage, this._items);
+class _FakeMediaRegistry extends MediaRegistry {
+  _FakeMediaRegistry(super.db, this._items);
 
   final List<Media> _items;
 
@@ -91,10 +90,10 @@ void main() {
         updatedAt: now.add(const Duration(minutes: 5)),
       ),
     ];
-    final repo = _FakeLibraryRepository(db, FileStorage(), items);
+    final repo = _FakeMediaRegistry(db, items);
 
     final container = ProviderContainer(
-      overrides: [mediaLibraryRepositoryProvider.overrideWithValue(repo)],
+      overrides: [mediaRegistryProvider.overrideWithValue(repo)],
     );
     addTearDown(container.dispose);
 
@@ -104,12 +103,12 @@ void main() {
   });
 
   test('emits an empty list when there are no craft items', () async {
-    final repo = _FakeLibraryRepository(db, FileStorage(), [
+    final repo = _FakeMediaRegistry(db, [
       _media(id: 'user-1', provider: 'user', updatedAt: DateTime.now()),
     ]);
 
     final container = ProviderContainer(
-      overrides: [mediaLibraryRepositoryProvider.overrideWithValue(repo)],
+      overrides: [mediaRegistryProvider.overrideWithValue(repo)],
     );
     addTearDown(container.dispose);
 

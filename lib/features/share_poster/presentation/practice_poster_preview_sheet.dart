@@ -14,7 +14,6 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
@@ -88,7 +87,6 @@ class _PracticePosterPreviewSheetState
       );
       final data = await buildPracticePosterData(
         db: ref.read(appDatabaseProvider),
-        library: ref.read(mediaLibraryRepositoryProvider),
         transcriptRepo: ref.read(transcriptRepositoryProvider),
         mediaId: widget.mediaId,
         echo: echo,
