@@ -42,6 +42,12 @@ class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
   final List<({String videoId, String language, String source, int lineCount})>
   uploads = [];
 
+  /// Completes the moment the first `uploadTranscript` call records into
+  /// [uploads]. Lets a test await the producer-side fire-and-forget upload
+  /// instead of polling `DateTime.now()` against a wall-clock deadline
+  /// (issue #774 flake-debt class).
+  final Completer<void> firstUpload = Completer<void>();
+
   @override
   Future<Map<String, dynamic>?> getCachedTranscript({
     required String videoId,
@@ -65,6 +71,7 @@ class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
       source: source,
       lineCount: timeline.length,
     ));
+    if (!firstUpload.isCompleted) firstUpload.complete();
     return !uploadShouldFail;
   }
 
@@ -387,10 +394,15 @@ void main() {
       await repo.fetchCloudTranscripts(mediaId, force: true);
       await _drain();
 
-      final deadline = DateTime.now().add(const Duration(seconds: 2));
-      while (api.uploads.isEmpty && DateTime.now().isBefore(deadline)) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-      }
+      // Wait on the fire-and-forget upload Completer instead of polling
+      // `DateTime.now()` (issue #774 flake-debt class — same pattern that
+      // bit the echo-overlap test that #773 fixed).
+      await api.firstUpload.future.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw StateError(
+          'producer did not call uploadTranscript within 2s',
+        ),
+      );
       expect(api.uploads, hasLength(1));
 
       final queued = await _waitForQueue(db);
