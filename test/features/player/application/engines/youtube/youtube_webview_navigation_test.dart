@@ -12,6 +12,7 @@
 import 'dart:async';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_navigation.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +63,10 @@ class _Stub {
   _RecordingPlatformController platform = _RecordingPlatformController();
   late final InAppWebViewController controller =
       InAppWebViewController.fromPlatform(platform: platform);
+  // One cached wrapper per attachment — the production controller caches its
+  // channel the same way so navigation's stale-WebView identity check keeps
+  // meaning "same WebView" (issue #767).
+  late final YoutubeJsChannel channel = InAppWebViewJsChannel(controller);
   int verifyGen = 0;
   int navGen = 0;
   int staleCalls = 0;
@@ -76,7 +81,7 @@ class _Stub {
     // testWidgets (pending-timer assertion).
     nav = YoutubeWebViewNavigation(
       session: session,
-      webController: () => attach ? controller : null,
+      jsChannel: () => attach ? channel : null,
       captureVerifyGeneration: () => verifyGen,
       isVerifyGenerationStale: (gen) => gen != verifyGen,
       bumpNavGeneration: () => ++navGen,
@@ -123,7 +128,7 @@ void main() {
       // Override the controller supplier to return null on this call.
       final nav = YoutubeWebViewNavigation(
         session: stub.session,
-        webController: () => null,
+        jsChannel: () => null,
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
@@ -210,7 +215,7 @@ void main() {
       stub.session.resetForOpen('vid');
       final nav = YoutubeWebViewNavigation(
         session: stub.session,
-        webController: () => null,
+        jsChannel: () => null,
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
@@ -306,7 +311,7 @@ void main() {
       nav.cancelNudge();
       final nullNav = YoutubeWebViewNavigation(
         session: stub.session,
-        webController: () => null,
+        jsChannel: () => null,
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
@@ -350,7 +355,7 @@ void main() {
       var prepareCalls = 0;
       final nav = YoutubeWebViewNavigation(
         session: stub.session,
-        webController: () => null,
+        jsChannel: () => null,
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
@@ -415,7 +420,7 @@ void main() {
       stub.build(attach: false);
       var prepareCalls = 0;
       await stub.nav!.onSignInNavigationBlocked(
-        stub.controller,
+        stub.channel,
         prepareWatchReload: () => prepareCalls++,
       );
       expect(prepareCalls, 0);
@@ -428,7 +433,7 @@ void main() {
       unawaited(stub.session.closeStreams());
       var prepareCalls = 0;
       await nav.onSignInNavigationBlocked(
-        stub.controller,
+        stub.channel,
         prepareWatchReload: () => prepareCalls++,
       );
       expect(prepareCalls, 0);
@@ -442,7 +447,7 @@ void main() {
       final nav = stub.build();
       var prepareCalls = 0;
       await nav.onSignInNavigationBlocked(
-        stub.controller,
+        stub.channel,
         prepareWatchReload: () => prepareCalls++,
       );
       expect(prepareCalls, 1);
@@ -466,7 +471,7 @@ void main() {
       final stub = _Stub();
       final nav = stub.build();
       unawaited(stub.session.closeStreams());
-      await nav.nudgePlaybackStart(stub.controller);
+      await nav.nudgePlaybackStart(stub.channel);
       expect(stub.platform.evaluateCalls, 0);
     });
 
@@ -474,14 +479,14 @@ void main() {
       final stub = _Stub();
       final nav = stub.build();
       stub.session.markFirstPlayingLogged();
-      await nav.nudgePlaybackStart(stub.controller);
+      await nav.nudgePlaybackStart(stub.channel);
       expect(stub.platform.evaluateCalls, 0);
     });
 
     test('calls play (and forceInlinePlayback on iOS)', () async {
       final stub = _Stub();
       final nav = stub.build();
-      await nav.nudgePlaybackStart(stub.controller);
+      await nav.nudgePlaybackStart(stub.channel);
       expect(stub.platform.evaluateCalls, greaterThanOrEqualTo(1));
       // The first evaluateJavascript call is the play script.
       expect(
@@ -535,7 +540,7 @@ void main() {
       var prepareCalls = 0;
       final nav = YoutubeWebViewNavigation(
         session: stub.session,
-        webController: () => null,
+        jsChannel: () => null,
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,

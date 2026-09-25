@@ -28,7 +28,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'youtube_js_channel.dart';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';
@@ -45,14 +45,14 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 /// can adapt its existing `webController` getter without overriding.
 class YoutubeSessionWebAttachment {
   YoutubeSessionWebAttachment({
-    required this.webController,
+    required this.jsChannel,
     required this.onFirstPlaying,
     required this.reapplyVolume,
     required this.healPlay,
   });
 
   /// Live controller getter (nullable — the WebView may be detached).
-  final InAppWebViewController? Function() webController;
+  final YoutubeJsChannel? Function() jsChannel;
 
   /// Fires on the first authoritative `playing` after open.
   final void Function() onFirstPlaying;
@@ -261,7 +261,7 @@ class YoutubeSession {
     _pollLoop?.stop();
     _pollLoop = YoutubeWebViewPollLoop(
       session: this,
-      webController: attachment.webController,
+      jsChannel: attachment.jsChannel,
       onFirstPlaying: attachment.onFirstPlaying,
       onPlaybackProgress: _audibility.onPlaybackProgress,
     );

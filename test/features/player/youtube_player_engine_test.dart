@@ -230,7 +230,7 @@ void main() {
       );
       return YoutubeWebViewEvents(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: onFirstPlaying,
         startPolling: startPolling,
         stopPolling: stopPolling,

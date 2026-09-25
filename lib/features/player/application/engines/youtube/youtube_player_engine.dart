@@ -69,7 +69,7 @@ class YoutubePlayerEngine
       'youtube stage size ${width.round()}x${height.round()} '
       'vid=${_session.videoId}',
     );
-    unawaited(YoutubeWebViewBridge.refocusWindow(_webView.webController));
+    unawaited(YoutubeWebViewBridge.refocusWindow(_webView.jsChannel));
   }
 
   @override
@@ -181,20 +181,20 @@ class YoutubePlayerEngine
   @override
   Future<void> seek(Duration target) async {
     await YoutubeWebViewBridge.seekToSeconds(
-      _webView.webController,
+      _webView.jsChannel,
       target.inMilliseconds / 1000.0,
     );
   }
 
   @override
   Future<void> setRate(double rate) async {
-    await YoutubeWebViewBridge.setPlaybackRate(_webView.webController, rate);
+    await YoutubeWebViewBridge.setPlaybackRate(_webView.jsChannel, rate);
   }
 
   @override
   Future<void> setVolumeNormalized(double volume) async {
     final applied = _session.storeVolumeNormalized(volume);
-    await YoutubeWebViewBridge.setVolume(_webView.webController, applied);
+    await YoutubeWebViewBridge.setVolume(_webView.jsChannel, applied);
   }
 
   @override
@@ -208,7 +208,7 @@ class YoutubePlayerEngine
     if (restart) {
       await play();
     } else {
-      final controller = _webView.webController;
+      final controller = _webView.jsChannel;
       if (controller == null) {
         _logYoutube.warning(
           'youtube playOrPause ignored without WebView '
@@ -276,7 +276,7 @@ class YoutubePlayerEngine
       _session.beginPlayAfterEnd();
       await _webView.loadCurrentVideoIfAttached();
     } else {
-      final controller = _webView.webController;
+      final controller = _webView.jsChannel;
       if (controller == null) {
         _logYoutube.warning(
           'youtube play ignored without WebView vid=${_session.videoId}',
@@ -312,7 +312,7 @@ class YoutubePlayerEngine
     _session.noteUserPauseCommand();
     _logYoutube.fine('youtube pause command vid=${_session.videoId}');
     try {
-      await YoutubeWebViewBridge.pause(_webView.webController);
+      await YoutubeWebViewBridge.pause(_webView.jsChannel);
     } on Object catch (error, stackTrace) {
       _logYoutube.warning(
         'youtube pause command failed vid=${_session.videoId}',
@@ -325,7 +325,7 @@ class YoutubePlayerEngine
   @override
   Future<void> stop() async {
     _session.stopPlayback();
-    await YoutubeWebViewBridge.stop(_webView.webController);
+    await YoutubeWebViewBridge.stop(_webView.jsChannel);
   }
 
   @override

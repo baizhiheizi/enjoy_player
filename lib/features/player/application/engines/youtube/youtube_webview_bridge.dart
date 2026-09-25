@@ -1,8 +1,15 @@
-/// JS snippets and URL helpers for [YouTubePlayerEngine].
+/// The YouTube JS protocol: every script Dart evaluates into the watch
+/// page, the decode of every value the page hands back, and the URL/UA
+/// setup the WebView needs — all behind the app-owned [YoutubeJsChannel]
+/// seam (issue #767).
 library;
+
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+import 'youtube_js_channel.dart';
 
 /// Shared by player + login WebViews — Google/YouTube reject default WKWebView UAs.
 const String kYoutubeMobileChromeUserAgent =
@@ -53,6 +60,16 @@ class YoutubeWebViewSettings {
   }
 }
 
+/// One decoded DOM sample from `YoutubeWebViewBridge.pollScript`.
+///
+/// `duration` is null when the element reports no finite duration yet.
+typedef YoutubePollSample = ({
+  Duration position,
+  Duration? duration,
+  bool paused,
+  bool ended,
+});
+
 class YoutubeWebViewBridge {
   YoutubeWebViewBridge._();
 
@@ -61,6 +78,19 @@ class YoutubeWebViewBridge {
   static WebUri watchUri(String videoId) =>
       WebUri('https://m.youtube.com/watch?v=$videoId');
 
+  /// Locates the `<video>` element inside YouTube's player container.
+  ///
+  /// The ONE spelling of the video locator shared by every bridge script
+  /// and the state poll (issue #767; previously spelled independently in
+  /// three places). The watch-page inject keeps its own `mainVideo()`
+  /// inside the page script — it runs before this module's scripts exist
+  /// as separate concerns on the page side.
+  static const String locateVideo = '''
+      var p=document.querySelector('.html5-video-player');
+      var v=p?p.querySelector('video'):null;
+      if(!v) v=document.querySelector('video');
+  ''';
+
   /// Locates the `<video>` element and YouTube's own page player object.
   ///
   /// Transport and volume commands must go through the page player
@@ -68,10 +98,9 @@ class YoutubeWebViewBridge {
   /// mutating the raw element (especially `video.muted`) behind the page's
   /// back lets its autoplay-policy/state machine re-pause the element shortly
   /// after playback starts — the play-then-pause symptom.
-  static const String _findVideoAndPlayer = '''
-      var p=document.querySelector('.html5-video-player');
-      var v=p?p.querySelector('video'):null;
-      if(!v) v=document.querySelector('video');
+  static const String _findVideoAndPlayer =
+      '''
+      $locateVideo
       var mp=document.querySelector('#movie_player')||p;
       if(!mp||typeof mp.playVideo!=='function') mp=null;
   ''';
@@ -189,8 +218,8 @@ class YoutubeWebViewBridge {
     })();
   ''';
 
-  static Future<void> refocusWindow(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(source: focusWindowScript);
+  static Future<void> refocusWindow(YoutubeJsChannel? channel) async {
+    await channel?.evaluate(focusWindowScript);
   }
 
   /// Data-gated play for automatic retries (immediate-pause recovery).
@@ -240,58 +269,52 @@ class YoutubeWebViewBridge {
     })();
   ''';
 
-  static Future<void> playWhenReady(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(source: playWhenReadyScript);
+  static Future<void> playWhenReady(YoutubeJsChannel? channel) async {
+    await channel?.evaluate(playWhenReadyScript);
   }
 
-  static Future<void> play(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(source: playScript);
+  static Future<void> play(YoutubeJsChannel? channel) async {
+    await channel?.evaluate(playScript);
   }
 
   /// Play when the DOM video is paused/ended; pause when it is playing.
   /// Returns the DOM-decided direction (`'play'` / `'pause'`) or `null`
   /// when no video was found (see [playOrPauseScript]).
-  static Future<String?> playOrPause(InAppWebViewController? web) async {
-    final result = await web?.evaluateJavascript(source: playOrPauseScript);
+  static Future<String?> playOrPause(YoutubeJsChannel? channel) async {
+    final result = await channel?.evaluate(playOrPauseScript);
     return result is String ? result : null;
   }
 
-  static Future<void> pause(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(source: pauseScript);
+  static Future<void> pause(YoutubeJsChannel? channel) async {
+    await channel?.evaluate(pauseScript);
   }
 
   static Future<void> seekToSeconds(
-    InAppWebViewController? web,
+    YoutubeJsChannel? channel,
     double seconds,
   ) async {
-    await web?.evaluateJavascript(
-      source:
-          '''
+    await channel?.evaluate('''
         (function(){
           $_findVideoAndPlayer
           if(v) v.currentTime=$seconds;
         })();
-      ''',
-    );
+      ''');
   }
 
-  static Future<void> stop(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(source: stopScript);
+  static Future<void> stop(YoutubeJsChannel? channel) async {
+    await channel?.evaluate(stopScript);
   }
 
   static Future<void> setPlaybackRate(
-    InAppWebViewController? web,
+    YoutubeJsChannel? channel,
     double speed,
   ) async {
-    await web?.evaluateJavascript(
-      source:
-          '''
+    await channel?.evaluate('''
         (function(){
           $_findVideoAndPlayer
           if(v) v.playbackRate=$speed;
         })();
-      ''',
-    );
+      ''');
   }
 
   /// Volume/mute script. Prefers the page player API (`unMute` / `mute` /
@@ -330,28 +353,26 @@ class YoutubeWebViewBridge {
       ''';
 
   static Future<void> setVolume(
-    InAppWebViewController? web,
+    YoutubeJsChannel? channel,
     double volume,
   ) async {
-    await web?.evaluateJavascript(source: setVolumeScript(volume));
+    await channel?.evaluate(setVolumeScript(volume));
   }
 
   static Future<void> loadWatchPage(
-    InAppWebViewController? web,
+    YoutubeJsChannel? channel,
     String videoId,
   ) async {
-    await web?.loadUrl(urlRequest: URLRequest(url: watchUri(videoId)));
+    await channel?.loadUri(watchUri(videoId));
   }
 
-  static Future<void> loadIdlePage(InAppWebViewController? web) async {
-    await web?.loadUrl(urlRequest: URLRequest(url: idleUri));
+  static Future<void> loadIdlePage(YoutubeJsChannel? channel) async {
+    await channel?.loadUri(idleUri);
   }
 
   /// Re-applies `playsinline` on the active `<video>` (iOS WKWebView safety net).
-  static Future<void> forceInlinePlayback(InAppWebViewController? web) async {
-    await web?.evaluateJavascript(
-      source:
-          '''
+  static Future<void> forceInlinePlayback(YoutubeJsChannel? channel) async {
+    await channel?.evaluate('''
         (function(){
           $_findVideoAndPlayer
           if(!v) return;
@@ -362,7 +383,115 @@ class YoutubeWebViewBridge {
             try{v.webkitSetPresentationMode('inline');}catch(e){}
           }
         })();
-      ''',
+      ''');
+  }
+
+  // ---
+  // State poll (folded here from the deleted YoutubeStatePoller — issue #767;
+  // its decode is now directly executable by tests).
+  // ---
+
+  /// Polls the HTML5 `<video>` element for position / duration / play state.
+  ///
+  /// Returns null while an ad is showing (`ad-showing` on the player
+  /// container) or when no `<video>` exists — the ad hand-off and reload
+  /// choreography must not sample ad playback.
+  static const String pollScript =
+      '''
+      (function(){
+        $locateVideo
+        if(!v) return null;
+        if(p && p.classList.contains('ad-showing')) return null;
+        var s=v.paused?0:(v.ended?2:1);
+        return JSON.stringify({
+          t:v.currentTime||0,
+          d:(v.duration && isFinite(v.duration))?v.duration:0,
+          s:s
+        });
+      })();
+    ''';
+
+  /// Decodes a [pollScript] result.
+  ///
+  /// The `s` encoding is the protocol contract: `0` = paused, `1` = playing,
+  /// `2` = ended. `t` / `d` are seconds. Returns null for null, non-JSON,
+  /// non-object results (the WebView may be mid-teardown) — and for SHAPE
+  /// drift: a missing or mistyped `t` / `s`, or an `s` outside 0/1/2 (issue
+  /// #767 review). Defaulting those used to read as "playing at t=0", a
+  /// false-positive the poll loop cannot distinguish from real DOM state;
+  /// a null sample instead just drops the tick (the same swallow `poll`
+  /// applies when the evaluate itself fails) and the next tick re-samples.
+  /// `d` stays lenient — the page sends `0` for "no finite duration yet",
+  /// so absence and zero are the same semantic and cannot fabricate
+  /// transport state.
+  static YoutubePollSample? decodePollSample(Object? result) {
+    if (result == null) return null;
+    final Map<String, dynamic> json;
+    try {
+      json = jsonDecode(result.toString()) as Map<String, dynamic>;
+    } on Object {
+      return null;
+    }
+
+    final rawSeconds = json['t'];
+    final rawState = json['s'];
+    if (rawSeconds is! num || rawState is! num) return null;
+    final state = rawState.toInt();
+    const kStatePaused = 0;
+    const kStatePlaying = 1;
+    const kStateEnded = 2;
+    if (state != kStatePaused &&
+        state != kStatePlaying &&
+        state != kStateEnded) {
+      return null;
+    }
+
+    final position = Duration(
+      milliseconds: (rawSeconds.toDouble() * 1000).round(),
     );
+    final jsPaused = state == kStatePaused;
+    final jsEnded = state == kStateEnded;
+
+    Duration? newDuration;
+    final dur = (json['d'] as num?)?.toDouble() ?? 0;
+    if (dur > 0 && dur.isFinite) {
+      newDuration = Duration(milliseconds: (dur * 1000).round());
+    }
+
+    return (
+      position: position,
+      duration: newDuration,
+      paused: jsPaused,
+      ended: jsEnded,
+    );
+  }
+
+  /// One poll tick: evaluate [pollScript] and hand the decoded sample to
+  /// [onResult]. No-ops when disposed or the channel is gone; swallows
+  /// evaluation errors (the WebView may be disposed mid-teardown).
+  static Future<void> poll({
+    required bool disposed,
+    required YoutubeJsChannel? channel,
+    required void Function({
+      required Duration position,
+      Duration? newDuration,
+      required bool jsPaused,
+      required bool jsEnded,
+    })
+    onResult,
+  }) async {
+    if (disposed || channel == null) return;
+    try {
+      final sample = decodePollSample(await channel.evaluate(pollScript));
+      if (sample == null) return;
+      onResult(
+        position: sample.position,
+        newDuration: sample.duration,
+        jsPaused: sample.paused,
+        jsEnded: sample.ended,
+      );
+    } on Object {
+      // WebView may be disposed — ignore.
+    }
   }
 }

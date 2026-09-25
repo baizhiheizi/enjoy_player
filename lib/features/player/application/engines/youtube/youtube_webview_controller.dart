@@ -14,6 +14,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_page_inject.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_playback_stall_watchdog.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
@@ -46,25 +47,25 @@ class YoutubeWebViewController {
     // (seekTo, controller-lookups, generation bumps).
     _events = YoutubeWebViewEvents(
       session: session,
-      webController: () => _webController,
+      jsChannel: () => jsChannel,
       onFirstPlaying: onFirstPlayingFromSession,
       startPolling: () => session.pollLoop.start(),
       stopPolling: () => session.pollLoop.stop(),
       seekTo: (d) => YoutubeWebViewBridge.seekToSeconds(
-        _webController,
+        jsChannel,
         d.inMilliseconds / 1000.0,
       ),
       audibility: session.audibility,
     );
     _navigation = YoutubeWebViewNavigation(
       session: session,
-      webController: () => _webController,
+      jsChannel: () => jsChannel,
       captureVerifyGeneration: () => _verifyGeneration,
       isVerifyGenerationStale: (gen) => gen != _verifyGeneration,
       bumpNavGeneration: () => ++_navGeneration,
       currentNavGeneration: () => _navGeneration,
       onStaleWebView: () {
-        _webController = null;
+        attach(null);
         session.noteWebViewUnmounted();
         session.pollLoop.stop();
         session.bumpMountTick();
@@ -85,13 +86,36 @@ class YoutubeWebViewController {
   late final YoutubeWebViewEvents _events;
   late final YoutubeWebViewNavigation _navigation;
 
-  InAppWebViewController? _webController;
+  /// The attached WebView as ONE piece of state: the plugin controller and
+  /// its channel wrapper are two views of the same attachment, so they are
+  /// stored together (issue #767 review) — there is no second field to drift
+  /// out of lockstep, and [attach] is the only writer.
+  ({InAppWebViewController controller, YoutubeJsChannel channel})?
+  _attachedWebView;
   int _verifyGeneration = 0;
   int _navGeneration = 0;
   int _stallRecoveryCount = 0;
   bool _rejectingNativeFullscreen = false;
 
-  InAppWebViewController? get webController => _webController;
+  /// The plugin controller, for the WebView lifecycle owner only (handler
+  /// registration, widget callbacks, stale-controller identity checks).
+  InAppWebViewController? get webController => _attachedWebView?.controller;
+
+  /// The JS-channel view of the attached WebView — what the engine cluster
+  /// (events, navigation, poll loop, transport) crosses instead of the
+  /// plugin type (issue #767).
+  ///
+  /// Cached per attachment (not re-wrapped per call) so identity checks on
+  /// the channel still mean "same WebView".
+  YoutubeJsChannel? get jsChannel => _attachedWebView?.channel;
+
+  /// Attaches (or, with null, detaches) the WebView. The only writer of
+  /// [_attachedWebView].
+  void attach(InAppWebViewController? controller) {
+    _attachedWebView = controller == null
+        ? null
+        : (controller: controller, channel: InAppWebViewJsChannel(controller));
+  }
 
   // ---------------------------------------------------------------------------
   // YoutubeSessionWebAttachment — the session's WebView controller getter and
@@ -100,19 +124,19 @@ class YoutubeWebViewController {
 
   /// Adapts this controller to the session's attachment contract. Kept as a
   /// method (not a stored field) so the lambda always reads the latest
-  /// [_webController].
+  /// [jsChannel].
   YoutubeSessionWebAttachment _attachment() {
     return YoutubeSessionWebAttachment(
-      webController: () => _webController,
+      jsChannel: () => jsChannel,
       onFirstPlaying: onFirstPlayingFromSession,
       reapplyVolume: () async {
         await YoutubeWebViewBridge.setVolume(
-          _webController,
+          jsChannel,
           session.volumeNormalized,
         );
       },
       healPlay: () async {
-        await YoutubeWebViewBridge.play(_webController);
+        await YoutubeWebViewBridge.play(jsChannel);
       },
     );
   }
@@ -167,11 +191,11 @@ class YoutubeWebViewController {
     session.resetForClear(keepMounted: keepMounted);
     session.pollLoop.stop();
     final navGen = ++_navGeneration;
-    final controller = _webController;
+    final controller = webController;
     if (controller == null) return;
     try {
       await YoutubeWebViewBridge.loadIdlePage(
-        controller,
+        jsChannel,
       ).timeout(kEngineCommandTimeout);
     } on TimeoutException {
       _logWebView.warning(
@@ -181,7 +205,7 @@ class YoutubeWebViewController {
     }
     if (_navGeneration != navGen &&
         session.videoId.isNotEmpty &&
-        identical(_webController, controller)) {
+        identical(webController, controller)) {
       unawaited(_navigation.loadCurrentVideoIfAttached());
     }
   }
@@ -196,7 +220,7 @@ class YoutubeWebViewController {
 
   Future<void> onSignInNavigationBlocked(InAppWebViewController controller) =>
       _navigation.onSignInNavigationBlocked(
-        controller,
+        InAppWebViewJsChannel(controller),
         prepareWatchReload: () => prepareWatchReload(resetFirstPlaying: false),
       );
 
@@ -228,7 +252,7 @@ class YoutubeWebViewController {
     InAppWebViewController controller, {
     bool initialWatchUrlRequested = false,
   }) {
-    _webController = controller;
+    attach(controller);
     session.noteWebViewMounted();
     onLogInitPhase('webview_created');
 
@@ -269,8 +293,8 @@ class YoutubeWebViewController {
   }
 
   void onWebViewDisposed(InAppWebViewController? controller) {
-    if (identical(_webController, controller)) {
-      _webController = null;
+    if (identical(webController, controller)) {
+      attach(null);
       session.noteWebViewUnmounted();
       session.clearAwaitingColdInitialNavigation();
       _navigation.cancelNudge();
@@ -307,7 +331,7 @@ class YoutubeWebViewController {
       _stallWatchdog.cancel();
       _navigation.cancelNudge();
     }
-    await injectYoutubeMobileWatchPage(controller);
+    await injectYoutubeMobileWatchPage(InAppWebViewJsChannel(controller));
     session.pollLoop.scheduleKick();
   }
 
@@ -331,7 +355,9 @@ class YoutubeWebViewController {
     if (_rejectingNativeFullscreen) return;
     _rejectingNativeFullscreen = true;
     try {
-      await YoutubeWebViewBridge.forceInlinePlayback(controller);
+      await YoutubeWebViewBridge.forceInlinePlayback(
+        InAppWebViewJsChannel(controller),
+      );
     } catch (e, st) {
       _logWebView.fine('Failed to force inline playback', e, st);
     } finally {
@@ -340,9 +366,10 @@ class YoutubeWebViewController {
   }
 
   Future<void> onNativeFullscreenExit(InAppWebViewController controller) async {
-    await YoutubeWebViewBridge.forceInlinePlayback(controller);
+    final channel = InAppWebViewJsChannel(controller);
+    await YoutubeWebViewBridge.forceInlinePlayback(channel);
     if (session.playing && !session.playbackCompleted) {
-      await YoutubeWebViewBridge.play(controller);
+      await YoutubeWebViewBridge.play(channel);
     }
   }
 

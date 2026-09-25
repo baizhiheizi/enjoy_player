@@ -6,10 +6,9 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_video_event.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
@@ -25,7 +24,7 @@ typedef YoutubeFirstPlayingFn = void Function();
 class YoutubeWebViewEvents {
   YoutubeWebViewEvents({
     required this.session,
-    required this.webController,
+    required this.jsChannel,
     required this.onFirstPlaying,
     required this.startPolling,
     required this.stopPolling,
@@ -34,7 +33,7 @@ class YoutubeWebViewEvents {
   });
 
   final YoutubeSession session;
-  final InAppWebViewController? Function() webController;
+  final YoutubeJsChannel? Function() jsChannel;
   final YoutubeFirstPlayingFn onFirstPlaying;
   final YoutubePollStartFn startPolling;
   final YoutubePollStopFn stopPolling;
@@ -89,7 +88,7 @@ class YoutubeWebViewEvents {
         audibility.cancelPending();
         session.noteEnded();
         stopPolling();
-        unawaited(YoutubeWebViewBridge.pause(webController()));
+        unawaited(YoutubeWebViewBridge.pause(jsChannel()));
         break;
       case YoutubeVideoEventName.waiting:
         session.emitBuffering(true);
