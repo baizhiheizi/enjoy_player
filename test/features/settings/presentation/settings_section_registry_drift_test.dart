@@ -95,6 +95,28 @@ void main() {
       }
     });
 
+    test('every SettingsSectionIds constant is a registered section', () {
+      // Hand-listed because Dart cannot reflect over static consts. A
+      // declared-but-unregistered id renders nowhere (dead code); adding a
+      // constant here without a kSettingsRegistry header entry fails.
+      const declaredIds = <String>{
+        SettingsSectionIds.cloudSync,
+        SettingsSectionIds.appearanceLanguage,
+        SettingsSectionIds.aiProviders,
+        SettingsSectionIds.recording,
+        SettingsSectionIds.keyboardShortcuts,
+        SettingsSectionIds.developer,
+        SettingsSectionIds.about,
+      };
+      expect(
+        declaredIds,
+        registeredSectionIds,
+        reason:
+            'a SettingsSectionIds constant that is neither registered nor '
+            'specced is dead code — register it or delete it',
+      );
+    });
+
     test('every registry row has exactly one spec row (and vice versa)', () {
       for (final id in registeredSectionIds) {
         final spec = specsById[id]!;

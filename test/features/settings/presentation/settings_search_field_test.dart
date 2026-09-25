@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -147,6 +148,29 @@ void main() {
       expect(find.text(l10n.settingsSearchNoResultsTitle), findsNothing);
       expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'a query matching only a gated-off section shows the no-results state',
+    (tester) async {
+      // The keyboard-shortcuts section is desktop-gated; forcing a
+      // non-desktop target hides it, so the query below matches nothing
+      // visible and the single-column layout must agree with the two-pane
+      // rail's no-results state instead of rendering a blank column.
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        final l10n = await pumpSettingsScreen(tester);
+        expect(find.text(l10n.hotkeysSectionKeyboard), findsNothing);
+
+        await tester.enterText(find.byType(TextField), 'keyboard shortcuts');
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.settingsSearchNoResultsTitle), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     },
   );
 }

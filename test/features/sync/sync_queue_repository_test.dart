@@ -292,6 +292,56 @@ void main() {
     );
   });
 
+  group('SyncQueueRepository injected retry policy (issue #752)', () {
+    test(
+      'a non-default maxRetries drives every threshold-derived decision',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        // Distinctive non-default threshold: if any predicate or the DAO
+        // write re-hardcodes the default 5, this test flips red.
+        final repo = SyncQueueRepository(
+          db,
+          retryPolicy: SyncRetryPolicy(maxRetries: 2),
+        );
+
+        final id = await repo.addOrUpsert(
+          entityType: 'audio',
+          entityId: 'a1',
+          action: 'create',
+        );
+
+        // retryCount 1 stays eligible; at the injected threshold the row
+        // is permanently failed and drops out of pendingItems.
+        await repo.markAttempted(id, error: 'once');
+        expect((await repo.pendingItems()).map((r) => r.id), [id]);
+        await repo.markAttempted(id, error: 'twice');
+        expect(await repo.pendingItems(), isEmpty);
+
+        final snapshot = await repo.watchSnapshot().first;
+        expect(snapshot.retryablePending, 0);
+        expect(snapshot.permanentlyFailed, 1);
+
+        // markPermanentlyFailed writes exactly the injected threshold.
+        final id2 = await repo.addOrUpsert(
+          entityType: 'audio',
+          entityId: 'a2',
+          action: 'create',
+        );
+        await repo.markPermanentlyFailed(id2, error: 'fatal');
+        final row2 = await (db.select(
+          db.syncQueue,
+        )..where((t) => t.id.equals(id2))).getSingle();
+        expect(row2.retryCount, 2);
+
+        // resetFailed re-arms rows at the injected threshold.
+        expect(await repo.resetFailed(), 2);
+        final rows = await db.select(db.syncQueue).get();
+        expect(rows.map((r) => r.retryCount), everyElement(0));
+      },
+    );
+  });
+
   group('SyncQueueRepository.removeByIdIfPayload (issue #717 F3)', () {
     test('removes the row and returns it when the payload matches', () async {
       final db = AppDatabase(executor: NativeDatabase.memory());
