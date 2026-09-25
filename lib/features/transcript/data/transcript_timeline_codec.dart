@@ -36,23 +36,38 @@ List<TranscriptLine> decodeTimelineJson(String timelineJson) {
 
 /// Fail-closed decode for untrusted timelines (Craft enrichment input).
 ///
-/// Returns `null` on any malformed shape — including a list that mixes valid
+/// Returns `null` on a malformed shape — including a list that mixes valid
 /// lines with garbage — so the caller falls back to the original JSON
 /// instead of enriching a partial decode. Partial input is treated as
 /// garbage deliberately: a dropped line desynchronizes line indices from
 /// alignment segments, and the fail-closed path is cheaper than trusting a
 /// half-decoded timeline.
+///
+/// Catches exactly the parse errors the decode can produce —
+/// [FormatException] from `jsonDecode` and [TypeError] from the lazy
+/// `.cast<Map<String, dynamic>>()` / `fromJson` field casts. Anything else
+/// (an `Error` from a broken VM, OOM, …) propagates: fail-closed means
+/// "fail-closed on parse errors", not "swallow every conceivable failure".
 List<TranscriptLine>? tryDecodeTimelineJson(String timelineJson) {
   try {
     return decodeTimelineJson(timelineJson);
-  } on Object {
+  } on FormatException {
+    return null;
+  } on TypeError {
     return null;
   }
 }
 
-/// 16-hex content hash used as memo identity for a `timelineJson` blob.
+/// Content hash used as the memo identity for a `timelineJson` blob.
+///
+/// The full SHA-1 (40 hex chars, 160 bits), deliberately NOT truncated: the
+/// hash is the identity gate between a cached decode and a fresh one for the
+/// same row id, so a collision would return the WRONG lines for a row — the
+/// stale-line-index bug class this module exists to prevent (issue #659).
+/// At 64 bits a birthday collision is plausible within a heavy session; at
+/// 160 bits it is not. The extra 24 hex chars per entry are noise.
 String timelineJsonHash(String timelineJson) =>
-    sha1.convert(utf8.encode(timelineJson)).toString().substring(0, 16);
+    sha1.convert(utf8.encode(timelineJson)).toString();
 
 class _CachedLines {
   const _CachedLines(this.hash, this.lines);
@@ -68,6 +83,15 @@ class _CachedLines {
 /// fresh decode instead of stale line indices. The hash-on-content key also
 /// skips re-decoding when an unrelated Drift bump shifts a row's
 /// `updatedAt` without touching `timelineJson`.
+///
+/// Eviction: entries are removed on the row's mutation points —
+/// `_deleteTranscript`, `_replaceTimeline`, and the auto-translate rewrite
+/// paths call [remove] (see `transcript_repository_tracks.dart` /
+/// `transcript_repository_auto_translate.dart`). Between mutations the
+/// population is bounded by the number of DISTINCT transcript rows decoded
+/// this session (one entry per row id — re-decodes overwrite, never add),
+/// so growth tracks the user's transcript library, not playback time; no
+/// LRU on top.
 class TranscriptTimelineCache {
   final Map<String, _CachedLines> _entries = {};
 

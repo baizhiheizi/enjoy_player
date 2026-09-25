@@ -59,11 +59,17 @@ int prevLineNavigationIndex({
 /// Line-level controls service: prev / next / replay / echo toggle (maps web
 /// `usePlayerControls`).
 ///
-/// Holds no provider state and no decode cache of its own: `linesForRow`
-/// memoizes on row identity + content hash in the timeline codec (issue
-/// #766), which already covers the re-segmentation case — a re-import
-/// changes `timelineJson`, the content hash changes with it, and a fresh
-/// decode is served (the issue-#659 guard, now the codec's concern).
+/// Holds no provider state and no cache of its own.
+///
+/// The JSON decode is memoized on row identity + content hash in the
+/// timeline codec (issue #766) — the issue-#659 re-segmentation guard is the
+/// codec's concern now. What is deliberately NOT memoized here anymore is
+/// the row fetch: every `_lines()` call resolves the active transcript row
+/// (three indexed lookups) before hitting the codec. The old in-class cache
+/// memoized both halves; the decode half moved to the codec, and the fetch
+/// half was judged not worth a second cache — it runs once per user
+/// line-control action, not per frame, and its correctness never depended
+/// on the cache (the content hash did, and still does).
 class PlayerInteractions {
   PlayerInteractions(this.ref);
 

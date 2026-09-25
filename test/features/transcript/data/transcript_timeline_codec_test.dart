@@ -231,5 +231,41 @@ void main() {
         );
       }
     });
+
+    test('agrees at every cue boundary (starts and ends, off-grid)', () {
+      // Boundaries are where a wrong comparison operator (`<` vs `<=`)
+      // drifts the two policies apart; the 0.25 s sweep skips most of them
+      // (1.2, 2.0, 3.0, 4.5, 6.0 are all off-grid), so land on each start
+      // and end explicitly.
+      final lines = [
+        cue(0, 1000),
+        cue(1200, 800),
+        cue(3000, 1000),
+        cue(4500, 1500),
+      ];
+      const boundaries = [0.0, 1.0, 1.2, 2.0, 3.0, 4.0, 4.5, 6.0];
+      for (final t in boundaries) {
+        expect(
+          indexOfActiveLine(lines, t),
+          transcriptActiveIndex(lines, t),
+          reason: 'policies disagree at boundary t=$t',
+        );
+      }
+    });
+
+    test('boundary pinning: start of a cue is inside, end is a gap', () {
+      final lines = [cue(0, 1000), cue(1200, 800)];
+      // t == start: contained — both policies index the cue.
+      expect(indexOfActiveLine(lines, 1.2), 1);
+      expect(transcriptActiveIndex(lines, 1.2), 1);
+      // t == end: NOT contained (half-open interval); the transport policy
+      // falls back to the rightmost started cue, which for this grid is
+      // still cue 1 — a `<` vs `<=` flip must not move it.
+      expect(indexOfActiveLine(lines, 2.0), 1);
+      expect(transcriptActiveIndex(lines, 2.0), 1);
+      // t == end of cue 0 while cue 1 has not started: fallback is cue 0.
+      expect(indexOfActiveLine(lines, 1.0), 0);
+      expect(transcriptActiveIndex(lines, 1.0), 0);
+    });
   });
 }
