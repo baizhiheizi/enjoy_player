@@ -126,8 +126,6 @@ class TranscriptTimelineCache {
   /// Evicts a row's decode (row deleted or its timeline rewritten without
   /// going through [linesFor]).
   void remove(String rowId) => _entries.remove(rowId);
-
-  void clear() => _entries.clear();
 }
 
 /// Active cue index for [t] in seconds — the **UI highlight policy**:
