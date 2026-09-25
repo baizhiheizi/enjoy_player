@@ -115,9 +115,13 @@ class OpenSteps {
 
 /// The single dependency channel for [runPlayerOpen] (issue #750): every
 /// collaborator that used to arrive as an interleaved raw `ref.read` inside
-/// the choreography, captured once by `PlayerController`. The two
-/// fire-and-forget schedulers close over the controller's own `Ref`, so no
-/// `Ref` ever reaches the choreography body.
+/// the choreography. Every provider-backed member is a **resolver** — the
+/// open reads through it at use time — so nothing captured here can outlive
+/// the provider it came from: `appDatabaseProvider` closes and replaces the
+/// per-user database on a session switch, and the notifiers/services may
+/// change scoping without this channel silently pinning a stale instance.
+/// The two fire-and-forget schedulers close over the controller's own `Ref`,
+/// so no `Ref` ever reaches the choreography body.
 final class PlayerOpenDeps {
   PlayerOpenDeps({
     required this.persister,
@@ -131,23 +135,20 @@ final class PlayerOpenDeps {
   });
 
   /// Previous-session flush / cancel before the new media's restore (#653).
-  final PlaybackSessionPersister persister;
+  final PlaybackSessionPersister Function() persister;
 
-  /// Library rows + echo-session reads for the open. A resolver, not an
-  /// instance: `appDatabaseProvider` is auth-scoped and closes the previous
-  /// per-user database on a session switch, while this keepAlive scope
-  /// outlives it — read at open time, like the side-effect schedulers do.
+  /// Library rows + echo-session reads for the open.
   final AppDatabase Function() db;
 
   /// Applies persisted volume/rate to the freshly opened engine.
-  final PlayerPreferencesCtrl preferences;
+  final PlayerPreferencesCtrl Function() preferences;
 
   /// Echo / transcript-blur restore for the media being opened.
-  final EchoMode echoMode;
-  final TranscriptBlurMode blurMode;
+  final EchoMode Function() echoMode;
+  final TranscriptBlurMode Function() blurMode;
 
   /// Frame capture for stored video thumbnails (capability-gated by caller).
-  final VideoPosterCaptureService posterService;
+  final VideoPosterCaptureService Function() posterService;
 
   /// Fire-and-forget transcript resolve + recording pull, bound to the
   /// controller's `Ref` and the per-open staleness check.
@@ -242,11 +243,11 @@ Future<void> runPlayerOpen(
     await steps.run('flush previous playback session', () async {
       final previous = scope.session;
       if (previous == null) {
-        deps.persister.cancel();
+        deps.persister().cancel();
         return;
       }
       try {
-        await deps.persister.flush(
+        await deps.persister().flush(
           mediaId: previous.mediaId,
           dexieTargetType: previous.dexieTargetType,
           session: previous,
@@ -397,7 +398,7 @@ Future<void> runPlayerOpen(
 
     await steps.runBounded(
       'applyCurrentToEngine',
-      () => deps.preferences.applyCurrentToEngine(),
+      () => deps.preferences().applyCurrentToEngine(),
       limit: engineCommandTimeout,
     );
 
@@ -419,16 +420,16 @@ Future<void> runPlayerOpen(
     // post-check, so the generation cannot have moved (the choreography's
     // inline `isOpenStale` checks that used to sit here were unreachable).
     if (options.restoreEcho && persisted != null && persisted.echoActive) {
-      deps.echoMode.restoreFromSession(
+      deps.echoMode().restoreFromSession(
         startLine: persisted.echoStartLine,
         endLine: persisted.echoEndLine,
         echoStartMs: persisted.echoStartMs ?? 0,
         echoEndMs: persisted.echoEndMs ?? 0,
       );
     } else {
-      deps.echoMode.deactivate();
+      deps.echoMode().deactivate();
     }
-    deps.blurMode.restoreFromSession(
+    deps.blurMode().restoreFromSession(
       options.restoreEcho ? (persisted?.blurActive ?? false) : false,
     );
 
@@ -475,7 +476,7 @@ Future<void> runPlayerOpen(
     // would capture only the HTML chrome, so engines without [PosterCapture]
     // never schedule one.
     if (kind == MediaKind.video && video != null && engine is PosterCapture) {
-      deps.posterService.scheduleCapture(
+      deps.posterService().scheduleCapture(
         mediaId: mediaId,
         video: video,
         restoredPositionMs: posMs,

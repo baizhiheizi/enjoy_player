@@ -812,19 +812,6 @@ void main() {
   });
 
   group('runPlayerOpen re-reads the per-user database on a session switch', () {
-    late PathProviderPlatform originalPathProvider;
-
-    setUp(() {
-      originalPathProvider = PathProviderPlatform.instance;
-      PathProviderPlatform.instance = TestPathProvider(
-        Directory.systemTemp.createTempSync('enjoy_player_open_db_switch').path,
-      );
-    });
-
-    tearDown(() {
-      PathProviderPlatform.instance = originalPathProvider;
-    });
-
     test(
       'the second open drives the switched-in database, not the closed one',
       () async {

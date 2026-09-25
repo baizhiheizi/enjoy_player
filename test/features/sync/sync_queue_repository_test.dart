@@ -305,39 +305,42 @@ void main() {
           retryPolicy: SyncRetryPolicy(maxRetries: 2),
         );
 
-        final id = await repo.addOrUpsert(
+        Future<int> row(String entityId) => repo.addOrUpsert(
           entityType: 'audio',
-          entityId: 'a1',
+          entityId: entityId,
           action: 'create',
         );
+        Future<int> retryCountOf(int id) async => (await (db.select(
+          db.syncQueue,
+        )..where((t) => t.id.equals(id))).getSingle()).retryCount;
 
-        // retryCount 1 stays eligible; at the injected threshold the row
-        // is permanently failed and drops out of pendingItems.
-        await repo.markAttempted(id, error: 'once');
-        expect((await repo.pendingItems()).map((r) => r.id), [id]);
-        await repo.markAttempted(id, error: 'twice');
-        expect(await repo.pendingItems(), isEmpty);
-
-        final snapshot = await repo.watchSnapshot().first;
-        expect(snapshot.retryablePending, 0);
-        expect(snapshot.permanentlyFailed, 1);
+        // Three rows: below the threshold (1 attempt), at the threshold
+        // (2 attempts), and armed by markPermanentlyFailed.
+        final belowId = await row('below');
+        await repo.markAttempted(belowId, error: 'once');
+        final atThresholdId = await row('at-threshold');
+        await repo.markAttempted(atThresholdId, error: 'once');
+        await repo.markAttempted(atThresholdId, error: 'twice');
+        final armedId = await row('armed');
+        await repo.markPermanentlyFailed(armedId, error: 'fatal');
 
         // markPermanentlyFailed writes exactly the injected threshold.
-        final id2 = await repo.addOrUpsert(
-          entityType: 'audio',
-          entityId: 'a2',
-          action: 'create',
-        );
-        await repo.markPermanentlyFailed(id2, error: 'fatal');
-        final row2 = await (db.select(
-          db.syncQueue,
-        )..where((t) => t.id.equals(id2))).getSingle();
-        expect(row2.retryCount, 2);
+        expect(await retryCountOf(armedId), 2);
 
-        // resetFailed re-arms rows at the injected threshold.
+        // Only rows below the threshold stay pending; both threshold rows
+        // count as permanently failed.
+        expect((await repo.pendingItems()).map((r) => r.id), [belowId]);
+        final snapshot = await repo.watchSnapshot().first;
+        expect(snapshot.retryablePending, 1);
+        expect(snapshot.permanentlyFailed, 2);
+
+        // resetFailed re-arms ONLY the rows at the injected threshold —
+        // the row below it keeps its retryCount, so the pin is on the
+        // threshold, not on the updated-row count.
         expect(await repo.resetFailed(), 2);
-        final rows = await db.select(db.syncQueue).get();
-        expect(rows.map((r) => r.retryCount), everyElement(0));
+        expect(await retryCountOf(belowId), 1);
+        expect(await retryCountOf(atThresholdId), 0);
+        expect(await retryCountOf(armedId), 0);
       },
     );
   });
