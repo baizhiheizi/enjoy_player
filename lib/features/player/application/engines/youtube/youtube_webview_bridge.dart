@@ -453,7 +453,11 @@ class YoutubeWebViewBridge {
     final jsEnded = state == kStateEnded;
 
     Duration? newDuration;
-    final dur = (json['d'] as num?)?.toDouble() ?? 0;
+    // Lenient like a missing `d`: a mistyped duration cannot fabricate
+    // transport state, so it reads as zero instead of throwing (the strict
+    // return-null contract above covers `t` / `s` only).
+    final rawDur = json['d'];
+    final dur = rawDur is num ? rawDur.toDouble() : 0;
     if (dur > 0 && dur.isFinite) {
       newDuration = Duration(milliseconds: (dur * 1000).round());
     }
