@@ -27,13 +27,17 @@ flowchart TB
 sequenceDiagram
   participant Lib as LibraryScreen / HomeScreen
   participant Repo as MediaLibraryRepository
+  participant Reg as MediaRegistry
   participant DB as AppDatabase
   participant PC as PlayerController
   participant PE as PlayerEngine (media_kit or WebView)
 
   Lib->>Repo: importMedia XFile / YouTube import
-  Repo->>DB: insert VideoRow / AudioRow
+  Repo->>Reg: upsertVideo / upsertAudio
+  Reg->>DB: insert VideoRow / AudioRow
   Lib->>PC: openMedia id
+  PC->>Reg: probeBoth / echo-session reads
+  Reg->>DB: rows
   PC->>PE: open playable source
   PE-->>PC: position stream
   PC->>DB: upsert EchoSessionRow debounced

@@ -748,11 +748,11 @@ void main() {
         final controller = container.read(playerControllerProvider.notifier);
         final open = runPlayerOpen(controller, 'hang-1');
 
-        // Walk the coordinator up to `engine.open`'s entry (the resolver and
-        // the engine swap are immediate work on the in-memory DB).
-        for (var i = 0; i < 100 && fake.openUris.isEmpty; i++) {
-          await Future<void>.delayed(Duration.zero);
-        }
+        // Wait on an explicit entry signal instead of polling: the resolve
+        // path performs real file IO (`localUriTrusted`), so a bounded
+        // zero-duration-timer poll can starve before `engine.open` is
+        // entered on a loaded runner.
+        await fake.openEntered.future.timeout(const Duration(seconds: 10));
         expect(fake.openUris, isNotEmpty, reason: 'engine.open was entered');
         expect(
           db.countingDao.getLatestCalls,
@@ -807,6 +807,101 @@ void main() {
         expect(controller.session, isNotNull);
         expect(controller.session!.currentTimeSeconds, 9);
         expect(controller.session!.currentSegmentIndex, 5);
+      },
+    );
+  });
+
+  group('runPlayerOpen re-reads the per-user database on a session switch', () {
+    test(
+      'the second open drives the switched-in database, not the closed one',
+      () async {
+        final db1 = _CountingEchoDb(executor: NativeDatabase.memory());
+        final db2 = _CountingEchoDb(executor: NativeDatabase.memory());
+        final bystanderDb = AppDatabase(executor: NativeDatabase.memory());
+        final fake = FakePlayerEngine();
+        var currentDb = db1;
+        final container = ProviderContainer(
+          overrides: [
+            appDatabaseProvider.overrideWith((ref) => currentDb),
+            playerEngineTestDoubleProvider.overrideWithValue(fake),
+            transcriptRepositoryProvider.overrideWithValue(
+              TranscriptRepository(bystanderDb),
+            ),
+          ],
+        );
+        var db1Closed = false;
+        addTearDown(() async {
+          await pumpEventQueue();
+          container.dispose();
+          if (!db1Closed) await db1.close();
+          await db2.close();
+          await bystanderDb.close();
+          await fake.dispose();
+        });
+
+        final file = File(
+          p.join(
+            Directory.systemTemp.path,
+            'enjoy_open_db_switch_${DateTime.now().microsecondsSinceEpoch}.mp3',
+          ),
+        );
+        await file.writeAsBytes([1]);
+        addTearDown(() async {
+          if (await file.exists()) await file.delete();
+        });
+        final now = DateTime.now();
+        Future<void> insertHangRow(AppDatabase db) => db.audioDao.insertRow(
+          AudioRow(
+            id: 'hang-1',
+            aid: 'x',
+            provider: 'user',
+            title: 't',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 600,
+            language: 'en',
+            translationKey: null,
+            sourceText: null,
+            voice: null,
+            source: null,
+            localUri: Uri.file(file.path).toString(),
+            md5: null,
+            size: 1,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        await insertHangRow(db1);
+        await insertHangRow(db2);
+
+        // The first open binds `deps` — and, before the fix, the database
+        // instance with it.
+        final controller = container.read(playerControllerProvider.notifier);
+        await runPlayerOpen(controller, 'hang-1');
+        expect(db1.countingDao.getLatestCalls, 1);
+
+        // Session switch: `appDatabaseProvider`'s onDispose closes the old
+        // per-user database on sign-out / sign-in as another user, while the
+        // keepAlive PlayerController survives.
+        currentDb = db2;
+        container.invalidate(appDatabaseProvider);
+        await db1.close();
+        db1Closed = true;
+
+        await runPlayerOpen(controller, 'hang-1');
+        expect(
+          db2.countingDao.getLatestCalls,
+          1,
+          reason: 'the second open must read the switched-in database',
+        );
+        expect(
+          db1.countingDao.getLatestCalls,
+          1,
+          reason: 'the closed database must not be touched again',
+        );
       },
     );
   });

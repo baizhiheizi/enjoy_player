@@ -43,6 +43,12 @@ class FakePlayerEngine
 
   Future<void> Function()? openDelay;
 
+  /// Completes the first time [open] is entered. Tests waiting for the
+  /// coordinator to reach the engine must await this instead of polling:
+  /// the open path performs real file IO before this point, so a bounded
+  /// zero-duration-timer poll can starve on a loaded CI runner.
+  final Completer<void> openEntered = Completer<void>();
+
   double lastVolume = -1;
   double lastRate = -1;
 
@@ -144,6 +150,7 @@ class FakePlayerEngine
   @override
   Future<void> open(PlayableSource source) async {
     _recordUriFromSource(source);
+    if (!openEntered.isCompleted) openEntered.complete();
     final delay = openDelay;
     if (delay != null) await delay();
   }

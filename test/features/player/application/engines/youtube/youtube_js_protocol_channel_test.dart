@@ -219,6 +219,14 @@ void main() {
         paused: false,
         ended: false,
       ));
+      // A mistyped `d` is lenient like a missing one: it reads as zero
+      // (null duration) instead of throwing — only `t` / `s` are strict.
+      expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"d":"2","s":1}'), (
+        position: const Duration(seconds: 1),
+        duration: null,
+        paused: false,
+        ended: false,
+      ));
       expect(
         YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":null}'),
         isNull,

@@ -42,7 +42,7 @@ Sign-in semantics mirror `AppPreferencesCtrl`: the blob lives in the per-user DB
 
 ### Craft history (`/craft/history`)
 
-An in-app-bar history `IconButton` (tooltip `craftHistoryTooltip`) on the Craft screen opens `CraftHistoryScreen`, which lists every media item where `Audios.provider == 'craft'`, newest-updated first (`craftHistoryProvider` — a thin `StreamProvider` over the existing `mediaLibraryRepositoryProvider.watchAll()`, no new query or schema). Empty state uses `craftHistoryEmptyTitle` / `craftHistoryEmptyHint` / `craftHistoryEmptyAction`.
+An in-app-bar history `IconButton` (tooltip `craftHistoryTooltip`) on the Craft screen opens `CraftHistoryScreen`, which lists every media item where `Audios.provider == 'craft'`, newest-updated first (`craftHistoryProvider` — a thin `StreamProvider` over `mediaRegistryProvider.watchAll()`, no new query or schema). Empty state uses `craftHistoryEmptyTitle` / `craftHistoryEmptyHint` / `craftHistoryEmptyAction`.
 
 Each row can **Remove Craft record** (`CraftLibraryRepository.removeCraftHistoryRecord`): clears Craft provenance by setting `Audios.provider` from `'craft'` to `'user'`. The same media id, audio file, and transcript stay in the library for practice (no Craft badge). This is not a library delete and not a soft-hide list. If the removed item is the active edit session (`editingMediaId`), the controller resets via `resetForNextCapture`.
 

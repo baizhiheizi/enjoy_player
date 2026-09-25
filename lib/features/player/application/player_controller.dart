@@ -139,18 +139,23 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   @override
   PlayerPositionTracker get positionTracker => _positionTracker;
 
-  /// The single dependency channel of the open scope (issue #750): captured
-  /// lazily on first open so headless tests never touch providers they do
-  /// not use. The two scheduler closures bind this controller's own `Ref`,
-  /// which is what keeps raw `Ref` out of the choreography body.
+  /// The single dependency channel of the open scope (issue #750): every
+  /// member is a resolver read at open time (lazily built so headless tests
+  /// never touch providers they do not use) — nothing here can pin a stale
+  /// provider instance across a session switch or a scope change. The two
+  /// scheduler closures bind this controller's own `Ref`, which is what
+  /// keeps raw `Ref` out of the choreography body.
   @override
   late final PlayerOpenDeps deps = PlayerOpenDeps(
-    persister: ref.read(playbackSessionPersisterProvider),
-    db: ref.read(appDatabaseProvider),
-    preferences: ref.read(playerPreferencesCtrlProvider.notifier),
-    echoMode: ref.read(echoModeProvider.notifier),
-    blurMode: ref.read(transcriptBlurModeProvider.notifier),
-    posterService: ref.read(videoPosterCaptureServiceProvider),
+    persister: () => ref.read(playbackSessionPersisterProvider),
+    // A resolver, not an instance: the per-user database is closed and
+    // replaced on a session switch / recovery reset while this keepAlive
+    // controller survives, so every open must read the current one.
+    db: () => ref.read(appDatabaseProvider),
+    preferences: () => ref.read(playerPreferencesCtrlProvider.notifier),
+    echoMode: () => ref.read(echoModeProvider.notifier),
+    blurMode: () => ref.read(transcriptBlurModeProvider.notifier),
+    posterService: () => ref.read(videoPosterCaptureServiceProvider),
     scheduleOpenSideEffects:
         ({
           required int openGeneration,
