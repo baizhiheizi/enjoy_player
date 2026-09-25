@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
@@ -32,8 +31,16 @@ Future<List<Media>> _firstValue(
   }
 }
 
+/// Stand-in for the `AppDatabase` the fake never touches: `watchAll` is the
+/// only override, so no Drift machinery is booted (issue #768 review).
+class _UnusedDb implements AppDatabase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('fake registry never touches the db');
+}
+
 class _FakeMediaRegistry extends MediaRegistry {
-  _FakeMediaRegistry(super.db, this._items);
+  _FakeMediaRegistry(this._items) : super(_UnusedDb());
 
   final List<Media> _items;
 
@@ -64,16 +71,6 @@ Media _media({
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late AppDatabase db;
-
-  setUp(() {
-    db = AppDatabase(executor: NativeDatabase.memory());
-  });
-
-  tearDown(() async {
-    await db.close();
-  });
-
   test('filters to provider = craft and sorts newest-updated first', () async {
     final now = DateTime.now();
     final items = [
@@ -90,7 +87,7 @@ void main() {
         updatedAt: now.add(const Duration(minutes: 5)),
       ),
     ];
-    final repo = _FakeMediaRegistry(db, items);
+    final repo = _FakeMediaRegistry(items);
 
     final container = ProviderContainer(
       overrides: [mediaRegistryProvider.overrideWithValue(repo)],
@@ -103,7 +100,7 @@ void main() {
   });
 
   test('emits an empty list when there are no craft items', () async {
-    final repo = _FakeMediaRegistry(db, [
+    final repo = _FakeMediaRegistry([
       _media(id: 'user-1', provider: 'user', updatedAt: DateTime.now()),
     ]);
 

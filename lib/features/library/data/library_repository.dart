@@ -31,11 +31,12 @@ typedef YoutubeMetadataPatch = ({String title, String? thumbnailUrl});
 
 class MediaLibraryRepository {
   MediaLibraryRepository(
-    this._db,
+    AppDatabase db,
     this._storage, {
     this._enqueueSync,
     this._oembedClient,
-  });
+  }) : _db = db,
+       _registry = MediaRegistry(db);
 
   static final Logger _log = logNamed('library.repository');
 
@@ -46,7 +47,7 @@ class MediaLibraryRepository {
 
   /// The registry is `const`-constructible and stateless; one field replaces
   /// the per-call constructions this file used to spell (issue #765).
-  late final MediaRegistry _registry = MediaRegistry(_db);
+  final MediaRegistry _registry;
 
   /// Imports a local file into the signed-in user's library.
   Future<String> importMedia(
@@ -398,8 +399,7 @@ class MediaLibraryRepository {
         // metadata) lives on the registry — same write as before.
         // Wrapped in an async block so the callback's declared
         // `Future<void>` signature cleanly discards the
-        // `Future<MediaKind?>` returned by the registry write
-        // (Copilot review F8).
+        // `Future<MediaKind?>` returned by the registry write.
         persist: (result) async {
           await _registry.updateLocalFile(
             mediaId,
