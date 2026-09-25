@@ -414,8 +414,16 @@ class YoutubeWebViewBridge {
   /// Decodes a [pollScript] result.
   ///
   /// The `s` encoding is the protocol contract: `0` = paused, `1` = playing,
-  /// `2` = ended. `t` / `d` are seconds. Returns null for null, non-JSON, or
-  /// non-object results (the WebView may be mid-teardown).
+  /// `2` = ended. `t` / `d` are seconds. Returns null for null, non-JSON,
+  /// non-object results (the WebView may be mid-teardown) — and for SHAPE
+  /// drift: a missing or mistyped `t` / `s`, or an `s` outside 0/1/2 (issue
+  /// #767 review). Defaulting those used to read as "playing at t=0", a
+  /// false-positive the poll loop cannot distinguish from real DOM state;
+  /// a null sample instead just drops the tick (the same swallow `poll`
+  /// applies when the evaluate itself fails) and the next tick re-samples.
+  /// `d` stays lenient — the page sends `0` for "no finite duration yet",
+  /// so absence and zero are the same semantic and cannot fabricate
+  /// transport state.
   static YoutubePollSample? decodePollSample(Object? result) {
     if (result == null) return null;
     final Map<String, dynamic> json;
@@ -425,12 +433,24 @@ class YoutubeWebViewBridge {
       return null;
     }
 
-    final seconds = (json['t'] as num?)?.toDouble() ?? 0;
-    final position = Duration(milliseconds: (seconds * 1000).round());
+    final rawSeconds = json['t'];
+    final rawState = json['s'];
+    if (rawSeconds is! num || rawState is! num) return null;
+    final state = rawState.toInt();
+    const kStatePaused = 0;
+    const kStatePlaying = 1;
+    const kStateEnded = 2;
+    if (state != kStatePaused &&
+        state != kStatePlaying &&
+        state != kStateEnded) {
+      return null;
+    }
 
-    final jsState = (json['s'] as num?)?.toInt() ?? 1;
-    final jsPaused = jsState == 0;
-    final jsEnded = jsState == 2;
+    final position = Duration(
+      milliseconds: (rawSeconds.toDouble() * 1000).round(),
+    );
+    final jsPaused = state == kStatePaused;
+    final jsEnded = state == kStateEnded;
 
     Duration? newDuration;
     final dur = (json['d'] as num?)?.toDouble() ?? 0;

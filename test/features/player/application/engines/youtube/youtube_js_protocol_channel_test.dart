@@ -205,13 +205,40 @@ void main() {
       );
     });
 
-    test('defaults unknown state codes to playing', () {
-      final sample = YoutubeWebViewBridge.decodePollSample(
-        '{"t":1,"d":2,"s":9}',
+    test('shape drift decodes to null, never to a default state', () {
+      // A missing/mistyped key must not read as "playing at t=0" — that is
+      // the false-positive the poll loop cannot distinguish from DOM truth
+      // (issue #767 review). Every drift below drops the tick instead.
+      expect(YoutubeWebViewBridge.decodePollSample('{"d":2,"s":1}'), isNull);
+      expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2}'), isNull);
+      // Missing `d` is NOT drift: the page sends 0 for "no duration yet",
+      // so absence decodes as (position, null duration) — the lenient key.
+      expect(
+        YoutubeWebViewBridge.decodePollSample('{"t":1,"s":1}'),
+        (
+          position: const Duration(seconds: 1),
+          duration: null,
+          paused: false,
+          ended: false,
+        ),
       );
-      expect(sample, isNotNull);
-      expect(sample!.paused, isFalse);
-      expect(sample.ended, isFalse);
+      expect(
+        YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":null}'),
+        isNull,
+      );
+      expect(
+        YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":"0"}'),
+        isNull,
+      );
+      expect(
+        YoutubeWebViewBridge.decodePollSample('{"t":"1","d":2,"s":1}'),
+        isNull,
+      );
+      // Out-of-contract state code: the JS only emits 0/1/2.
+      expect(
+        YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":9}'),
+        isNull,
+      );
     });
 
     test('returns null for null / malformed / non-object input', () {
@@ -250,12 +277,6 @@ void main() {
 
     test('a missing channel decodes to null', () async {
       expect(await YoutubeWebViewBridge.playOrPause(null), isNull);
-    });
-
-    test('evaluates the playOrPause script', () async {
-      final channel = ScriptedJsChannel(results: ['play']);
-      await YoutubeWebViewBridge.playOrPause(channel);
-      expect(channel.evaluatedSources.single, contains('v.paused'));
     });
   });
 

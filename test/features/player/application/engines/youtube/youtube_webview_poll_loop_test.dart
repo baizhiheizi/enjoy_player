@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
@@ -20,7 +21,7 @@ class _FakePollDriver {
 
   Future<void> poll({
     required bool disposed,
-    required dynamic channel,
+    required YoutubeJsChannel? channel,
     required void Function({
       required Duration position,
       Duration? newDuration,
@@ -58,7 +59,7 @@ class _GatedPollDriver {
 
   Future<void> poll({
     required bool disposed,
-    required dynamic channel,
+    required YoutubeJsChannel? channel,
     required _ResultFn onResult,
   }) async {
     reads.add(onResult);

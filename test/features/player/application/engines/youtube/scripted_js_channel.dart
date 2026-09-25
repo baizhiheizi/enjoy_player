@@ -16,7 +16,9 @@ class ScriptedJsChannel implements YoutubeJsChannel {
   /// evaluates to null (the WebView's undefined).
   final List<Object?> _results;
 
-  /// When true, every [evaluate] throws — the WebView-mid-teardown path.
+  /// When true, every channel call throws — the WebView-mid-teardown path.
+  /// Applies to BOTH [evaluate] and [loadUri]: a dying WebView kills the
+  /// whole channel, not just script evaluation.
   final bool throwOnEvaluate;
 
   /// Every source handed to [evaluate], in call order.
@@ -35,6 +37,7 @@ class ScriptedJsChannel implements YoutubeJsChannel {
 
   @override
   Future<void> loadUri(Uri uri) async {
+    if (throwOnEvaluate) throw StateError('boom');
     loadedUris.add(uri);
   }
 }
