@@ -10,6 +10,7 @@ import 'package:enjoy_player/features/transcript/application/transcript_display_
 
 import '../../player/application/display_position_provider.dart';
 import '../../player/application/echo_mode_provider.dart';
+import '../data/transcript_timeline_codec.dart';
 import 'karaoke_position_provider.dart';
 import 'transcript_cue_selection.dart';
 import 'transcript_lines_provider.dart';

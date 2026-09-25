@@ -11,7 +11,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/audio/pcm16k_mono.dart';
 import 'package:enjoy_player/data/subtitle/alignment_language.dart';
 import 'package:enjoy_player/data/subtitle/attach_alignment_to_lines.dart';
-import 'package:enjoy_player/data/subtitle/transcript_line.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
 
 typedef DecodePcm16k = Future<Float32List> Function(Uint8List bytes);
 
@@ -54,7 +54,7 @@ final class CraftTimelineEnricher {
     if (!enabled) return timelineJson;
     if (timelineJson == null) return null;
 
-    final lines = _decodeLines(timelineJson);
+    final lines = tryDecodeTimelineJson(timelineJson);
     if (lines == null) {
       return _fallback(timelineJson, 'invalid timeline JSON');
     }
@@ -120,20 +120,6 @@ final class CraftTimelineEnricher {
   String _fallback(String original, String reason) {
     logNamed('craft.enrichment').warning('fallback: $reason');
     return original;
-  }
-}
-
-List<TranscriptLine>? _decodeLines(String json) {
-  try {
-    final decoded = jsonDecode(json);
-    if (decoded is! List) return null;
-    return [
-      for (final item in decoded)
-        if (item is Map)
-          TranscriptLine.fromJson(Map<String, dynamic>.from(item)),
-    ];
-  } on Object catch (_) {
-    return null;
   }
 }
 

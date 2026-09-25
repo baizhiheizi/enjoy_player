@@ -16,7 +16,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:crypto/crypto.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:drift/drift.dart' show InsertMode, Value;
 import 'package:flutter/foundation.dart';
@@ -43,6 +42,7 @@ import '../domain/transcript_fetch_status.dart';
 import '../domain/transcript_track.dart';
 import '../../sync/domain/sync_queue_job.dart';
 import 'sidecar_subtitle_discovery.dart';
+import 'transcript_timeline_codec.dart';
 import 'transcript_timeline_parse.dart';
 import 'youtube_caption_fetcher.dart';
 
@@ -81,16 +81,15 @@ class TranscriptRepository {
   /// that path with a null seam throws `StateError`, never a silent drop.
   final SyncEnqueueJobFn? _enqueueSyncJob;
 
-  final Map<String, _LinesCacheEntry> _linesCache = {};
+  final TranscriptTimelineCache _linesCache = TranscriptTimelineCache();
 
   // ---
   // Lines cache + reactive watches
   // ---
 
-  /// Decodes [row.timelineJson] with memoization on `(id, timelineJsonHash)`.
-  ///
-  /// The hash-on-content key avoids re-decoding when an unrelated Drift table
-  /// bump shifts the row's `updatedAt` without changing `timelineJson`.
+  /// Decodes [row.timelineJson] with memoization on `(id, timelineJsonHash)`
+  /// via the timeline codec's cache (issue #766) — the one decode home shared
+  /// with Craft enrichment and the player's line controls.
   List<TranscriptLine> linesForRow(TranscriptRow row) => _linesForRow(row);
 
   /// Reactive lines for the active primary (shadow-reading) transcript.

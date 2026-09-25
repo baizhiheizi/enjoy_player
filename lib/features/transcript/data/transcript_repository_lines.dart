@@ -1,29 +1,27 @@
 part of 'transcript_repository.dart';
 
 /// Decoded-timeline cache and reactive watches for [TranscriptRepository]:
-/// memoized `timelineJson` decoding (with isolate pre-decode for large
-/// payloads), Drift watch glue for the active primary / secondary lines, and
-/// the sorted track list stream.
+/// memoized `timelineJson` decoding via the timeline codec (with isolate
+/// pre-decode for large payloads), Drift watch glue for the active primary /
+/// secondary lines, and the sorted track list stream.
 extension _TranscriptRepositoryLines on TranscriptRepository {
-  List<TranscriptLine> _linesForRow(TranscriptRow row) {
-    final hash = _timelineJsonHash(row.timelineJson);
-    final hit = _linesCache[row.id];
-    if (hit != null && hit.hash == hash) return hit.lines;
-    final decoded = _decodeTimeline(row.timelineJson);
-    _linesCache[row.id] = _LinesCacheEntry(hash, decoded);
-    return decoded;
-  }
+  List<TranscriptLine> _linesForRow(TranscriptRow row) =>
+      _linesCache.linesFor(rowId: row.id, timelineJson: row.timelineJson);
 
   /// Pre-decodes [row.timelineJson] in a background isolate and caches the
-  /// result when the payload is large enough ([_kPreloadTimelineJsonBytes])
-  /// to justify leaving the UI isolate.
+  /// result when the payload is large enough
+  /// ([kPreloadTimelineJsonBytes]) to justify leaving the UI isolate.
   Future<void> _preloadLinesForRow(TranscriptRow row) async {
-    final hash = _timelineJsonHash(row.timelineJson);
-    final hit = _linesCache[row.id];
-    if (hit != null && hit.hash == hash) return;
-    if (row.timelineJson.length <= _kPreloadTimelineJsonBytes) return;
-    final decoded = await compute(_decodeTimeline, row.timelineJson);
-    _linesCache[row.id] = _LinesCacheEntry(hash, decoded);
+    if (_linesCache.isCached(rowId: row.id, timelineJson: row.timelineJson)) {
+      return;
+    }
+    if (row.timelineJson.length <= kPreloadTimelineJsonBytes) return;
+    final decoded = await compute(decodeTimelineJson, row.timelineJson);
+    _linesCache.store(
+      rowId: row.id,
+      timelineJson: row.timelineJson,
+      lines: decoded,
+    );
   }
 
   Stream<List<TranscriptLine>> _watchLines(

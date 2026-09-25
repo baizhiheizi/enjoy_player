@@ -577,7 +577,7 @@ void main() {
     await n.nextLine(); // populates cache via primaryTranscriptRowForMedia
     expect(fake.seekCalls, hasLength(1));
 
-    // Second call should reuse cached lines (no new DB row fetch needed).
+    // Second call re-fetches the row but hits the codec's memoized decode.
     await n.nextLine();
     expect(fake.seekCalls, hasLength(2));
   });
