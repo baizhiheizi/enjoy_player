@@ -5,9 +5,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 
@@ -17,7 +16,7 @@ final _logNav = logNamed('YouTubeWebViewNavigation');
 class YoutubeWebViewNavigation {
   YoutubeWebViewNavigation({
     required this.session,
-    required this.webController,
+    required this.jsChannel,
     required this.captureVerifyGeneration,
     required this.isVerifyGenerationStale,
     required this.bumpNavGeneration,
@@ -26,7 +25,7 @@ class YoutubeWebViewNavigation {
   });
 
   final YoutubeSession session;
-  final InAppWebViewController? Function() webController;
+  final YoutubeJsChannel? Function() jsChannel;
   final int Function() captureVerifyGeneration;
   final bool Function(int gen) isVerifyGenerationStale;
   final int Function() bumpNavGeneration;
@@ -44,7 +43,7 @@ class YoutubeWebViewNavigation {
   }
 
   Future<void> loadCurrentVideoIfAttached() async {
-    final controller = webController();
+    final controller = jsChannel();
     if (controller == null || session.videoId.isEmpty) return;
     final videoId = session.videoId;
     // Bumped so a verify scheduled from this load cannot judge a superseding
@@ -53,7 +52,7 @@ class YoutubeWebViewNavigation {
     try {
       await YoutubeWebViewBridge.loadWatchPage(controller, videoId);
     } on MissingPluginException catch (e, st) {
-      if (identical(webController(), controller)) {
+      if (identical(jsChannel(), controller)) {
         onStaleWebView();
       }
       _logNav.fine('Ignoring loadUrl on stale YouTube WebView', e, st);
@@ -67,9 +66,7 @@ class YoutubeWebViewNavigation {
     final gen = captureVerifyGeneration();
     await Future<void>.delayed(delay);
     if (isVerifyGenerationStale(gen)) return;
-    if (session.disposed ||
-        session.videoId.isEmpty ||
-        webController() == null) {
+    if (session.disposed || session.videoId.isEmpty || jsChannel() == null) {
       return;
     }
     if (session.loggedFirstPlaying) return;
@@ -99,18 +96,18 @@ class YoutubeWebViewNavigation {
       if (session.disposed ||
           session.loggedFirstPlaying ||
           session.explicitPlayAttempted ||
-          webController() == null) {
+          jsChannel() == null) {
         return;
       }
       _logNav.info('youtube nudge play vid=${session.videoId}');
-      unawaited(nudgePlaybackStart(webController()));
+      unawaited(nudgePlaybackStart(jsChannel()));
     });
   }
 
   Future<void> onWebViewProcessTerminated({
     required void Function() prepareWatchReload,
   }) async {
-    final controller = webController();
+    final controller = jsChannel();
     final vid = session.videoId;
     if (controller == null || vid.isEmpty || session.disposed) return;
     _logNav.warning('youtube WebView process terminated; reloading vid=$vid');
@@ -121,22 +118,24 @@ class YoutubeWebViewNavigation {
   }
 
   Future<void> onSignInNavigationBlocked(
-    InAppWebViewController controller, {
+    YoutubeJsChannel channel, {
     required void Function() prepareWatchReload,
   }) async {
     final vid = session.videoId;
     if (vid.isEmpty || session.disposed) return;
     prepareWatchReload();
     _logNav.info('youtube reload after blocked sign-in vid=$vid');
-    await YoutubeWebViewBridge.loadWatchPage(controller, vid);
+    await YoutubeWebViewBridge.loadWatchPage(channel, vid);
   }
 
-  Future<void> nudgePlaybackStart(InAppWebViewController? web) async {
-    if (web == null || session.disposed || session.loggedFirstPlaying) return;
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      await YoutubeWebViewBridge.forceInlinePlayback(web);
+  Future<void> nudgePlaybackStart(YoutubeJsChannel? channel) async {
+    if (channel == null || session.disposed || session.loggedFirstPlaying) {
+      return;
     }
-    await YoutubeWebViewBridge.play(web);
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await YoutubeWebViewBridge.forceInlinePlayback(channel);
+    }
+    await YoutubeWebViewBridge.play(channel);
   }
 
   Future<void> recoverStalledPlayback({
@@ -146,7 +145,7 @@ class YoutubeWebViewNavigation {
     required void Function() prepareWatchReload,
     required void Function() cancelStallWatchdog,
   }) async {
-    final controller = webController();
+    final controller = jsChannel();
     final vid = session.videoId;
     if (controller == null || vid.isEmpty || session.disposed) return;
     if (session.playing) {

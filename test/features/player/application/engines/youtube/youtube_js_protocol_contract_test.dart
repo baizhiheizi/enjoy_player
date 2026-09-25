@@ -6,11 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 /// Pins the string protocol between the watch-page JavaScript and Dart
 /// (issue #629, tier 1).
 ///
-/// The JS side cannot be executed in a unit test (tier 2 tracks a runtime
-/// harness), but the protocol *shape* can be pinned: every event name the
-/// JS sources emit must be a name the Dart switch handles, and every handled
-/// name must actually be emitted — otherwise a rename or a new name on one
-/// side drifts silently into the switch's logged default branch.
+/// The JS side cannot be executed in a unit test, but the protocol *shape*
+/// can be pinned: every event name the JS sources emit must be a name the
+/// Dart switch handles, and every handled name must actually be emitted —
+/// otherwise a rename or a new name on one side drifts silently into the
+/// switch's logged default branch.
+///
+/// Tier 2 (issue #767): the Dart half of the protocol — script dispatch and
+/// result decode — is now *executed* over the scripted channel adapter in
+/// `youtube_js_protocol_channel_test.dart`.
 void main() {
   // Every Dart-reachable JS source that can call `flutter_inappwebview
   // .callHandler`. The bridge's play scripts embed the shared

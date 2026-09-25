@@ -3,24 +3,23 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
-import 'package:enjoy_player/features/player/application/engines/youtube/youtube_state_poller.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 
 typedef YoutubeFirstPlayingFn = void Function();
 typedef YoutubePlaybackProgressFn = void Function(Duration position);
 
-/// Injectable poll body for unit tests (defaults to [YoutubeStatePoller.poll]).
+/// Injectable poll body for unit tests (defaults to
+/// [YoutubeWebViewBridge.poll]).
 typedef YoutubePollFn =
     Future<void> Function({
       required bool disposed,
-      required InAppWebViewController? web,
+      required YoutubeJsChannel? channel,
       required void Function({
         required Duration position,
         Duration? newDuration,
@@ -32,11 +31,11 @@ typedef YoutubePollFn =
 
 /// Injectable immediate-pause retry play (defaults to
 /// [YoutubeWebViewBridge.play]).
-typedef YoutubeRetryPlayFn = Future<void> Function(InAppWebViewController? web);
+typedef YoutubeRetryPlayFn = Future<void> Function(YoutubeJsChannel? channel);
 
 final _logPoll = logNamed('YouTubeWebViewPollLoop');
 
-/// DOM poll for `<video>` play state (see [YoutubeStatePoller]).
+/// DOM poll for `<video>` play state (see [YoutubeWebViewBridge.poll]).
 ///
 /// A one-shot [Timer] chain, not [Timer.periodic]: the cadence is a decision
 /// made per tick. While anything is live — playing, an unconfirmed pause
@@ -46,14 +45,14 @@ final _logPoll = logNamed('YouTubeWebViewPollLoop');
 class YoutubeWebViewPollLoop {
   YoutubeWebViewPollLoop({
     required this.session,
-    required this.webController,
+    required this.jsChannel,
     required this.onFirstPlaying,
     this.onPlaybackProgress,
     this.pollTick = YoutubeAudiblePlaybackPolicy.pollTick,
     this.pausedPollBackoff = defaultPausedPollBackoff,
     YoutubePollFn? pollFn,
     YoutubeRetryPlayFn? retryPlay,
-  }) : pollFn = pollFn ?? YoutubeStatePoller.poll,
+  }) : pollFn = pollFn ?? YoutubeWebViewBridge.poll,
        // The default retry re-asserts the page's pinned focus first (focus
        // loss was one field-confirmed pause trigger) and then plays only
        // once the element actually has data — the wedge's dominant cause is
@@ -61,9 +60,9 @@ class YoutubeWebViewPollLoop {
        // realtime), and an immediate re-play just re-exhausts the buffer.
        retryPlay =
            retryPlay ??
-           ((web) async {
-             await YoutubeWebViewBridge.refocusWindow(web);
-             await YoutubeWebViewBridge.playWhenReady(web);
+           ((channel) async {
+             await YoutubeWebViewBridge.refocusWindow(channel);
+             await YoutubeWebViewBridge.playWhenReady(channel);
            });
 
   /// Cadence once a pause is confirmed AND the position has stopped moving
@@ -77,7 +76,7 @@ class YoutubeWebViewPollLoop {
   static const Duration defaultPausedPollBackoff = Duration(seconds: 1);
 
   final YoutubeSession session;
-  final InAppWebViewController? Function() webController;
+  final YoutubeJsChannel? Function() jsChannel;
   final YoutubeFirstPlayingFn onFirstPlaying;
 
   /// Notifies when position advances (volume-restore progress gate).
@@ -179,7 +178,7 @@ class YoutubeWebViewPollLoop {
     try {
       await pollFn(
         disposed: session.disposed,
-        web: webController(),
+        channel: jsChannel(),
         onResult:
             ({
               required Duration position,
@@ -262,7 +261,7 @@ class YoutubeWebViewPollLoop {
                           '${session.videoId}',
                         );
                         unawaited(
-                          retryPlay(webController()).catchError((
+                          retryPlay(jsChannel()).catchError((
                             Object error,
                             StackTrace stackTrace,
                           ) {

@@ -11,7 +11,7 @@ void main() {
   group('attachWebView', () {
     test('replacing the attachment stops the previous poll loop', () {
       YoutubeSessionWebAttachment attachment() => YoutubeSessionWebAttachment(
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         reapplyVolume: () async {},
         healPlay: () async {},

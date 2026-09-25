@@ -4,7 +4,6 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_poll_loop.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 typedef _ResultFn =
@@ -21,7 +20,7 @@ class _FakePollDriver {
 
   Future<void> poll({
     required bool disposed,
-    required InAppWebViewController? web,
+    required dynamic channel,
     required void Function({
       required Duration position,
       Duration? newDuration,
@@ -59,7 +58,7 @@ class _GatedPollDriver {
 
   Future<void> poll({
     required bool disposed,
-    required InAppWebViewController? web,
+    required dynamic channel,
     required _ResultFn onResult,
   }) async {
     reads.add(onResult);
@@ -103,7 +102,7 @@ void main() {
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlayingCalls++,
       );
 
@@ -120,7 +119,7 @@ void main() {
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlayingCalls++,
       );
 
@@ -133,7 +132,7 @@ void main() {
     test('stop() is safe to call without start()', () {
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
       );
       loop.stop();
@@ -144,7 +143,7 @@ void main() {
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlayingCalls++,
       );
 
@@ -166,7 +165,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
         );
@@ -201,7 +200,7 @@ void main() {
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlayingCalls++,
         pollFn: driver.poll,
       );
@@ -249,7 +248,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         pollFn: driver.poll,
       );
@@ -290,7 +289,7 @@ void main() {
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlayingCalls++,
       );
 
@@ -305,7 +304,7 @@ void main() {
       session.notePauseStreak(5);
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
       );
 
@@ -321,7 +320,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         pollFn: driver.poll,
       );
@@ -349,7 +348,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () => firstPlaying++,
         pollFn: driver.poll,
       );
@@ -371,7 +370,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         onPlaybackProgress: progress.add,
         pollFn: driver.poll,
@@ -404,7 +403,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
           retryPlay: (_) async => retryCalls++,
@@ -440,7 +439,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
           retryPlay: (_) async => retryCalls++,
@@ -467,7 +466,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         pollFn: driver.poll,
         retryPlay: (_) async => retryCalls++,
@@ -504,7 +503,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
           retryPlay: (_) async => retryCalls++,
@@ -558,7 +557,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: session,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         pollFn: driver.poll,
         retryPlay: (_) async => retryCalls++,
@@ -593,7 +592,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
           retryPlay: (_) async => throw StateError('renderer gone'),
@@ -638,7 +637,7 @@ void main() {
 
       final loop = YoutubeWebViewPollLoop(
         session: fastSession,
-        webController: () => null,
+        jsChannel: () => null,
         onFirstPlaying: () {},
         pollFn: driver.poll,
         retryPlay: (_) async => retryCalls++,
@@ -671,7 +670,7 @@ void main() {
 
         final loop = YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: () {},
           pollFn: driver.poll,
           retryPlay: (_) async => retryCalls++,
@@ -697,7 +696,7 @@ void main() {
       YoutubeWebViewPollLoop buildLoop(_FakePollDriver driver) {
         return YoutubeWebViewPollLoop(
           session: session,
-          webController: () => null,
+          jsChannel: () => null,
           onFirstPlaying: session.markFirstPlayingLogged,
           pollFn: driver.poll,
         );

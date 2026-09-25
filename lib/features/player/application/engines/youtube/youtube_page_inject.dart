@@ -1,7 +1,7 @@
 /// Injected on each YouTube mobile watch [onLoadStop] to hide chrome and hook events.
 library;
 
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'youtube_js_channel.dart';
 
 const String kYoutubeMobileWatchInjectScript = r'''
 (function(){
@@ -522,6 +522,6 @@ const String kYoutubeMobileWatchInjectScript = r'''
 })();
 ''';
 
-Future<void> injectYoutubeMobileWatchPage(InAppWebViewController controller) {
-  return controller.evaluateJavascript(source: kYoutubeMobileWatchInjectScript);
+Future<void> injectYoutubeMobileWatchPage(YoutubeJsChannel channel) {
+  return channel.evaluate(kYoutubeMobileWatchInjectScript);
 }
