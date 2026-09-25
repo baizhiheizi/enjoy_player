@@ -1,6 +1,7 @@
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

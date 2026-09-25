@@ -8,6 +8,7 @@ import '../../../data/subtitle/transcript_line.dart';
 import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../../transcript/application/transcript_repository_provider.dart';
 import '../../transcript/application/word_practice_session.dart';
+import '../../transcript/data/transcript_timeline_codec.dart';
 import '../domain/transport_decisions.dart';
 import 'echo_mode_provider.dart';
 import 'playback_session_persister.dart';
@@ -22,19 +23,6 @@ part 'player_interactions.g.dart';
 /// [Provider] rather than a `build() => 0` notifier wearing dummy state.
 @Riverpod(keepAlive: true)
 PlayerInteractions playerInteractions(Ref ref) => PlayerInteractions(ref);
-
-int indexOfActiveLine(List<TranscriptLine> lines, double t) {
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    if (t >= line.startSeconds && t < line.endSeconds) {
-      return i;
-    }
-  }
-  for (var i = lines.length - 1; i >= 0; i--) {
-    if (t >= lines[i].startSeconds) return i;
-  }
-  return -1;
-}
 
 /// Target line index for [PlayerInteractions.nextLine].
 ///
@@ -71,47 +59,31 @@ int prevLineNavigationIndex({
 /// Line-level controls service: prev / next / replay / echo toggle (maps web
 /// `usePlayerControls`).
 ///
-/// Holds no provider state — only a memoized decode of the active transcript
-/// row, invalidated when that row changes.
+/// Holds no provider state and no cache of its own.
+///
+/// The JSON decode is memoized on row identity + content hash in the
+/// timeline codec (issue #766) — the issue-#659 re-segmentation guard is the
+/// codec's concern now. What is deliberately NOT memoized here anymore is
+/// the row fetch: every `_lines()` call resolves the active transcript row
+/// (three indexed lookups) before hitting the codec. The old in-class cache
+/// memoized both halves; the decode half moved to the codec, and the fetch
+/// half was judged not worth a second cache — it runs once per user
+/// line-control action, not per frame, and its correctness never depended
+/// on the cache (the content hash did, and still does).
 class PlayerInteractions {
   PlayerInteractions(this.ref);
 
   final Ref ref;
 
-  /// Identity of the transcript row the line cache was decoded from.
-  ///
-  /// Keyed on the row (not just the mediaId): a re-import re-segments cues, so
-  /// a keepAlive cache keyed on mediaId alone would feed echo stale line
-  /// indices (issue #659). `linesForRow` memoizes the decode on the same key,
-  /// so an unchanged transcript still hits the cached lines.
-  ({String id, String timelineJson})? _cachedRow;
-  List<TranscriptLine> _cachedLines = const [];
-
-  void _resetLinesCache() {
-    _cachedRow = null;
-    _cachedLines = const [];
-  }
-
   Future<List<TranscriptLine>> _lines() async {
-    final session = ref.read(playerControllerProvider);
-    final mediaId = session?.mediaId;
-    if (mediaId == null) {
-      _resetLinesCache();
-      return _cachedLines;
-    }
+    final mediaId = ref.read(playerControllerProvider)?.mediaId;
+    if (mediaId == null) return const [];
 
-    final repo = ref.read(transcriptRepositoryProvider);
-    final row = await repo.primaryTranscriptRowForMedia(mediaId);
-    if (row == null) {
-      _resetLinesCache();
-      return _cachedLines;
-    }
-    final key = (id: row.id, timelineJson: row.timelineJson);
-    if (_cachedRow == key) return _cachedLines;
-
-    _cachedLines = repo.linesForRow(row);
-    _cachedRow = key;
-    return _cachedLines;
+    final row = await ref
+        .read(transcriptRepositoryProvider)
+        .primaryTranscriptRowForMedia(mediaId);
+    if (row == null) return const [];
+    return ref.read(transcriptRepositoryProvider).linesForRow(row);
   }
 
   Future<void> prevLine() async {

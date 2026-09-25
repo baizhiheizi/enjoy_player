@@ -1,27 +1,9 @@
 part of 'transcript_repository.dart';
 
 /// Module-private helpers shared by the [TranscriptRepository] part files:
-/// content-hash cache keying, timeline decoding, track-row mapping, source
-/// normalization / ordering, and robust server date parsing.
-
-class _LinesCacheEntry {
-  _LinesCacheEntry(this.hash, this.lines);
-  final String hash;
-  final List<TranscriptLine> lines;
-}
-
-String _timelineJsonHash(String timelineJson) =>
-    sha1.convert(utf8.encode(timelineJson)).toString().substring(0, 16);
-
-/// Timelines larger than this are decoded in a background isolate before
-/// [TranscriptRepository.linesForRow] serves them synchronously.
-const int _kPreloadTimelineJsonBytes = 16 * 1024;
-
-List<TranscriptLine> _decodeTimeline(String timelineJson) {
-  final decoded = (jsonDecode(timelineJson) as List)
-      .cast<Map<String, dynamic>>();
-  return decoded.map(TranscriptLine.fromJson).toList();
-}
+/// track-row mapping, source normalization / ordering, and robust server
+/// date parsing. (Timeline decoding, cache keying, and the preload threshold
+/// live in `transcript_timeline_codec.dart` — issue #766.)
 
 TranscriptTrack _trackFromRow(TranscriptRow row) {
   return TranscriptTrack(
