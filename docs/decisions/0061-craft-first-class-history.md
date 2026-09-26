@@ -4,6 +4,13 @@
 
 Accepted
 
+> **Wording refresh** (2026-09-25): implementation pointers updated to the
+> current seams — `craftHistoryProvider` streams
+> `mediaRegistryProvider.watchAll()` (issue #765 deleted the
+> `MediaLibraryRepository` relay), and the Craft persistence methods and the
+> `CraftEditSource` domain type live on `CraftLibraryRepository` /
+> `lib/features/craft/domain/` (issue #601 split). **No decision change.**
+
 ## Context
 
 Craft (ADR-0043, ADR-0060) was reachable only through the Home import
@@ -37,16 +44,16 @@ Two additional signals motivated first-class treatment:
 3. **Craft history route** (`/craft/history`): A new `CraftHistoryScreen`
    lists every media item where `Audios.provider == 'craft'`, newest-updated
    first (`craftHistoryProvider`, a `StreamProvider<List<Media>>` built on
-   the existing `mediaLibraryRepositoryProvider.watchAll()` — no new DB
+   `mediaRegistryProvider.watchAll()` — no new DB
    query or schema). Reached via a history `IconButton` in the Craft screen's
    app bar. Tapping an item loads it back into the Craft screen for editing.
 
 4. **Edit-in-place, not duplicate**: `CraftJobState` gains `editingMediaId`
    (nullable). `CraftController.loadForEdit(mediaId)`:
    - Fetches a `CraftEditSource` snapshot (new domain type in
-     `lib/features/library/domain/craft_edit_source.dart`, alongside the
+     `lib/features/craft/domain/craft_edit_source.dart`, alongside the
      repository it belongs to) via
-     `MediaLibraryRepository.getCraftEditSource`. Returns `null` (and
+     `CraftLibraryRepository.getCraftEditSource`. Returns `null` (and
      `loadForEdit` returns `false`) if the row is missing or not a Craft
      item.
    - `CraftEditSource.practiceText` is reconstructed by joining the primary
@@ -61,8 +68,8 @@ Two additional signals motivated first-class treatment:
 
 5. **Update, not re-import**: When `editingMediaId` is set,
    `CraftController.saveToLibrary` skips `findExistingCrafted` dedupe
-   entirely and calls the new
-   `MediaLibraryRepository.updateCraftedFromText(mediaId: ...)` instead of
+   entirely and calls
+   `CraftLibraryRepository.updateCraftedFromText(mediaId: ...)` instead of
    `importCraftedFromText`. This keeps the same media id, `aid`, and
    `createdAt`, replaces the audio file (deleting the old app-managed file
    if the storage path changed) and the primary transcript, and enqueues a
@@ -77,8 +84,8 @@ Two additional signals motivated first-class treatment:
 ## Consequences
 
 - **New domain type**: `CraftEditSource` (`lib/features/library/domain/`).
-- **Extended repository**: `MediaLibraryRepository.getCraftEditSource`,
-  `MediaLibraryRepository.updateCraftedFromText`.
+- **Extended repository**: `CraftLibraryRepository.getCraftEditSource`,
+  `CraftLibraryRepository.updateCraftedFromText`.
 - **Extended controller**: `CraftController.loadForEdit`; `saveToLibrary`
   branches on `editingMediaId`.
 - **New provider**: `craftHistoryProvider`.

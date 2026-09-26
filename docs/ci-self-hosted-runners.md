@@ -47,7 +47,7 @@ Each agentic job runs pre-agent steps from [`shared/runtime.md`](../.github/work
 
 **Compile:** After editing workflow `.md` files, run `gh aw compile --validate` and commit the generated `.lock.yml` files.
 
-Agentic workflow sources: `test-improver`, `repo-assist`, `perf-improver`, `duplicate-code-detector`, `large-file-simplifier`, `issue-triage`, `update-docs`, `agentic-wiki-writer`.
+Agentic workflow sources: `grumpy-reviewer`, `repo-assist`, `repo-status`, `weekly-repo-map`. (The earlier `test-improver` / `perf-improver` / `duplicate-code-detector` / `large-file-simplifier` / `issue-triage` / `update-docs` / `agentic-wiki-writer` sources were removed in the 2026-07–09 cleanups.)
 
 ---
 
@@ -58,7 +58,7 @@ Runners are registered via `gh-sr` (`gh sr setup && gh sr up`), except where not
 | Workflow | Labels | gh-sr runner block |
 |----------|--------|---------------------|
 | CI, Codegen drift, Android APK smoke, Release Android | `self-hosted`, `Linux` | `baizhiheizi` (org-scoped, `profile: agentic`, shared with gh-aw) |
-| gh-aw agentic workflows (test-improver, repo-assist, …) | `self-hosted`, `linux`, `agentic` | `baizhiheizi` (same pool as above) |
+| gh-aw agentic workflows (grumpy-reviewer, repo-assist, …) | `self-hosted`, `linux`, `agentic` | `baizhiheizi` (same pool as above) |
 | Build Apple, Release Apple | `self-hosted`, `macos` | `baizhiheizi-mac` (org-scoped, shared) |
 | Build Windows, Release Windows | `self-hosted`, `windows`, `flutter` | `enjoy-player-win` (repo-scoped, dedicated) |
 
