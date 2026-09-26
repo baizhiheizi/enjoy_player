@@ -53,7 +53,7 @@ Every "permanently failed" decision derives from one module — [`SyncRetryPolic
 
 - **Threshold**: a row is permanently failed once `retryCount >= maxRetries` (behavior-preserving default: **5 attempts**). The value written by `SyncQueueDao.markPermanentlyFailed` is `policy.maxRetries`, received as the DAO's `retryLimit` method parameter so `lib/data/db` never imports `lib/features`.
 - **Backoff**: `baseDelayMs × 2^retryCount` (behavior-preserving default base: **1000 ms**) measured against an injectable wall clock (`DateTime Function()`), so tests pin time deterministically instead of sleeping past real windows (same seam as `YouTubePlayRetryPolicy`).
-- **Consumers**: `SyncRetryPolicy.shouldRetry` (the full decision), the drain's backoff filter in `SyncEngine._drainOnce`, `SyncQueueRepository.pendingItems` / `watchSnapshot` / `resetFailed` (both the Dart predicate and the SQL clauses derive from the policy), and the DAO `retryLimit` all read the same policy. The drain path applies the threshold exactly once — in `pendingItems` (SQL) — plus the in-memory backoff filter; there is no second threshold check.
+- **Consumers**: the drain's backoff filter in `SyncEngine._drainOnce` (via `backoffElapsed`), `SyncQueueRepository.pendingItems` / `watchSnapshot` / `resetFailed` (both the Dart predicate and the SQL clauses derive from the policy via `isPermanentlyFailed` / `permanentlyFailed` / `eligible`), and the DAO `retryLimit` all read the same policy. `shouldRetry` composes the threshold and backoff halves and is pinned by unit test but has no in-tree caller — the drain path applies the threshold exactly once (in `pendingItems` SQL) plus the in-memory backoff filter, so there is no second threshold check.
 
 ## Typed enqueue seam (issues #718, #749)
 
