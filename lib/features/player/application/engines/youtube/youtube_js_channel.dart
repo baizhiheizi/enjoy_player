@@ -40,11 +40,3 @@ final class InAppWebViewJsChannel implements YoutubeJsChannel {
     );
   }
 }
-
-/// Wraps a nullable plugin controller as a nullable channel.
-///
-/// A null controller yields a null channel, and every protocol entry point
-/// no-ops on a null channel — the same semantics the bridge's old
-/// `InAppWebViewController?` parameters had.
-YoutubeJsChannel? youtubeJsChannelOf(InAppWebViewController? controller) =>
-    controller == null ? null : InAppWebViewJsChannel(controller);

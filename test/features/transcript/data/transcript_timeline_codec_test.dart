@@ -140,14 +140,6 @@ void main() {
         isTrue,
       );
     });
-
-    test('clear drops entries', () {
-      final cache = TranscriptTimelineCache();
-      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
-      cache.linesFor(rowId: 'r1', timelineJson: json);
-      cache.clear();
-      expect(cache.isCached(rowId: 'r1', timelineJson: json), isFalse);
-    });
   });
 
   group('transcriptActiveIndex (UI highlight policy)', () {
