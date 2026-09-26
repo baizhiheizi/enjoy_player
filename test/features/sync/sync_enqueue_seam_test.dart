@@ -10,6 +10,8 @@
 /// pre-fix behavior: waiting for the periodic timer).
 library;
 
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +46,12 @@ class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
   final List<({String videoId, String language, String source, int lineCount})>
   uploads = [];
 
+  /// Completes the moment the first `uploadTranscript` call records into
+  /// [uploads]. Lets a test await the producer/drain side of a retry
+  /// instead of polling `DateTime.now()` against a wall-clock deadline
+  /// (issue #774, flake-debt class).
+  final Completer<void> firstUpload = Completer<void>();
+
   @override
   Future<Map<String, dynamic>?> getCachedTranscript({
     required String videoId,
@@ -64,6 +72,7 @@ class _FakeTranscriptsApi implements YoutubeTranscriptsClient {
       source: source,
       lineCount: timeline.length,
     ));
+    if (!firstUpload.isCompleted) firstUpload.complete();
     return !uploadShouldFail;
   }
 
@@ -211,12 +220,22 @@ void main() {
     await repo.fetchCloudTranscripts(mediaId, force: true);
 
     // No explicit drain call below — the enqueue's signed-in tail must
-    // schedule processQueue itself.
-    final deadline = DateTime.now().add(const Duration(seconds: 3));
-    while (DateTime.now().isBefore(deadline)) {
-      final pending = await queue.pendingItems();
-      if (drainApi.uploads.isNotEmpty && pending.isEmpty) break;
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+    // schedule processQueue itself. Wait on a Completer gate instead of
+    // polling `DateTime.now()` (issue #774 flake-debt class — same pattern
+    // that bit the echo-overlap test that #773 fixed).
+    await drainApi.firstUpload.future.timeout(
+      const Duration(seconds: 3),
+      onTimeout: () => throw StateError(
+        'scheduled drain did not call drainApi.uploadTranscript within 3s',
+      ),
+    );
+    // The upload Future resolves before `processRetry` calls
+    // `_queue.removeByIdIfPayload`; pump microtasks until the row is gone
+    // (sub-millisecond on an in-memory Drift DB; bounded budget so a
+    // regression fails fast instead of stalling on wall-clock polling).
+    for (var i = 0; i < 50; i++) {
+      if ((await queue.pendingItems()).isEmpty) break;
+      await Future<void>.delayed(Duration.zero);
     }
 
     expect(producerApi.uploads, hasLength(1));
