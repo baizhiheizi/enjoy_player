@@ -2,12 +2,13 @@
 
 ## Commands
 
-Cheap CI gates (format + codegen drift) — run before every push that touches Dart:
+Cheap CI gates (format + codegen drift + path-deps governance) — run before every push that touches Dart:
 
 ```bash
 bash .github/scripts/validate_ci_gates.sh
-bash .github/scripts/validate_ci_gates.sh --fix   # write format + regenerate codegen
-bash .github/scripts/validate_ci_gates.sh --all    # + analyze + test
+bash .github/scripts/validate_ci_gates.sh --fix             # write format + regenerate codegen
+bash .github/scripts/validate_ci_gates.sh --test --coverage # + test, then enforce the coverage gate
+bash .github/scripts/validate_ci_gates.sh --all             # + analyze + test + coverage gate + path packages
 ```
 
 Individual commands:
