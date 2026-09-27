@@ -61,10 +61,13 @@ class EngineSwapCoordinator {
   final Ref ref;
   final PlayerEngine? Function() _getOwnedEngine;
 
-  /// Installs a new owned engine — never `null`: clearing the slot is not
-  /// part of the swap choreography. Wired to
+  /// Installs a new owned engine — pass `null` to restore the prior owned
+  /// engine after a superseded swap (issue #774, item 1): the abandoned
+  /// replacement must leave the slot before its dispose lands, otherwise a
+  /// concurrent newer open takes the `owned != null && haveYt == wantYt →
+  /// return false` fast path against a disposed engine. Wired to
   /// `PlayerEngineIdentity.setOwned`, which owns the change-notification.
-  final void Function(PlayerEngine next) _setOwnedEngine;
+  final void Function(PlayerEngine? next) _setOwnedEngine;
   final PlayerEngine Function() _getActiveEngine;
   final int Function() _currentOpenGeneration;
   final void Function() _abandonPendingOpen;
@@ -107,6 +110,11 @@ class EngineSwapCoordinator {
   /// of the slot actually changing (issue #751) — there is no separate
   /// hand-bump anymore. Returns the engine that was replaced, or `null` when
   /// there was none — the caller owns its teardown, under its own contract.
+  ///
+  /// Production callers pass a non-`null` [next]; the swap choreography's
+  /// supersede restoration path also uses [_setOwnedEngine] directly to put
+  /// the prior engine back (issue #774, item 1), at which point [next] is
+  /// not used.
   PlayerEngine? install(PlayerEngine next) {
     final previous = _getOwnedEngine();
     _setOwnedEngine(next);
@@ -210,6 +218,11 @@ class EngineSwapCoordinator {
         onSuperseded: () => next.dispose(),
       );
     } on OpenSupersededException {
+      // Restore the prior owned engine to the slot before returning so the
+      // abandoned `next` (already disposed by [OpenSteps]'s
+      // `onSuperseded` hook) does not leave the identity slot holding a
+      // disposed engine (issue #774, item 1).
+      _setOwnedEngine(owned);
       return false;
     }
     if (owned != null) {
@@ -220,12 +233,19 @@ class EngineSwapCoordinator {
           onSuperseded: () => next.dispose(),
         );
       } on OpenSupersededException {
+        // Same restoration as above — the prior surface is still live (we
+        // never reached [discardWithoutAwaiting]) so `owned` is a valid
+        // engine to keep in the slot.
+        _setOwnedEngine(owned);
         return false;
       }
       discardWithoutAwaiting(owned);
     }
     if (steps.isStale()) {
       await next.dispose();
+      // A fresh open moved the generation while we were awaiting — restore
+      // the prior owned engine so the slot never holds a disposed engine.
+      _setOwnedEngine(owned);
       return false;
     }
     next.prepareNativeBackend();

@@ -98,10 +98,16 @@ class PlayerEngineIdentity {
   PlayerEngine? resolveOrNull() => testDouble() ?? owned;
 
   /// Publishes [next] as the owned engine — the swap choreography's install
-  /// path. Bumps the rev synchronously **iff the slot actually changes**: this
+  /// path. Pass `null` to restore the prior owned engine after a superseded
+  /// swap (issue #774, item 1): the abandoned [next] must leave the slot
+  /// before its dispose lands, otherwise a concurrent newer open takes the
+  /// `owned != null && haveYt == wantYt → return false` fast path against a
+  /// disposed engine.
+  ///
+  /// Bumps the rev synchronously **iff the slot actually changes**: this
   /// change-detection bump replaces `EngineSwapCoordinator.bumpRev` (issue
   /// #751).
-  void setOwned(PlayerEngine next) {
+  void setOwned(PlayerEngine? next) {
     final previous = owned;
     owned = next;
     if (!identical(previous, next)) bumpRev();
