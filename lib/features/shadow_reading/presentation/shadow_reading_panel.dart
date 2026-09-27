@@ -16,7 +16,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
@@ -234,8 +234,9 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
   }
 
   Future<String?> _resolveMediaPath() async {
-    final db = ref.read(appDatabaseProvider);
-    final uri = await MediaRegistry(db).localUriOf(widget.mediaId);
+    final uri = await ref
+        .read(mediaRegistryProvider)
+        .localUriOf(widget.mediaId);
     if (uri == null || uri.isEmpty) return null;
     try {
       return Uri.parse(uri).toFilePath();

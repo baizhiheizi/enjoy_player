@@ -15,7 +15,7 @@ import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -194,9 +194,9 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
       // (spec 046). Craft-ness is best-effort: a registry miss simply means
       // "not crafted" and no event is sent.
       try {
-        final media = await MediaRegistry(
-          ref.read(appDatabaseProvider),
-        ).getById(row.targetId);
+        final media = await ref
+            .read(mediaRegistryProvider)
+            .getById(row.targetId);
         if (media?.provider == 'craft') {
           ref
               .read(analyticsProvider)

@@ -9,8 +9,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
@@ -127,9 +126,7 @@ Future<void> _runYoutubeMetadataRefresh(
   // Same catch-and-log contract as the sibling helpers: this future is
   // fire-and-forget, so an escaping throw becomes an unhandled async error.
   try {
-    final row = await MediaRegistry(
-      ref.read(appDatabaseProvider),
-    ).getVideoById(mediaId);
+    final row = await ref.read(mediaRegistryProvider).getVideoById(mediaId);
     if (row == null || row.provider.toLowerCase() != 'youtube') return;
     if (!_youtubeMetadataNeedsRefresh(row)) return;
 
