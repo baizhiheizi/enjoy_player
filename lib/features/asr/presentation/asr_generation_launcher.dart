@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/data/db/media_target_resolver.dart';
 import 'package:enjoy_player/features/asr/application/asr_failure_messages.dart';
 import 'package:enjoy_player/features/asr/application/asr_generation_controller.dart';
@@ -31,7 +31,7 @@ Future<void> launchAsrGeneration(
   final db = ref.read(appDatabaseProvider);
   // One registry read replaces the kindOf + per-table language/duration
   // lookups (getById maps language + durationSeconds -> durationMs).
-  final media = await MediaRegistry(db).getById(mediaId);
+  final media = await ref.read(mediaRegistryProvider).getById(mediaId);
   final source = await resolvePlayableSource(db, mediaId);
   if (media == null || source is! LocalFilePlayableSource) {
     if (context.mounted) {
@@ -62,7 +62,7 @@ Future<void> launchAsrGeneration(
   // in the long-media confirmation — and so a row that was deleted
   // while the dialog was open does not silently proceed.
   if (!context.mounted) return;
-  final refreshed = await MediaRegistry(db).getById(mediaId);
+  final refreshed = await ref.read(mediaRegistryProvider).getById(mediaId);
   if (refreshed == null) {
     if (context.mounted) {
       AppNotice.error(

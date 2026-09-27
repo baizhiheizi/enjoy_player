@@ -25,8 +25,7 @@ import 'package:uuid/uuid.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
 import 'package:enjoy_player/features/ai/domain/byok_not_configured_failure.dart';
 import 'package:enjoy_player/features/ai/domain/models/asr_long_form_phase.dart';
@@ -148,8 +147,7 @@ class AsrGenerationController extends _$AsrGenerationController {
 
   Future<String?> _resolveLanguage(String? override, String mediaId) async {
     if (override != null && override.isNotEmpty) return override;
-    final db = ref.read(appDatabaseProvider);
-    final media = await MediaRegistry(db).getById(mediaId);
+    final media = await ref.read(mediaRegistryProvider).getById(mediaId);
     if (media == null) return null;
     if (media.language.isNotEmpty) return media.language;
     return 'en';
@@ -396,8 +394,7 @@ class AsrGenerationController extends _$AsrGenerationController {
 
   Future<int> _resolveMediaDurationMs(String? mediaSourceUri) async {
     if (mediaSourceUri == null || mediaSourceUri.isEmpty) return 0;
-    final db = ref.read(appDatabaseProvider);
-    final media = await MediaRegistry(db).getById(mediaId);
+    final media = await ref.read(mediaRegistryProvider).getById(mediaId);
     if (media != null && media.durationMs > 0) return media.durationMs;
     return 0;
   }
@@ -407,8 +404,7 @@ class AsrGenerationController extends _$AsrGenerationController {
     required String persistedLanguage,
   }) async {
     if (detected == null || detected.isEmpty) return;
-    final db = ref.read(appDatabaseProvider);
-    final registry = MediaRegistry(db);
+    final registry = ref.read(mediaRegistryProvider);
     // Same-tag short-circuit stays here (repo-style caller policy); the
     // registry owns only the videos/audios write dispatch.
     final hit = await registry.probeBoth(mediaId);
