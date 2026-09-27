@@ -39,10 +39,17 @@ Ref _refOf(ProviderContainer container) {
 /// `owned ?? default`. The raw `setOwned` returned here writes the module's
 /// slot directly — the direct test seam (no notification), mirroring the
 /// `controller.ownedEngine = …` writes in the controller tests.
+///
+/// [bumpGeneration] is the test seam to drive a supersede from outside the
+/// coordinator (issue #774, item 1): while the swap is parked at a guarded
+/// step, the test bumps the generation and then releases the gate, so the
+/// parked step sees a stale `isStale()` post-await and the swap unwinds with
+/// [OpenSupersededException].
 ({
   PlayerEngine? Function() getOwned,
   void Function(PlayerEngine) setOwned,
   EngineSwapCoordinator coordinator,
+  void Function() bumpGeneration,
 })
 _wire(ProviderContainer container) {
   var openGen = 1;
@@ -65,6 +72,7 @@ _wire(ProviderContainer container) {
     getOwned: () => identity.owned,
     setOwned: (next) => identity.owned = next,
     coordinator: coordinator,
+    bumpGeneration: () => openGen++,
   );
 }
 
@@ -239,4 +247,70 @@ void main() {
       expect(container.read(playerEngineRevProvider), revBefore);
     },
   );
+
+  test('superseded swap restores the prior owned engine instead of leaving '
+      'a disposed replacement in the slot (issue #774, item 1)', () async {
+    // Repro: a concurrent newer open (or clear) bumps the open generation
+    // while this swap is awaiting the prior surface detach. Before the
+    // fix, `next` was installed and disposed but never removed from the
+    // slot, so a subsequent open took the
+    // `owned != null && haveYt == wantYt → return false` fast path
+    // against a disposed engine. The fix restores `owned` on every
+    // superseded exit so the slot never holds a disposed engine.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final wiring = _wire(container);
+
+    final gate = Completer<void>();
+    final prior = FakeYoutubeEngine()..surfaceDetachGate = gate;
+    addTearDown(() async {
+      if (!gate.isCompleted) gate.complete();
+      await prior.dispose();
+    });
+    wiring.setOwned(prior);
+    final revBefore = container.read(playerEngineRevProvider);
+
+    // Start the swap; it installs MediaKit, parks at `awaitPriorSurfaceSettled`
+    // because `gate` is not completed.
+    final swapFuture = wiring.coordinator.ensureEngineForPlayableSource(
+      playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
+      openGeneration: 1,
+    );
+
+    // Wait until the swap is parked (gate is being awaited). One zero-
+    // duration delay is enough — the surface detach `await gate.future` is
+    // the only suspend point at this stage.
+    await Future<void>.delayed(Duration.zero);
+    expect(wiring.getOwned(), isA<MediaKitPlayerEngine>());
+
+    // Bump the generation (simulating a newer open / clear). The parked
+    // step's post-await stale check will now see `isStale()` and throw
+    // [OpenSupersededException]; the swap coordinator's catch restores
+    // the prior owned engine.
+    wiring.bumpGeneration();
+    gate.complete();
+
+    final result = await swapFuture;
+    expect(result, isFalse, reason: 'superseded swap must return false');
+    expect(
+      wiring.getOwned(),
+      same(prior),
+      reason: 'slot must hold the prior engine, not the disposed `next`',
+    );
+    // The swap installed MediaKit (slot changed) then restored YouTube
+    // (slot changed back) — rev moves by +2.
+    expect(container.read(playerEngineRevProvider), revBefore + 2);
+
+    // A fresh open of the same kind must NOT take the disposed-engine
+    // fast path: the slot holds a live YouTube (not MediaKit, not null),
+    // so the swap installs MediaKit fresh and bumps rev by +1.
+    final fresh = await wiring.coordinator.ensureEngineForPlayableSource(
+      playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
+      openGeneration: 2,
+    );
+    expect(fresh, isTrue);
+    expect(wiring.getOwned(), isA<MediaKitPlayerEngine>());
+    expect(wiring.getOwned(), isNot(same(prior)));
+    await wiring.getOwned()?.dispose();
+  });
 }
