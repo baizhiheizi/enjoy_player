@@ -4,6 +4,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
+import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 
 /// Streams every Crafted library item still tagged as Craft history,
@@ -13,7 +14,7 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 final craftHistoryProvider = StreamProvider<List<Media>>((ref) {
   return ref.watch(mediaRegistryProvider).watchAll().map((items) {
     final craft = items.where((m) => m.provider == 'craft').toList()
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      ..sort(mediaByUpdatedAtDesc);
     return craft;
   });
 });

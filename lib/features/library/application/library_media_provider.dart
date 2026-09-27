@@ -10,6 +10,12 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 
 import 'library_search_provider.dart';
 
+/// Shared "newest activity first" ordering for library / Craft history
+/// listings. Extracted so every provider surfaces the same list ordering
+/// without re-deriving the comparator inline.
+int mediaByUpdatedAtDesc(Media a, Media b) =>
+    b.updatedAt.compareTo(a.updatedAt);
+
 final libraryMediaProvider = StreamProvider<List<Media>>((ref) {
   return ref.watch(mediaRegistryProvider).watchAll();
 });
@@ -27,8 +33,7 @@ final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
   return registry
       .watchAll()
       .map((items) {
-        final sorted = [...items]
-          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        final sorted = [...items]..sort(mediaByUpdatedAtDesc);
         return sorted.take(recentLimit).toList();
       })
       .distinctBy(listEquals);
@@ -52,10 +57,10 @@ final libraryFilteredListsProvider =
             final filtered = _filterMediaByQuery(items, query);
             final audioItems =
                 filtered.where((m) => m.kind == MediaKind.audio).toList()
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                  ..sort(mediaByUpdatedAtDesc);
             final videoItems =
                 filtered.where((m) => m.kind == MediaKind.video).toList()
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                  ..sort(mediaByUpdatedAtDesc);
             return (audio: audioItems, video: videoItems);
           })
           .distinctBy((prev, next) {
