@@ -6,8 +6,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
-import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_enforcer.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
 import 'package:enjoy_player/features/player/application/word_loop_enforcer.dart';
@@ -179,14 +178,15 @@ class PlayerPositionTracker {
         }
         final sec = d.inMilliseconds ~/ 1000;
         setSession(getSession()?.copyWith(durationSeconds: newSec));
-        final db = ref.read(appDatabaseProvider);
         // One-off duration backfill through the registry (same write-after-read
         // as the ffmpeg probe; skips when the row already has a duration).
         // Guarded like the position tick above: a Drift throw must not
         // surface as an uncaught async exception from a stream listener and
         // take playback down with it.
         try {
-          await MediaRegistry(db).patchDurationIfZero(mediaId, sec);
+          await ref
+              .read(mediaRegistryProvider)
+              .patchDurationIfZero(mediaId, sec);
         } catch (e, st) {
           _positionLog.warning('duration backfill write failed', e, st);
         }
