@@ -21,7 +21,7 @@ import 'media_card_sync_badge.dart';
 class MediaCardTile extends StatefulWidget {
   const MediaCardTile({
     super.key,
-    required this.title,
+    this.title = '',
     required this.onTap,
     this.thumbnailFile,
     this.thumbnailNetworkUrl,
@@ -37,8 +37,12 @@ class MediaCardTile extends StatefulWidget {
     this.badge,
     this.onBadgeTap,
     this.heroArtworkMediaId,
+    this.adding = false,
+    this.inLibrary = false,
+    this.meta,
   });
 
+  /// Title in the built-in meta block. Ignored when [meta] is provided.
   final String title;
   final VoidCallback onTap;
   final File? thumbnailFile;
@@ -75,6 +79,23 @@ class MediaCardTile extends StatefulWidget {
   /// Optional language or metadata label in the meta line.
   final String? badge;
   final VoidCallback? onBadgeTap;
+
+  /// Discover feed: while an "add to library" import is in flight, dim the
+  /// artwork behind a spinner ([MediaCardAddingScrim]) and hide the hover
+  /// play glyph. Off for home / library / cloud consumers.
+  final bool adding;
+
+  /// Discover feed: paint the in-library membership chip
+  /// ([MediaCardInLibraryChip]) on the artwork's top-right corner — the same
+  /// corner [cloudSyncBadge] would occupy, but the two are never combined.
+  /// The tile never resolves membership itself (ADR-0088); callers pass the
+  /// already-joined flag.
+  final bool inLibrary;
+
+  /// When non-null, replaces the built-in title/subtitle meta block under the
+  /// artwork (Discover passes its channel-avatar row). When null, the built-in
+  /// block renders inside the [mediaCardTileMetaHeight] budget.
+  final Widget? meta;
 
   @override
   State<MediaCardTile> createState() => _MediaCardTileState();
@@ -153,11 +174,12 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
-                // Hover play affordance.
+                // Hover play affordance (hidden while an import is in flight —
+                // the adding scrim below carries the interaction instead).
                 IgnorePointer(
                   child: Center(
                     child: AnimatedOpacity(
-                      opacity: hover ? 1 : 0,
+                      opacity: hover && !widget.adding ? 1 : 0,
                       duration: t.motionFast,
                       child: AnimatedScale(
                         scale: hover ? 1 : 0.85,
@@ -168,6 +190,8 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
+                // Adding-to-library scrim (discover) — spinner over dimmed art.
+                if (widget.adding) const MediaCardAddingScrim(),
                 // Hairline edge.
                 IgnorePointer(
                   child: DecoratedBox(
@@ -183,6 +207,12 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
+                if (widget.inLibrary)
+                  Positioned(
+                    top: t.space8,
+                    right: t.space8,
+                    child: const MediaCardInLibraryChip(),
+                  ),
                 if (widget.providerBadge != null &&
                     widget.providerBadge!.isNotEmpty)
                   Positioned(
@@ -257,65 +287,69 @@ class _MediaCardTileState extends State<MediaCardTile> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AspectRatio(aspectRatio: 16 / 9, child: artwork),
-          // Meta — fixed vertical budget so grid rows stay aligned.
-          SizedBox(
-            height: mediaCardTileMetaHeight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 20,
-                    child: Text(
-                      widget.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.titleSmall?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                        height: 1.35,
+          // Custom meta slot (discover) when provided; otherwise the built-in
+          // block with a fixed vertical budget so grid rows stay aligned.
+          if (widget.meta != null)
+            widget.meta!
+          else
+            SizedBox(
+              height: mediaCardTileMetaHeight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      child: Text(
+                        widget.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.titleSmall?.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                          height: 1.35,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  SizedBox(
-                    height: 20,
-                    child: Row(
-                      children: [
-                        if (widget.badge != null) ...[
-                          Flexible(
-                            child: MediaCardMetaLanguage(
-                              label: widget.badge!,
-                              onTap: widget.onBadgeTap,
-                            ),
-                          ),
-                          if (kindLabel != null)
-                            MediaCardMetaDot(color: t.textFaint),
-                        ],
-                        if (kindLabel != null)
-                          Flexible(
-                            child: Text(
-                              kindLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tt.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                                height: 1.3,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      height: 20,
+                      child: Row(
+                        children: [
+                          if (widget.badge != null) ...[
+                            Flexible(
+                              child: MediaCardMetaLanguage(
+                                label: widget.badge!,
+                                onTap: widget.onBadgeTap,
                               ),
                             ),
-                          ),
-                      ],
+                            if (kindLabel != null)
+                              MediaCardMetaDot(color: t.textFaint),
+                          ],
+                          if (kindLabel != null)
+                            Flexible(
+                              child: Text(
+                                kindLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                  height: 1.3,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

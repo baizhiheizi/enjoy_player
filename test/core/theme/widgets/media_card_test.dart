@@ -9,6 +9,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:io';
 
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
@@ -313,6 +314,59 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('T'), findsOneWidget);
+    });
+
+    testWidgets('adding scrim renders spinner when adding=true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: MediaCardTile(title: 'T', adding: true, onTap: () {}),
+        ),
+      );
+      // pump (not pumpAndSettle): the CircularProgressIndicator animates
+      // forever, so a settled state never arrives.
+      await tester.pump();
+      expect(find.byType(MediaCardAddingScrim), findsOneWidget);
+      expect(find.byType(LoadingIcon), findsOneWidget);
+    });
+
+    testWidgets('in-library chip renders when inLibrary=true', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: MediaCardTile(title: 'T', inLibrary: true, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(MediaCardInLibraryChip), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
+    });
+
+    testWidgets('default tile renders neither scrim nor in-library chip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: MediaCardTile(title: 'T', onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(MediaCardAddingScrim), findsNothing);
+      expect(find.byType(LoadingIcon), findsNothing);
+      expect(find.byIcon(EnjoyIcons.check), findsNothing);
+    });
+
+    testWidgets('meta slot replaces the built-in meta block', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: MediaCardTile(
+            onTap: () {},
+            meta: const Padding(padding: EdgeInsets.zero, child: Text('C')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('C'), findsOneWidget);
     });
   });
 

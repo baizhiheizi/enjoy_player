@@ -1,30 +1,25 @@
 /// YouTube-style Discover feed video card with add / play actions.
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
-import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
-import 'package:enjoy_player/core/presentation/loading_icon.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
-import 'package:enjoy_player/core/theme/widgets/media_card/badges.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
-import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/generative_media_cover.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
+import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
@@ -56,6 +51,13 @@ _DiscoverFeedTileDateFormats _discoverFeedTileDateFormats(String locale) {
   );
 }
 
+/// Discover feed entry: shared poster artwork ([MediaCardTile], Aurora) plus
+/// this feature's own meta row (channel avatar, two-line title, channel ·
+/// published) and add-to-library affordances.
+///
+/// The tile never probes the library: membership arrives as [inLibrary] via
+/// `discoverFeedItemsProvider` (ADR-0088), and the transient "adding" state
+/// lives here because only discover imports from its own grid.
 class DiscoverFeedTile extends ConsumerStatefulWidget {
   const DiscoverFeedTile({
     required this.entry,
@@ -75,7 +77,6 @@ class DiscoverFeedTile extends ConsumerStatefulWidget {
 
 class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
   bool _adding = false;
-  bool _hover = false;
 
   /// Returns `true` when the video is in the library after this call.
   ///
@@ -144,66 +145,56 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
     final durationLabel = _durationLabel(entry);
 
-    return EnjoyPressable(
+    return MediaCardTile(
       onTap: () => unawaited(_play()),
-      onHoverChanged: (h) => setState(() => _hover = h),
-      showHoverWash: false,
-      pressedScale: 0.98,
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _VideoThumbnail(
-            thumbUrl: thumb,
-            coverSeed: entry.videoId,
-            hover: _hover,
-            inLibrary: inLibrary,
-            adding: _adding,
-            durationLabel: durationLabel,
-          ),
-          SizedBox(height: t.space12 - 2),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _ChannelAvatar(
-                imageUrl: channelAvatar,
-                label: channelName,
-                seed: entry.channelId,
-              ),
-              SizedBox(width: t.space8 + 2),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      entry.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.titleSmall?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                        height: 1.3,
-                      ),
+      thumbnailNetworkUrl: thumb,
+      coverSeed: entry.videoId,
+      isVideo: true,
+      durationLabel: durationLabel,
+      adding: _adding,
+      inLibrary: inLibrary,
+      meta: Padding(
+        padding: EdgeInsets.only(top: t.space12 - 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ChannelAvatar(
+              imageUrl: channelAvatar,
+              label: channelName,
+              seed: entry.channelId,
+            ),
+            SizedBox(width: t.space8 + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    entry.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.titleSmall?.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      height: 1.3,
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '$channelName · $publishedLabel',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        height: 1.2,
-                      ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '$channelName · $publishedLabel',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      height: 1.2,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -226,141 +217,6 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       return formats.mmmd.format(local);
     }
     return formats.yMMMd.format(local);
-  }
-}
-
-class _VideoThumbnail extends StatelessWidget {
-  const _VideoThumbnail({
-    required this.coverSeed,
-    required this.hover,
-    required this.inLibrary,
-    required this.adding,
-    this.thumbUrl,
-    this.durationLabel,
-  });
-
-  final String? thumbUrl;
-  final String coverSeed;
-  final bool hover;
-  final bool inLibrary;
-  final bool adding;
-  final String? durationLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final light = Theme.of(context).brightness == Brightness.light;
-    final radius = BorderRadius.circular(t.radiusMd);
-    final instant = MediaQuery.disableAnimationsOf(context);
-
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          shape: RoundedSuperellipseBorder(borderRadius: radius),
-          shadows: hover
-              ? t.shadowFloat
-              : (light ? t.shadowCard : const <BoxShadow>[]),
-        ),
-        child: ClipRSuperellipse(
-          borderRadius: radius,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              AnimatedScale(
-                scale: hover && !instant ? 1.035 : 1,
-                duration: t.motionStandard,
-                curve: EnjoyThemeTokens.ease,
-                child: thumbUrl != null
-                    ? Image(
-                        image: CachedNetworkImageProvider(thumbUrl!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => GenerativeMediaCover(
-                          seed: coverSeed,
-                          isVideo: true,
-                        ),
-                      )
-                    : GenerativeMediaCover(seed: coverSeed, isVideo: true),
-              ),
-              IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: hover ? 1 : 0,
-                  duration: t.motionFast,
-                  child: const ColoredBox(color: Color(0x2E000000)),
-                ),
-              ),
-              IgnorePointer(
-                child: Center(
-                  child: AnimatedOpacity(
-                    opacity: hover && !adding ? 1 : 0,
-                    duration: t.motionFast,
-                    child: AnimatedScale(
-                      scale: hover ? 1 : 0.85,
-                      duration: t.motionStandard,
-                      curve: EnjoyThemeTokens.ease,
-                      child: const MediaCardPlayGlyph(),
-                    ),
-                  ),
-                ),
-              ),
-              if (adding)
-                const ColoredBox(
-                  color: Color(0x73000000),
-                  child: Center(
-                    child: LoadingIcon(
-                      size: 26,
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              IgnorePointer(
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    shape: RoundedSuperellipseBorder(
-                      borderRadius: radius,
-                      side: BorderSide(
-                        color: light
-                            ? const Color(0x1416161D)
-                            : Colors.white.withValues(alpha: 0.07),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (inLibrary)
-                Positioned(
-                  top: t.space8,
-                  right: t.space8,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: ShapeDecoration(
-                      color: const Color(0x99000000),
-                      shape: CircleBorder(
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.14),
-                        ),
-                      ),
-                    ),
-                    child: const Icon(
-                      EnjoyIcons.check,
-                      size: 13,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              if (durationLabel != null)
-                Positioned(
-                  right: t.space8,
-                  bottom: t.space8,
-                  child: MediaCardDurationBadge(label: durationLabel!),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
