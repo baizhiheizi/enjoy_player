@@ -62,8 +62,14 @@ tile. Consequences:
   read-side projection.
 - `MediaRegistry.watchYoutubeVideoIds` watches the `videos` table only, so an
   audio-only library write does not rebuild the feed.
-- The membership stream is single-subscription (like `watchAll`), which is fine
-  for the one consumer but is a documented constraint, not an accident.
+- That membership stream is **broadcast**, unlike `watchAll`, because the merged
+  timeline and a channel view can both be subscribed at once (the timeline
+  provider is keep-alive, so opening a channel does not tear it down) and a
+  single-subscription stream would throw on the second listener. Each listener
+  carries its **own** drift subscription and its **own** dedupe state — hoisting
+  that state out of the `Stream.multi` callback makes the second listener of the
+  same returned stream dedupe against the first and silently receive nothing.
+  `media_registry_test.dart` pins that with two listeners on one stream object.
 - `DiscoverRepository`'s constructor gained a required named parameter. That is
   deliberate constructor-level churn across direct-construction test sites: it
   is what makes the unwired state unrepresentable.

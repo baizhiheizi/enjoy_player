@@ -255,6 +255,20 @@ void main() {
       expect(requested, 0);
     });
 
+    // A surface that is its own viewport (the echo block) has nothing to
+    // re-check, so it omits the parameter rather than passing a tautology.
+    testWidgets('omitting shouldRequest always fires', (tester) async {
+      var requested = 0;
+      await tester.pumpWidget(const SizedBox());
+      scheduleAutoTranslateLineRequest(
+        isMounted: () => true,
+        request: () => requested++,
+      );
+      tester.binding.scheduleFrame();
+      await tester.pump();
+      expect(requested, 1);
+    });
+
     testWidgets('does nothing when the element is torn down mid-frame', (
       tester,
     ) async {

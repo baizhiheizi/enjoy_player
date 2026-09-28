@@ -74,14 +74,21 @@ bool _withinWindow(int lineIndex, int anchor, int viewportWindow) {
 /// queue. Re-checking is what keeps a scrolling list from firing requests for
 /// cues it has already scrolled past. [isMounted] guards the element the
 /// callback would otherwise touch after teardown.
+///
+/// [shouldRequest] is **optional and defaults to "still wanted"**, because a
+/// caller whose surface *is* the viewport has nothing to re-check: the rendered
+/// echo block cannot scroll out from under itself between scheduling and the
+/// next frame. Forcing such a caller to pass `() => true` would be a tautology
+/// dressed up as a decision.
 void scheduleAutoTranslateLineRequest({
   required bool Function() isMounted,
-  required bool Function() shouldRequest,
   required void Function() request,
+  bool Function()? shouldRequest,
 }) {
+  final stillWanted = shouldRequest ?? () => true;
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!isMounted()) return;
-    if (!shouldRequest()) return;
+    if (!stillWanted()) return;
     request();
   });
 }

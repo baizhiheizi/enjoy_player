@@ -267,9 +267,39 @@ void main() {
     });
 
     // Issue #764 candidate 6: the discover timeline and a channel view both
-    // join this stream, and the timeline provider is keep-alive, so two
-    // listeners can exist at once. A single-subscription stream throws here.
-    test('supports two concurrent subscribers', () async {
+    // join membership, and the timeline provider is keep-alive, so two
+    // listeners can exist at once.
+    test('two listeners on the same stream both receive', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+
+      // ONE stream object, two listeners. The earlier version of this test
+      // called the factory twice, which builds two independent streams and so
+      // never exercised the shared-dedupe-state hazard it appeared to cover.
+      final stream = registry.watchYoutubeVideoIds();
+      final first = <Set<String>>[];
+      final second = <Set<String>>[];
+      final subA = stream.listen(first.add);
+      final subB = stream.listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first, hasLength(1));
+      expect(first.single, {'vid-a'});
+      expect(
+        second,
+        hasLength(1),
+        reason: 'a second listener must not dedupe against the first one',
+      );
+      expect(second.single, {'vid-a'});
+
+      await subA.cancel();
+      await subB.cancel();
+    });
+
+    // Independent calls are independent streams (the production shape: the
+    // timeline and channel providers each call the factory).
+    test('independent calls are independent streams', () async {
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
       );

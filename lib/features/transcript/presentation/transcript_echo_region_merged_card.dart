@@ -130,9 +130,10 @@ class EchoRegionMergedCard extends ConsumerWidget {
             secondaryText != null && secondaryText.trim().isNotEmpty,
         isLineFailed: lineFailed,
       )) {
+        // No staleness re-check: the rendered block is the viewport, so there
+        // is no scroll that could invalidate this request before the frame.
         scheduleAutoTranslateLineRequest(
           isMounted: () => ref.context.mounted,
-          shouldRequest: () => true,
           request: () => ref
               .read(autoTranslateCtrlProvider(mediaId).notifier)
               .requestTranslateLine(i),

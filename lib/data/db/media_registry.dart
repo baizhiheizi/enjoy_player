@@ -253,18 +253,23 @@ class MediaRegistry {
   /// the merged timeline and a single-channel view, and those two can be
   /// subscribed at the same time (the timeline provider is keep-alive, so
   /// opening a channel does not tear it down). A single-subscription stream
-  /// would throw on the second listener. Each listener gets its own drift
-  /// subscription; there are at most two.
+  /// would throw on the second listener.
+  ///
+  /// Each listener gets its **own** drift subscription *and its own dedupe
+  /// state* — the cache lives inside the `Stream.multi` callback, deliberately.
+  /// Hoisting it out would make the second listener of the same returned stream
+  /// silently receive nothing: the first listener's emit would populate the
+  /// shared `lastEmitted`, and the second would dedupe against it. Each
+  /// listener also holds a coalescing flag for the same reason.
   ///
   /// Coalesces the same way as [watchAll] — one emit per event-loop turn — and
   /// drops no-op re-queries before allocating.
   Stream<Set<String>> watchYoutubeVideoIds() {
-    var current = <VideoRow>[];
-    Set<String>? lastEmitted;
-    var emitScheduled = false;
-
     return Stream<Set<String>>.multi((controller) {
       late StreamSubscription<List<VideoRow>> sub;
+      var current = <VideoRow>[];
+      Set<String>? lastEmitted;
+      var emitScheduled = false;
       var closed = false;
 
       void emit() {
