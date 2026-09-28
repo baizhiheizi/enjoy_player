@@ -38,6 +38,7 @@ const List<String> kSupportedFocusLanguageTags = <String>[
   'es-MX',
   'fr-FR',
   'fr-CA',
+  'nb-NO',
 ];
 
 /// Media content language choices (includes Unknown).
@@ -91,9 +92,16 @@ const Map<String, String> kAzureDefaultLocaleByPrimary = <String, String>{
   'es': 'es-ES',
   'fr': 'fr-FR',
   'zh': 'zh-CN',
+  'nb': 'nb-NO',
 };
 
 /// ISO 639-2 / legacy aliases → ISO 639-1 primary subtag.
+///
+/// The Norwegian entries encode a deliberate **policy**, not a neutral
+/// equivalence: `no` is a macrolanguage tag, and essentially all Norwegian
+/// content in the wild is Bokmål, so `no` / `nob` / `nor` collapse onto
+/// Bokmål. Genuine Nynorsk (`nn`) is deliberately **not** aliased and stays
+/// unsupported. See ADR-0087.
 const Map<String, String> kLanguageTagAliases = <String, String>{
   'eng': 'en',
   'jpn': 'ja',
@@ -103,6 +111,9 @@ const Map<String, String> kLanguageTagAliases = <String, String>{
   'fra': 'fr',
   'zho': 'zh',
   'chi': 'zh',
+  'no': 'nb',
+  'nob': 'nb',
+  'nor': 'nb',
 };
 
 /// ISO 639 / BCP-47 language subtags that must not be used for lookup or worker calls.
@@ -130,6 +141,7 @@ const Map<String, String> kLookupLanguageLabels = <String, String>{
   'pt-BR': 'Português (Brasil)',
   'pt-PT': 'Português (Portugal)',
   'ru-RU': 'Русский',
+  'nb-NO': 'Norsk (bokmål)',
 };
 
 /// Lookup-sheet source / target catalog (separate from profile / focus / media
@@ -153,6 +165,7 @@ const List<String> kSupportedLookupLanguageTags = <String>[
   'pt-BR',
   'pt-PT',
   'ru-RU',
+  'nb-NO',
 ];
 
 /// Sorts [tags] with the user's learning language first (primary-subtag

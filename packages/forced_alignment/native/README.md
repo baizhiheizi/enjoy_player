@@ -66,11 +66,28 @@ when the process is not sitting in the source tree.
 
 ## Voices (focus catalog)
 
-`en-us`, `en-gb`, `ja`, `ko`, `es`, `es-419`, `fr-fr`, `fr-ca` — see
+`en-us`, `en-gb`, `ja`, `ko`, `es`, `es-419`, `fr-fr`, `fr-ca`, `nb` — see
 `lib/src/language_map.dart`. Each mapped id must have a `lang/` file.
 Do not silently substitute another voice. `fr-ca` is a Canadian French
 variant on the French dictionary (eSpeak-NG 1.52 ships `fr` / `fr-be` /
 `fr-ch` only).
+
+### Norwegian Bokmål is `lang/nb` + `no_dict`
+
+eSpeak-NG names the Norwegian Bokmål **voice** `nb` but keeps the Norwegian
+phoneme table and dictionary under the `no` macrolanguage — the generated voice
+file declares `phonemes no` / `dictionary no` (plus `language nb` /
+`language no`). So `nb_dict` does not exist upstream: **`no_dict` is the file
+that must be vendored.** Upstream ships the voice at `lang/gmq/nb`; this tree
+flattens it to `lang/nb` like every other voice (upstream `lang/gmw/en-US` →
+vendored `lang/en-us`).
+
+`phondata` / `phonindex` / `phontab` / `intonations` in this tree are
+byte-identical to a **full** eSpeak-NG 1.52.0 build and already contain every
+language's phoneme table, so adding a language needs no recompilation of those
+compiled tables — only the `lang/` voice file and the matching `*_dict`.
+Regenerate them from the 1.52.0 tag (`./configure && make`, then take
+`espeak-ng-data/lang/gmq/<code>` and `espeak-ng-data/<dict>_dict`).
 
 ## License
 

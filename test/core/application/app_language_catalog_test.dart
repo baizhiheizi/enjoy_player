@@ -281,6 +281,80 @@ void main() {
     });
   });
 
+  group('Norwegian Bokmål (nb-NO)', () {
+    // ADR-0087: `no` is a macrolanguage tag; essentially all Norwegian
+    // content in the wild is Bokmål, so `no` / `nob` / `nor` collapse onto
+    // `nb-NO`. Nynorsk (`nn`) is deliberately left unsupported.
+    const bokmalAliases = <String>['no', 'no-NO', 'nb', 'nb-NO', 'nob', 'nor'];
+
+    test('is in the focus, media, and lookup catalogs', () {
+      expect(kSupportedFocusLanguageTags, contains('nb-NO'));
+      expect(kSupportedMediaLanguageTags, contains('nb-NO'));
+      expect(kSupportedLookupLanguageTags, contains('nb-NO'));
+      expect(kLookupLanguageLabels, contains('nb-NO'));
+    });
+
+    test('macrolanguage and 639-2 aliases canonicalize for focus', () {
+      for (final tag in bokmalAliases) {
+        expect(
+          canonicalFocusLanguageTag(tag),
+          'nb-NO',
+          reason: 'focus canonicalization for $tag',
+        );
+      }
+    });
+
+    test('macrolanguage and 639-2 aliases canonicalize for media', () {
+      for (final tag in bokmalAliases) {
+        expect(
+          canonicalMediaLanguageTag(tag),
+          'nb-NO',
+          reason: 'media canonicalization for $tag',
+        );
+      }
+    });
+
+    test('macrolanguage and 639-2 aliases resolve an Azure locale', () {
+      for (final tag in bokmalAliases) {
+        expect(
+          resolveAzureAssessmentLocale(tag),
+          'nb-NO',
+          reason: 'Azure assessment locale for $tag',
+        );
+      }
+      expect(isAzurePronunciationAssessmentSupportedForPractice('no'), isTrue);
+    });
+
+    test('worker base is nb for every alias shape', () {
+      for (final tag in bokmalAliases) {
+        expect(
+          workerLanguageBase(tag),
+          'nb',
+          reason: 'workerLanguageBase for $tag',
+        );
+      }
+    });
+
+    test('aliases collapse to the nb primary subtag', () {
+      for (final tag in bokmalAliases) {
+        expect(primaryLanguageSubtag(tag), 'nb', reason: 'primary for $tag');
+      }
+    });
+
+    test('keeps Nynorsk (nn) unsupported rather than coercing to en-US', () {
+      expect(resolveAzureAssessmentLocale('nn'), isNull);
+      expect(resolveAzureAssessmentLocale('nn-NO'), isNull);
+      expect(canonicalMediaLanguageTag('nn'), 'nn');
+      expect(canonicalLookupTag('nb-NO'), isNull);
+      expect(kSupportedFocusLanguageTags, isNot(contains('nn-NO')));
+    });
+
+    test('is not a native / display language', () {
+      expect(kSupportedNativeLanguageTags, isNot(contains('nb-NO')));
+      expect(kAppDisplayLocales, isNot(contains(const Locale('nb', 'NO'))));
+    });
+  });
+
   group('coerceNativeIfEqualsLearning', () {
     test('returns the first allowed native when input is null', () {
       final coerced = coerceNativeIfEqualsLearning(null, 'en-US');

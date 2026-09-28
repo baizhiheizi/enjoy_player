@@ -4,6 +4,10 @@ library;
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 
 /// Worker allowlist (learning + lookup catalogs).
+///
+/// Mirrors Enjoy worker's `/pronounce` `DEFAULT_VOICES` / `ALLOWED_VOICES`
+/// (baizhiheizi/enjoy#1313 added `nb-NO`). The **worker must ship first** —
+/// a player release ahead of it would send `nb-NO` and get a 400.
 const Set<String> kPronounceSupportedLocales = <String>{
   'en-US',
   'en-GB',
@@ -19,6 +23,7 @@ const Set<String> kPronounceSupportedLocales = <String>{
   'pt-BR',
   'pt-PT',
   'ru-RU',
+  'nb-NO',
 };
 
 /// Bare / unknown-region primary → default regional Worker locale.
@@ -36,6 +41,7 @@ const Map<String, String> kPronounceDefaultLocaleByPrimary = <String, String>{
   'it': 'it-IT',
   'pt': 'pt-BR',
   'ru': 'ru-RU',
+  'nb': 'nb-NO',
 };
 
 const int kPronounceMaxChars = 200;

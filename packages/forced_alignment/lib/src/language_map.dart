@@ -8,6 +8,7 @@ const List<String> kSupportedAlignmentLanguageTags = [
   'es-MX',
   'fr-FR',
   'fr-CA',
+  'nb-NO',
 ];
 
 /// eSpeak-NG voice ids for [kSupportedAlignmentLanguageTags].
@@ -20,6 +21,11 @@ const Map<String, String> kEspeakVoiceByLanguageTag = {
   'es-MX': 'es-419',
   'fr-FR': 'fr-fr',
   'fr-CA': 'fr-ca',
+  // Norwegian Bokmål. eSpeak-NG 1.52 names the voice `nb` but keeps the
+  // Norwegian phoneme table + dictionary under the macro-language `no`
+  // (`lang/nb` declares `phonemes no` / `dictionary no`), so `nb_dict` does
+  // not exist — `no_dict` is the file that must be vendored.
+  'nb-NO': 'nb',
 };
 
 bool isSupportedAlignmentLanguage(String languageTag) =>

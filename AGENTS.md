@@ -35,7 +35,9 @@ The first line of a fresh log is a **session banner** — `app=<version>+<buildN
 
 ## Lookup language catalog
 
-The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog (14 tags) in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart), decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 8 tags). Widening the lookup picker must not regress profile / settings UI. See [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
+The transcript lookup sheet (`lib/features/lookup/`) uses a **separate** `kSupportedLookupLanguageTags` catalog (15 tags) in [`lib/core/application/app_language_catalog.dart`](lib/core/application/app_language_catalog.dart), decoupled from `kSupportedNativeLanguageTags` (profile "native", 2 tags) and `kSupportedFocusLanguageTags` (profile "learning", 10 tags). Widening the lookup picker must not regress profile / settings UI. See [ADR-0042](docs/decisions/0042-multi-language-lookup-catalog.md) and [docs/features/dictionary-lookup.md § Languages](docs/features/dictionary-lookup.md#languages).
+
+Norwegian needs one extra wrinkle: `no` / `nob` / `nor` alias to `nb` in `kLanguageTagAliases` as deliberate macrolanguage policy, while Nynorsk `nn` stays unsupported. Any focus-catalog addition must also land in `packages/forced_alignment/lib/src/language_map.dart` (the alignment catalog is pinned `==` to focus by test) with the matching vendored eSpeak voice + dictionary file — see [ADR-0087](docs/decisions/0087-norwegian-bokmal-language-catalog.md).
 
 ## Codegen
 

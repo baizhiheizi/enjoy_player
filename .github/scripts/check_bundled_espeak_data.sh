@@ -18,7 +18,7 @@ if [ -z "${data}" ] || [ ! -d "${data}" ]; then
   exit 1
 fi
 
-voices=(en-us en-gb ja ko es es-419 fr-fr fr-ca)
+voices=(en-us en-gb ja ko es es-419 fr-fr fr-ca nb)
 
 if [ ! -f "${data}/phontab" ]; then
   echo "::error::missing ${data}/phontab" >&2
