@@ -1,6 +1,14 @@
 /// Supported display / learning / native / media language tags.
+///
+/// Every per-language collection below derives from the ONE descriptor table
+/// in [`language_descriptor.dart`](language_descriptor.dart) (issue #794,
+/// ADR-0090) — the public names, shapes, order, and contents are unchanged;
+/// only their definitions went from hand-maintained parallel literals to
+/// derivations. `kLanguageTagAliases` stays a standalone policy map
+/// (ADR-0087 macrolanguage policy).
 library;
 
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:flutter/material.dart';
 
 // Shared separator for BCP-47 / language-tag splits. The hyphen-or-underscore
@@ -26,74 +34,36 @@ const String kDefaultNativeLanguageTag = 'zh-CN';
 
 const String kUnknownMediaLanguageTag = 'und';
 
-const List<String> kSupportedNativeLanguageTags = <String>['en-US', 'zh-CN'];
+/// Profile "native" choices — descriptor rows with `native: true` (table order).
+final List<String> kSupportedNativeLanguageTags = _tagsWhere(
+  (row) => row.native,
+);
 
-/// Focus learning languages selectable in settings/profile (first wave).
-const List<String> kSupportedFocusLanguageTags = <String>[
-  'en-US',
-  'en-GB',
-  'ja-JP',
-  'ko-KR',
-  'es-ES',
-  'es-MX',
-  'fr-FR',
-  'fr-CA',
-  'nb-NO',
-];
+/// Focus learning languages selectable in settings/profile (first wave) —
+/// descriptor rows with `focus: true` (table order).
+final List<String> kSupportedFocusLanguageTags = _tagsWhere((row) => row.focus);
 
 /// Media content language choices (includes Unknown).
-const List<String> kSupportedMediaLanguageTags = <String>[
+final List<String> kSupportedMediaLanguageTags = <String>[
   kUnknownMediaLanguageTag,
   ...kSupportedFocusLanguageTags,
 ];
 
-/// Azure Speech pronunciation assessment locales (Microsoft language-support table).
-const Set<String> kAzurePronunciationAssessmentLocales = <String>{
-  'ar-EG',
-  'ar-SA',
-  'ca-ES',
-  'zh-HK',
-  'zh-CN',
-  'zh-TW',
-  'da-DK',
-  'nl-NL',
-  'en-AU',
-  'en-CA',
-  'en-IN',
-  'en-GB',
-  'en-US',
-  'fi-FI',
-  'fr-CA',
-  'fr-FR',
-  'de-DE',
-  'hi-IN',
-  'it-IT',
-  'ja-JP',
-  'ko-KR',
-  'ms-MY',
-  'nb-NO',
-  'pl-PL',
-  'pt-BR',
-  'pt-PT',
-  'ru-RU',
-  'es-MX',
-  'es-ES',
-  'sv-SE',
-  'ta-IN',
-  'th-TH',
-  'vi-VN',
+/// Azure Speech pronunciation assessment locales (Microsoft
+/// language-support table) — descriptor rows with `azureAssessment: true`.
+final Set<String> kAzurePronunciationAssessmentLocales = <String>{
+  for (final row in kLanguageDescriptorRows)
+    if (row.azureAssessment) row.tag,
 };
 
-/// Preferred Azure locale when a broad tag has multiple regional options.
-const Map<String, String> kAzureDefaultLocaleByPrimary = <String, String>{
-  'en': 'en-US',
-  'ja': 'ja-JP',
-  'ko': 'ko-KR',
-  'es': 'es-ES',
-  'fr': 'fr-FR',
-  'zh': 'zh-CN',
-  'nb': 'nb-NO',
-};
+/// Preferred Azure locale when a broad tag has multiple regional options:
+/// the first focus-or-native descriptor row of each primary subtag
+/// ([firstTagPerPrimary]). The app resolves broad tags only for primaries it
+/// already teaches or uses as a native language; other Azure-only primaries
+/// (de, it, pt, ru, …) deliberately resolve `null` until they join a catalog.
+final Map<String, String> kAzureDefaultLocaleByPrimary = firstTagPerPrimary(
+  kLanguageDescriptorRows.where((row) => row.focus || row.native),
+);
 
 /// ISO 639-2 / legacy aliases → ISO 639-1 primary subtag.
 ///
@@ -125,23 +95,11 @@ const Set<String> kInvalidLanguageTags = <String>{
   'zxx',
 };
 
-/// Short UI labels for [kSupportedLookupLanguageTags] (lookup sheet pills / picker).
-const Map<String, String> kLookupLanguageLabels = <String, String>{
-  'en-US': 'English',
-  'en-GB': 'English (UK)',
-  'zh-CN': '中文',
-  'ja-JP': '日本語',
-  'ko-KR': '한국어',
-  'es-ES': 'Español (España)',
-  'es-MX': 'Español (México)',
-  'fr-FR': 'Français (France)',
-  'fr-CA': 'Français (Canada)',
-  'de-DE': 'Deutsch',
-  'it-IT': 'Italiano',
-  'pt-BR': 'Português (Brasil)',
-  'pt-PT': 'Português (Portugal)',
-  'ru-RU': 'Русский',
-  'nb-NO': 'Norsk (bokmål)',
+/// Short UI labels for [kSupportedLookupLanguageTags] (lookup sheet pills /
+/// picker) — each lookup descriptor row's endonym [LanguageDescriptorRow.lookupLabel].
+final Map<String, String> kLookupLanguageLabels = <String, String>{
+  for (final row in kLanguageDescriptorRows)
+    if (row.lookupLabel case final label?) row.tag: label,
 };
 
 /// Lookup-sheet source / target catalog (separate from profile / focus / media
@@ -149,24 +107,18 @@ const Map<String, String> kLookupLanguageLabels = <String, String>{
 ///
 /// First-wave tags cover the top languages requested by Enjoy Player users as
 /// of 2026-07-08 and overlap with the Azure pronunciation-assessment locale
-/// table where relevant.
-const List<String> kSupportedLookupLanguageTags = <String>[
-  'en-US',
-  'en-GB',
-  'zh-CN',
-  'ja-JP',
-  'ko-KR',
-  'es-ES',
-  'es-MX',
-  'fr-FR',
-  'fr-CA',
-  'de-DE',
-  'it-IT',
-  'pt-BR',
-  'pt-PT',
-  'ru-RU',
-  'nb-NO',
-];
+/// table where relevant. Derived: the descriptor rows carrying a lookup label,
+/// in table order — "every lookup tag has a label" holds by construction.
+final List<String> kSupportedLookupLanguageTags = _tagsWhere(
+  (row) => row.isLookupRow,
+);
+
+/// Descriptor rows (in table order) whose [test] passes, as their tags.
+List<String> _tagsWhere(bool Function(LanguageDescriptorRow row) test) =>
+    <String>[
+      for (final row in kLanguageDescriptorRows)
+        if (test(row)) row.tag,
+    ];
 
 /// Sorts [tags] with the user's learning language first (primary-subtag
 /// match), then alphabetical by primary subtag, then by region subtag.

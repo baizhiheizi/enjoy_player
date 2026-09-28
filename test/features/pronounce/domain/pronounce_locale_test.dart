@@ -1,8 +1,54 @@
+import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/language_descriptor.dart';
+import 'package:enjoy_player/features/pronounce/domain/pronounce_locale.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:enjoy_player/features/pronounce/domain/pronounce_locale.dart';
-
 void main() {
+  group('descriptor derivation', () {
+    test('allowlist is exactly the descriptor pronounce rows', () {
+      final pronounceRows = <String>{
+        for (final row in kLanguageDescriptorRows)
+          if (row.pronounce) row.tag,
+      };
+      expect(kPronounceSupportedLocales, pronounceRows);
+    });
+
+    test(
+      'allowlist is set-identical to the lookup catalog (worker parity)',
+      () {
+        // Today's policy: the worker /pronounce allowlist mirrors the lookup
+        // sheet's languages exactly. Nothing enforced this before issue #794;
+        // now both derive from the descriptor table and this pin makes the
+        // equality a visible, deliberate choice. Flip both together when the
+        // worker lags a lookup addition.
+        expect(
+          kPronounceSupportedLocales,
+          kSupportedLookupLanguageTags.toSet(),
+        );
+      },
+    );
+
+    test('default-by-primary covers every pronounce primary, within it', () {
+      final pronouncePrimaries = <String>{
+        for (final row in kLanguageDescriptorRows)
+          if (row.pronounce) primaryLanguageSubtag(row.tag),
+      };
+      expect(kPronounceDefaultLocaleByPrimary.keys.toSet(), pronouncePrimaries);
+      for (final entry in kPronounceDefaultLocaleByPrimary.entries) {
+        expect(
+          primaryLanguageSubtag(entry.value),
+          entry.key,
+          reason: 'default for ${entry.key} crosses primaries',
+        );
+        expect(
+          kPronounceSupportedLocales.contains(entry.value),
+          isTrue,
+          reason: 'default ${entry.value} is not allowlisted',
+        );
+      }
+    });
+  });
+
   group('resolvePronounceLocale', () {
     test('maps en-UK to en-GB', () {
       expect(resolvePronounceLocale('en-UK'), 'en-GB');

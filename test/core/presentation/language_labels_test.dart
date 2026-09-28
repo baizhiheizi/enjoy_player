@@ -12,6 +12,18 @@ void main() {
   });
 
   group('focusLanguageLabel', () {
+    test(
+      'localized getters cover exactly the focus + native descriptor rows',
+      () {
+        // The .arb seam of the descriptor table (issue #794): adding a focus
+        // or native language must add its localized getter in the same change.
+        expect(localizedLanguageLabelGetters.keys.toSet(), <String>{
+          ...kSupportedFocusLanguageTags,
+          ...kSupportedNativeLanguageTags,
+        });
+      },
+    );
+
     test('labels every supported focus tag with its own string', () {
       for (final tag in kSupportedFocusLanguageTags) {
         final label = focusLanguageLabel(l10n, tag);

@@ -4,22 +4,36 @@ library;
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
+/// Localized (gen-l10n) label getters, one per descriptor row in
+/// [kSupportedFocusLanguageTags] ∪ [kSupportedNativeLanguageTags] — the tags
+/// the settings / profile / media pickers can render (media items can also
+/// carry a stored native tag such as `zh-CN`).
+///
+/// This is the .arb seam of the descriptor table: adding a focus or native
+/// language must add its getter (and arb entries) in the same change —
+/// pinned by the derivation tests in `language_labels_test.dart`. Static
+/// endonym labels for the lookup sheet live separately in
+/// [kLookupLanguageLabels].
+final Map<String, String Function(AppLocalizations)>
+localizedLanguageLabelGetters = <String, String Function(AppLocalizations)>{
+  'en-US': (l10n) => l10n.settingsLanguageOptionEnUs,
+  'en-GB': (l10n) => l10n.settingsLanguageOptionEnGb,
+  'zh-CN': (l10n) => l10n.settingsLanguageOptionZhCn,
+  'ja-JP': (l10n) => l10n.settingsLanguageOptionJaJp,
+  'ko-KR': (l10n) => l10n.settingsLanguageOptionKoKr,
+  'es-ES': (l10n) => l10n.settingsLanguageOptionEsEs,
+  'es-MX': (l10n) => l10n.settingsLanguageOptionEsMx,
+  'fr-FR': (l10n) => l10n.settingsLanguageOptionFrFr,
+  'fr-CA': (l10n) => l10n.settingsLanguageOptionFrCa,
+  'nb-NO': (l10n) => l10n.settingsLanguageOptionNbNo,
+};
+
 /// Localized label for [tag] when it is exactly one of
-/// [kSupportedFocusLanguageTags]. Returns `null` for anything else so callers
-/// can apply their own fallback instead of silently returning English.
-String? _supportedFocusLabel(AppLocalizations l10n, String tag) {
-  if (tagsEqual(tag, 'en-US')) return l10n.settingsLanguageOptionEnUs;
-  if (tagsEqual(tag, 'en-GB')) return l10n.settingsLanguageOptionEnGb;
-  if (tagsEqual(tag, 'ja-JP')) return l10n.settingsLanguageOptionJaJp;
-  if (tagsEqual(tag, 'ko-KR')) return l10n.settingsLanguageOptionKoKr;
-  if (tagsEqual(tag, 'es-ES')) return l10n.settingsLanguageOptionEsEs;
-  if (tagsEqual(tag, 'es-MX')) return l10n.settingsLanguageOptionEsMx;
-  if (tagsEqual(tag, 'fr-FR')) return l10n.settingsLanguageOptionFrFr;
-  if (tagsEqual(tag, 'fr-CA')) return l10n.settingsLanguageOptionFrCa;
-  if (tagsEqual(tag, 'zh-CN')) return l10n.settingsLanguageOptionZhCn;
-  if (tagsEqual(tag, 'nb-NO')) return l10n.settingsLanguageOptionNbNo;
-  return null;
-}
+/// [kSupportedFocusLanguageTags] or [kSupportedNativeLanguageTags]. Returns
+/// `null` for anything else so callers can apply their own fallback instead
+/// of silently returning English.
+String? _supportedFocusLabel(AppLocalizations l10n, String tag) =>
+    localizedLanguageLabelGetters[normalizeBcp47Tag(tag)]?.call(l10n);
 
 /// User-visible label for a focus or media language BCP-47 tag.
 String focusLanguageLabel(AppLocalizations l10n, String tag) {
