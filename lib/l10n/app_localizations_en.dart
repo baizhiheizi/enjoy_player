@@ -39,6 +39,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRecentMedia => 'Recent media';
 
   @override
+  String get homeGreetingMorning => 'Good morning';
+
+  @override
+  String get homeGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGreetingEvening => 'Good evening';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting, $name';
+  }
+
+  @override
   String get homeEmptyTitle => 'No recent media';
 
   @override

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -88,7 +89,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
     expect(find.text('In library'), findsNothing);
   });
 

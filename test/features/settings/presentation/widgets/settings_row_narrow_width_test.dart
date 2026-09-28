@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,7 +32,7 @@ void main() {
         _harness(
           SettingsRow(
             title: 'Account',
-            leadingIcon: Icons.person_outline_rounded,
+            leadingIcon: EnjoyIcons.person,
             valueBadge: const SettingsValuePill(label: longValue),
             onTap: () {},
           ),
@@ -60,7 +61,7 @@ void main() {
       _harness(
         SettingsRow(
           title: 'Account',
-          leadingIcon: Icons.person_outline_rounded,
+          leadingIcon: EnjoyIcons.person,
           valueBadge: const SettingsValuePill(label: longValue),
           onTap: () {},
         ),

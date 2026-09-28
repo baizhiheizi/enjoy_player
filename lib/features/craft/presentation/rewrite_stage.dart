@@ -5,6 +5,7 @@
 /// before generating audio. Target text remains editable for final polish.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -291,7 +292,7 @@ class _NativeTextCard extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.format_quote_rounded,
+                  EnjoyIcons.quote,
                   size: 16,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -523,7 +524,7 @@ class _ActionButtons extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
           ),
-          icon: const Icon(Icons.graphic_eq_rounded),
+          icon: const Icon(EnjoyIcons.waveform),
           label: Text(l10n.craftRewriteGenerateAudio),
         ),
         const SizedBox(height: 10),
@@ -538,7 +539,7 @@ class _ActionButtons extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                icon: const Icon(Icons.mic_rounded, size: 18),
+                icon: const Icon(EnjoyIcons.mic, size: 18),
                 label: Text(l10n.craftRewriteReRecord),
               ),
             ),
@@ -558,7 +559,7 @@ class _ActionButtons extends StatelessWidget {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.refresh_rounded, size: 18),
+                    : const Icon(EnjoyIcons.refresh, size: 18),
                 label: Text(l10n.craftRewriteRegenerate),
               ),
             ),

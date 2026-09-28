@@ -4,6 +4,7 @@
 /// (`SettingsLayoutSingleColumn`/`SettingsLayoutTwoPane`), not this widget.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +30,7 @@ class KeyboardShortcutsSectionBody extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SettingsRow(
-          leadingIcon: Icons.help_outline_rounded,
+          leadingIcon: EnjoyIcons.help,
           title: l10n.settingsKeyboardOpenCheatsheet,
           subtitle: l10n.settingsKeyboardOpenCheatsheetSubtitle,
           trailing: KbdChordRow(binding: keys, compact: true),
@@ -38,7 +39,7 @@ class KeyboardShortcutsSectionBody extends ConsumerWidget {
         ),
         const SettingsRowDivider(),
         SettingsRow(
-          leadingIcon: Icons.tune_rounded,
+          leadingIcon: EnjoyIcons.tune,
           title: l10n.settingsKeyboardCustomizeTitle,
           subtitle: l10n.hotkeysSectionKeyboardHint,
           onTap: () => context.push('/settings/keyboard'),

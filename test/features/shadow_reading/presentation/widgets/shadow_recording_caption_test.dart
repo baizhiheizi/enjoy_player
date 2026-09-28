@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_recording_caption.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -80,7 +81,7 @@ void main() {
 
       expect(find.text('0.5 s / 1.2 s'), findsOneWidget);
       // Over-target indicator should be absent.
-      expect(find.byIcon(Icons.circle), findsNothing);
+      expect(find.byIcon(EnjoyIcons.dot), findsNothing);
     },
   );
 
@@ -105,7 +106,7 @@ void main() {
     expect(find.text('2.3 s / 2.0 s'), findsOneWidget);
     expect(find.text('+0.3s over target'), findsOneWidget);
     // Red dot icon appears as the over-target indicator.
-    expect(find.byIcon(Icons.circle), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.dot), findsOneWidget);
   });
 
   testWidgets('falls back to "x.x s" plain text when targetSec is zero', (

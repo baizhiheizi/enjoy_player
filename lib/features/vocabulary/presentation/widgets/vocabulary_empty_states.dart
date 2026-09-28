@@ -1,6 +1,7 @@
 /// Empty states for Vocabulary (no words / no due / no matches).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
@@ -28,17 +29,17 @@ class VocabularyEmptyState extends StatelessWidget {
       VocabularyEmptyKind.noWords => (
         l10n.vocabularyNoWords,
         l10n.vocabularyNoWordsDescription,
-        Icons.menu_book_outlined,
+        EnjoyIcons.book,
       ),
       VocabularyEmptyKind.noDue => (
         l10n.vocabularyNoDueItems,
         l10n.vocabularyNoDueItemsDescription,
-        Icons.schedule_outlined,
+        EnjoyIcons.clock,
       ),
       VocabularyEmptyKind.noMatches => (
         l10n.vocabularyNoMatches,
         l10n.vocabularyNoMatchesDescription,
-        Icons.search_off_rounded,
+        EnjoyIcons.searchOff,
       ),
     };
 

@@ -1,6 +1,7 @@
 /// Toolbar control: run / view pronunciation assessment for a take.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -143,7 +144,7 @@ class RecordingAssessmentButton extends ConsumerWidget {
                               ),
                         )
                       : Icon(
-                          Icons.auto_awesome_rounded,
+                          EnjoyIcons.sparkleFill,
                           size: 20,
                           color: canInteract
                               ? scheme.primary

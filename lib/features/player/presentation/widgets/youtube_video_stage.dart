@@ -1,6 +1,7 @@
 /// YouTube half of the surface host slot: WebView host + poster overlays.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
@@ -134,7 +135,7 @@ class _YoutubeTapToPlayHint extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.play_circle_outline,
+                EnjoyIcons.playCircle,
                 size: 64,
                 color: Colors.white70,
               ),

@@ -4,6 +4,7 @@
 /// is recorder-only and never attaches a video surface.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -164,7 +165,7 @@ class VocabularyPracticeSheet extends ConsumerWidget {
                       ),
                     ),
                     EnjoyTappableIcon(
-                      icon: Icons.close_rounded,
+                      icon: EnjoyIcons.close,
                       tooltip: l10n.vocabularyPracticeDismiss,
                       onPressed: () {
                         unawaited(

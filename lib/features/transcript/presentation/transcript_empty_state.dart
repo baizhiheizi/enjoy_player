@@ -1,10 +1,10 @@
 /// Placeholder when a medium has no transcript cues yet.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
@@ -85,11 +85,7 @@ class TranscriptEmptyState extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      EnjoyIllustrations.emptyTranscript,
-                      height: 72,
-                      fit: BoxFit.contain,
-                    ),
+                    const EnjoyIconOrb(icon: EnjoyIcons.subtitles, size: 60),
                     SizedBox(height: t.space20),
                     Text(
                       l10n.noTranscript,
@@ -119,7 +115,7 @@ class TranscriptEmptyState extends StatelessWidget {
                                 unawaited(onFetchYoutube!());
                               },
                               child: TranscriptBusyButton(
-                                icon: Icons.cloud_download_outlined,
+                                icon: EnjoyIcons.cloudDownload,
                                 label: l10n.transcriptEmptyFetchYoutube,
                                 onPressed: onFetchYoutube!,
                                 filled: true,
@@ -127,7 +123,7 @@ class TranscriptEmptyState extends StatelessWidget {
                             ),
                           if (showGenerateButton && onGenerate != null)
                             TranscriptBusyButton(
-                              icon: Icons.auto_awesome_rounded,
+                              icon: EnjoyIcons.sparkleFill,
                               label: l10n.transcriptEmptyGenerate,
                               onPressed: onGenerate!,
                               filled: !showFetchYoutubeButton,
@@ -136,7 +132,7 @@ class TranscriptEmptyState extends StatelessWidget {
                             _maybeWrapLocal(
                               wrap: wrapImport,
                               child: TranscriptBusyButton(
-                                icon: Icons.upload_file_rounded,
+                                icon: EnjoyIcons.fileUpload,
                                 label: l10n.transcriptEmptyAddSubtitle,
                                 onPressed: onImport,
                                 filled:
@@ -151,7 +147,7 @@ class TranscriptEmptyState extends StatelessWidget {
                             _maybeWrapLocal(
                               wrap: wrapExtract,
                               child: TranscriptBusyButton(
-                                icon: Icons.subtitles_outlined,
+                                icon: EnjoyIcons.subtitles,
                                 label: l10n.transcriptEmptyExtract,
                                 onPressed: onExtract!,
                               ),

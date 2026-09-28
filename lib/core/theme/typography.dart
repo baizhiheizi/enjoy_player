@@ -1,9 +1,38 @@
-/// Typography tokens — Newsreader for display, Instrument Sans for UI.
-/// Source Serif 4 for transcript reading (toggled at runtime via TranscriptTypographyTokens).
+/// Typography tokens — **Aurora** type system (ADR-0089).
+///
+/// - **Geist** for all UI (body, labels, buttons, nav) — crisp, neutral,
+///   excellent tabular figures.
+/// - **Instrument Serif** for editorial display titles (page heroes, hero
+///   numbers) — the signature voice. Regular weight only; never embolden.
+/// - **Geist Mono** for timestamps, durations, and scores.
+/// - Transcript reading keeps **Source Serif 4** (runtime toggle via
+///   [TranscriptTypographyTokens]).
+///
+/// CJK falls back to installed platform faces (PingFang / YaHei / Noto CJK)
+/// so Chinese UI renders natively without extra font downloads.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Installed-platform CJK sans faces, in preference order. Names that are not
+/// present on a platform are skipped by the engine at no cost.
+const List<String> kCjkSansFallbacks = [
+  'PingFang SC',
+  'Hiragino Sans GB',
+  'Microsoft YaHei UI',
+  'Microsoft YaHei',
+  'Noto Sans CJK SC',
+  'Source Han Sans SC',
+];
+
+/// Installed-platform CJK serif faces for display titles.
+const List<String> kCjkSerifFallbacks = [
+  'Songti SC',
+  'Noto Serif CJK SC',
+  'Source Han Serif SC',
+  'STSong',
+];
 
 /// CJK fallbacks so Windows does not substitute low-quality system fonts.
 List<String> _transcriptCjkSerifFallbacks() => [
@@ -16,7 +45,7 @@ List<String> _transcriptCjkSansFallbacks() => [
   GoogleFonts.notoSansKr().fontFamily,
   GoogleFonts.notoSansSc().fontFamily,
   GoogleFonts.notoSansJp().fontFamily,
-  GoogleFonts.instrumentSans().fontFamily,
+  GoogleFonts.geist().fontFamily,
 ].whereType<String>().toList();
 
 TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
@@ -27,118 +56,189 @@ TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
   );
 }
 
-TextStyle _newsreader(
+TextStyle? _ui(TextStyle? s) => s?.copyWith(
+  fontFamilyFallback: [...?s.fontFamilyFallback, ...kCjkSansFallbacks],
+);
+
+TextStyle _display(
   TextStyle? base, {
   required double size,
-  required FontWeight weight,
   required double height,
   required double letterSpacing,
 }) {
-  return GoogleFonts.newsreader(
+  final style = GoogleFonts.instrumentSerif(
     fontSize: size,
-    fontWeight: weight,
+    fontWeight: FontWeight.w400,
     height: height,
     letterSpacing: letterSpacing,
     color: base?.color,
   );
+  return style.copyWith(
+    fontFamilyFallback: [...?style.fontFamilyFallback, ...kCjkSerifFallbacks],
+  );
 }
 
-/// Builds the base [TextTheme]: Newsreader display + Instrument Sans UI.
+/// Editorial display style at an arbitrary [size] — for hero numbers and
+/// one-off display moments outside the [TextTheme] scale.
+///
+/// Derived from the active theme's `displaySmall` (Instrument Serif under
+/// [buildBaseTextTheme]) so widgets never fetch fonts themselves. Regular
+/// weight only: the face ships no bold.
+TextStyle enjoyDisplayStyle(
+  BuildContext context, {
+  required double size,
+  Color? color,
+  double height = 1.05,
+  double? letterSpacing,
+}) {
+  final base = Theme.of(context).textTheme.displaySmall ?? const TextStyle();
+  return base.copyWith(
+    fontSize: size,
+    fontWeight: FontWeight.w400,
+    height: height,
+    letterSpacing: letterSpacing ?? -size * 0.018,
+    color: color,
+  );
+}
+
+/// Tabular mono numerals (Geist Mono under the Aurora theme) for timers,
+/// durations, and scores. Derived from [TranscriptTypographyTokens.monoStyle]
+/// when present so widgets never fetch fonts themselves.
+TextStyle enjoyMonoStyle(
+  BuildContext context, {
+  double size = 12,
+  FontWeight weight = FontWeight.w500,
+  Color? color,
+  double letterSpacing = 0,
+}) {
+  final base =
+      Theme.of(context).extension<TranscriptTypographyTokens>()?.monoStyle ??
+      const TextStyle();
+  return base.copyWith(
+    fontSize: size,
+    fontWeight: weight,
+    color: color,
+    letterSpacing: letterSpacing,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
+}
+
+/// Builds the base [TextTheme]: Instrument Serif display + Geist UI.
 TextTheme buildBaseTextTheme(TextTheme base, ColorScheme scheme) {
-  final ui = GoogleFonts.instrumentSansTextTheme(
+  final ui = GoogleFonts.geistTextTheme(
     base,
   ).apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
 
   return ui.copyWith(
-    displayLarge: _newsreader(
+    displayLarge: _display(
       ui.displayLarge,
-      size: 48,
-      weight: FontWeight.w600,
-      height: 1.02,
-      letterSpacing: -0.8,
+      size: 56,
+      height: 1.0,
+      letterSpacing: -1.2,
     ),
-    displayMedium: _newsreader(
+    displayMedium: _display(
       ui.displayMedium,
-      size: 36,
-      weight: FontWeight.w600,
-      height: 1.08,
-      letterSpacing: -0.6,
+      size: 44,
+      height: 1.04,
+      letterSpacing: -0.9,
     ),
-    displaySmall: _newsreader(
+    displaySmall: _display(
       ui.displaySmall,
-      size: 28,
-      weight: FontWeight.w600,
-      height: 1.15,
-      letterSpacing: -0.4,
+      size: 38,
+      height: 1.08,
+      letterSpacing: -0.7,
     ),
-    headlineLarge: _newsreader(
+    headlineLarge: _display(
       ui.headlineLarge,
-      size: 28,
-      weight: FontWeight.w600,
-      height: 1.18,
-      letterSpacing: -0.4,
+      size: 30,
+      height: 1.12,
+      letterSpacing: -0.5,
     ),
-    headlineMedium: _newsreader(
-      ui.headlineMedium,
-      size: 22,
-      weight: FontWeight.w600,
-      height: 1.2,
-      letterSpacing: -0.3,
+    headlineMedium: _ui(
+      ui.headlineMedium?.copyWith(
+        fontSize: 21,
+        fontWeight: FontWeight.w600,
+        height: 1.22,
+        letterSpacing: -0.45,
+      ),
     ),
-    headlineSmall: ui.headlineSmall?.copyWith(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.2,
-      height: 1.25,
+    headlineSmall: _ui(
+      ui.headlineSmall?.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.3,
+        height: 1.28,
+      ),
     ),
-    titleLarge: ui.titleLarge?.copyWith(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.15,
+    titleLarge: _ui(
+      ui.titleLarge?.copyWith(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.25,
+        height: 1.3,
+      ),
     ),
-    titleMedium: ui.titleMedium?.copyWith(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      letterSpacing: -0.1,
+    titleMedium: _ui(
+      ui.titleMedium?.copyWith(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        letterSpacing: -0.15,
+        height: 1.35,
+      ),
     ),
-    titleSmall: ui.titleSmall?.copyWith(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0,
+    titleSmall: _ui(
+      ui.titleSmall?.copyWith(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.05,
+        height: 1.35,
+      ),
     ),
-    bodyLarge: ui.bodyLarge?.copyWith(
-      fontSize: 16,
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
-      height: 1.55,
+    bodyLarge: _ui(
+      ui.bodyLarge?.copyWith(
+        fontSize: 15.5,
+        fontWeight: FontWeight.w400,
+        letterSpacing: -0.1,
+        height: 1.55,
+      ),
     ),
-    bodyMedium: ui.bodyMedium?.copyWith(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
-      height: 1.5,
+    bodyMedium: _ui(
+      ui.bodyMedium?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: -0.05,
+        height: 1.5,
+      ),
     ),
-    bodySmall: ui.bodySmall?.copyWith(
-      fontSize: 13,
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
-      height: 1.45,
+    bodySmall: _ui(
+      ui.bodySmall?.copyWith(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: 1.45,
+      ),
     ),
-    labelLarge: ui.labelLarge?.copyWith(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.1,
+    labelLarge: _ui(
+      ui.labelLarge?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+      ),
     ),
-    labelMedium: ui.labelMedium?.copyWith(
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.2,
+    labelMedium: _ui(
+      ui.labelMedium?.copyWith(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0,
+      ),
     ),
-    labelSmall: ui.labelSmall?.copyWith(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.15,
-      fontFeatures: const [FontFeature.tabularFigures()],
+    labelSmall: _ui(
+      ui.labelSmall?.copyWith(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
     ),
   );
 }
@@ -218,7 +318,7 @@ class TranscriptTypographyTokens
           ),
           serif: false,
         ),
-        timestampStyle: GoogleFonts.jetBrainsMono(
+        timestampStyle: GoogleFonts.geistMono(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
@@ -226,7 +326,7 @@ class TranscriptTypographyTokens
           color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
         ),
         monoStyle: _withCjkFallbacks(
-          GoogleFonts.jetBrainsMono(
+          GoogleFonts.geistMono(
             fontSize: 13,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.15,
@@ -234,15 +334,12 @@ class TranscriptTypographyTokens
           ),
           serif: false,
         ),
-        displaySerifStyle: _withCjkFallbacks(
-          GoogleFonts.newsreader(
-            fontSize: 30,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.5,
-            color: scheme.onSurface,
-          ),
-          serif: true,
-        ),
+        displaySerifStyle: _display(
+          null,
+          size: 32,
+          height: 1.05,
+          letterSpacing: -0.6,
+        ).copyWith(color: scheme.onSurface),
       );
     }
     return _fallback(base, scheme);
@@ -272,14 +369,14 @@ class TranscriptTypographyTokens
         ),
         serif: false,
       ),
-      timestampStyle: GoogleFonts.jetBrainsMono(
+      timestampStyle: GoogleFonts.geistMono(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         fontFeatures: const [FontFeature.tabularFigures()],
         color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
       ),
       monoStyle: _withCjkFallbacks(
-        GoogleFonts.jetBrainsMono(
+        GoogleFonts.geistMono(
           fontSize: 13,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.15,
@@ -288,15 +385,12 @@ class TranscriptTypographyTokens
         ),
         serif: false,
       ),
-      displaySerifStyle: _withCjkFallbacks(
-        GoogleFonts.newsreader(
-          fontSize: 30,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.5,
-          color: scheme.onSurface,
-        ),
-        serif: true,
-      ),
+      displaySerifStyle: _display(
+        null,
+        size: 32,
+        height: 1.05,
+        letterSpacing: -0.6,
+      ).copyWith(color: scheme.onSurface),
     );
   }
 

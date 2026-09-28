@@ -2,6 +2,7 @@
 /// file) shown below the track sections.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -46,7 +47,7 @@ class SubtitleActionsSection extends StatelessWidget {
             horizontal: t.space12,
             vertical: t.space4,
           ),
-          icon: Icons.graphic_eq_rounded,
+          icon: EnjoyIcons.waveform,
           title: hasGeneratedTrack
               ? l10n.subtitlesRegenerate
               : l10n.subtitlesGenerate,
@@ -58,7 +59,7 @@ class SubtitleActionsSection extends StatelessWidget {
             horizontal: t.space12,
             vertical: t.space4,
           ),
-          icon: Icons.subtitles_outlined,
+          icon: EnjoyIcons.subtitles,
           title: l10n.subtitlesExtractEmbedded,
           onTap: onExtractEmbedded,
         ),
@@ -67,7 +68,7 @@ class SubtitleActionsSection extends StatelessWidget {
           horizontal: t.space12,
           vertical: t.space4,
         ),
-        icon: Icons.cloud_download_outlined,
+        icon: EnjoyIcons.cloudDownload,
         title: l10n.subtitlesRefreshCloud,
         onTap: onRefreshCloud,
       ),
@@ -77,7 +78,7 @@ class SubtitleActionsSection extends StatelessWidget {
             horizontal: t.space12,
             vertical: t.space4,
           ),
-          icon: Icons.upload_file_rounded,
+          icon: EnjoyIcons.fileUpload,
           title: l10n.subtitlesImportFile,
           onTap: onImportFile,
         ),

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,7 +31,7 @@ void main() {
         SettingsCollapsibleSection(
           title: 'Developer',
           hint: 'Diagnostics and internal tooling',
-          icon: Icons.developer_mode_outlined,
+          icon: EnjoyIcons.developer,
           collapsed: true,
           onToggle: () {},
           child: const Text('developer-content'),
@@ -50,7 +51,7 @@ void main() {
         SettingsCollapsibleSection(
           title: 'Developer',
           hint: 'Diagnostics and internal tooling',
-          icon: Icons.developer_mode_outlined,
+          icon: EnjoyIcons.developer,
           collapsed: true,
           needsAttention: true,
           onToggle: () {},
@@ -72,7 +73,7 @@ void main() {
         SettingsCollapsibleSection(
           title: 'About',
           hint: 'Version, licenses, and links',
-          icon: Icons.info_outline_rounded,
+          icon: EnjoyIcons.info,
           collapsed: false,
           onToggle: () {},
           child: const Text('about-content'),

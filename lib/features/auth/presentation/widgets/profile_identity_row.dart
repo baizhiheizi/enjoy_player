@@ -1,6 +1,7 @@
 /// Read-only labeled identity row with optional copy affordance.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -62,7 +63,7 @@ class ProfileIdentityRow extends StatelessWidget {
                   AppNotice.success(context, l10n.profileCopied);
                 }
               },
-              icon: const Icon(Icons.copy_rounded, size: 20),
+              icon: const Icon(EnjoyIcons.copy, size: 20),
             ),
         ],
       ),

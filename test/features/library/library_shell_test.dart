@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -99,7 +100,7 @@ void main() {
       expect(find.byTooltip('Switch to local'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Local'), findsNothing);
-      expect(find.byIcon(Icons.swap_horiz_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.caretUpDown), findsOneWidget);
     });
 
     testWidgets(
@@ -134,7 +135,8 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Import'), findsOneWidget);
+        // Narrow panes collapse Import to an icon button (tooltip label).
+        expect(find.byTooltip('Import'), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
       },
     );

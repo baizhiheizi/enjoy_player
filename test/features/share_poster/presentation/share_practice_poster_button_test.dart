@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -171,7 +172,7 @@ void main() {
     );
     expect(icon.color, Colors.red);
     expect(icon.size, 22);
-    expect(icon.icon, equals(Icons.ios_share_rounded));
+    expect(icon.icon, equals(EnjoyIcons.share));
   });
 
   testWidgets('default iconColor inherits the icon theme', (tester) async {

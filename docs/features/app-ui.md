@@ -1,49 +1,48 @@
-# App UI — Cinematic Editorial Design System
+# App UI — Aurora Design System
 
-**Status**: Implemented (Phase 1-6 complete, 2026-05-09; premium foundation pass 2026-05-13)
+**Status**: Implemented (Aurora redesign 2026-09-28, [ADR-0089](../decisions/0089-aurora-design-language.md); supersedes the 2026-05 "cinematic editorial" pass)
 
 ## Design direction
 
-**Style**: Cinematic Editorial — confident hero typography, generous whitespace, ambient artwork-derived color, selective glass on the floating player transport and [`EnjoyBottomNav`](../../lib/core/theme/widgets/enjoy_bottom_nav.dart).
+**Aurora — quiet chrome, luminous content.** Material is the widget toolkit, not the look: no ink ripples, continuous (superellipse) corners, hairline + ambient-light depth instead of elevation, one icon family, and one motion language on every platform.
 
-**Color**:
-- **Neutrals** — warm **paper** light (`#FDFCF9`) and **graphite** dark (`#15171E`), not zinc OLED `#09090B` (see `AppColors` in `lib/core/theme/colors.dart`).
-- **Brand** — deep violet **fill** (`#7334A9`, white label) with brightness-aware **ink** for text/icons. Logo gradient `#4797F5` → `#A855F7` is mark-only.
-- **Intelligence** — blue fill/ink for lookup (not interchangeable with violet).
-- **Echo** — warm fill/ink for speaking practice.
-- **Dynamic accent** — extracted per-media via `palette_generator`; applied to now-playing ring glow, transcript active-line rail, and ambient backdrop tint **on top of** the paper/graphite neutrals.
+**Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`):
+- **Neutrals** — cool, with a faint iris cast. **Porcelain** light: page `#F7F7F9`, canvas `#ECECF1`, cards / popovers white. **Midnight** dark: page `#111115`, canvas `#09090B`, cards `#17171C`, popovers `#1E1E24`. Address surfaces by role: `t.canvas`, `cs.surface` (page), `t.card`, `t.popover`, `t.fill` (control fills), `t.hairline`, `t.textFaint`.
+- **Iris accent** — fills `#5B4BE8` (light) / `#6D5DFC` (dark), white labels ≥ 4.5:1; inks `#4F3FD6` / `#A99BFF` (`t.accentInk`) for small text. `t.accentSoft` for selected washes.
+- **Aurora** — the logo's blue `#4797F5` → violet `#A855F7` (`t.aurora`). Signature moments only: the page glow (`AuroraGlow`), goal ring, Pro badge (`EnjoyTierBadge`), credits meter, profile avatar ring, sign-in stage.
+- **Semantic inks** — echo coral (`t.echoActive` / `t.echoInk`), intelligence blue (`t.intelligenceInk`), listening-focus teal (`t.blurActive`), scores (`t.scoreGood` / `scoreWarn` / `scoreBad`).
+- **Dynamic accent** — artwork palette (ADR-0007) still tints the play button and the player's ambient backdrop **on top of** these neutrals.
 
 ### Typography
 
-**Typography**:
-- Display / editorial titles: **Newsreader** (Google Fonts), tight tracking.
-- UI (body, labels, buttons, nav): **Instrument Sans** (Google Fonts).
-- Transcript body: **Source Serif 4** (Google Fonts), default ON, toggleable, plus Noto Serif CJK fallbacks.
-- Transcript **secondary** (translation) track: **Noto Sans SC** (Google Fonts), upright (no italic), plus Noto Sans CJK + Instrument Sans fallbacks.
-- Mono meta (timestamps, scores): **JetBrains Mono** with tabular figures.
-- Type scale: `12 / 13 / 14 / 16 / 18 / 22 / 28 / 36 / 48`.
-- Radii: `8 / 12 / 16 / 20 / pill`.
+- UI (body, labels, buttons, nav): **Geist**.
+- Display (page titles, hero figures, empty-state titles): **Instrument Serif**, regular weight only — never embolden. `enjoyDisplayStyle(size:)` for one-off display moments.
+- Mono (timestamps, durations, scores): **Geist Mono** with tabular figures — `enjoyMonoStyle()`.
+- Transcript body: **Source Serif 4** (default on, toggleable) + Noto Serif CJK; secondary track Noto Sans SC.
+- CJK UI falls back to installed platform faces (`kCjkSansFallbacks` / `kCjkSerifFallbacks`) — no extra downloads.
+- Scale: `11.5 / 12.5 / 13.5 / 14 / 15 / 15.5 / 17 / 18 / 21 / 30 / 38 / 44 / 56`.
 
-**Effects**:
-- Glass: **floating capsules only** — player transport (`GlassSurface` with corner radius) and [`EnjoyBottomNav`](../../lib/core/theme/widgets/enjoy_bottom_nav.dart). Sidebar is flat tonal; content cards are flat.
-- Elevation scale: `0 / 1 / 3 / 8` (cards / sheets / modals).
-- Radius scale: `8 / 12 / 16 / 20 / ∞`. `20` is the new default for cards and hero artwork.
-- Ambient backdrop: very-low-opacity (~7%) radial tint from artwork dominant color behind player content.
-- Motion: 180ms fast, **220ms medium** (transport layout morphs), 260ms standard, 240ms enter, 160ms exit. `prefers-reduced-motion` respected via `MediaQuery.disableAnimations`.
-- Global theme polish: tuned `splashColor` / `highlightColor` / `hoverColor` / `focusColor`, `scrollbarTheme`, `dialogTheme.insetPadding`, `NavigationBarTheme` height aligned to token (for any residual Material nav).
-- Shared interaction kit: `EnjoyTappable*`, `Haptics`, `EnjoyButton` — see [ADR-0018](../decisions/0018-shared-interactive-primitives.md).
+### Icons
+
+One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `PhosphorFill` / `PhosphorBold` fonts in `assets/fonts/phosphor/`, exposed as semantic `const IconData` on **`EnjoyIcons`** (`lib/core/theme/enjoy_icons.dart`). Outline at rest, `…Fill` for selected / active. Do not use Material `Icons` in `lib/`. `EnjoyChromeIcon(glyph, filled:)` renders the same family for shell / transport glyphs.
+
+### Shape, depth, interaction, motion
+
+- Radii `6 / 8 / 12 / 16 / 22 / 30 / pill` (`radiusXs … radius2xl`), always via `RoundedSuperellipseBorder` / `ClipRSuperellipse` (`enjoyShape()` in `app_theme.dart`).
+- Depth: `t.shadowCard` (resting), `t.shadowFloat` (floating chrome), `t.shadowPopover`; dark surfaces get a lit hairline instead of heavy shadow.
+- Interaction: `EnjoyPressable` (press-scale, quiet hover / press wash, focus ring, keyboard activation, haptics). `NoSplash` globally.
+- Motion: `EnjoyThemeTokens.ease` (soft landing) and `.emphasized` (selection travel); `motionFast 160 / Medium 220 / Standard 280 ms`. Page transition = `EnjoyGlidePageTransitionsBuilder` everywhere except iOS (`CupertinoPageTransitionsBuilder`). `MediaQuery.disableAnimations` respected.
 
 ## Theme mode
 
-Paper light + graphite dark `ThemeData` (`buildAppTheme(Brightness)`). `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
+Porcelain light + midnight dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0089). `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).
 
 ## Navigation
 
-- **Mobile**: custom `EnjoyBottomNav` (68pt content height + system home-indicator inset via `SafeArea`). **Four** destinations: Home, Discover, Library, **Profile** (the signed-in profile tab — see [auth.md](auth.md) for the dedicated profile screen; Settings is reached from a tile inside the Profile tab, not as a top-level destination). Pill selection, editorial typography, keyboard focus ring on items; haptics on change. Implemented in `lib/core/theme/widgets/enjoy_bottom_nav.dart`. `RootShell` mounts it as `Scaffold.bottomNavigationBar` with `extendBody` and a transparent scaffold so the glass capsule floats over page content instead of sitting in an opaque tray; the routed body reserves the nav height so scrollable content remains reachable.
-- **Library source switch**: Inside `LibraryScreen`, a compact **Local / Cloud** badge with swap icon sits inline beside the Library title; tap toggles source. Cloud mode uses `/library?source=cloud`; legacy `/cloud` redirects. Import + compact search on Local; Refresh on Cloud.
-- **Desktop (≥ 900 px)**: `AppSidebar` — flat tonal panel (`surfaceContainerLow`), hairline right border, pill nav items with hover/splash/focus, `FocusTraversalGroup` for keyboard order; extra top breathing room on **macOS** desktop for traffic-light clearance. **Three** primary pills: Home, Discover, Library. Profile is reached via the bottom **`SidebarAccountChip`** (not a fourth nav pill). Library nav item covers both local and cloud sources (no separate Cloud row). The Settings hub is reached from inside the Profile tab (a tile that pushes `/settings`), not from the sidebar.
-- **No glass on sidebar**: `EnjoyThemeTokens.useGlassOnSidebar = false`.
-- Platform-adaptive transitions: Cupertino on iOS/macOS, ZoomPage on Android, FadeUpwards on Windows/Linux.
+- **Mobile**: `EnjoyBottomNav` — a floating frosted glass capsule (58pt + safe area) with a gliding selection **lens**; glyphs switch outline → filled. **Four** destinations: Home, Discover, Library, **Profile** (Settings is reached from a tile inside Profile). `RootShell` mounts it as `Scaffold.bottomNavigationBar` with `extendBody` over `AppBackground` (page color + aurora glow); the routed body reserves `rootShellBottomNavClearance`.
+- **Library source switch**: inside `LibraryScreen`, a compact **Local / Cloud** capsule (`LibrarySourceToggle`) beside the title; tap toggles source. Cloud mode uses `/library?source=cloud`; legacy `/cloud` redirects.
+- **Desktop (≥ 900 px)**: `AppSidebar` sits directly on the window **canvas** (no fill, no border); routed pages live on a floating continuous-corner **content panel** (inset `t.shellInset` 8, radius `t.panelRadius` 14, hairline edge, aurora glow). Sidebar rows are `NavItemPill` (34px, lifted plate when selected, filled glyph + iris ink). Search shows its hotkey as an `EnjoyKeycap`. Profile is reached via `SidebarAccountChip` (avatar, name, aurora tier badge; Free users get an aurora **Upgrade** pill).
+- Page transitions: one glide everywhere, Cupertino on iOS.
 
 ## Page layout
 
@@ -61,74 +60,71 @@ Use `EnjoyPage` + `EnjoyPageMetrics` (or `pageGutterOf`) — never invent per-sc
 
 ## System chrome
 
-- **Mobile**: `MaterialApp.router` builder wraps content in `AnnotatedRegion<SystemUiOverlayStyle>` — transparent status bar, light status/nav icons, dark system navigation bar (`#09090B`).
-- **Desktop**: `window_manager.setMinimumSize(880×560)` after init (Windows / macOS / Linux) for a usable minimum layout.
+- **Mobile**: `MaterialApp.router` builder wraps content in `AnnotatedRegion<SystemUiOverlayStyle>` — transparent status bar with brightness-matched icons; system navigation bar follows porcelain / midnight.
+- **Desktop**: native title bars (an integrated macOS title bar is a future option — see ADR-0089 consequences). `window_manager.setMinimumSize(880×560)`.
 
 ## Screen registry
 
-| Screen | Key change |
+| Screen | Aurora treatment |
 |--------|-----------|
-| `SignInScreen` | Editorial centered hero; no glass card |
-| `HomeScreen` | `EditorialHeader` + media grid via `MediaCardTile` |
-| `LibraryScreen` | `EditorialHeader` + `SegmentedButton` + `MediaCardRow` / `MediaCardTile` |
-| `ExpandedPlayerScreen` | `PlayerAmbientBackdrop` around scaffold; video: no AppBar (stage overlay); audio: no AppBar — floating frosted collapse control in `AudioPlayerLayout` ([ADR-0085](../decisions/0085-audio-floating-collapse-chrome.md)) |
-| `AudioPlayerLayout` | Floating top-left frosted collapse control over a transcript-first body (`contentMaxWidth`); cues scroll under its blur; desktop adds a `space32` top inset; no HeroArtwork stage |
-| `VideoPlayerLayout` | Side-by-side when layout is landscape (`width > height`); stacked 16:9 video over transcript in portrait/square ([ADR-0059](../decisions/0059-phone-tablet-orientation-and-player-aspect-layout.md)). Split: draggable transcript column (**≥360** px min, max 50% width), persisted `splitPx` preference, dark zinc panel, 1px left border; top **SafeArea** on video when expanded chrome hides the app bar. Transport packing still uses `breakpointTranscriptSideBySide` (720). |
-| `GlobalTransportBar` | Player route only ([ADR-0082](../decisions/0082-home-continue-no-mini-player.md)); inset floating glass capsule (`RootShell` `extendBody` + transparent scaffold, same as bottom nav); dynamic-accent play ring; tabular timestamps; narrow ≤720px: play/echo/cc/speed always-on, blur/hide in the CC sheet |
-| `TranscriptPanel` | Source Serif 4 body; editorial left-rail active line; neutral echo card with 8px orange rail |
-| `ShadowReadingPanel` | Idle: three-zone bar (pitch icon, centered 44pt FAB / 56pt hit, play + more; delete in menu); recording: centered FAB + countdown |
-| `SettingsScreen` | iOS-style grouped `_SettingsCard`; **Appearance & Language** rows open pickers for display + native language (learning fixed en-US); guest vs signed-in copy for language sync |
-| `ProfileScreen` | Editorial profile hub; 4th mobile bottom-nav tab; desktop entry via `SidebarAccountChip`; tier chip mirrors `UserProfile.subscriptionTier`; chrome-free body uses hub max width; hosts hero card, practice stats, credits/subscription nav, unlabeled Vocabulary (due-count pill) + config (**Edit profile** + Preferences + Settings) section cards, and sign out. The **Edit profile** tile pushes `/profile/edit` (`ProfileEditScreen`) for username + avatar (read-only Enjoy ID / email / Mixin ID). The **Preferences** tile pushes `/profile/preferences` (`ProfilePreferencesScreen`) for daily goal and display / learning / native language. Tapping the hero card also opens Edit profile. Preferences / Edit Profile are `form` pages at `formMaxWidth`. See [auth.md](auth.md#profile). |
-| `NotFoundScreen` | `errorBuilder` fallback at the router root for unknown `go_router` locations; localized en / zh / zh-CN, shows the attempted URI, single primary "Back to Home" action to `/` |
+| `SignInScreen` | Aurora-lit stage (`AuroraGlow` ×2.2), logo in a glowing glass tile, Instrument Serif title, large provider buttons, hairline "or" divider |
+| `HomeScreen` | Greeting title (`homeGreeting*`) under a date overline; Craft / Import as small buttons (icon-only on phones); Today's Goal (aurora ring + serif figure) and Community (serif figures, live dot) as two cards; recents grid of poster tiles (two columns on phones) under `EnjoySectionHeader` |
+| `LibraryScreen` | Serif title + Local/Cloud capsule; `EnjoySegmentedControl` for Video / Audio; poster grid / list rows |
+| `DiscoverScreen` | Serif title; channel strip with story-ring avatars and an inverted "All" pill; feed tiles share the poster artwork treatment |
+| `ExpandedPlayerScreen` | `PlayerAmbientBackdrop` artwork tint; glass transport capsule (lit play button, mono times, filled glyphs for active tools); transcript with lyric-style focus (context cues dim while a cue is active) |
+| `TranscriptPanel` | Source Serif 4 body, Geist Mono timestamps, continuous-corner active plate with iris rail, iris translation rule |
+| `ProfileScreen` | Hero card (aurora-ringed avatar, serif name, mono ID, aurora wash), one stat card with three serif figures, credits meter, grouped rows |
+| `SettingsScreen` | Serif title + description; grouped inset lists with colored `EnjoyIconTile`s; single-column groups get overline headings; two-pane rail uses `NavItemPill` |
+| `VocabularyScreen` | Segmented tab bar (shared track / thumb decoration); stat sheet with serif figures; stacked rating tiles in review |
+| `NotFoundScreen` | Router `errorBuilder` fallback; localized; single primary "Back to Home" |
 
 ## Design token reference (`EnjoyThemeTokens`)
 
 ```
-Spacing:  4 / 8 / 12 / 16 / 20 / 24 / 32 / 40
-Radii:    8 / 12 / 16 / 20 / 999
-Elevation: 0 / 1 / 3 / 8
-Motion:   180ms fast / 260ms standard / 240ms enter / 160ms exit
-Sidebar:  248px wide, useGlassOnSidebar: false
-Transport: 88px height
-ContentMaxWidth: 720px (reading column / empty states)
-FormMaxWidth: 680px
-HubMaxWidth: 840px
-PageGutter: 24px (default) / PageGutterCompact: 16px (< breakpointCompact 600)
-BreakpointRail: 900px
-BreakpointCompact: 600px
-BottomNav: 68px content height (+ safe area)
-DesktopGutter: 24px (alias rhythm; prefer pageGutter)
-Modal max: 400px (alerts / auth) / 560px (wide pickers)
-Focus ring: 2px (custom nav / sidebars)
+Spacing:   4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
+Radii:     6 / 8 / 12 / 16 / 22 / 30 / pill   (radiusXs … radius2xl, superellipse)
+Controls:  32 / 40 / 48                        (controlHeightSm / controlHeight / controlHeightLg)
+Surfaces:  canvas / card / popover / fill / hairline / textFaint / topHighlight
+Aurora:    auroraStart #4797F5 → auroraEnd #A855F7 (t.aurora gradient)
+Shadows:   shadowCard / shadowFloat / shadowPopover
+Motion:    160 fast / 220 medium / 280 standard / 260 enter / 160 exit; ease + emphasized curves
+Shell:     sidebar 236 · brand row 52 · shellInset 8 · panelRadius 14 · bottom nav 64 (58 capsule)
+Widths:    content 720 · form 680 · hub 840 · modal 400 / 560
+Gutters:   pageGutter 24 · pageGutterCompact 16 (< 600)
+Breakpoints: compact 600 · rail 900 · transcript side-by-side 720
+Focus ring: 2px iris ink
 ```
 
 ## Widgets reference
 
 | Widget | File | Purpose |
 |--------|------|---------|
-| `AppBackground` | `core/theme/widgets/app_background.dart` | Dark gradient scaffold BG |
-| `PlayerAmbientBackdrop` | same | Artwork color tint overlay (player only) |
+| `EnjoyIcons` | `core/theme/enjoy_icons.dart` | Semantic Phosphor glyphs (`const IconData`) |
+| `EnjoyChromeIcon` | `core/theme/widgets/enjoy_chrome_icon.dart` | Shell / transport glyph enum → `EnjoyIcons` (`filled:` for active) |
+| `EnjoyPressable` | `core/interaction/enjoy_pressable.dart` | Press-scale + hover wash + focus ring + keyboard activation + haptics (no ripple) |
+| `EnjoyTappableSurface` / `EnjoyTappableIcon` | `core/interaction/enjoy_tappable.dart` | Legacy API over `EnjoyPressable` / `IconButton` |
+| `EnjoyButton` (`primary` / `secondary` / `tonal` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons; primary is "lit" (`enjoyLitFillBuilder`) |
+| `EnjoyIconButton` | same | Square icon-only action in the same variants |
+| `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Hairline card with ambient depth |
+| `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar, aurora tier pill, shortcut keycap |
+| `EnjoyIconTile` / `EnjoyTint` / `enjoyTintForIcon` | `core/theme/widgets/enjoy_icon_tile.dart` | Colored icon tiles for grouped lists |
+| `EnjoySegmentedControl` / `EnjoySegment` | `core/theme/widgets/enjoy_segmented_control.dart` | Sliding-thumb segmented control (+ `enjoySegmentTrackColor` / `enjoySegmentThumbDecoration` for segmented `TabBar`s) |
+| `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Page color + aurora glow; player artwork tint |
 | `EnjoyPage` / `EnjoyPageKind` | `core/theme/widgets/enjoy_page.dart`, `core/layout/enjoy_page_kind.dart` | Adaptive page scaffold + width metrics |
-| `EnjoySubpageAppBar` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route back + title chrome |
-| `EditorialHeader` | `core/theme/widgets/editorial_header.dart` | Large title + subtitle + trailing; gutter or column width mode; optional `compact` |
-| `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Mobile shell bottom navigation (replaces stock `NavigationBar`) |
-| `showEnjoySheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Shared modal scrim + sheet shape; alert content max width |
-| `MediaCardTile` | `core/theme/widgets/media_card.dart` (barrel → `media_card/`) | Grid tile (video/home) |
-| `MediaCardRow` | `core/theme/widgets/media_card.dart` (barrel → `media_card/`) | List row (audio) |
-| `HeroArtwork` | `core/theme/widgets/hero_artwork.dart` | Artwork + rim light + shadow |
-| `EmptyState` | `core/theme/widgets/empty_state.dart` | Editorial empty state |
-| `GlassSurface` | `core/theme/widgets/glass_surface.dart` | **Floating transport capsule** (optional `borderRadius`) |
-| `Skeleton` (+ `.box` / `.line` / `.circle`) | `core/theme/widgets/skeleton.dart` | Single shimmer placeholder primitive; see [skeleton-loading.md](skeleton-loading.md) |
-| `SkeletonAppBootstrap` | same | Full-viewport app-bootstrap loading shell |
-| `SkeletonMediaList` / `SkeletonMediaGrid` | same | Library / Home tab body loading states (sliver-safe) |
-| `SkeletonSettingsList` | same | Settings hub loading state (sliver-safe) |
-| `SkeletonTranscript` | same | Transcript panel loading state (own `ScrollView`) |
-| `SkeletonProfile` | same | Profile screen loading state |
-| `LoadingIcon` | `core/presentation/loading_icon.dart` | Compact 18×18 `CircularProgressIndicator` placeholder for inline busy affordances (buttons, list rows, chips); replaces 30+ ad-hoc `SizedBox` + `CircularProgressIndicator` pairs across 20 files. Configure via `size`, `strokeWidth`, `color`. |
-| `SectionLabel` | `core/presentation/section_label.dart` | Header row for in-card sections (`Icon` + `space8` + bold `labelLarge` text). Centralizes the heading style used by BYOK forms and other settings surfaces. |
-| `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Pill-shaped nav item: icon + label inside a focus-ringable, hover-able, selected-tinted container. Shared by `AppSidebar`'s desktop nav row and the Settings two-pane rail. Per [ADR-0018](../decisions/0018-shared-interactive-primitives.md) — prefer this over ad-hoc `InkWell` + `GestureDetector` islands for new rail-style navigation surfaces. Supports `selectedIcon` fallback, configurable `iconSize`, and `maxLines`/`overflow` for label ellipsis. |
-| `AppSidebar` | `features/player/presentation/widgets/app_sidebar.dart` | Flat tonal sidebar |
-| `SidebarAccountChip` | `features/auth/presentation/widgets/sidebar_account_chip.dart` | Account row at the bottom of `AppSidebar`: signed-out → **Sign in** → `/sign-in`; awaiting OTP → progress + resume → `/sign-in` or `/sign-in/email`; signed-in → avatar + name + Pro badge + **Open profile** subtitle → `/profile`; Free users also get an inline **Upgrade** pill that routes to `/subscription` |
+| `EnjoySubpageAppBar` / `EnjoyBackButton` | `core/theme/widgets/enjoy_subpage_app_bar.dart` | Push-route chrome |
+| `EditorialHeader` / `EnjoyOverline` / `EnjoySectionHeader` | `core/theme/widgets/editorial_header.dart` | Serif page title (+ `overline`, `subtitle`), eyebrow label, in-page section heading |
+| `EmptyState` / `EnjoyIconOrb` | `core/theme/widgets/empty_state.dart` | Icon orb + serif title + actions |
+| `EnjoyBottomNav` | `core/theme/widgets/enjoy_bottom_nav.dart` | Glass capsule tab bar with gliding lens |
+| `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
+| `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |
+| `SheetDragHandle` / `PaddedSheetDragHandle` | `core/theme/widgets/sheet_drag_handle.dart` | 36×5 grabber |
+| `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) / list row |
+| `GlassSurface` | `core/theme/widgets/glass_surface.dart` | Frosted floating chrome (transport) |
+| `SettingsRow` / `SettingsRowDivider` / `SettingsValuePill` | `features/settings/presentation/widgets/settings_row.dart` | Grouped-list row with icon tile, value, chevron |
+| `AppNotice` | `core/notices/app_notice.dart` | Dark toast with semantic glyph |
+| `Skeleton` (+ helpers) | `core/theme/widgets/skeleton.dart` | Shimmer placeholders; see [skeleton-loading.md](skeleton-loading.md) |
+| `LoadingIcon` / `SectionLabel` | `core/presentation/` | Inline spinner; in-card section label |
+| `AppSidebar` / `SidebarAccountChip` | `features/player/presentation/widgets/app_sidebar.dart`, `features/auth/presentation/widgets/sidebar_account_chip.dart` | Desktop navigation on the canvas |
 
 ## Dynamic color module
 
@@ -139,6 +135,8 @@ Focus ring: 2px (custom nav / sidebars)
 See ADR-0007 for rationale.
 
 ## ADRs
+
+- [ADR-0089](../decisions/0089-aurora-design-language.md) — Aurora design language
 
 - [ADR-0007](../decisions/0007-dynamic-color-from-artwork.md) — Dynamic color from artwork
 - [ADR-0008](../decisions/0008-light-mode-parity.md) — Light mode parity (superseded by 0011)

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -49,7 +50,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final l10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    expect(find.byIcon(EnjoyIcons.close), findsNothing);
     expect(find.text(l10n.authCancel), findsNothing);
   });
 }

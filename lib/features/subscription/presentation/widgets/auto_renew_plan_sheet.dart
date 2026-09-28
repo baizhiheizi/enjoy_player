@@ -14,6 +14,7 @@
 /// silently swallowing it.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -358,7 +359,7 @@ class _ActiveAutoRenewWarning extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.warning_amber_rounded, color: cs.onTertiaryContainer),
+            Icon(EnjoyIcons.warning, color: cs.onTertiaryContainer),
             SizedBox(width: t.space12),
             Expanded(
               child: Text(
@@ -408,7 +409,7 @@ class _PaymentPathSelector extends StatelessWidget {
           title: l10n.subscriptionPurchaseModalOptionAutoRenew,
           subtitle: l10n.subscriptionPurchaseModalOptionAutoRenewSubtitle,
           footnote: l10n.subscriptionPurchaseModalOptionAutoRenewFootnote,
-          leadingIcon: Icons.autorenew_rounded,
+          leadingIcon: EnjoyIcons.sync,
           emphasis: true,
           price: _autoRenewPriceLabel(l10n, plan, interval),
           plansLoading: plansLoading,
@@ -423,7 +424,7 @@ class _PaymentPathSelector extends StatelessWidget {
           title: l10n.subscriptionPurchaseModalOptionPrepaid,
           subtitle: l10n.subscriptionPurchaseModalOptionPrepaidSubtitle,
           footnote: l10n.subscriptionPurchaseModalOptionPrepaidFootnote,
-          leadingIcon: Icons.event_available_rounded,
+          leadingIcon: EnjoyIcons.eventAvailable,
           price: prepaidUnitPrice != null
               ? l10n.subscriptionAutoRenewPriceMonth(
                   prepaidUnitPrice.toStringAsFixed(2),
@@ -512,9 +513,7 @@ class _PaymentOptionCard extends StatelessWidget {
           Row(
             children: [
               Icon(
-                selected
-                    ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_off_rounded,
+                selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
                 color: selected ? cs.primary : cs.onSurfaceVariant,
               ),
               SizedBox(width: t.space12),

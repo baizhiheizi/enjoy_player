@@ -32,7 +32,7 @@ void main() {
     }
   });
 
-  testWidgets('hover darkens fill overlay without fading the label', (
+  testWidgets('hover brightens the lit fill without fading the label', (
     tester,
   ) async {
     for (final brightness in [Brightness.light, Brightness.dark]) {
@@ -49,9 +49,30 @@ void main() {
       final hoverFg = button.style?.foregroundColor?.resolve(hovered);
       expect(idleFg?.a, 1.0);
       expect(hoverFg, idleFg);
-      final hoverOverlay = button.style?.overlayColor?.resolve(hovered);
-      expect(hoverOverlay, isNotNull);
-      expect(hoverOverlay!.a, greaterThan(0));
+      // The primary fill is painted by the lit background builder (which
+      // reacts to hover / press itself) instead of an overlay wash.
+      expect(button.style?.backgroundBuilder, isNotNull);
     }
+  });
+
+  testWidgets('secondary hover shows a wash without fading the label', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        brightness: Brightness.dark,
+        child: EnjoyButton.secondary(onPressed: () {}, child: const Text('Go')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    const hovered = {WidgetState.hovered};
+    expect(
+      button.style?.foregroundColor?.resolve(hovered),
+      button.style?.foregroundColor?.resolve({}),
+    );
+    final hoverOverlay = button.style?.overlayColor?.resolve(hovered);
+    expect(hoverOverlay, isNotNull);
+    expect(hoverOverlay!.a, greaterThan(0));
   });
 }

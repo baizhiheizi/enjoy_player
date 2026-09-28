@@ -1,6 +1,7 @@
 /// Application shell: adaptive navigation + page stack + player-route transport.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -76,8 +77,8 @@ class _RootShellState extends ConsumerState<RootShell> {
 
     return OnboardingShowcaseHost(
       child: TierReconcileHost(
-        child: AppBackground(
-          child: LayoutBuilder(
+        child: Builder(
+          builder: (context) => LayoutBuilder(
             builder: (context, constraints) {
               final tokens = EnjoyThemeTokens.of(context);
               final useSidebar =
@@ -91,46 +92,50 @@ class _RootShellState extends ConsumerState<RootShell> {
                       onDestinationSelected: (i) => _goNavIndex(context, i),
                       destinations: [
                         EnjoyBottomNavDestination(
-                          icon: Icons.home_outlined,
-                          selectedIcon: Icons.home_rounded,
+                          icon: EnjoyIcons.home,
+                          selectedIcon: EnjoyIcons.homeFill,
                           iconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.home,
                           ),
                           selectedIconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.home,
+                            filled: true,
                           ),
                           label: l10n.homeTitle,
                         ),
                         EnjoyBottomNavDestination(
-                          icon: Icons.explore_outlined,
-                          selectedIcon: Icons.explore_rounded,
+                          icon: EnjoyIcons.compass,
+                          selectedIcon: EnjoyIcons.compassFill,
                           iconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.compass,
                           ),
                           selectedIconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.compass,
+                            filled: true,
                           ),
                           label: l10n.discoverTitle,
                         ),
                         EnjoyBottomNavDestination(
-                          icon: Icons.collections_bookmark_outlined,
-                          selectedIcon: Icons.collections_bookmark_rounded,
+                          icon: EnjoyIcons.library,
+                          selectedIcon: EnjoyIcons.library,
                           iconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.library,
                           ),
                           selectedIconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.library,
+                            filled: true,
                           ),
                           label: l10n.libraryTitle,
                         ),
                         EnjoyBottomNavDestination(
-                          icon: Icons.person_outlined,
-                          selectedIcon: Icons.person_rounded,
+                          icon: EnjoyIcons.person,
+                          selectedIcon: EnjoyIcons.personFill,
                           iconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.user,
                           ),
                           selectedIconWidget: const EnjoyChromeIcon(
                             EnjoyChromeGlyph.user,
+                            filled: true,
                           ),
                           label: l10n.profileTitle,
                           showBadge: updateBadge,
@@ -218,26 +223,37 @@ class _RootShellState extends ConsumerState<RootShell> {
               final shell = useSidebar
                   ? RootShellBottomInset(
                       bottomClearance: bottomClearance,
-                      child: Scaffold(
-                        backgroundColor: Colors.transparent,
-                        body: SafeArea(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Semantics(
-                                container: true,
-                                label: l10n.navMainLabel,
-                                child: const AppSidebar(),
-                              ),
-                              Expanded(child: widget.child),
-                            ],
+                      // Desktop: the sidebar sits on the window canvas and
+                      // routed pages live on a floating continuous-corner
+                      // panel lit by the aurora glow (ADR-0089).
+                      child: ColoredBox(
+                        color: tokens.canvas,
+                        child: Scaffold(
+                          backgroundColor: Colors.transparent,
+                          body: SafeArea(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Semantics(
+                                  container: true,
+                                  label: l10n.navMainLabel,
+                                  child: const AppSidebar(),
+                                ),
+                                Expanded(
+                                  child: _ContentPanel(child: widget.child),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     )
                   : RootShellBottomInset(
                       bottomClearance: bottomClearance,
-                      child: mobileShellScaffold(),
+                      child: AppBackground(
+                        glow: !onPlayer && !onReview,
+                        child: mobileShellScaffold(),
+                      ),
                     );
 
               // Permanent video/WebView surface — follows PlayerSurfaceTarget.
@@ -257,6 +273,60 @@ class _RootShellState extends ConsumerState<RootShell> {
                 ],
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The desktop page surface: inset from the canvas, continuous corners,
+/// hairline edge, and the aurora glow pooled along its top.
+class _ContentPanel extends StatelessWidget {
+  const _ContentPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final light = Theme.of(context).brightness == Brightness.light;
+    final radius = BorderRadius.circular(t.panelRadius);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, t.shellInset, t.shellInset, t.shellInset),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: cs.surface,
+          shape: RoundedSuperellipseBorder(
+            borderRadius: radius,
+            side: BorderSide(
+              color: light ? t.hairline : Colors.white.withValues(alpha: 0.06),
+            ),
+          ),
+          shadows: light
+              ? const [
+                  BoxShadow(
+                    color: Color(0x0D16161D),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                  BoxShadow(
+                    color: Color(0x0A16161D),
+                    blurRadius: 18,
+                    offset: Offset(0, 6),
+                  ),
+                ]
+              : const [],
+        ),
+        child: ClipRSuperellipse(
+          borderRadius: radius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const Positioned.fill(child: IgnorePointer(child: AuroraGlow())),
+              child,
+            ],
           ),
         ),
       ),

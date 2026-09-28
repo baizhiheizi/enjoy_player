@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,12 +59,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Add to Vocabulary'), findsOneWidget);
-    expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.bookmarkAdd), findsOneWidget);
     await tester.tap(find.byTooltip('Add to Vocabulary'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Already in Vocabulary'), findsOneWidget);
-    expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.bookmarkFill), findsOneWidget);
   });
 
   testWidgets('Add Context when locator differs', (tester) async {
@@ -75,7 +76,7 @@ void main() {
     await tester.pumpWidget(harness(request(start: 5000)));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Add Context'), findsOneWidget);
-    expect(find.byIcon(Icons.bookmark_add_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.bookmarkAdd), findsOneWidget);
   });
 
   testWidgets('cancel delete leaves item', (tester) async {

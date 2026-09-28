@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -66,10 +67,10 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
   };
 
   IconData get _modalityIcon => switch (widget.modality) {
-    ModalityKind.llm => Icons.auto_awesome_outlined,
-    ModalityKind.asr => Icons.graphic_eq_rounded,
-    ModalityKind.tts => Icons.record_voice_over_outlined,
-    ModalityKind.assessment => Icons.verified_outlined,
+    ModalityKind.llm => EnjoyIcons.sparkle,
+    ModalityKind.asr => EnjoyIcons.waveform,
+    ModalityKind.tts => EnjoyIcons.speak,
+    ModalityKind.assessment => EnjoyIcons.verified,
   };
 
   @override
@@ -214,12 +215,12 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
                 segments: [
                   ButtonSegment(
                     value: AIProvider.enjoy,
-                    icon: const Icon(Icons.cloud_done_outlined),
+                    icon: const Icon(EnjoyIcons.cloudDone),
                     label: Text(l10n.settingsAiProvidersEnjoyAi),
                   ),
                   ButtonSegment(
                     value: AIProvider.byok,
-                    icon: const Icon(Icons.key_outlined),
+                    icon: const Icon(EnjoyIcons.key),
                     label: Text(l10n.settingsAiProvidersByok),
                   ),
                 ],
@@ -315,8 +316,8 @@ class _ModalityProviderCardState extends ConsumerState<ModalityProviderCard> {
                 children: [
                   Icon(
                     _provider == AIProvider.enjoy
-                        ? Icons.cloud_done_outlined
-                        : Icons.lock_outline_rounded,
+                        ? EnjoyIcons.cloudDone
+                        : EnjoyIcons.lock,
                     size: 18,
                     color: cs.onSurfaceVariant,
                   ),

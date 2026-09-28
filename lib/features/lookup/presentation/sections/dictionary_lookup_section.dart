@@ -1,5 +1,6 @@
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class DictionaryLookupSection extends ConsumerWidget {
     return LookupExpansionCard(
       title: l10n.lookupSectionDictionary,
       initiallyExpanded: false,
-      leading: const Icon(Icons.menu_book_outlined),
+      leading: const Icon(EnjoyIcons.book),
       bodyBuilder: (_) => LookupSectionAuthGate(
         surface: AuthRequiredSurface.lookupDictionary,
         child: Builder(

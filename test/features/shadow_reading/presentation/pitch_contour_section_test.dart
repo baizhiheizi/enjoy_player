@@ -4,6 +4,7 @@
 // analysis through `echoPitchAnalysisServiceProvider` and listens to
 // `shadowReadingHotkeyBusProvider` for the pitch-contour hotkey. We stub the
 // analysis pipeline so we don't need a live FFmpeg session.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:enjoy_player/features/shadow_reading/application/echo_pitch_analysis_service.dart';
@@ -106,7 +107,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.expand_more), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
       expect(find.text('Pitch contour'), findsOneWidget);
       // Chart should NOT be present (collapsed). Tooltip/InkWell may still
       // use CustomPaint for ink effects, so we only check the chart is absent.
@@ -129,11 +130,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronUp), findsOneWidget);
     });
 
     testWidgets(
@@ -152,7 +153,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.expand_more));
+        await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
         // Pump frames to flip _expanded and start _loadReference. The
         // FakePipeline's gate keeps the future pending, so loading state
         // stays visible until we complete it below.
@@ -189,7 +190,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       // Let analysis complete.
       await tester.pumpAndSettle();
 
@@ -213,7 +214,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
       // Initially all chips are selected. Find the Waveform chip widget.
@@ -244,7 +245,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
       expect(
@@ -274,12 +275,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.expand_more), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
 
       bus.pulsePitchContour();
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronUp), findsOneWidget);
     });
 
     testWidgets('didUpdateWidget resets reference on mediaPath change', (
@@ -349,7 +350,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap header -> onToggleExpanded invoked, parent updates state.
-      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
       expect(toggles, 1);
@@ -396,7 +397,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.expand_more), findsNothing);
+      expect(find.byIcon(EnjoyIcons.chevronDown), findsNothing);
       expect(find.text('Pitch contour'), findsNothing);
     });
 

@@ -8,8 +8,18 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 Color enjoyModalBarrierColor([BuildContext? context]) {
   final light =
       context != null && Theme.of(context).brightness == Brightness.light;
-  return Colors.black.withValues(alpha: light ? 0.28 : 0.52);
+  return (light ? const Color(0xFF16161D) : Colors.black).withValues(
+    alpha: light ? 0.24 : 0.56,
+  );
 }
+
+/// Aurora dialog motion: a quick soft fade (Material's dialog transition with
+/// the Aurora curve and timing).
+const AnimationStyle enjoyDialogAnimationStyle = AnimationStyle(
+  duration: Duration(milliseconds: 220),
+  reverseDuration: Duration(milliseconds: 150),
+  curve: EnjoyThemeTokens.ease,
+);
 
 /// Whether [context] should use a compact bottom sheet vs a centered modal.
 ///
@@ -33,17 +43,21 @@ Future<T?> showEnjoySheet<T>({
   bool useSafeArea = true,
 }) {
   final t = EnjoyThemeTokens.of(context);
-  final cs = Theme.of(context).colorScheme;
+  final light = Theme.of(context).brightness == Brightness.light;
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     useRootNavigator: useRootNavigator,
     useSafeArea: useSafeArea,
     showDragHandle: false,
-    backgroundColor: cs.surfaceContainerHigh,
+    backgroundColor: t.popover,
     barrierColor: enjoyModalBarrierColor(context),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(t.radiusXl)),
+    clipBehavior: Clip.antiAlias,
+    shape: RoundedSuperellipseBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(t.radius2xl)),
+      side: light
+          ? BorderSide.none
+          : BorderSide(color: Colors.white.withValues(alpha: 0.07)),
     ),
     builder: builder,
   );
@@ -72,21 +86,17 @@ Future<T?> showEnjoyAdaptiveSheet<T>({
   }
 
   final t = EnjoyThemeTokens.of(context);
-  final cs = Theme.of(context).colorScheme;
   return showDialog<T>(
     context: context,
     useRootNavigator: useRootNavigator,
     barrierDismissible: barrierDismissible,
     barrierColor: enjoyModalBarrierColor(context),
+    animationStyle: enjoyDialogAnimationStyle,
     builder: (ctx) {
       return Dialog(
-        backgroundColor: cs.surfaceContainerHigh,
         insetPadding: EdgeInsets.symmetric(
           horizontal: t.space24,
           vertical: t.space24,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -118,6 +128,7 @@ Future<T?> showEnjoyAlertDialog<T>({
     useRootNavigator: useRootNavigator,
     barrierDismissible: barrierDismissible,
     barrierColor: enjoyModalBarrierColor(context),
+    animationStyle: enjoyDialogAnimationStyle,
     builder: (ctx) {
       final resolved = actions ?? actionsBuilder?.call(ctx);
       return AlertDialog(
@@ -150,6 +161,7 @@ Future<T?> showEnjoyDialog<T>({
     useRootNavigator: useRootNavigator,
     barrierDismissible: barrierDismissible,
     barrierColor: enjoyModalBarrierColor(context),
+    animationStyle: enjoyDialogAnimationStyle,
     builder: builder,
   );
 }

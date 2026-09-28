@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_section_rail_item.dart';
+
+import '../../../../helpers/pressable_finders.dart';
 
 Widget _harness(Widget child) {
   final scheme = ColorScheme.fromSeed(
@@ -61,7 +64,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           SettingsSectionRailItem(
-            icon: Icons.settings,
+            icon: EnjoyIcons.settings,
             label: 'Recording',
             selected: false,
             onTap: () {},
@@ -70,21 +73,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final materialFinder = find.descendant(
-        of: find.byType(SettingsSectionRailItem),
-        matching: find.byType(Material),
-      );
+      BorderSide ringSide() =>
+          pressableFocusRingSide(tester, find.byType(SettingsSectionRailItem));
 
-      RoundedRectangleBorder shapeOf() =>
-          tester.widget<Material>(materialFinder).shape
-              as RoundedRectangleBorder;
-
-      expect(shapeOf().side, BorderSide.none);
+      expect(ringSide(), BorderSide.none);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.pumpAndSettle();
 
-      expect(shapeOf().side, isNot(BorderSide.none));
+      expect(ringSide(), isNot(BorderSide.none));
       expect(tester.takeException(), isNull);
     },
   );

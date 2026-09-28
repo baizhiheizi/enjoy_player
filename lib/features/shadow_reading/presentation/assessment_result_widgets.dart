@@ -4,6 +4,7 @@
 /// The shared [_wordColors] helper stays file-private.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 
@@ -298,9 +299,7 @@ class SelectedWordPanel extends StatelessWidget {
                   tooltip: clipTooltip,
                   semanticLabel: clipTooltip,
                   iconSize: 20,
-                  icon: clipPlaying
-                      ? Icons.stop_rounded
-                      : Icons.record_voice_over_rounded,
+                  icon: clipPlaying ? EnjoyIcons.stop : EnjoyIcons.speak,
                   color: clipUsable
                       ? scheme.onSurfaceVariant
                       : scheme.onSurface.withValues(alpha: 0.38),

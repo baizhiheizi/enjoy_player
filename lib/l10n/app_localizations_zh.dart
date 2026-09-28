@@ -39,6 +39,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeRecentMedia => '最近媒体';
 
   @override
+  String get homeGreetingMorning => '早上好';
+
+  @override
+  String get homeGreetingAfternoon => '下午好';
+
+  @override
+  String get homeGreetingEvening => '晚上好';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting，$name';
+  }
+
+  @override
   String get homeEmptyTitle => '暂无最近媒体';
 
   @override
@@ -3835,6 +3849,20 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get homeRecentMedia => '最近媒体';
+
+  @override
+  String get homeGreetingMorning => '早上好';
+
+  @override
+  String get homeGreetingAfternoon => '下午好';
+
+  @override
+  String get homeGreetingEvening => '晚上好';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting，$name';
+  }
 
   @override
   String get homeEmptyTitle => '暂无最近媒体';

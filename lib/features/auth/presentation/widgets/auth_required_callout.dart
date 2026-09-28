@@ -1,6 +1,7 @@
 /// Reusable “sign in to use this feature” UI for Enjoy account–gated flows.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -62,13 +63,6 @@ extension AuthRequiredSurfaceX on AuthRequiredSurface {
       l10n.syncScreenSignedOutBody,
     ),
   };
-
-  String? get _illustrationAsset => switch (this) {
-    AuthRequiredSurface.cloud => EnjoyIllustrations.emptyCloud,
-    AuthRequiredSurface.sync ||
-    AuthRequiredSurface.credits => EnjoyIllustrations.offline,
-    _ => null,
-  };
 }
 
 /// Shows a sign-in CTA when the user is not [AuthSignedIn].
@@ -107,10 +101,8 @@ class AuthRequiredCallout extends ConsumerWidget {
             onSignIn: () => _openSignIn(context),
           );
         }
-        final illust = surface._illustrationAsset;
         return EmptyState(
-          icon: Icons.lock_person_outlined,
-          illustrationAsset: illust,
+          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),
@@ -144,8 +136,7 @@ class AuthRequiredCallout extends ConsumerWidget {
           );
         }
         return EmptyState(
-          icon: Icons.lock_person_outlined,
-          illustrationAsset: surface._illustrationAsset,
+          icon: EnjoyIcons.lockPerson,
           title: title,
           subtitle: body,
           action: () => _openSignIn(context),
@@ -189,7 +180,7 @@ class _CompactCallout extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lock_person_outlined, color: cs.primary, size: 22),
+                Icon(EnjoyIcons.lockPerson, color: cs.primary, size: 22),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Column(
@@ -217,7 +208,7 @@ class _CompactCallout extends StatelessWidget {
             ),
             SizedBox(height: t.space12),
             EnjoyButton.primary(
-              icon: Icons.login_rounded,
+              icon: EnjoyIcons.signIn,
               onPressed: onSignIn,
               child: Text(buttonLabel),
             ),

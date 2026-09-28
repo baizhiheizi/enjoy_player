@@ -1,6 +1,8 @@
 /// Local Drift library lists (audio rows / video grid).
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -70,7 +72,7 @@ class LocalLibraryTabView extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded, size: 48, color: cs.error),
+              Icon(EnjoyIcons.error, size: 48, color: cs.error),
               SizedBox(height: t.space16),
               Text(
                 '${l10n.error}: $e',
@@ -78,7 +80,7 @@ class LocalLibraryTabView extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               SizedBox(height: t.space16),
-              FilledButton.tonal(
+              EnjoyButton.tonal(
                 onPressed: () => ref.invalidate(libraryFilteredListsProvider),
                 child: Text(l10n.retry),
               ),
@@ -112,8 +114,7 @@ class LocalAudioLibraryBody extends StatelessWidget {
           searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
       if (filteredBySearch) {
         return EmptyState(
-          icon: Icons.search_off_rounded,
-          illustrationAsset: EnjoyIllustrations.emptyLibrary,
+          icon: EnjoyIcons.searchOff,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
           action: () {
@@ -126,8 +127,7 @@ class LocalAudioLibraryBody extends StatelessWidget {
         );
       }
       return EmptyState(
-        icon: Icons.graphic_eq_rounded,
-        illustrationAsset: EnjoyIllustrations.emptyLibrary,
+        icon: EnjoyIcons.waveform,
         title: l10n.libraryEmptyAudioTitle,
         subtitle: l10n.libraryEmptyAudioHint,
       );
@@ -137,9 +137,14 @@ class LocalAudioLibraryBody extends StatelessWidget {
       builder: (context, constraints) {
         final gutter = pageGutterOf(context, constraints.maxWidth);
         return ListView.separated(
-          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space24),
+          padding: EdgeInsets.fromLTRB(
+            gutter - t.space8,
+            t.space4,
+            gutter - t.space8,
+            t.space32,
+          ),
           itemCount: items.length,
-          separatorBuilder: (context, _) => SizedBox(height: t.space8),
+          separatorBuilder: (context, _) => SizedBox(height: t.space4),
           itemBuilder: (context, index) {
             return LocalAudioRow(media: items[index]);
           },
@@ -211,14 +216,14 @@ class LocalVideoLibraryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
 
     if (items.isEmpty) {
       final filteredBySearch =
           searchQuery.isNotEmpty && totalInLibraryOfKind > 0;
       if (filteredBySearch) {
         return EmptyState(
-          icon: Icons.search_off_rounded,
-          illustrationAsset: EnjoyIllustrations.emptyRecordings,
+          icon: EnjoyIcons.searchOff,
           title: l10n.librarySearchNoMatchesTitle,
           subtitle: l10n.librarySearchNoMatchesHint,
           action: () {
@@ -231,8 +236,7 @@ class LocalVideoLibraryBody extends StatelessWidget {
         );
       }
       return EmptyState(
-        icon: Icons.movie_outlined,
-        illustrationAsset: EnjoyIllustrations.emptyRecordings,
+        icon: EnjoyIcons.video,
         title: l10n.libraryEmptyVideoTitle,
         subtitle: l10n.libraryEmptyVideoHint,
       );
@@ -243,9 +247,11 @@ class LocalVideoLibraryBody extends StatelessWidget {
         final gutter = pageGutterOf(context, constraints.maxWidth);
         final crossAxisExtent = constraints.maxWidth - gutter * 2;
         return GridView.builder(
-          padding: EdgeInsets.all(gutter),
+          padding: EdgeInsets.fromLTRB(gutter, t.space8, gutter, t.space32),
           gridDelegate: mediaCardTileGridDelegateForMaxTileWidth(
             crossAxisExtent: crossAxisExtent,
+            mainAxisSpacing: t.space16,
+            crossAxisSpacing: t.space16,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) => Align(

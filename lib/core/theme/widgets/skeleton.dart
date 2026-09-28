@@ -93,9 +93,10 @@ class _SkeletonState extends State<Skeleton>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final base = cs.surfaceContainerHighest.withValues(alpha: 0.55);
-    final hi = cs.surfaceContainerHigh.withValues(alpha: 0.95);
+    final tokens = EnjoyThemeTokens.of(context);
+    final light = Theme.of(context).brightness == Brightness.light;
+    final base = tokens.fill;
+    final hi = Color.lerp(base, Colors.white, light ? 0.55 : 0.07)!;
     final br =
         widget.borderRadius ??
         (widget.width == widget.height

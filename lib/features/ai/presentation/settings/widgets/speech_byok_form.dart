@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/presentation/section_label.dart';
@@ -66,7 +67,7 @@ class _SpeechByokFormState extends State<SpeechByokForm> {
       children: [
         if (widget.mode == SpeechByokFormMode.speech) ...[
           SectionLabel(
-            icon: Icons.route_outlined,
+            icon: EnjoyIcons.route,
             text: l10n.settingsAiProvidersSpeechKindLabel,
           ),
           SizedBox(height: t.space8),

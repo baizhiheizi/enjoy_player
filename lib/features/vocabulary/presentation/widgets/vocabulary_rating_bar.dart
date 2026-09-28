@@ -1,9 +1,10 @@
 /// Session-level Don't know / Know / Know well chips.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -34,7 +35,7 @@ class VocabularyRatingBar extends StatelessWidget {
             Expanded(
               child: _RatingChip(
                 label: l10n.vocabularyDontKnow,
-                icon: Icons.close_rounded,
+                icon: EnjoyIcons.close,
                 background: t.scoreBadContainer,
                 foreground: t.scoreBad,
                 onPressed: ratingInFlight
@@ -46,7 +47,7 @@ class VocabularyRatingBar extends StatelessWidget {
             Expanded(
               child: _RatingChip(
                 label: l10n.vocabularyKnow,
-                icon: Icons.check_rounded,
+                icon: EnjoyIcons.check,
                 background: t.scoreWarnContainer,
                 foreground: t.scoreWarn,
                 onPressed: ratingInFlight
@@ -58,7 +59,7 @@ class VocabularyRatingBar extends StatelessWidget {
             Expanded(
               child: _RatingChip(
                 label: l10n.vocabularyKnowWell,
-                icon: Icons.check_circle_rounded,
+                icon: EnjoyIcons.checkCircleFill,
                 background: t.scoreGoodContainer,
                 foreground: t.scoreGood,
                 onPressed: ratingInFlight
@@ -92,50 +93,52 @@ class _RatingChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final enabled = onPressed != null;
-    final radius = BorderRadius.circular(t.radiusMd);
+    final radius = BorderRadius.circular(t.radiusLg);
 
     return Semantics(
       button: true,
       enabled: enabled,
       label: label,
-      child: Material(
-        color: enabled ? background : background.withValues(alpha: 0.35),
-        shape: RoundedRectangleBorder(borderRadius: radius),
-        child: InkWell(
-          onTap: enabled
-              ? () {
-                  Haptics.selection(context);
-                  onPressed!();
-                }
-              : null,
-          borderRadius: radius,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: t.space8,
-                vertical: t.space12,
+      excludeSemantics: true,
+      child: EnjoyPressable(
+        onTap: onPressed,
+        borderRadius: radius,
+        pressedScale: 0.95,
+        washColor: foreground,
+        child: AnimatedOpacity(
+          duration: t.motionFast,
+          opacity: enabled ? 1 : 0.45,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 68),
+            padding: EdgeInsets.symmetric(
+              horizontal: t.space8,
+              vertical: t.space12,
+            ),
+            decoration: ShapeDecoration(
+              color: background,
+              shape: RoundedSuperellipseBorder(
+                borderRadius: radius,
+                side: BorderSide(color: foreground.withValues(alpha: 0.18)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 16, color: foreground),
-                  SizedBox(width: t.space4),
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w600,
-                        height: 1.15,
-                      ),
-                    ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 20, color: foreground),
+                SizedBox(height: t.space4 + 2),
+                Text(
+                  label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

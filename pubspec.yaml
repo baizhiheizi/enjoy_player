@@ -117,8 +117,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo-light.svg
-    - assets/icons/
-    - assets/illustrations/
     - assets/discover/recommended_channels.json
     # Vendored eSpeak-NG voices/dicts; extracted to disk on Android at startup
     # (espeak_android_provisioner) because eSpeak fopens real files.
@@ -126,4 +124,18 @@ flutter:
     # is omitted and espeak_SetVoiceByName(en-us) fails on Android.
     - packages/forced_alignment/native/espeak-ng-data/
     - packages/forced_alignment/native/espeak-ng-data/lang/
+
+  # Aurora icon family — Phosphor Icons (MIT), vendored so the icon set does
+  # not depend on a package whose IconData subclass breaks on new Flutter
+  # releases. Only the three weights the UI uses ship. See ADR-0089.
+  fonts:
+    - family: PhosphorRegular
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Regular.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Fill.ttf
+    - family: PhosphorBold
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Bold.ttf
 

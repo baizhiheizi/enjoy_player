@@ -1,24 +1,15 @@
-/// Editorial empty-state primitive.
+/// Editorial empty-state primitive (Aurora).
 ///
-/// Shows an optional SVG illustration (or monochrome icon), title, subtitle,
-/// and an optional primary action — centered with generous padding.
+/// A softly lit icon orb, a serif title, a measured line of copy, and up to
+/// two actions — centered with generous breathing room.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 
 import '../enjoy_tokens.dart';
-
-/// Bundled illustration asset paths for [EmptyState.illustrationAsset].
-abstract final class EnjoyIllustrations {
-  static const emptyLibrary = 'assets/illustrations/empty_library.svg';
-  static const emptyCloud = 'assets/illustrations/empty_cloud.svg';
-  static const emptyTranscript = 'assets/illustrations/empty_transcript.svg';
-  static const emptyRecordings = 'assets/illustrations/empty_recordings.svg';
-  static const offline = 'assets/illustrations/offline.svg';
-}
 
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -30,12 +21,9 @@ class EmptyState extends StatelessWidget {
     this.actionLabel,
     this.secondaryAction,
     this.secondaryActionLabel,
-    this.illustrationAsset,
   });
 
-  /// Used when [illustrationAsset] is null.
   final IconData icon;
-
   final String title;
   final String subtitle;
   final VoidCallback? action;
@@ -43,44 +31,37 @@ class EmptyState extends StatelessWidget {
   final VoidCallback? secondaryAction;
   final String? secondaryActionLabel;
 
-  /// When non-null, shows branded SVG instead of [icon].
-  final String? illustrationAsset;
-
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final Widget art;
-    if (illustrationAsset != null && illustrationAsset!.isNotEmpty) {
-      art = SvgPicture.asset(
-        illustrationAsset!,
-        height: 112,
-        fit: BoxFit.contain,
-      );
-    } else {
-      art = Icon(
-        icon,
-        size: 56,
-        color: cs.onSurfaceVariant.withValues(alpha: 0.55),
-      );
-    }
+    final hasPrimary = action != null && actionLabel != null;
+    final hasSecondary =
+        secondaryAction != null && secondaryActionLabel != null;
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(t.space40),
+        padding: EdgeInsets.symmetric(
+          horizontal: t.space32,
+          vertical: t.space40,
+        ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
+          constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              art,
+              EnjoyIconOrb(icon: icon),
               SizedBox(height: t.space24),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: enjoyDisplayStyle(
+                  context,
+                  size: 28,
+                  color: cs.onSurface,
+                ),
               ),
               SizedBox(height: t.space8),
               Text(
@@ -88,26 +69,98 @@ class EmptyState extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: tt.bodyMedium?.copyWith(
                   color: cs.onSurfaceVariant,
-                  height: 1.5,
+                  height: 1.55,
                 ),
               ),
-              if (action != null && actionLabel != null) ...[
+              if (hasPrimary || hasSecondary) ...[
                 SizedBox(height: t.space24),
-                EnjoyButton.primary(
-                  onPressed: action,
-                  child: Text(actionLabel!),
-                ),
-              ],
-              if (secondaryAction != null && secondaryActionLabel != null) ...[
-                SizedBox(height: t.space12),
-                EnjoyButton.secondary(
-                  onPressed: secondaryAction,
-                  child: Text(secondaryActionLabel!),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: t.space8,
+                  runSpacing: t.space8,
+                  children: [
+                    if (hasPrimary)
+                      EnjoyButton.primary(
+                        onPressed: action,
+                        child: Text(actionLabel!),
+                      ),
+                    if (hasSecondary)
+                      EnjoyButton.secondary(
+                        onPressed: secondaryAction,
+                        child: Text(secondaryActionLabel!),
+                      ),
+                  ],
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A glyph floating in a soft aurora-lit disc with a faint halo ring.
+class EnjoyIconOrb extends StatelessWidget {
+  const EnjoyIconOrb({super.key, required this.icon, this.size = 76});
+
+  final IconData icon;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final light = Theme.of(context).brightness == Brightness.light;
+    return SizedBox(
+      width: size * 1.5,
+      height: size * 1.5,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Halo
+          DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  t.auroraEnd.withValues(alpha: light ? 0.14 : 0.20),
+                  t.auroraStart.withValues(alpha: 0),
+                ],
+              ),
+            ),
+            child: SizedBox(width: size * 1.5, height: size * 1.5),
+          ),
+          // Disc
+          Container(
+            width: size,
+            height: size,
+            decoration: ShapeDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color.alphaBlend(
+                    t.auroraStart.withValues(alpha: light ? 0.12 : 0.22),
+                    t.card,
+                  ),
+                  Color.alphaBlend(
+                    t.auroraEnd.withValues(alpha: light ? 0.14 : 0.26),
+                    t.card,
+                  ),
+                ],
+              ),
+              shape: CircleBorder(
+                side: BorderSide(
+                  color: light
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+              shadows: t.shadowCard,
+            ),
+            child: Icon(icon, size: size * 0.4, color: t.accentInk),
+          ),
+        ],
       ),
     );
   }

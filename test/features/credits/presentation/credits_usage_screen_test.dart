@@ -5,6 +5,7 @@
 // states: signed-out, loading, signed-in data, error, empty, filter clear,
 // pagination, and responsive wide layout.
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/api/services/ai/credits_api.dart';
@@ -173,7 +174,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
   });
 
   testWidgets('filter dropdown shows service type options', (tester) async {

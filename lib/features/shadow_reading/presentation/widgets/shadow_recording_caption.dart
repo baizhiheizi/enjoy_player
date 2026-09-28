@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -57,7 +58,7 @@ class ShadowRecordingCaptionRow extends StatelessWidget {
               ),
               if (overTarget) ...[
                 SizedBox(width: tok.space8),
-                Icon(Icons.circle, size: 8, color: scheme.error),
+                Icon(EnjoyIcons.dot, size: 8, color: scheme.error),
                 SizedBox(width: tok.space4),
                 Flexible(
                   child: Text(

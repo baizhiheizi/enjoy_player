@@ -1,6 +1,7 @@
 /// Selectable payment processor row with brand method icons.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -104,9 +105,7 @@ class PaymentProcessorOption extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(top: t.space4),
                 child: Icon(
-                  selected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
+                  selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
                   size: 20,
                   color: selected ? cs.primary : cs.onSurfaceVariant,
                 ),

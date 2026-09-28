@@ -1,6 +1,7 @@
 /// Editorial sign-in screen — native provider hub and OTP flow.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,6 +12,7 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/auth_redirect.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_platform_support.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -49,7 +51,7 @@ class SignInScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.check_circle_rounded,
+                      EnjoyIcons.checkCircleFill,
                       size: 72,
                       color: cs.primary,
                     ),
@@ -83,7 +85,7 @@ class SignInScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.cloud_off_rounded, size: 56, color: cs.error),
+                  Icon(EnjoyIcons.cloudOff, size: 56, color: cs.error),
                   SizedBox(height: t.space24),
                   Text(
                     l10n.errorNetwork,
@@ -145,15 +147,26 @@ class _SignInHub extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: cs.primaryContainer,
-                    borderRadius: BorderRadius.circular(t.radiusXl),
+                  width: 72,
+                  height: 72,
+                  decoration: ShapeDecoration(
+                    color: t.card,
+                    shape: RoundedSuperellipseBorder(
+                      borderRadius: BorderRadius.circular(t.radiusXl),
+                      side: BorderSide(color: t.hairline),
+                    ),
+                    shadows: [
+                      BoxShadow(
+                        color: t.auroraEnd.withValues(alpha: 0.35),
+                        blurRadius: 40,
+                        spreadRadius: -6,
+                        offset: const Offset(0, 12),
+                      ),
+                      ...t.shadowCard,
+                    ],
                   ),
-                  clipBehavior: Clip.antiAlias,
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     child: SvgPicture.asset(
                       'assets/logo-light.svg',
                       fit: BoxFit.contain,
@@ -164,8 +177,10 @@ class _SignInHub extends ConsumerWidget {
                 Text(
                   l10n.authSignInTitle,
                   textAlign: TextAlign.center,
-                  style: tt.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: enjoyDisplayStyle(
+                    context,
+                    size: 40,
+                    color: cs.onSurface,
                   ),
                 ),
                 SizedBox(height: t.space12),
@@ -179,50 +194,54 @@ class _SignInHub extends ConsumerWidget {
                 ),
                 SizedBox(height: t.space32),
                 if (nativeGoogleSignInSupported) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: EnjoyButton.primary(
-                      icon: Icons.g_mobiledata_rounded,
-                      onPressed: () =>
-                          _run(context, ref, notifier.signInWithGoogle),
-                      child: Text(l10n.authContinueWithGoogle),
-                    ),
+                  EnjoyButton.secondary(
+                    size: EnjoyButtonSize.large,
+                    expand: true,
+                    icon: EnjoyIcons.google,
+                    onPressed: () =>
+                        _run(context, ref, notifier.signInWithGoogle),
+                    child: Text(l10n.authContinueWithGoogle),
                   ),
-                  SizedBox(height: t.space12),
+                  SizedBox(height: t.space12 - 2),
                 ],
                 if (nativeAppleSignInSupported) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: EnjoyButton.primary(
-                      icon: Icons.apple_rounded,
-                      onPressed: () =>
-                          _run(context, ref, notifier.signInWithApple),
-                      child: Text(l10n.authContinueWithApple),
-                    ),
+                  EnjoyButton.secondary(
+                    size: EnjoyButtonSize.large,
+                    expand: true,
+                    icon: EnjoyIcons.apple,
+                    onPressed: () =>
+                        _run(context, ref, notifier.signInWithApple),
+                    child: Text(l10n.authContinueWithApple),
                   ),
-                  SizedBox(height: t.space12),
+                  SizedBox(height: t.space12 - 2),
                 ],
-                SizedBox(
-                  width: double.infinity,
-                  child: EnjoyButton.primary(
-                    icon: Icons.mail_outline_rounded,
-                    onPressed: () => context.push('/sign-in/email'),
-                    child: Text(l10n.authContinueWithEmail),
-                  ),
+                EnjoyButton.primary(
+                  size: EnjoyButtonSize.large,
+                  expand: true,
+                  icon: EnjoyIcons.mail,
+                  onPressed: () => context.push('/sign-in/email'),
+                  child: Text(l10n.authContinueWithEmail),
                 ),
-                SizedBox(height: t.space20),
-                Text(
-                  l10n.authOrDivider,
-                  style: tt.labelMedium?.copyWith(color: cs.onSurfaceVariant),
+                SizedBox(height: t.space24),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: t.hairline)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: t.space12),
+                      child: Text(
+                        l10n.authOrDivider,
+                        style: tt.labelMedium?.copyWith(color: t.textFaint),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: t.hairline)),
+                  ],
                 ),
                 SizedBox(height: t.space12),
-                SizedBox(
-                  width: double.infinity,
-                  child: EnjoyButton.ghost(
-                    onPressed: () =>
-                        _run(context, ref, notifier.startWebPkceSignIn),
-                    child: Text(l10n.authOtherSignInOptions),
-                  ),
+                EnjoyButton.ghost(
+                  expand: true,
+                  onPressed: () =>
+                      _run(context, ref, notifier.startWebPkceSignIn),
+                  child: Text(l10n.authOtherSignInOptions),
                 ),
               ],
             ),

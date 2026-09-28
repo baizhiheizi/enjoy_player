@@ -1,6 +1,7 @@
 /// Remote cloud index tab bodies (paginated audio / video).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -282,8 +283,7 @@ class _CloudAudioListState extends ConsumerState<_CloudAudioList> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
-              icon: Icons.graphic_eq_rounded,
-              illustrationAsset: EnjoyIllustrations.emptyCloud,
+              icon: EnjoyIcons.waveform,
               title: l10n.cloudEmptyAudioTitle,
               subtitle: l10n.cloudEmptyAudioSubtitle,
             ),
@@ -353,13 +353,13 @@ class _CloudAudioRowState extends ConsumerState<_CloudAudioRow>
     if (_busy) {
       trailing = const LoadingIcon(size: 22);
     } else if (_inLibrary == true) {
-      trailing = Icon(Icons.check_circle_rounded, color: cs.primary, size: 22);
+      trailing = Icon(EnjoyIcons.checkCircleFill, color: cs.primary, size: 22);
     } else {
       trailing = IconButton(
         visualDensity: VisualDensity.compact,
         iconSize: 22,
         tooltip: l10n.cloudAddToLibraryTooltip,
-        icon: Icon(Icons.library_add_outlined, color: cs.onSurfaceVariant),
+        icon: Icon(EnjoyIcons.libraryAdd, color: cs.onSurfaceVariant),
         onPressed: () => unawaited(addToLibrary()),
       );
     }
@@ -452,8 +452,7 @@ class _CloudVideoGridState extends ConsumerState<_CloudVideoGrid> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.55,
             child: EmptyState(
-              icon: Icons.movie_outlined,
-              illustrationAsset: EnjoyIllustrations.emptyCloud,
+              icon: EnjoyIcons.video,
               title: l10n.cloudEmptyVideoTitle,
               subtitle: l10n.cloudEmptyVideoSubtitle,
             ),
@@ -543,7 +542,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
       overlay = cornerChip(LoadingIcon(size: 20, color: cs.onSurfaceVariant));
     } else if (_inLibrary == true) {
       overlay = cornerChip(
-        Icon(Icons.check_circle_rounded, color: cs.primary, size: 22),
+        Icon(EnjoyIcons.checkCircleFill, color: cs.primary, size: 22),
       );
     } else {
       overlay = IconButton(
@@ -557,7 +556,7 @@ class _CloudVideoTileState extends ConsumerState<_CloudVideoTile>
           foregroundColor: cs.onSurfaceVariant,
           shape: const CircleBorder(),
         ),
-        icon: const Icon(Icons.library_add_outlined),
+        icon: const Icon(EnjoyIcons.libraryAdd),
         onPressed: () => unawaited(addToLibrary()),
       );
     }

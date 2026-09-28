@@ -9,6 +9,7 @@
 /// Ported from the web `AssessmentResultDialog`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:math' as math;
 
 import 'package:azure_speech/azure_speech.dart';
@@ -149,7 +150,7 @@ class _AssessmentResultDialogState
                   IconButton(
                     tooltip: MaterialLocalizations.of(context).closeButtonLabel,
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(EnjoyIcons.close),
                   ),
                 ],
               ),

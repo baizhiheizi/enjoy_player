@@ -8,6 +8,7 @@
 //   * error row on failure
 //   * refresh / force-refresh path
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
@@ -339,7 +340,7 @@ void main() {
     expect(cap.calls, 1);
 
     // Tap the refresh icon button (top-right of the body).
-    final refreshIcon = find.byIcon(Icons.refresh_rounded);
+    final refreshIcon = find.byIcon(EnjoyIcons.refresh);
     expect(refreshIcon, findsOneWidget);
     await tester.tap(refreshIcon);
     await tester.pumpAndSettle();

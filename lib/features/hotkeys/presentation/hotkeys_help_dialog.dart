@@ -1,6 +1,7 @@
 /// Read-only list of shortcuts (web `HotkeysHelpModal` parity) — premium cheatsheet.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -105,7 +106,7 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                         context,
                       ).closeButtonLabel,
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(EnjoyIcons.close),
                     ),
                   ],
                 ),
@@ -116,7 +117,7 @@ class _HotkeysHelpDialogState extends ConsumerState<HotkeysHelpDialog> {
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: l10n.hotkeysHelpSearchHint,
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(EnjoyIcons.search),
                     filled: true,
                     fillColor: cs.surfaceContainerHighest.withValues(
                       alpha: 0.45,

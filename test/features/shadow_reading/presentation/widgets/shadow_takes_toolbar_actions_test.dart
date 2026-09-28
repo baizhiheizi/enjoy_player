@@ -5,6 +5,7 @@
 // an assessment button (driven by RecordingAssessmentButton), and a popup menu
 // that lists takes with optional score badges plus Re-assess / Delete entries.
 // `confirmShadowDeleteTake` is the dialog helper extracted alongside the widget.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -256,7 +257,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final playButtons = find.byIcon(Icons.play_arrow_rounded);
+        final playButtons = find.byIcon(EnjoyIcons.play);
         expect(playButtons, findsWidgets);
         final iconButton = tester
             .widgetList<IconButton>(find.byType(IconButton))
@@ -354,7 +355,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded).first);
+      await tester.tap(find.byIcon(EnjoyIcons.play).first);
       await tester.pump();
 
       expect(playTaps, 1);
@@ -388,7 +389,7 @@ void main() {
         preview.emitPlaying(true);
         await tester.pumpAndSettle();
 
-        expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+        expect(find.byIcon(EnjoyIcons.pause), findsOneWidget);
       },
     );
 
@@ -419,7 +420,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         // Highest take number (length - 0) shown first when iterating from i=0.
@@ -427,7 +428,7 @@ void main() {
         expect(find.text('Take 2 · 2.0 s'), findsOneWidget);
         expect(find.text('Take 1 · 3.0 s'), findsOneWidget);
         // Current take gets the check icon.
-        expect(find.byIcon(Icons.check), findsOneWidget);
+        expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
       },
     );
 
@@ -461,7 +462,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         expect(find.text('92'), findsWidgets);
@@ -498,7 +499,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         expect(find.text('95'), findsWidgets);
@@ -530,7 +531,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         final reassessItem = tester
@@ -571,7 +572,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         final reassessItem = tester
@@ -611,7 +612,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
         // r1 is at list index 0, so it shows as "Take 2 · 1.0 s".
         await tester.tap(find.text('Take 2 · 1.0 s'));
@@ -646,7 +647,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
@@ -697,7 +698,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.tap(find.byIcon(EnjoyIcons.more));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
@@ -740,7 +741,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
@@ -784,7 +785,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.tap(find.byIcon(EnjoyIcons.more));
       await tester.pumpAndSettle();
 
       final deleteItem = tester
@@ -850,7 +851,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
         // r1 -> 92 (parsed from JSON), r2 -> no score badge.

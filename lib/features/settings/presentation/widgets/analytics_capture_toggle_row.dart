@@ -5,6 +5,7 @@
 /// preference is the single source of truth.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ final class AnalyticsCaptureToggleRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return SettingsRow(
-      leadingIcon: Icons.insights_outlined,
+      leadingIcon: EnjoyIcons.insights,
       title: l10n.settingsAnalyticsCaptureTitle,
       subtitle: l10n.settingsAnalyticsCaptureSubtitle,
       showChevron: false,

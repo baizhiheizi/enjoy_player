@@ -1,38 +1,103 @@
-/// Ambient backdrop — subtle gradient scaffold background, light/dark aware.
+/// Ambient backdrops — the Aurora canvas and the player's artwork tint.
 ///
-/// On player screens, [PlayerAmbientBackdrop] should overlay this with the
-/// artwork color. On non-player screens this simple gradient provides
-/// editorial depth without color noise.
+/// [AppBackground] paints the page color with a soft **aurora glow** (logo
+/// blue → violet) pooled at the top edge: the signature light of the design
+/// language. [PlayerAmbientBackdrop] overlays the artwork-derived tint on
+/// player screens.
 library;
 
 import 'package:flutter/material.dart';
 
 import '../enjoy_tokens.dart';
 
-/// Wraps [child] in a full-screen gradient background respecting the active
-/// theme brightness. Replace the old plum radial with a warm neutral linear.
+/// Wraps [child] in the page background with the top aurora glow.
 class AppBackground extends StatelessWidget {
-  const AppBackground({super.key, required this.child});
+  const AppBackground({
+    super.key,
+    required this.child,
+    this.color,
+    this.glow = true,
+  });
 
   final Widget child;
+
+  /// Base fill (defaults to the page surface).
+  final Color? color;
+
+  /// Paint the aurora glow along the top edge.
+  final bool glow;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: color ?? cs.surface,
+      child: glow
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                const Positioned.fill(
+                  child: IgnorePointer(child: AuroraGlow()),
+                ),
+                child,
+              ],
+            )
+          : child,
+    );
+  }
+}
+
+/// Two soft radial pools of the aurora stops, fading out ~320px down.
+///
+/// Static paint (no blur filters) so it is effectively free; it sits behind
+/// scrolling content like a stage light.
+class AuroraGlow extends StatelessWidget {
+  const AuroraGlow({super.key, this.intensity = 1});
+
+  /// 0…1 multiplier (player / immersive surfaces dim it).
+  final double intensity;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final brightness = Theme.of(context).brightness;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [t.gradientStart, t.gradientEnd],
-          stops: brightness == Brightness.dark
-              ? const [0.0, 1.0]
-              : const [0.0, 1.0],
-        ),
-      ),
-      child: child,
+    final light = Theme.of(context).brightness == Brightness.light;
+    final a = (light ? 0.075 : 0.11) * intensity;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 800.0;
+        final h = (w * 0.42).clamp(220.0, 360.0);
+        return Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            height: h,
+            width: double.infinity,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(-0.75, -1.25),
+                  radius: 1.1,
+                  colors: [
+                    t.auroraStart.withValues(alpha: a),
+                    t.auroraStart.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0.7, -1.35),
+                    radius: 1.2,
+                    colors: [
+                      t.auroraEnd.withValues(alpha: a * 1.1),
+                      t.auroraEnd.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -44,7 +109,7 @@ class PlayerAmbientBackdrop extends StatelessWidget {
     super.key,
     required this.child,
     this.accentColor,
-    this.intensity = 0.07,
+    this.intensity = 0.09,
   });
 
   final Widget child;
@@ -52,7 +117,7 @@ class PlayerAmbientBackdrop extends StatelessWidget {
   /// Artwork dominant color. When null, no tint overlay is applied.
   final Color? accentColor;
 
-  /// Opacity of the ambient tint overlay (default 7%).
+  /// Opacity of the ambient tint overlay.
   final double intensity;
 
   @override
@@ -62,17 +127,18 @@ class PlayerAmbientBackdrop extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Ambient tint overlay — very subtle
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.topCenter,
-                radius: 1.5,
-                colors: [
-                  accentColor!.withValues(alpha: intensity),
-                  Colors.transparent,
-                ],
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -1.1),
+                  radius: 1.4,
+                  colors: [
+                    accentColor!.withValues(alpha: intensity),
+                    accentColor!.withValues(alpha: 0),
+                  ],
+                ),
               ),
             ),
           ),

@@ -10,6 +10,7 @@
 // We override the dictionary capability provider so the lookup resolves to a
 // pre-canned `DictionaryResult`, plus override the auth controller to keep
 // the auth gate out of the way.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
@@ -233,7 +234,7 @@ void main() {
     await _expand(tester);
 
     expect(find.byType(LookupErrorRow), findsOneWidget);
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     // The unified "View plans & packages" CTA (spec 045) for credits failures.
     expect(
       find.text(

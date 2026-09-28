@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,13 +10,10 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/sections/appearance_language_section.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-
-import '../../../../helpers/chrome_icon_finders.dart';
 
 class _SignedOutAuthCtrl extends AuthCtrl {
   @override
@@ -195,7 +193,7 @@ void main() {
 
       expect(find.text(l10n.settingsAppearanceTheme), findsOneWidget);
       expect(find.text(l10n.settingsAppearanceThemeSystem), findsOneWidget);
-      expect(findChromeIcon(EnjoyChromeGlyph.monitor), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.monitor), findsOneWidget);
 
       await tester.tap(find.text(l10n.settingsAppearanceTheme));
       await tester.pumpAndSettle();
@@ -209,7 +207,7 @@ void main() {
 
       expect(find.byType(PaddedSheetDragHandle), findsNothing);
       expect(find.text(l10n.settingsAppearanceThemeLight), findsOneWidget);
-      expect(findChromeIcon(EnjoyChromeGlyph.sun), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.sun), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

@@ -11,12 +11,15 @@
 /// than a hardcoded fallback — the Rails API is the single source of truth.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -240,34 +243,14 @@ class _IntervalToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final toggle = DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _IntervalChip(
-              label: monthlyLabel,
-              selected: value == CatalogInterval.month,
-              onTap: () => onChanged(CatalogInterval.month),
-              tt: tt,
-            ),
-            _IntervalChip(
-              label: yearlyLabel,
-              selected: value == CatalogInterval.year,
-              onTap: () => onChanged(CatalogInterval.year),
-              tt: tt,
-            ),
-          ],
-        ),
-      ),
+    final toggle = EnjoySegmentedControl<CatalogInterval>(
+      value: value,
+      onChanged: onChanged,
+      segments: [
+        EnjoySegment(value: CatalogInterval.month, label: monthlyLabel),
+        EnjoySegment(value: CatalogInterval.year, label: yearlyLabel),
+      ],
     );
     if (savingsLabel == null) {
       return Center(child: toggle);
@@ -328,54 +311,6 @@ class _SavingsBadge extends StatelessWidget {
         style: tt.labelSmall?.copyWith(
           fontWeight: FontWeight.w700,
           color: cs.onTertiaryContainer,
-        ),
-      ),
-    );
-  }
-}
-
-class _IntervalChip extends StatelessWidget {
-  const _IntervalChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    required this.tt,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  final TextTheme tt;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(t.radiusFull),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: t.motionFast,
-          curve: Curves.easeOut,
-          padding: EdgeInsets.symmetric(
-            horizontal: t.space20,
-            vertical: t.space8,
-          ),
-          decoration: BoxDecoration(
-            color: selected ? cs.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(t.radiusFull),
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: tt.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: selected ? cs.onPrimary : cs.onSurface,
-            ),
-          ),
         ),
       ),
     );
@@ -512,7 +447,12 @@ class _FreeTierCard extends StatelessWidget {
       description: l10n.subscriptionTierFreeDescription,
       price: Text(
         l10n.subscriptionTierFreePrice,
-        style: tt.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+        style: enjoyDisplayStyle(
+          context,
+          size: 44,
+          color: Theme.of(context).colorScheme.onSurface,
+          height: 1,
+        ),
       ),
       dailyCredits: l10n.subscriptionTierFreeDailyCredits,
       features: _sharedAiFeatures(l10n),
@@ -597,9 +537,10 @@ class _PaidTierCard extends StatelessWidget {
           _Pill(
             label: l10n.subscriptionTierCatalogRecommended,
             color: cs.primary,
-            textColor: cs.onPrimary,
+            textColor: Colors.white,
             tt: tt,
-            leading: Icons.auto_awesome_rounded,
+            leading: EnjoyIcons.sparkleFill,
+            gradient: t.aurora,
           ),
           if (isCurrent) ...[
             SizedBox(width: t.space8),
@@ -629,9 +570,11 @@ class _PaidTierCard extends StatelessWidget {
           child: amount != null
               ? Text(
                   '\$$amount',
-                  style: tt.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: _isLite ? null : cs.primary,
+                  style: enjoyDisplayStyle(
+                    context,
+                    size: 44,
+                    color: _isLite ? cs.onSurface : t.accentInk,
+                    height: 1,
                   ),
                 )
               : SizedBox(
@@ -679,19 +622,13 @@ class _PaidTierCard extends StatelessWidget {
       return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(t.radiusLg + 2),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              cs.primary.withValues(alpha: 0.85),
-              cs.tertiary.withValues(alpha: 0.75),
-            ],
-          ),
+          gradient: t.aurora,
           boxShadow: [
             BoxShadow(
-              color: cs.primary.withValues(alpha: 0.22),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              color: t.auroraEnd.withValues(alpha: 0.25),
+              blurRadius: 32,
+              spreadRadius: -6,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
@@ -724,6 +661,7 @@ class _Pill extends StatelessWidget {
     required this.textColor,
     required this.tt,
     this.leading,
+    this.gradient,
   });
 
   final String label;
@@ -732,12 +670,16 @@ class _Pill extends StatelessWidget {
   final TextTheme tt;
   final IconData? leading;
 
+  /// Overrides [color] (the aurora for "Recommended").
+  final Gradient? gradient;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color,
+        color: gradient == null ? color : null,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -782,7 +724,7 @@ class _Bullet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          Icons.check_circle_rounded,
+          EnjoyIcons.checkCircleFill,
           size: 18,
           color: emphasize ? cs.primary : cs.onSurfaceVariant,
         ),

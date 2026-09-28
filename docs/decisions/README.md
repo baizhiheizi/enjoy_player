@@ -106,9 +106,10 @@ Trade-offs, follow-up work, risks.
 | [0080](0080-macos-security-scoped-bookmarks.md) | macOS security-scoped bookmarks for path-linked local media — sandbox-restart resilience + file-move resilience for externally linked imports (supplements ADR-0050) |
 | [0081](0081-crafted-audio-cloud-sync.md) | Crafted audio cloud sync — Active Storage direct-upload of TTS binaries for cross-device playback |
 | [0082](0082-home-continue-no-mini-player.md) | Home Continue practicing card; no global mini player; leave player clears live session (supersedes ADR-0035 E1–E7) |
-| [0083](0083-paper-graphite-light-dark.md) | Paper / graphite dual theme + System/Light/Dark appearance (supersedes 0011) |
+| [0083](0083-paper-graphite-light-dark.md) | Paper / graphite dual theme + System/Light/Dark appearance (supersedes 0011; palette, chrome, and type superseded by 0089) |
 | [0084](0084-linux-google-signin-off-and-pkce-deeplink.md) | Disable native Google Sign-In on Linux (ADR-0048 kill switch); GTK single-instance `enjoyplayer://` forwarding + AppImage scheme registration for PKCE callbacks |
 | [0085](0085-audio-floating-collapse-chrome.md) | Audio expanded chrome is the shared floating frosted collapse control over the transcript; desktop gets a roomier top inset (supersedes 0077 audio clause) |
 | [0086](0086-posthog-product-analytics.md) | PostHog product analytics integration |
 | [0087](0087-norwegian-bokmal-language-catalog.md) | Norwegian Bokmål (`nb-NO`) joins the focus / media / lookup catalogs; `no` / `nob` / `nor` alias to `nb` as deliberate policy (Nynorsk `nn` stays unsupported) |
 | [0088](0088-discover-feed-owns-library-membership.md) | Discover feed owns library membership — one merged watch, tiles render `inLibrary`, `bindLibraryRepository` deleted (issue #764 candidate 6; ADR-0046 cache unchanged) |
+| [0089](0089-aurora-design-language.md) | Aurora design language — porcelain / midnight neutrals, iris accent + aurora glow, Geist / Instrument Serif / Geist Mono, vendored Phosphor icons (`EnjoyIcons`), superellipse shapes, no ripples, one glide transition, floating content panel + glass tab bar (supersedes 0083 §1/§4/§5) |

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:convert';
 
 import 'package:drift/native.dart';
@@ -278,7 +279,7 @@ void main() {
         expect(findChromeIcon(glyph), findsOneWidget, reason: '$glyph visible');
       }
       expect(findChromeIcon(EnjoyChromeGlyph.replay), findsNothing);
-      expect(find.byIcon(Icons.visibility_outlined), findsNothing);
+      expect(find.byIcon(EnjoyIcons.eye), findsNothing);
     });
   });
 
@@ -317,7 +318,7 @@ void main() {
       expect(findChromeIcon(EnjoyChromeGlyph.skipBack), findsOneWidget);
       expect(findChromeIcon(EnjoyChromeGlyph.skipForward), findsOneWidget);
       expect(findChromeIcon(EnjoyChromeGlyph.mic), findsOneWidget);
-      expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.expand), findsNothing);
       expect(find.text('Transport test'), findsOneWidget);
     });
   });
@@ -325,7 +326,7 @@ void main() {
   group('GlobalTransportBar blur toggle', () {
     testWidgets('renders the blur toggle in off state', (tester) async {
       await pumpTransport(tester, router: _playerRouter(), width: 800);
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.eye), findsOneWidget);
     });
 
     testWidgets('reflects on state with visibility_off icon', (tester) async {
@@ -335,7 +336,7 @@ void main() {
         width: 800,
         blurActive: true,
       );
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.eyeOff), findsOneWidget);
     });
 
     testWidgets('disabled when there are no transcript lines', (tester) async {
@@ -347,7 +348,7 @@ void main() {
       );
       final blurButton = tester.widget<IconButton>(
         find.ancestor(
-          of: find.byIcon(Icons.visibility_outlined),
+          of: find.byIcon(EnjoyIcons.eye),
           matching: find.byType(IconButton),
         ),
       );
@@ -365,7 +366,7 @@ void main() {
         tester.element(find.byType(GlobalTransportBar)),
       );
       expect(container.read(transcriptBlurModeProvider), isFalse);
-      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.tap(find.byIcon(EnjoyIcons.eye));
       await tester.pumpAndSettle();
       expect(container.read(transcriptBlurModeProvider), isTrue);
     });

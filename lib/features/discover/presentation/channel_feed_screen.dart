@@ -1,6 +1,7 @@
 /// Single-channel cached feed from Discover subscriptions.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class ChannelFeedScreen extends ConsumerWidget {
       actions: [
         IconButton(
           tooltip: l10n.discoverUnsubscribeAction,
-          icon: const Icon(Icons.notifications_off_outlined),
+          icon: const Icon(EnjoyIcons.bellOff),
           onPressed: () => unawaited(_unsubscribe(context, ref, l10n)),
         ),
       ],
@@ -57,14 +58,14 @@ class ChannelFeedScreen extends ConsumerWidget {
           child: const SkeletonMediaList(itemCount: 4),
         ),
         error: (_, _) => EmptyState(
-          icon: Icons.cloud_off_rounded,
+          icon: EnjoyIcons.cloudOff,
           title: l10n.discoverFeedErrorTitle,
           subtitle: l10n.discoverFeedErrorHint,
         ),
         data: (entries) {
           if (entries.isEmpty) {
             return EmptyState(
-              icon: Icons.rss_feed_rounded,
+              icon: EnjoyIcons.rss,
               title: l10n.discoverFeedEmptyTitle,
               subtitle: l10n.discoverFeedEmptyHint,
             );

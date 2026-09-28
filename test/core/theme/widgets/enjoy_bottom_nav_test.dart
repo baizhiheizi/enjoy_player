@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,18 +33,18 @@ Widget _harness({
 List<EnjoyBottomNavDestination> _sampleDestinations() {
   return const [
     EnjoyBottomNavDestination(
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home_rounded,
+      icon: EnjoyIcons.home,
+      selectedIcon: EnjoyIcons.homeFill,
       label: 'Home',
     ),
     EnjoyBottomNavDestination(
-      icon: Icons.search_outlined,
-      selectedIcon: Icons.search_rounded,
+      icon: EnjoyIcons.compass,
+      selectedIcon: EnjoyIcons.compassFill,
       label: 'Search',
     ),
     EnjoyBottomNavDestination(
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person_rounded,
+      icon: EnjoyIcons.person,
+      selectedIcon: EnjoyIcons.personFill,
       label: 'Profile',
       showBadge: true,
     ),
@@ -54,8 +55,8 @@ void main() {
   group('EnjoyBottomNavDestination', () {
     test('defaults showBadge to false and semanticsLabel to null', () {
       const dest = EnjoyBottomNavDestination(
-        icon: Icons.home_outlined,
-        selectedIcon: Icons.home_rounded,
+        icon: EnjoyIcons.home,
+        selectedIcon: EnjoyIcons.homeFill,
         label: 'Home',
       );
       expect(dest.showBadge, isFalse);
@@ -65,8 +66,8 @@ void main() {
 
     test('honors explicit showBadge + semanticsLabel', () {
       const dest = EnjoyBottomNavDestination(
-        icon: Icons.home_outlined,
-        selectedIcon: Icons.home_rounded,
+        icon: EnjoyIcons.home,
+        selectedIcon: EnjoyIcons.homeFill,
         label: 'Home',
         semanticsLabel: 'Home tab',
         showBadge: true,
@@ -103,12 +104,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // The "Search" destination is selected → its rounded icon should appear.
-      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.search_outlined), findsNothing);
+      // The "Search" destination is selected → its filled icon should appear.
+      expect(find.byIcon(EnjoyIcons.compassFill), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.compass), findsNothing);
       // Other destinations should still be unselected.
-      expect(find.byIcon(Icons.home_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.person_outline), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.home), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.person), findsOneWidget);
     });
 
     testWidgets('invokes onDestinationSelected with the tapped index', (
@@ -187,8 +188,8 @@ void main() {
       'falls back to semanticsLabel -> label for Semantics container',
       (tester) async {
         const customDest = EnjoyBottomNavDestination(
-          icon: Icons.settings_outlined,
-          selectedIcon: Icons.settings_rounded,
+          icon: EnjoyIcons.settings,
+          selectedIcon: EnjoyIcons.settings,
           label: 'Settings',
           semanticsLabel: 'Settings tab',
         );

@@ -4,6 +4,7 @@
 // The dialog needs an [AzurePronunciationAssessmentResult]; we build it from
 // JSON because the azure_speech classes don't expose a public constructor
 // in tests (and would otherwise require a live service).
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:convert';
 
 import 'package:azure_speech/azure_speech.dart';
@@ -249,7 +250,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap the close icon.
-      await tester.tap(find.byIcon(Icons.close).first);
+      await tester.tap(find.byIcon(EnjoyIcons.close).first);
       await tester.pumpAndSettle();
 
       // The dialog should be gone (Navigator popped).

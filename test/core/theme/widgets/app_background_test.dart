@@ -25,44 +25,44 @@ ThemeData _theme(Brightness brightness) {
 
 void main() {
   group('AppBackground', () {
-    testWidgets('wraps child in a LinearGradient in dark mode', (tester) async {
+    for (final brightness in Brightness.values) {
+      testWidgets('paints the page surface with the aurora glow '
+          '(${brightness.name})', (tester) async {
+        final theme = _theme(brightness);
+        await tester.pumpWidget(
+          _harness(theme, const AppBackground(child: Text('inside'))),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('inside'), findsOneWidget);
+        final fill = tester.widget<ColoredBox>(
+          find
+              .descendant(
+                of: find.byType(AppBackground),
+                matching: find.byType(ColoredBox),
+              )
+              .first,
+        );
+        expect(fill.color, theme.colorScheme.surface);
+        expect(
+          find.descendant(
+            of: find.byType(AppBackground),
+            matching: find.byType(AuroraGlow),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    testWidgets('glow can be turned off', (tester) async {
       await tester.pumpWidget(
         _harness(
           _theme(Brightness.dark),
-          const AppBackground(child: Text('inside')),
+          const AppBackground(glow: false, child: Text('inside')),
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.byType(AuroraGlow), findsNothing);
       expect(find.text('inside'), findsOneWidget);
-      // The decorated box's decoration is a BoxDecoration wrapping a
-      // LinearGradient.
-      final box = tester.widget<DecoratedBox>(
-        find.descendant(
-          of: find.byType(AppBackground),
-          matching: find.byType(DecoratedBox),
-        ),
-      );
-      expect(box.decoration, isA<BoxDecoration>());
-      expect((box.decoration as BoxDecoration).gradient, isA<LinearGradient>());
-    });
-
-    testWidgets('wraps child in a LinearGradient in light mode', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _harness(
-          _theme(Brightness.light),
-          const AppBackground(child: Text('inside')),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final box = tester.widget<DecoratedBox>(
-        find.descendant(
-          of: find.byType(AppBackground),
-          matching: find.byType(DecoratedBox),
-        ),
-      );
-      expect((box.decoration as BoxDecoration).gradient, isA<LinearGradient>());
     });
   });
 

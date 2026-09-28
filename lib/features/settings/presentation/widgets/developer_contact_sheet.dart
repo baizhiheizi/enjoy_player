@@ -1,6 +1,7 @@
 /// Bottom sheet listing developer contact channels — tap any row to copy.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -57,19 +58,19 @@ Future<void> showDeveloperContactSheet(BuildContext context) {
                 ),
               ),
               _ContactCopyRow(
-                icon: Icons.mail_outline_rounded,
+                icon: EnjoyIcons.mail,
                 label: l10n.settingsAboutContactEmailLabel,
                 value: kDeveloperContactEmail,
                 successMessage: l10n.settingsAboutContactCopiedEmail,
               ),
               _ContactCopyRow(
-                icon: Icons.chat_bubble_outline_rounded,
+                icon: EnjoyIcons.chat,
                 label: l10n.settingsAboutContactWeChatLabel,
                 value: kDeveloperContactWeChatId,
                 successMessage: l10n.settingsAboutContactCopiedWeChat,
               ),
               _ContactCopyRow(
-                icon: Icons.tag_rounded,
+                icon: EnjoyIcons.tag,
                 label: l10n.settingsAboutContactMixinLabel,
                 value: kDeveloperContactMixinId,
                 successMessage: l10n.settingsAboutContactCopiedMixin,
@@ -144,7 +145,7 @@ class _ContactCopyRow extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.copy_rounded,
+                EnjoyIcons.copy,
                 size: 18,
                 color: cs.onSurfaceVariant.withValues(alpha: 0.55),
               ),

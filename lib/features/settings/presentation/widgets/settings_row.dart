@@ -1,4 +1,5 @@
-/// A single settings row — icon, title, subtitle, value badge, chevron.
+/// A single settings row — icon tile, title, subtitle, value, chevron (Aurora
+/// grouped-list row).
 ///
 /// Generalized from the pre-redesign `_SettingsTile` in `settings_screen.dart`
 /// so every extracted section (`sections/*.dart`) and the two-pane detail
@@ -14,9 +15,10 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 
 class SettingsRow extends StatelessWidget {
   const SettingsRow({
@@ -65,37 +67,27 @@ class SettingsRow extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final interactive = onTap != null;
-    final iconTint = leadingIconTint ?? cs.primary;
 
     final Widget? leadWidget;
     if (leading != null) {
       leadWidget = SizedBox(
-        width: 44,
-        height: 44,
+        width: kSettingsRowLeadingSize,
+        height: kSettingsRowLeadingSize,
         child: Center(child: leading!),
       );
     } else if (leadingIcon != null) {
-      leadWidget = SizedBox(
-        width: 44,
-        height: 44,
-        child: Center(
-          child: Icon(
-            leadingIcon,
-            color: iconTint.withValues(alpha: interactive ? 0.92 : 0.6),
-            size: 22,
-          ),
-        ),
+      leadWidget = EnjoyIconTile(
+        icon: leadingIcon!,
+        color: leadingIconTint,
+        size: kSettingsRowLeadingSize,
+        enabled: interactive || leadingIconTint != null,
       );
     } else {
       leadWidget = null;
     }
 
     Widget disclosure() {
-      return EnjoyChromeIcon(
-        EnjoyChromeGlyph.chevronRight,
-        size: 20,
-        color: cs.onSurfaceVariant.withValues(alpha: 0.55),
-      );
+      return Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint);
     }
 
     List<Widget> trailingWidgets() {
@@ -111,6 +103,13 @@ class SettingsRow extends StatelessWidget {
       }
       return widgets;
     }
+
+    final titleStyle = tt.titleMedium?.copyWith(
+      fontSize: 14.5,
+      fontWeight: FontWeight.w500,
+      letterSpacing: -0.15,
+      color: interactive ? null : cs.onSurface.withValues(alpha: 0.72),
+    );
 
     Widget textColumn({required bool compact}) {
       final trailingChildren = trailingWidgets();
@@ -128,13 +127,7 @@ class SettingsRow extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      color: interactive
-                          ? null
-                          : cs.onSurface.withValues(alpha: 0.78),
-                    ),
+                    style: titleStyle,
                   ),
                 ),
                 if (trailingChildren.isNotEmpty)
@@ -142,7 +135,7 @@ class SettingsRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (var i = 0; i < trailingChildren.length; i++) ...[
-                        if (i > 0) SizedBox(width: t.space12),
+                        if (i > 0) SizedBox(width: t.space8),
                         trailingChildren[i],
                       ],
                     ],
@@ -150,32 +143,19 @@ class SettingsRow extends StatelessWidget {
               ],
             )
           else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tt.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      color: interactive
-                          ? null
-                          : cs.onSurface.withValues(alpha: 0.78),
-                    ),
-                  ),
-                ),
-              ],
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
             ),
           if (subtitle != null && subtitle!.isNotEmpty) ...[
-            SizedBox(height: t.space4),
+            const SizedBox(height: 2),
             Text(
               subtitle!,
               style: tt.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant.withValues(alpha: 0.86),
-                height: 1.35,
+                color: cs.onSurfaceVariant,
+                height: 1.38,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -194,46 +174,43 @@ class SettingsRow extends StatelessWidget {
       );
     }
 
-    return Focus(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap == null ? null : Haptics.wrapTap(context, onTap!),
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          overlayColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.pressed)) {
-              return cs.primary.withValues(alpha: 0.08);
-            }
-            if (states.contains(WidgetState.hovered) ||
-                states.contains(WidgetState.focused)) {
-              return cs.onSurface.withValues(alpha: 0.045);
-            }
-            return null;
-          }),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 64),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: t.space20,
-                vertical: t.space12,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (leadWidget != null) ...[
-                    leadWidget,
-                    SizedBox(width: t.space16),
-                  ],
-                  Expanded(child: textColumn(compact: compact)),
-                ],
-              ),
-            ),
-          ),
+    final body = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 52),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: kSettingsRowHorizontalPadding,
+          vertical: t.space12 - 1,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (leadWidget != null) ...[
+              leadWidget,
+              const SizedBox(width: kSettingsRowLeadingGap),
+            ],
+            Expanded(child: textColumn(compact: compact)),
+          ],
         ),
       ),
     );
+
+    return EnjoyPressable(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      pressedScale: 0.995,
+      child: body,
+    );
   }
 }
+
+/// Leading glyph tile edge (icon tile / avatar slot).
+const double kSettingsRowLeadingSize = 30;
+
+/// Horizontal padding inside a [SettingsRow].
+const double kSettingsRowHorizontalPadding = 16;
+
+/// Gap between the leading tile and the text column.
+const double kSettingsRowLeadingGap = 12;
 
 /// Thin horizontal divider between two [SettingsRow]s inside the same card.
 class SettingsRowDivider extends StatelessWidget {
@@ -244,13 +221,17 @@ class SettingsRowDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
 
     return Divider(
       height: 1,
-      indent: insetForLeading ? t.space20 + 44 + t.space16 : t.space20,
-      endIndent: t.space20,
-      color: cs.outlineVariant.withValues(alpha: 0.18),
+      thickness: 1,
+      indent: insetForLeading
+          ? kSettingsRowHorizontalPadding +
+                kSettingsRowLeadingSize +
+                kSettingsRowLeadingGap
+          : kSettingsRowHorizontalPadding,
+      endIndent: 0,
+      color: t.hairline,
     );
   }
 }
@@ -302,10 +283,10 @@ class SettingsValuePill extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: leading != null ? TextAlign.start : TextAlign.end,
-              style: tt.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: tt.bodyMedium?.copyWith(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w400,
                 color: fg,
-                letterSpacing: 0.04,
               ),
             ),
           ),

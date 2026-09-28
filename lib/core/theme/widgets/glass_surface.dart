@@ -1,4 +1,4 @@
-/// Frosted glass panel (sidebar, transport bar).
+/// Frosted glass panel (transport bar, floating chrome) — Aurora glass.
 library;
 
 import 'dart:ui' show ImageFilter;
@@ -29,7 +29,6 @@ class GlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final blurRaw = sigma ?? t.miniBarBlurSigma;
     final blur = _effectiveTransportBlur(blurRaw);
     final radius = BorderRadius.circular(borderRadius);
@@ -42,24 +41,28 @@ class GlassSurface extends StatelessWidget {
 
     if (blur <= 0) {
       return DecoratedBox(
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHigh.withValues(alpha: 0.92),
-          border: Border.all(color: t.glassBorder),
-          borderRadius: radius,
+        decoration: ShapeDecoration(
+          color: t.popover.withValues(alpha: 0.96),
+          shape: RoundedSuperellipseBorder(
+            borderRadius: radius,
+            side: BorderSide(color: t.glassBorder),
+          ),
         ),
         child: inner,
       );
     }
 
-    return ClipRRect(
+    return ClipRSuperellipse(
       borderRadius: radius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: DecoratedBox(
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: t.glassTint,
-            border: Border.all(color: t.glassBorder),
-            borderRadius: radius,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: radius,
+              side: BorderSide(color: t.glassBorder),
+            ),
           ),
           child: inner,
         ),

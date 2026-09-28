@@ -6,6 +6,7 @@
 /// with the wide [AssessmentResultDialog].
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,7 +86,7 @@ class _AssessmentResultSheetState extends ConsumerState<AssessmentResultSheet> {
                       fixedSize: const Size(48, 48),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(EnjoyIcons.close),
                   ),
                 ],
               ),

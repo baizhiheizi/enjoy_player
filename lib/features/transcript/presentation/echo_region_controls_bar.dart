@@ -1,6 +1,7 @@
 /// Echo segment resize controls (parity with web `EchoRegionControls`).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,8 +57,8 @@ class EchoRegionControlsBar extends ConsumerWidget {
     final shrinkTip = hotkeyTooltipLabel(ref, shrinkId, shrinkLabel);
 
     final expandIcon = position == EchoRegionBarPosition.top
-        ? Icons.expand_less
-        : Icons.expand_more;
+        ? EnjoyIcons.chevronUp
+        : EnjoyIcons.chevronDown;
 
     final edgePadding = dense
         ? EdgeInsets.symmetric(vertical: density.echoControlsPadding)
@@ -86,7 +87,7 @@ class EchoRegionControlsBar extends ConsumerWidget {
           ListSafeIconButton(
             semanticLabel: shrinkTip,
             onPressed: shrinkDisabled ? null : onShrink,
-            icon: Icon(Icons.remove, size: density.echoControlIconSize),
+            icon: Icon(EnjoyIcons.minus, size: density.echoControlIconSize),
           ),
           SizedBox(width: tok.space8),
           Expanded(

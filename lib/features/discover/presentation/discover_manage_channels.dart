@@ -1,6 +1,7 @@
 /// Manage Discover subscriptions and browse recommended channels.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -130,7 +131,7 @@ class DiscoverManageChannelsView extends ConsumerWidget {
           SizedBox(height: t.space24),
           OutlinedButton.icon(
             onPressed: () => unawaited(showDiscoverSubscribeSheet(context)),
-            icon: const Icon(Icons.add_link_rounded, size: 18),
+            icon: const Icon(EnjoyIcons.addLink, size: 18),
             label: Text(l10n.discoverSubscribeAction),
           ),
           SizedBox(height: t.space24),
@@ -192,7 +193,7 @@ class DiscoverManageChannelsView extends ConsumerWidget {
                 IconButton(
                   tooltip: MaterialLocalizations.of(context).closeButtonLabel,
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(EnjoyIcons.close),
                 ),
               ],
             ),

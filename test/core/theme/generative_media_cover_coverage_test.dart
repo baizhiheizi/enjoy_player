@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,8 +42,8 @@ void main() {
         ),
         findsNWidgets(2),
       );
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.audiotrack_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.audio), findsNothing);
     });
 
     testWidgets('renders audio icon when isVideo is false', (tester) async {
@@ -56,8 +57,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.audiotrack_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.audio), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.play), findsNothing);
     });
 
     testWidgets('renders DecoratedBox with circle shape for glass icon', (
@@ -91,12 +92,12 @@ void main() {
         ),
       );
 
-      final icon = tester.widget<Icon>(find.byIcon(Icons.audiotrack_rounded));
+      final icon = tester.widget<Icon>(find.byIcon(EnjoyIcons.audio));
       expect(icon.size, 28);
 
       final padding = tester.widget<Padding>(
         find.ancestor(
-          of: find.byIcon(Icons.audiotrack_rounded),
+          of: find.byIcon(EnjoyIcons.audio),
           matching: find.byType(Padding),
         ),
       );
@@ -148,7 +149,7 @@ void main() {
         ),
       );
       expect(tester.takeException(), isNull);
-      expect(find.byIcon(Icons.audiotrack_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.audio), findsOneWidget);
     });
 
     testWidgets('same seed does not trigger unnecessary repaint errors', (
@@ -176,7 +177,7 @@ void main() {
         ),
       );
       expect(tester.takeException(), isNull);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     });
   });
 

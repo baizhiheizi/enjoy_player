@@ -1,6 +1,7 @@
 /// Bottom sheet or wide dialog: translation, definition (dictionary), contextual translation.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -204,7 +205,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                       ),
                       tooltip: l10n.lookupCopy,
                       onPressed: () => _copySelection(context),
-                      icon: const Icon(Icons.copy_all_rounded, size: 18),
+                      icon: const Icon(EnjoyIcons.copy, size: 18),
                     ),
                     IconButton(
                       style: IconButton.styleFrom(
@@ -214,7 +215,7 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
                       ),
                       tooltip: l10n.lookupClose,
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded, size: 20),
+                      icon: const Icon(EnjoyIcons.close, size: 20),
                     ),
                   ],
                 ),

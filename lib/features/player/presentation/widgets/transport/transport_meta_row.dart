@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';
@@ -49,15 +50,20 @@ class TransportMetaRow extends ConsumerWidget {
             chrome.mediaTitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            style: tt.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
+            ),
           ),
+          const SizedBox(height: 2),
           Text(
             '${formatDurationHms(pos)} / ${formatDurationHmsSeconds(chrome.durationSeconds)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: tt.bodySmall?.copyWith(
+            style: enjoyMonoStyle(
+              context,
+              size: 11,
               color: cs.onSurfaceVariant,
-              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],

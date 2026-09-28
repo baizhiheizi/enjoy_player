@@ -5,6 +5,7 @@
 /// 1px bottom divider; selected rows get a tinted card.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -146,11 +147,7 @@ class _CompactDeleteButton extends StatelessWidget {
         padding: EdgeInsets.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      icon: Icon(
-        Icons.delete_outline_rounded,
-        size: 18,
-        color: cs.onSurfaceVariant,
-      ),
+      icon: Icon(EnjoyIcons.delete, size: 18, color: cs.onSurfaceVariant),
       tooltip: label,
       onPressed: onPressed,
     );

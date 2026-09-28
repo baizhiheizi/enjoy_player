@@ -1,5 +1,6 @@
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
@@ -65,7 +66,7 @@ class _LookupRefreshIconButtonState extends State<LookupRefreshIconButton> {
       onPressed: busy ? null : _handlePressed,
       icon: busy
           ? LoadingIcon(size: 20, color: scheme.primary)
-          : const Icon(Icons.refresh_rounded, size: 20),
+          : const Icon(EnjoyIcons.refresh, size: 20),
     );
   }
 }

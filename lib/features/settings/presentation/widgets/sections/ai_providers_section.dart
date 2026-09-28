@@ -1,6 +1,7 @@
 /// AI providers row body — single navigation row into the AI providers screen.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +15,7 @@ class AiProvidersSectionBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return SettingsRow(
-      leadingIcon: Icons.tune_outlined,
+      leadingIcon: EnjoyIcons.tune,
       title: l10n.settingsAiProvidersTileTitle,
       subtitle: l10n.settingsAiProvidersTileSubtitle,
       onTap: () => context.push('/settings/ai-providers'),

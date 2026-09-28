@@ -1,6 +1,8 @@
 /// Bottom sheet for selecting primary + secondary subtitle tracks.
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
@@ -547,11 +549,7 @@ class _SubtitleTrackPickerSheetState
               color: cs.primaryContainer.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(t.radiusSm),
             ),
-            child: Icon(
-              Icons.closed_caption_rounded,
-              size: 20,
-              color: cs.primary,
-            ),
+            child: Icon(EnjoyIcons.cc, size: 20, color: cs.primary),
           ),
           SizedBox(width: t.space12),
           Expanded(
@@ -571,11 +569,7 @@ class _SubtitleTrackPickerSheetState
                 alpha: 0.65,
               ),
             ),
-            icon: Icon(
-              Icons.close_rounded,
-              size: 20,
-              color: cs.onSurfaceVariant,
-            ),
+            icon: Icon(EnjoyIcons.close, size: 20, color: cs.onSurfaceVariant),
             tooltip: MaterialLocalizations.of(context).closeButtonLabel,
             onPressed: () => Navigator.pop(context),
           ),
@@ -646,7 +640,7 @@ class _SubtitleTrackPickerSheetState
       error: (error, _) {
         final errorBody = [
           SizedBox(height: t.space24),
-          Icon(Icons.error_outline_rounded, size: 40, color: cs.error),
+          Icon(EnjoyIcons.error, size: 40, color: cs.error),
           SizedBox(height: t.space12),
           Text(
             l10n.transcriptErrorFriendlyTitle,
@@ -661,7 +655,7 @@ class _SubtitleTrackPickerSheetState
             ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: t.space16),
-          FilledButton.tonal(
+          EnjoyButton.tonal(
             onPressed: () =>
                 ref.invalidate(allTranscriptsForMediaProvider(widget.mediaId)),
             child: Text(l10n.retry),

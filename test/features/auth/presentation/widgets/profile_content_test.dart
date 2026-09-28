@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -135,7 +136,7 @@ void main() {
 
       await _scrollUntilVisible(tester, find.text(l10n.settingsTitle));
       expect(find.text(l10n.settingsTitle), findsWidgets);
-      expect(find.byIcon(Icons.settings_outlined), findsWidgets);
+      expect(find.byIcon(EnjoyIcons.settings), findsWidgets);
     },
   );
 

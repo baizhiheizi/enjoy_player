@@ -1,6 +1,7 @@
 /// Full-width bottom transport: progress, times, play controls, artwork/meta, tools.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -229,8 +230,8 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                     ListTile(
                       leading: Icon(
                         playbackRatesEqual(rate, r)
-                            ? Icons.check_rounded
-                            : Icons.speed_rounded,
+                            ? EnjoyIcons.check
+                            : EnjoyIcons.speed,
                         color: playbackRatesEqual(rate, r)
                             ? Theme.of(sheetCtx).colorScheme.primary
                             : Theme.of(sheetCtx).colorScheme.onSurfaceVariant,
@@ -397,7 +398,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
         onPressed: echo.active || hasTranscriptLines
             ? Haptics.wrapTap(context, echoToggle)
             : null,
-        icon: const EnjoyChromeIcon(EnjoyChromeGlyph.mic),
+        icon: EnjoyChromeIcon(EnjoyChromeGlyph.mic, filled: echo.active),
       ),
     );
 
@@ -419,9 +420,7 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
               () => ref.read(playerInteractionsProvider).toggleBlur(),
             )
           : null,
-      icon: Icon(
-        blurEnabled ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-      ),
+      icon: Icon(blurEnabled ? EnjoyIcons.eyeOff : EnjoyIcons.eye),
     );
 
     final ccButton = TransportCcButton(mediaId: chrome.mediaId);
@@ -634,15 +633,11 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
 
     final radius = t.radiusXl;
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.40),
-            blurRadius: 28,
-            offset: const Offset(0, 8),
-          ),
-        ],
+      decoration: ShapeDecoration(
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        shadows: t.shadowFloat,
       ),
       child: GlassSurface(
         borderRadius: radius,
@@ -697,9 +692,11 @@ class _TransportToggleButton extends StatelessWidget {
     return IconButton(
       tooltip: tooltip,
       color: isActive ? activeColor : null,
+      isSelected: isActive,
       style: isActive
           ? IconButton.styleFrom(
-              backgroundColor: activeColor.withValues(alpha: 0.18),
+              backgroundColor: activeColor.withValues(alpha: 0.16),
+              side: BorderSide(color: activeColor.withValues(alpha: 0.28)),
             )
           : null,
       onPressed: onPressed,

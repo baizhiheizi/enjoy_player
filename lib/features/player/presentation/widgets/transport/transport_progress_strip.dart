@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
 import 'package:enjoy_player/features/player/application/position_buckets.dart';
@@ -123,8 +124,8 @@ class _TransportProgressStripState
 
   /// Memoized thumb shapes: identity-stable so the [SliderThemeData] below (and
   /// therefore the slider) does not get a new shape per scrubber bucket.
-  static const _thumbShapeIdle = TransportThumbShape(enabledThumbRadius: 4);
-  static const _thumbShapeHovered = TransportThumbShape(enabledThumbRadius: 6);
+  static const _thumbShapeIdle = TransportThumbShape(enabledThumbRadius: 5);
+  static const _thumbShapeHovered = TransportThumbShape(enabledThumbRadius: 7);
 
   /// Memoized [SliderThemeData], invalidated when any of its inputs change.
   /// The strip rebuilds once per scrubber bucket while playing; allocating a
@@ -143,11 +144,11 @@ class _TransportProgressStripState
     final cached = _sliderTheme;
     if (cached != null && _sliderThemeKey == key) return cached;
     final theme = base.copyWith(
-      trackHeight: 3,
+      trackHeight: hovered ? 5 : 4,
       thumbShape: hovered ? _thumbShapeHovered : _thumbShapeIdle,
       overlayShape: SliderComponentShape.noOverlay,
       activeTrackColor: cs.primary,
-      inactiveTrackColor: cs.onSurface.withValues(alpha: 0.12),
+      inactiveTrackColor: cs.onSurface.withValues(alpha: 0.1),
       thumbColor: cs.primary,
     );
     _sliderThemeKey = key;
@@ -164,10 +165,7 @@ class _TransportProgressStripState
     final key = (base, cs.onSurfaceVariant);
     final cached = _timeStyle;
     if (cached != null && _timeStyleKey == key) return cached;
-    final style = base?.copyWith(
-      fontFeatures: const [FontFeature.tabularFigures()],
-      color: cs.onSurfaceVariant,
-    );
+    final style = enjoyMonoStyle(context, size: 11, color: cs.onSurfaceVariant);
     _timeStyleKey = key;
     _timeStyle = style;
     return style;
@@ -254,7 +252,7 @@ class _TransportProgressStripState
             ),
             style: timeStyle,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: ExcludeSemantics(
               child: SliderTheme(
@@ -295,7 +293,7 @@ class _TransportProgressStripState
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(formatDurationHmsSeconds(durationSec), style: timeStyle),
         ],
       ),

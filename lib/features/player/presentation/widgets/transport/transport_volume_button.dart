@@ -80,16 +80,18 @@ class _TransportVolumeButtonState extends ConsumerState<TransportVolumeButton> {
 
   Widget _sliderCard(BuildContext overlayCtx) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     return MouseRegion(
       onEnter: (_) => _onPointerInside(true),
       onExit: (_) => _onPointerInside(false),
       child: Material(
-        elevation: 6,
-        shadowColor: Colors.black54,
-        borderRadius: BorderRadius.circular(t.radiusSm),
-        color: cs.surfaceContainerHigh,
+        color: t.popover,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(color: t.hairline),
+        ),
         clipBehavior: Clip.antiAlias,
+        elevation: 10,
+        shadowColor: Colors.black.withValues(alpha: 0.5),
         child: SizedBox(
           width: _popupW,
           height: _popupH,

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,7 +82,7 @@ void main() {
           .widgetList<SvgPicture>(find.byType(SvgPicture))
           .length;
       expect(svgCount, 4);
-      expect(find.byIcon(Icons.radio_button_off_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.radioOff), findsOneWidget);
     });
 
     testWidgets('renders Mixin title + six crypto chips', (tester) async {
@@ -116,8 +117,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.radio_button_checked_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.radio_button_off_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.radioOn), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.radioOff), findsNothing);
     });
 
     testWidgets('tapping an enabled option fires onSelected', (tester) async {

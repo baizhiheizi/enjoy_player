@@ -1,6 +1,7 @@
 /// Read-only credits consumption audit (Worker `GET /credits/usages`).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -158,7 +159,7 @@ class _CreditsUsageBody extends ConsumerWidget {
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
                       onPressed: ctrl.clearFilters,
-                      icon: const Icon(Icons.clear_all_rounded),
+                      icon: const Icon(EnjoyIcons.clearAll),
                       label: Text(l10n.creditsUsageClearFilters),
                     ),
                   ),
@@ -277,7 +278,7 @@ class _CreditsUsageBody extends ConsumerWidget {
               child: Column(
                 children: [
                   Icon(
-                    Icons.error_outline_rounded,
+                    EnjoyIcons.error,
                     size: 48,
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -381,12 +382,12 @@ class _FilterDateField extends StatelessWidget {
                       context,
                     ).deleteButtonTooltip,
                     onPressed: onClear,
-                    icon: const Icon(Icons.close_rounded, size: 20),
+                    icon: const Icon(EnjoyIcons.close, size: 20),
                     visualDensity: VisualDensity.compact,
                   ),
                 const Padding(
                   padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.calendar_today_rounded, size: 20),
+                  child: Icon(EnjoyIcons.calendar, size: 20),
                 ),
               ],
             ),
@@ -504,7 +505,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         children: [
           Icon(
-            Icons.inbox_outlined,
+            EnjoyIcons.inbox,
             size: 56,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),

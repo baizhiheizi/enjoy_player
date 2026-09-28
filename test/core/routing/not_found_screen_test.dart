@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -43,7 +44,7 @@ void main() {
     await tester.pumpWidget(_harness());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.explore_off_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.compassOff), findsOneWidget);
     expect(find.text('Page not found'), findsOneWidget);
     // The subtitle references the unknown uri verbatim.
     expect(find.textContaining('/missing'), findsOneWidget);

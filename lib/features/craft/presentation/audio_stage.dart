@@ -6,6 +6,7 @@
 /// "Save & practice" (navigate to player) and "Save & say another" (loop).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -319,11 +320,7 @@ class _UnsavedPreviewHint extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.info_outline_rounded,
-              size: 18,
-              color: scheme.onTertiaryContainer,
-            ),
+            Icon(EnjoyIcons.info, size: 18, color: scheme.onTertiaryContainer),
             SizedBox(width: t.space8),
             Expanded(
               child: Text(
@@ -363,13 +360,13 @@ class _AudioActions extends StatelessWidget {
       children: [
         EnjoyButton.primary(
           onPressed: onPractice,
-          icon: Icons.library_add_check_rounded,
+          icon: EnjoyIcons.libraryAdded,
           child: Text(practiceLabel),
         ),
         SizedBox(height: t.space8),
         OutlinedButton.icon(
           onPressed: onSayAnother,
-          icon: const Icon(Icons.mic_none_rounded, size: 18),
+          icon: const Icon(EnjoyIcons.mic, size: 18),
           label: Text(sayAnotherLabel),
         ),
       ],
@@ -497,11 +494,7 @@ class _VoiceChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.record_voice_over_rounded,
-                    size: 18,
-                    color: scheme.primary,
-                  ),
+                  Icon(EnjoyIcons.speak, size: 18, color: scheme.primary),
                   const SizedBox(width: 8),
                   Text(
                     l10n.craftVoiceLabel,
@@ -524,9 +517,7 @@ class _VoiceChip extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Icon(
-                    expanded
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
+                    expanded ? EnjoyIcons.chevronUp : EnjoyIcons.chevronDown,
                     size: 20,
                     color: scheme.onSurfaceVariant,
                   ),
@@ -614,7 +605,7 @@ class _PreviewPlayer extends StatelessWidget {
                   ],
                 ),
                 child: Icon(
-                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
                   size: 32,
                   color: scheme.onPrimary,
                 ),

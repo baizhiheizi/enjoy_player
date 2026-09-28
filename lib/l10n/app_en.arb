@@ -10,6 +10,17 @@
   "librarySourceToggleToLocal": "Switch to local",
   "homeTitle": "Home",
   "homeRecentMedia": "Recent media",
+  "homeGreetingMorning": "Good morning",
+  "homeGreetingAfternoon": "Good afternoon",
+  "homeGreetingEvening": "Good evening",
+  "homeGreetingNamed": "{greeting}, {name}",
+  "@homeGreetingNamed": {
+    "description": "Home header greeting with the signed-in user's name.",
+    "placeholders": {
+      "greeting": {"type": "String"},
+      "name": {"type": "String"}
+    }
+  },
   "homeEmptyTitle": "No recent media",
   "homeContinuePracticing": "Continue practicing",
   "homeContinueProgressSemantics": "{percent} percent complete",

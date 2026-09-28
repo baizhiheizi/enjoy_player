@@ -1,6 +1,7 @@
 /// Discover: channel-filtered RSS video feed.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
@@ -60,21 +62,28 @@ class DiscoverScreen extends ConsumerWidget {
               child: EditorialHeader(
                 title: l10n.discoverTitle,
                 trailing: isDesktop
-                    ? IconButton(
-                        tooltip: l10n.lookupRefresh,
-                        onPressed: refreshing
-                            ? null
-                            : () => unawaited(onRefresh()),
-                        icon: refreshing
-                            ? LoadingIcon(size: 20, color: cs.primary)
-                            : const Icon(Icons.refresh_rounded),
-                      )
+                    ? (refreshing
+                          ? SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: Center(
+                                child: LoadingIcon(size: 18, color: cs.primary),
+                              ),
+                            )
+                          : EnjoyIconButton(
+                              icon: EnjoyIcons.refresh,
+                              tooltip: l10n.lookupRefresh,
+                              onPressed: () => unawaited(onRefresh()),
+                            ))
                     : null,
               ),
             ),
             if (refreshing)
-              const SliverToBoxAdapter(
-                child: LinearProgressIndicator(minHeight: 2),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: metrics.gutter),
+                  child: const LinearProgressIndicator(minHeight: 2),
+                ),
               ),
             const SliverToBoxAdapter(child: DiscoverChannelFilterStrip()),
             subscriptionsAsync.when(
@@ -95,7 +104,7 @@ class DiscoverScreen extends ConsumerWidget {
                   return SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
-                      icon: Icons.rss_feed_rounded,
+                      icon: EnjoyIcons.rss,
                       title: l10n.discoverFeedEmptyTitle,
                       subtitle: l10n.discoverNoSubscriptionsHint,
                       action: () =>
@@ -168,7 +177,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
       ),
       error: (_, _) => SliverToBoxAdapter(
         child: EmptyState(
-          icon: Icons.cloud_off_rounded,
+          icon: EnjoyIcons.cloudOff,
           title: l10n.discoverFeedErrorTitle,
           subtitle: l10n.discoverFeedErrorHint,
           action: () => unawaited(onRefresh()),
@@ -179,7 +188,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
         if (entries.isEmpty) {
           return SliverToBoxAdapter(
             child: EmptyState(
-              icon: Icons.rss_feed_rounded,
+              icon: EnjoyIcons.rss,
               title: l10n.discoverFeedEmptyTitle,
               subtitle: l10n.discoverFeedEmptyHint,
               action: () => unawaited(onRefresh()),

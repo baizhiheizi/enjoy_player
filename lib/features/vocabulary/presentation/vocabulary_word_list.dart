@@ -1,6 +1,7 @@
 /// All Words list: filters, search, delete.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class _VocabularyWordListState extends ConsumerState<VocabularyWordList> {
     return itemsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => EmptyState(
-        icon: Icons.error_outline_rounded,
+        icon: EnjoyIcons.error,
         title: l10n.vocabularyListLoadFailed,
         subtitle: l10n.vocabularyAiFetchFailed,
         action: () => ref.invalidate(vocabularyItemsProvider),
@@ -186,7 +187,7 @@ class _SearchToolbar extends StatelessWidget {
             decoration: InputDecoration(
               hintText: l10n.vocabularySearchPlaceholder,
               prefixIcon: Icon(
-                Icons.search_rounded,
+                EnjoyIcons.search,
                 color: cs.onSurfaceVariant,
                 size: 20,
               ),
@@ -222,7 +223,7 @@ class _SearchToolbar extends StatelessWidget {
           icon: Badge(
             isLabelVisible: filtersActive,
             smallSize: 8,
-            child: Icon(Icons.filter_list_rounded, color: filterColor),
+            child: Icon(EnjoyIcons.filter, color: filterColor),
           ),
           style: IconButton.styleFrom(
             minimumSize: const Size(48, 48),
@@ -235,7 +236,7 @@ class _SearchToolbar extends StatelessWidget {
         IconButton.filledTonal(
           tooltip: l10n.vocabularyExport,
           onPressed: onExport,
-          icon: Icon(Icons.file_download_outlined, color: cs.onSurfaceVariant),
+          icon: Icon(EnjoyIcons.download, color: cs.onSurfaceVariant),
           style: IconButton.styleFrom(
             minimumSize: const Size(48, 48),
             backgroundColor: cs.surfaceContainerHighest.withValues(alpha: 0.45),
@@ -386,7 +387,7 @@ class _WordRow extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
-            icon: Icon(Icons.more_vert_rounded, color: cs.onSurfaceVariant),
+            icon: Icon(EnjoyIcons.more, color: cs.onSurfaceVariant),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             shape: RoundedRectangleBorder(

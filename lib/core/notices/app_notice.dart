@@ -1,6 +1,8 @@
-/// Material 3 in-app notices (SnackBars) with semantic styling and shell-aware margins.
+/// In-app notices (Aurora toasts over SnackBars) with semantic glyphs and
+/// shell-aware margins.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -11,9 +13,16 @@ import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/root_shell_bottom_inset.dart';
 import 'package:enjoy_player/core/player/player_surface_overlay_coordinator.dart';
+import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 final _log = logNamed('AppNotice');
+
+/// Toast surface color for [AppNotice] in [brightness].
+Color appNoticeBackground(Brightness brightness) =>
+    brightness == Brightness.light
+    ? const Color(0xF516161D)
+    : const Color(0xFF2A2A33);
 
 /// Root [ScaffoldMessenger] so notices work from any [BuildContext] (e.g. hotkeys).
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
@@ -92,38 +101,37 @@ abstract final class AppNotice {
       }
 
       final theme = Theme.of(context);
-      final cs = theme.colorScheme;
       final tokens = EnjoyThemeTokens.of(context);
 
-      late final Color backgroundColor;
-      late final Color foregroundColor;
+      // Aurora toast: one dark, quiet surface in both themes (inverse on
+      // porcelain, lifted on midnight); the semantic color lives only in the
+      // leading glyph (ADR-0089).
+      final backgroundColor = appNoticeBackground(theme.brightness);
+      const foregroundColor = Color(0xFFF4F4F7);
+      late final Color iconColor;
       late final IconData icon;
       late final Duration duration;
       late final bool wantsDismiss;
 
       switch (kind) {
         case _AppNoticeKind.success:
-          backgroundColor = cs.primaryContainer;
-          foregroundColor = cs.onPrimaryContainer;
-          icon = Icons.check_circle_rounded;
+          iconColor = AppColors.scoreGoodDark;
+          icon = EnjoyIcons.checkCircleFill;
           duration = const Duration(seconds: 3);
           wantsDismiss = false;
         case _AppNoticeKind.error:
-          backgroundColor = cs.errorContainer;
-          foregroundColor = cs.onErrorContainer;
-          icon = Icons.error_rounded;
+          iconColor = AppColors.scoreBadDark;
+          icon = EnjoyIcons.errorFill;
           duration = const Duration(seconds: 5);
           wantsDismiss = true;
         case _AppNoticeKind.info:
-          backgroundColor = cs.surfaceContainerHigh;
-          foregroundColor = cs.onSurface;
-          icon = Icons.info_rounded;
+          iconColor = AppColors.brandOnDark;
+          icon = EnjoyIcons.infoFill;
           duration = const Duration(seconds: 3);
           wantsDismiss = false;
         case _AppNoticeKind.warning:
-          backgroundColor = cs.tertiaryContainer;
-          foregroundColor = cs.onTertiaryContainer;
-          icon = Icons.warning_rounded;
+          iconColor = AppColors.scoreWarnDark;
+          icon = EnjoyIcons.warning;
           duration = const Duration(seconds: 4);
           wantsDismiss = true;
       }
@@ -151,8 +159,8 @@ abstract final class AppNotice {
           ? math.max(horizontal, (maxW - snackMaxWidth) / 2)
           : horizontal;
 
-      final radius = tokens.radiusXl;
-      final elevation = tokens.elevationSheet;
+      final radius = tokens.radiusLg;
+      final elevation = tokens.elevationModal;
 
       final textStyle = theme.textTheme.bodyMedium?.copyWith(
         color: foregroundColor,
@@ -180,8 +188,9 @@ abstract final class AppNotice {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           elevation: elevation,
-          shape: RoundedRectangleBorder(
+          shape: RoundedSuperellipseBorder(
             borderRadius: BorderRadius.circular(radius),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
           ),
           backgroundColor: backgroundColor,
           duration: duration,
@@ -201,6 +210,7 @@ abstract final class AppNotice {
           padding: EdgeInsets.symmetric(horizontal: tokens.space16),
           content: _AppNoticeBody(
             icon: icon,
+            iconColor: iconColor,
             message: message,
             textStyle: textStyle,
             foregroundColor: foregroundColor,
@@ -248,6 +258,7 @@ abstract final class AppNotice {
 class _AppNoticeBody extends StatelessWidget {
   const _AppNoticeBody({
     required this.icon,
+    required this.iconColor,
     required this.message,
     required this.textStyle,
     required this.foregroundColor,
@@ -256,6 +267,7 @@ class _AppNoticeBody extends StatelessWidget {
   });
 
   final IconData icon;
+  final Color iconColor;
   final String message;
   final TextStyle? textStyle;
   final Color foregroundColor;
@@ -272,7 +284,7 @@ class _AppNoticeBody extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, color: foregroundColor, size: 22),
+            Icon(icon, color: iconColor, size: 20),
             SizedBox(width: tokens.space12),
             Expanded(
               // Vertical rhythm matches SnackBar's own single-line padding, so
@@ -297,7 +309,7 @@ class _AppNoticeBody extends StatelessWidget {
                 Flexible(
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: foregroundColor,
+                      foregroundColor: AppColors.brandOnDark,
                       padding: EdgeInsets.symmetric(horizontal: tokens.space8),
                     ),
                     onPressed: action.onPressed,
@@ -322,8 +334,8 @@ class _AppNoticeBody extends StatelessWidget {
     key: StandardComponentType.closeButton.key,
     tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
     onPressed: onDismiss,
-    icon: const Icon(Icons.close),
-    iconSize: 24,
-    color: foregroundColor,
+    icon: const Icon(EnjoyIcons.close),
+    iconSize: 18,
+    color: foregroundColor.withValues(alpha: 0.7),
   );
 }

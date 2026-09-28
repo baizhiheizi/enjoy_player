@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:go_router/go_router.dart';
@@ -288,7 +289,7 @@ void main() {
         final before = _repo.unsubscribeCalls;
 
         // Find the IconButton with the bell-off icon and tap.
-        final unsubscribe = find.byIcon(Icons.notifications_off_outlined);
+        final unsubscribe = find.byIcon(EnjoyIcons.bellOff);
         expect(unsubscribe, findsOneWidget);
 
         await tester.tap(unsubscribe);

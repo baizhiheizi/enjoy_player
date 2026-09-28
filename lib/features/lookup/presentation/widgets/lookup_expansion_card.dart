@@ -1,6 +1,7 @@
 /// Expandable tonal card for lookup sheet sections (lazy body until first expand).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -46,9 +47,9 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
 
     return Material(
       color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
+      shape: RoundedSuperellipseBorder(
         borderRadius: BorderRadius.circular(t.radiusMd),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+        side: BorderSide(color: t.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -93,7 +94,7 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
                       duration: t.motionFast,
                       curve: Curves.easeOutCubic,
                       child: Icon(
-                        Icons.expand_more_rounded,
+                        EnjoyIcons.chevronDown,
                         color: scheme.onSurfaceVariant,
                         size: 22,
                       ),

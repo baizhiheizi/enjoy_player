@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -107,7 +108,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Mic icon.
-      expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
 
       // Title.
       expect(find.text("Say what's on your mind"), findsOneWidget);
@@ -167,7 +168,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(craftControllerProvider).isCapturing, isFalse);
-      expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
     },
   );
 
@@ -188,7 +189,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsNothing);
-    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
   });
 
   testWidgets(
@@ -257,7 +258,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Failure card icon.
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     // The retry button label is "Retry" for CraftFailureAction.retry.
     expect(find.text('Retry'), findsOneWidget);
   });

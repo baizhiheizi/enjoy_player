@@ -1,9 +1,9 @@
-/// Gradient scaffold shared by sign-in hub and email OTP flow.
+/// Aurora-lit scaffold shared by sign-in hub and email OTP flow.
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/app_background.dart';
 
 class SignInFlowScaffold extends StatelessWidget {
   const SignInFlowScaffold({super.key, this.appBar, required this.child});
@@ -13,20 +13,15 @@ class SignInFlowScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: cs.surface,
       appBar: appBar,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [t.gradientStart, t.gradientEnd],
-              ),
-            ),
+          const Positioned.fill(
+            child: IgnorePointer(child: AuroraGlow(intensity: 2.2)),
           ),
           SafeArea(child: child),
         ],

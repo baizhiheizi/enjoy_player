@@ -589,6 +589,7 @@ class _TranscriptScrollableListState
                   inEcho: inEcho,
                   groupedInEcho: false,
                   selectable: selectable,
+                  dimWhenInactive: activeForUi >= 0,
                   recordingCount: lineRecordingCounts?[lineIndex],
                   onLookupRequested: selectable
                       ? (t) => openTranscriptLookup(

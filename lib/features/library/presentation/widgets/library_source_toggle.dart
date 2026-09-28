@@ -1,9 +1,10 @@
 /// Compact Local / Cloud badge toggle for the Library header title row.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -34,48 +35,48 @@ class LibrarySourceToggle extends StatelessWidget {
       button: true,
       label: l10n.librarySourceSwitchSemantics,
       value: label,
+      excludeSemantics: true,
       child: Tooltip(
         message: tooltip,
-        child: Material(
-          color: isCloud
-              ? cs.primaryContainer.withValues(alpha: 0.55)
-              : cs.surfaceContainerHighest.withValues(alpha: 0.65),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(t.radiusFull),
-            side: BorderSide(
-              color: cs.outlineVariant.withValues(alpha: isCloud ? 0.35 : 0.25),
-            ),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              Haptics.selection(context);
-              onToggle();
-            },
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(t.space8, 4, t.space4, 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: tt.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.1,
-                      color: isCloud
-                          ? cs.onPrimaryContainer
-                          : cs.onSurfaceVariant,
-                    ),
-                  ),
-                  Icon(
-                    Icons.swap_horiz_rounded,
-                    size: 16,
-                    color: isCloud
-                        ? cs.onPrimaryContainer
-                        : cs.onSurfaceVariant,
-                  ),
-                ],
+        child: EnjoyPressable(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(t.radiusFull),
+          pressedScale: 0.95,
+          child: Container(
+            padding: EdgeInsets.fromLTRB(t.space8 + 2, 4, t.space8, 4),
+            decoration: ShapeDecoration(
+              color: isCloud ? t.accentSoft : t.fill,
+              shape: StadiumBorder(
+                side: BorderSide(
+                  color: isCloud
+                      ? t.accentInk.withValues(alpha: 0.18)
+                      : t.hairline,
+                ),
               ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isCloud ? EnjoyIcons.cloudDone : EnjoyIcons.monitor,
+                  size: 13,
+                  color: isCloud ? t.accentInk : cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: tt.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isCloud ? t.accentInk : cs.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  EnjoyIcons.caretUpDown,
+                  size: 12,
+                  color: isCloud ? t.accentInk : t.textFaint,
+                ),
+              ],
             ),
           ),
         ),

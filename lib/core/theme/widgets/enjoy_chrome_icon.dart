@@ -1,10 +1,12 @@
-/// Prototype outlined chrome icons (sprite port) for shell / transport / settings.
+/// Chrome glyphs for shell / transport / settings, rendered from the Aurora
+/// icon family ([EnjoyIcons]) so chrome and content icons share one
+/// stroke language.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 
-/// Glyphs ported from the Enjoy Player prototype `assets/icons.svg` sprite.
+/// Semantic chrome glyphs (stable ids used by shell, transport, and tests).
 enum EnjoyChromeGlyph {
   home,
   compass,
@@ -35,62 +37,84 @@ enum EnjoyChromeGlyph {
   check,
 }
 
-extension EnjoyChromeGlyphAsset on EnjoyChromeGlyph {
-  static const _paths = <EnjoyChromeGlyph, String>{
-    EnjoyChromeGlyph.home: 'assets/icons/home.svg',
-    EnjoyChromeGlyph.compass: 'assets/icons/compass.svg',
-    EnjoyChromeGlyph.library: 'assets/icons/library.svg',
-    EnjoyChromeGlyph.user: 'assets/icons/user.svg',
-    EnjoyChromeGlyph.play: 'assets/icons/play.svg',
-    EnjoyChromeGlyph.pause: 'assets/icons/pause.svg',
-    EnjoyChromeGlyph.skipBack: 'assets/icons/skip-back.svg',
-    EnjoyChromeGlyph.skipForward: 'assets/icons/skip-forward.svg',
-    EnjoyChromeGlyph.replay: 'assets/icons/replay.svg',
-    EnjoyChromeGlyph.mic: 'assets/icons/mic.svg',
-    EnjoyChromeGlyph.wave: 'assets/icons/wave.svg',
-    EnjoyChromeGlyph.cc: 'assets/icons/cc.svg',
-    EnjoyChromeGlyph.speed: 'assets/icons/speed.svg',
-    EnjoyChromeGlyph.volume: 'assets/icons/volume.svg',
-    EnjoyChromeGlyph.volumeOff: 'assets/icons/volume-off.svg',
-    EnjoyChromeGlyph.plus: 'assets/icons/plus.svg',
-    EnjoyChromeGlyph.search: 'assets/icons/search.svg',
-    EnjoyChromeGlyph.close: 'assets/icons/x.svg',
-    EnjoyChromeGlyph.sun: 'assets/icons/sun.svg',
-    EnjoyChromeGlyph.moon: 'assets/icons/moon.svg',
-    EnjoyChromeGlyph.monitor: 'assets/icons/monitor.svg',
-    EnjoyChromeGlyph.gear: 'assets/icons/gear.svg',
-    EnjoyChromeGlyph.chevronDown: 'assets/icons/chevron-down.svg',
-    EnjoyChromeGlyph.chevronRight: 'assets/icons/chevron-right.svg',
-    EnjoyChromeGlyph.chevronLeft: 'assets/icons/chevron-left.svg',
-    EnjoyChromeGlyph.dots: 'assets/icons/dots.svg',
-    EnjoyChromeGlyph.check: 'assets/icons/check.svg',
+extension EnjoyChromeGlyphIcon on EnjoyChromeGlyph {
+  /// Outline glyph (resting state).
+  IconData get icon => switch (this) {
+    EnjoyChromeGlyph.home => EnjoyIcons.home,
+    EnjoyChromeGlyph.compass => EnjoyIcons.compassNav,
+    EnjoyChromeGlyph.library => EnjoyIcons.libraryNav,
+    EnjoyChromeGlyph.user => EnjoyIcons.personNav,
+    EnjoyChromeGlyph.play => EnjoyIcons.play,
+    EnjoyChromeGlyph.pause => EnjoyIcons.pause,
+    EnjoyChromeGlyph.skipBack => EnjoyIcons.skipBackLine,
+    EnjoyChromeGlyph.skipForward => EnjoyIcons.skipForwardLine,
+    EnjoyChromeGlyph.replay => EnjoyIcons.replay,
+    EnjoyChromeGlyph.mic => EnjoyIcons.mic,
+    EnjoyChromeGlyph.wave => EnjoyIcons.waveform,
+    EnjoyChromeGlyph.cc => EnjoyIcons.subtitles,
+    EnjoyChromeGlyph.speed => EnjoyIcons.speed,
+    EnjoyChromeGlyph.volume => EnjoyIcons.volume,
+    EnjoyChromeGlyph.volumeOff => EnjoyIcons.volumeOff,
+    EnjoyChromeGlyph.plus => EnjoyIcons.add,
+    EnjoyChromeGlyph.search => EnjoyIcons.search,
+    EnjoyChromeGlyph.close => EnjoyIcons.close,
+    EnjoyChromeGlyph.sun => EnjoyIcons.sun,
+    EnjoyChromeGlyph.moon => EnjoyIcons.moon,
+    EnjoyChromeGlyph.monitor => EnjoyIcons.monitor,
+    EnjoyChromeGlyph.gear => EnjoyIcons.gear,
+    EnjoyChromeGlyph.chevronDown => EnjoyIcons.chevronDown,
+    EnjoyChromeGlyph.chevronRight => EnjoyIcons.chevronRight,
+    EnjoyChromeGlyph.chevronLeft => EnjoyIcons.chevronLeft,
+    EnjoyChromeGlyph.dots => EnjoyIcons.more,
+    EnjoyChromeGlyph.check => EnjoyIcons.check,
   };
 
-  String get assetPath => _paths[this]!;
+  /// Filled glyph for selected / active states.
+  IconData get filledIcon => switch (this) {
+    EnjoyChromeGlyph.home => EnjoyIcons.homeFill,
+    EnjoyChromeGlyph.compass => EnjoyIcons.compassNavFill,
+    EnjoyChromeGlyph.library => EnjoyIcons.libraryNavFill,
+    EnjoyChromeGlyph.user => EnjoyIcons.personNavFill,
+    EnjoyChromeGlyph.skipBack => EnjoyIcons.skipBack,
+    EnjoyChromeGlyph.skipForward => EnjoyIcons.skipForward,
+    EnjoyChromeGlyph.mic => EnjoyIcons.micFill,
+    EnjoyChromeGlyph.wave => EnjoyIcons.waveformFill,
+    EnjoyChromeGlyph.cc => EnjoyIcons.subtitlesFill,
+    EnjoyChromeGlyph.speed => EnjoyIcons.speedFill,
+    EnjoyChromeGlyph.volume => EnjoyIcons.volumeFill,
+    EnjoyChromeGlyph.volumeOff => EnjoyIcons.volumeOffFill,
+    EnjoyChromeGlyph.gear => EnjoyIcons.gearFill,
+    EnjoyChromeGlyph.sun => EnjoyIcons.sunFill,
+    EnjoyChromeGlyph.moon => EnjoyIcons.moonFill,
+    EnjoyChromeGlyph.monitor => EnjoyIcons.monitorFill,
+    _ => icon,
+  };
 }
 
-/// Tinted SVG chrome icon. Color follows [IconTheme] when [color] is omitted.
+/// Tinted chrome icon. Color and size follow [IconTheme] when omitted.
 class EnjoyChromeIcon extends StatelessWidget {
-  const EnjoyChromeIcon(this.glyph, {super.key, this.size, this.color});
+  const EnjoyChromeIcon(
+    this.glyph, {
+    super.key,
+    this.size,
+    this.color,
+    this.filled = false,
+  });
 
   final EnjoyChromeGlyph glyph;
   final double? size;
   final Color? color;
 
+  /// Render the filled variant (selected nav item, active toggle).
+  final bool filled;
+
   @override
   Widget build(BuildContext context) {
-    final iconTheme = IconTheme.of(context);
-    final resolvedSize = size ?? iconTheme.size ?? 22;
-    final resolvedColor =
-        color ?? iconTheme.color ?? DefaultTextStyle.of(context).style.color;
-    return SvgPicture.asset(
-      glyph.assetPath,
-      width: resolvedSize,
-      height: resolvedSize,
-      colorFilter: resolvedColor == null
-          ? null
-          : ColorFilter.mode(resolvedColor, BlendMode.srcIn),
-      semanticsLabel: glyph.name,
+    return Icon(
+      filled ? glyph.filledIcon : glyph.icon,
+      size: size,
+      color: color,
+      semanticLabel: glyph.name,
     );
   }
 }

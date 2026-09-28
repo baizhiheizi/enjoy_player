@@ -1,6 +1,7 @@
 /// YouTube-style Discover feed video card with add / play actions.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,7 +10,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
-import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card/badges.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
@@ -24,7 +28,7 @@ import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
-const double discoverFeedTileGridAspectRatio = 1.28;
+const double discoverFeedTileGridAspectRatio = 1.24;
 
 /// Per-locale bundle of `DateFormat` instances used by [_formatPublishedLabel].
 ///
@@ -140,72 +144,58 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
     final durationLabel = _durationLabel(entry);
 
-    return MouseRegion(
-      onEnter: (_) => runOutsideMouseTrackerIfMounted(() => mounted, () {
-        if (_hover) return;
-        setState(() => _hover = true);
-      }),
-      onExit: (_) => runOutsideMouseTrackerIfMounted(() => mounted, () {
-        if (!_hover) return;
-        setState(() => _hover = false);
-      }),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          onTap: () => unawaited(_play()),
-          hoverColor: cs.onSurface.withValues(alpha: 0.04),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return EnjoyPressable(
+      onTap: () => unawaited(_play()),
+      onHoverChanged: (h) => setState(() => _hover = h),
+      showHoverWash: false,
+      pressedScale: 0.98,
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _VideoThumbnail(
+            thumbUrl: thumb,
+            coverSeed: entry.videoId,
+            hover: _hover,
+            inLibrary: inLibrary,
+            adding: _adding,
+            durationLabel: durationLabel,
+          ),
+          SizedBox(height: t.space12 - 2),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _VideoThumbnail(
-                thumbUrl: thumb,
-                coverSeed: entry.videoId,
-                hover: _hover,
-                inLibrary: inLibrary,
-                adding: _adding,
-                durationLabel: durationLabel,
+              _ChannelAvatar(
+                imageUrl: channelAvatar,
+                label: channelName,
+                seed: entry.channelId,
               ),
-              SizedBox(height: t.space8),
-              Padding(
-                padding: EdgeInsets.fromLTRB(t.space4, 0, t.space4, t.space4),
-                child: Row(
+              SizedBox(width: t.space8 + 2),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _ChannelAvatar(
-                      imageUrl: channelAvatar,
-                      label: channelName,
-                      seed: entry.channelId,
+                    Text(
+                      entry.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.titleSmall?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        height: 1.3,
+                      ),
                     ),
-                    SizedBox(width: t.space8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            entry.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: tt.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              height: 1.22,
-                            ),
-                          ),
-                          SizedBox(height: t.space4),
-                          Text(
-                            '$channelName · $publishedLabel',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: tt.labelMedium?.copyWith(
-                              color: cs.onSurfaceVariant.withValues(
-                                alpha: 0.85,
-                              ),
-                              height: 1.15,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 3),
+                    Text(
+                      '$channelName · $publishedLabel',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        height: 1.2,
                       ),
                     ),
                   ],
@@ -213,7 +203,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -259,109 +249,115 @@ class _VideoThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
+    final light = Theme.of(context).brightness == Brightness.light;
+    final radius = BorderRadius.circular(t.radiusMd);
+    final instant = MediaQuery.disableAnimationsOf(context);
 
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (thumbUrl != null)
-              Image(
-                image: CachedNetworkImageProvider(thumbUrl!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    GenerativeMediaCover(seed: coverSeed, isVideo: true),
-              )
-            else
-              GenerativeMediaCover(seed: coverSeed, isVideo: true),
-            if (hover)
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.22),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          shape: RoundedSuperellipseBorder(borderRadius: radius),
+          shadows: hover
+              ? t.shadowFloat
+              : (light ? t.shadowCard : const <BoxShadow>[]),
+        ),
+        child: ClipRSuperellipse(
+          borderRadius: radius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              AnimatedScale(
+                scale: hover && !instant ? 1.035 : 1,
+                duration: t.motionStandard,
+                curve: EnjoyThemeTokens.ease,
+                child: thumbUrl != null
+                    ? Image(
+                        image: CachedNetworkImageProvider(thumbUrl!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => GenerativeMediaCover(
+                          seed: coverSeed,
+                          isVideo: true,
+                        ),
+                      )
+                    : GenerativeMediaCover(seed: coverSeed, isVideo: true),
+              ),
+              IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: hover ? 1 : 0,
+                  duration: t.motionFast,
+                  child: const ColoredBox(color: Color(0x2E000000)),
                 ),
               ),
-            if (hover && !adding)
-              Center(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.78),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(14),
-                    child: Icon(
-                      Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 32,
+              IgnorePointer(
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity: hover && !adding ? 1 : 0,
+                    duration: t.motionFast,
+                    child: AnimatedScale(
+                      scale: hover ? 1 : 0.85,
+                      duration: t.motionStandard,
+                      curve: EnjoyThemeTokens.ease,
+                      child: const MediaCardPlayGlyph(),
                     ),
                   ),
                 ),
               ),
-            if (adding)
-              ColoredBox(
-                color: Colors.black.withValues(alpha: 0.45),
-                child: const Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
+              if (adding)
+                const ColoredBox(
+                  color: Color(0x73000000),
+                  child: Center(
+                    child: LoadingIcon(
+                      size: 26,
                       strokeWidth: 2.5,
                       color: Colors.white,
                     ),
                   ),
                 ),
-              ),
-            if (inLibrary)
-              Positioned(
-                top: t.space8,
-                right: t.space8,
+              IgnorePointer(
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(t.radiusSm),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: t.space8,
-                      vertical: t.space4,
-                    ),
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      size: 14,
-                      color: cs.primary.withValues(alpha: 0.95),
-                    ),
-                  ),
-                ),
-              ),
-            if (durationLabel != null)
-              Positioned(
-                right: t.space8,
-                bottom: t.space8,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.78),
-                    borderRadius: BorderRadius.circular(t.radiusSm),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: t.space8,
-                      vertical: t.space4,
-                    ),
-                    child: Text(
-                      durationLabel!,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                  decoration: ShapeDecoration(
+                    shape: RoundedSuperellipseBorder(
+                      borderRadius: radius,
+                      side: BorderSide(
+                        color: light
+                            ? const Color(0x1416161D)
+                            : Colors.white.withValues(alpha: 0.07),
                       ),
                     ),
                   ),
                 ),
               ),
-          ],
+              if (inLibrary)
+                Positioned(
+                  top: t.space8,
+                  right: t.space8,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: ShapeDecoration(
+                      color: const Color(0x99000000),
+                      shape: CircleBorder(
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.14),
+                        ),
+                      ),
+                    ),
+                    child: const Icon(
+                      EnjoyIcons.check,
+                      size: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              if (durationLabel != null)
+                Positioned(
+                  right: t.space8,
+                  bottom: t.space8,
+                  child: MediaCardDurationBadge(label: durationLabel!),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -381,38 +377,6 @@ class _ChannelAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = generativeAccentForSeed(seed);
-    final initial = label.trim().isNotEmpty
-        ? label.trim()[0].toUpperCase()
-        : '?';
-
-    Widget fallback() {
-      return ColoredBox(
-        color: accent.withValues(alpha: 0.22),
-        child: Center(
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return ClipOval(
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: imageUrl != null
-            ? Image(
-                image: CachedNetworkImageProvider(imageUrl!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback(),
-              )
-            : fallback(),
-      ),
-    );
+    return EnjoyAvatar(name: label, imageUrl: imageUrl, size: 34);
   }
 }

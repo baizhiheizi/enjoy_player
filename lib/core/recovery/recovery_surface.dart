@@ -3,6 +3,7 @@
 /// destructive "Reset local library" action that backs up before wiping.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
@@ -55,7 +56,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.warning_amber_rounded, size: 64, color: cs.error),
+                  Icon(EnjoyIcons.warning, size: 64, color: cs.error),
                   SizedBox(height: t.space16),
                   Text(
                     l10n.recoveryTitle,
@@ -92,7 +93,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                         SizedBox(
                           width: double.infinity,
                           child: EnjoyButton.secondary(
-                            icon: Icons.copy_rounded,
+                            icon: EnjoyIcons.copy,
                             onPressed: busy ? null : _onCopy,
                             child: Text(l10n.recoveryCopyError),
                           ),
@@ -104,7 +105,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                   SizedBox(
                     width: double.infinity,
                     child: EnjoyButton.secondary(
-                      icon: Icons.folder_open_rounded,
+                      icon: EnjoyIcons.folder,
                       onPressed: busy ? null : _onOpenLogs,
                       child: Text(l10n.recoveryOpenLogs),
                     ),
@@ -133,7 +134,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                         SizedBox(
                           width: double.infinity,
                           child: EnjoyButton.destructive(
-                            icon: Icons.delete_outline_rounded,
+                            icon: EnjoyIcons.delete,
                             onPressed: busy ? null : _onResetRequest,
                             child: Text(l10n.recoveryResetLibrary),
                           ),

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -42,7 +43,7 @@ class ShadowReadingToolbarRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pitchIcon = Icon(
-      Icons.show_chart_rounded,
+      EnjoyIcons.chart,
       size: 22,
       color: hasMediaPath
           ? null

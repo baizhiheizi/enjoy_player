@@ -1,6 +1,7 @@
 /// Voice picker dropdown for the synthesize tool (Azure Neural voices).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
@@ -33,11 +34,7 @@ class VoicePicker extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          Icons.record_voice_over_rounded,
-          size: 18,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(EnjoyIcons.speak, size: 18, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           l10n.craftVoiceLabel,

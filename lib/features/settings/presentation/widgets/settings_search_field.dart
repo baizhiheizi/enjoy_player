@@ -1,6 +1,7 @@
 /// Search field for the Settings hub — filters rows/sections as you type.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -64,14 +65,14 @@ class _SettingsSearchFieldState extends ConsumerState<SettingsSearchField> {
         decoration: InputDecoration(
           hintText: l10n.settingsSearchHint,
           prefixIcon: Icon(
-            Icons.search_rounded,
+            EnjoyIcons.search,
             color: cs.onSurfaceVariant,
             size: 20,
           ),
           suffixIcon: hasQuery
               ? IconButton(
                   tooltip: l10n.settingsSearchClear,
-                  icon: const Icon(Icons.close_rounded, size: 18),
+                  icon: const Icon(EnjoyIcons.close, size: 18),
                   onPressed: () {
                     _controller.clear();
                     ref.read(settingsSearchQueryProvider.notifier).clear();

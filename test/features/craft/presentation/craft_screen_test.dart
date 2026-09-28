@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -186,8 +187,8 @@ void main() {
     expect(find.text('Advanced'), findsWidgets);
 
     // Icons for each mode.
-    expect(find.byIcon(Icons.mic_rounded), findsWidgets);
-    expect(find.byIcon(Icons.edit_note_rounded), findsWidgets);
+    expect(find.byIcon(EnjoyIcons.mic), findsWidgets);
+    expect(find.byIcon(EnjoyIcons.edit), findsWidgets);
   });
 
   testWidgets(

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PronounceIconButton), findsOneWidget);
-    expect(find.byIcon(Icons.volume_up_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.volume), findsOneWidget);
   });
 
   testWidgets('dispose calls pronounce stop', (tester) async {

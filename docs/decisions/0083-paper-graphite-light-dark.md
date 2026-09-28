@@ -1,6 +1,6 @@
 # ADR-0083 — Paper / graphite dual theme (supersedes ADR-0011)
 
-**Status**: Accepted  
+**Status**: Accepted — palette (§1), chrome (§4), and type (§5) superseded by [ADR-0089](0089-aurora-design-language.md); theme mode (§3) stands  
 **Date**: 2026-08-24
 
 **Supersedes**: [ADR-0011](0011-dark-mode-only.md)

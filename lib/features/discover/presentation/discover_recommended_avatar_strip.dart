@@ -1,6 +1,7 @@
 /// Horizontal avatar-only row of recommended channels (tap to subscribe).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -153,11 +154,7 @@ class _RecommendedAvatarTile extends ConsumerWidget {
                         width: 1.5,
                       ),
                     ),
-                    child: Icon(
-                      Icons.add_rounded,
-                      size: 14,
-                      color: cs.onPrimary,
-                    ),
+                    child: Icon(EnjoyIcons.add, size: 14, color: cs.onPrimary),
                   ),
                 ),
               ],

@@ -1,6 +1,7 @@
 /// Prev/next pager for multi-context flashcards.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
@@ -38,7 +39,7 @@ class VocabularyContextPager extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           EnjoyTappableIcon(
-            icon: Icons.chevron_left_rounded,
+            icon: EnjoyIcons.chevronLeft,
             tooltip: l10n.vocabularyPreviousContext,
             onPressed: index > 0 ? onPrevious : null,
           ),
@@ -53,7 +54,7 @@ class VocabularyContextPager extends StatelessWidget {
             ),
           ),
           EnjoyTappableIcon(
-            icon: Icons.chevron_right_rounded,
+            icon: EnjoyIcons.chevronRight,
             tooltip: l10n.vocabularyNextContext,
             onPressed: index < total - 1 ? onNext : null,
           ),

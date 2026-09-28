@@ -4,6 +4,7 @@
 /// specs/004-settings-redesign/contracts/settings-search.md §2.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,7 +28,7 @@ class SettingsNoResults extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.search_off_rounded,
+            EnjoyIcons.searchOff,
             size: 40,
             color: cs.onSurfaceVariant.withValues(alpha: 0.6),
           ),

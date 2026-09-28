@@ -57,16 +57,27 @@ class _TransportPlayRingButtonState extends State<TransportPlayRingButton> {
                 duration: const Duration(milliseconds: 90),
                 curve: Curves.easeOutCubic,
                 child: Ink(
-                  width: 48,
-                  height: 48,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: ringColor,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(ringColor, Colors.white, 0.14)!,
+                        ringColor,
+                      ],
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.16),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: ringColor.withValues(alpha: 0.28),
-                        blurRadius: 14,
-                        spreadRadius: 0,
+                        color: ringColor.withValues(alpha: 0.38),
+                        blurRadius: 16,
+                        spreadRadius: -4,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
@@ -92,7 +103,7 @@ class _TransportPlayRingButtonState extends State<TransportPlayRingButton> {
                                   : EnjoyChromeGlyph.play,
                               key: ValueKey<bool>(widget.playing),
                               color: AppColors.onAccent,
-                              size: 22,
+                              size: 20,
                             ),
                           ),
                   ),
