@@ -7,7 +7,10 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/discover/application/discover_feed_join.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/channel_feed_screen.dart';
@@ -58,7 +61,7 @@ final _entries = [
 ];
 
 class _FakeDiscoverRepository extends DiscoverRepository {
-  _FakeDiscoverRepository(super.db);
+  _FakeDiscoverRepository(super.db, {required super.libraryRepository});
 
   int unsubscribeCalls = 0;
 
@@ -85,13 +88,20 @@ Widget _wrap({
   bool useRealRepo = true,
   List<Override> extraOverrides = const <Override>[],
 }) {
-  _repo = _FakeDiscoverRepository(_db);
+  _repo = _FakeDiscoverRepository(
+    _db,
+    libraryRepository: MediaLibraryRepository(_db, FileStorage()),
+  );
   return ProviderScope(
     overrides: [
       appDatabaseProvider.overrideWithValue(_db),
       if (useRealRepo) discoverRepositoryProvider.overrideWithValue(_repo),
       discoverSubscriptionsProvider.overrideWith((ref) => subscriptions),
-      discoverChannelFeedProvider.overrideWith((ref, channelId) => channelFeed),
+      discoverChannelFeedItemsProvider.overrideWith(
+        (ref, channelId) => channelFeed.map(
+          (entries) => projectDiscoverFeedItems(entries, const <String>{}),
+        ),
+      ),
       ...extraOverrides,
     ],
     child: const MaterialApp(
@@ -247,8 +257,14 @@ void main() {
               discoverSubscriptionsProvider.overrideWith(
                 (ref) => Stream.value(_subscriptions),
               ),
-              discoverChannelFeedProvider.overrideWith(
-                (ref, channelId) => Stream.value(_entries),
+              // The screen watches the membership-joined feed now, so this
+              // override has to shape the joined stream too (issue #764
+              // candidate 6) — otherwise the real provider subscribes to a
+              // never-closing drift stream and `pumpAndSettle` never settles.
+              discoverChannelFeedItemsProvider.overrideWith(
+                (ref, channelId) => Stream.value(
+                  projectDiscoverFeedItems(_entries, const <String>{}),
+                ),
               ),
             ],
             child: MaterialApp.router(

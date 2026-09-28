@@ -41,7 +41,8 @@
 
 - [x] T003 Create `DeviceFormFactor` enum, `kTabletShortestSideLogical` (600), and `resolveDeviceFormFactor` in `lib/core/platform/device_form_factor.dart` per [data-model.md](data-model.md) and [contracts/orientation-policy.md](contracts/orientation-policy.md)
 - [x] T004 [P] Add `preferredOrientationsFor` (phone → portraitUp/Down; tablet → all four; desktop → null) in `lib/core/platform/device_form_factor.dart` (or adjacent helper in the same library)
-- [x] T005 [P] Create `usePlayerSideBySideLayout({required double width, required double height})` in `lib/core/platform/player_content_layout.dart` per [contracts/player-content-layout.md](contracts/player-content-layout.md) (`width > height` → true)
+- [x] T005 [P] Create `usePlayerSideBySideLayout({required double width, required double height})` in `lib/core/platform/player_content_layout.dart` per [contracts/player-content-layout.md](contracts/player-content-layout.md) (`width > height` → true)  
+    > **Superseded by `f6d60687`** ("trim dead code across platform, audio, errors, cache, layout"): the helper module was inlined at its sole caller in `lib/features/player/presentation/layouts/video_player_layout.dart`, and both the module and its unit test were deleted. The aspect fixtures stay pinned by `test/features/player/video_player_layout_test.dart`; ADR-0059 now records the decision.
 - [x] T006 Export/document the helpers with brief dartdoc linking the 600 dp tablet threshold and square→stacked rule; ensure no widget imports in these pure files beyond `foundation` / `services` as needed for `TargetPlatform` / `DeviceOrientation`
 
 **Checkpoint**: Pure APIs exist and compile; story implementation can begin
@@ -77,12 +78,14 @@
 
 ### Tests for User Story 2
 
-- [x] T012 [P] [US2] Unit tests for `usePlayerSideBySideLayout` in `test/core/platform/player_content_layout_test.dart` (900×600 true; 800×1000 false; 700×400 true; 600×600 false)
+- [x] T012 [P] [US2] Unit tests for `usePlayerSideBySideLayout` in `test/core/platform/player_content_layout_test.dart` (900×600 true; 800×1000 false; 700×400 true; 600×600 false)  
+    > **Superseded by `f6d60687`** ("trim dead code across platform, audio, errors, cache, layout"): the helper module was inlined at its sole caller in `lib/features/player/presentation/layouts/video_player_layout.dart`, and both the module and its unit test were deleted. The aspect fixtures stay pinned by `test/features/player/video_player_layout_test.dart`; ADR-0059 now records the decision.
 - [x] T013 [P] [US2] Update widget expectations in `test/features/player/video_player_layout_test.dart` to the aspect fixtures in [contracts/player-content-layout.md](contracts/player-content-layout.md); remove assertions that treat width&gt;720 alone as side-by-side
 
 ### Implementation for User Story 2
 
-- [x] T014 [US2] Replace the `breakpointTranscriptSideBySide` side-by-side gate in `lib/features/player/presentation/layouts/video_player_layout.dart` with `usePlayerSideBySideLayout(width: constraints.maxWidth, height: constraints.maxHeight)`
+- [x] T014 [US2] Replace the `breakpointTranscriptSideBySide` side-by-side gate in `lib/features/player/presentation/layouts/video_player_layout.dart` with `usePlayerSideBySideLayout(width: constraints.maxWidth, height: constraints.maxHeight)`  
+    > **Superseded by `f6d60687`** ("trim dead code across platform, audio, errors, cache, layout"): the helper module was inlined at its sole caller in `lib/features/player/presentation/layouts/video_player_layout.dart`, and both the module and its unit test were deleted. The aspect fixtures stay pinned by `test/features/player/video_player_layout_test.dart`; ADR-0059 now records the decision.
 - [x] T015 [US2] Confirm `lib/features/player/presentation/widgets/global_transport_bar.dart` (and any other width packing) still uses `breakpointTranscriptSideBySide` — do not remove the token from `lib/core/theme/enjoy_tokens.dart`
 - [x] T016 [US2] Run `flutter test test/core/platform/player_content_layout_test.dart test/features/player/video_player_layout_test.dart` and fix regressions until green
 

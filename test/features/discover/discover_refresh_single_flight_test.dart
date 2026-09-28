@@ -5,12 +5,14 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A [DiscoverRepository] that stalls [refreshFeeds] until [barrier] completes.
 class _TestDiscoverRepository extends DiscoverRepository {
-  _TestDiscoverRepository(super.db);
+  _TestDiscoverRepository(super.db, {required super.libraryRepository});
 
   /// Completer that stalls [refreshFeeds] until released.
   Completer<void> barrier = Completer<void>();
@@ -41,7 +43,10 @@ void main() {
 
     setUp(() {
       db = AppDatabase(executor: NativeDatabase.memory());
-      repo = _TestDiscoverRepository(db);
+      repo = _TestDiscoverRepository(
+        db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
+      );
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),

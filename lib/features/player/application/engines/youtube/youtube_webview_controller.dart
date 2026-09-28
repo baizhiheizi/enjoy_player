@@ -63,7 +63,6 @@ class YoutubeWebViewController {
       captureVerifyGeneration: () => _verifyGeneration,
       isVerifyGenerationStale: (gen) => gen != _verifyGeneration,
       bumpNavGeneration: () => ++_navGeneration,
-      currentNavGeneration: () => _navGeneration,
       onStaleWebView: () {
         attach(null);
         session.noteWebViewUnmounted();

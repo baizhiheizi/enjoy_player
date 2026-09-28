@@ -55,14 +55,21 @@ class YoutubeFeedFetchException implements Exception {
 }
 
 class DiscoverRepository {
+  /// [libraryRepository] is required: "add feed entry to library" is a core
+  /// discover action, and the old `bindLibraryRepository` let a repository
+  /// exist unwired until something called it (issue #764 candidate 6).
   DiscoverRepository(
     this._db, {
+    required MediaLibraryRepository libraryRepository,
     http.Client? httpClient,
     RecommendedChannelsLoader? recommendedLoader,
     YoutubeFeedClient? feedClient,
     YoutubeUrlParser? urlParser,
-    this._libraryRepository,
-  }) : _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
+  }) : // Initializing formal would have to be named `_libraryRepository`, which
+       // is unusable from another library — providers and tests build this repo.
+       // ignore: prefer_initializing_formals
+       _libraryRepository = libraryRepository,
+       _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
        _feedClient = feedClient ?? YoutubeFeedClient(httpClient: httpClient),
        _urlParser = urlParser ?? YoutubeUrlParser();
 
@@ -70,7 +77,7 @@ class DiscoverRepository {
   final RecommendedChannelsLoader _recommendedLoader;
   final YoutubeFeedClient _feedClient;
   final YoutubeUrlParser _urlParser;
-  MediaLibraryRepository? _libraryRepository;
+  final MediaLibraryRepository _libraryRepository;
 
   /// Bounded LRU cache for channel avatar URLs. TTL is generous: avatar
   /// URLs change only when the channel owner swaps their photo, which is
@@ -88,10 +95,6 @@ class DiscoverRepository {
   static const minRefreshInterval = Duration(hours: 1);
   static const rssFeedBase =
       'https://www.youtube.com/feeds/videos.xml?channel_id=';
-
-  void bindLibraryRepository(MediaLibraryRepository repo) {
-    _libraryRepository = repo;
-  }
 
   Future<List<RecommendedChannel>> loadRecommendedChannels() =>
       _recommendedLoader.load();
@@ -290,11 +293,7 @@ class DiscoverRepository {
     FeedEntry entry, {
     String? contentLanguage,
   }) async {
-    final library = _libraryRepository;
-    if (library == null) {
-      throw StateError('DiscoverRepository library bridge not bound');
-    }
-    return library.importYoutubeVideo(
+    return _libraryRepository.importYoutubeVideo(
       entry.videoId,
       prefetchedTitle: entry.title,
       prefetchedThumbnailUrl: entry.thumbnailUrl,

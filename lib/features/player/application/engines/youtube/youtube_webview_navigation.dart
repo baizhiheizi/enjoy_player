@@ -20,7 +20,6 @@ class YoutubeWebViewNavigation {
     required this.captureVerifyGeneration,
     required this.isVerifyGenerationStale,
     required this.bumpNavGeneration,
-    required this.currentNavGeneration,
     required this.onStaleWebView,
   });
 
@@ -29,7 +28,6 @@ class YoutubeWebViewNavigation {
   final int Function() captureVerifyGeneration;
   final bool Function(int gen) isVerifyGenerationStale;
   final int Function() bumpNavGeneration;
-  final int Function() currentNavGeneration;
   final void Function() onStaleWebView;
 
   static const Duration playbackNudgeDelay = Duration(seconds: 6);

@@ -124,6 +124,41 @@ RecordConfig buildShadowRecordConfig(InputDevice? device) => RecordConfig(
   device: device,
 );
 
+/// Builds stores already bound to the app's database and sync seam.
+///
+/// Supplied by `shadowTakeStoreFactoryProvider` so callers that own a store
+/// for their own lifetime (the shadow-reading panel) never wire the handles
+/// themselves. Tests pass a `recorderFactory` / `takeDirectory` to stay off
+/// the real microphone and the real documents directory.
+///
+/// A class rather than a function typedef because a provider returning a
+/// function type trips `riverpod_generator`'s type resolution.
+class ShadowTakeStoreFactory {
+  const ShadowTakeStoreFactory({
+    required AppDatabase db,
+    required SyncEnqueueFn enqueueSync,
+  })
+    // Initializing formals would have to be named `_db` / `_enqueueSync`, which
+    // are unusable from another library — and the provider lives in one.
+    // ignore: prefer_initializing_formals
+    : _db = db,
+       // ignore: prefer_initializing_formals
+       _enqueueSync = enqueueSync;
+
+  final AppDatabase _db;
+  final SyncEnqueueFn _enqueueSync;
+
+  ShadowTakeStore call({
+    MicRecorder Function()? recorderFactory,
+    Directory? takeDirectory,
+  }) => ShadowTakeStore(
+    db: _db,
+    enqueueSync: _enqueueSync,
+    recorderFactory: recorderFactory,
+    takeDirectory: takeDirectory,
+  );
+}
+
 class ShadowTakeStore {
   ShadowTakeStore({
     required AppDatabase db,

@@ -27,7 +27,7 @@ class ChannelFeedScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
-    final feedAsync = ref.watch(discoverChannelFeedProvider(channelId));
+    final feedAsync = ref.watch(discoverChannelFeedItemsProvider(channelId));
     final subscriptionsAsync = ref.watch(discoverSubscriptionsProvider);
 
     final channelName = subscriptionsAsync.maybeWhen(
@@ -81,8 +81,13 @@ class ChannelFeedScreen extends ConsumerWidget {
               itemCount: entries.length,
               separatorBuilder: (_, _) => SizedBox(height: t.space20),
               itemBuilder: (context, index) => KeyedSubtree(
-                key: ValueKey<String>('channel-feed-${entries[index].videoId}'),
-                child: DiscoverFeedTile(entry: entries[index]),
+                key: ValueKey<String>(
+                  'channel-feed-${entries[index].entry.videoId}',
+                ),
+                child: DiscoverFeedTile(
+                  entry: entries[index].entry,
+                  inLibrary: entries[index].inLibrary,
+                ),
               ),
             );
           }
@@ -97,15 +102,20 @@ class ChannelFeedScreen extends ConsumerWidget {
             ),
             itemCount: entries.length,
             itemBuilder: (context, index) => Align(
-              key: ValueKey<String>('channel-feed-${entries[index].videoId}'),
+              key: ValueKey<String>(
+                'channel-feed-${entries[index].entry.videoId}',
+              ),
               alignment: Alignment.topCenter,
-              child: DiscoverFeedTile(entry: entries[index]),
+              child: DiscoverFeedTile(
+                entry: entries[index].entry,
+                inLibrary: entries[index].inLibrary,
+              ),
             ),
             findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
               items: entries,
               key: key,
               prefix: 'channel-feed-',
-              idOf: (e) => e.videoId,
+              idOf: (e) => e.entry.videoId,
             ),
           );
         },

@@ -240,6 +240,72 @@ class MediaRegistry {
   ///   deliveries do straddle microtask hops the old partial-then-full
   ///   fallback stands — a redundant rebuild, which is strictly better
   ///   than a stalled one.
+  /// The set of YouTube video ids (`videos.vid`) present in the library,
+  /// re-emitted whenever the `videos` table changes.
+  ///
+  /// Exists so a caller that needs *membership* — "is this feed entry already
+  /// imported?" — can watch one small stream instead of issuing a per-item
+  /// `getYoutubeVideoByVid` probe (issue #764 candidate 6: the discover feed
+  /// did the latter once per tile, per scroll). Videos only, so an audio-only
+  /// library write does not rebuild the feed.
+  ///
+  /// **Broadcast**, unlike [watchAll]: the discover feed joins this from both
+  /// the merged timeline and a single-channel view, and those two can be
+  /// subscribed at the same time (the timeline provider is keep-alive, so
+  /// opening a channel does not tear it down). A single-subscription stream
+  /// would throw on the second listener.
+  ///
+  /// Each listener gets its **own** drift subscription *and its own dedupe
+  /// state* — the cache lives inside the `Stream.multi` callback, deliberately.
+  /// Hoisting it out would make the second listener of the same returned stream
+  /// silently receive nothing: the first listener's emit would populate the
+  /// shared `lastEmitted`, and the second would dedupe against it. Each
+  /// listener also holds a coalescing flag for the same reason.
+  ///
+  /// Coalesces the same way as [watchAll] — one emit per event-loop turn — and
+  /// drops no-op re-queries before allocating.
+  Stream<Set<String>> watchYoutubeVideoIds() {
+    return Stream<Set<String>>.multi((controller) {
+      late StreamSubscription<List<VideoRow>> sub;
+      var current = <VideoRow>[];
+      Set<String>? lastEmitted;
+      var emitScheduled = false;
+      var closed = false;
+
+      void emit() {
+        // A coalesced microtask can outlive the last listener.
+        if (closed) return;
+        // `vid` is non-null on the row but empty for locally-added files,
+        // which carry no provider id.
+        final ids = <String>{
+          for (final row in current)
+            if (row.vid.isNotEmpty) row.vid,
+        };
+        if (lastEmitted != null &&
+            lastEmitted!.length == ids.length &&
+            lastEmitted!.containsAll(ids)) {
+          return;
+        }
+        lastEmitted = ids;
+        controller.add(ids);
+      }
+
+      sub = _db.videoDao.watchAll().listen((rows) {
+        current = rows;
+        if (emitScheduled) return;
+        emitScheduled = true;
+        scheduleMicrotask(() {
+          emitScheduled = false;
+          emit();
+        });
+      }, onError: controller.addError);
+      controller.onCancel = () {
+        closed = true;
+        unawaited(sub.cancel());
+      };
+    }, isBroadcast: true);
+  }
+
   Stream<List<Media>> watchAll() {
     late StreamSubscription<List<VideoRow>> subV;
     late StreamSubscription<List<AudioRow>> subA;

@@ -7,6 +7,8 @@ import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_subscribe_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +80,7 @@ void main() {
       db = AppDatabase(executor: NativeDatabase.memory());
       repo = DiscoverRepository(
         db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
         httpClient: MockClient((request) async {
           if (request.url.toString().contains('?format=json')) {
             return http.Response(_validJsonFeed(), 200);

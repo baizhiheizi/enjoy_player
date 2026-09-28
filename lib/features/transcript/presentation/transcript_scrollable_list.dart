@@ -16,7 +16,7 @@ import 'package:enjoy_player/features/player/application/player_state_providers.
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
-import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
@@ -217,11 +217,30 @@ class _TranscriptScrollableListState
     return false;
   }
 
-  bool _shouldRequestAutoTranslate(int lineIndex, int playbackHighlight) {
-    final highlight = playbackHighlight >= 0 ? playbackHighlight : 0;
-    final scrollFocus = _scrollFocusLineIndex();
-    return (lineIndex - highlight).abs() <= kAutoTranslateViewportWindow ||
-        (lineIndex - scrollFocus).abs() <= kAutoTranslateViewportWindow;
+  /// Whether [lineIndex] is worth requesting a translation for, given a
+  /// [anchor] cue index.
+  ///
+  /// A method rather than a closure built inside the item builder: that
+  /// builder runs once per row, so a local function there allocated a fresh
+  /// closure per row on every scroll-driven rebuild (issue #764 review).
+  /// [alternateAnchorLineIndex] stays a resolver so the policy can
+  /// short-circuit on eligibility before this reads the scroll controller.
+  bool _requestableAutoTranslate({
+    required int lineIndex,
+    required int anchor,
+    required bool isAutoTranslateActive,
+    required bool hasSecondaryText,
+    required bool isLineFailed,
+  }) {
+    return shouldRequestAutoTranslateLine(
+      lineIndex: lineIndex,
+      anchorLineIndex: anchor,
+      alternateAnchorLineIndex: _scrollFocusLineIndex,
+      scope: AutoTranslateRequestScope.viewport,
+      isAutoTranslateActive: isAutoTranslateActive,
+      hasSecondaryText: hasSecondaryText,
+      isLineFailed: isLineFailed,
+    );
   }
 
   /// Conservative bootstrap scroll before the scroll-target widget is built.
@@ -526,26 +545,38 @@ class _TranscriptScrollableListState
                 final canRetranslateLine = resolved.canRetranslate;
                 final lineFailed = resolved.isFailed;
 
-                if (autoTranslateActive &&
-                    (secondaryText == null || secondaryText.trim().isEmpty) &&
-                    !lineFailed &&
-                    _shouldRequestAutoTranslate(lineIndex, activeForUi)) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    final highlight = ref
-                        .read(
-                          transcriptPlaybackHighlightProvider(widget.mediaId),
-                        )
-                        .cueIndex;
-                    if (!_shouldRequestAutoTranslate(lineIndex, highlight)) {
-                      return;
-                    }
-                    ref
+                // Shared with the echo card so the two item builders cannot
+                // drift (issue #764 candidate 4).
+                final hasSecondary =
+                    secondaryText != null && secondaryText.trim().isNotEmpty;
+                if (_requestableAutoTranslate(
+                  lineIndex: lineIndex,
+                  anchor: activeForUi,
+                  isAutoTranslateActive: autoTranslateActive,
+                  hasSecondaryText: hasSecondary,
+                  isLineFailed: lineFailed,
+                )) {
+                  scheduleAutoTranslateLineRequest(
+                    isMounted: () => mounted,
+                    // Re-checked a frame later: the highlight moves, and this
+                    // is the whole point of the policy living in one place.
+                    shouldRequest: () => _requestableAutoTranslate(
+                      lineIndex: lineIndex,
+                      anchor: ref
+                          .read(
+                            transcriptPlaybackHighlightProvider(widget.mediaId),
+                          )
+                          .cueIndex,
+                      isAutoTranslateActive: autoTranslateActive,
+                      hasSecondaryText: hasSecondary,
+                      isLineFailed: lineFailed,
+                    ),
+                    request: () => ref
                         .read(
                           autoTranslateCtrlProvider(widget.mediaId).notifier,
                         )
-                        .requestTranslateLine(lineIndex);
-                  });
+                        .requestTranslateLine(lineIndex),
+                  );
                 }
 
                 final selectable = isActive;

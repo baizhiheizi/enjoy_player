@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/lookup/application/transcript_lookup_open.
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/presentation/echo_region_controls_bar.dart';
@@ -118,15 +119,25 @@ class EchoRegionMergedCard extends ConsumerWidget {
       final lineFailed = resolved.isFailed;
 
       // Echo block is itself the viewport; request every empty cue in range.
-      if (autoTranslateActive &&
-          (secondaryText == null || secondaryText.trim().isEmpty) &&
-          !lineFailed) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!ref.context.mounted) return;
-          ref
+      // Same policy module as the scrollable list (issue #764 candidate 4), so
+      // a fix to one builder cannot leave the other behind.
+      if (shouldRequestAutoTranslateLine(
+        lineIndex: i,
+        anchorLineIndex: 0,
+        scope: AutoTranslateRequestScope.block,
+        isAutoTranslateActive: autoTranslateActive,
+        hasSecondaryText:
+            secondaryText != null && secondaryText.trim().isNotEmpty,
+        isLineFailed: lineFailed,
+      )) {
+        // No staleness re-check: the rendered block is the viewport, so there
+        // is no scroll that could invalidate this request before the frame.
+        scheduleAutoTranslateLineRequest(
+          isMounted: () => ref.context.mounted,
+          request: () => ref
               .read(autoTranslateCtrlProvider(mediaId).notifier)
-              .requestTranslateLine(i);
-        });
+              .requestTranslateLine(i),
+        );
       }
 
       final tile = TranscriptLineTile(

@@ -23,8 +23,13 @@ side-by-side video + transcript when width exceeded `breakpointTranscriptSideByS
 3. **Retain 720 for other UI**: transport-bar packing and similar width-driven
    chrome continue to use `breakpointTranscriptSideBySide`.
 
-Helpers live in `lib/core/platform/device_form_factor.dart` and
-`player_content_layout.dart`.
+Form-factor helpers live in `lib/core/platform/device_form_factor.dart`. The
+`width > height` content-layout predicate has no helper module: `f6d60687`
+inlined it into its sole caller,
+`lib/features/player/presentation/layouts/video_player_layout.dart`, and the
+spec-026 fixtures are pinned by `video_player_layout_test.dart`. Do not
+re-create `lib/core/platform/player_content_layout.dart` without a second
+caller to justify it.
 
 ## Consequences
 

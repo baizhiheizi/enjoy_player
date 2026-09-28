@@ -60,8 +60,10 @@ void main() {
       publishedAt: now,
     );
 
-    final repo = DiscoverRepository(db);
-    repo.bindLibraryRepository(MediaLibraryRepository(db, FileStorage()));
+    final repo = DiscoverRepository(
+      db,
+      libraryRepository: MediaLibraryRepository(db, FileStorage()),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -79,7 +81,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: DiscoverFeedTile(entry: entry)),
+          home: Scaffold(body: DiscoverFeedTile(entry: entry, inLibrary: true)),
         ),
       ),
     );
@@ -119,16 +121,19 @@ void main() {
         publishedAt: now,
       );
 
-      final repo = DiscoverRepository(db);
-      repo.bindLibraryRepository(_ThrowingLibraryRepository(db, FileStorage()));
+      final repo = DiscoverRepository(
+        db,
+        libraryRepository: _ThrowingLibraryRepository(db, FileStorage()),
+      );
 
       final router = GoRouter(
         initialLocation: '/',
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) =>
-                Scaffold(body: DiscoverFeedTile(entry: entry)),
+            builder: (context, state) => Scaffold(
+              body: DiscoverFeedTile(entry: entry, inLibrary: false),
+            ),
           ),
           GoRoute(
             path: '/player/:mediaId',

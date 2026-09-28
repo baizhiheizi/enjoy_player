@@ -15,17 +15,16 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_reading_hotkey_bus.dart';
+import 'package:enjoy_player/features/shadow_reading/application/shadow_take_providers.dart';
 import 'package:enjoy_player/features/shadow_reading/application/shadow_take_store.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/recording_assessment_flow.dart';
 import 'package:enjoy_player/features/share_poster/presentation/share_practice_poster_button.dart';
-import 'package:enjoy_player/features/sync/application/sync_providers.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'pitch_contour_section.dart';
@@ -107,10 +106,23 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     with TickerProviderStateMixin {
   ShadowTakeStore? _takeStoreInstance;
 
-  ShadowTakeStore get _takeStore => _takeStoreInstance ??= ShadowTakeStore(
-    db: ref.read(appDatabaseProvider),
-    enqueueSync: ref.read(syncEnqueueProvider),
+  /// The take window this panel renders and acts on, as an application-layer
+  /// query key so no call site rebuilds the five-field shape by hand.
+  EchoRegionRecordingsQuery get _regionQuery => EchoRegionRecordingsQuery(
+    targetType: widget.targetType,
+    targetId: widget.mediaId,
+    language: widget.language,
+    echoStartMs: (widget.startSec * 1000).round(),
+    echoEndMs: (widget.endSec * 1000).round(),
   );
+
+  // One store per panel: the store owns a microphone recorder and an `_active`
+  // flag, and several panels can be mounted at once (transcript echo cards are
+  // list items). The application layer supplies the wiring
+  // (`shadowTakeStoreFactoryProvider`); the panel keeps ownership so it can
+  // dispose the recorder with itself.
+  ShadowTakeStore get _takeStore =>
+      _takeStoreInstance ??= ref.read(shadowTakeStoreFactoryProvider)();
 
   bool _recording = false;
   bool _recordingPending = false;
@@ -391,13 +403,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
 
   Future<void> _onHotkeyPlaybackPulse() async {
     if (!widget.echoActive) return;
-    final db = ref.read(appDatabaseProvider);
-    final list = await db.recordingDao.listByEchoRegion(
-      targetType: widget.targetType,
-      targetId: widget.mediaId,
-      language: widget.language,
-      echoStartMs: (widget.startSec * 1000).round(),
-      echoEndMs: (widget.endSec * 1000).round(),
+    final list = await ref.read(
+      echoRegionRecordingsOnceProvider(_regionQuery).future,
     );
     if (!mounted) return;
     if (list.isEmpty) return;
@@ -416,13 +423,8 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
 
   Future<void> _onHotkeyAssessmentRun(AppLocalizations l10n) async {
     if (!widget.echoActive) return;
-    final db = ref.read(appDatabaseProvider);
-    final list = await db.recordingDao.listByEchoRegion(
-      targetType: widget.targetType,
-      targetId: widget.mediaId,
-      language: widget.language,
-      echoStartMs: (widget.startSec * 1000).round(),
-      echoEndMs: (widget.endSec * 1000).round(),
+    final list = await ref.read(
+      echoRegionRecordingsOnceProvider(_regionQuery).future,
     );
     if (!mounted) return;
     if (list.isEmpty) return;
@@ -499,18 +501,14 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
       future: _mediaPathFutureOnce(),
       builder: (context, snap) {
         final mediaPath = snap.data;
-        final db = ref.watch(appDatabaseProvider);
-        final echoStartMs = (widget.startSec * 1000).round();
-        final echoEndMs = (widget.endSec * 1000).round();
+        final recordings = ref.watch(
+          echoRegionRecordingsProvider(_regionQuery),
+        );
 
-        return StreamBuilder<List<RecordingRow>>(
-          stream: db.recordingDao.watchByEchoRegion(
-            targetType: widget.targetType,
-            targetId: widget.mediaId,
-            language: widget.language,
-            echoStartMs: echoStartMs,
-            echoEndMs: echoEndMs,
-          ),
+        // Type is inferred from [recordings]; naming `List<RecordingRow>` here
+        // would drag `app_database.dart` back into presentation.
+        return StreamBuilder(
+          stream: recordings,
           builder: (context, recSnap) {
             final list = recSnap.data ?? [];
             final sel = _resolvedSelectedRow(list, _selectedRecordingId);

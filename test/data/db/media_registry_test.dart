@@ -235,6 +235,138 @@ void main() {
     });
   });
 
+  group('watchYoutubeVideoIds', () {
+    test('emits the youtube vids and ignores empty ones', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+      await db.videoDao.insertRow(_video(id: 'b', vid: '', provider: 'user'));
+      await db.videoDao.insertRow(
+        _video(id: 'c', vid: 'vid-c', provider: 'youtube'),
+      );
+
+      final emissions = <Set<String>>[];
+      final sub = registry.watchYoutubeVideoIds().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single, {'vid-a', 'vid-c'});
+
+      await sub.cancel();
+    });
+
+    test('emits an empty set for an empty library', () async {
+      final emissions = <Set<String>>[];
+      final sub = registry.watchYoutubeVideoIds().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single, isEmpty);
+
+      await sub.cancel();
+    });
+
+    // Issue #764 candidate 6: the discover timeline and a channel view both
+    // join membership, and the timeline provider is keep-alive, so two
+    // listeners can exist at once.
+    test('two listeners on the same stream both receive', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+
+      // ONE stream object, two listeners. The earlier version of this test
+      // called the factory twice, which builds two independent streams and so
+      // never exercised the shared-dedupe-state hazard it appeared to cover.
+      final stream = registry.watchYoutubeVideoIds();
+      final first = <Set<String>>[];
+      final second = <Set<String>>[];
+      final subA = stream.listen(first.add);
+      final subB = stream.listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first, hasLength(1));
+      expect(first.single, {'vid-a'});
+      expect(
+        second,
+        hasLength(1),
+        reason: 'a second listener must not dedupe against the first one',
+      );
+      expect(second.single, {'vid-a'});
+
+      await subA.cancel();
+      await subB.cancel();
+    });
+
+    // Independent calls are independent streams (the production shape: the
+    // timeline and channel providers each call the factory).
+    test('independent calls are independent streams', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+
+      final first = <Set<String>>[];
+      final second = <Set<String>>[];
+      final subA = registry.watchYoutubeVideoIds().listen(first.add);
+      final subB = registry.watchYoutubeVideoIds().listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first.single, {'vid-a'});
+      expect(second.single, {'vid-a'});
+
+      await subA.cancel();
+      await subB.cancel();
+    });
+
+    test('a library write reaches an existing subscriber', () async {
+      final emissions = <Set<String>>[];
+      final sub = registry.watchYoutubeVideoIds().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions.single, isEmpty);
+
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions.last, {'vid-a'});
+
+      await sub.cancel();
+    });
+
+    test('an audio-only write does not re-emit', () async {
+      final emissions = <Set<String>>[];
+      final sub = registry.watchYoutubeVideoIds().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+
+      await db.audioDao.insertRow(_audio(id: 'x', title: 't'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1), reason: 'videos table did not change');
+
+      await sub.cancel();
+    });
+
+    test('cancelling one subscriber leaves the other listening', () async {
+      final first = <Set<String>>[];
+      final second = <Set<String>>[];
+      final subA = registry.watchYoutubeVideoIds().listen(first.add);
+      final subB = registry.watchYoutubeVideoIds().listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await subA.cancel();
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first, hasLength(1), reason: 'cancelled subscriber stopped');
+      expect(second.last, {'vid-a'});
+
+      await subB.cancel();
+    });
+  });
+
   group('watchAll', () {
     test('emits once for an empty library', () async {
       // Moved pin (issue #753): the merged stream now lives on the registry;

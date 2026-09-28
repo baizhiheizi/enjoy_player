@@ -8,9 +8,18 @@ part of 'discover_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// The library dependency is a constructor argument (issue #764 candidate 6),
+/// not a later `bindLibraryRepository` call: a runtime rebind is invisible to
+/// in-flight subscribers and left the repository in a half-wired state until
+/// something happened to call it.
 
 @ProviderFor(discoverRepository)
 final discoverRepositoryProvider = DiscoverRepositoryProvider._();
+
+/// The library dependency is a constructor argument (issue #764 candidate 6),
+/// not a later `bindLibraryRepository` call: a runtime rebind is invisible to
+/// in-flight subscribers and left the repository in a half-wired state until
+/// something happened to call it.
 
 final class DiscoverRepositoryProvider
     extends
@@ -20,6 +29,10 @@ final class DiscoverRepositoryProvider
           DiscoverRepository
         >
     with $Provider<DiscoverRepository> {
+  /// The library dependency is a constructor argument (issue #764 candidate 6),
+  /// not a later `bindLibraryRepository` call: a runtime rebind is invisible to
+  /// in-flight subscribers and left the repository in a half-wired state until
+  /// something happened to call it.
   DiscoverRepositoryProvider._()
     : super(
         from: null,
@@ -55,7 +68,7 @@ final class DiscoverRepositoryProvider
 }
 
 String _$discoverRepositoryHash() =>
-    r'a43f357194cd59c2f4c15142d44c8229cd38deee';
+    r'b4bf8bf8fa5a80cc0cd216e10632a985f09487ab';
 
 @ProviderFor(recommendedChannels)
 final recommendedChannelsProvider = RecommendedChannelsProvider._();
@@ -285,45 +298,63 @@ final class DiscoverTimelineProvider
 
 String _$discoverTimelineHash() => r'3e942de2ba42045ba9935cc68b25c1d12896de33';
 
-@ProviderFor(filteredDiscoverTimeline)
-final filteredDiscoverTimelineProvider = FilteredDiscoverTimelineProvider._();
+/// The Discover feed with library membership already resolved.
+///
+/// Tiles render this instead of probing per item; after "add to library" the
+/// membership arrives through the registry stream, so the manual
+/// `ref.invalidate` the tile used to carry is gone (issue #764 candidate 6).
 
-final class FilteredDiscoverTimelineProvider
+@ProviderFor(discoverFeedItems)
+final discoverFeedItemsProvider = DiscoverFeedItemsProvider._();
+
+/// The Discover feed with library membership already resolved.
+///
+/// Tiles render this instead of probing per item; after "add to library" the
+/// membership arrives through the registry stream, so the manual
+/// `ref.invalidate` the tile used to carry is gone (issue #764 candidate 6).
+
+final class DiscoverFeedItemsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<FeedEntry>>,
-          List<FeedEntry>,
-          Stream<List<FeedEntry>>
+          AsyncValue<List<DiscoverFeedItem>>,
+          List<DiscoverFeedItem>,
+          Stream<List<DiscoverFeedItem>>
         >
-    with $FutureModifier<List<FeedEntry>>, $StreamProvider<List<FeedEntry>> {
-  FilteredDiscoverTimelineProvider._()
+    with
+        $FutureModifier<List<DiscoverFeedItem>>,
+        $StreamProvider<List<DiscoverFeedItem>> {
+  /// The Discover feed with library membership already resolved.
+  ///
+  /// Tiles render this instead of probing per item; after "add to library" the
+  /// membership arrives through the registry stream, so the manual
+  /// `ref.invalidate` the tile used to carry is gone (issue #764 candidate 6).
+  DiscoverFeedItemsProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'filteredDiscoverTimelineProvider',
+        name: r'discoverFeedItemsProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$filteredDiscoverTimelineHash();
+  String debugGetCreateSourceHash() => _$discoverFeedItemsHash();
 
   @$internal
   @override
-  $StreamProviderElement<List<FeedEntry>> $createElement(
+  $StreamProviderElement<List<DiscoverFeedItem>> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<List<FeedEntry>> create(Ref ref) {
-    return filteredDiscoverTimeline(ref);
+  Stream<List<DiscoverFeedItem>> create(Ref ref) {
+    return discoverFeedItems(ref);
   }
 }
 
-String _$filteredDiscoverTimelineHash() =>
-    r'aade702de97bb2e869f9cbf9eeeded4de3bc80dd';
+String _$discoverFeedItemsHash() => r'391c9d904b22dfa571e0ec4a912f1ae3c94b5775';
 
 @ProviderFor(discoverChannelFeed)
 final discoverChannelFeedProvider = DiscoverChannelFeedFamily._();
@@ -399,6 +430,104 @@ final class DiscoverChannelFeedFamily extends $Family
 
   @override
   String toString() => r'discoverChannelFeedProvider';
+}
+
+/// Channel feed with library membership already resolved — the same join as
+/// [discoverFeedItemsProvider], so a single-channel view gets membership
+/// without falling back to per-tile probes.
+
+@ProviderFor(discoverChannelFeedItems)
+final discoverChannelFeedItemsProvider = DiscoverChannelFeedItemsFamily._();
+
+/// Channel feed with library membership already resolved — the same join as
+/// [discoverFeedItemsProvider], so a single-channel view gets membership
+/// without falling back to per-tile probes.
+
+final class DiscoverChannelFeedItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DiscoverFeedItem>>,
+          List<DiscoverFeedItem>,
+          Stream<List<DiscoverFeedItem>>
+        >
+    with
+        $FutureModifier<List<DiscoverFeedItem>>,
+        $StreamProvider<List<DiscoverFeedItem>> {
+  /// Channel feed with library membership already resolved — the same join as
+  /// [discoverFeedItemsProvider], so a single-channel view gets membership
+  /// without falling back to per-tile probes.
+  DiscoverChannelFeedItemsProvider._({
+    required DiscoverChannelFeedItemsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'discoverChannelFeedItemsProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$discoverChannelFeedItemsHash();
+
+  @override
+  String toString() {
+    return r'discoverChannelFeedItemsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<DiscoverFeedItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<DiscoverFeedItem>> create(Ref ref) {
+    final argument = this.argument as String;
+    return discoverChannelFeedItems(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DiscoverChannelFeedItemsProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$discoverChannelFeedItemsHash() =>
+    r'8eb902cb635fe96e5b4b451ddbe9465ce79a77b1';
+
+/// Channel feed with library membership already resolved — the same join as
+/// [discoverFeedItemsProvider], so a single-channel view gets membership
+/// without falling back to per-tile probes.
+
+final class DiscoverChannelFeedItemsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<DiscoverFeedItem>>, String> {
+  DiscoverChannelFeedItemsFamily._()
+    : super(
+        retry: null,
+        name: r'discoverChannelFeedItemsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: false,
+      );
+
+  /// Channel feed with library membership already resolved — the same join as
+  /// [discoverFeedItemsProvider], so a single-channel view gets membership
+  /// without falling back to per-tile probes.
+
+  DiscoverChannelFeedItemsProvider call(String channelId) =>
+      DiscoverChannelFeedItemsProvider._(argument: channelId, from: this);
+
+  @override
+  String toString() => r'discoverChannelFeedItemsProvider';
 }
 
 /// Active Discover feed filter: `null` = all subscribed channels, else one channel.

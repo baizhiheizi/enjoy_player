@@ -18,7 +18,7 @@ import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/window/desktop_window.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
-import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
+import 'package:enjoy_player/features/discover/application/discover_feed_join.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_channel_filter_strip.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_manage_channels.dart';
@@ -36,8 +36,8 @@ class DiscoverScreen extends ConsumerWidget {
     final subscriptionsAsync = ref.watch(discoverSubscriptionsProvider);
 
     final feedAsync = selectedChannelId == null
-        ? ref.watch(filteredDiscoverTimelineProvider)
-        : ref.watch(discoverChannelFeedProvider(selectedChannelId));
+        ? ref.watch(discoverFeedItemsProvider)
+        : ref.watch(discoverChannelFeedItemsProvider(selectedChannelId));
 
     Future<void> onRefresh() async {
       final result = await ref
@@ -150,7 +150,7 @@ class _DiscoverFeedSliver extends StatelessWidget {
     required this.gutter,
   });
 
-  final AsyncValue<List<FeedEntry>> feedAsync;
+  final AsyncValue<List<DiscoverFeedItem>> feedAsync;
   final Future<void> Function() onRefresh;
   final double gutter;
 
@@ -204,9 +204,12 @@ class _DiscoverFeedSliver extends StatelessWidget {
                   separatorBuilder: (_, _) => SizedBox(height: t.space20),
                   itemBuilder: (context, index) => KeyedSubtree(
                     key: ValueKey<String>(
-                      'discover-feed-${entries[index].videoId}',
+                      'discover-feed-${entries[index].entry.videoId}',
                     ),
-                    child: DiscoverFeedTile(entry: entries[index]),
+                    child: DiscoverFeedTile(
+                      entry: entries[index].entry,
+                      inLibrary: entries[index].inLibrary,
+                    ),
                   ),
                 );
               }
@@ -221,17 +224,20 @@ class _DiscoverFeedSliver extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => Align(
                     key: ValueKey<String>(
-                      'discover-feed-${entries[index].videoId}',
+                      'discover-feed-${entries[index].entry.videoId}',
                     ),
                     alignment: Alignment.topCenter,
-                    child: DiscoverFeedTile(entry: entries[index]),
+                    child: DiscoverFeedTile(
+                      entry: entries[index].entry,
+                      inLibrary: entries[index].inLibrary,
+                    ),
                   ),
                   childCount: entries.length,
                   findChildIndexCallback: (key) => findSliverIndexByPrefixedId(
                     items: entries,
                     key: key,
                     prefix: 'discover-feed-',
-                    idOf: (e) => e.videoId,
+                    idOf: (e) => e.entry.videoId,
                   ),
                 ),
               );

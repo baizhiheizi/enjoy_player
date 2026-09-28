@@ -22,6 +22,16 @@ Mic capture and take persistence live in [`ShadowTakeStore`](../../lib/features/
 - **Persistence**: `stopAndPersist` reads the WAV, computes sha256 + duration, applies the **silence heuristic** (RMS < 0.001 or non-zero ratio < 1% → `looksSilent` verdict surfaced by the panel as a warning; the row is persisted regardless), builds the `RecordingRow`, inserts via `recordingDao` (ADR-0002), then enqueues sync create through the injected `SyncEnqueueFn` (ADR-0013).
 - **Deletion**: `deleteTake` enqueues sync delete, removes the WAV file, then deletes the DAO row. Stopping preview playback of the take first is the panel's job (a presentation concern).
 
+### Wiring (issue #764)
+
+The panel no longer names a database handle. [`shadow_take_providers.dart`](../../lib/features/shadow_reading/application/shadow_take_providers.dart) owns three seams:
+
+- **`shadowTakeStoreFactoryProvider`** hands back a `ShadowTakeStoreFactory` already bound to `appDatabaseProvider` and `syncEnqueueProvider`. It is a **factory, not a store provider**: a store owns a `MicRecorder` (recreated after every stop) and an `_active` flag, and the panel is embedded more than once — transcript echo cards are list items — so several panels can be mounted at once. One shared store would let one panel's capture mark another as recording and would hand two panels the same recorder. The panel keeps ownership (and disposes the recorder in its own `dispose`); only the wiring moved.
+- **`echoRegionRecordingsProvider`** — the take list for one echo window.
+- **`echoRegionRecordingsOnceProvider`** — the same window as a one-shot read, for the playback / assessment hotkey handlers, which act on a single take and must not open a subscription per keypress.
+
+The panel's `RecordingRow` mentions are type-only (`app_database.dart` supplies the Drift row shape); it holds no database handle and issues no queries. These providers are hand-written rather than `@riverpod`-annotated because `riverpod_generator` raises `InvalidTypeException` on Drift row types and on function-typed returns (same workaround as `syncEnqueueProvider`).
+
 Craft's `CaptureStage` still owns its own capture loop (it needs the amplitude stream and does not persist takes); migrating it onto the shared `MicRecorder` port is a follow-up.
 
 ## Idle toolbar (centered FAB)
