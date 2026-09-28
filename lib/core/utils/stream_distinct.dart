@@ -11,40 +11,31 @@ import 'dart:async';
 /// Returns a stream that forwards [this] emissions for which [equals] returns
 /// `false` against the previously forwarded value.
 ///
-/// The dedupe state is per-subscriber: each subscription to the returned
-/// stream keeps its own "last seen" reference. This matches Drift's
-/// per-subscriber behavior and avoids cross-talk between consumers.
+/// The returned stream can be listened to any number of times (like Drift's
+/// `.watch()` streams): each subscription re-subscribes to [this] and keeps its
+/// own "last seen" reference, so there is no cross-talk between consumers.
+/// Providers cache one deduped stream per key and hand it to every widget that
+/// mounts — a single-subscription stream here threw "Stream has already been
+/// listened to" the second time a `StreamBuilder` mounted for the same key.
 extension StreamDistinctExt<T> on Stream<T> {
   Stream<T> distinctBy(bool Function(T previous, T current) equals) {
-    late StreamController<T> controller;
-    // ignore: cancel_subscriptions — cancelled in [StreamController.onCancel].
-    StreamSubscription<T>? upstream;
-
-    controller = StreamController<T>(
-      onListen: () {
-        var hasLast = false;
-        late T last;
-        upstream = listen(
-          (value) {
-            if (hasLast && equals(last, value)) return;
-            last = value;
-            hasLast = true;
-            controller.add(value);
-          },
-          onError: controller.addError,
-          onDone: () {
-            if (!controller.isClosed) unawaited(controller.close());
-          },
-        );
-      },
-      onPause: () => upstream?.pause(),
-      onResume: () => upstream?.resume(),
-      onCancel: () async {
-        final sub = upstream;
-        upstream = null;
-        await sub?.cancel();
-      },
-    );
-    return controller.stream;
+    return Stream<T>.multi((controller) {
+      var hasLast = false;
+      late T last;
+      final upstream = listen(
+        (value) {
+          if (hasLast && equals(last, value)) return;
+          last = value;
+          hasLast = true;
+          controller.add(value);
+        },
+        onError: controller.addError,
+        onDone: controller.close,
+      );
+      controller
+        ..onPause = upstream.pause
+        ..onResume = upstream.resume
+        ..onCancel = upstream.cancel;
+    }, isBroadcast: isBroadcast);
   }
 }
