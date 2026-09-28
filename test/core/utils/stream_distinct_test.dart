@@ -63,6 +63,57 @@ void main() {
       expect(b, [1, 2]);
     });
 
+    test(
+      'the same returned stream can be listened to more than once',
+      () async {
+        // Providers cache one deduped stream per key and hand it to every
+        // widget that mounts (e.g. a StreamBuilder remounted when its list item
+        // is rebuilt). A second listen must not throw "Stream has already been
+        // listened to"; each listener gets its own dedupe state.
+        final controller = StreamController<int>.broadcast();
+        final shared = controller.stream.distinctBy((p, c) => p == c);
+
+        final first = <int>[];
+        final firstSub = shared.listen(first.add);
+        controller
+          ..add(1)
+          ..add(1);
+        await Future<void>.delayed(Duration.zero);
+        await firstSub.cancel();
+
+        final second = <int>[];
+        final third = <int>[];
+        final secondSub = shared.listen(second.add);
+        final thirdSub = shared.listen(third.add);
+        controller
+          ..add(1)
+          ..add(2)
+          ..add(2);
+        await Future<void>.delayed(Duration.zero);
+        await secondSub.cancel();
+        await thirdSub.cancel();
+        await controller.close();
+
+        expect(first, [1]);
+        expect(second, [1, 2]);
+        expect(third, [1, 2]);
+      },
+    );
+
+    test('cancelling one listener does not cancel another', () async {
+      final controller = StreamController<int>.broadcast();
+      final shared = controller.stream.distinctBy((p, c) => p == c);
+      final kept = <int>[];
+      final keptSub = shared.listen(kept.add);
+      final dropped = shared.listen((_) {});
+      await dropped.cancel();
+      controller.add(7);
+      await Future<void>.delayed(Duration.zero);
+      await keptSub.cancel();
+      await controller.close();
+      expect(kept, [7]);
+    });
+
     test('propagates errors and stays open for the next value', () async {
       final controller = StreamController<int>();
       final out = <int>[];

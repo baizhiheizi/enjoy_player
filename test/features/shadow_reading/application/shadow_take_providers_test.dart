@@ -212,6 +212,27 @@ void main() {
           .first;
       expect(rows.map((r) => r.id), contains('overlap'));
     });
+
+    // Regression: the provider caches one stream per query, and echo cards
+    // are list items, so a panel for the same window mounts again (reopening
+    // the media, the list rebuilding the echo item). Each mount's
+    // StreamBuilder listens anew and must not hit "Stream has already been
+    // listened to".
+    test(
+      'the cached stream can be listened to again (panel remount)',
+      () async {
+        await insert(
+          id: 'overlap',
+          referenceStart: 900,
+          referenceDuration: 400,
+        );
+        final stream = container.read(echoRegionRecordingsProvider(query));
+        final firstMount = await stream.first;
+        final secondMount = await stream.first;
+        expect(firstMount.map((r) => r.id), contains('overlap'));
+        expect(secondMount.map((r) => r.id), contains('overlap'));
+      },
+    );
   });
 
   // The family keys off `==`: without it every rebuild would open a fresh
