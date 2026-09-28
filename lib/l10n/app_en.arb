@@ -1263,6 +1263,7 @@
   "settingsLanguageOptionFrFr": "French (France)",
   "settingsLanguageOptionFrCa": "French (Canada)",
   "settingsLanguageOptionZhCn": "Chinese (Simplified, China)",
+  "settingsLanguageOptionNbNo": "Norwegian (Bokmål)",
   "settingsLearningLanguageSubtitle": "Default for Discover and import suggestions.",
   "settingsLanguagePickerTitleLearning": "Learning language",
   "mediaLanguageUnknown": "Unknown",

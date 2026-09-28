@@ -28,6 +28,7 @@ void main() {
       expect(resolvePronounceLocale('pt-BR'), 'pt-BR');
       expect(resolvePronounceLocale('pt-PT'), 'pt-PT');
       expect(resolvePronounceLocale('ru-RU'), 'ru-RU');
+      expect(resolvePronounceLocale('nb-NO'), 'nb-NO');
     });
 
     test('maps bare primaries to regional defaults', () {
@@ -40,6 +41,20 @@ void main() {
       expect(resolvePronounceLocale('it'), 'it-IT');
       expect(resolvePronounceLocale('pt'), 'pt-BR');
       expect(resolvePronounceLocale('ru'), 'ru-RU');
+      expect(resolvePronounceLocale('nb'), 'nb-NO');
+    });
+
+    test('resolves Norwegian macrolanguage and ISO 639-2 aliases', () {
+      expect(resolvePronounceLocale('no'), 'nb-NO');
+      expect(resolvePronounceLocale('no-NO'), 'nb-NO');
+      expect(resolvePronounceLocale('nob'), 'nb-NO');
+      expect(resolvePronounceLocale('nor'), 'nb-NO');
+    });
+
+    test('keeps Nynorsk (nn) unsupported', () {
+      // `nn` is deliberately not aliased onto Bokmål — see ADR-0087.
+      expect(resolvePronounceLocale('nn'), isNull);
+      expect(resolvePronounceLocale('nn-NO'), isNull);
     });
 
     test('maps unknown regions of known primaries to defaults', () {

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('kSupportedLookupLanguageTags', () {
-    test('contains the first-wave 14 entries in a stable order', () {
+    test('contains the first-wave 15 entries in a stable order', () {
       expect(kSupportedLookupLanguageTags, <String>[
         'en-US',
         'en-GB',
@@ -19,6 +19,7 @@ void main() {
         'pt-BR',
         'pt-PT',
         'ru-RU',
+        'nb-NO',
       ]);
     });
 

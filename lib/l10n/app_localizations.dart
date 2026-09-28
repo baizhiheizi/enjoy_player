@@ -4437,6 +4437,12 @@ abstract class AppLocalizations {
   /// **'Chinese (Simplified, China)'**
   String get settingsLanguageOptionZhCn;
 
+  /// No description provided for @settingsLanguageOptionNbNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Norwegian (Bokmål)'**
+  String get settingsLanguageOptionNbNo;
+
   /// No description provided for @settingsLearningLanguageSubtitle.
   ///
   /// In en, this message translates to:

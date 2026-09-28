@@ -2386,6 +2386,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageOptionZhCn => 'Chinese (Simplified, China)';
 
   @override
+  String get settingsLanguageOptionNbNo => 'Norwegian (Bokmål)';
+
+  @override
   String get settingsLearningLanguageSubtitle =>
       'Default for Discover and import suggestions.';
 

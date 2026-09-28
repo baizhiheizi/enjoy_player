@@ -2287,6 +2287,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsLanguageOptionZhCn => '中文（简体，中国）';
 
   @override
+  String get settingsLanguageOptionNbNo => '挪威语（书面语）';
+
+  @override
   String get settingsLearningLanguageSubtitle => '用于发现页推荐和导入时的默认语言。';
 
   @override
@@ -5604,6 +5607,9 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get settingsLanguageOptionZhCn => '中文（简体，中国）';
+
+  @override
+  String get settingsLanguageOptionNbNo => '挪威语（书面语）';
 
   @override
   String get settingsLearningLanguageSubtitle => '用于发现页推荐及导入时的默认语言。';

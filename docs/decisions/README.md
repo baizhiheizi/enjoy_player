@@ -109,3 +109,5 @@ Trade-offs, follow-up work, risks.
 | [0083](0083-paper-graphite-light-dark.md) | Paper / graphite dual theme + System/Light/Dark appearance (supersedes 0011) |
 | [0084](0084-linux-google-signin-off-and-pkce-deeplink.md) | Disable native Google Sign-In on Linux (ADR-0048 kill switch); GTK single-instance `enjoyplayer://` forwarding + AppImage scheme registration for PKCE callbacks |
 | [0085](0085-audio-floating-collapse-chrome.md) | Audio expanded chrome is the shared floating frosted collapse control over the transcript; desktop gets a roomier top inset (supersedes 0077 audio clause) |
+| [0086](0086-posthog-product-analytics.md) | PostHog product analytics integration |
+| [0087](0087-norwegian-bokmal-language-catalog.md) | Norwegian Bokmål (`nb-NO`) joins the focus / media / lookup catalogs; `no` / `nob` / `nor` alias to `nb` as deliberate policy (Nynorsk `nn` stays unsupported) |

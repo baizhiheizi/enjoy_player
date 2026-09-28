@@ -15,7 +15,12 @@ final _log = logNamed('espeak.provision');
 
 /// Bump when the vendored `espeak-ng-data` tree changes so installed apps
 /// re-extract on next launch.
-const kEspeakDataRevision = '1.52.0-2';
+///
+/// `1.52.0-3`: Norwegian Bokmål (ADR-0087) vendored `lang/nb` + `no_dict`.
+/// The required-files check (`lang/nb` joined
+/// [kEspeakRequiredDataRelativePaths]) already forces re-extraction, but the
+/// revision bump is the documented mechanism — keep both in lockstep.
+const kEspeakDataRevision = '1.52.0-3';
 
 const _channelName = 'ai.enjoy.player/espeak';
 const _assetPrefix = 'packages/forced_alignment/native/espeak-ng-data/';
