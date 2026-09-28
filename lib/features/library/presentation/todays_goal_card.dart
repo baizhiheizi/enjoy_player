@@ -15,6 +15,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
+import 'package:enjoy_player/features/library/application/goal_progress.dart';
 import 'package:enjoy_player/features/library/application/learning_statistics_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -27,28 +28,21 @@ enum TodaysGoalCardVariant {
   bar,
 }
 
-int _completedMinutes(int recordingDurationMs) =>
-    recordingDurationMs ~/ (60 * 1000);
-
-int _progressPercentFromMinutes(int completedMinutes, int goalMinutes) {
-  if (goalMinutes <= 0) return 0;
-  return math.min(100, ((completedMinutes / goalMinutes) * 100).round());
-}
-
-int _progressPercentForLabel(int recordingDurationMs, int goalMinutes) {
-  return _progressPercentFromMinutes(
-    _completedMinutes(recordingDurationMs),
-    goalMinutes,
-  );
-}
-
-String _encouragement(AppLocalizations l10n, int percentage) {
-  if (percentage >= 100) return l10n.homeGoalCompleted;
-  if (percentage >= 75) return l10n.homeGoalAlmostThere;
-  if (percentage >= 50) return l10n.homeGoalHalfway;
-  if (percentage >= 25) return l10n.homeGoalGoodStart;
-  if (percentage > 0) return l10n.homeGoalJustStarted;
-  return l10n.homeGoalStartNow;
+String _encouragementText(AppLocalizations l10n, GoalEncouragementTier tier) {
+  switch (tier) {
+    case GoalEncouragementTier.completed:
+      return l10n.homeGoalCompleted;
+    case GoalEncouragementTier.almostThere:
+      return l10n.homeGoalAlmostThere;
+    case GoalEncouragementTier.halfway:
+      return l10n.homeGoalHalfway;
+    case GoalEncouragementTier.goodStart:
+      return l10n.homeGoalGoodStart;
+    case GoalEncouragementTier.justStarted:
+      return l10n.homeGoalJustStarted;
+    case GoalEncouragementTier.startNow:
+      return l10n.homeGoalStartNow;
+  }
 }
 
 /// Circular ring matching web SVG dash-offset semantics, stroked with the
@@ -125,11 +119,9 @@ class TodaysGoalCard extends ConsumerWidget {
     final statsAsync = ref.watch(learningStatisticsProvider);
     final authAsync = ref.watch(authCtrlProvider);
 
-    final goalMinutes = authAsync.maybeWhen(
-      data: (auth) => auth is AuthSignedIn
-          ? (auth.profile.goal ?? 30).clamp(1, 24 * 60)
-          : 30,
-      orElse: () => 30,
+    final profileGoal = authAsync.maybeWhen(
+      data: (auth) => auth is AuthSignedIn ? auth.profile.goal : null,
+      orElse: () => null,
     );
 
     return statsAsync.when(
@@ -137,13 +129,12 @@ class TodaysGoalCard extends ConsumerWidget {
       data: (stats) {
         if (stats == null) return const SizedBox.shrink();
 
-        final completedMin = _completedMinutes(stats.today.recordingDurationMs);
-        final pctLabel = _progressPercentForLabel(
-          stats.today.recordingDurationMs,
-          goalMinutes,
+        final progress = computeGoalProgress(
+          recordingDurationMs: stats.today.recordingDurationMs,
+          goalMinutes: profileGoal,
         );
-        final encouragement = _encouragement(l10n, pctLabel);
-        final done = pctLabel >= 100;
+        final encouragement = _encouragementText(l10n, progress.encouragement);
+        final done = progress.isComplete;
         final progressColor = done ? t.scoreGood : cs.primary;
         final msgColor = done ? t.scoreGood : cs.onSurfaceVariant;
 
@@ -154,9 +145,9 @@ class TodaysGoalCard extends ConsumerWidget {
                 cs,
                 l10n,
                 stats.today.recordingDurationMs,
-                completedMin,
-                goalMinutes,
-                pctLabel,
+                progress.completedMinutes,
+                progress.goalMinutes,
+                progress.percent,
                 encouragement,
                 progressColor,
                 msgColor,
@@ -167,9 +158,9 @@ class TodaysGoalCard extends ConsumerWidget {
                 cs,
                 l10n,
                 stats.today.recordingDurationMs,
-                completedMin,
-                goalMinutes,
-                pctLabel,
+                progress.completedMinutes,
+                progress.goalMinutes,
+                progress.percent,
                 encouragement,
                 progressColor,
                 msgColor,
@@ -181,7 +172,7 @@ class TodaysGoalCard extends ConsumerWidget {
           t: t,
           child: child,
           semanticsLabel:
-              '${l10n.homeTodaysGoal}, $pctLabel%, $completedMin of $goalMinutes ${l10n.homeMinutes}',
+              '${l10n.homeTodaysGoal}, ${progress.percent}%, ${progress.completedMinutes} of ${progress.goalMinutes} ${l10n.homeMinutes}',
         );
       },
       loading: () => _wrapCard(
