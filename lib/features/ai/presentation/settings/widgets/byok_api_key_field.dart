@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -70,11 +71,7 @@ class _ByokApiKeyFieldState extends State<ByokApiKeyField> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.lock_outline,
-                    size: 18,
-                    color: cs.onSurfaceVariant,
-                  ),
+                  Icon(EnjoyIcons.lock, size: 18, color: cs.onSurfaceVariant),
                   SizedBox(width: t.space8),
                   Expanded(
                     child: Text(
@@ -106,7 +103,7 @@ class _ByokApiKeyFieldState extends State<ByokApiKeyField> {
             ? l10n.settingsAiProvidersApiKeyExistingHint
             : null,
         suffixIcon: IconButton(
-          icon: Icon(_showApiKey ? Icons.visibility_off : Icons.visibility),
+          icon: Icon(_showApiKey ? EnjoyIcons.eyeOff : EnjoyIcons.eye),
           tooltip: _showApiKey
               ? l10n.settingsAiProvidersHideApiKey
               : l10n.settingsAiProvidersShowApiKey,

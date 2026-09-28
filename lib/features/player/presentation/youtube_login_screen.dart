@@ -1,6 +1,7 @@
 /// Full-screen WebView for Google / YouTube sign-in (shared cookie jar with player WebView).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded, size: 24),
+            icon: const Icon(EnjoyIcons.close, size: 24),
             color: colorScheme.onSurface,
             onPressed: () {
               ref.invalidate(youtubeLoginStateProvider);
@@ -78,7 +79,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 24),
+                    icon: const Icon(EnjoyIcons.close, size: 24),
                     color: colorScheme.onSurface,
                     onPressed: () {
                       unawaited(HapticFeedback.lightImpact());
@@ -100,7 +101,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.logout_rounded, size: 22),
+                    icon: const Icon(EnjoyIcons.signOut, size: 22),
                     color: colorScheme.onSurfaceVariant,
                     onPressed: () async {
                       unawaited(HapticFeedback.lightImpact());

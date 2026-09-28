@@ -1,6 +1,7 @@
 /// Compact YouTube-style recommended channel: circular avatar + action.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -82,7 +83,7 @@ class DiscoverRecommendedChannelCard extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.check_circle_outline_rounded,
+                          EnjoyIcons.checkCircle,
                           size: 14,
                           color: cs.onSurfaceVariant,
                         ),

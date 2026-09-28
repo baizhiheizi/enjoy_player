@@ -1,9 +1,12 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/nav_item_pill.dart';
+
+import '../../../helpers/pressable_finders.dart';
 
 Widget _harness(Widget child) {
   final scheme = ColorScheme.fromSeed(
@@ -25,8 +28,8 @@ void main() {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home_rounded,
+            icon: EnjoyIcons.home,
+            selectedIcon: EnjoyIcons.homeFill,
             label: 'Home',
             selected: false,
             onTap: () {},
@@ -36,16 +39,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsOneWidget);
-      expect(find.byIcon(Icons.home_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.home_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.home), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.homeFill), findsNothing);
     });
 
     testWidgets('uses selectedIcon when selected', (tester) async {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home_rounded,
+            icon: EnjoyIcons.home,
+            selectedIcon: EnjoyIcons.homeFill,
             label: 'Home',
             selected: true,
             onTap: () {},
@@ -54,15 +57,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.home_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.home_outlined), findsNothing);
+      expect(find.byIcon(EnjoyIcons.homeFill), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.home), findsNothing);
     });
 
     testWidgets('falls back to icon when selectedIcon is null', (tester) async {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.settings_outlined,
+            icon: EnjoyIcons.settings,
             label: 'Settings',
             selected: true,
             onTap: () {},
@@ -72,14 +75,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Only one icon should be present and it should be the one we passed.
-      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.settings), findsOneWidget);
     });
 
     testWidgets('iconSize is honored on the rendered Icon', (tester) async {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.settings_outlined,
+            icon: EnjoyIcons.settings,
             label: 'Settings',
             selected: false,
             iconSize: 28,
@@ -89,7 +92,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final icon = tester.widget<Icon>(find.byIcon(Icons.settings_outlined));
+      final icon = tester.widget<Icon>(find.byIcon(EnjoyIcons.settings));
       expect(icon.size, 28);
     });
 
@@ -101,7 +104,7 @@ void main() {
           SizedBox(
             width: 80,
             child: NavItemPill(
-              icon: Icons.settings_outlined,
+              icon: EnjoyIcons.settings,
               label: 'A longer label than the available width',
               selected: false,
               maxLines: 1,
@@ -127,7 +130,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.home_outlined,
+            icon: EnjoyIcons.home,
             label: 'Home',
             selected: false,
             onTap: () => taps++,
@@ -151,7 +154,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           NavItemPill(
-            icon: Icons.home_outlined,
+            icon: EnjoyIcons.home,
             label: 'Home',
             selected: false,
             onTap: () {},
@@ -160,20 +163,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final materialFinder = find.descendant(
-        of: find.byType(NavItemPill),
-        matching: find.byType(Material),
-      );
-      RoundedRectangleBorder shapeOf() =>
-          tester.widget<Material>(materialFinder).shape
-              as RoundedRectangleBorder;
+      BorderSide ringSide() =>
+          pressableFocusRingSide(tester, find.byType(NavItemPill));
 
       // No ring before focus.
-      expect(shapeOf().side, BorderSide.none);
+      expect(ringSide(), BorderSide.none);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.pumpAndSettle();
-      expect(shapeOf().side, isNot(BorderSide.none));
+      expect(ringSide(), isNot(BorderSide.none));
     });
 
     testWidgets(
@@ -182,8 +180,8 @@ void main() {
         await tester.pumpWidget(
           _harness(
             NavItemPill(
-              icon: Icons.home_outlined,
-              selectedIcon: Icons.home_rounded,
+              icon: EnjoyIcons.home,
+              selectedIcon: EnjoyIcons.homeFill,
               label: 'Home',
               selected: true,
               onTap: () {},
@@ -192,17 +190,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final materialFinder = find.descendant(
-          of: find.byType(NavItemPill),
-          matching: find.byType(Material),
-        );
-        RoundedRectangleBorder shapeOf() =>
-            tester.widget<Material>(materialFinder).shape
-                as RoundedRectangleBorder;
+        BorderSide ringSide() =>
+            pressableFocusRingSide(tester, find.byType(NavItemPill));
 
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pumpAndSettle();
-        expect(shapeOf().side, BorderSide.none);
+        expect(ringSide(), BorderSide.none);
       },
     );
 
@@ -219,8 +212,8 @@ void main() {
           ),
           home: Scaffold(
             body: NavItemPill(
-              icon: Icons.home_outlined,
-              selectedIcon: Icons.home_rounded,
+              icon: EnjoyIcons.home,
+              selectedIcon: EnjoyIcons.homeFill,
               label: 'Home',
               selected: true,
               onTap: () {},

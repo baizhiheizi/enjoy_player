@@ -8,6 +8,7 @@
 //
 // A real GoRouter is provided so the screen's `context.go('/vocabulary')`
 // fallback inside _exit() has something to attach to.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -131,7 +132,7 @@ void main() {
     expect(find.byType(VocabularyReviewSessionScreen), findsOneWidget);
 
     // The header should be rendered with an icon button for closing.
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     expect(find.text("Don't Know"), findsNothing);
 
     await tester.tap(find.text('Tap to flip'));
@@ -160,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Completed branch shows the check icon and a done button.
-    expect(find.byIcon(Icons.check_circle_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.checkCircle), findsOneWidget);
   });
 
   testWidgets('close icon is tappable without crashing', (tester) async {
@@ -177,7 +178,7 @@ void main() {
 
     // Tap the close icon; _exit() calls context.pop() if canPop else go('/vocabulary').
     // The router is set up so this resolves to a valid /vocabulary route.
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.tap(find.byIcon(EnjoyIcons.close));
     await tester.pumpAndSettle();
   });
 }

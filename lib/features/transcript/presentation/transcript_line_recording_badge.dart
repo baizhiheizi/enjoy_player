@@ -1,6 +1,7 @@
 /// Mic + count badge for transcript lines with shadow-reading takes.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -30,7 +31,7 @@ class TranscriptLineRecordingBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.mic_rounded, size: 16, color: color),
+            Icon(EnjoyIcons.mic, size: 16, color: color),
             SizedBox(width: tok.space4),
             Text(
               '$resolved',

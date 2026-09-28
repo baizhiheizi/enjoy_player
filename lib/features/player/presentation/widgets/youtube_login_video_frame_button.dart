@@ -1,6 +1,7 @@
 /// YouTube account control overlaid on the video stage (not the app chrome).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class YoutubeLoginVideoFrameButton extends ConsumerWidget {
         constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
         tooltip: l10n.youtubeLoginTooltip,
         icon: Icon(
-          signedIn ? Icons.person_rounded : Icons.person_outline_rounded,
+          signedIn ? EnjoyIcons.personFill : EnjoyIcons.person,
           color: Colors.white,
           size: 20,
         ),

@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_stats.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -104,11 +105,7 @@ class _StatCell extends StatelessWidget {
       children: [
         Text(
           '$value',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: valueColor,
-            letterSpacing: -0.4,
-          ),
+          style: enjoyDisplayStyle(context, size: 32, color: valueColor),
         ),
         const SizedBox(height: 2),
         Text(

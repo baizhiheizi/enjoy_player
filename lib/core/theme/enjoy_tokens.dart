@@ -1,4 +1,5 @@
-/// Design tokens: spacing, radii, motion, elevation, breakpoints (ThemeExtension).
+/// Design tokens: spacing, radii, motion, elevation, surfaces, shadows,
+/// breakpoints (ThemeExtension) — Aurora design language (ADR-0089).
 library;
 
 import 'dart:ui' show lerpDouble;
@@ -7,10 +8,11 @@ import 'package:flutter/material.dart';
 
 import 'colors.dart';
 
-/// Paper/graphite design tokens; use [EnjoyThemeTokens.of] from widgets.
+/// Aurora design tokens (porcelain light / midnight dark); use
+/// [EnjoyThemeTokens.of] from widgets.
 @immutable
 class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
-  /// Tokens for [scheme]'s brightness (paper light / graphite dark).
+  /// Tokens for [scheme]'s brightness (porcelain light / midnight dark).
   factory EnjoyThemeTokens.build(ColorScheme scheme) {
     final light = scheme.brightness == Brightness.light;
     return EnjoyThemeTokens(
@@ -26,7 +28,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       radiusSm: 8,
       radiusMd: 12,
       radiusLg: 16,
-      radiusXl: 20,
+      radiusXl: 22,
       radiusFull: 999,
       elevationNone: 0,
       elevationCard: 1,
@@ -37,9 +39,9 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       breakpointCompact: 600,
       breakpointRail: 900,
       breakpointTranscriptSideBySide: 720,
-      motionFast: const Duration(milliseconds: 180),
-      motionStandard: const Duration(milliseconds: 260),
-      motionEnter: const Duration(milliseconds: 240),
+      motionFast: const Duration(milliseconds: 160),
+      motionStandard: const Duration(milliseconds: 280),
+      motionEnter: const Duration(milliseconds: 260),
       motionExit: const Duration(milliseconds: 160),
       motionMedium: const Duration(milliseconds: 220),
       echoActive: AppColors.echoActive,
@@ -50,7 +52,7 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       scoreGoodContainer: AppColors.scoreGoodContainer,
       scoreWarnContainer: AppColors.scoreWarnContainer,
       scoreBadContainer: AppColors.scoreBadContainer,
-      accentSoft: AppColors.accentSoft,
+      accentSoft: light ? const Color(0x175B4BE8) : AppColors.accentSoft,
       accentInk: light ? AppColors.brandOnLight : AppColors.brandOnDark,
       intelligenceInk: light
           ? AppColors.intelligenceInkLight
@@ -64,24 +66,47 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       hubMaxWidth: 840,
       pageGutterCompact: 16,
       pageGutter: 24,
-      miniBarBlurSigma: 20,
-      sidebarWidth: 248,
-      sidebarBrandHeight: 56,
+      miniBarBlurSigma: 24,
+      sidebarWidth: 236,
+      sidebarBrandHeight: 52,
       transportHeight: 88,
-      heroTitleLetterSpacing: -1.2,
-      glassTint: scheme.surface.withValues(alpha: light ? 0.82 : 0.55),
-      glassBorder: scheme.outlineVariant.withValues(alpha: light ? 0.55 : 0.22),
+      heroTitleLetterSpacing: -0.9,
+      glassTint: light
+          ? const Color(0xFFFFFFFF).withValues(alpha: 0.8)
+          : const Color(0xFF1C1C22).withValues(alpha: 0.62),
+      glassBorder: light
+          ? const Color(0xFF16161D).withValues(alpha: 0.08)
+          : const Color(0xFFFFFFFF).withValues(alpha: 0.09),
       gradientStart: light
           ? AppColors.gradientStartLight
           : AppColors.gradientStartDark,
       gradientEnd: light
           ? AppColors.gradientEndLight
           : AppColors.gradientEndDark,
-      bottomNavHeight: 68,
+      bottomNavHeight: 64,
       desktopGutter: 24,
       modalMaxWidth: 400,
       modalMaxWidthLarge: 560,
       focusRingWidth: 2,
+      radiusXs: 6,
+      radius2xl: 30,
+      canvas: light ? AppColors.canvasLight : AppColors.canvasDark,
+      card: light ? AppColors.cardLight : AppColors.cardDark,
+      popover: light ? AppColors.popoverLight : AppColors.popoverDark,
+      hairline: light ? AppColors.borderLight : AppColors.borderDark,
+      fill: light ? AppColors.fillLight : AppColors.fillDark,
+      textFaint: light ? AppColors.faintLight : AppColors.faintDark,
+      auroraStart: AppColors.auroraBlue,
+      auroraEnd: AppColors.auroraViolet,
+      topHighlight: light ? const Color(0x00FFFFFF) : const Color(0x0DFFFFFF),
+      shellInset: 8,
+      panelRadius: 14,
+      controlHeightSm: 32,
+      controlHeight: 40,
+      controlHeightLg: 48,
+      shadowCard: _shadowCard(light),
+      shadowFloat: _shadowFloat(light),
+      shadowPopover: _shadowPopover(light),
     );
   }
   const EnjoyThemeTokens({
@@ -155,10 +180,40 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.modalMaxWidth,
     required this.modalMaxWidthLarge,
     required this.focusRingWidth,
+    // ── Aurora surfaces / shape / depth ─────────────────────────────
+    required this.radiusXs,
+    required this.radius2xl,
+    required this.canvas,
+    required this.card,
+    required this.popover,
+    required this.hairline,
+    required this.fill,
+    required this.textFaint,
+    required this.auroraStart,
+    required this.auroraEnd,
+    required this.topHighlight,
+    required this.shellInset,
+    required this.panelRadius,
+    required this.controlHeightSm,
+    required this.controlHeight,
+    required this.controlHeightLg,
+    required this.shadowCard,
+    required this.shadowFloat,
+    required this.shadowPopover,
   });
 
-  /// Prototype easing: cubic-bezier(.2, .7, .2, 1).
-  static const Curve ease = Cubic(0.2, 0.7, 0.2, 1);
+  /// Aurora easing: a soft-landing curve, cubic-bezier(.2, .8, .2, 1).
+  static const Curve ease = Cubic(0.2, 0.8, 0.2, 1);
+
+  /// Emphasized ease for selection indicators and sheet travel.
+  static const Curve emphasized = Cubic(0.3, 0.0, 0.0, 1.0);
+
+  /// Aurora gradient (logo blue → violet) for signature moments.
+  LinearGradient get aurora => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [auroraStart, auroraEnd],
+  );
 
   // ── Spacing (4pt grid) ─────────────────────────────────────────────────
   final double space4;
@@ -301,6 +356,64 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Keyboard focus ring stroke width for custom controls.
   final double focusRingWidth;
 
+  // ── Aurora surfaces / shape / depth ───────────────────────────────────
+  /// Tight radius for tiny badges and keycaps.
+  final double radiusXs;
+
+  /// Hero artwork, sheets, and large modal corners.
+  final double radius2xl;
+
+  /// Window canvas behind the sidebar and the floating content panel.
+  final Color canvas;
+
+  /// Card / grouped-list surface (white on porcelain, lifted on midnight).
+  final Color card;
+
+  /// Menus, popovers, dialogs, and sheets.
+  final Color popover;
+
+  /// 1px separators and card outlines.
+  final Color hairline;
+
+  /// Subtle control fill (search fields, segmented tracks, chips).
+  final Color fill;
+
+  /// Tertiary text (timestamps, hints) — decorative-contrast only.
+  final Color textFaint;
+
+  /// Aurora gradient start (logo blue).
+  final Color auroraStart;
+
+  /// Aurora gradient end (logo violet).
+  final Color auroraEnd;
+
+  /// Inner 1px top highlight that gives dark surfaces a lit edge.
+  final Color topHighlight;
+
+  /// Gap between the desktop canvas and the floating content panel.
+  final double shellInset;
+
+  /// Corner radius of the desktop floating content panel.
+  final double panelRadius;
+
+  /// Compact control height (toolbar buttons, chips).
+  final double controlHeightSm;
+
+  /// Default control height (buttons, fields, segmented).
+  final double controlHeight;
+
+  /// Prominent control height (primary CTAs on mobile).
+  final double controlHeightLg;
+
+  /// Resting card shadow (soft, wide, low).
+  final List<BoxShadow> shadowCard;
+
+  /// Floating chrome shadow (tab bar, transport, panel).
+  final List<BoxShadow> shadowFloat;
+
+  /// Menus / dialogs shadow.
+  final List<BoxShadow> shadowPopover;
+
   // ── Static accessor ────────────────────────────────────────────────────
   static EnjoyThemeTokens of(BuildContext context) {
     return Theme.of(context).extension<EnjoyThemeTokens>() ??
@@ -371,6 +484,25 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     double? modalMaxWidth,
     double? modalMaxWidthLarge,
     double? focusRingWidth,
+    double? radiusXs,
+    double? radius2xl,
+    Color? canvas,
+    Color? card,
+    Color? popover,
+    Color? hairline,
+    Color? fill,
+    Color? textFaint,
+    Color? auroraStart,
+    Color? auroraEnd,
+    Color? topHighlight,
+    double? shellInset,
+    double? panelRadius,
+    double? controlHeightSm,
+    double? controlHeight,
+    double? controlHeightLg,
+    List<BoxShadow>? shadowCard,
+    List<BoxShadow>? shadowFloat,
+    List<BoxShadow>? shadowPopover,
   }) {
     return EnjoyThemeTokens(
       space4: space4 ?? this.space4,
@@ -437,6 +569,25 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
       modalMaxWidth: modalMaxWidth ?? this.modalMaxWidth,
       modalMaxWidthLarge: modalMaxWidthLarge ?? this.modalMaxWidthLarge,
       focusRingWidth: focusRingWidth ?? this.focusRingWidth,
+      radiusXs: radiusXs ?? this.radiusXs,
+      radius2xl: radius2xl ?? this.radius2xl,
+      canvas: canvas ?? this.canvas,
+      card: card ?? this.card,
+      popover: popover ?? this.popover,
+      hairline: hairline ?? this.hairline,
+      fill: fill ?? this.fill,
+      textFaint: textFaint ?? this.textFaint,
+      auroraStart: auroraStart ?? this.auroraStart,
+      auroraEnd: auroraEnd ?? this.auroraEnd,
+      topHighlight: topHighlight ?? this.topHighlight,
+      shellInset: shellInset ?? this.shellInset,
+      panelRadius: panelRadius ?? this.panelRadius,
+      controlHeightSm: controlHeightSm ?? this.controlHeightSm,
+      controlHeight: controlHeight ?? this.controlHeight,
+      controlHeightLg: controlHeightLg ?? this.controlHeightLg,
+      shadowCard: shadowCard ?? this.shadowCard,
+      shadowFloat: shadowFloat ?? this.shadowFloat,
+      shadowPopover: shadowPopover ?? this.shadowPopover,
     );
   }
 
@@ -576,6 +727,103 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
         t,
       )!,
       focusRingWidth: lerpDouble(focusRingWidth, other.focusRingWidth, t)!,
+      radiusXs: lerpDouble(radiusXs, other.radiusXs, t)!,
+      radius2xl: lerpDouble(radius2xl, other.radius2xl, t)!,
+      canvas: Color.lerp(canvas, other.canvas, t)!,
+      card: Color.lerp(card, other.card, t)!,
+      popover: Color.lerp(popover, other.popover, t)!,
+      hairline: Color.lerp(hairline, other.hairline, t)!,
+      fill: Color.lerp(fill, other.fill, t)!,
+      textFaint: Color.lerp(textFaint, other.textFaint, t)!,
+      auroraStart: Color.lerp(auroraStart, other.auroraStart, t)!,
+      auroraEnd: Color.lerp(auroraEnd, other.auroraEnd, t)!,
+      topHighlight: Color.lerp(topHighlight, other.topHighlight, t)!,
+      shellInset: lerpDouble(shellInset, other.shellInset, t)!,
+      panelRadius: lerpDouble(panelRadius, other.panelRadius, t)!,
+      controlHeightSm: lerpDouble(controlHeightSm, other.controlHeightSm, t)!,
+      controlHeight: lerpDouble(controlHeight, other.controlHeight, t)!,
+      controlHeightLg: lerpDouble(controlHeightLg, other.controlHeightLg, t)!,
+      shadowCard: BoxShadow.lerpList(shadowCard, other.shadowCard, t)!,
+      shadowFloat: BoxShadow.lerpList(shadowFloat, other.shadowFloat, t)!,
+      shadowPopover: BoxShadow.lerpList(shadowPopover, other.shadowPopover, t)!,
     );
   }
 }
+
+List<BoxShadow> _shadowCard(bool light) => light
+    ? const [
+        BoxShadow(
+          color: Color(0x0A16161D),
+          blurRadius: 2,
+          offset: Offset(0, 1),
+        ),
+        BoxShadow(
+          color: Color(0x0F16161D),
+          blurRadius: 16,
+          spreadRadius: -4,
+          offset: Offset(0, 6),
+        ),
+      ]
+    : const [
+        BoxShadow(
+          color: Color(0x40000000),
+          blurRadius: 2,
+          offset: Offset(0, 1),
+        ),
+      ];
+
+List<BoxShadow> _shadowFloat(bool light) => light
+    ? const [
+        BoxShadow(
+          color: Color(0x0D16161D),
+          blurRadius: 3,
+          offset: Offset(0, 1),
+        ),
+        BoxShadow(
+          color: Color(0x1F16161D),
+          blurRadius: 32,
+          spreadRadius: -8,
+          offset: Offset(0, 12),
+        ),
+      ]
+    : const [
+        BoxShadow(
+          color: Color(0x66000000),
+          blurRadius: 3,
+          offset: Offset(0, 1),
+        ),
+        BoxShadow(
+          color: Color(0x80000000),
+          blurRadius: 40,
+          spreadRadius: -6,
+          offset: Offset(0, 16),
+        ),
+      ];
+
+List<BoxShadow> _shadowPopover(bool light) => light
+    ? const [
+        BoxShadow(
+          color: Color(0x1416161D),
+          blurRadius: 1,
+          offset: Offset(0, 0),
+        ),
+        BoxShadow(
+          color: Color(0x2416161D),
+          blurRadius: 48,
+          spreadRadius: -12,
+          offset: Offset(0, 20),
+        ),
+      ]
+    : const [
+        BoxShadow(
+          color: Color(0x80000000),
+          blurRadius: 1,
+          offset: Offset(0, 0),
+        ),
+        BoxShadow(
+          color: Color(0x99000000),
+          blurRadius: 56,
+          spreadRadius: -8,
+          offset: Offset(0, 24),
+        ),
+      ];

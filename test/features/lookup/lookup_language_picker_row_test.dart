@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_language_picker_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -105,7 +106,7 @@ void main() {
         ),
       );
       // Find the swap icon and tap it.
-      final swapIcon = find.byIcon(Icons.swap_horiz_rounded);
+      final swapIcon = find.byIcon(EnjoyIcons.swap);
       expect(swapIcon, findsOneWidget);
       await tester.tap(swapIcon);
       await tester.pumpAndSettle();
@@ -124,7 +125,7 @@ void main() {
           onSwap: () => swapped++,
         ),
       );
-      final swapIcon = find.byIcon(Icons.swap_horiz_rounded);
+      final swapIcon = find.byIcon(EnjoyIcons.swap);
       expect(swapIcon, findsOneWidget);
       await tester.tap(swapIcon);
       await tester.pumpAndSettle();

@@ -1,6 +1,7 @@
 /// Translate tool panel for the Craft screen.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -114,7 +115,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
               hintText: l10n.craftTextInputHint,
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.paste_rounded, size: 18),
+                icon: const Icon(EnjoyIcons.paste, size: 18),
                 tooltip: l10n.craftPasteFromClipboard,
                 onPressed: () => _paste(_sourceCtrl, controller.setSourceText),
               ),
@@ -124,7 +125,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
           SizedBox(height: tokens.space16),
           EnjoyButton.primary(
             onPressed: canTranslate ? controller.translate : null,
-            icon: state.isTranslating ? null : Icons.translate_rounded,
+            icon: state.isTranslating ? null : EnjoyIcons.translate,
             child: state.isTranslating
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +164,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                 Expanded(
                   child: EnjoyButton.ghost(
                     onPressed: () => _copy(state.translatedText!, l10n),
-                    icon: Icons.copy_rounded,
+                    icon: EnjoyIcons.copy,
                     child: Text(l10n.craftCopyTranslation),
                   ),
                 ),
@@ -171,7 +172,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                 Expanded(
                   child: EnjoyButton.secondary(
                     onPressed: controller.useTranslatedText,
-                    icon: Icons.arrow_downward_rounded,
+                    icon: EnjoyIcons.arrowDown,
                     child: Text(l10n.craftUseTranslatedText),
                   ),
                 ),
@@ -278,7 +279,7 @@ class _LanguageRow extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.swap_horiz_rounded),
+          icon: const Icon(EnjoyIcons.swap),
           tooltip: AppLocalizations.of(context)!.craftSwapLanguages,
           onPressed: onSwap,
         ),

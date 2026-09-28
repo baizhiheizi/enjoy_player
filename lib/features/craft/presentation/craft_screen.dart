@@ -1,6 +1,7 @@
 /// Craft screen: full-screen route with Express + Advanced modes.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -76,7 +77,7 @@ class CraftScreen extends ConsumerWidget {
         title: l10n.craftScreenTitle,
         actions: [
           IconButton(
-            icon: const Icon(Icons.history_rounded),
+            icon: const Icon(EnjoyIcons.history),
             tooltip: l10n.craftHistoryTooltip,
             onPressed: () => context.push('/craft/history'),
           ),
@@ -94,12 +95,12 @@ class CraftScreen extends ConsumerWidget {
                     segments: [
                       ButtonSegment(
                         value: CraftScreenMode.express,
-                        icon: const Icon(Icons.mic_rounded, size: 18),
+                        icon: const Icon(EnjoyIcons.mic, size: 18),
                         label: Text(l10n.craftModeExpress),
                       ),
                       ButtonSegment(
                         value: CraftScreenMode.advanced,
-                        icon: const Icon(Icons.edit_note_rounded, size: 18),
+                        icon: const Icon(EnjoyIcons.edit, size: 18),
                         label: Text(l10n.craftModeAdvanced),
                       ),
                     ],

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
@@ -112,7 +113,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
   });
 

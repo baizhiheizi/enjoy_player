@@ -1,6 +1,7 @@
 /// Source / target language pills + swap for the dictionary lookup sheet.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
@@ -137,7 +138,7 @@ class LookupLanguagePickerRow extends StatelessWidget {
                 ),
                 SizedBox(width: t.space4),
                 Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                  EnjoyIcons.chevronDown,
                   size: 18,
                   color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
@@ -185,7 +186,7 @@ class LookupLanguagePickerRow extends StatelessWidget {
                     width: 44,
                     child: Center(
                       child: Icon(
-                        Icons.swap_horiz_rounded,
+                        EnjoyIcons.swap,
                         size: 22,
                         color: canSwap
                             ? scheme.primary

@@ -2,6 +2,7 @@
 /// this device.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:file_picker/file_picker.dart';
@@ -95,7 +96,7 @@ class _LocateMediaScreenState extends ConsumerState<LocateMediaScreen> {
       appBar: AppBar(
         leading: IconButton(
           tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(EnjoyIcons.back),
           onPressed: _working ? null : () => context.pop(),
         ),
         title: Text(l10n.mediaLocateTitle),
@@ -129,7 +130,7 @@ class _LocateMediaScreenState extends ConsumerState<LocateMediaScreen> {
                 onPressed: _working ? null : _onChooseFile,
                 icon: _working
                     ? LoadingIcon(size: 20, color: cs.onPrimary)
-                    : const Icon(Icons.folder_open),
+                    : const Icon(EnjoyIcons.folder),
                 label: Text(
                   _working ? l10n.importingMedia : l10n.mediaLocateChooseFile,
                 ),

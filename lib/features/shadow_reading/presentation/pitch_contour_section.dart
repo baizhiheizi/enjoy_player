@@ -1,6 +1,7 @@
 /// Collapsible pitch contour with analysis — mirrors web `PitchContourSection`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -327,8 +328,8 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
                   children: [
                     Icon(
                       _effectiveExpanded
-                          ? Icons.expand_less
-                          : Icons.expand_more,
+                          ? EnjoyIcons.chevronUp
+                          : EnjoyIcons.chevronDown,
                       color: scheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),

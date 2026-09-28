@@ -1,6 +1,7 @@
 /// Debug screen to exercise Enjoy AI HTTP APIs (ASR, chat, translation, dictionary).
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -348,7 +349,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilledButton.tonal(
+              EnjoyButton.tonal(
                 onPressed: _pickAudio,
                 child: Text(l10n.aiPlaygroundPickAudio),
               ),
@@ -418,7 +419,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton.tonal(
+            child: EnjoyButton.tonal(
               onPressed: _runTranslate,
               child: Text(l10n.aiPlaygroundTranslate),
             ),
@@ -457,7 +458,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton.tonal(
+            child: EnjoyButton.tonal(
               onPressed: _runDictionary,
               child: Text(l10n.aiPlaygroundDictLookup),
             ),
@@ -489,7 +490,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton.tonal(
+            child: EnjoyButton.tonal(
               onPressed: _runAssessment,
               child: Text(l10n.aiPlaygroundAssess),
             ),

@@ -1,6 +1,7 @@
 /// Player chrome entry for share-practice-poster when recordings exist.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,7 +56,7 @@ class SharePracticePosterButton extends ConsumerWidget {
         minimumSize: const Size(44, 44),
       ),
       tooltip: l10n.practicePosterShareTooltip,
-      icon: Icon(Icons.ios_share_rounded, color: iconColor, size: 22),
+      icon: Icon(EnjoyIcons.share, color: iconColor, size: 22),
       onPressed: () =>
           showPracticePosterPreviewSheet(context, ref, mediaId: mediaId),
     );

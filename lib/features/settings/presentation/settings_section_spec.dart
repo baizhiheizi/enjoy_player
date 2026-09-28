@@ -11,6 +11,7 @@
 /// See specs/004-settings-redesign/contracts/settings-section-registry.md.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -131,7 +132,7 @@ bool _alwaysVisible() => true;
 final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.cloudSync,
-    icon: Icons.cloud_sync_outlined,
+    icon: EnjoyIcons.cloudSync,
     title: (l10n) => l10n.settingsSectionSync,
     hint: (l10n) => l10n.settingsSectionSyncHint,
     rows: [
@@ -144,7 +145,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.appearanceLanguage,
-    icon: Icons.palette_outlined,
+    icon: EnjoyIcons.palette,
     title: (l10n) => l10n.settingsSectionAppearanceLanguage,
     hint: (l10n) => l10n.settingsSectionAppearanceLanguageHint,
     rows: [
@@ -165,7 +166,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.aiProviders,
-    icon: Icons.auto_awesome_outlined,
+    icon: EnjoyIcons.sparkle,
     title: (l10n) => l10n.settingsSectionAi,
     hint: (l10n) => l10n.settingsSectionAiHint,
     rows: [
@@ -178,7 +179,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.recording,
-    icon: Icons.mic_none_rounded,
+    icon: EnjoyIcons.mic,
     title: (l10n) => l10n.settingsSectionRecording,
     hint: (l10n) => l10n.settingsSectionRecordingHint,
     rows: [
@@ -192,7 +193,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.keyboardShortcuts,
-    icon: Icons.keyboard_outlined,
+    icon: EnjoyIcons.keyboard,
     title: (l10n) => l10n.hotkeysSectionKeyboard,
     hint: (l10n) => l10n.hotkeysSectionKeyboardHint,
     isVisible: () => isDesktop,
@@ -210,7 +211,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.developer,
-    icon: Icons.developer_mode_outlined,
+    icon: EnjoyIcons.developer,
     title: (l10n) => l10n.settingsSectionDeveloper,
     hint: (l10n) => l10n.settingsSectionDeveloperHint,
     isVisible: () => !kReleaseMode,
@@ -233,7 +234,7 @@ final List<SettingsSectionSpec> kSettingsSectionSpecs = [
   ),
   SettingsSectionSpec(
     sectionId: SettingsSectionIds.about,
-    icon: Icons.info_outline_rounded,
+    icon: EnjoyIcons.info,
     title: (l10n) => l10n.settingsSectionAbout,
     hint: (l10n) => l10n.settingsSectionAboutHint,
     rows: [

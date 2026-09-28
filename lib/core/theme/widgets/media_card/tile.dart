@@ -1,12 +1,16 @@
-/// Vertical [MediaCardTile] for grids (video / home).
+/// Vertical [MediaCardTile] for grids (video / home) — Aurora.
+///
+/// The artwork *is* the card: continuous corners, a hairline edge, and a
+/// hover that gently zooms the frame and reveals a glass play button. Meta
+/// sits below on the page (no container), like a poster wall.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
-import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
 
 import '../../enjoy_tokens.dart';
@@ -48,7 +52,7 @@ class MediaCardTile extends StatefulWidget {
   final bool isVideo;
   final Color? accentColor;
 
-  /// When non-null: on desktop / web, a corner delete control on the thumbnail; on
+  /// When non-null: on desktop, a corner delete control on the thumbnail; on
   /// Android / iOS, long-press opens a bottom sheet with delete (then the caller’s flow).
   final VoidCallback? onDelete;
 
@@ -65,10 +69,10 @@ class MediaCardTile extends StatefulWidget {
   /// See [MediaCardSyncBadgePill].
   final MediaCardSyncBadge? cloudSyncBadge;
 
-  /// When set, shown on the thumbnail (Discover-style) instead of the video icon.
+  /// When set, shown on the artwork's bottom-right corner.
   final String? durationLabel;
 
-  /// Optional language or metadata chip below the title.
+  /// Optional language or metadata label in the meta line.
   final String? badge;
   final VoidCallback? onBadgeTap;
 
@@ -91,249 +95,228 @@ class _MediaCardTileState extends State<MediaCardTile> {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final accent = widget.accentColor ?? cs.primary;
+    final light = Theme.of(context).brightness == Brightness.light;
+    final radius = BorderRadius.circular(t.radiusMd);
+    final instant = MediaQuery.disableAnimationsOf(context);
+    final pointerDelete =
+        widget.onDelete != null && showMediaCardPointerDeleteButton();
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
-      onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-      child: Material(
-        color: Colors.transparent,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(t.radiusXl),
-          onTap: () {
-            Haptics.selection(context);
-            widget.onTap();
-          },
-          onLongPress: widget.onDelete != null && isMobilePlatform
-              ? () => showMediaCardMobileDeleteMenu(
-                  context,
-                  onDelete: widget.onDelete!,
-                  label: widget.deleteTooltip,
-                )
-              : null,
-          hoverColor: cs.onSurface.withValues(alpha: 0.04),
-          splashColor: accent.withValues(alpha: 0.12),
-          highlightColor: accent.withValues(alpha: 0.06),
-          child: ValueListenableBuilder<bool>(
-            valueListenable: _hover,
-            builder: (context, hover, child) {
-              return AnimatedContainer(
-                duration: t.motionFast,
-                curve: Curves.easeOutCubic,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(t.radiusXl),
-                  color: hover
-                      ? accent.withValues(alpha: 0.08)
-                      : cs.surfaceContainerLow,
-                  border: Border.all(
-                    color: hover
-                        ? accent.withValues(alpha: 0.6)
-                        : cs.outlineVariant.withValues(alpha: 0.25),
-                    width: hover ? 1.5 : 1,
-                  ),
-                  boxShadow: hover
-                      ? [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.12),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: child,
-              );
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
+    final artwork = ValueListenableBuilder<bool>(
+      valueListenable: _hover,
+      builder: (context, hover, _) {
+        return DecoratedBox(
+          decoration: ShapeDecoration(
+            shape: RoundedSuperellipseBorder(borderRadius: radius),
+            shadows: hover
+                ? t.shadowFloat
+                : (light ? t.shadowCard : const <BoxShadow>[]),
+          ),
+          child: ClipRSuperellipse(
+            borderRadius: radius,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(t.radiusXl - 1),
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        mediaCardHeroArtworkShell(
-                          widget.heroArtworkMediaId,
-                          MediaCardThumbnail(
-                            file: widget.thumbnailFile,
-                            networkUrl: widget.thumbnailNetworkUrl,
-                            coverSeed: widget.coverSeed,
-                            isVideo: widget.isVideo,
-                            cs: cs,
-                          ),
-                        ),
-                        if (widget.providerBadge != null &&
-                            widget.providerBadge!.isNotEmpty)
-                          Positioned(
-                            top: t.space8,
-                            left: t.space8,
-                            child: MediaCardProviderBadgePill(
-                              label: widget.providerBadge!,
-                            ),
-                          ),
-                        if (widget.cloudSyncBadge != null)
-                          Positioned(
-                            top: t.space8,
-                            right:
-                                widget.onDelete != null &&
-                                    showMediaCardPointerDeleteButton()
-                                ? 52 // 40px delete button + 8px gap + 4px pad
-                                : t.space8,
-                            child: MediaCardSyncBadgePill(
-                              state: widget.cloudSyncBadge!,
-                            ),
-                          ),
-                        if (widget.durationLabel != null &&
-                            widget.durationLabel!.isNotEmpty)
-                          Positioned(
-                            right: t.space8,
-                            bottom: t.space8,
-                            child: MediaCardDurationBadge(
-                              label: widget.durationLabel!,
-                            ),
-                          )
-                        else if (widget.badge == null ||
-                            widget.onBadgeTap == null)
-                          Positioned(
-                            right: t.space8,
-                            bottom: t.space8,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.42),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    blurRadius: 10,
-                                    offset: Offset(0, 2),
-                                    color: Colors.black38,
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(9),
-                                child: Icon(
-                                  widget.isVideo
-                                      ? Icons.videocam_rounded
-                                      : Icons.audiotrack_rounded,
-                                  size: 22,
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (widget.badge != null && widget.onBadgeTap != null)
-                          Positioned(
-                            left: t.space8,
-                            bottom: t.space8,
-                            child: MediaCardThumbnailLanguageBadge(
-                              label: widget.badge!,
-                              onTap: widget.onBadgeTap!,
-                            ),
-                          ),
-                        if (widget.onDelete != null &&
-                            showMediaCardPointerDeleteButton())
-                          Positioned(
-                            top: t.space8,
-                            right: t.space8,
-                            child: Focus(
-                              onFocusChange: (f) =>
-                                  setState(() => _deleteFocused = f),
-                              child: ValueListenableBuilder<bool>(
-                                valueListenable: _hover,
-                                builder: (context, hover, child) {
-                                  final strong = hover || _deleteFocused;
-                                  return AnimatedOpacity(
-                                    opacity: strong ? 1 : 0.45,
-                                    duration: t.motionFast,
-                                    curve: Curves.easeOut,
-                                    child: child,
-                                  );
-                                },
-                                child: IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  iconSize: 20,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 40,
-                                    minHeight: 40,
-                                  ),
-                                  tooltip:
-                                      (widget.deleteTooltip != null &&
-                                          widget.deleteTooltip!.isNotEmpty)
-                                      ? widget.deleteTooltip!
-                                      : MaterialLocalizations.of(
-                                          context,
-                                        ).deleteButtonTooltip,
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: cs.surfaceContainerHighest
-                                        .withValues(alpha: 0.92),
-                                    foregroundColor: cs.onSurfaceVariant,
-                                    shape: const CircleBorder(),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.delete_outline_rounded,
-                                  ),
-                                  onPressed: widget.onDelete,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                AnimatedScale(
+                  scale: hover && !instant ? 1.035 : 1,
+                  duration: t.motionStandard,
+                  curve: EnjoyThemeTokens.ease,
+                  child: mediaCardHeroArtworkShell(
+                    widget.heroArtworkMediaId,
+                    MediaCardThumbnail(
+                      file: widget.thumbnailFile,
+                      networkUrl: widget.thumbnailNetworkUrl,
+                      coverSeed: widget.coverSeed,
+                      isVideo: widget.isVideo,
+                      cs: cs,
                     ),
                   ),
                 ),
-                // Meta — fixed vertical budget (ellipsis); never steals flex from overflow.
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    t.space12,
-                    t.space8,
-                    t.space12,
-                    t.space12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tt.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          height: 1.25,
+                // Legibility scrim for corner chips; deepens on hover.
+                IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: hover ? 1 : 0.7,
+                    duration: t.motionFast,
+                    child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: [0, 0.28, 0.62, 1],
+                          colors: [
+                            Color(0x33000000),
+                            Color(0x00000000),
+                            Color(0x00000000),
+                            Color(0x4D000000),
+                          ],
                         ),
                       ),
-                      if (widget.subtitle != null) ...[
-                        SizedBox(height: t.space4),
-                        Text(
-                          widget.subtitle!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            height: 1.2,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
+                // Hover play affordance.
+                IgnorePointer(
+                  child: Center(
+                    child: AnimatedOpacity(
+                      opacity: hover ? 1 : 0,
+                      duration: t.motionFast,
+                      child: AnimatedScale(
+                        scale: hover ? 1 : 0.85,
+                        duration: t.motionStandard,
+                        curve: EnjoyThemeTokens.ease,
+                        child: const MediaCardPlayGlyph(),
+                      ),
+                    ),
+                  ),
+                ),
+                // Hairline edge.
+                IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius: radius,
+                        side: BorderSide(
+                          color: light
+                              ? const Color(0x1416161D)
+                              : Colors.white.withValues(alpha: 0.07),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (widget.providerBadge != null &&
+                    widget.providerBadge!.isNotEmpty)
+                  Positioned(
+                    top: t.space8,
+                    left: t.space8,
+                    child: MediaCardProviderBadgePill(
+                      label: widget.providerBadge!,
+                    ),
+                  ),
+                if (widget.cloudSyncBadge != null)
+                  Positioned(
+                    top: t.space8,
+                    right: pointerDelete ? 44 : t.space8,
+                    child: MediaCardSyncBadgePill(
+                      state: widget.cloudSyncBadge!,
+                    ),
+                  ),
+                if (widget.durationLabel != null &&
+                    widget.durationLabel!.isNotEmpty)
+                  Positioned(
+                    right: t.space8,
+                    bottom: t.space8,
+                    child: MediaCardDurationBadge(label: widget.durationLabel!),
+                  ),
+                if (pointerDelete)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Focus(
+                      onFocusChange: (f) => setState(() => _deleteFocused = f),
+                      child: AnimatedOpacity(
+                        opacity: hover || _deleteFocused ? 1 : 0,
+                        duration: t.motionFast,
+                        curve: Curves.easeOut,
+                        child: MediaCardGlassIconButton(
+                          icon: EnjoyIcons.delete,
+                          tooltip:
+                              (widget.deleteTooltip != null &&
+                                  widget.deleteTooltip!.isNotEmpty)
+                              ? widget.deleteTooltip!
+                              : MaterialLocalizations.of(
+                                  context,
+                                ).deleteButtonTooltip,
+                          onPressed: widget.onDelete!,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-        ),
+        );
+      },
+    );
+
+    final kindLabel = widget.subtitle;
+    return EnjoyPressable(
+      onTap: widget.onTap,
+      onLongPress: widget.onDelete != null && isMobilePlatform
+          ? () => showMediaCardMobileDeleteMenu(
+              context,
+              onDelete: widget.onDelete!,
+              label: widget.deleteTooltip,
+            )
+          : null,
+      onHoverChanged: (h) => _hover.value = h,
+      showHoverWash: false,
+      pressedScale: 0.98,
+      borderRadius: radius,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(aspectRatio: 16 / 9, child: artwork),
+          // Meta — fixed vertical budget so grid rows stay aligned.
+          SizedBox(
+            height: mediaCardTileMetaHeight,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 20,
+                    child: Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.titleSmall?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  SizedBox(
+                    height: 20,
+                    child: Row(
+                      children: [
+                        if (widget.badge != null) ...[
+                          Flexible(
+                            child: MediaCardMetaLanguage(
+                              label: widget.badge!,
+                              onTap: widget.onBadgeTap,
+                            ),
+                          ),
+                          if (kindLabel != null)
+                            MediaCardMetaDot(color: t.textFaint),
+                        ],
+                        if (kindLabel != null)
+                          Flexible(
+                            child: Text(
+                              kindLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                                height: 1.3,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

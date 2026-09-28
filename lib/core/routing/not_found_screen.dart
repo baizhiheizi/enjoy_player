@@ -1,6 +1,7 @@
 /// Fallback screen for unknown go_router locations.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,7 +31,7 @@ class NotFoundScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.explore_off_rounded,
+                    EnjoyIcons.compassOff,
                     size: 72,
                     color: Theme.of(context).colorScheme.primary,
                   ),

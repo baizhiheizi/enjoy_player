@@ -1,5 +1,6 @@
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,7 +36,7 @@ class TranslationLookupSection extends ConsumerWidget {
     return LookupExpansionCard(
       title: l10n.lookupSectionTranslation,
       initiallyExpanded: true,
-      leading: const Icon(Icons.translate_rounded),
+      leading: const Icon(EnjoyIcons.translate),
       bodyBuilder: (ctx) => LookupSectionAuthGate(
         surface: AuthRequiredSurface.lookupTranslation,
         child: Builder(

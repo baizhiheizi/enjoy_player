@@ -10,6 +10,7 @@
 /// imported across library boundaries.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -307,7 +308,7 @@ class _AssessmentResultBodyState extends ConsumerState<AssessmentResultBody> {
       tooltip: takeTooltip,
       semanticLabel: takeTooltip,
       iconSize: 22,
-      icon: takePlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+      icon: takePlaying ? EnjoyIcons.stop : EnjoyIcons.play,
       color: _recordingPlayable
           ? scheme.primary
           : scheme.onSurface.withValues(alpha: 0.38),

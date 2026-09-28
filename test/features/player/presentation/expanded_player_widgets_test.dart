@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -222,7 +223,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(AppBar), findsNothing);
-      expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
       expect(
         find.text('Grandma house title that must not appear as AppBar title'),
         findsNothing,

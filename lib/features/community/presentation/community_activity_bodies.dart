@@ -1,9 +1,12 @@
 /// Summary body for the `CommunityActivityCard`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_avatars.dart';
@@ -31,8 +34,9 @@ class SummaryBody extends StatelessWidget {
         data.recordingsDurationToday != null;
     final subStyle = Theme.of(
       context,
-    ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant);
+    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant);
     final tabular = const [FontFeature.tabularFigures()];
+    final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -41,18 +45,7 @@ class SummaryBody extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.group_outlined, size: 16, color: cs.primary),
-            SizedBox(width: t.space4),
-            Expanded(
-              child: Text(
-                l10n.communityActivity,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
+            Expanded(child: EnjoyOverline(l10n.communityActivity)),
             if (data.users.isNotEmpty)
               OverlappingAvatarStack(
                 users: data.users,
@@ -62,27 +55,26 @@ class SummaryBody extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: t.space8),
+        SizedBox(height: t.space4),
         if (hasToday) ...[
           Wrap(
-            spacing: t.space8,
+            spacing: t.space24,
             runSpacing: t.space4,
-            crossAxisAlignment: WrapCrossAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.end,
             children: [
               if (data.recordingsCountToday != null)
                 InlineMetric(
-                  icon: Icons.mic,
-                  value: '${data.recordingsCountToday}',
+                  icon: EnjoyIcons.mic,
+                  value: NumberFormat.decimalPattern(
+                    locale,
+                  ).format(data.recordingsCountToday),
                   label: l10n.homeRecordingsToday,
                   cs: cs,
                   tabular: tabular,
                 ),
-              if (data.recordingsCountToday != null &&
-                  data.recordingsDurationToday != null)
-                Text('·', style: subStyle),
               if (data.recordingsDurationToday != null)
                 InlineMetric(
-                  icon: Icons.schedule,
+                  icon: EnjoyIcons.clock,
                   value: formatPracticeDurationMs(
                     data.recordingsDurationToday!,
                   ),
@@ -94,11 +86,32 @@ class SummaryBody extends StatelessWidget {
           ),
           if (data.count > 0) ...[
             SizedBox(height: t.space4),
-            Text(
-              '${data.count} ${l10n.homeActiveLearners}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: subStyle?.copyWith(fontFeatures: tabular),
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: t.scoreGood,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: t.scoreGood.withValues(alpha: 0.5),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: t.space8 - 2),
+                Flexible(
+                  child: Text(
+                    '${data.count} ${l10n.homeActiveLearners}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: subStyle?.copyWith(fontFeatures: tabular),
+                  ),
+                ),
+              ],
             ),
           ],
         ] else if (data.users.isEmpty)

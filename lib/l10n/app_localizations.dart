@@ -159,6 +159,30 @@ abstract class AppLocalizations {
   /// **'Recent media'**
   String get homeRecentMedia;
 
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGreetingEvening;
+
+  /// Home header greeting with the signed-in user's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, {name}'**
+  String homeGreetingNamed(String greeting, String name);
+
   /// No description provided for @homeEmptyTitle.
   ///
   /// In en, this message translates to:

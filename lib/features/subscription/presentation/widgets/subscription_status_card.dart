@@ -1,6 +1,7 @@
 /// Current membership card: tier, renewal, credits — cancel stays low-emphasis.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -138,7 +139,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.person_outline_rounded, size: 20, color: cs.primary),
+              Icon(EnjoyIcons.person, size: 20, color: cs.primary),
               SizedBox(width: t.space8),
               Expanded(
                 child: Text(
@@ -253,7 +254,7 @@ class _PaidMembershipCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(t.radiusMd),
                   ),
                   child: Icon(
-                    Icons.verified_rounded,
+                    EnjoyIcons.verifiedFill,
                     color: cs.primary,
                     size: 22,
                   ),
@@ -293,12 +294,12 @@ class _PaidMembershipCard extends StatelessWidget {
               children: [
                 if (periodDate != null)
                   _InfoPill(
-                    icon: Icons.event_outlined,
+                    icon: EnjoyIcons.event,
                     label: renewing
                         ? l10n.subscriptionRenewsOn(periodDate)
                         : l10n.subscriptionAccessUntil(periodDate),
                   ),
-                _InfoPill(icon: Icons.bolt_rounded, label: creditsLabel),
+                _InfoPill(icon: EnjoyIcons.boltFill, label: creditsLabel),
               ],
             ),
             if (endingSoon) ...[

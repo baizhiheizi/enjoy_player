@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/presentation/section_label.dart';
@@ -54,7 +55,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionLabel(
-          icon: Icons.hub_outlined,
+          icon: EnjoyIcons.hub,
           text: l10n.settingsAiProvidersLlmSpecLabel,
         ),
         SizedBox(height: t.space8),
@@ -91,7 +92,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
         SizedBox(height: t.space16),
         if (presets.isNotEmpty) ...[
           SectionLabel(
-            icon: Icons.bolt_outlined,
+            icon: EnjoyIcons.bolt,
             text: l10n.settingsAiProvidersPresetsLabel,
           ),
           SizedBox(height: t.space8),
@@ -171,7 +172,7 @@ class _LlmByokFormState extends State<LlmByokForm> {
                     onPressed: _fetchingModels ? null : _fetchModels,
                     icon: _fetchingModels
                         ? const LoadingIcon(size: 16)
-                        : const Icon(Icons.list_outlined),
+                        : const Icon(EnjoyIcons.list),
                     label: Text(l10n.settingsAiProvidersFetchModels),
                   ),
                 ],

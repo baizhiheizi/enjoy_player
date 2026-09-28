@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
-/// Pill-shaped drag affordance for modal bottom sheets (40×4, matches legacy
-/// subtitle picker styling).
+/// Grabber for modal bottom sheets (36×5 capsule, Aurora).
 ///
 /// Use with [showModalBottomSheet] `showDragHandle: false` and prefer
 /// [PaddedSheetDragHandle] for the standard vertical inset above sheet headers.
@@ -14,11 +13,11 @@ class SheetDragHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      width: 40,
-      height: 4,
+      width: 36,
+      height: 5,
       decoration: BoxDecoration(
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(2),
+        color: scheme.onSurface.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(3),
       ),
     );
   }
@@ -33,7 +32,7 @@ class PaddedSheetDragHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: t.space12),
+      padding: EdgeInsets.only(top: t.space8 + 2, bottom: t.space12),
       child: const Center(child: SheetDragHandle()),
     );
   }

@@ -1,13 +1,17 @@
-/// Profile gradient hero card (avatar, name, Enjoy ID, Pro upgrade CTA).
+/// Profile hero card (aurora-ringed avatar, serif name, Enjoy ID, Pro CTA).
 library;
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
 import 'package:enjoy_player/features/subscription/application/current_tier_provider.dart';
@@ -24,39 +28,62 @@ class ProfileHeroCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final p = profile;
 
+    final light = Theme.of(context).brightness == Brightness.light;
+    final avatarUrl = rasterAvatarUrl(p.avatarUrl);
+    final radius = BorderRadius.circular(t.radiusXl);
+
     return EnjoyTappableSurface(
-      borderRadius: BorderRadius.circular(t.radiusXl),
+      borderRadius: radius,
       semanticsLabel: l10n.profileEditEntry,
+      enableHoverScale: false,
       onTap: () => context.push('/profile/edit'),
       child: DecoratedBox(
-        decoration: BoxDecoration(
+        decoration: enjoyCardDecoration(
+          context,
+          radius: t.radiusXl,
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              t.gradientStart.withValues(alpha: 0.94),
-              t.gradientEnd.withValues(alpha: 0.9),
+              Color.alphaBlend(
+                t.auroraStart.withValues(alpha: light ? 0.08 : 0.14),
+                t.card,
+              ),
+              t.card,
+              Color.alphaBlend(
+                t.auroraEnd.withValues(alpha: light ? 0.10 : 0.16),
+                t.card,
+              ),
             ],
+            stops: const [0, 0.55, 1],
           ),
-          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.28)),
-          borderRadius: BorderRadius.circular(t.radiusXl),
         ),
         child: Padding(
           padding: EdgeInsets.all(t.space20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundImage: p.avatarUrl != null && p.avatarUrl!.isNotEmpty
-                    ? CachedNetworkImageProvider(rasterAvatarUrl(p.avatarUrl!)!)
-                    : null,
-                child: p.avatarUrl == null || p.avatarUrl!.isEmpty
-                    ? Icon(Icons.person_rounded, size: 36, color: cs.primary)
-                    : null,
+              // Aurora ring avatar.
+              Container(
+                padding: const EdgeInsets.all(2.5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: t.aurora,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(2.5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: t.card,
+                  ),
+                  child: EnjoyAvatar(
+                    name: p.name,
+                    imageUrl: avatarUrl,
+                    size: 62,
+                  ),
+                ),
               ),
               SizedBox(width: t.space16),
               Expanded(
@@ -68,9 +95,11 @@ class ProfileHeroCard extends ConsumerWidget {
                         Flexible(
                           child: Text(
                             p.name,
-                            style: tt.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.35,
+                            style: enjoyDisplayStyle(
+                              context,
+                              size: 30,
+                              color: cs.onSurface,
+                              height: 1.1,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -83,10 +112,11 @@ class ProfileHeroCard extends ConsumerWidget {
                     SizedBox(height: t.space4),
                     Text(
                       p.id,
-                      style: tt.bodyMedium?.copyWith(
-                        color: cs.onSurface.withValues(alpha: 0.82),
-                        height: 1.35,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                      style: enjoyMonoStyle(
+                        context,
+                        size: 11.5,
+                        weight: FontWeight.w400,
+                        color: t.textFaint,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -96,18 +126,14 @@ class ProfileHeroCard extends ConsumerWidget {
               ),
               if (tier == SubscriptionTier.free) ...[
                 SizedBox(width: t.space12),
-                FilledButton.tonal(
+                EnjoyButton.primary(
+                  size: EnjoyButtonSize.small,
+                  icon: EnjoyIcons.crown,
                   onPressed: () => context.push('/subscription'),
-                  style: FilledButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: t.space16,
-                      vertical: t.space12,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
                   child: Text(l10n.subscriptionUpgradeShort),
                 ),
-              ],
+              ] else
+                Icon(EnjoyIcons.chevronRight, size: 16, color: t.textFaint),
             ],
           ),
         ),
@@ -125,27 +151,15 @@ class SubscriptionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final label = switch (tier) {
       SubscriptionTier.pro => l10n.profileSubscriptionPro,
       SubscriptionTier.lite => l10n.subscriptionTierLiteName,
       SubscriptionTier.free || null => l10n.profileSubscriptionFree,
     };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: cs.secondaryContainer,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: tt.labelSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: cs.onSecondaryContainer,
-        ),
-      ),
+    return EnjoyTierBadge(
+      label: label,
+      muted: tier == null || tier == SubscriptionTier.free,
     );
   }
 }

@@ -2,6 +2,7 @@
 //
 // Renders the AI providers settings screen with a fake in-memory Drift DB
 // and a fake BYOK secret store so the providers build and resolve cleanly.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -98,6 +99,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Shield icon should be present as part of the privacy callout.
-    expect(find.byIcon(Icons.shield_outlined), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.shield), findsOneWidget);
   });
 }

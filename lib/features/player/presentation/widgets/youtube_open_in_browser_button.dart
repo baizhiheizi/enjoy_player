@@ -1,5 +1,6 @@
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,7 +29,11 @@ class YoutubeOpenInBrowserButton extends ConsumerWidget {
         padding: const EdgeInsets.all(8),
         constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
         tooltip: l10n.youtubeOpenInBrowser,
-        icon: const Icon(Icons.open_in_browser, color: Colors.white, size: 20),
+        icon: const Icon(
+          EnjoyIcons.openExternal,
+          color: Colors.white,
+          size: 20,
+        ),
         onPressed: () => _openInBrowser(videoId),
       ),
     );

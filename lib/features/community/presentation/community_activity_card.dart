@@ -1,10 +1,12 @@
 /// Community activity / active learners (signed-in home dashboard).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/community/application/active_users_provider.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
@@ -96,7 +98,7 @@ Widget _wrapChrome({
   required String semanticsLabel,
   required Widget child,
 }) {
-  final pad = EdgeInsets.all(t.space16);
+  final pad = EdgeInsets.all(t.space16 + 2);
   final body = Semantics(
     label: semanticsLabel,
     child: Padding(padding: pad, child: child),
@@ -107,11 +109,7 @@ Widget _wrapChrome({
   }
   return Padding(
     padding: outer,
-    child: Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: body,
-    ),
+    child: EnjoyCard(child: body),
   );
 }
 
@@ -123,14 +121,14 @@ class _LoadingInner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = cs.surfaceContainerHighest.withValues(alpha: 0.6);
+    final base = t.fill;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Icon(Icons.group_outlined, size: 16, color: cs.primary),
+            Icon(EnjoyIcons.people, size: 16, color: cs.primary),
             SizedBox(width: t.space4),
             Expanded(
               child: Container(
@@ -214,7 +212,7 @@ class _ErrorInner extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        Icon(Icons.error_outline, color: cs.error, size: 20),
+        Icon(EnjoyIcons.error, color: cs.error, size: 20),
         SizedBox(width: t.space8),
         Expanded(
           child: Text(

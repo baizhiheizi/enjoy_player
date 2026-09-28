@@ -5,6 +5,7 @@
 /// (FR-005) is enforced by the caller, not this widget.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -33,19 +35,23 @@ class DeveloperSectionBody extends StatelessWidget {
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.symmetric(
-              horizontal: t.space20,
-              vertical: t.space8,
+              horizontal: kSettingsRowHorizontalPadding,
+              vertical: t.space4,
             ),
             childrenPadding: EdgeInsets.fromLTRB(
-              t.space20,
-              t.space16,
-              t.space16,
+              kSettingsRowHorizontalPadding,
+              t.space8,
+              kSettingsRowHorizontalPadding,
               t.space16,
             ),
-            leading: const _ExpansionLeading(icon: Icons.dns_outlined),
+            minTileHeight: 56,
+            leading: const _ExpansionLeading(icon: EnjoyIcons.server),
             title: Text(
               l10n.settingsApiBaseUrl,
-              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: tt.titleMedium?.copyWith(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             subtitle: Text(
               l10n.settingsApiBaseUrlHint,
@@ -54,24 +60,28 @@ class DeveloperSectionBody extends StatelessWidget {
             children: const [_ApiBaseUrlEditor()],
           ),
         ),
-        const SettingsRowDivider(insetForLeading: false),
+        const SettingsRowDivider(),
         Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.symmetric(
-              horizontal: t.space20,
-              vertical: t.space8,
+              horizontal: kSettingsRowHorizontalPadding,
+              vertical: t.space4,
             ),
             childrenPadding: EdgeInsets.fromLTRB(
-              t.space20,
-              t.space16,
-              t.space16,
+              kSettingsRowHorizontalPadding,
+              t.space8,
+              kSettingsRowHorizontalPadding,
               t.space16,
             ),
-            leading: const _ExpansionLeading(icon: Icons.smart_toy_outlined),
+            minTileHeight: 56,
+            leading: const _ExpansionLeading(icon: EnjoyIcons.robot),
             title: Text(
               l10n.settingsAiApiBaseUrl,
-              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: tt.titleMedium?.copyWith(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             subtitle: Text(
               l10n.settingsAiApiBaseUrlHint,
@@ -80,9 +90,9 @@ class DeveloperSectionBody extends StatelessWidget {
             children: const [_AiApiBaseUrlEditor()],
           ),
         ),
-        const SettingsRowDivider(insetForLeading: false),
+        const SettingsRowDivider(),
         SettingsRow(
-          leadingIcon: Icons.science_outlined,
+          leadingIcon: EnjoyIcons.lab,
           title: l10n.settingsAiPlaygroundTileTitle,
           subtitle: l10n.settingsAiPlaygroundTileSubtitle,
           onTap: () => context.push('/settings/ai-playground'),
@@ -99,14 +109,7 @@ class _ExpansionLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return SizedBox(
-      width: 44,
-      height: 44,
-      child: Center(
-        child: Icon(icon, color: cs.primary.withValues(alpha: 0.92), size: 22),
-      ),
-    );
+    return EnjoyIconTile(icon: icon, size: kSettingsRowLeadingSize);
   }
 }
 

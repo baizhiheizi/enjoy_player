@@ -1,6 +1,7 @@
 /// Craft history: browse, re-open, and remove Craft records (keep audio).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +40,7 @@ class CraftHistoryScreen extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return EmptyState(
-              icon: Icons.auto_awesome_outlined,
+              icon: EnjoyIcons.sparkle,
               title: l10n.craftHistoryEmptyTitle,
               subtitle: l10n.craftHistoryEmptyHint,
               action: () => context.go('/craft'),
@@ -148,7 +149,7 @@ class _CraftHistoryTile extends StatelessWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        leading: Icon(Icons.auto_awesome_outlined, color: cs.primary),
+        leading: Icon(EnjoyIcons.sparkle, color: cs.primary),
         title: Text(media.title, maxLines: 2, overflow: TextOverflow.ellipsis),
         subtitle: Text(dateFmt.format(media.updatedAt.toLocal())),
         trailing: Row(
@@ -156,10 +157,10 @@ class _CraftHistoryTile extends StatelessWidget {
           children: [
             IconButton(
               tooltip: l10n.craftHistoryRemoveTooltip,
-              icon: const Icon(Icons.delete_outline_rounded),
+              icon: const Icon(EnjoyIcons.delete),
               onPressed: onRemove,
             ),
-            const Icon(Icons.chevron_right_rounded),
+            const Icon(EnjoyIcons.chevronRight),
           ],
         ),
         onTap: onTap,

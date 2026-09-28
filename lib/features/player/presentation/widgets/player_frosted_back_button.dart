@@ -1,6 +1,7 @@
 /// Circular frosted collapse control matching OpenDesign player `.p-back`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -23,7 +24,9 @@ class PlayerFrostedBackButton extends StatelessWidget {
       message: MaterialLocalizations.of(context).backButtonTooltip,
       child: Material(
         color: Colors.black.withValues(alpha: 0.45),
-        shape: const CircleBorder(),
+        shape: CircleBorder(
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        ),
         clipBehavior: Clip.antiAlias,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
@@ -33,11 +36,7 @@ class PlayerFrostedBackButton extends StatelessWidget {
             child: SizedBox(
               width: _size,
               height: _size,
-              child: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: iconColor,
-                size: 20,
-              ),
+              child: Icon(EnjoyIcons.chevronDown, color: iconColor, size: 20),
             ),
           ),
         ),

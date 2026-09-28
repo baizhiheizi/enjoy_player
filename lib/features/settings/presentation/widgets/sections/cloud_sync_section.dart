@@ -5,6 +5,8 @@
 /// [SettingsSectionCard] by the layout, not wrapped here.
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,14 +37,14 @@ class CloudSyncSectionBody extends ConsumerWidget {
         if (state is AuthSignedIn) {
           return snapAsync.when(
             data: (snap) => SettingsRow(
-              leadingIcon: Icons.cloud_sync_outlined,
+              leadingIcon: EnjoyIcons.cloudSync,
               title: l10n.syncSettingsTileTitle,
               subtitle: l10n.settingsSectionSyncHint,
               valueBadge: _SyncQueueStatusPill(snapshot: snap, l10n: l10n),
               onTap: () => context.push('/settings/sync'),
             ),
             loading: () => SettingsRow(
-              leadingIcon: Icons.cloud_sync_outlined,
+              leadingIcon: EnjoyIcons.cloudSync,
               title: l10n.syncSettingsTileTitle,
               subtitle: l10n.loading,
               valueBadge: Skeleton.line(
@@ -53,12 +55,12 @@ class CloudSyncSectionBody extends ConsumerWidget {
               onTap: () => context.push('/settings/sync'),
             ),
             error: (Object e, StackTrace s) => SettingsRow(
-              leadingIcon: Icons.cloud_sync_outlined,
+              leadingIcon: EnjoyIcons.cloudSync,
               leadingIconTint: cs.error,
               title: l10n.syncSettingsTileTitle,
               subtitle: l10n.error,
               valueBadge: SettingsValuePill(
-                icon: Icons.error_outline_rounded,
+                icon: EnjoyIcons.error,
                 label: l10n.error,
                 foregroundColor: cs.error,
               ),
@@ -67,7 +69,7 @@ class CloudSyncSectionBody extends ConsumerWidget {
           );
         }
         return SettingsRow(
-          leadingIcon: Icons.cloud_off_outlined,
+          leadingIcon: EnjoyIcons.cloudOff,
           leadingIconTint: cs.onSurfaceVariant,
           title: l10n.syncSettingsTileTitle,
           subtitle: l10n.syncSettingsTileSubtitleSignedOut,
@@ -98,7 +100,7 @@ class CloudSyncSectionBody extends ConsumerWidget {
                   style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: t.space12),
-                FilledButton.tonal(
+                EnjoyButton.tonal(
                   onPressed: () => ref.invalidate(authCtrlProvider),
                   child: Text(l10n.retry),
                 ),
@@ -122,16 +124,14 @@ class _SyncQueueStatusPill extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     if (snapshot.isFullyCaughtUp) {
       return SettingsValuePill(
-        icon: Icons.check_circle_outline_rounded,
+        icon: EnjoyIcons.checkCircle,
         label: l10n.syncSettingsTileSubtitleUpToDate,
         foregroundColor: cs.primary,
       );
     }
     final hasFailed = snapshot.permanentlyFailed > 0;
     return SettingsValuePill(
-      icon: hasFailed
-          ? Icons.warning_amber_rounded
-          : Icons.hourglass_empty_rounded,
+      icon: hasFailed ? EnjoyIcons.warning : EnjoyIcons.hourglass,
       label: l10n.syncSettingsTileSubtitleCounts(
         snapshot.retryablePending,
         snapshot.permanentlyFailed,

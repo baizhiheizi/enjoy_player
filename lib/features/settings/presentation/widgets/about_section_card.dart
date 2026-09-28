@@ -1,6 +1,7 @@
 /// About card — app identity, version, and open-source link.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -199,7 +200,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
                     SettingsRow(
-                      leadingIcon: Icons.system_update_alt_rounded,
+                      leadingIcon: EnjoyIcons.update,
                       title: l10n.settingsCheckForUpdatesTitle,
                       subtitle: l10n.settingsCheckForUpdatesSubtitle,
                       valueBadge: ref.watch(updateAvailableBadgeProvider)
@@ -218,7 +219,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
                     SettingsRow(
-                      leadingIcon: Icons.lightbulb_outline_rounded,
+                      leadingIcon: EnjoyIcons.lightbulb,
                       title: l10n.settingsResetProductTipsTitle,
                       subtitle: l10n.settingsResetProductTipsSubtitle,
                       onTap: () => _confirmResetProductTips(context, ref),
@@ -248,7 +249,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                                 height: 44,
                                 child: Center(
                                   child: Icon(
-                                    Icons.bug_report_outlined,
+                                    EnjoyIcons.bug,
                                     size: 22,
                                     color: cs.primary.withValues(alpha: 0.92),
                                   ),
@@ -331,7 +332,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
                     SettingsRow(
-                      leadingIcon: Icons.archive_outlined,
+                      leadingIcon: EnjoyIcons.archive,
                       title: l10n.settingsDiagnosticsExportTitle,
                       subtitle: l10n.settingsDiagnosticsExportSubtitle,
                       onTap: () => exportDiagnosticReport(context),
@@ -344,12 +345,12 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
                     SettingsRow(
-                      leadingIcon: Icons.code_rounded,
+                      leadingIcon: EnjoyIcons.code,
                       title: l10n.settingsAboutOpenSourceTitle,
                       subtitle: l10n.settingsAboutOpenSourceSubtitle,
                       showChevron: false,
                       trailing: Icon(
-                        Icons.open_in_new_rounded,
+                        EnjoyIcons.openExternal,
                         size: 18,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.55),
                       ),
@@ -363,7 +364,7 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
                     SettingsRow(
-                      leadingIcon: Icons.forum_outlined,
+                      leadingIcon: EnjoyIcons.forum,
                       title: l10n.settingsAboutContactTitle,
                       subtitle: l10n.settingsAboutContactSubtitle,
                       onTap: () => showDeveloperContactSheet(context),

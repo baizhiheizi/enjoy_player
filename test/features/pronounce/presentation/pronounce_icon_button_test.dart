@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -130,7 +131,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.stop_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.stop), findsOneWidget);
     final tooltip = find.byTooltip(l10n.pronounceStop);
     expect(tooltip, findsOneWidget);
   });

@@ -1,6 +1,7 @@
 /// Confirm-dialog-aware sign-out CTA for the profile screen.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -25,14 +26,15 @@ class ProfileSignOutButton extends StatelessWidget {
       label: l10n.authSignOut,
       child: TextButton.icon(
         onPressed: saving ? null : onPressed,
-        icon: Icon(Icons.logout_rounded, color: cs.error, size: 20),
+        icon: Icon(EnjoyIcons.signOut, color: cs.error, size: 18),
         label: Text(
           l10n.authSignOut,
           style: TextStyle(color: cs.error, fontWeight: FontWeight.w600),
         ),
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(46),
           foregroundColor: cs.error,
+          overlayColor: cs.error,
         ),
       ),
     );

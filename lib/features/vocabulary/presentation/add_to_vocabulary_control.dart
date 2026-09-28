@@ -1,6 +1,7 @@
 /// Lookup-sheet control: add / add context / already in / remove vocabulary item.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -170,9 +171,9 @@ class _AddToVocabularyControlState
   }
 
   IconData get _icon => switch (_kind) {
-    VocabularyCtaKind.alreadyInVocabulary => Icons.bookmark_rounded,
-    VocabularyCtaKind.addContext => Icons.bookmark_add_rounded,
-    VocabularyCtaKind.notInBook || null => Icons.bookmark_add_outlined,
+    VocabularyCtaKind.alreadyInVocabulary => EnjoyIcons.bookmarkFill,
+    VocabularyCtaKind.addContext => EnjoyIcons.bookmarkAdd,
+    VocabularyCtaKind.notInBook || null => EnjoyIcons.bookmarkAdd,
   };
 
   @override

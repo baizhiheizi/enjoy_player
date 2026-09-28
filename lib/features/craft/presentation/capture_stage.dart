@@ -5,6 +5,7 @@
 /// for recording and a "type instead" text fallback.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -465,7 +466,7 @@ class _IdleView extends StatelessWidget {
                       ],
                     ),
                     child: Icon(
-                      Icons.mic_rounded,
+                      EnjoyIcons.mic,
                       size: buttonSize * 0.48,
                       color: scheme.onPrimary,
                     ),
@@ -477,7 +478,7 @@ class _IdleView extends StatelessWidget {
           const SizedBox(height: 28),
           TextButton.icon(
             onPressed: onTypeInstead,
-            icon: const Icon(Icons.keyboard_rounded, size: 18),
+            icon: const Icon(EnjoyIcons.keyboard, size: 18),
             label: Text(l10n.craftCaptureTypeInstead),
           ),
         ],
@@ -603,11 +604,7 @@ class _RecordingViewState extends State<_RecordingView>
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.stop_rounded,
-                    size: 40,
-                    color: scheme.onError,
-                  ),
+                  child: Icon(EnjoyIcons.stop, size: 40, color: scheme.onError),
                 ),
               ),
             ),
@@ -732,7 +729,7 @@ class _TextFallback extends StatelessWidget {
           children: [
             TextButton.icon(
               onPressed: onBack,
-              icon: const Icon(Icons.mic_rounded, size: 18),
+              icon: const Icon(EnjoyIcons.mic, size: 18),
               label: Text(l10n.craftCaptureTitle),
             ),
           ],
@@ -753,7 +750,7 @@ class _TextFallback extends StatelessWidget {
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: onSubmit,
-          icon: const Icon(Icons.arrow_forward_rounded),
+          icon: const Icon(EnjoyIcons.arrowRight),
           label: Text(l10n.craftRewriteGenerateAudio),
         ),
       ],

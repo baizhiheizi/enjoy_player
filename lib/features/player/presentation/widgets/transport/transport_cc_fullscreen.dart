@@ -1,6 +1,7 @@
 /// Subtitles picker and desktop fullscreen toggle for the transport bar.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,8 +82,8 @@ class TransportFullscreenButton extends ConsumerWidget {
         ? l10n.transportExitFullscreen
         : l10n.transportFullscreen;
     final icon = isFullscreen
-        ? const Icon(Icons.fullscreen_exit_rounded)
-        : const Icon(Icons.fullscreen_rounded);
+        ? const Icon(EnjoyIcons.fullscreenExit)
+        : const Icon(EnjoyIcons.fullscreen);
 
     return IconButton(
       tooltip: tooltip,

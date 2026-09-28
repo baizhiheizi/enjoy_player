@@ -1,6 +1,7 @@
 /// Settings rows for customizing shortcuts (Drift-backed via [HotkeysCtrl]).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -75,7 +76,7 @@ class _HotkeysSettingsSectionState
         onChanged: (_) => setState(() {}),
         decoration: InputDecoration(
           hintText: l10n.hotkeysFilterHint,
-          prefixIcon: const Icon(Icons.search_rounded),
+          prefixIcon: const Icon(EnjoyIcons.search),
           isDense: true,
           filled: true,
           fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.45),
@@ -240,14 +241,14 @@ class _HotkeyEditRow extends StatelessWidget {
                       IconButton(
                         style: actionStyle,
                         tooltip: editTooltip,
-                        icon: const Icon(Icons.tune_rounded, size: 20),
+                        icon: const Icon(EnjoyIcons.tune, size: 20),
                         onPressed: onEdit,
                       ),
                       IconButton(
                         style: actionStyle,
                         tooltip: resetTooltip,
                         onPressed: onReset,
-                        icon: const Icon(Icons.refresh_rounded, size: 20),
+                        icon: const Icon(EnjoyIcons.refresh, size: 20),
                       ),
                     ],
                   ),

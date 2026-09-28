@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -63,8 +64,8 @@ class ShadowRecordFab extends StatelessWidget {
                 painter: ShadowRecordRingPainter(
                   progress: ringProgress,
                   overTarget: overTarget,
-                  trackColor: scheme.outlineVariant.withValues(
-                    alpha: trackAlpha,
+                  trackColor: scheme.onSurface.withValues(
+                    alpha: trackAlpha * 0.4,
                   ),
                   fillColor: overTarget ? scheme.error : scheme.primary,
                   showProgressArc: showProgressArc,
@@ -81,19 +82,33 @@ class ShadowRecordFab extends StatelessWidget {
                     height: _fabInner,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: recording ? tok.echoActive : scheme.primary,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color.lerp(
+                            recording ? tok.echoActive : scheme.primary,
+                            Colors.white,
+                            0.14,
+                          )!,
+                          recording ? tok.echoActive : scheme.primary,
+                        ],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.16),
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: (recording ? tok.echoActive : scheme.primary)
-                              .withValues(alpha: 0.35),
-                          blurRadius: recording ? 22 : 12,
-                          spreadRadius: recording ? 2 : 0,
-                          offset: const Offset(0, 4),
+                              .withValues(alpha: recording ? 0.45 : 0.36),
+                          blurRadius: recording ? 24 : 16,
+                          spreadRadius: recording ? 1 : -3,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
                     child: Icon(
-                      recording ? Icons.stop_rounded : Icons.mic_rounded,
+                      recording ? EnjoyIcons.stop : EnjoyIcons.micFill,
                       color: recording ? Colors.white : scheme.onPrimary,
                       size: iconSize,
                     ),

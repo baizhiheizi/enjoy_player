@@ -1,6 +1,7 @@
 /// Sync queue status, last full sync time, and manual sync actions.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -149,7 +150,7 @@ class _SignedInBody extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SettingsRow(
-                leadingIcon: Icons.history_rounded,
+                leadingIcon: EnjoyIcons.history,
                 title: l10n.syncScreenLastSyncLabel,
                 showChevron: false,
                 valueBadge: lastSyncAsync.when(
@@ -157,7 +158,7 @@ class _SignedInBody extends ConsumerWidget {
                       SettingsValuePill(label: lastSyncLine(l10n, iso)),
                   loading: () => const LoadingIcon(size: 18),
                   error: (e, _) => SettingsValuePill(
-                    icon: Icons.error_outline_rounded,
+                    icon: EnjoyIcons.error,
                     label: l10n.error,
                     foregroundColor: cs.error,
                   ),
@@ -178,7 +179,7 @@ class _SignedInBody extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SettingsRow(
-                        leadingIcon: Icons.hourglass_empty_rounded,
+                        leadingIcon: EnjoyIcons.hourglass,
                         leadingIconTint: snap.retryablePending > 0
                             ? cs.primary
                             : null,
@@ -193,7 +194,7 @@ class _SignedInBody extends ConsumerWidget {
                       ),
                       const SettingsRowDivider(insetForLeading: false),
                       SettingsRow(
-                        leadingIcon: Icons.error_outline_rounded,
+                        leadingIcon: EnjoyIcons.error,
                         leadingIconTint: snap.permanentlyFailed > 0
                             ? cs.error
                             : null,
@@ -214,7 +215,7 @@ class _SignedInBody extends ConsumerWidget {
                   onPressed: busySync ? null : onSyncNow,
                   icon: busySync
                       ? const LoadingIcon(size: 18)
-                      : const Icon(Icons.sync_rounded),
+                      : const Icon(EnjoyIcons.sync),
                   label: Text(l10n.syncScreenSyncNow),
                 ),
                 SizedBox(height: t.space12),
@@ -224,7 +225,7 @@ class _SignedInBody extends ConsumerWidget {
                       : onRetryFailed,
                   icon: busyRetry
                       ? const LoadingIcon(size: 18)
-                      : const Icon(Icons.refresh_rounded),
+                      : const Icon(EnjoyIcons.refresh),
                   label: Text(l10n.syncScreenRetryFailed),
                 ),
                 SizedBox(height: t.space16),

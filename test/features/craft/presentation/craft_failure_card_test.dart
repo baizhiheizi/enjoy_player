@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +54,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
 

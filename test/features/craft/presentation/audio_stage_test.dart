@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -141,7 +142,7 @@ void main() {
       expect(find.byType(SelectableText), findsOneWidget);
 
       // Preview player: play/pause button.
-      expect(find.byIcon(Icons.play_arrow_rounded), findsWidgets);
+      expect(find.byIcon(EnjoyIcons.play), findsWidgets);
 
       // Progress slider.
       expect(find.byType(Slider), findsOneWidget);
@@ -248,7 +249,7 @@ void main() {
         .copyWith(failure: const CraftTranslateFailure());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
 

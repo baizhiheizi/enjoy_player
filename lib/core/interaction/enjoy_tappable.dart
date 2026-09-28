@@ -1,14 +1,14 @@
-/// Shared tappable surfaces: ripple, hover scale, cursor, focus, haptics.
+/// Shared tappable surfaces: press wash, hover scale, cursor, focus, haptics.
 library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
-import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
-import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
-/// Card / tile tap target with Material ripple and optional hover scale.
-class EnjoyTappableSurface extends StatefulWidget {
+/// Card / tile tap target — Aurora press (wash + press-scale, no ripple) with
+/// optional hover lift. Thin wrapper over [EnjoyPressable].
+class EnjoyTappableSurface extends StatelessWidget {
   const EnjoyTappableSurface({
     super.key,
     required this.borderRadius,
@@ -31,81 +31,16 @@ class EnjoyTappableSurface extends StatefulWidget {
   final bool excludeSemantics;
 
   @override
-  State<EnjoyTappableSurface> createState() => _EnjoyTappableSurfaceState();
-}
-
-class _EnjoyTappableSurfaceState extends State<EnjoyTappableSurface> {
-  bool _hover = false;
-
-  @override
   Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final instant = MediaQuery.disableAnimationsOf(context);
-    final scale =
-        (!instant && widget.enableHoverScale && widget.onTap != null && _hover)
-        ? widget.hoverScale
-        : 1.0;
-
-    Widget core = Material(
-      color: Colors.transparent,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
-      child: InkWell(
-        borderRadius: widget.borderRadius,
-        onTap: widget.onTap == null
-            ? null
-            : () {
-                Haptics.selection(context);
-                widget.onTap!();
-              },
-        onLongPress: widget.onLongPress == null
-            ? null
-            : () {
-                Haptics.impactMedium(context);
-                widget.onLongPress!();
-              },
-        hoverColor: cs.onSurface.withValues(alpha: 0.06),
-        splashColor: cs.primary.withValues(alpha: 0.10),
-        highlightColor: cs.primary.withValues(alpha: 0.06),
-        child: widget.child,
-      ),
+    return EnjoyPressable(
+      borderRadius: borderRadius,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      hoverScale: enableHoverScale ? hoverScale : 1,
+      semanticsLabel: semanticsLabel,
+      excludeSemantics: excludeSemantics,
+      child: child,
     );
-
-    core = AnimatedScale(
-      scale: scale,
-      duration: t.motionFast,
-      curve: Curves.easeOutCubic,
-      child: core,
-    );
-
-    core = Focus(canRequestFocus: widget.onTap != null, child: core);
-
-    core = MouseRegion(
-      cursor: widget.onTap != null
-          ? SystemMouseCursors.click
-          : MouseCursor.defer,
-      onEnter: (_) => runOutsideMouseTrackerIfMounted(() => mounted, () {
-        if (_hover) return;
-        setState(() => _hover = true);
-      }),
-      onExit: (_) => runOutsideMouseTrackerIfMounted(() => mounted, () {
-        if (!_hover) return;
-        setState(() => _hover = false);
-      }),
-      child: core,
-    );
-
-    if (widget.semanticsLabel != null) {
-      core = Semantics(
-        button: widget.onTap != null,
-        label: widget.semanticsLabel,
-        excludeSemantics: widget.excludeSemantics,
-        child: core,
-      );
-    }
-
-    return core;
   }
 }
 

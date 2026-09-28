@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -89,10 +90,10 @@ void main() {
       expect(find.text('中文'), findsOneWidget);
 
       // Close button is present.
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
 
       // Copy button is present.
-      expect(find.byIcon(Icons.copy_all_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.copy), findsOneWidget);
     });
 
     testWidgets('close button pops the navigator', (tester) async {
@@ -147,7 +148,7 @@ void main() {
       expect(find.byKey(const Key('sheet')), findsOneWidget);
 
       // Tap close.
-      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.tap(find.byIcon(EnjoyIcons.close));
       await tester.pumpAndSettle();
       expect(popped, isTrue);
     });
@@ -173,11 +174,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final pronounceX = tester
-          .getCenter(find.byIcon(Icons.volume_up_rounded))
-          .dx;
-      final copyX = tester.getCenter(find.byIcon(Icons.copy_all_rounded)).dx;
-      final closeX = tester.getCenter(find.byIcon(Icons.close_rounded)).dx;
+      final pronounceX = tester.getCenter(find.byIcon(EnjoyIcons.volume)).dx;
+      final copyX = tester.getCenter(find.byIcon(EnjoyIcons.copy)).dx;
+      final closeX = tester.getCenter(find.byIcon(EnjoyIcons.close)).dx;
 
       expect(pronounceX, lessThan(copyX));
       expect(copyX, lessThan(closeX));
@@ -209,7 +208,7 @@ void main() {
       expect(find.text('中文'), findsOneWidget);
 
       // Tap swap.
-      await tester.tap(find.byIcon(Icons.swap_horiz_rounded));
+      await tester.tap(find.byIcon(EnjoyIcons.swap));
       await tester.pumpAndSettle();
 
       // After swap: 中文 is source, English is target — both still visible.

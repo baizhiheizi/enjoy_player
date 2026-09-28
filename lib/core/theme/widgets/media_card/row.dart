@@ -1,12 +1,12 @@
-/// Horizontal [MediaCardRow] for list views (audio).
+/// Horizontal [MediaCardRow] for list views (audio) — Aurora list row.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
-import 'package:enjoy_player/core/interaction/mouse_tracker_safe.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
 
 import '../../enjoy_tokens.dart';
@@ -81,6 +81,7 @@ class _MediaCardRowState extends State<MediaCardRow> {
 
   Widget _buildTrailing(ColorScheme cs, EnjoyThemeTokens t) {
     if (widget.trailing != null) return widget.trailing!;
+    final chevron = Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint);
     if (widget.onDelete != null && showMediaCardPointerDeleteButton()) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -92,34 +93,35 @@ class _MediaCardRowState extends State<MediaCardRow> {
               builder: (context, hover, child) {
                 final strong = hover || _deleteFocused;
                 return AnimatedOpacity(
-                  opacity: strong ? 1 : 0.45,
+                  opacity: strong ? 1 : 0,
                   duration: t.motionFast,
                   curve: Curves.easeOut,
                   child: child,
                 );
               },
               child: IconButton(
-                visualDensity: VisualDensity.compact,
-                iconSize: 22,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                iconSize: 18,
+                style: IconButton.styleFrom(
+                  fixedSize: const Size(34, 34),
+                  minimumSize: const Size(34, 34),
+                  padding: EdgeInsets.zero,
+                ),
                 tooltip:
                     (widget.deleteTooltip != null &&
                         widget.deleteTooltip!.isNotEmpty)
                     ? widget.deleteTooltip!
                     : MaterialLocalizations.of(context).deleteButtonTooltip,
                 onPressed: widget.onDelete,
-                icon: Icon(
-                  Icons.delete_outline_rounded,
-                  color: cs.onSurfaceVariant,
-                ),
+                icon: Icon(EnjoyIcons.delete, color: cs.onSurfaceVariant),
               ),
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
+          SizedBox(width: t.space4),
+          chevron,
         ],
       );
     }
-    return Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant);
+    return chevron;
   }
 
   @override
@@ -127,157 +129,147 @@ class _MediaCardRowState extends State<MediaCardRow> {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final accent = widget.accentColor ?? cs.primary;
+    final light = Theme.of(context).brightness == Brightness.light;
+    final artRadius = BorderRadius.circular(t.radiusSm + 2);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
-      onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-      child: Material(
-        color: Colors.transparent,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(t.radiusLg),
+    return EnjoyPressable(
+      onTap: widget.onTap,
+      onLongPress:
+          widget.trailing == null && widget.onDelete != null && isMobilePlatform
+          ? () => showMediaCardMobileDeleteMenu(
+              context,
+              onDelete: widget.onDelete!,
+              label: widget.deleteTooltip,
+            )
+          : null,
+      onHoverChanged: (h) => _hover.value = h,
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      pressedScale: 0.99,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: t.space8 + 2,
+          vertical: t.space8,
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          onTap: () {
-            Haptics.selection(context);
-            widget.onTap();
-          },
-          onLongPress:
-              widget.trailing == null &&
-                  widget.onDelete != null &&
-                  isMobilePlatform
-              ? () => showMediaCardMobileDeleteMenu(
-                  context,
-                  onDelete: widget.onDelete!,
-                  label: widget.deleteTooltip,
-                )
-              : null,
-          hoverColor: cs.onSurface.withValues(alpha: 0.04),
-          splashColor: accent.withValues(alpha: 0.10),
-          highlightColor: accent.withValues(alpha: 0.05),
-          child: ValueListenableBuilder<bool>(
-            valueListenable: _hover,
-            builder: (context, hover, child) {
-              return AnimatedContainer(
-                duration: t.motionFast,
-                curve: Curves.easeOutCubic,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(t.radiusLg),
-                  color: hover
-                      ? accent.withValues(alpha: 0.06)
-                      : cs.surfaceContainerLow,
-                  border: Border.all(
-                    color: hover
-                        ? accent.withValues(alpha: 0.45)
-                        : cs.outlineVariant.withValues(alpha: 0.2),
-                    width: hover ? 1.5 : 1,
-                  ),
-                ),
-                child: child,
-              );
-            },
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: t.space16,
-                vertical: t.space12,
+        child: Row(
+          children: [
+            // Thumbnail square
+            DecoratedBox(
+              decoration: ShapeDecoration(
+                shape: RoundedSuperellipseBorder(borderRadius: artRadius),
+                shadows: light ? t.shadowCard : const <BoxShadow>[],
               ),
-              child: Row(
-                children: [
-                  // Thumbnail square
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(t.radiusMd),
-                    child: SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          mediaCardHeroArtworkShell(
-                            widget.heroArtworkMediaId,
-                            MediaCardThumbnail(
-                              file: widget.thumbnailFile,
-                              networkUrl: widget.thumbnailNetworkUrl,
-                              coverSeed: widget.coverSeed,
-                              isVideo: widget.isVideo,
-                              cs: cs,
-                            ),
-                          ),
-                          if (widget.providerBadge != null &&
-                              widget.providerBadge!.isNotEmpty)
-                            Positioned(
-                              top: 4,
-                              left: 4,
-                              child: MediaCardProviderBadgePill(
-                                label: widget.providerBadge!,
-                                compact: true,
-                              ),
-                            ),
-                          if (widget.cloudSyncBadge != null)
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: MediaCardSyncBadgePill(
-                                state: widget.cloudSyncBadge!,
-                              ),
-                            ),
-                        ],
+              child: ClipRSuperellipse(
+                borderRadius: artRadius,
+                child: SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      mediaCardHeroArtworkShell(
+                        widget.heroArtworkMediaId,
+                        MediaCardThumbnail(
+                          file: widget.thumbnailFile,
+                          networkUrl: widget.thumbnailNetworkUrl,
+                          coverSeed: widget.coverSeed,
+                          isVideo: widget.isVideo,
+                          cs: cs,
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(width: t.space16),
-                  // Title + meta
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                      IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            shape: RoundedSuperellipseBorder(
+                              borderRadius: artRadius,
+                              side: BorderSide(
+                                color: light
+                                    ? const Color(0x1416161D)
+                                    : Colors.white.withValues(alpha: 0.08),
+                              ),
+                            ),
                           ),
                         ),
-                        if (widget.subtitle != null ||
-                            widget.badge != null) ...[
-                          SizedBox(height: t.space4),
-                          Row(
-                            children: [
-                              if (widget.badge != null) ...[
-                                MediaCardBadge(
-                                  label: widget.badge!,
-                                  cs: cs,
-                                  onTap: widget.onBadgeTap,
-                                  showLanguageIcon: widget.onBadgeTap != null,
-                                ),
-                                SizedBox(width: t.space8),
-                              ],
-                              if (widget.subtitle != null)
-                                Text(
-                                  widget.subtitle!,
-                                  style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
-                                    ],
-                                  ),
-                                ),
-                            ],
+                      ),
+                      if (widget.providerBadge != null &&
+                          widget.providerBadge!.isNotEmpty)
+                        Positioned(
+                          top: 3,
+                          left: 3,
+                          child: MediaCardProviderBadgePill(
+                            label: widget.providerBadge!,
+                            compact: true,
                           ),
-                        ],
-                      ],
+                        ),
+                      if (widget.cloudSyncBadge != null)
+                        Positioned(
+                          top: 3,
+                          right: 3,
+                          child: MediaCardSyncBadgePill(
+                            state: widget.cloudSyncBadge!,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: t.space12 + 2),
+            // Title + meta
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.titleSmall?.copyWith(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      height: 1.3,
                     ),
                   ),
-                  // Trailing
-                  _buildTrailing(cs, t),
+                  if (widget.subtitle != null || widget.badge != null) ...[
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        if (widget.badge != null) ...[
+                          Flexible(
+                            child: MediaCardBadge(
+                              label: widget.badge!,
+                              cs: cs,
+                              onTap: widget.onBadgeTap,
+                              showLanguageIcon: widget.onBadgeTap != null,
+                            ),
+                          ),
+                          SizedBox(width: t.space8),
+                        ],
+                        if (widget.subtitle != null)
+                          Flexible(
+                            child: Text(
+                              widget.subtitle!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
+            SizedBox(width: t.space8),
+            // Trailing
+            _buildTrailing(cs, t),
+          ],
         ),
       ),
     );

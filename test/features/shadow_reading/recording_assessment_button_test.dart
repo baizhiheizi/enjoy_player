@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:convert';
 
 import 'package:drift/native.dart';
@@ -162,7 +163,7 @@ void main() {
       final row = (await db.recordingDao.getById(id))!;
       await pumpButton(tester, db: db, row: row);
 
-      expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.sparkleFill), findsOneWidget);
       final material = tester.widget<Material>(
         find.descendant(
           of: find.byType(RecordingAssessmentButton),

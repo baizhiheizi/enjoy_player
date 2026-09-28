@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/player/player_surface_overlay_coordinator.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -32,9 +33,7 @@ void main() {
   }
 
   group('AppNotice', () {
-    testWidgets('success shows a primaryContainer snackbar via global key', (
-      tester,
-    ) async {
+    testWidgets('success shows an Aurora toast via global key', (tester) async {
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
       await tester.pumpWidget(host(messengerKey: messengerKey));
 
@@ -46,11 +45,14 @@ void main() {
 
       expect(find.text('hello success'), findsOneWidget);
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      final scheme = Theme.of(ctx).colorScheme;
-      expect(snackBar.backgroundColor, scheme.primaryContainer);
+      expect(
+        snackBar.backgroundColor,
+        appNoticeBackground(Theme.of(ctx).brightness),
+      );
+      expect(find.byIcon(EnjoyIcons.checkCircleFill), findsOneWidget);
     });
 
-    testWidgets('error uses errorContainer and clears existing snackbars', (
+    testWidgets('error uses the toast surface and clears existing snackbars', (
       tester,
     ) async {
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -62,16 +64,18 @@ void main() {
       await tester.pump();
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      final scheme = Theme.of(ctx).colorScheme;
-      expect(snackBar.backgroundColor, scheme.errorContainer);
-      expect(find.byIcon(Icons.error_rounded), findsOneWidget);
+      expect(
+        snackBar.backgroundColor,
+        appNoticeBackground(Theme.of(ctx).brightness),
+      );
+      expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
       // Dismiss affordance is rendered by the notice body, not SnackBar's slot
       // (the field is left at its null default; the theme resolves it off).
       expect(snackBar.showCloseIcon, isNull);
-      expect(find.byIcon(Icons.close), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     });
 
-    testWidgets('info uses surfaceContainerHigh without close icon', (
+    testWidgets('info uses the toast surface without close icon', (
       tester,
     ) async {
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -83,13 +87,16 @@ void main() {
       await tester.pump();
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      final scheme = Theme.of(ctx).colorScheme;
-      expect(snackBar.backgroundColor, scheme.surfaceContainerHigh);
+      expect(
+        snackBar.backgroundColor,
+        appNoticeBackground(Theme.of(ctx).brightness),
+      );
+      expect(find.byIcon(EnjoyIcons.infoFill), findsOneWidget);
       expect(snackBar.showCloseIcon, isNull);
-      expect(find.byIcon(Icons.close), findsNothing);
+      expect(find.byIcon(EnjoyIcons.close), findsNothing);
     });
 
-    testWidgets('warning uses tertiaryContainer with close icon', (
+    testWidgets('warning uses the toast surface with close icon', (
       tester,
     ) async {
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -101,10 +108,13 @@ void main() {
       await tester.pump();
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      final scheme = Theme.of(ctx).colorScheme;
-      expect(snackBar.backgroundColor, scheme.tertiaryContainer);
+      expect(
+        snackBar.backgroundColor,
+        appNoticeBackground(Theme.of(ctx).brightness),
+      );
+      expect(find.byIcon(EnjoyIcons.warning), findsOneWidget);
       expect(snackBar.showCloseIcon, isNull);
-      expect(find.byIcon(Icons.close), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     });
 
     testWidgets(
@@ -309,7 +319,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.close));
+      await tester.tap(find.byIcon(EnjoyIcons.close));
       await tester.pumpAndSettle();
 
       expect(find.text('careful'), findsNothing);

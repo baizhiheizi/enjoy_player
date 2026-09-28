@@ -1,5 +1,6 @@
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
@@ -84,11 +85,7 @@ class _LookupErrorRowState extends State<LookupErrorRow> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.error_outline_rounded,
-                  color: scheme.error,
-                  size: 24,
-                ),
+                Icon(EnjoyIcons.error, color: scheme.error, size: 24),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Text(
@@ -113,7 +110,7 @@ class _LookupErrorRowState extends State<LookupErrorRow> {
               onPressed: busy ? null : _handleRetry,
               icon: busy
                   ? LoadingIcon(size: 18, color: scheme.primary)
-                  : const Icon(Icons.refresh_rounded, size: 20),
+                  : const Icon(EnjoyIcons.refresh, size: 20),
               label: Text(l10n.lookupErrorRetry),
             ),
           ],

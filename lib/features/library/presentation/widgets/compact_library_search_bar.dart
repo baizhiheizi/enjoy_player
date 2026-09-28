@@ -1,6 +1,7 @@
 /// Compact library search field for narrow layouts (below rail breakpoint).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,7 +53,6 @@ class _CompactLibrarySearchBarState
     final compactFocusNode = ref.watch(libraryCompactSearchFocusNodeProvider);
 
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
 
@@ -73,19 +73,13 @@ class _CompactLibrarySearchBarState
             decoration: InputDecoration(
               hintText: l10n.searchHint,
               prefixIcon: Icon(
-                Icons.search_rounded,
-                color: cs.onSurfaceVariant,
-                size: 20,
-              ),
-              filled: true,
-              fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(t.radiusSm),
-                borderSide: BorderSide.none,
+                EnjoyIcons.search,
+                color: EnjoyThemeTokens.of(context).textFaint,
+                size: 18,
               ),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: t.space12,
-                vertical: t.space8,
+                vertical: t.space8 + 2,
               ),
               isDense: true,
             ),

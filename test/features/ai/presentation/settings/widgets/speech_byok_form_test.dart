@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/ai/domain/speech_byok_kind.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/widgets/byok_api_key_field.dart';
 import 'package:enjoy_player/features/ai/presentation/settings/widgets/speech_byok_form.dart';
@@ -228,6 +229,6 @@ void main() {
 
     // SectionLabel's text comes from l10n.settingsAiProvidersSpeechKindLabel == "Vendor"
     expect(find.text('Vendor'), findsOneWidget);
-    expect(find.byIcon(Icons.route_outlined), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.route), findsOneWidget);
   });
 }

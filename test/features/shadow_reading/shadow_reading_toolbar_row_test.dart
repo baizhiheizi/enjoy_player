@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_record_fab.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/widgets/shadow_reading_toolbar_row.dart';
@@ -35,7 +36,7 @@ void main() {
                   children: [
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.play_arrow_rounded),
+                      icon: const Icon(EnjoyIcons.play),
                     ),
                     SizedBox(
                       width: 44,
@@ -45,13 +46,13 @@ void main() {
                         child: InkWell(
                           key: const Key('assess'),
                           onTap: () => assessTaps++,
-                          child: const Icon(Icons.auto_awesome_rounded),
+                          child: const Icon(EnjoyIcons.sparkleFill),
                         ),
                       ),
                     ),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.more_vert),
+                      icon: const Icon(EnjoyIcons.more),
                     ),
                   ],
                 ),
@@ -96,7 +97,7 @@ void main() {
                 leadingShare: const IconButton(
                   key: Key('share'),
                   onPressed: null,
-                  icon: Icon(Icons.ios_share_rounded),
+                  icon: Icon(EnjoyIcons.share),
                 ),
                 takesActions: null,
                 recordFab: const SizedBox(
@@ -113,7 +114,7 @@ void main() {
 
     expect(find.byKey(const Key('share')), findsOneWidget);
     final shareX = tester.getCenter(find.byKey(const Key('share'))).dx;
-    final pitchX = tester.getCenter(find.byIcon(Icons.show_chart_rounded)).dx;
+    final pitchX = tester.getCenter(find.byIcon(EnjoyIcons.chart)).dx;
     expect(shareX, lessThan(pitchX));
   });
 
@@ -153,7 +154,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.ios_share_rounded), findsNothing);
-    expect(find.byIcon(Icons.show_chart_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.share), findsNothing);
+    expect(find.byIcon(EnjoyIcons.chart), findsOneWidget);
   });
 }

@@ -2,6 +2,7 @@
 /// primary and translation track lists in the subtitle picker.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -115,7 +116,7 @@ class CollapsibleTrackSection extends StatelessWidget {
                             duration: t.motionFast,
                             curve: Curves.easeOut,
                             child: Icon(
-                              Icons.expand_more_rounded,
+                              EnjoyIcons.chevronDown,
                               size: 20,
                               color: cs.onSurfaceVariant,
                             ),

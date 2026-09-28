@@ -1,5 +1,6 @@
 // Coverage for lib/features/lookup/presentation/widgets/lookup_expansion_card.dart
 // — header/body toggle, leading icon, lazy body, AnimatedSize paths.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness(initiallyExpanded: false));
     expect(find.text('Body Content'), findsNothing);
-    expect(find.byIcon(Icons.expand_more_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
   });
 
   testWidgets('Initially expanded shows the body immediately', (tester) async {
@@ -88,15 +89,15 @@ void main() {
     await tester.pumpWidget(
       _harness(
         initiallyExpanded: false,
-        leading: const Icon(Icons.book_rounded),
+        leading: const Icon(EnjoyIcons.vocabulary),
       ),
     );
-    expect(find.byIcon(Icons.book_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.vocabulary), findsOneWidget);
   });
 
   testWidgets('Leading icon omitted when null', (tester) async {
     await tester.pumpWidget(_harness(initiallyExpanded: false, leading: null));
-    expect(find.byIcon(Icons.book_rounded), findsNothing);
+    expect(find.byIcon(EnjoyIcons.vocabulary), findsNothing);
   });
 
   testWidgets('AnimatedSize wraps the body and toggles visibility', (
@@ -113,12 +114,12 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(_harness(initiallyExpanded: false));
-    final expandIcon = find.byIcon(Icons.expand_more_rounded);
+    final expandIcon = find.byIcon(EnjoyIcons.chevronDown);
     expect(expandIcon, findsOneWidget);
     await tester.tap(find.text('Section'));
     await tester.pumpAndSettle();
     // Icon still rendered, just rotated.
-    expect(find.byIcon(Icons.expand_more_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
   });
 
   testWidgets('Custom body builder runs in the correct BuildContext', (

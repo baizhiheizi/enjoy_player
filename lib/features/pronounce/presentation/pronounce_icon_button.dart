@@ -1,6 +1,7 @@
 /// Shared tap-to-play pronounce control.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -126,7 +127,7 @@ class PronounceIconButton extends ConsumerWidget {
             child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
           )
         : Icon(
-            isPlaying ? Icons.stop_rounded : Icons.volume_up_rounded,
+            isPlaying ? EnjoyIcons.stop : EnjoyIcons.volume,
             size: isPlaying ? iconSize + 2 : iconSize,
           );
 
@@ -164,7 +165,7 @@ class PronounceIconButton extends ConsumerWidget {
       tooltip: tooltip,
       semanticLabel: tooltip,
       iconSize: isPlaying ? iconSize + 2 : iconSize,
-      icon: isPlaying ? Icons.stop_rounded : Icons.volume_up_rounded,
+      icon: isPlaying ? EnjoyIcons.stop : EnjoyIcons.volume,
       color: foreground,
       style: style,
       onPressed: canTap ? onPressed : null,

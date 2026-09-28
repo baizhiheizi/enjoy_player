@@ -14,6 +14,7 @@
 /// see [issue #506](https://github.com/baizhiheizi/enjoy_player/issues/506).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -69,11 +70,7 @@ class CraftFailureCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-              color: theme.colorScheme.error,
-            ),
+            Icon(EnjoyIcons.error, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text(
               failure.message(l10n),

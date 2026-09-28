@@ -1,3 +1,6 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -185,9 +188,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.login_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.signIn), findsOneWidget);
     expect(find.text('Sign in'), findsWidgets);
-    expect(find.byIcon(Icons.person_rounded), findsNothing);
+    expect(find.byType(EnjoyAvatar), findsNothing);
   });
 
   testWidgets('Signed-in free: shows name + upgrade button', (tester) async {
@@ -199,7 +202,7 @@ void main() {
 
     expect(find.text('Reader'), findsOneWidget);
     expect(find.text('Pro'), findsNothing);
-    expect(find.byIcon(Icons.person_rounded), findsOneWidget);
+    expect(find.byType(EnjoyAvatar), findsOneWidget);
     // Upgrade button when free tier
     expect(find.text('Upgrade'), findsOneWidget);
   });
@@ -391,7 +394,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(CircleAvatar), findsOneWidget);
+    expect(find.byType(EnjoyAvatar), findsOneWidget);
     // Update dot exists
     expect(find.byType(Stack), findsWidgets);
   });
@@ -403,7 +406,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(EnjoyPressable).first);
     await tester.pumpAndSettle();
 
     expect(find.text('ProfileScreen'), findsOneWidget);
@@ -416,7 +419,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(EnjoyPressable).first);
     await tester.pumpAndSettle();
 
     expect(find.text('SignInScreen'), findsOneWidget);
@@ -432,7 +435,7 @@ void main() {
     final upgradeFinder = find.text('Upgrade');
     expect(upgradeFinder, findsOneWidget);
     // Tap the center of the upgrade text widget — the InkWell inside the
-    // upgrade button captures the gesture before ListTile's onTap.
+    // upgrade button captures the gesture before the row's onTap.
     await tester.tap(upgradeFinder);
     await tester.pumpAndSettle();
 

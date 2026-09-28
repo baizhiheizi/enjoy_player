@@ -1,6 +1,7 @@
 /// Single transcript cue row with timestamp, markup, and tap target.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -42,6 +43,7 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
     this.recordingCount,
     this.onLookupRequested,
     this.onRetranslateSecondary,
+    this.dimWhenInactive = false,
     super.key,
   });
 
@@ -72,6 +74,10 @@ class TranscriptLineTile extends ConsumerStatefulWidget {
   final VoidCallback? onRetranslateSecondary;
 
   final VoidCallback onTap;
+
+  /// Lyric-style focus: rest this cue slightly dimmed unless it is active,
+  /// in the echo region, or hovered. Set by lists while a cue is playing.
+  final bool dimWhenInactive;
 
   @override
   ConsumerState<TranscriptLineTile> createState() => _TranscriptLineTileState();
@@ -251,10 +257,21 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         } else if (widget.inEcho) {
           bg = tok.echoActive.withValues(alpha: 0.04);
         } else if (hover) {
-          bg = scheme.onSurface.withValues(alpha: 0.04);
+          bg = scheme.onSurface.withValues(alpha: 0.035);
         }
 
         final isRevealed = !blurEnabled || hover || providerRevealed;
+        // Lyric-style focus: cues away from the playhead rest slightly
+        // dimmed so the active line leads the eye (Aurora, ADR-0089).
+        final focused =
+            !widget.dimWhenInactive ||
+            widget.isActive ||
+            widget.inEcho ||
+            hover;
+        final light = Theme.of(context).brightness == Brightness.light;
+        final lineFg = focused
+            ? defaultFg
+            : defaultFg.withValues(alpha: light ? 0.64 : 0.6);
 
         Widget primaryWidget;
         if (useAligned && isRevealed) {
@@ -263,7 +280,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             words: words,
             wordStyle: baseBody,
             ipaStyle: ipaStyle,
-            defaultColor: defaultFg,
+            defaultColor: lineFg,
             emphasize: widget.isActive,
             activeWordIndex: karaokeWordIndex,
             activeUnderlineColor: scheme.primary,
@@ -280,7 +297,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           final primarySpan = transcriptMarkupToTextSpan(
             widget.line.text,
             baseBody,
-            defaultColor: defaultFg,
+            defaultColor: lineFg,
             emphasize: widget.isActive,
             highlightRange: karaokeRange,
             highlightFill: karaokeFill,
@@ -325,7 +342,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                   decoration: BoxDecoration(
                     border: Border(
                       left: BorderSide(
-                        color: scheme.onSurfaceVariant.withValues(alpha: 0.22),
+                        color: tok.accentInk.withValues(alpha: 0.28),
                         width: 2,
                       ),
                     ),
@@ -341,7 +358,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                         if (widget.onRetranslateSecondary != null) ...[
                           SizedBox(width: tok.space4),
                           EnjoyTappableIcon(
-                            icon: Icons.refresh_rounded,
+                            icon: EnjoyIcons.refresh,
                             tooltip:
                                 AppLocalizations.of(
                                   context,
@@ -389,7 +406,16 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             child: MouseRegion(
               onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
               onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-              child: Material(color: bg ?? Colors.transparent, child: content),
+              child: Material(
+                color: bg ?? Colors.transparent,
+                clipBehavior: Clip.antiAlias,
+                shape: widget.groupedInEcho
+                    ? null
+                    : RoundedSuperellipseBorder(
+                        borderRadius: BorderRadius.circular(tok.radiusMd),
+                      ),
+                child: content,
+              ),
             ),
           );
         }
@@ -421,15 +447,16 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             child: Material(
               color: bg ?? Colors.transparent,
               clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(tok.radiusSm),
+              shape: RoundedSuperellipseBorder(
+                borderRadius: BorderRadius.circular(tok.radiusMd),
               ),
               child: InkWell(
-                borderRadius: BorderRadius.circular(tok.radiusSm),
+                customBorder: RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(tok.radiusMd),
+                ),
                 onTap: () => _handleTap(context),
                 hoverColor: Colors.transparent,
-                highlightColor: scheme.primary.withValues(alpha: 0.06),
-                splashColor: scheme.primary.withValues(alpha: 0.10),
+                highlightColor: scheme.onSurface.withValues(alpha: 0.05),
                 child: content,
               ),
             ),

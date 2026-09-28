@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -209,7 +210,7 @@ void main() {
 
     expect(find.byTooltip(l10n.assessmentRecordingUnavailable), findsOneWidget);
     final button = tester.widget<IconButton>(
-      find.widgetWithIcon(IconButton, Icons.play_arrow_rounded),
+      find.widgetWithIcon(IconButton, EnjoyIcons.play),
     );
     expect(button.onPressed, isNull);
   });

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -251,7 +252,7 @@ void main() {
 
     expect(find.byTooltip(l10n.assessmentClipUnavailable), findsOneWidget);
     final button = tester.widget<IconButton>(
-      find.widgetWithIcon(IconButton, Icons.record_voice_over_rounded),
+      find.widgetWithIcon(IconButton, EnjoyIcons.speak),
     );
     expect(button.onPressed, isNull);
   });

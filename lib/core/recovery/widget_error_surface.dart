@@ -1,6 +1,7 @@
 /// Full-screen fallback when a widget throws during build (release builds).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
@@ -42,7 +43,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.error_outline_rounded, size: 56, color: cs.error),
+                  Icon(EnjoyIcons.error, size: 56, color: cs.error),
                   SizedBox(height: t.space16),
                   Text(
                     l10n.widgetErrorTitle,
@@ -79,7 +80,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
                         SizedBox(
                           width: double.infinity,
                           child: EnjoyButton.secondary(
-                            icon: Icons.copy_rounded,
+                            icon: EnjoyIcons.copy,
                             onPressed: busy ? null : _onCopy,
                             child: Text(l10n.recoveryCopyError),
                           ),

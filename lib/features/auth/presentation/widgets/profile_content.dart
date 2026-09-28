@@ -4,6 +4,7 @@
 /// now on a separate screen reached via the Preferences entry tile.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -131,7 +132,7 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           _ProfileNavSection(
             rows: [
               SettingsRow(
-                leadingIcon: Icons.menu_book_outlined,
+                leadingIcon: EnjoyIcons.book,
                 title: l10n.vocabularyProfileEntry,
                 subtitle: l10n.vocabularyProfileEntryHint,
                 valueBadge: dueCount > 0
@@ -155,21 +156,21 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
           _ProfileNavSection(
             rows: [
               SettingsRow(
-                leadingIcon: Icons.manage_accounts_outlined,
+                leadingIcon: EnjoyIcons.manageAccount,
                 title: l10n.profileEditEntry,
                 subtitle: l10n.profileEditEntryHint,
                 onTap: () => context.push('/profile/edit'),
                 responsive: false,
               ),
               SettingsRow(
-                leadingIcon: Icons.tune_rounded,
+                leadingIcon: EnjoyIcons.tune,
                 title: l10n.profileSectionPreferences,
                 subtitle: l10n.profileSectionPreferencesHint,
                 onTap: () => context.push('/profile/preferences'),
                 responsive: false,
               ),
               SettingsRow(
-                leadingIcon: Icons.settings_outlined,
+                leadingIcon: EnjoyIcons.settings,
                 title: l10n.settingsTitle,
                 subtitle: l10n.settingsSubtitle,
                 valueBadge: ref.watch(updateAvailableBadgeProvider)

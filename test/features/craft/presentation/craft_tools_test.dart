@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -112,10 +113,10 @@ void main() {
       expect(find.text('Source text'), findsOneWidget);
 
       // Swap button.
-      expect(find.byIcon(Icons.swap_horiz_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.swap), findsOneWidget);
 
       // Paste button in the source text field.
-      expect(find.byIcon(Icons.paste_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.paste), findsOneWidget);
     });
 
     testWidgets('translate button is disabled when source text is empty', (
@@ -127,7 +128,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the FilledButton with the translate icon.
-      final button = find.widgetWithIcon(FilledButton, Icons.translate_rounded);
+      final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       expect(button, findsOneWidget);
 
       // The button should be disabled (onPressed is null).
@@ -147,7 +148,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The translate button should now be enabled.
-      final button = find.widgetWithIcon(FilledButton, Icons.translate_rounded);
+      final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
     });
@@ -186,7 +187,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap translate.
-      final button = find.widgetWithIcon(FilledButton, Icons.translate_rounded);
+      final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       await tester.tap(button);
       await tester.pumpAndSettle();
 
@@ -279,7 +280,7 @@ void main() {
       expect(find.text('Text to synthesize'), findsOneWidget);
 
       // Paste button.
-      expect(find.byIcon(Icons.paste_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.paste), findsOneWidget);
     });
 
     testWidgets('synthesize button is disabled when text is empty', (
@@ -290,10 +291,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final button = find.widgetWithIcon(
-        FilledButton,
-        Icons.record_voice_over_rounded,
-      );
+      final button = find.widgetWithIcon(FilledButton, EnjoyIcons.speak);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNull);
     });
@@ -310,10 +308,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The synthesize button should now be enabled.
-      final button = find.widgetWithIcon(
-        FilledButton,
-        Icons.record_voice_over_rounded,
-      );
+      final button = find.widgetWithIcon(FilledButton, EnjoyIcons.speak);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
     });
@@ -359,7 +354,7 @@ void main() {
       expect(find.text('Save to library'), findsOneWidget);
 
       // Play button appears.
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     });
 
     testWidgets('shows language code in uppercase', (tester) async {

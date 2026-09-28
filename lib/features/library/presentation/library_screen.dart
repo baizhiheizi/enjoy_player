@@ -1,6 +1,7 @@
 /// Library: unified local + cloud source shell with editorial chrome.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/routing/library_source.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/features/cloud/presentation/cloud_library_body.dart';
@@ -80,30 +82,26 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        return SegmentedButton<String>(
-          style: enjoySegmentedButtonStyle(context),
-          showSelectedIcon: false,
-          emptySelectionAllowed: false,
-          segments: [
-            ButtonSegment<String>(
-              value: 'video',
-              icon: const Icon(Icons.movie_outlined, size: 16),
-              label: Text(l10n.libraryTabVideo),
-            ),
-            ButtonSegment<String>(
-              value: 'audio',
-              icon: const Icon(Icons.graphic_eq_rounded, size: 16),
-              label: Text(l10n.libraryTabAudio),
-            ),
-          ],
-          selected: {controller.index == 0 ? 'video' : 'audio'},
-          onSelectionChanged: (next) {
-            final v = next.single;
-            final i = v == 'video' ? 0 : 1;
-            if (controller.index != i) {
-              _setKindIndex(i);
-            }
-          },
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: EnjoySegmentedControl<int>(
+            value: controller.index,
+            segments: [
+              EnjoySegment(
+                value: 0,
+                icon: EnjoyIcons.video,
+                label: l10n.libraryTabVideo,
+              ),
+              EnjoySegment(
+                value: 1,
+                icon: EnjoyIcons.waveform,
+                label: l10n.libraryTabAudio,
+              ),
+            ],
+            onChanged: (i) {
+              if (controller.index != i) _setKindIndex(i);
+            },
+          ),
         );
       },
     );
@@ -160,16 +158,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 onToggle: () => _toggleSource(context, source),
               ),
               trailing: isCloud
-                  ? IconButton(
-                      icon: const Icon(Icons.refresh_rounded, size: 22),
+                  ? EnjoyIconButton(
+                      icon: EnjoyIcons.refresh,
                       tooltip: l10n.cloudRefreshTooltip,
                       onPressed: () =>
                           _cloudBodyKey.currentState?.refreshActiveTab(),
                     )
-                  : FilledButton.icon(
+                  : metrics.paneWidth < t.breakpointCompact
+                  ? EnjoyIconButton(
+                      icon: EnjoyIcons.add,
+                      tooltip: l10n.actionImport,
+                      variant: EnjoyButtonVariant.primary,
                       onPressed: () => showImportChooser(context, ref),
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: Text(l10n.actionImport),
+                    )
+                  : EnjoyButton.primary(
+                      size: EnjoyButtonSize.small,
+                      icon: EnjoyIcons.add,
+                      onPressed: () => showImportChooser(context, ref),
+                      child: Text(l10n.actionImport),
                     ),
             ),
             Padding(

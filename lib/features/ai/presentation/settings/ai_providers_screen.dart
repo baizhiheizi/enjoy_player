@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -90,7 +91,7 @@ class _PrivacyCallout extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.shield_outlined, color: cs.primary, size: 20),
+            Icon(EnjoyIcons.shield, color: cs.primary, size: 20),
             SizedBox(width: t.space12),
             Expanded(
               child: Text(

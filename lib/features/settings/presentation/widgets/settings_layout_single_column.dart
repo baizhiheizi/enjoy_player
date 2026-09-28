@@ -7,12 +7,16 @@
 /// [SettingsCollapsibleSection] (default-collapsed sections), and
 /// auto-expanding a collapsed section that contains a match — see
 /// specs/004-settings-redesign/contracts/settings-search.md.
+///
+/// Each carded section is introduced by a small overline heading (Aurora
+/// grouped-list rhythm); the two-pane layout names sections in its rail.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/features/settings/application/settings_search_query_provider.dart';
 import 'package:enjoy_player/features/settings/application/settings_section_collapse_provider.dart';
 import 'package:enjoy_player/features/settings/presentation/settings_section_spec.dart';
@@ -63,11 +67,27 @@ class SettingsLayoutSingleColumn extends ConsumerWidget {
       );
     }
 
+    Widget headed(SettingsSectionSpec spec) {
+      final section = sectionFor(spec);
+      // Self-surfaced sections (About) carry their own heading.
+      if (!spec.wrapInCard) return section;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(t.space4, t.space12, 0, t.space8),
+            child: EnjoyOverline(spec.title(l10n)),
+          ),
+          section,
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final spec in sections) ...[
-          sectionFor(spec),
+          headed(spec),
           // Self-surfaced sections (About) own their outer spacing.
           if (spec.wrapInCard) SizedBox(height: t.space8),
         ],

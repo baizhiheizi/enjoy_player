@@ -1,6 +1,7 @@
 /// Edit profile: username, avatar, read-only Enjoy ID / email / Mixin ID.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -13,6 +14,7 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/utils/avatar_url.dart';
@@ -206,21 +208,31 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   Center(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 48,
-                          backgroundImage: avatarImage,
-                          child: avatarImage == null
-                              ? Icon(
-                                  Icons.person_rounded,
-                                  size: 48,
-                                  color: cs.primary,
-                                )
-                              : null,
+                        // Aurora-ringed avatar (matches the profile hero).
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: t.aurora,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: cs.surface,
+                            ),
+                            child: avatarImage == null
+                                ? EnjoyAvatar(name: p.name, size: 92)
+                                : CircleAvatar(
+                                    radius: 46,
+                                    backgroundImage: avatarImage,
+                                  ),
+                          ),
                         ),
                         SizedBox(height: t.space12),
                         TextButton.icon(
                           onPressed: _saving ? null : () => _pickAvatar(l10n),
-                          icon: const Icon(Icons.photo_camera_outlined),
+                          icon: const Icon(EnjoyIcons.camera),
                           label: Text(l10n.profileChangeAvatar),
                         ),
                       ],

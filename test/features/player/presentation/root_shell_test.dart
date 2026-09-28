@@ -3,6 +3,7 @@
 // Covers the shell's adaptive nav layout (mobile bottom-nav vs. rail sidebar)
 // and the routing-driven selection logic. Heavy providers (player engine,
 // database, sync) are stubbed so the shell can be exercised in isolation.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_bottom_nav.dart';
@@ -300,7 +301,7 @@ void main() {
         final content = tester.widget<Padding>(
           find.byKey(const ValueKey<String>('root-shell-content')),
         );
-        expect(content.padding.resolve(TextDirection.ltr).bottom, 68);
+        expect(content.padding.resolve(TextDirection.ltr).bottom, 64);
       },
     );
 
@@ -408,7 +409,7 @@ void main() {
       );
 
       // AppSidebar brand row + nav pills are visible.
-      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.search), findsOneWidget);
       expect(find.byType(AppSidebar), findsOneWidget);
       expect(find.byType(EnjoyBottomNav), findsNothing);
       expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
@@ -426,7 +427,7 @@ void main() {
       );
 
       // No sidebar search field is rendered on the player route.
-      expect(find.byIcon(Icons.search_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.search), findsNothing);
       expect(find.text('player-page'), findsOneWidget);
     });
   });
@@ -449,7 +450,7 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.play), findsNothing);
     });
 
     testWidgets('tapping bottom-nav Discover navigates to /discover', (
@@ -609,8 +610,8 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
-      expect(find.byIcon(Icons.mic_none_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.play), findsNothing);
+      expect(find.byIcon(EnjoyIcons.mic), findsNothing);
     });
 
     testWidgets('renders AppBackground and shell at /profile', (tester) async {
@@ -645,7 +646,7 @@ void main() {
       );
 
       expect(find.text('vocabulary-review-page'), findsOneWidget);
-      expect(find.byIcon(Icons.search_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.search), findsNothing);
       expect(find.byType(AppSidebar), findsNothing);
       expect(find.byType(EnjoyBottomNav), findsNothing);
     });
@@ -683,7 +684,7 @@ void main() {
 
         expect(find.text('vocabulary-review-page'), findsOneWidget);
         expect(find.byType(GlobalTransportBar), findsNothing);
-        expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+        expect(find.byIcon(EnjoyIcons.play), findsNothing);
       },
     );
 
@@ -718,14 +719,14 @@ void main() {
         surface: const Size(1100, 900),
       );
 
-      expect(find.byIcon(Icons.search_rounded), findsNothing);
+      expect(find.byIcon(EnjoyIcons.search), findsNothing);
 
       router.go('/vocabulary');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.text('vocabulary-page'), findsOneWidget);
-      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.search), findsOneWidget);
     });
 
     testWidgets(
@@ -772,7 +773,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
 
         expect(find.text('vocabulary-review-page'), findsOneWidget);
-        expect(find.byIcon(Icons.search_rounded), findsNothing);
+        expect(find.byIcon(EnjoyIcons.search), findsNothing);
         expect(find.byType(AppSidebar), findsNothing);
         expect(find.byType(EnjoyBottomNav), findsNothing);
 

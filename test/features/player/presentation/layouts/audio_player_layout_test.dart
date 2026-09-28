@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/audio_player_layout.dart';
 import 'package:enjoy_player/features/player/presentation/widgets/player_frosted_back_button.dart';
@@ -43,7 +44,7 @@ void main() {
 
     expect(find.byType(AppBar), findsNothing);
     expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
-    expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
     expect(find.byType(SafeArea), findsOneWidget);
     // No reserved toolbar strip: the only fixed-height boxes belong to the
     // 38x38 frosted control itself.

@@ -5,6 +5,7 @@
 // inline delete button / long-press behaviour, so the tests cover both
 // desktop (default) and mobile (overridden) layouts. Network thumbnails are
 // stubbed so tests don't hit the network.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:io';
 
 import 'package:enjoy_player/core/platform/mobile_platform.dart';
@@ -129,39 +130,28 @@ void main() {
       expect(find.text('Subtitle line'), findsOneWidget);
     });
 
-    testWidgets('shows audio icon by default (isVideo=false default)', (
-      tester,
-    ) async {
+    testWidgets('shows the audio placeholder glyph by default', (tester) async {
       await tester.pumpWidget(
         _wrap(
           child: MediaCardTile(title: 'T', onTap: () {}),
         ),
       );
       await tester.pumpAndSettle();
-      // Two audio icons render (thumbnail placeholder + the overlay icon),
-      // we only need to confirm the overlay icon (size 22) is present.
-      expect(
-        find.byWidgetPredicate(
-          (w) =>
-              w is Icon && w.icon == Icons.audiotrack_rounded && w.size == 22,
-        ),
-        findsOneWidget,
-      );
+      expect(find.byIcon(EnjoyIcons.audio), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.video), findsNothing);
     });
 
-    testWidgets('shows video icon when isVideo=true', (tester) async {
+    testWidgets('shows the video placeholder glyph when isVideo=true', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           child: MediaCardTile(title: 'T', isVideo: true, onTap: () {}),
         ),
       );
       await tester.pumpAndSettle();
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is Icon && w.icon == Icons.videocam_rounded && w.size == 22,
-        ),
-        findsOneWidget,
-      );
+      expect(find.byIcon(EnjoyIcons.video), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.audio), findsNothing);
     });
 
     testWidgets('providerBadge renders when set', (tester) async {
@@ -238,8 +228,8 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
-        await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+        expect(find.byIcon(EnjoyIcons.delete), findsOneWidget);
+        await tester.tap(find.byIcon(EnjoyIcons.delete));
         await tester.pumpAndSettle();
         expect(deleted, 1);
       });
@@ -262,7 +252,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         // Mobile: inline delete button is hidden.
-        expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
+        expect(find.byIcon(EnjoyIcons.delete), findsNothing);
         // Trigger long-press → opens a sheet.
         await tester.longPress(find.text('T'));
         await tester.pumpAndSettle();
@@ -335,7 +325,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Audio'), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.chevronRight), findsOneWidget);
     });
 
     testWidgets('renders subtitle when provided', (tester) async {
@@ -402,8 +392,8 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
-        await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+        expect(find.byIcon(EnjoyIcons.delete), findsOneWidget);
+        await tester.tap(find.byIcon(EnjoyIcons.delete));
         await tester.pumpAndSettle();
         expect(deleted, 1);
       });
@@ -424,7 +414,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         // Inline delete hidden on mobile.
-        expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
+        expect(find.byIcon(EnjoyIcons.delete), findsNothing);
         await tester.longPress(find.text('T'));
         await tester.pumpAndSettle();
         final listTile = find.widgetWithText(ListTile, 'Remove this audio');

@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -103,8 +104,9 @@ void main() {
 
         // Insight cards render alongside the empty state, as they do when
         // recents are populated.
-        expect(find.text(l10n.homeTodaysGoal), findsOneWidget);
-        expect(find.text(l10n.communityActivity), findsOneWidget);
+        // Card titles render as uppercase overlines.
+        expect(find.text(l10n.homeTodaysGoal.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.communityActivity.toUpperCase()), findsOneWidget);
       },
     );
 
@@ -128,9 +130,7 @@ void main() {
 
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-      await tester.tap(
-        find.widgetWithText(OutlinedButton, l10n.homeCraftAction),
-      );
+      await tester.tap(find.widgetWithText(EnjoyButton, l10n.homeCraftAction));
       await tester.pumpAndSettle();
 
       expect(find.text('craft-open'), findsOneWidget);

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,7 +30,7 @@ void main() {
   testWidgets('renders the refresh icon and tooltip when idle', (tester) async {
     await tester.pumpWidget(_harness(onPressed: () {}));
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
     // Tooltip should be present when not refreshing.
     final iconButton = tester.widget<IconButton>(find.byType(IconButton));
     expect(iconButton.tooltip, isNotNull);
@@ -46,7 +47,7 @@ void main() {
     await tester.pump();
     // First tap fires onPressed immediately and latches the busy state.
     expect(taps, 1);
-    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+    expect(find.byIcon(EnjoyIcons.refresh), findsNothing);
   });
 
   testWidgets('button stays disabled while parent reports isRefreshing', (
@@ -90,7 +91,7 @@ void main() {
       final idle = tester.widget<IconButton>(find.byType(IconButton));
       expect(idle.onPressed, isNotNull);
       // The icon returns too.
-      expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
     },
   );
 }

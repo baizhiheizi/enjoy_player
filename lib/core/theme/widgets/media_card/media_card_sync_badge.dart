@@ -11,6 +11,7 @@
 /// via `AppLocalizations.of(context)`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -46,25 +47,21 @@ class MediaCardSyncBadgePill extends StatelessWidget {
   final bool compact;
 
   IconData get _icon => switch (state) {
-    MediaCardSyncBadge.synced => Icons.cloud_done_outlined,
-    MediaCardSyncBadge.pending => Icons.cloud_upload_outlined,
-    MediaCardSyncBadge.localOnly => Icons.cloud_off_outlined,
+    MediaCardSyncBadge.synced => EnjoyIcons.cloudDone,
+    MediaCardSyncBadge.pending => EnjoyIcons.cloudUpload,
+    MediaCardSyncBadge.localOnly => EnjoyIcons.cloudOff,
   };
 
   Color _backgroundFor(ColorScheme cs) => switch (state) {
-    MediaCardSyncBadge.synced => Colors.green.shade700.withValues(alpha: 0.92),
-    MediaCardSyncBadge.pending => cs.surfaceContainerHighest.withValues(
-      alpha: 0.92,
-    ),
-    MediaCardSyncBadge.localOnly => cs.surfaceContainerHighest.withValues(
-      alpha: 0.92,
-    ),
+    MediaCardSyncBadge.synced => const Color(0xE616A36A),
+    MediaCardSyncBadge.pending => const Color(0x99000000),
+    MediaCardSyncBadge.localOnly => const Color(0x99000000),
   };
 
   Color _foregroundFor(ColorScheme cs) => switch (state) {
     MediaCardSyncBadge.synced => Colors.white,
-    MediaCardSyncBadge.pending => cs.onSurfaceVariant,
-    MediaCardSyncBadge.localOnly => cs.onSurfaceVariant.withValues(alpha: 0.85),
+    MediaCardSyncBadge.pending => Colors.white,
+    MediaCardSyncBadge.localOnly => Colors.white.withValues(alpha: 0.8),
   };
 
   String _tooltipFor(BuildContext context) {
@@ -86,9 +83,11 @@ class MediaCardSyncBadgePill extends StatelessWidget {
           horizontal: compact ? 5 : 8,
           vertical: compact ? 2 : 3,
         ),
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: _backgroundFor(cs),
-          borderRadius: BorderRadius.circular(999),
+          shape: StadiumBorder(
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          ),
         ),
         child: Icon(_icon, size: compact ? 12 : 14, color: _foregroundFor(cs)),
       ),

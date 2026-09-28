@@ -1,6 +1,7 @@
 /// Shared import flow for Home / Library.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
@@ -220,7 +221,7 @@ Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
           children: [
             const PaddedSheetDragHandle(),
             ListTile(
-              leading: const Icon(Icons.folder_open_rounded),
+              leading: const Icon(EnjoyIcons.folder),
               title: Text(l10n.importFromFile),
               onTap: () {
                 Navigator.pop(ctx);
@@ -228,7 +229,7 @@ Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.video_library_outlined),
+              leading: const Icon(EnjoyIcons.videoLibrary),
               title: Text(l10n.importFromYoutube),
               onTap: () {
                 Navigator.pop(ctx);
@@ -236,7 +237,7 @@ Future<void> showImportChooser(BuildContext context, WidgetRef ref) async {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.auto_awesome_outlined),
+              leading: const Icon(EnjoyIcons.sparkle),
               title: Text(l10n.importCraftFromText),
               onTap: () {
                 Navigator.pop(ctx);
@@ -282,7 +283,7 @@ Future<void> importYoutubeFromDialog(
                   controller.text = t;
                 }
               },
-              icon: const Icon(Icons.paste_rounded, size: 18),
+              icon: const Icon(EnjoyIcons.paste, size: 18),
               label: Text(l10n.youtubePasteFromClipboard),
             ),
           ),

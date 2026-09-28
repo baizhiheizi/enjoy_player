@@ -1,6 +1,7 @@
 /// Cross-cutting helpers and grid-layout math for [MediaCardTile] / [MediaCardRow].
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ void showMediaCardMobileDeleteMenu(
             children: [
               const PaddedSheetDragHandle(),
               ListTile(
-                leading: Icon(Icons.delete_outline_rounded, color: cs.error),
+                leading: Icon(EnjoyIcons.delete, color: cs.error),
                 title: Text(
                   title,
                   style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
@@ -68,10 +69,10 @@ Widget mediaCardHeroArtworkShell(String? mediaId, Widget child) {
   );
 }
 
-/// Meta block under 16:9 artwork: padding 8+12, title 14×1.25, optional subtitle row.
+/// Meta block under 16:9 artwork: 10 top + 20 title + 2 + 20 meta + 6 air.
 const double mediaCardTileMetaHeight = 58;
 
-/// [BoxDecoration.border] inset at rest / on hover (up to 1.5 logical px per edge).
+/// Extra vertical allowance around the tile (artwork shadow / press scale).
 const double mediaCardTileBorderInset = 3;
 
 /// Grid width÷height for a [MediaCardTile] column of [tileWidth].
@@ -142,7 +143,9 @@ SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
   double crossAxisSpacing = 12,
   int maxCrossAxisCount = 6,
 }) {
-  final crossAxisCount = (crossAxisExtent / minTileWidth).floor().clamp(
+  // Phones: two compact columns read better than one oversized 16:9 hero.
+  final effectiveMin = crossAxisExtent < 520 ? 150.0 : minTileWidth;
+  final crossAxisCount = (crossAxisExtent / effectiveMin).floor().clamp(
     1,
     maxCrossAxisCount,
   );

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_error_row.dart';
@@ -58,11 +59,11 @@ void main() {
 
     expect(find.text('Dictionary provider offline'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
-    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     expect(find.byType(FilledButton), findsOneWidget);
     // Not busy -> spinner should be absent, refresh icon shown
     expect(find.byType(LoadingIcon), findsNothing);
-    expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
   });
 
   testWidgets('tapping Retry invokes onRetry exactly once', (tester) async {

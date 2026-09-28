@@ -2,6 +2,7 @@
 /// `apps/web/src/components/library/generative-cover.tsx`.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class GenerativeMediaCover extends StatelessWidget {
       children: [
         CustomPaint(painter: _GenerativeCoverPainter(spec)),
         // Light noise (web uses SVG turbulence; this approximates texture).
-        CustomPaint(painter: _NoisePainter(seed: seed, opacity: 0.03)),
+        CustomPaint(painter: _NoisePainter(seed: seed, opacity: 0.06)),
         Center(
           child: _CenterGlassIcon(accent: spec.accent, isVideo: isVideo),
         ),
@@ -284,8 +285,16 @@ _CoverSpec _computeSpec(String seed) {
   final angle = (rng.next() * 360).floorToDouble();
   final c1 = palette[(rng.next() * palette.length).floor()];
   final c2 = palette[(rng.next() * palette.length).floor()];
-  final gradientStart = _colorWithHexSuffix(c1, 0x20);
-  final gradientEnd = _colorWithHexSuffix(c2, 0x30);
+  // Aurora: opaque, deepened base so covers read as rich artwork in both
+  // themes (the seed still picks the same palette / pattern / angle as web).
+  final gradientStart = _colorWithHexSuffix(
+    Color.lerp(c1, const Color(0xFF0B0B14), 0.22)!,
+    0xFF,
+  );
+  final gradientEnd = _colorWithHexSuffix(
+    Color.lerp(c2, const Color(0xFF0B0B14), 0.45)!,
+    0xFF,
+  );
 
   final shapes = <void Function(Canvas, Size)>[];
   switch (patternType) {
@@ -348,6 +357,26 @@ class _GenerativeCoverPainter extends CustomPainter {
     final paint = Paint()..shader = gradient.createShader(rect);
     canvas.drawRect(rect, paint);
     spec.onPaintForeground(canvas, size);
+    // Lit corner + soft vignette give the flat shapes depth.
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-0.8, -0.9),
+          radius: 1.1,
+          colors: [Color(0x33FFFFFF), Color(0x00FFFFFF)],
+        ).createShader(rect),
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(0.2, 0.1),
+          radius: 1.2,
+          colors: [Color(0x00000000), Color(0x4D000000)],
+          stops: [0.55, 1],
+        ).createShader(rect),
+    );
   }
 
   @override
@@ -397,15 +426,15 @@ class _CenterGlassIcon extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: accent.withValues(alpha: 0.08),
-        border: Border.all(color: accent.withValues(alpha: 0.19)),
+        color: Colors.white.withValues(alpha: 0.14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Icon(
-          isVideo ? Icons.play_arrow_rounded : Icons.audiotrack_rounded,
+          isVideo ? EnjoyIcons.play : EnjoyIcons.audio,
           size: 28,
-          color: accent.withValues(alpha: 0.7),
+          color: Colors.white.withValues(alpha: 0.92),
         ),
       ),
     );

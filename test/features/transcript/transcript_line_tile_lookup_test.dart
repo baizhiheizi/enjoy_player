@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -227,7 +228,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
   });
 
@@ -254,7 +255,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.mic_rounded), findsNothing);
+    expect(find.byIcon(EnjoyIcons.mic), findsNothing);
   });
 
   testWidgets('hides recording badge while recordingCount is loading', (
@@ -279,7 +280,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.mic_rounded), findsNothing);
+    expect(find.byIcon(EnjoyIcons.mic), findsNothing);
   });
 
   testWidgets('active line uses accentSoft wash in light and dark', (

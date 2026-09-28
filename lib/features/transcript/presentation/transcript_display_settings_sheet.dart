@@ -1,6 +1,7 @@
 /// Blur, karaoke, and IPA toggles for the subtitle track picker (not Settings hub).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -55,7 +56,7 @@ class TranscriptDisplaySettingsSection extends ConsumerWidget {
 
     final tiles = <Widget>[
       SubtitleToggleTile(
-        icon: Icons.visibility_off_outlined,
+        icon: EnjoyIcons.eyeOff,
         title: l10n.transcriptBlurDisplayTitle,
         subtitle: l10n.transcriptBlurToggleTooltip,
         value: blurOn,
@@ -64,7 +65,7 @@ class TranscriptDisplaySettingsSection extends ConsumerWidget {
         },
       ),
       SubtitleToggleTile(
-        icon: Icons.highlight_outlined,
+        icon: EnjoyIcons.highlight,
         title: l10n.settingsTranscriptKaraokeTitle,
         subtitle: readiness.karaokeSwitchEnabled
             ? l10n.settingsTranscriptKaraokeSubtitle
@@ -83,7 +84,7 @@ class TranscriptDisplaySettingsSection extends ConsumerWidget {
             : null,
       ),
       SubtitleToggleTile(
-        icon: Icons.record_voice_over_outlined,
+        icon: EnjoyIcons.speak,
         title: l10n.settingsTranscriptIpaOverlayTitle,
         subtitle: readiness.ipaSwitchEnabled
             ? l10n.settingsTranscriptIpaOverlaySubtitle
@@ -110,7 +111,7 @@ class TranscriptDisplaySettingsSection extends ConsumerWidget {
           : null;
       tiles.add(
         TranscriptBusyListTile(
-          icon: Icons.auto_fix_high_outlined,
+          icon: EnjoyIcons.magic,
           title: running
               ? l10n.transcriptEnrichCancel
               : failed

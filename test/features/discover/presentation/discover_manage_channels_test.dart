@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
@@ -88,7 +89,7 @@ void main() {
       expect(find.text('TED'), findsOneWidget);
 
       // Close button present in dialog mode
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     });
 
     testWidgets('shows empty state when no subscriptions', (tester) async {

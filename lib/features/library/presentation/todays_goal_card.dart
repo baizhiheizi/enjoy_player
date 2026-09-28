@@ -2,12 +2,16 @@
 /// compact progress bar (mobile strip).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -31,13 +35,6 @@ int _progressPercentFromMinutes(int completedMinutes, int goalMinutes) {
   return math.min(100, ((completedMinutes / goalMinutes) * 100).round());
 }
 
-/// Progress 0..1 using raw ms so sub-minute practice still shows on the bar.
-double _progressFractionMs(int recordingDurationMs, int goalMinutes) {
-  if (goalMinutes <= 0) return 0;
-  final goalMs = goalMinutes * 60 * 1000;
-  return math.min(1, recordingDurationMs / goalMs);
-}
-
 int _progressPercentForLabel(int recordingDurationMs, int goalMinutes) {
   return _progressPercentFromMinutes(
     _completedMinutes(recordingDurationMs),
@@ -54,18 +51,19 @@ String _encouragement(AppLocalizations l10n, int percentage) {
   return l10n.homeGoalStartNow;
 }
 
-/// Circular ring matching web SVG dash-offset semantics.
+/// Circular ring matching web SVG dash-offset semantics, stroked with the
+/// aurora gradient (Aurora signature moment).
 class _GoalRingPainter extends CustomPainter {
   _GoalRingPainter({
     required this.percentage,
     required this.trackColor,
-    required this.progressColor,
+    required this.gradientColors,
     required this.strokeWidth,
   });
 
   final int percentage;
   final Color trackColor;
-  final Color progressColor;
+  final List<Color> gradientColors;
   final double strokeWidth;
 
   @override
@@ -78,15 +76,20 @@ class _GoalRingPainter extends CustomPainter {
       ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, trackPaint);
 
-    final sweep = 2 * math.pi * (percentage.clamp(0, 100) / 100);
+    final fraction = percentage.clamp(0, 100) / 100;
+    if (fraction <= 0) return;
+    final sweep = 2 * math.pi * fraction;
     final progressPaint = Paint()
-      ..color = progressColor
+      ..shader = SweepGradient(
+        colors: gradientColors,
+        stops: [0, math.max(fraction, 0.02)],
+        transform: const GradientRotation(-math.pi / 2),
+      ).createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, trackPaint);
     canvas.drawArc(rect, -math.pi / 2, sweep, false, progressPaint);
   }
 
@@ -94,7 +97,7 @@ class _GoalRingPainter extends CustomPainter {
   bool shouldRepaint(covariant _GoalRingPainter oldDelegate) {
     return oldDelegate.percentage != percentage ||
         oldDelegate.trackColor != trackColor ||
-        oldDelegate.progressColor != progressColor ||
+        oldDelegate.gradientColors != gradientColors ||
         oldDelegate.strokeWidth != strokeWidth;
   }
 }
@@ -109,10 +112,10 @@ class TodaysGoalCard extends ConsumerWidget {
   final TodaysGoalCardVariant variant;
   final bool containedInParentCard;
 
-  static const double _ringSizeCard = 116;
-  static const double _ringSizeBar = 52;
+  static const double _ringSizeCard = 112;
+  static const double _ringSizeBar = 62;
   static const double _strokeWidthCard = 8;
-  static const double _strokeWidthBar = 5;
+  static const double _strokeWidthBar = 6;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -141,8 +144,8 @@ class TodaysGoalCard extends ConsumerWidget {
         );
         final encouragement = _encouragement(l10n, pctLabel);
         final done = pctLabel >= 100;
-        final progressColor = done ? cs.tertiary : cs.primary;
-        final msgColor = done ? cs.tertiary : cs.onSurfaceVariant;
+        final progressColor = done ? t.scoreGood : cs.primary;
+        final msgColor = done ? t.scoreGood : cs.onSurfaceVariant;
 
         final child = variant == TodaysGoalCardVariant.card
             ? _buildCardVariant(
@@ -210,15 +213,81 @@ class TodaysGoalCard extends ConsumerWidget {
     required Widget child,
     required String semanticsLabel,
   }) {
-    final padded = Padding(padding: EdgeInsets.all(t.space16), child: child);
+    final padded = Padding(
+      padding: EdgeInsets.all(t.space16 + 2),
+      child: child,
+    );
     final semanticsChild = Semantics(label: semanticsLabel, child: padded);
     if (containedInParentCard) {
       return semanticsChild;
     }
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: semanticsChild,
+    return EnjoyCard(child: semanticsChild);
+  }
+
+  Widget _ring(
+    BuildContext context,
+    EnjoyThemeTokens t,
+    int pct,
+    double size,
+    double stroke,
+    Color progressColor, {
+    required TextStyle? labelStyle,
+  }) {
+    final done = pct >= 100;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: Size(size, size),
+            painter: _GoalRingPainter(
+              percentage: pct,
+              trackColor: t.fill,
+              gradientColors: done
+                  ? [progressColor, progressColor]
+                  : [t.auroraStart, t.auroraEnd],
+              strokeWidth: stroke,
+            ),
+          ),
+          if (done)
+            Icon(EnjoyIcons.check, size: size * 0.36, color: progressColor)
+          else
+            Text('$pct%', style: labelStyle),
+        ],
+      ),
+    );
+  }
+
+  Widget _figureLine(
+    BuildContext context,
+    ColorScheme cs,
+    AppLocalizations l10n,
+    int completedMin,
+    int goalMinutes, {
+    required double size,
+  }) {
+    final tt = Theme.of(context).textTheme;
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$completedMin',
+            style: enjoyDisplayStyle(context, size: size, color: cs.onSurface),
+          ),
+          TextSpan(
+            text: ' / $goalMinutes ${l10n.homeMinutes}',
+            style: tt.bodyMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -235,66 +304,43 @@ class TodaysGoalCard extends ConsumerWidget {
     Color progressColor,
     Color msgColor,
   ) {
+    final tt = Theme.of(context).textTheme;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Icon(Icons.track_changes_rounded, size: 20, color: cs.primary),
-            SizedBox(width: t.space8),
-            Expanded(
-              child: Text(
-                l10n.homeTodaysGoal,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: t.space12),
+        EnjoyOverline(l10n.homeTodaysGoal),
+        SizedBox(height: t.space16),
         Center(
-          child: SizedBox(
-            width: _ringSizeCard,
-            height: _ringSizeCard,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: const Size(_ringSizeCard, _ringSizeCard),
-                  painter: _GoalRingPainter(
-                    percentage: pct,
-                    trackColor: cs.surfaceContainerHighest,
-                    progressColor: progressColor,
-                    strokeWidth: _strokeWidthCard,
-                  ),
-                ),
-                Text(
-                  '$pct%',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+          child: _ring(
+            context,
+            t,
+            pct,
+            _ringSizeCard,
+            _strokeWidthCard,
+            progressColor,
+            labelStyle: tt.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ),
-        SizedBox(height: t.space12),
-        Text(
-          '$completedMin / $goalMinutes ${l10n.homeMinutes}',
-          textAlign: TextAlign.center,
-          style: Theme.of(
+        SizedBox(height: t.space16),
+        Center(
+          child: _figureLine(
             context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            cs,
+            l10n,
+            completedMin,
+            goalMinutes,
+            size: 34,
+          ),
         ),
         SizedBox(height: t.space4),
         Text(
           '${formatPracticeDurationMs(recordingDurationMs)} ${l10n.homeCompleted}',
           textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+          style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
         ),
         SizedBox(height: t.space8),
         Text(
@@ -302,7 +348,7 @@ class TodaysGoalCard extends ConsumerWidget {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          style: tt.bodySmall?.copyWith(
             color: msgColor,
             fontWeight: FontWeight.w500,
           ),
@@ -324,113 +370,47 @@ class TodaysGoalCard extends ConsumerWidget {
     Color progressColor,
     Color msgColor,
   ) {
-    final frac = _progressFractionMs(recordingDurationMs, goalMinutes);
-    final radius = BorderRadius.circular(t.radiusSm);
+    final tt = Theme.of(context).textTheme;
     final durationText = formatPracticeDurationMs(recordingDurationMs);
-    final tabular = const [FontFeature.tabularFigures()];
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: _ringSizeBar,
-              height: _ringSizeBar,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CustomPaint(
-                    size: const Size(_ringSizeBar, _ringSizeBar),
-                    painter: _GoalRingPainter(
-                      percentage: pct,
-                      trackColor: cs.surfaceContainerHighest,
-                      progressColor: progressColor,
-                      strokeWidth: _strokeWidthBar,
-                    ),
-                  ),
-                  Text(
-                    '$pct%',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontFeatures: tabular,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: t.space12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.track_changes_rounded,
-                        size: 16,
-                        color: cs.primary,
-                      ),
-                      SizedBox(width: t.space4),
-                      Expanded(
-                        child: Text(
-                          l10n.homeTodaysGoal,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: t.space4),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text:
-                              '$completedMin / $goalMinutes ${l10n.homeMinutes}',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontFeatures: tabular,
-                              ),
-                        ),
-                        TextSpan(
-                          text: ' · $durationText',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: cs.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: t.space12),
-        ClipRRect(
-          borderRadius: radius,
-          child: LinearProgressIndicator(
-            value: frac.clamp(0.0, 1.0),
-            minHeight: 6,
-            backgroundColor: cs.surfaceContainerHighest,
-            color: progressColor,
+        _ring(
+          context,
+          t,
+          pct,
+          _ringSizeBar,
+          _strokeWidthBar,
+          progressColor,
+          labelStyle: tt.labelMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        SizedBox(height: t.space8),
-        Text(
-          encouragement,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: msgColor,
-            fontWeight: FontWeight.w500,
+        SizedBox(width: t.space16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              EnjoyOverline(l10n.homeTodaysGoal),
+              const SizedBox(height: 2),
+              _figureLine(
+                context,
+                cs,
+                l10n,
+                completedMin,
+                goalMinutes,
+                size: 30,
+              ),
+              Text(
+                '$durationText · $encouragement',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tt.bodySmall?.copyWith(color: msgColor),
+              ),
+            ],
           ),
         ),
       ],
@@ -451,7 +431,7 @@ class _TodaysGoalLoadingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = cs.surfaceContainerHighest.withValues(alpha: 0.6);
+    final base = t.fill;
     if (variant == TodaysGoalCardVariant.bar) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -492,23 +472,6 @@ class _TodaysGoalLoadingBody extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: t.space8),
-          Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          SizedBox(height: t.space4),
-          Container(
-            height: 12,
-            width: 160,
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
         ],
       );
     }
@@ -518,7 +481,7 @@ class _TodaysGoalLoadingBody extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.track_changes_rounded, size: 20, color: cs.primary),
+            Icon(EnjoyIcons.target, size: 20, color: cs.primary),
             SizedBox(width: t.space8),
             Container(
               height: 22,
@@ -584,7 +547,7 @@ class _TodaysGoalErrorBody extends StatelessWidget {
     if (variant == TodaysGoalCardVariant.bar) {
       return Row(
         children: [
-          Icon(Icons.error_outline, color: cs.error, size: 20),
+          Icon(EnjoyIcons.error, color: cs.error, size: 20),
           SizedBox(width: t.space8),
           Expanded(
             child: Text(
@@ -608,7 +571,7 @@ class _TodaysGoalErrorBody extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(Icons.error_outline, color: cs.error, size: 22),
+        Icon(EnjoyIcons.error, color: cs.error, size: 22),
         SizedBox(width: t.space12),
         Expanded(
           child: Text(

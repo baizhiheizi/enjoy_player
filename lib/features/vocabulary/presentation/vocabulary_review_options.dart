@@ -1,6 +1,7 @@
 /// Review options sheet: due / all / status / language / random.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -271,9 +272,7 @@ class _ModeTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                selected
-                    ? Icons.radio_button_checked_rounded
-                    : Icons.radio_button_off_rounded,
+                selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
                 color: selected ? cs.primary : cs.onSurfaceVariant,
               ),
               SizedBox(width: t.space12),

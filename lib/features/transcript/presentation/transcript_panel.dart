@@ -1,6 +1,8 @@
 /// Scrollable transcript with tap-to-seek and echo-aware highlighting.
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
@@ -182,7 +184,7 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.error_outline_rounded,
+                      EnjoyIcons.error,
                       size: 40,
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -201,7 +203,7 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    FilledButton.tonal(
+                    EnjoyButton.tonal(
                       onPressed: () => ref
                           .read(transcriptFetchCtrlProvider(mediaId).notifier)
                           .refreshFromCloud(signedIn: signedIn),

@@ -1,6 +1,7 @@
 /// Style picker dropdown for the translate tool.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
@@ -19,7 +20,7 @@ class StylePicker extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          Icons.auto_awesome_rounded,
+          EnjoyIcons.sparkleFill,
           size: 18,
           color: theme.colorScheme.primary,
         ),

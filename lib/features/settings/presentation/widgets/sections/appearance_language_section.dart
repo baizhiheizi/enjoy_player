@@ -5,13 +5,13 @@
 /// gate (disabled with an explanatory subtitle when only one choice exists).
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -48,11 +48,11 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SettingsRow(
-              leading: EnjoyChromeIcon(switch (state.themeMode) {
-                ThemeMode.light => EnjoyChromeGlyph.sun,
-                ThemeMode.dark => EnjoyChromeGlyph.moon,
-                ThemeMode.system => EnjoyChromeGlyph.monitor,
-              }),
+              leadingIcon: switch (state.themeMode) {
+                ThemeMode.light => EnjoyIcons.sun,
+                ThemeMode.dark => EnjoyIcons.moon,
+                ThemeMode.system => EnjoyIcons.monitor,
+              },
               title: l10n.settingsAppearanceTheme,
               valueBadge: SettingsValuePill(
                 label: _themeModeLabel(l10n, state.themeMode),
@@ -86,7 +86,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
             ),
             const SettingsRowDivider(),
             SettingsRow(
-              leadingIcon: Icons.language_rounded,
+              leadingIcon: EnjoyIcons.language,
               title: l10n.settingsAppearanceDisplayLanguage,
               subtitle: langSubtitle,
               valueBadge: SettingsValuePill(label: labelForTag(displayLang)),
@@ -115,7 +115,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
             ),
             const SettingsRowDivider(),
             SettingsRow(
-              leadingIcon: Icons.translate_rounded,
+              leadingIcon: EnjoyIcons.translate,
               title: l10n.settingsAppearanceLearningLanguage,
               subtitle: l10n.settingsLearningLanguageSubtitle,
               valueBadge: SettingsValuePill(label: labelForTag(learn)),
@@ -133,7 +133,7 @@ class AppearanceLanguageSectionBody extends ConsumerWidget {
             ),
             const SettingsRowDivider(),
             SettingsRow(
-              leadingIcon: Icons.record_voice_over_outlined,
+              leadingIcon: EnjoyIcons.speak,
               title: l10n.settingsAppearanceNativeLanguage,
               subtitle: langSubtitle,
               valueBadge: SettingsValuePill(label: labelForTag(native)),

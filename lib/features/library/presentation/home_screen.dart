@@ -4,8 +4,11 @@
 /// first row of the recents grid, and desktop gets a dedicated sidebar card.
 library;
 
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:go_router/go_router.dart';
 
@@ -76,15 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             return CustomScrollView(
               slivers: [
                 // Editorial header
-                SliverToBoxAdapter(
-                  child: EditorialHeader(
-                    title: l10n.homeTitle,
-                    trailing: _HomeHeaderActions(
-                      onCraft: () => context.push('/craft'),
-                      onImport: () => showImportChooser(context, ref),
-                    ),
-                  ),
-                ),
+                const SliverToBoxAdapter(child: _HomeHeader()),
 
                 // Today's goal + community (signed-in, responsive grid) —
                 // always rendered, even when the recents grid below is
@@ -96,8 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
-                      icon: Icons.collections_bookmark_rounded,
-                      illustrationAsset: EnjoyIllustrations.emptyLibrary,
+                      icon: EnjoyIcons.library,
                       title: l10n.homeEmptyTitle,
                       subtitle: l10n.homeEmptyHint,
                       action: () => showImportChooser(context, ref),
@@ -109,17 +103,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 else ...[
                   // Recents section label
                   SliverPadding(
-                    padding: EdgeInsets.fromLTRB(gutter, 0, gutter, t.space12),
+                    padding: EdgeInsets.fromLTRB(
+                      gutter,
+                      t.space12,
+                      gutter,
+                      t.space12,
+                    ),
                     sliver: SliverToBoxAdapter(
-                      child: Text(
-                        l10n.homeRecentMedia,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
+                      child: EnjoySectionHeader(
+                        title: l10n.homeRecentMedia,
+                        trailing: TextButton.icon(
+                          onPressed: () => context.go('/library'),
+                          iconAlignment: IconAlignment.end,
+                          icon: const Icon(EnjoyIcons.chevronRight, size: 14),
+                          label: Text(l10n.libraryTitle),
+                        ),
                       ),
                     ),
                   ),
@@ -133,8 +131,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           gridDelegate:
                               mediaCardTileGridDelegateForMinTileWidth(
                                 crossAxisExtent: constraints.crossAxisExtent,
-                                mainAxisSpacing: t.space12,
-                                crossAxisSpacing: t.space12,
+                                mainAxisSpacing: t.space16,
+                                crossAxisSpacing: t.space16,
                               ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
@@ -159,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+                  SliverToBoxAdapter(child: SizedBox(height: t.space40)),
                 ],
               ],
             );
@@ -173,11 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 48,
-                      color: cs.error,
-                    ),
+                    Icon(EnjoyIcons.error, size: 48, color: cs.error),
                     SizedBox(height: t.space16),
                     Text(
                       '${l10n.error}: $e',
@@ -185,7 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     SizedBox(height: t.space16),
-                    FilledButton.tonal(
+                    EnjoyButton.tonal(
                       onPressed: () =>
                           ref.invalidate(libraryHomeRecentsProvider),
                       child: Text(l10n.retry),
@@ -220,25 +214,16 @@ class _HomeLoadingScrollView extends ConsumerWidget {
         final gutter = pageGutterOf(context, constraints.maxWidth);
         return CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: EditorialHeader(
-                title: l10n.homeTitle,
-                trailing: _HomeHeaderActions(
-                  onCraft: () => context.push('/craft'),
-                  onImport: () => showImportChooser(context, ref),
-                ),
-              ),
-            ),
+            const SliverToBoxAdapter(child: _HomeHeader()),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(gutter, 0, gutter, t.space12),
+              padding: EdgeInsets.fromLTRB(
+                gutter,
+                t.space12,
+                gutter,
+                t.space12,
+              ),
               sliver: SliverToBoxAdapter(
-                child: Text(
-                  l10n.homeRecentMedia,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child: EnjoySectionHeader(title: l10n.homeRecentMedia),
               ),
             ),
             SliverPadding(
@@ -248,8 +233,8 @@ class _HomeLoadingScrollView extends ConsumerWidget {
                   return SliverGrid(
                     gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
                       crossAxisExtent: gridConstraints.crossAxisExtent,
-                      mainAxisSpacing: t.space12,
-                      crossAxisSpacing: t.space12,
+                      mainAxisSpacing: t.space16,
+                      crossAxisSpacing: t.space16,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => const _HomeRecentGridSkeletonTile(),
@@ -267,8 +252,45 @@ class _HomeLoadingScrollView extends ConsumerWidget {
   }
 }
 
-/// Home header trailing actions — Craft entry + Import — shared by the
+/// Home editorial header — a time-of-day greeting under a date overline,
+/// with the Craft + Import actions (icon-only on narrow panes). Shared by the
 /// loaded and loading scroll views so both stay in sync.
+class _HomeHeader extends ConsumerWidget {
+  const _HomeHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final greeting = now.hour < 12
+        ? l10n.homeGreetingMorning
+        : now.hour < 18
+        ? l10n.homeGreetingAfternoon
+        : l10n.homeGreetingEvening;
+    final name = ref
+        .watch(authCtrlProvider)
+        .maybeWhen(
+          data: (s) => s is AuthSignedIn ? s.profile.name.trim() : null,
+          orElse: () => null,
+        );
+    final firstName = (name == null || name.isEmpty)
+        ? null
+        : name.split(RegExp(r'\s+')).first;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return EditorialHeader(
+      overline: DateFormat.MMMMEEEEd(locale).format(now),
+      title: firstName == null
+          ? greeting
+          : l10n.homeGreetingNamed(greeting, firstName),
+      trailing: _HomeHeaderActions(
+        onCraft: () => context.push('/craft'),
+        onImport: () => showImportChooser(context, ref),
+      ),
+    );
+  }
+}
+
+/// Home header trailing actions — Craft entry + Import.
 class _HomeHeaderActions extends ConsumerWidget {
   const _HomeHeaderActions({required this.onCraft, required this.onImport});
 
@@ -288,28 +310,46 @@ class _HomeHeaderActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
+    final narrow = MediaQuery.sizeOf(context).width < t.breakpointCompact;
+    void craft() => _act(ref, OnboardingTipId.homeCraft, onCraft);
+    void import() => _act(ref, OnboardingTipId.homeImport, onImport);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         OnboardingTarget(
           tipId: OnboardingTipId.homeCraft,
           onTargetAction: onCraft,
-          child: OutlinedButton.icon(
-            // Direct taps (overlay hole miss) still resolve the tip.
-            onPressed: () => _act(ref, OnboardingTipId.homeCraft, onCraft),
-            icon: const Icon(Icons.auto_awesome_outlined, size: 18),
-            label: Text(l10n.homeCraftAction),
-          ),
+          // Direct taps (overlay hole miss) still resolve the tip.
+          child: narrow
+              ? EnjoyIconButton(
+                  icon: EnjoyIcons.sparkle,
+                  tooltip: l10n.homeCraftAction,
+                  onPressed: craft,
+                )
+              : EnjoyButton.secondary(
+                  size: EnjoyButtonSize.small,
+                  icon: EnjoyIcons.sparkle,
+                  onPressed: craft,
+                  child: Text(l10n.homeCraftAction),
+                ),
         ),
         SizedBox(width: t.space8),
         OnboardingTarget(
           tipId: OnboardingTipId.homeImport,
           onTargetAction: onImport,
-          child: FilledButton.icon(
-            onPressed: () => _act(ref, OnboardingTipId.homeImport, onImport),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l10n.actionImport),
-          ),
+          child: narrow
+              ? EnjoyIconButton(
+                  icon: EnjoyIcons.add,
+                  tooltip: l10n.actionImport,
+                  variant: EnjoyButtonVariant.primary,
+                  onPressed: import,
+                )
+              : EnjoyButton.primary(
+                  size: EnjoyButtonSize.small,
+                  icon: EnjoyIcons.add,
+                  onPressed: import,
+                  child: Text(l10n.actionImport),
+                ),
         ),
       ],
     );
@@ -322,12 +362,10 @@ class _HomeRecentGridSkeletonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final base = Theme.of(
-      context,
-    ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6);
+    final base = t.fill;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(t.radiusXl),
+    return ClipRSuperellipse(
+      borderRadius: BorderRadius.circular(t.radiusMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -377,13 +415,12 @@ class _HomeRecentGridSkeletonTile extends StatelessWidget {
 class _HomeInsightCards extends ConsumerWidget {
   const _HomeInsightCards();
 
-  static const double _kStripSplitMinWidth = 420;
+  static const double _kStripSplitMinWidth = 560;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authAsync = ref.watch(authCtrlProvider);
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
 
     final isSignedIn = authAsync.maybeWhen(
       data: (s) => s is AuthSignedIn,
@@ -396,60 +433,31 @@ class _HomeInsightCards extends ConsumerWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= _kStripSplitMinWidth;
         final gutter = pageGutterOf(context, constraints.maxWidth);
-        final pad = wide
-            ? EdgeInsets.fromLTRB(gutter, t.space20, gutter, t.space20)
-            : EdgeInsets.fromLTRB(gutter, t.space12, gutter, t.space12);
+        final pad = EdgeInsets.fromLTRB(gutter, t.space4, gutter, t.space16);
 
-        final strip = Card(
-          margin: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
-          child: wide
-              ? IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Expanded(
-                        flex: 5,
-                        child: TodaysGoalCard(
-                          variant: TodaysGoalCardVariant.bar,
-                          containedInParentCard: true,
-                        ),
-                      ),
-                      VerticalDivider(
-                        width: 1,
-                        thickness: 1,
-                        color: cs.outlineVariant.withValues(alpha: 0.35),
-                      ),
-                      const Expanded(
-                        flex: 4,
-                        child: CommunityActivityCard(
-                          outerPadding: EdgeInsets.zero,
-                          containedInParentCard: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
+        const goal = TodaysGoalCard(variant: TodaysGoalCardVariant.bar);
+        const community = CommunityActivityCard(outerPadding: EdgeInsets.zero);
+
+        final strip = wide
+            ? const IntrinsicHeight(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const TodaysGoalCard(
-                      variant: TodaysGoalCardVariant.bar,
-                      containedInParentCard: true,
-                    ),
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: cs.outlineVariant.withValues(alpha: 0.35),
-                    ),
-                    const CommunityActivityCard(
-                      outerPadding: EdgeInsets.zero,
-                      containedInParentCard: true,
-                    ),
+                    Expanded(flex: 5, child: goal),
+                    SizedBox(width: 16),
+                    Expanded(flex: 4, child: community),
                   ],
                 ),
-        );
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  goal,
+                  SizedBox(height: t.space12),
+                  community,
+                ],
+              );
 
         return Padding(padding: pad, child: strip);
       },

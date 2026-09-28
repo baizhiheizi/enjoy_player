@@ -4,6 +4,7 @@
 // payload — covering it gives cheap branch coverage on the long if/else
 // chains (`hasToday`, empty-users fallback, etc.) that aren't otherwise
 // easy to drive from the parent `CommunityActivityCard`.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_avatars.dart';
@@ -124,7 +125,7 @@ void main() {
       await tester.pumpWidget(
         _harness(
           InlineMetric(
-            icon: Icons.schedule,
+            icon: EnjoyIcons.clock,
             value: '5m',
             label: 'Practice time',
             cs: _cs(),

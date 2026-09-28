@@ -10,6 +10,7 @@
 /// state explaining how the flow will appear once a balance is present.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -153,7 +154,7 @@ class _BalanceToCreditsBody extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _IconBadge(icon: Icons.account_balance_wallet_rounded, cs: cs),
+        _IconBadge(icon: EnjoyIcons.wallet, cs: cs),
         SizedBox(width: t.space12),
         Expanded(
           child: Column(
@@ -199,7 +200,7 @@ class _BalanceToCreditsCta extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return EnjoyButton.secondary(
       onPressed: enabled ? onPressed : null,
-      icon: Icons.arrow_forward_rounded,
+      icon: EnjoyIcons.arrowRight,
       child: Text(l10n.subscriptionBalanceToCreditsCta),
     );
   }
@@ -249,7 +250,7 @@ class _BalanceBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.savings_rounded, size: 12, color: cs.onSecondaryContainer),
+          Icon(EnjoyIcons.savings, size: 12, color: cs.onSecondaryContainer),
           const SizedBox(width: 4),
           Text(
             label,

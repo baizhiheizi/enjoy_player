@@ -1,18 +1,15 @@
-/// Pill-shaped nav item: icon + label inside a focus-ringable, hover-able,
-/// selected-tinted container.
+/// Sidebar-style navigation row: icon + label with a quiet selection plate.
 ///
-/// Shared by [AppSidebar]'s desktop nav row and the Settings two-pane rail —
-/// both features render the same "selected nav item" treatment (pill
-/// highlight + focus ring), so they share this primitive instead of
-/// re-implementing the [Material] / [InkWell] / [AnimatedContainer] stack.
-///
-/// Per [ADR-0018] "Shared interactive primitives" — prefer this over ad-hoc
-/// `InkWell` + `GestureDetector` islands for new rail-style surfaces.
+/// Shared by [AppSidebar]'s desktop nav and the Settings two-pane rail —
+/// both render the same "selected nav item" treatment, so they share this
+/// primitive (ADR-0018). Aurora styling (ADR-0089): compact 34px rows,
+/// continuous corners, a lifted plate for the selected item (white card on
+/// porcelain, lit wash on midnight), filled glyph + iris ink when selected.
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:enjoy_player/core/interaction/haptics.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
 class NavItemPill extends StatelessWidget {
@@ -25,16 +22,16 @@ class NavItemPill extends StatelessWidget {
     this.selectedIcon,
     this.iconWidget,
     this.selectedIconWidget,
-    this.iconSize = 20,
+    this.iconSize = 18,
     this.maxLines,
     this.overflow,
+    this.trailing,
   });
 
   final IconData icon;
 
   /// When [selected] is true, the icon shown for the active item. Falls back
-  /// to [icon] when null. The sidebar uses a heavier outline/filled pair;
-  /// the Settings rail reuses a single icon.
+  /// to [icon] when null.
   final IconData? selectedIcon;
 
   /// Optional chrome widget; when set, replaces the [Icon] for this state.
@@ -45,97 +42,94 @@ class NavItemPill extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  /// Side-effect pixel size for the leading [Icon]. The sidebar uses 22 to
-  /// match the primary nav; the Settings rail uses 20.
+  /// Pixel size for the leading icon.
   final double iconSize;
 
-  /// Forwarded to the label [Text]. The Settings rail clips long section
-  /// titles with ellipsis; the sidebar lets the title wrap.
+  /// Forwarded to the label [Text].
   final int? maxLines;
   final TextOverflow? overflow;
+
+  /// Optional trailing widget (count badge, keycap).
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final light = Theme.of(context).brightness == Brightness.light;
+    final radius = BorderRadius.circular(t.radiusSm + 1);
+
+    final plate = selected
+        ? ShapeDecoration(
+            color: light ? t.card : cs.onSurface.withValues(alpha: 0.075),
+            shape: RoundedSuperellipseBorder(
+              borderRadius: radius,
+              side: BorderSide(
+                color: light
+                    ? t.hairline
+                    : Colors.white.withValues(alpha: 0.04),
+              ),
+            ),
+            shadows: light
+                ? const [
+                    BoxShadow(
+                      color: Color(0x0F16161D),
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
+                    ),
+                  ]
+                : const [],
+          )
+        : ShapeDecoration(
+            shape: RoundedSuperellipseBorder(borderRadius: radius),
+          );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: 2),
-      child: Focus(
-        child: Builder(
-          builder: (focusContext) {
-            final focused = Focus.of(focusContext).hasFocus;
-            return Material(
-              color: Colors.transparent,
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(t.radiusFull),
-                side: focused && !selected
-                    ? BorderSide(
-                        color: cs.primary.withValues(alpha: 0.55),
-                        width: t.focusRingWidth,
-                      )
-                    : BorderSide.none,
+      padding: EdgeInsets.symmetric(horizontal: t.space8 + 2, vertical: 1),
+      child: EnjoyPressable(
+        onTap: onTap,
+        borderRadius: radius,
+        pressedScale: 0.985,
+        showHoverWash: !selected,
+        // The lifted plate already marks the selected row.
+        showFocusRing: !selected,
+        selected: selected,
+        child: AnimatedContainer(
+          duration: t.motionFast,
+          curve: Curves.easeOutCubic,
+          constraints: const BoxConstraints(minHeight: 34),
+          padding: EdgeInsets.symmetric(horizontal: t.space8 + 2, vertical: 6),
+          decoration: plate,
+          child: Row(
+            children: [
+              IconTheme(
+                data: IconThemeData(
+                  size: iconSize,
+                  color: selected ? t.accentInk : cs.onSurfaceVariant,
+                ),
+                child: selected
+                    ? (selectedIconWidget ??
+                          iconWidget ??
+                          Icon(selectedIcon ?? icon, size: iconSize))
+                    : (iconWidget ?? Icon(icon, size: iconSize)),
               ),
-              child: InkWell(
-                onTap: () {
-                  Haptics.selection(context);
-                  onTap();
-                },
-                borderRadius: BorderRadius.circular(t.radiusFull),
-                hoverColor: cs.onSurface.withValues(alpha: 0.06),
-                splashColor: cs.primary.withValues(alpha: 0.10),
-                highlightColor: cs.primary.withValues(alpha: 0.05),
-                child: AnimatedContainer(
-                  duration: t.motionFast,
-                  curve: Curves.easeOutCubic,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: t.space16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? cs.surfaceContainer : Colors.transparent,
-                    borderRadius: BorderRadius.circular(t.radiusMd),
-                    border: selected
-                        ? Border(left: BorderSide(color: t.accentInk, width: 3))
-                        : null,
-                  ),
-                  child: Row(
-                    children: [
-                      IconTheme(
-                        data: IconThemeData(
-                          size: iconSize,
-                          color: selected ? t.accentInk : cs.onSurfaceVariant,
-                        ),
-                        child: selected
-                            ? (selectedIconWidget ??
-                                  iconWidget ??
-                                  Icon(selectedIcon ?? icon, size: iconSize))
-                            : (iconWidget ?? Icon(icon, size: iconSize)),
-                      ),
-                      SizedBox(width: t.space12),
-                      Expanded(
-                        child: Text(
-                          label,
-                          maxLines: maxLines,
-                          overflow: overflow,
-                          style: tt.labelLarge?.copyWith(
-                            fontWeight: selected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: selected
-                                ? cs.onSurface
-                                : cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
+              SizedBox(width: t.space8 + 2),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: maxLines,
+                  overflow: overflow,
+                  style: tt.labelLarge?.copyWith(
+                    fontSize: 13.5,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected ? cs.onSurface : cs.onSurfaceVariant,
                   ),
                 ),
               ),
-            );
-          },
+              if (trailing != null) ...[SizedBox(width: t.space8), trailing!],
+            ],
+          ),
         ),
       ),
     );

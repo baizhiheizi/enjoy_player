@@ -1,6 +1,7 @@
 /// Synthesize tool panel for the Craft screen.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -103,7 +104,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
               hintText: l10n.craftTextInputHint,
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.paste_rounded, size: 18),
+                icon: const Icon(EnjoyIcons.paste, size: 18),
                 tooltip: l10n.craftPasteFromClipboard,
                 onPressed: () => _paste(controller),
               ),
@@ -115,7 +116,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             onPressed: canSynthesize
                 ? () => _synthesizeWithOverlay(l10n)
                 : null,
-            icon: state.isSynthesizing ? null : Icons.record_voice_over_rounded,
+            icon: state.isSynthesizing ? null : EnjoyIcons.speak,
             child: state.isSynthesizing
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -149,7 +150,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             SizedBox(height: tokens.space12),
             EnjoyButton.secondary(
               onPressed: state.isSaving ? null : _save,
-              icon: state.isSaving ? null : Icons.save_rounded,
+              icon: state.isSaving ? null : EnjoyIcons.save,
               child: state.isSaving
                   ? const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -321,11 +322,7 @@ class _SynthLangTile extends StatelessWidget {
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           SizedBox(width: EnjoyThemeTokens.of(context).space4),
-          Icon(
-            Icons.chevron_right_rounded,
-            size: 20,
-            color: cs.onSurfaceVariant,
-          ),
+          Icon(EnjoyIcons.chevronRight, size: 20, color: cs.onSurfaceVariant),
         ],
       ),
     );
@@ -358,9 +355,7 @@ class _PreviewPlayer extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              icon: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              ),
+              icon: Icon(isPlaying ? EnjoyIcons.pause : EnjoyIcons.play),
               onPressed: onPlayPause,
             ),
             SizedBox(width: t.space8),

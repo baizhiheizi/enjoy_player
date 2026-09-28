@@ -1,6 +1,7 @@
 /// Vocabulary destination: slim Review / All Words tabs + list-first chrome.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
@@ -47,7 +49,7 @@ class VocabularyScreen extends ConsumerWidget {
           IconButton(
             tooltip: l10n.vocabularyStatsExpand,
             onPressed: () => showVocabularyStatsSheet(context, stats),
-            icon: const Icon(Icons.insights_outlined),
+            icon: const Icon(EnjoyIcons.insights),
           ),
         ],
         body: (context, metrics) => Column(
@@ -56,37 +58,42 @@ class VocabularyScreen extends ConsumerWidget {
             Padding(
               padding: metrics.padding(top: t.space8, bottom: t.space4),
               child: Material(
-                color: cs.surfaceContainerHighest.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(t.radiusFull),
+                color: enjoySegmentTrackColor(context),
+                shape: RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(t.radiusSm + 2),
+                ),
                 clipBehavior: Clip.antiAlias,
                 child: Padding(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(2),
                   child: TabBar(
                     dividerColor: Colors.transparent,
                     indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      color: cs.primaryContainer.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(t.radiusFull),
+                    indicator: enjoySegmentThumbDecoration(
+                      context,
+                      radius: t.radiusSm,
                     ),
-                    labelColor: cs.onPrimaryContainer,
+                    labelColor: cs.onSurface,
                     unselectedLabelColor: cs.onSurfaceVariant,
                     labelStyle: tt.labelLarge?.copyWith(
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w600,
                     ),
-                    unselectedLabelStyle: tt.labelLarge,
+                    unselectedLabelStyle: tt.labelLarge?.copyWith(
+                      fontSize: 13.5,
+                    ),
                     splashFactory: NoSplash.splashFactory,
                     overlayColor: const WidgetStatePropertyAll(
                       Colors.transparent,
                     ),
                     tabs: [
                       Tab(
-                        height: 40,
+                        height: 34,
                         child: _ReviewTabLabel(
                           label: l10n.vocabularyReview,
                           due: stats.due,
                         ),
                       ),
-                      Tab(height: 40, text: l10n.vocabularyAllWords),
+                      Tab(height: 34, text: l10n.vocabularyAllWords),
                     ],
                   ),
                 ),

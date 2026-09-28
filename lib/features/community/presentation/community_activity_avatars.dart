@@ -5,11 +5,13 @@ library;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 
 const int kMaxAvatarsSummary = 4;
-const double kSummaryAvatarSize = 28;
+const double kSummaryAvatarSize = 26;
 const double kSummaryAvatarOverlap = 8;
 
 /// Internal building block for `CommunityActivityCard`; not public API.
@@ -49,28 +51,10 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final text = initials(user.name);
     final url = user.avatarUrl;
 
     Widget fallback() {
-      return Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: cs.primaryContainer,
-          shape: BoxShape.circle,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w600,
-            color: cs.onPrimaryContainer,
-          ),
-        ),
-      );
+      return EnjoyAvatar(name: user.name, size: size);
     }
 
     if (url == null || url.isEmpty) {
@@ -101,7 +85,7 @@ class AvatarBorder extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: cs.surface, width: 2),
+        border: Border.all(color: EnjoyThemeTokens.of(context).card, width: 2),
       ),
       child: child,
     );
@@ -161,15 +145,15 @@ class OverlappingAvatarStack extends StatelessWidget {
                   height: kSummaryAvatarSize,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest,
+                    color: EnjoyThemeTokens.of(context).fill,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     '+$extra',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: cs.onSurface,
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                 ),

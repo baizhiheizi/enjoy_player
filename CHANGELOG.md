@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Aurora design language** — a ground-up visual redesign so the app reads as one crafted product on every platform instead of a Material app everywhere. Porcelain / midnight neutrals with one iris accent and a soft blue → violet aurora glow; Geist UI type with Instrument Serif display titles and Geist Mono numerals; one Phosphor icon family (vendored fonts behind `EnjoyIcons`); continuous-corner shapes, hairline depth, no ink ripples, press-scale interactions, and one page transition everywhere except iOS. Desktop pages float on a content panel beside a canvas sidebar; phones get a glass capsule tab bar with a gliding lens. Home greets you by name with a serif goal ring; settings and profile use grouped lists with colored icon tiles; media tiles are poster-style; the transcript dims context lines around the active cue; notices are dark toasts. See [ADR-0089](docs/decisions/0089-aurora-design-language.md) and [docs/features/app-ui.md](docs/features/app-ui.md).
+
 ## [0.9.0] - 2026-09-07
 
 ### Added

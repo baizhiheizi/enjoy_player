@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -156,7 +157,7 @@ class FlashcardContextTab extends ConsumerWidget {
           Row(
             children: [
               EnjoyTappableIcon(
-                icon: Icons.play_arrow_rounded,
+                icon: EnjoyIcons.play,
                 tooltip: clipPlayInFlight
                     ? l10n.vocabularyFetching
                     : l10n.vocabularyPlaySegment,
@@ -169,14 +170,14 @@ class FlashcardContextTab extends ConsumerWidget {
                     : onPlayClip,
               ),
               EnjoyTappableIcon(
-                icon: Icons.open_in_new_rounded,
+                icon: EnjoyIcons.openExternal,
                 tooltip: l10n.vocabularyOpenInPlayer,
                 semanticLabel: l10n.vocabularyOpenInPlayer,
                 color: cs.primary,
                 onPressed: actionsEnabled ? onOpenInPlayer : null,
               ),
               EnjoyTappableIcon(
-                icon: Icons.record_voice_over_rounded,
+                icon: EnjoyIcons.speak,
                 tooltip: l10n.vocabularyEchoReading,
                 semanticLabel: l10n.vocabularyEchoReading,
                 color: cs.primary,

@@ -2,6 +2,7 @@
 //
 // Renders the API URL / AI API URL editors with a fake in-memory Drift DB
 // so the providers build and resolve cleanly.
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -53,8 +54,8 @@ void main() {
 
     // Both expansion tiles should be present with their titles.
     expect(find.byType(ExpansionTile), findsNWidgets(2));
-    expect(find.byIcon(Icons.dns_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.server), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.robot), findsOneWidget);
   });
 
   testWidgets('expanding the API URL tile reveals the editor', (tester) async {

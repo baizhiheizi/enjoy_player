@@ -22,8 +22,10 @@ void main() {
       expect(tokens.radiusSm, 8);
       expect(tokens.radiusMd, 12);
       expect(tokens.radiusLg, 16);
-      expect(tokens.radiusXl, 20);
+      expect(tokens.radiusXl, 22);
       expect(tokens.radiusFull, 999);
+      expect(tokens.radiusXs, 6);
+      expect(tokens.radius2xl, 30);
 
       expect(tokens.elevationNone, 0);
       expect(tokens.elevationCard, 1);
@@ -36,9 +38,9 @@ void main() {
       expect(tokens.breakpointRail, 900);
       expect(tokens.breakpointTranscriptSideBySide, 720);
 
-      expect(tokens.motionFast, const Duration(milliseconds: 180));
-      expect(tokens.motionStandard, const Duration(milliseconds: 260));
-      expect(tokens.motionEnter, const Duration(milliseconds: 240));
+      expect(tokens.motionFast, const Duration(milliseconds: 160));
+      expect(tokens.motionStandard, const Duration(milliseconds: 280));
+      expect(tokens.motionEnter, const Duration(milliseconds: 260));
       expect(tokens.motionExit, const Duration(milliseconds: 160));
       expect(tokens.motionMedium, const Duration(milliseconds: 220));
 
@@ -60,16 +62,36 @@ void main() {
       expect(tokens.hubMaxWidth, 840);
       expect(tokens.pageGutterCompact, 16);
       expect(tokens.pageGutter, 24);
-      expect(tokens.miniBarBlurSigma, 20);
-      expect(tokens.sidebarWidth, 248);
-      expect(tokens.sidebarBrandHeight, 56);
+      expect(tokens.miniBarBlurSigma, 24);
+      expect(tokens.sidebarWidth, 236);
+      expect(tokens.sidebarBrandHeight, 52);
       expect(tokens.transportHeight, 88);
-      expect(tokens.heroTitleLetterSpacing, -1.2);
-      expect(tokens.bottomNavHeight, 68);
+      expect(tokens.heroTitleLetterSpacing, -0.9);
+      expect(tokens.bottomNavHeight, 64);
       expect(tokens.desktopGutter, 24);
       expect(tokens.modalMaxWidth, 400);
       expect(tokens.modalMaxWidthLarge, 560);
       expect(tokens.focusRingWidth, 2);
+      expect(tokens.canvas, AppColors.canvasDark);
+      expect(tokens.card, AppColors.cardDark);
+      expect(tokens.popover, AppColors.popoverDark);
+      expect(tokens.hairline, AppColors.borderDark);
+      expect(tokens.fill, AppColors.fillDark);
+      expect(tokens.textFaint, AppColors.faintDark);
+      expect(tokens.auroraStart, AppColors.auroraBlue);
+      expect(tokens.auroraEnd, AppColors.auroraViolet);
+      expect(tokens.shellInset, 8);
+      expect(tokens.panelRadius, 14);
+      expect(tokens.controlHeightSm, 32);
+      expect(tokens.controlHeight, 40);
+      expect(tokens.controlHeightLg, 48);
+      expect(tokens.shadowCard, isNotEmpty);
+      expect(tokens.shadowFloat, isNotEmpty);
+      expect(tokens.shadowPopover, isNotEmpty);
+      expect(tokens.aurora.colors, [
+        AppColors.auroraBlue,
+        AppColors.auroraViolet,
+      ]);
 
       expect(
         tokens.transcriptLinePadding,
@@ -77,15 +99,14 @@ void main() {
       );
     });
 
-    test('glassTint and glassBorder derive from scheme', () {
-      const scheme = ColorScheme.dark();
-      final tokens = EnjoyThemeTokens.build(scheme);
+    test('dark glass is a translucent lifted midnight with a lit edge', () {
+      final tokens = EnjoyThemeTokens.build(const ColorScheme.dark());
 
-      expect(tokens.glassTint, scheme.surface.withValues(alpha: 0.55));
-      expect(tokens.glassBorder, scheme.outlineVariant.withValues(alpha: 0.22));
+      expect(tokens.glassTint, const Color(0xFF1C1C22).withValues(alpha: 0.62));
+      expect(tokens.glassBorder, Colors.white.withValues(alpha: 0.09));
     });
 
-    test('light palette uses paper inks and denser glass', () {
+    test('light palette uses porcelain inks and denser glass', () {
       const scheme = ColorScheme.light();
       final tokens = EnjoyThemeTokens.build(scheme);
 
@@ -93,8 +114,13 @@ void main() {
       expect(tokens.intelligenceInk, AppColors.intelligenceInkLight);
       expect(tokens.echoInk, AppColors.echoInkLight);
       expect(tokens.scoreGood, AppColors.scoreGoodLight);
-      expect(tokens.glassTint, scheme.surface.withValues(alpha: 0.82));
-      expect(tokens.glassBorder, scheme.outlineVariant.withValues(alpha: 0.55));
+      expect(tokens.glassTint, Colors.white.withValues(alpha: 0.8));
+      expect(
+        tokens.glassBorder,
+        const Color(0xFF16161D).withValues(alpha: 0.08),
+      );
+      expect(tokens.canvas, AppColors.canvasLight);
+      expect(tokens.card, AppColors.cardLight);
       expect(tokens.radiusSm, 8);
       expect(tokens.space48, 48);
     });
@@ -380,7 +406,7 @@ void main() {
       expect(result.radiusSm, 12); // lerp(8, 16, 0.5)
       expect(result.radiusMd, 18); // lerp(12, 24, 0.5)
       expect(result.radiusLg, 24); // lerp(16, 32, 0.5)
-      expect(result.radiusXl, 30); // lerp(20, 40, 0.5)
+      expect(result.radiusXl, 31); // lerp(22, 40, 0.5)
       expect(result.radiusFull, 1498.5); // lerp(999, 1998, 0.5)
 
       expect(result.elevationNone, 0); // lerp(0, 0, 0.5)
@@ -402,15 +428,15 @@ void main() {
       expect(result.hubMaxWidth, 1260); // lerp(840, 1680, 0.5)
       expect(result.pageGutterCompact, 24); // lerp(16, 32, 0.5)
       expect(result.pageGutter, 36); // lerp(24, 48, 0.5)
-      expect(result.miniBarBlurSigma, 30); // lerp(20, 40, 0.5)
-      expect(result.sidebarWidth, 372); // lerp(248, 496, 0.5)
-      expect(result.sidebarBrandHeight, 84); // lerp(56, 112, 0.5)
+      expect(result.miniBarBlurSigma, 32); // lerp(24, 40, 0.5)
+      expect(result.sidebarWidth, 366); // lerp(236, 496, 0.5)
+      expect(result.sidebarBrandHeight, 82); // lerp(52, 112, 0.5)
       expect(result.transportHeight, 132); // lerp(88, 176, 0.5)
       expect(
         result.heroTitleLetterSpacing,
-        closeTo(-1.8, 1e-10),
-      ); // lerp(-1.2, -2.4, 0.5)
-      expect(result.bottomNavHeight, 102); // lerp(68, 136, 0.5)
+        closeTo(-1.65, 1e-10),
+      ); // lerp(-0.9, -2.4, 0.5)
+      expect(result.bottomNavHeight, 100); // lerp(64, 136, 0.5)
       expect(result.desktopGutter, 36); // lerp(24, 48, 0.5)
       expect(result.modalMaxWidth, 600); // lerp(400, 800, 0.5)
       expect(result.modalMaxWidthLarge, 840); // lerp(560, 1120, 0.5)
@@ -420,12 +446,12 @@ void main() {
     test('t=0.5 produces correct midpoint for durations', () {
       final result = a.lerp(b, 0.5) as EnjoyThemeTokens;
 
-      // lerp(180, 360, 0.5) = 270
-      expect(result.motionFast, const Duration(milliseconds: 270));
-      // lerp(260, 520, 0.5) = 390
-      expect(result.motionStandard, const Duration(milliseconds: 390));
-      // lerp(240, 480, 0.5) = 360
-      expect(result.motionEnter, const Duration(milliseconds: 360));
+      // lerp(160, 360, 0.5) = 260
+      expect(result.motionFast, const Duration(milliseconds: 260));
+      // lerp(280, 520, 0.5) = 400
+      expect(result.motionStandard, const Duration(milliseconds: 400));
+      // lerp(260, 480, 0.5) = 370
+      expect(result.motionEnter, const Duration(milliseconds: 370));
       // lerp(160, 320, 0.5) = 240
       expect(result.motionExit, const Duration(milliseconds: 240));
       // lerp(220, 440, 0.5) = 330

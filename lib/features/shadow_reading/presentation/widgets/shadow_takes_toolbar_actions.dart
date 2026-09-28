@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -111,9 +112,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                     ),
                     tooltip: takeSummary,
                     icon: Icon(
-                      playingThis
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
+                      playingThis ? EnjoyIcons.pause : EnjoyIcons.play,
                     ),
                     onPressed: canPlay ? onPlayOrPause : null,
                   );
@@ -125,7 +124,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                   minimumSize: const Size(44, 44),
                 ),
                 tooltip: takeSummary,
-                icon: const Icon(Icons.play_arrow_rounded),
+                icon: const Icon(EnjoyIcons.play),
                 onPressed: null,
               ),
         RecordingAssessmentButton(row: row, echoActive: echoActive),
@@ -174,7 +173,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                             width: 28,
                             child: r.id == row.id
                                 ? Icon(
-                                    Icons.check,
+                                    EnjoyIcons.check,
                                     size: 20,
                                     color: scheme.primary,
                                   )
@@ -232,7 +231,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                     SizedBox(
                       width: 28,
                       child: Icon(
-                        Icons.refresh_rounded,
+                        EnjoyIcons.refresh,
                         size: 20,
                         color: scheme.primary,
                       ),
@@ -256,7 +255,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                         SizedBox(
                           width: 28,
                           child: Icon(
-                            Icons.delete_outline_rounded,
+                            EnjoyIcons.delete,
                             size: 20,
                             color: color,
                           ),
@@ -276,7 +275,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
           },
           child: Padding(
             padding: EdgeInsets.all(tok.space4),
-            child: Icon(Icons.more_vert, color: scheme.onSurfaceVariant),
+            child: Icon(EnjoyIcons.more, color: scheme.onSurfaceVariant),
           ),
         ),
       ],

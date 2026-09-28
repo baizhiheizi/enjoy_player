@@ -1,6 +1,7 @@
 /// Clip mini-player body for the vocabulary practice sheet.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -105,7 +106,7 @@ class VocabularyPracticeClipBody extends ConsumerWidget {
         Row(
           children: [
             EnjoyTappableIcon(
-              icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              icon: playing ? EnjoyIcons.pause : EnjoyIcons.play,
               tooltip: playing
                   ? l10n.vocabularyPracticePause
                   : l10n.vocabularyPlaySegment,

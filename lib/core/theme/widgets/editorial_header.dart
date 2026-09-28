@@ -1,5 +1,5 @@
-/// Editorial page header — large title, optional supporting line, trailing
-/// action — mirrors Apple Music / Apple Podcasts heading style.
+/// Editorial page header — large Instrument Serif title, optional overline,
+/// trailing actions. The signature voice of Aurora page chrome (ADR-0089).
 library;
 
 import 'package:flutter/material.dart';
@@ -20,6 +20,7 @@ class EditorialHeader extends StatelessWidget {
   const EditorialHeader({
     super.key,
     required this.title,
+    this.overline,
     this.subtitle,
     this.titleAccessory,
     this.trailing,
@@ -30,6 +31,11 @@ class EditorialHeader extends StatelessWidget {
   });
 
   final String title;
+
+  /// Small eyebrow above the title (rendered letter-spaced, uppercase).
+  final String? overline;
+
+  /// Muted descriptive line under the title.
   final String? subtitle;
 
   /// Inline chip or control beside the title (same row).
@@ -50,15 +56,15 @@ class EditorialHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final paneWidth = constraints.maxWidth;
+        final narrow = paneWidth < t.breakpointCompact;
         final gutter = pageGutterOf(context, paneWidth);
-        final top = compact ? t.space16 : t.space24;
-        final bottom = compact ? t.space12 : t.space16;
+        final top = compact ? t.space16 : (narrow ? t.space16 : t.space32);
+        final bottom = compact ? t.space12 : t.space20;
 
         final double horizontal;
         final double? titleMaxWidth;
@@ -75,11 +81,13 @@ class EditorialHeader extends StatelessWidget {
         }
 
         final titleStyle = compact
-            ? tt.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: t.heroTitleLetterSpacing * 0.75,
-              )
-            : tt.displaySmall;
+            ? tt.headlineMedium
+            : (narrow
+                  ? tt.displaySmall?.copyWith(fontSize: 34, letterSpacing: -0.6)
+                  : tt.displaySmall?.copyWith(
+                      fontSize: 40,
+                      letterSpacing: -0.8,
+                    ));
 
         return Padding(
           padding:
@@ -92,22 +100,15 @@ class EditorialHeader extends StatelessWidget {
                 maxWidth: titleMaxWidth ?? double.infinity,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (subtitle != null) ...[
-                          Text(
-                            subtitle!.toUpperCase(),
-                            style: tt.labelSmall?.copyWith(
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.w600,
-                              color: cs.primary,
-                            ),
-                          ),
+                        if (overline != null) ...[
+                          EnjoyOverline(overline!),
                           SizedBox(height: t.space4),
                         ],
                         Row(
@@ -122,20 +123,30 @@ class EditorialHeader extends StatelessWidget {
                               ),
                             ),
                             if (titleAccessory != null) ...[
-                              SizedBox(width: t.space8),
+                              SizedBox(width: t.space12),
                               titleAccessory!,
                             ],
                           ],
                         ),
+                        if (subtitle != null) ...[
+                          SizedBox(height: t.space4),
+                          Text(
+                            subtitle!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.bodyMedium?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   if (trailing != null) ...[
                     SizedBox(width: t.space16),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: compact ? 0 : 2),
-                      child: trailing!,
-                    ),
+                    trailing!,
                   ],
                 ],
               ),
@@ -143,6 +154,91 @@ class EditorialHeader extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Letter-spaced uppercase overline (eyebrow) label.
+class EnjoyOverline extends StatelessWidget {
+  const EnjoyOverline(this.text, {super.key, this.color});
+
+  final String text;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    return Text(
+      text.toUpperCase(),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        letterSpacing: 1.3,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: color ?? t.textFaint,
+      ),
+    );
+  }
+}
+
+/// In-page section heading: title, optional count / caption, trailing action.
+class EnjoySectionHeader extends StatelessWidget {
+  const EnjoySectionHeader({
+    super.key,
+    required this.title,
+    this.caption,
+    this.trailing,
+    this.padding = EdgeInsets.zero,
+  });
+
+  final String title;
+
+  /// Muted inline caption after the title (e.g. an item count).
+  final String? caption;
+  final Widget? trailing;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.titleMedium?.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.25,
+                    ),
+                  ),
+                ),
+                if (caption != null) ...[
+                  SizedBox(width: t.space8),
+                  Text(
+                    caption!,
+                    style: tt.bodySmall?.copyWith(
+                      color: t.textFaint,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          ?trailing,
+        ],
+      ),
     );
   }
 }

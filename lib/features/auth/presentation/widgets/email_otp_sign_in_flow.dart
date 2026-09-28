@@ -1,6 +1,7 @@
 /// Unified email entry and OTP verification sign-in flow.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -427,11 +428,7 @@ class _OtpStepState extends State<_OtpStep> {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.mail_outline_rounded,
-                  size: 18,
-                  color: cs.onSurfaceVariant,
-                ),
+                Icon(EnjoyIcons.mail, size: 18, color: cs.onSurfaceVariant),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Text(

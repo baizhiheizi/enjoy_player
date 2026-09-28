@@ -1,6 +1,7 @@
 /// Fullscreen vocabulary flashcard review session.
 library;
 
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -419,7 +420,7 @@ class _SessionHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close_rounded),
+            icon: const Icon(EnjoyIcons.close),
             tooltip: l10n.vocabularyExitReview,
             onPressed: onClose,
           ),
@@ -466,7 +467,7 @@ class _SessionHeader extends StatelessWidget {
           ),
           if (canUndo)
             EnjoyTappableIcon(
-              icon: Icons.undo_rounded,
+              icon: EnjoyIcons.undo,
               tooltip: l10n.vocabularyUndo,
               onPressed: onUndo,
             ),
@@ -497,7 +498,7 @@ class _CompleteBody extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.check_circle_outline_rounded,
+                  EnjoyIcons.checkCircle,
                   size: 40,
                   color: Theme.of(context).colorScheme.primary,
                 ),

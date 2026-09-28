@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 
 /// Internal building block for `CommunityActivityCard`; not public API.
 class InlineMetric extends StatelessWidget {
@@ -24,24 +25,31 @@ class InlineMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: cs.primary),
-        SizedBox(width: EnjoyThemeTokens.of(context).space4),
         Text(
           value,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            fontFeatures: tabular,
+          style: enjoyDisplayStyle(
+            context,
+            size: 30,
+            color: cs.onSurface,
+            height: 1.1,
           ),
         ),
-        SizedBox(width: EnjoyThemeTokens.of(context).space4),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: EnjoyThemeTokens.of(context).textFaint),
+            SizedBox(width: EnjoyThemeTokens.of(context).space4),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ],
         ),
       ],
     );
