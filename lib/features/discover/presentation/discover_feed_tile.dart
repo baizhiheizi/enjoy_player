@@ -21,7 +21,6 @@ import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
-import 'package:enjoy_player/features/library/application/library_media_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
@@ -54,50 +53,38 @@ _DiscoverFeedTileDateFormats _discoverFeedTileDateFormats(String locale) {
 }
 
 class DiscoverFeedTile extends ConsumerStatefulWidget {
-  const DiscoverFeedTile({required this.entry, super.key});
+  const DiscoverFeedTile({
+    required this.entry,
+    required this.inLibrary,
+    super.key,
+  });
 
   final FeedEntry entry;
+
+  /// Already resolved by `discoverFeedItemsProvider` (issue #764 candidate 6).
+  /// The tile used to probe this per instance and cache it in widget state.
+  final bool inLibrary;
 
   @override
   ConsumerState<DiscoverFeedTile> createState() => _DiscoverFeedTileState();
 }
 
 class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
-  bool? _inLibrary;
   bool _adding = false;
   bool _hover = false;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadLibraryState());
-  }
-
-  @override
-  void didUpdateWidget(covariant DiscoverFeedTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.entry.videoId != widget.entry.videoId) {
-      unawaited(_loadLibraryState());
-    }
-  }
-
-  Future<void> _loadLibraryState() async {
-    final inLib = await discoverVideoInLibrary(ref, widget.entry.videoId);
-    if (!mounted) return;
-    setState(() => _inLibrary = inLib);
-  }
-
   /// Returns `true` when the video is in the library after this call.
+  ///
+  /// The tile does not track membership itself: a successful import reaches it
+  /// through `discoverFeedItemsProvider`, which is why the manual
+  /// `ref.invalidate` calls this used to make are gone.
   Future<bool> _addToLibrary() async {
-    if (_adding) return _inLibrary ?? false;
+    if (_adding) return widget.inLibrary;
     setState(() => _adding = true);
     final l10n = AppLocalizations.of(context)!;
     try {
       await addDiscoverFeedEntryToLibrary(ref, widget.entry);
-      ref.invalidate(libraryMediaProvider);
-      ref.invalidate(libraryHomeRecentsProvider);
       if (!mounted) return false;
-      setState(() => _inLibrary = true);
       AppNotice.success(context, l10n.discoverAddedToLibrary);
       return true;
     } catch (_) {
@@ -111,12 +98,11 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
   }
 
   Future<void> _play() async {
-    var inLib = await discoverVideoInLibrary(ref, widget.entry.videoId);
+    var inLib = widget.inLibrary;
     if (!inLib) {
       inLib = await _addToLibrary();
     }
     if (!inLib || !mounted) return;
-    if (mounted) setState(() => _inLibrary = true);
     final mediaId = enjoyVideoId(
       provider: 'youtube',
       vid: widget.entry.videoId,
@@ -150,7 +136,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final sub = _subscriptionForEntry(subs);
     final channelName = sub?.displayName ?? 'YouTube';
     final channelAvatar = remoteThumbnailForCard(sub?.thumbnailUrl);
-    final inLibrary = _inLibrary ?? false;
+    final inLibrary = widget.inLibrary;
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
     final durationLabel = _durationLabel(entry);
 

@@ -62,3 +62,11 @@ abstract final class YoutubeJsHandlerName {
 
   static const Set<String> all = {onVideoEvent, onAdReload};
 }
+
+/// Fired once per mount the first time playback is observed running.
+///
+/// Lives in this leaf module because both producers of the signal need it —
+/// [YoutubeWebViewEvents] on the DOM `playing` event and the poll loop on
+/// the first positive position — and neither may import the other (each is
+/// reachable from the other through [YoutubeSession]).
+typedef YoutubeFirstPlayingFn = void Function();

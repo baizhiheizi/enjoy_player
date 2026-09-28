@@ -4,7 +4,10 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
+import 'package:enjoy_player/features/discover/application/discover_feed_join.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_screen.dart';
@@ -40,8 +43,14 @@ final _entries = [
   ),
 ];
 
+/// Wraps a raw feed stream in the membership-joined shape the screens now
+/// watch. The empty vid set means every tile renders "not in library", which is
+/// what these tests already assumed from the old per-tile probe.
+Stream<List<DiscoverFeedItem>> _feedItems(Stream<List<FeedEntry>> feed) =>
+    feed.map((entries) => projectDiscoverFeedItems(entries, const <String>{}));
+
 class _FakeDiscoverRepository extends DiscoverRepository {
-  _FakeDiscoverRepository(super.db);
+  _FakeDiscoverRepository(super.db, {required super.libraryRepository});
 
   @override
   Stream<List<DiscoverChannel>> watchSubscriptions() => const Stream.empty();
@@ -65,11 +74,16 @@ Widget _wrap({
     overrides: [
       appDatabaseProvider.overrideWithValue(_db),
       discoverRepositoryProvider.overrideWithValue(
-        _FakeDiscoverRepository(_db),
+        _FakeDiscoverRepository(
+          _db,
+          libraryRepository: MediaLibraryRepository(_db, FileStorage()),
+        ),
       ),
       discoverSubscriptionsProvider.overrideWith((ref) => subscriptions),
-      filteredDiscoverTimelineProvider.overrideWith((ref) => timeline),
-      discoverChannelFeedProvider.overrideWith((ref, channelId) => timeline),
+      discoverFeedItemsProvider.overrideWith((ref) => _feedItems(timeline)),
+      discoverChannelFeedItemsProvider.overrideWith(
+        (ref, channelId) => _feedItems(timeline),
+      ),
       discoverRefreshStateProvider.overrideWith(
         () => _FakeRefreshState(refreshing: refreshing),
       ),

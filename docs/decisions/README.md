@@ -111,3 +111,4 @@ Trade-offs, follow-up work, risks.
 | [0085](0085-audio-floating-collapse-chrome.md) | Audio expanded chrome is the shared floating frosted collapse control over the transcript; desktop gets a roomier top inset (supersedes 0077 audio clause) |
 | [0086](0086-posthog-product-analytics.md) | PostHog product analytics integration |
 | [0087](0087-norwegian-bokmal-language-catalog.md) | Norwegian Bokmål (`nb-NO`) joins the focus / media / lookup catalogs; `no` / `nob` / `nor` alias to `nb` as deliberate policy (Nynorsk `nn` stays unsupported) |
+| [0088](0088-discover-feed-owns-library-membership.md) | Discover feed owns library membership — one merged watch, tiles render `inLibrary`, `bindLibraryRepository` deleted (issue #764 candidate 6; ADR-0046 cache unchanged) |

@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,12 +12,15 @@ import 'package:enjoy_player/core/application/app_language_catalog.dart';
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
+import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/features/discover/application/discover_feed_join.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/domain/recommended_channel.dart';
@@ -26,13 +30,17 @@ part 'discover_providers.g.dart';
 
 final _log = logNamed('discover');
 
+/// The library dependency is a constructor argument (issue #764 candidate 6),
+/// not a later `bindLibraryRepository` call: a runtime rebind is invisible to
+/// in-flight subscribers and left the repository in a half-wired state until
+/// something happened to call it.
 @Riverpod(keepAlive: true)
 DiscoverRepository discoverRepository(Ref ref) {
-  final db = ref.watch(appDatabaseProvider);
-  final feedClient = ref.watch(youtubeFeedClientProvider);
-  final repo = DiscoverRepository(db, feedClient: feedClient);
-  repo.bindLibraryRepository(ref.watch(mediaLibraryRepositoryProvider));
-  return repo;
+  return DiscoverRepository(
+    ref.watch(appDatabaseProvider),
+    feedClient: ref.watch(youtubeFeedClientProvider),
+    libraryRepository: ref.watch(mediaLibraryRepositoryProvider),
+  );
 }
 
 @Riverpod(keepAlive: true)
@@ -86,14 +94,38 @@ Stream<List<FeedEntry>> discoverTimeline(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchTimeline();
 }
 
+/// The Discover feed with library membership already resolved.
+///
+/// Tiles render this instead of probing per item; after "add to library" the
+/// membership arrives through the registry stream, so the manual
+/// `ref.invalidate` the tile used to carry is gone (issue #764 candidate 6).
 @Riverpod(keepAlive: true)
-Stream<List<FeedEntry>> filteredDiscoverTimeline(Ref ref) {
-  return ref.watch(discoverRepositoryProvider).watchTimeline();
+Stream<List<DiscoverFeedItem>> discoverFeedItems(Ref ref) {
+  return joinLatest(
+    ref.watch(discoverRepositoryProvider).watchTimeline(),
+    ref.watch(mediaRegistryProvider).watchYoutubeVideoIds(),
+    projectDiscoverFeedItems,
+  ).distinctBy(listEquals);
 }
 
 @Riverpod(keepAlive: true)
 Stream<List<FeedEntry>> discoverChannelFeed(Ref ref, String channelId) {
   return ref.watch(discoverRepositoryProvider).watchChannelFeed(channelId);
+}
+
+/// Channel feed with library membership already resolved — the same join as
+/// [discoverFeedItemsProvider], so a single-channel view gets membership
+/// without falling back to per-tile probes.
+@Riverpod(keepAlive: true)
+Stream<List<DiscoverFeedItem>> discoverChannelFeedItems(
+  Ref ref,
+  String channelId,
+) {
+  return joinLatest(
+    ref.watch(discoverRepositoryProvider).watchChannelFeed(channelId),
+    ref.watch(mediaRegistryProvider).watchYoutubeVideoIds(),
+    projectDiscoverFeedItems,
+  ).distinctBy(listEquals);
 }
 
 /// Active Discover feed filter: `null` = all subscribed channels, else one channel.
@@ -254,8 +286,4 @@ Future<String> addDiscoverFeedEntryToLibrary(
   return ref
       .read(discoverRepositoryProvider)
       .addFeedEntryToLibrary(entry, contentLanguage: contentLanguage);
-}
-
-Future<bool> discoverVideoInLibrary(WidgetRef ref, String videoId) {
-  return ref.read(discoverRepositoryProvider).isVideoInLibrary(videoId);
 }

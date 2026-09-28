@@ -89,13 +89,19 @@ void main() {
 
     group('getSubscription', () {
       test('returns null when channel is not subscribed', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         final result = await repo.getSubscription('UCnonexistent000000000');
         expect(result, isNull);
       });
 
       test('returns mapped DiscoverChannel when subscribed', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -120,7 +126,10 @@ void main() {
 
     group('subscribeChannel', () {
       test('creates new subscription with defaults', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -140,7 +149,10 @@ void main() {
       });
 
       test('preserves existing metadata on re-subscribe', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -174,7 +186,10 @@ void main() {
       });
 
       test('new thumbnailUrl overrides existing', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -200,7 +215,10 @@ void main() {
       test(
         'persists subscription with recommended source and feed URL',
         () async {
-          final repo = DiscoverRepository(db);
+          final repo = DiscoverRepository(
+            db,
+            libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          );
           const channel = RecommendedChannel(
             channelId: _channelId,
             name: 'TED',
@@ -227,7 +245,10 @@ void main() {
 
     group('unsubscribe', () {
       test('removes subscription and feed entries', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -255,12 +276,18 @@ void main() {
 
     group('isVideoInLibrary', () {
       test('returns false when video is not in library', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         expect(await repo.isVideoInLibrary('dQw4w9WgXcQ'), isFalse);
       });
 
       test('returns true when video exists in library', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         final now = DateTime.now();
         await db.videoDao.insertRow(
           VideoRow(
@@ -282,13 +309,19 @@ void main() {
 
     group('fetchChannelAvatarUrl', () {
       test('returns null when channel not found', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         final url = await repo.fetchChannelAvatarUrl('UCnonexistent000000000');
         expect(url, isNull);
       });
 
       test('returns null when thumbnailUrl is null', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -302,7 +335,10 @@ void main() {
       test(
         'returns empty string without caching when thumbnailUrl is empty',
         () async {
-          final repo = DiscoverRepository(db);
+          final repo = DiscoverRepository(
+            db,
+            libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          );
           await db.youtubeChannelSubscriptionDao.upsert(
             YoutubeChannelSubscriptionRow(
               channelId: _channelId,
@@ -321,7 +357,10 @@ void main() {
       );
 
       test('returns URL and caches it', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -342,26 +381,13 @@ void main() {
       });
     });
 
+    // The "library bridge not bound" StateError is gone: `libraryRepository` is
+    // a required constructor argument, so the half-wired repository the throw
+    // guarded against can no longer be constructed (issue #764 candidate 6).
     group('addFeedEntryToLibrary', () {
-      test('throws StateError when library not bound', () async {
-        final repo = DiscoverRepository(db);
-        final entry = FeedEntry(
-          videoId: 'dQw4w9WgXcQ',
-          channelId: _channelId,
-          title: 'Test Video',
-          publishedAt: DateTime.utc(2024, 1, 1),
-        );
-
-        expect(
-          () => repo.addFeedEntryToLibrary(entry),
-          throwsA(isA<StateError>()),
-        );
-      });
-
       test('imports video with default language when none specified', () async {
         final fakeLib = _FakeLibraryRepository(db, FileStorage());
-        final repo = DiscoverRepository(db);
-        repo.bindLibraryRepository(fakeLib);
+        final repo = DiscoverRepository(db, libraryRepository: fakeLib);
 
         final entry = FeedEntry(
           videoId: 'dQw4w9WgXcQ',
@@ -378,8 +404,7 @@ void main() {
 
       test('passes explicit contentLanguage to library', () async {
         final fakeLib = _FakeLibraryRepository(db, FileStorage());
-        final repo = DiscoverRepository(db);
-        repo.bindLibraryRepository(fakeLib);
+        final repo = DiscoverRepository(db, libraryRepository: fakeLib);
 
         final entry = FeedEntry(
           videoId: 'dQw4w9WgXcQ',
@@ -395,7 +420,10 @@ void main() {
 
     group('subscribeFromUserInput', () {
       test('throws FormatException for invalid input', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         expect(
           () => repo.subscribeFromUserInput('not a youtube url'),
           throwsA(isA<FormatException>()),
@@ -403,7 +431,10 @@ void main() {
       });
 
       test('throws FormatException for empty input', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         expect(
           () => repo.subscribeFromUserInput(''),
           throwsA(isA<FormatException>()),
@@ -434,7 +465,11 @@ void main() {
           );
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repo.subscribeFromUserInput(_channelId);
 
         final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -455,7 +490,10 @@ void main() {
       });
 
       test('updates existing subscription on re-subscribe', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'Old Name',
@@ -476,7 +514,11 @@ void main() {
           );
         });
 
-        final repoWithClient = DiscoverRepository(db, httpClient: mockClient);
+        final repoWithClient = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repoWithClient.subscribeFromUserInput(_channelId);
 
         final updated = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -490,7 +532,10 @@ void main() {
       });
 
       test('preserves existing thumbnail when feed has no icon', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await repo.subscribeChannel(
           channelId: _channelId,
           displayName: 'TED',
@@ -502,7 +547,11 @@ void main() {
           return http.Response(_jsonFeedBody(icon: null), 200);
         });
 
-        final repoWithClient = DiscoverRepository(db, httpClient: mockClient);
+        final repoWithClient = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repoWithClient.subscribeFromUserInput(_channelId);
 
         final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -516,7 +565,11 @@ void main() {
           return http.Response(_jsonFeedBody(items: []), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repo.subscribeFromUserInput(_channelId);
 
         final entries = await db.youtubeFeedEntryDao.getForChannel(_channelId);
@@ -533,7 +586,11 @@ void main() {
           );
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repo.subscribeFromUserInput('@TED');
 
         final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -555,7 +612,11 @@ void main() {
           );
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await repo.subscribeFromUserInput(_channelId);
 
         final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
@@ -567,7 +628,10 @@ void main() {
 
     group('refreshFeeds', () {
       test('returns zero when no subscriptions exist', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         final result = await repo.refreshFeeds();
         expect(result.refreshedChannels, 0);
         expect(result.failedChannelIds, isEmpty);
@@ -575,7 +639,10 @@ void main() {
       });
 
       test('skips recently fetched channels', () async {
-        final repo = DiscoverRepository(db);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -599,7 +666,11 @@ void main() {
           return http.Response(_jsonFeedBody(), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -623,7 +694,11 @@ void main() {
           return http.Response(_jsonFeedBody(), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -645,7 +720,11 @@ void main() {
           return http.Response('', 404);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -670,7 +749,11 @@ void main() {
           throw Exception('network failure');
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -697,7 +780,11 @@ void main() {
           return http.Response(_jsonFeedBody(), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -725,7 +812,11 @@ void main() {
           return http.Response(_jsonFeedBody(), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -775,7 +866,11 @@ void main() {
           );
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -811,7 +906,11 @@ void main() {
           );
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         final subscribedAt = DateTime.now().subtract(const Duration(days: 90));
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
@@ -849,7 +948,11 @@ void main() {
           return http.Response(_jsonFeedBody(icon: null), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,
@@ -880,7 +983,11 @@ void main() {
           return http.Response('', 500);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         final oldFetch = DateTime.now().subtract(const Duration(hours: 2));
 
         await db.youtubeChannelSubscriptionDao.upsert(
@@ -923,7 +1030,11 @@ void main() {
           return http.Response(_jsonFeedBody(), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         final oldFetch = DateTime.now().subtract(const Duration(hours: 2));
 
         for (var i = 0; i < 6; i++) {
@@ -953,7 +1064,11 @@ void main() {
           return http.Response(_jsonFeedBody(items: []), 200);
         });
 
-        final repo = DiscoverRepository(db, httpClient: mockClient);
+        final repo = DiscoverRepository(
+          db,
+          libraryRepository: MediaLibraryRepository(db, FileStorage()),
+          httpClient: mockClient,
+        );
         await db.youtubeChannelSubscriptionDao.upsert(
           YoutubeChannelSubscriptionRow(
             channelId: _channelId,

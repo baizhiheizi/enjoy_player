@@ -8,10 +8,10 @@ import 'package:enjoy_player/features/player/application/engines/youtube/youtube
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_video_event.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 
-typedef YoutubeFirstPlayingFn = void Function();
 typedef YoutubePlaybackProgressFn = void Function(Duration position);
 
 /// Injectable poll body for unit tests (defaults to

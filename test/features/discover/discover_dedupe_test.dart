@@ -4,6 +4,8 @@ import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,7 +93,10 @@ void main() {
 
     setUp(() {
       db = AppDatabase(executor: NativeDatabase.memory());
-      repo = DiscoverRepository(db);
+      repo = DiscoverRepository(
+        db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
+      );
     });
 
     tearDown(() async {

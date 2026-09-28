@@ -18,7 +18,6 @@ final _logEvents = logNamed('YouTubeWebViewEvents');
 typedef YoutubeSeekFn = Future<void> Function(Duration target);
 typedef YoutubePollStartFn = void Function();
 typedef YoutubePollStopFn = void Function();
-typedef YoutubeFirstPlayingFn = void Function();
 
 /// Handles `onVideoEvent` JavaScript callbacks from the watch page.
 class YoutubeWebViewEvents {

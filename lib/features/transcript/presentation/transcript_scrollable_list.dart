@@ -16,7 +16,7 @@ import 'package:enjoy_player/features/player/application/player_state_providers.
 import 'package:enjoy_player/features/transcript/application/active_transcript_provider.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_controller.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
-import 'package:enjoy_player/features/transcript/domain/auto_translate.dart';
+import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
@@ -215,13 +215,6 @@ class _TranscriptScrollableListState
       }
     }
     return false;
-  }
-
-  bool _shouldRequestAutoTranslate(int lineIndex, int playbackHighlight) {
-    final highlight = playbackHighlight >= 0 ? playbackHighlight : 0;
-    final scrollFocus = _scrollFocusLineIndex();
-    return (lineIndex - highlight).abs() <= kAutoTranslateViewportWindow ||
-        (lineIndex - scrollFocus).abs() <= kAutoTranslateViewportWindow;
   }
 
   /// Conservative bootstrap scroll before the scroll-target widget is built.
@@ -526,26 +519,41 @@ class _TranscriptScrollableListState
                 final canRetranslateLine = resolved.canRetranslate;
                 final lineFailed = resolved.isFailed;
 
-                if (autoTranslateActive &&
-                    (secondaryText == null || secondaryText.trim().isEmpty) &&
-                    !lineFailed &&
-                    _shouldRequestAutoTranslate(lineIndex, activeForUi)) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    final highlight = ref
-                        .read(
-                          transcriptPlaybackHighlightProvider(widget.mediaId),
-                        )
-                        .cueIndex;
-                    if (!_shouldRequestAutoTranslate(lineIndex, highlight)) {
-                      return;
-                    }
-                    ref
+                // Shared with the echo card so the two item builders cannot
+                // drift (issue #764 candidate 4). Both anchors — the playback
+                // highlight and the scroll position — are passed as arguments
+                // so the policy short-circuits on eligibility first and an
+                // ineligible row never reads the ScrollController.
+                bool requestableFor(int anchor) =>
+                    shouldRequestAutoTranslateLine(
+                      lineIndex: lineIndex,
+                      anchorLineIndex: anchor,
+                      alternateAnchorLineIndex: _scrollFocusLineIndex,
+                      scope: AutoTranslateRequestScope.viewport,
+                      isAutoTranslateActive: autoTranslateActive,
+                      hasSecondaryText:
+                          secondaryText != null &&
+                          secondaryText.trim().isNotEmpty,
+                      isLineFailed: lineFailed,
+                    );
+
+                if (requestableFor(activeForUi)) {
+                  scheduleAutoTranslateLineRequest(
+                    isMounted: () => mounted,
+                    shouldRequest: () {
+                      final fresh = ref
+                          .read(
+                            transcriptPlaybackHighlightProvider(widget.mediaId),
+                          )
+                          .cueIndex;
+                      return requestableFor(fresh);
+                    },
+                    request: () => ref
                         .read(
                           autoTranslateCtrlProvider(widget.mediaId).notifier,
                         )
-                        .requestTranslateLine(lineIndex);
-                  });
+                        .requestTranslateLine(lineIndex),
+                  );
                 }
 
                 final selectable = isActive;

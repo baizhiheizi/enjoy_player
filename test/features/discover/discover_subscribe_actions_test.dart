@@ -5,6 +5,8 @@ import 'package:enjoy_player/data/db/youtube_subscription_source.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
+import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/discover/domain/recommended_channel.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_actions.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -25,7 +27,7 @@ const _recommended = RecommendedChannel(
 );
 
 class _FailingDiscoverRepository extends DiscoverRepository {
-  _FailingDiscoverRepository(super.db);
+  _FailingDiscoverRepository(super.db, {required super.libraryRepository});
 
   @override
   Future<void> subscribeRecommended(RecommendedChannel channel) async {
@@ -83,6 +85,7 @@ void main() {
     ) async {
       final repo = DiscoverRepository(
         db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
         httpClient: MockClient((_) async => http.Response('', 404)),
       );
 
@@ -105,7 +108,10 @@ void main() {
     });
 
     testWidgets('shows error notice when subscribe fails', (tester) async {
-      final repo = _FailingDiscoverRepository(db);
+      final repo = _FailingDiscoverRepository(
+        db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
+      );
 
       await tester.pumpWidget(_wrap(db: db, repo: repo));
       await tester.pumpAndSettle();

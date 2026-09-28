@@ -85,7 +85,6 @@ class _Stub {
       captureVerifyGeneration: () => verifyGen,
       isVerifyGenerationStale: (gen) => gen != verifyGen,
       bumpNavGeneration: () => ++navGen,
-      currentNavGeneration: () => navGen,
       onStaleWebView: () => staleCalls++,
     );
     return nav!;
@@ -132,7 +131,6 @@ void main() {
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
-        currentNavGeneration: () => stub.navGen,
         onStaleWebView: () => stub.staleCalls++,
       );
       await nav.loadCurrentVideoIfAttached();
@@ -219,7 +217,6 @@ void main() {
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
-        currentNavGeneration: () => stub.navGen,
         onStaleWebView: () => stub.staleCalls++,
       );
       await runDelayed(tester, nav);
@@ -315,7 +312,6 @@ void main() {
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
-        currentNavGeneration: () => stub.navGen,
         onStaleWebView: () => stub.staleCalls++,
       );
       nullNav.schedulePlaybackNudge();
@@ -359,7 +355,6 @@ void main() {
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
-        currentNavGeneration: () => stub.navGen,
         onStaleWebView: () => stub.staleCalls++,
       );
       await nav.onWebViewProcessTerminated(
@@ -544,7 +539,6 @@ void main() {
         captureVerifyGeneration: () => stub.verifyGen,
         isVerifyGenerationStale: (g) => g != stub.verifyGen,
         bumpNavGeneration: () => ++stub.navGen,
-        currentNavGeneration: () => stub.navGen,
         onStaleWebView: () => stub.staleCalls++,
       );
       await nav.recoverStalledPlayback(
