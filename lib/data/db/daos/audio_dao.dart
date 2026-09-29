@@ -1,8 +1,22 @@
 part of '../app_database.dart';
 
 @DriftAccessor(tables: [Audios])
-class AudioDao extends DatabaseAccessor<AppDatabase> with _$AudioDaoMixin {
+class AudioDao extends DatabaseAccessor<AppDatabase>
+    with _$AudioDaoMixin, BulkPkRowsMixin<AppDatabase, AudioRow> {
   AudioDao(super.db);
+
+  @override
+  TableInfo<Table, AudioRow> get bulkPkTable => audios;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => audios.id;
+
+  @override
+  String Function(AudioRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
 
   Stream<List<AudioRow>> watchAll() => (select(
     audios,

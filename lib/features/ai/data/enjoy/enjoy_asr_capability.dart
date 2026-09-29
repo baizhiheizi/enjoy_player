@@ -52,7 +52,7 @@ final class EnjoyAsrCapability implements AsrCapability {
       }
 
       final map = await _api.transcribe(
-        audioBytes: request.audioBytes.toList(),
+        audioBytes: request.audioBytes,
         filename: request.filename,
         model: request.model,
         language: baseLanguage,
