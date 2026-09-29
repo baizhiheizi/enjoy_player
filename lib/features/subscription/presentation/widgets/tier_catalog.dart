@@ -19,6 +19,7 @@ import 'package:intl/intl.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -320,6 +321,12 @@ class _SavingsBadge extends StatelessWidget {
 /// Fixed badge-row height so Free / Lite / Pro titles align in the wide row.
 const double _kTierBadgeSlotHeight = 28;
 
+/// Tappable-pill padding for the catalog's badges (rides `EnjoyTierBadge`).
+const EdgeInsets _kCatalogPillPadding = EdgeInsets.symmetric(
+  horizontal: 10,
+  vertical: 4,
+);
+
 List<String> _sharedAiFeatures(AppLocalizations l10n) => [
   l10n.subscriptionFeatureTranslation,
   l10n.subscriptionFeatureSmartTranslation,
@@ -431,16 +438,15 @@ class _FreeTierCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
 
     return _TierCardScaffold(
       expand: expand,
       badges: isCurrent
-          ? _Pill(
+          ? EnjoyTierBadge(
               label: l10n.subscriptionCurrentPlan,
               color: cs.secondaryContainer,
               textColor: cs.onSecondaryContainer,
-              tt: tt,
+              padding: _kCatalogPillPadding,
             )
           : null,
       title: l10n.subscriptionTierFreeName,
@@ -534,31 +540,28 @@ class _PaidTierCard extends StatelessWidget {
       // Lite has no "Recommended" badge — Pro is the recommended tier.
       badges = Row(
         children: [
-          _Pill(
+          EnjoyTierBadge(
             label: l10n.subscriptionTierCatalogRecommended,
-            color: cs.primary,
-            textColor: Colors.white,
-            tt: tt,
             leading: EnjoyIcons.sparkleFill,
-            gradient: t.aurora,
+            padding: _kCatalogPillPadding,
           ),
           if (isCurrent) ...[
             SizedBox(width: t.space8),
-            _Pill(
+            EnjoyTierBadge(
               label: l10n.subscriptionCurrentPlan,
               color: cs.secondaryContainer,
               textColor: cs.onSecondaryContainer,
-              tt: tt,
+              padding: _kCatalogPillPadding,
             ),
           ],
         ],
       );
     } else if (isCurrent) {
-      badges = _Pill(
+      badges = EnjoyTierBadge(
         label: l10n.subscriptionCurrentPlan,
         color: cs.secondaryContainer,
         textColor: cs.onSecondaryContainer,
-        tt: tt,
+        padding: _kCatalogPillPadding,
       );
     }
 
@@ -651,58 +654,6 @@ class _PaidTierCard extends StatelessWidget {
       }
     }
     return null;
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({
-    required this.label,
-    required this.color,
-    required this.textColor,
-    required this.tt,
-    this.leading,
-    this.gradient,
-  });
-
-  final String label;
-  final Color color;
-  final Color textColor;
-  final TextTheme tt;
-  final IconData? leading;
-
-  /// Overrides [color] (the aurora for "Recommended").
-  final Gradient? gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: gradient == null ? color : null,
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (leading != null) ...[
-            Icon(leading, size: 12, color: textColor),
-            const SizedBox(width: 4),
-          ],
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: tt.labelSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: textColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

@@ -1,15 +1,18 @@
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 
 /// Record FAB with a circular countdown ring + over-target pulse animation.
 ///
-/// Extracted from `shadow_reading_panel.dart` — see issue #180.
+/// Extracted from `shadow_reading_panel.dart` — see issue #180. The ring and
+/// the lit inner button ride the aurora signature kit
+/// ([EnjoyProgressRingPainter], [enjoyLitFillDecoration]).
 class ShadowRecordFab extends StatelessWidget {
   const ShadowRecordFab({
     required this.recording,
@@ -44,6 +47,14 @@ class ShadowRecordFab extends StatelessWidget {
     final scale = overTarget ? (overPulseHigh ? 1.04 : 1.0) : 1.0;
     final trackAlpha = showProgressArc ? 0.38 : 0.18;
     final iconSize = _fabInner <= 44 ? 22.0 : (_fabInner <= 56 ? 24.0 : 28.0);
+    final litBase = recording ? tok.echoActive : scheme.primary;
+    // The FAB counts *down*: the arc is the time remaining, and over-target
+    // pins it to a full warning ring.
+    final double arcProgress = !showProgressArc
+        ? 0
+        : overTarget
+        ? 1
+        : 1 - ringProgress;
 
     return OnboardingTarget(
       tipId: OnboardingTipId.playerRecord,
@@ -61,57 +72,39 @@ class ShadowRecordFab extends StatelessWidget {
             children: [
               CustomPaint(
                 size: const Size(ringOuterHitSize, ringOuterHitSize),
-                painter: ShadowRecordRingPainter(
-                  progress: ringProgress,
-                  overTarget: overTarget,
+                painter: EnjoyProgressRingPainter(
+                  progress: arcProgress,
                   trackColor: scheme.onSurface.withValues(
                     alpha: trackAlpha * 0.4,
                   ),
-                  fillColor: overTarget ? scheme.error : scheme.primary,
-                  showProgressArc: showProgressArc,
+                  progressColor: overTarget ? scheme.error : scheme.primary,
+                  strokeWidth: 4,
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: echoActive ? onTap : null,
-                  child: AnimatedContainer(
-                    duration: tok.motionFast,
-                    width: _fabInner,
-                    height: _fabInner,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color.lerp(
-                            recording ? tok.echoActive : scheme.primary,
-                            Colors.white,
-                            0.14,
-                          )!,
-                          recording ? tok.echoActive : scheme.primary,
-                        ],
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.16),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (recording ? tok.echoActive : scheme.primary)
-                              .withValues(alpha: recording ? 0.45 : 0.36),
-                          blurRadius: recording ? 24 : 16,
-                          spreadRadius: recording ? 1 : -3,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+              EnjoyPressable(
+                onTap: echoActive ? onTap : null,
+                borderRadius: BorderRadius.circular(_fabInner / 2),
+                child: AnimatedContainer(
+                  duration: tok.motionFast,
+                  width: _fabInner,
+                  height: _fabInner,
+                  decoration: enjoyLitFillDecoration(
+                    base: litBase,
+                    shape: CircleBorder(
+                      side: enjoyLitHighlightSide(alpha: 0.16),
                     ),
-                    child: Icon(
-                      recording ? EnjoyIcons.stop : EnjoyIcons.micFill,
-                      color: recording ? Colors.white : scheme.onPrimary,
-                      size: iconSize,
+                    sheen: 0.14,
+                    shadow: enjoyLitShadow(
+                      litBase,
+                      alpha: recording ? 0.45 : 0.36,
+                      blurRadius: recording ? 24 : 16,
+                      spreadRadius: recording ? 1 : -3,
                     ),
+                  ),
+                  child: Icon(
+                    recording ? EnjoyIcons.stop : EnjoyIcons.micFill,
+                    color: recording ? Colors.white : scheme.onPrimary,
+                    size: iconSize,
                   ),
                 ),
               ),
@@ -120,64 +113,5 @@ class ShadowRecordFab extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-/// Circular countdown progress ring + over-target full-arc indicator.
-class ShadowRecordRingPainter extends CustomPainter {
-  ShadowRecordRingPainter({
-    required this.progress,
-    required this.overTarget,
-    required this.trackColor,
-    required this.fillColor,
-    required this.showProgressArc,
-  });
-
-  final double progress;
-  final bool overTarget;
-  final Color trackColor;
-  final Color fillColor;
-  final bool showProgressArc;
-
-  static const double _strokeWidth = 4;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - _strokeWidth / 2;
-
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, trackPaint);
-
-    if (!showProgressArc) return;
-
-    final arcPaint = Paint()
-      ..color = fillColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    if (overTarget) {
-      canvas.drawArc(rect, -math.pi / 2, 2 * math.pi, false, arcPaint);
-    } else {
-      final remaining = (1.0 - progress.clamp(0.0, 1.0));
-      final sweep = 2 * math.pi * remaining;
-      canvas.drawArc(rect, -math.pi / 2, sweep, false, arcPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant ShadowRecordRingPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.overTarget != overTarget ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.fillColor != fillColor ||
-        oldDelegate.showProgressArc != showProgressArc;
   }
 }
