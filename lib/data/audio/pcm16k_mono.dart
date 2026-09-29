@@ -2,6 +2,7 @@
 library;
 
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
@@ -26,12 +27,16 @@ final class Pcm16kDecodeException implements Exception {
 
 /// Turns WAV (or other FFmpeg-decodable) bytes into 16 kHz mono [Float32List].
 ///
-/// PCM WAV is decoded in-process. Other encodings fall back to a temp-file
-/// FFmpeg convert (`pcm_s16le -ar 16000 -ac 1`): CLI when a binary is on PATH
-/// (Windows bundled / Linux), otherwise FFmpegKit (Android / iOS / macOS).
-/// Does not import ASR.
+/// PCM WAV is decoded in-process inside a worker isolate (the frame×channel
+/// parse loop and per-sample resample never touch the UI isolate). Other
+/// encodings fall back to a temp-file FFmpeg convert (`pcm_s16le -ar 16000
+/// -ac 1`): CLI when a binary is on PATH (Windows bundled / Linux),
+/// otherwise FFmpegKit (Android / iOS / macOS). Does not import ASR.
 Future<Float32List> decodeToPcm16kMono(Uint8List bytes) async {
-  final inProcess = decodePcmWavTo16kMono(bytes);
+  final inProcess = await Isolate.run(
+    () => decodePcmWavTo16kMono(bytes),
+    debugName: 'pcm16k-wav-decode',
+  );
   if (inProcess != null && inProcess.isNotEmpty) {
     return inProcess;
   }
@@ -49,6 +54,11 @@ bool pcm16kInputIsRemoteHttp(String pathOrUri) {
 }
 
 /// Decode a local media [pathOrUri] to 16 kHz mono Float32.
+///
+/// The whole-file read plus WAV parse plus resample run inside a worker
+/// isolate; when the file is not an in-process-decodable PCM WAV, FFmpeg
+/// receives the file **path** directly (no multi-hundred-MB byte round-trip
+/// through the UI isolate).
 Future<Float32List> decodeFileToPcm16kMono(String pathOrUri) async {
   final input = FfmpegMediaProbe.mediaInputForFfmpeg(pathOrUri);
   if (pcm16kInputIsRemoteHttp(input)) {
@@ -60,7 +70,14 @@ Future<Float32List> decodeFileToPcm16kMono(String pathOrUri) async {
   if (!file.existsSync()) {
     throw Pcm16kDecodeException('file does not exist: $input');
   }
-  return decodeToPcm16kMono(await file.readAsBytes());
+  final inProcess = await Isolate.run(
+    () => _decodeWavFileTo16kMono(input),
+    debugName: 'pcm16k-file-decode',
+  );
+  if (inProcess != null && inProcess.isNotEmpty) {
+    return inProcess;
+  }
+  return _ffmpegConvertInputToPcm(input, failLabel: 'convert');
 }
 
 /// Decode a time window of a local media file to 16 kHz mono Float32.
@@ -93,8 +110,10 @@ Future<Float32List> decodeFileWindowToPcm16kMono({
       durationSeconds: duration,
       failLabel: 'window extract',
     );
-    final decoded = decodePcmWavTo16kMono(
-      Uint8List.fromList(await output.readAsBytes()),
+    final outputPath = output.path;
+    final decoded = await Isolate.run(
+      () => _decodeWavFileTo16kMono(outputPath),
+      debugName: 'pcm16k-wav-decode',
     );
     if (decoded == null || decoded.isEmpty) {
       throw const Pcm16kDecodeException('ffmpeg window output was not PCM WAV');
@@ -113,6 +132,10 @@ Float32List? decodePcmWavTo16kMono(Uint8List bytes) {
   final parsed = _parseWav(bytes);
   if (parsed == null || parsed.samples.isEmpty) return null;
   return resampleToAlignmentRate(parsed.samples, parsed.sampleRate);
+}
+
+Float32List? _decodeWavFileTo16kMono(String path) {
+  return decodePcmWavTo16kMono(File(path).readAsBytesSync());
 }
 
 Future<Float32List> _ffmpegFallback(Uint8List bytes) async {
@@ -141,8 +164,10 @@ Future<Float32List> _ffmpegConvertInputToPcm(
       outputPath: output.path,
       failLabel: failLabel,
     );
-    final decoded = decodePcmWavTo16kMono(
-      Uint8List.fromList(await output.readAsBytes()),
+    final outputPath = output.path;
+    final decoded = await Isolate.run(
+      () => _decodeWavFileTo16kMono(outputPath),
+      debugName: 'pcm16k-wav-decode',
     );
     if (decoded == null || decoded.isEmpty) {
       throw const Pcm16kDecodeException('ffmpeg output was not PCM WAV');

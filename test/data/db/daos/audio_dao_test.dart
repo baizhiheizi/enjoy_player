@@ -70,6 +70,36 @@ void main() {
       expect(found!.id, 'b');
     });
 
+    test(
+      'getManyByIds returns a map keyed by id, missing ids omitted',
+      () async {
+        await db.audioDao.insertRow(_audioRow(id: 'a'));
+        await db.audioDao.insertRow(_audioRow(id: 'b'));
+        final found = await db.audioDao.getManyByIds(['a', 'missing', 'b']);
+        expect(found.keys.toSet(), {'a', 'b'});
+        expect(found['a']!.title, 'Hello');
+      },
+    );
+
+    test('getManyByIds with empty input returns an empty map', () async {
+      expect(await db.audioDao.getManyByIds([]), isEmpty);
+    });
+
+    test('upsertRows inserts new rows and replaces existing by id', () async {
+      await db.audioDao.insertRow(_audioRow(id: 'a', title: 'old'));
+      await db.audioDao.upsertRows([
+        _audioRow(id: 'a', title: 'new'),
+        _audioRow(id: 'b', title: 'fresh'),
+      ]);
+      expect((await db.audioDao.getById('a'))!.title, 'new');
+      expect((await db.audioDao.getById('b'))!.title, 'fresh');
+    });
+
+    test('upsertRows with empty input is a no-op', () async {
+      await db.audioDao.upsertRows([]);
+      expect(await db.audioDao.getById('a'), isNull);
+    });
+
     test('getByMd5 returns null when no match', () async {
       await db.audioDao.insertRow(_audioRow(id: 'a', md5: 'abc'));
       expect(await db.audioDao.getByMd5('zzz'), isNull);

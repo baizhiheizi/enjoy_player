@@ -68,6 +68,35 @@ void main() {
       expect(await db.videoDao.getById('missing'), isNull);
     });
 
+    test(
+      'getManyByIds returns a map keyed by id, missing ids omitted',
+      () async {
+        await db.videoDao.insertRow(_video(id: 'v-1'));
+        await db.videoDao.insertRow(_video(id: 'v-2', vid: 'vid-2'));
+        final found = await db.videoDao.getManyByIds(['v-2', 'nope', 'v-1']);
+        expect(found.keys.toSet(), {'v-1', 'v-2'});
+      },
+    );
+
+    test('getManyByIds with empty input returns an empty map', () async {
+      expect(await db.videoDao.getManyByIds([]), isEmpty);
+    });
+
+    test('upsertRows inserts new rows and replaces existing by id', () async {
+      await db.videoDao.insertRow(_video(id: 'v-1', title: 'old'));
+      await db.videoDao.upsertRows([
+        _video(id: 'v-1', title: 'new'),
+        _video(id: 'v-9', vid: 'vid-9', title: 'fresh'),
+      ]);
+      expect((await db.videoDao.getById('v-1'))!.title, 'new');
+      expect((await db.videoDao.getById('v-9'))!.title, 'fresh');
+    });
+
+    test('upsertRows with empty input is a no-op', () async {
+      await db.videoDao.upsertRows([]);
+      expect(await db.videoDao.getById('v-1'), isNull);
+    });
+
     test('getYoutubeByVid filters by provider=youtube + vid', () async {
       await db.videoDao.insertRow(
         _video(id: 'yt-a', vid: 'YT-1', provider: 'youtube'),

@@ -88,6 +88,14 @@ class TranscriptRepository {
   /// with Craft enrichment and the player's line controls.
   List<TranscriptLine> linesForRow(TranscriptRow row) => _linesForRow(row);
 
+  /// [linesForRow] with the [kPreloadTimelineJsonBytes] background pre-decode,
+  /// so a first-touch decode of a large timeline also stays off the UI
+  /// isolate — the gated/memoized path shared with the Craft edit source.
+  Future<List<TranscriptLine>> linesForRowPreloaded(TranscriptRow row) async {
+    await _preloadLinesForRow(row);
+    return linesForRow(row);
+  }
+
   /// Reactive lines for the active primary (shadow-reading) transcript.
   Stream<List<TranscriptLine>> watchPrimaryLines(String mediaId) =>
       _watchLines(mediaId, primary: true);

@@ -15,8 +15,18 @@ import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/files/app_managed_media_gc.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/data/files/media_duration_probe.dart';
+import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/craft/domain/craft_edit_source.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
+
+/// Decodes a transcript row's timeline through the shared codec (memoized +
+/// isolate-gated in production via `TranscriptRepository.linesForRowPreloaded`).
+typedef DecodeTimelineLines =
+    Future<List<TranscriptLine>> Function(TranscriptRow row);
+
+Future<List<TranscriptLine>> _decodeTimelineLinesGated(TranscriptRow row) =>
+    decodeTimelineJsonGated(row.timelineJson);
 
 /// Owns the Craft audio lifecycle inside the library database: content-hash
 /// dedupe, import of synthesized audio + optional solid transcript,
@@ -26,11 +36,17 @@ import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 /// distinguished by `provider = 'craft'` and a `source` flag of
 /// `craft-express` / `craft-translate` / `craft-direct`.
 class CraftLibraryRepository {
-  CraftLibraryRepository(this._db, this._storage, {this._enqueueSync});
+  CraftLibraryRepository(
+    this._db,
+    this._storage, {
+    this._enqueueSync,
+    DecodeTimelineLines? decodeTimelineLines,
+  }) : _decodeTimelineLines = decodeTimelineLines ?? _decodeTimelineLinesGated;
 
   final AppDatabase _db;
   final FileStorage _storage;
   final SyncEnqueueFn? _enqueueSync;
+  final DecodeTimelineLines _decodeTimelineLines;
 
   /// Content hash over the dedupe key — one definition shared by the
   /// import / find / update paths so the three can never drift.
@@ -182,7 +198,7 @@ class CraftLibraryRepository {
 
     final transcripts = await _db.transcriptDao.listForTarget('Audio', mediaId);
     final practiceText =
-        _joinTimelineText(transcripts) ??
+        (await _joinTimelineText(transcripts)) ??
         row.description ??
         row.sourceText ??
         '';
@@ -334,23 +350,23 @@ class CraftLibraryRepository {
   }
 
   /// Reconstructs the practice text by joining the primary transcript's
-  /// timeline segment text fields. Returns `null` when no transcript rows
-  /// exist or the timeline JSON cannot be parsed.
-  String? _joinTimelineText(List<TranscriptRow> transcripts) {
+  /// timeline segment text fields through the shared gated/memoized codec
+  /// decode. Returns `null` when no transcript rows exist or the timeline
+  /// JSON cannot be parsed.
+  Future<String?> _joinTimelineText(List<TranscriptRow> transcripts) async {
     if (transcripts.isEmpty) return null;
     final primary = transcripts.firstWhere(
       (t) => t.source == 'ai',
       orElse: () => transcripts.first,
     );
     try {
-      final decoded = jsonDecode(primary.timelineJson);
-      if (decoded is! List) return null;
-      final joined = decoded
-          .map((e) => (e is Map ? e['text'] : null)?.toString() ?? '')
-          .where((s) => s.isNotEmpty)
+      final lines = await _decodeTimelineLines(primary);
+      final joined = lines
+          .map((line) => line.text)
+          .where((text) => text.isNotEmpty)
           .join(' ');
       return joined.isEmpty ? null : joined;
-    } catch (_) {
+    } on Object {
       return null;
     }
   }

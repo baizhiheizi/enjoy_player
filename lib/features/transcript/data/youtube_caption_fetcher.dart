@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 import 'client_profile.dart';
+import '../../../core/json/gated_json_decode.dart';
 import '../../../data/subtitle/transcript_line.dart';
 import '../../../core/logging/log.dart';
 import '../../../core/utils/html_clean.dart';
@@ -343,7 +344,7 @@ class YoutubeCaptionFetcher {
       );
     }
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = await decodeJsonGated(response.body) as Map<String, dynamic>;
     final status =
         (data['playabilityStatus'] as Map<String, dynamic>?)?['status']
             as String?;
@@ -438,7 +439,7 @@ class YoutubeCaptionFetcher {
 
     final dynamic data;
     try {
-      data = jsonDecode(text);
+      data = await decodeJsonGated(text);
     } on FormatException {
       throw YoutubeCaptionFetchException(
         stage: YoutubeCaptionErrorStage.timedTextJson,

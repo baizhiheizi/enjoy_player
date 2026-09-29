@@ -23,6 +23,7 @@ import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
+import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/application/auth_deep_link_listener.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/app_hotkeys_keyboard_listener.dart';
 import 'package:enjoy_player/features/update/presentation/update_prompt_host.dart';
@@ -294,6 +295,13 @@ class _EnjoyAppState extends ConsumerState<EnjoyApp>
     }
 
     if (prefsAsync.isLoading && effective == null) {
+      return _loadingBranch(lightTheme, darkTheme, themeMode);
+    }
+
+    final authBootstrapping = ref.watch(
+      authCtrlProvider.select((auth) => auth.isLoading && !auth.hasValue),
+    );
+    if (authBootstrapping) {
       return _loadingBranch(lightTheme, darkTheme, themeMode);
     }
 

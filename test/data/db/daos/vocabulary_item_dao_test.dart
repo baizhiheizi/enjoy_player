@@ -56,6 +56,42 @@ void main() {
       expect(await db.vocabularyItemDao.getById('missing'), isNull);
     });
 
+    test(
+      'getManyByIds returns a map keyed by id, missing ids omitted',
+      () async {
+        await db.vocabularyItemDao.insertRow(_vocabItem(id: 'a'));
+        await db.vocabularyItemDao.insertRow(
+          _vocabItem(id: 'b', word: 'world'),
+        );
+        final found = await db.vocabularyItemDao.getManyByIds([
+          'b',
+          'nope',
+          'a',
+        ]);
+        expect(found.keys.toSet(), {'a', 'b'});
+        expect(found['b']!.word, 'world');
+      },
+    );
+
+    test('getManyByIds with empty input returns an empty map', () async {
+      expect(await db.vocabularyItemDao.getManyByIds([]), isEmpty);
+    });
+
+    test('upsertRows matches updateRow insert-or-replace semantics', () async {
+      await db.vocabularyItemDao.insertRow(_vocabItem(id: 'a', word: 'old'));
+      await db.vocabularyItemDao.upsertRows([
+        _vocabItem(id: 'a', word: 'new'),
+        _vocabItem(id: 'z', word: 'fresh'),
+      ]);
+      expect((await db.vocabularyItemDao.getById('a'))!.word, 'new');
+      expect((await db.vocabularyItemDao.getById('z'))!.word, 'fresh');
+    });
+
+    test('upsertRows with empty input is a no-op', () async {
+      await db.vocabularyItemDao.upsertRows([]);
+      expect(await db.vocabularyItemDao.getById('a'), isNull);
+    });
+
     test('getByWordLanguageTarget filters by all three fields', () async {
       await db.vocabularyItemDao.insertRow(
         _vocabItem(

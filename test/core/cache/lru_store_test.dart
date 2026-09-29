@@ -127,4 +127,74 @@ void main() {
       expect(store.peek('a'), isNull);
     });
   });
+
+  group('L1Store without ttl', () {
+    test('peek does not age-expire entries', () {
+      final store = L1Store<String, int>(capacity: 4);
+      store.put('a', 1);
+      return Future<void>.delayed(const Duration(milliseconds: 25)).then((_) {
+        expect(store.peek('a'), 1);
+        expect(store.size, 1);
+      });
+    });
+
+    test('still evicts the lru tail on overflow', () {
+      final store = L1Store<String, int>(capacity: 2);
+      store.put('a', 1);
+      store.put('b', 2);
+      store.put('c', 3);
+      expect(store.peek('a'), isNull);
+      expect(store.peek('b'), 2);
+      expect(store.peek('c'), 3);
+      expect(store.size, 2);
+    });
+
+    test('accepts an explicit null ttl', () {
+      final store = L1Store<String, int>(capacity: 4, ttl: null);
+      store.put('a', 1);
+      expect(store.peek('a'), 1);
+    });
+  });
+
+  group('L1Store.peekNoTouch', () {
+    test('returns the value without changing lru order', () {
+      final store = L1Store<String, int>(capacity: 3, ttl: ttl);
+      store.put('a', 1);
+      store.put('b', 2);
+      store.put('c', 3);
+      expect(store.peekNoTouch('a'), 1);
+      store.put('d', 4);
+      expect(store.peekNoTouch('a'), isNull);
+      expect(store.peekNoTouch('b'), 2);
+      expect(store.peekNoTouch('c'), 3);
+      expect(store.peekNoTouch('d'), 4);
+    });
+
+    test('returns null on miss', () {
+      final store = L1Store<String, int>(capacity: 4, ttl: ttl);
+      expect(store.peekNoTouch('nope'), isNull);
+    });
+
+    test('treats an expired entry as a miss but leaves it in place', () {
+      final store = L1Store<String, int>(
+        capacity: 4,
+        ttl: const Duration(milliseconds: 10),
+      );
+      store.put('a', 1);
+      return Future<void>.delayed(const Duration(milliseconds: 25)).then((_) {
+        expect(store.peekNoTouch('a'), isNull);
+        expect(store.size, 1);
+        expect(store.peek('a'), isNull);
+        expect(store.size, 0);
+      });
+    });
+
+    test('does not age-expire on a no-ttl store', () {
+      final store = L1Store<String, int>(capacity: 4);
+      store.put('a', 1);
+      return Future<void>.delayed(const Duration(milliseconds: 25)).then((_) {
+        expect(store.peekNoTouch('a'), 1);
+      });
+    });
+  });
 }

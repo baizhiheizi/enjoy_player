@@ -489,7 +489,7 @@ TranscriptEnricher transcriptEnricher(Ref ref) {
   );
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class TranscriptEnrichmentController extends _$TranscriptEnrichmentController {
   AlignmentCancelToken? _cancel;
   var _runId = 0;

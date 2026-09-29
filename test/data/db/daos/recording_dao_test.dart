@@ -56,6 +56,37 @@ void main() {
       expect(await db.recordingDao.getById('missing'), isNull);
     });
 
+    test(
+      'getManyByIds returns a map keyed by id, missing ids omitted',
+      () async {
+        await db.recordingDao.insertRow(_recording(id: 'r1'));
+        await db.recordingDao.insertRow(_recording(id: 'r2'));
+        final found = await db.recordingDao.getManyByIds(['r2', 'nope', 'r1']);
+        expect(found.keys.toSet(), {'r1', 'r2'});
+      },
+    );
+
+    test('getManyByIds with empty input returns an empty map', () async {
+      expect(await db.recordingDao.getManyByIds([]), isEmpty);
+    });
+
+    test('upsertRows inserts new rows and replaces existing by id', () async {
+      await db.recordingDao.insertRow(
+        _recording(id: 'r1', referenceText: 'old'),
+      );
+      await db.recordingDao.upsertRows([
+        _recording(id: 'r1', referenceText: 'new'),
+        _recording(id: 'r9', referenceText: 'fresh'),
+      ]);
+      expect((await db.recordingDao.getById('r1'))!.referenceText, 'new');
+      expect((await db.recordingDao.getById('r9'))!.referenceText, 'fresh');
+    });
+
+    test('upsertRows with empty input is a no-op', () async {
+      await db.recordingDao.upsertRows([]);
+      expect(await db.recordingDao.getById('r1'), isNull);
+    });
+
     test('listByEchoRegion returns overlapping recordings', () async {
       await db.recordingDao.insertRow(
         _recording(id: 'a', referenceStart: 500, referenceDuration: 1000),

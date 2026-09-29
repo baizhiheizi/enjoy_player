@@ -73,6 +73,15 @@ String resolvePostSignInPath(String? from) {
 ///
 /// Platform-specific redirects (cloud library alias, keyboard settings, etc.)
 /// are handled in [app_router.dart] before this helper runs.
+///
+/// While [auth] is loading the answer is `null` for every location: the
+/// initial load is local-only (secure-storage reads), and an in-flight
+/// rebuild keeps its previous value, so waiting avoids bouncing a returning
+/// signed-in user through `/sign-in` and preserves cold-start deep links
+/// (a deep-linked `/player/:id` would otherwise be rewritten to
+/// `/sign-in?from=…` and dropped once the load resolves). The boot skeleton
+/// in `app.dart` covers the first-load window; [AuthState] errors still
+/// redirect like a signed-out user so a broken load cannot strand the user.
 String? resolveAuthRedirect({
   required String matchedLocation,
   required AsyncValue<AuthState> auth,
@@ -83,7 +92,9 @@ String? resolveAuthRedirect({
     return null;
   }
 
-  if (auth.isLoading || auth.hasError) {
+  if (auth.isLoading) return null;
+
+  if (auth.hasError) {
     return buildSignInRedirect(matchedLocation);
   }
 

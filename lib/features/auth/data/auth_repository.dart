@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,6 +39,7 @@ AuthRepository authRepository(Ref ref) {
     directUploadsApi: DirectUploadsApi(userClient),
     tokenStore: ref.watch(secureTokenStoreProvider),
     getBaseUrl: () => ref.read(apiBaseUrlProvider.future),
+    onSessionLost: () => ref.invalidate(authCtrlProvider),
   );
 
   registerOn401RefreshCallback(() async {
@@ -61,12 +63,28 @@ class AuthRepository {
     required this._directUploadsApi,
     required this._tokenStore,
     required this._getBaseUrl,
+    this.onSessionLost,
   });
 
   final AuthApi _authApi;
   final DirectUploadsApi _directUploadsApi;
   final SecureTokenStore _tokenStore;
   final Future<String> Function() _getBaseUrl;
+
+  /// Invoked when a background session revalidation started by
+  /// [loadInitialAuthState] finds the session revoked and no usable token
+  /// left — wired by `authRepositoryProvider` to invalidate
+  /// `authCtrlProvider` so the UI transitions to signed-out.
+  final void Function()? onSessionLost;
+
+  /// In-flight session revalidation kicked by the most recent
+  /// [loadInitialAuthState] that found an expired token plus a cached
+  /// profile, or `null` when no revalidation is running. Tests use it to
+  /// await the background refresh; production code treats revalidation as
+  /// fire-and-forget.
+  @visibleForTesting
+  Future<void>? get sessionRevalidation => _sessionRevalidation;
+  Future<void>? _sessionRevalidation;
 
   /// Single-flight guard for [refreshSession].
   ///
@@ -279,8 +297,11 @@ class AuthRepository {
     }
   }
 
-  Future<UserProfile?> readCachedProfile() async {
-    final raw = await _tokenStore.readCachedProfileJson();
+  Future<UserProfile?> readCachedProfile() => _readOrNull(
+    _tokenStore.readCachedProfileJson,
+  ).then(_decodeCachedProfileJson);
+
+  static UserProfile? _decodeCachedProfileJson(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
@@ -297,33 +318,33 @@ class AuthRepository {
   }
 
   Future<AuthState> loadInitialAuthState() async {
-    try {
-      final hasToken = await hasAccessToken();
-      if (!hasToken) {
-        await _tokenStore.clearCachedProfile();
+    final reads = await Future.wait(
+      _secureStorageReads().map((read) => _readOrNull(read)),
+    );
+    final accessToken = reads[0];
+    final expiresAtRaw = reads[1];
+    final cachedProfileJson = reads[2];
+
+    if (accessToken == null || accessToken.isEmpty) {
+      await _tokenStore.clearCachedProfile();
+      return const AuthSignedOut();
+    }
+
+    final cached = _decodeCachedProfileJson(cachedProfileJson);
+    final tokenExpired = _isExpiredToken(expiresAtRaw);
+
+    if (cached != null) {
+      if (tokenExpired) {
+        _sessionRevalidation = _revalidateSessionInBackground();
+      }
+      return AuthSignedIn(profile: cached);
+    }
+
+    if (tokenExpired) {
+      final refreshed = await refreshSession();
+      if (!refreshed) {
         return const AuthSignedOut();
       }
-    } on PlatformException catch (e, st) {
-      _log.warning('loadInitialAuthState: secure storage read failed', e, st);
-      return const AuthSignedOut();
-    }
-
-    try {
-      final tokenExpired = await _isTokenExpired();
-      if (tokenExpired) {
-        final refreshed = await refreshSession();
-        if (!refreshed) {
-          return const AuthSignedOut();
-        }
-      }
-    } on PlatformException catch (e, st) {
-      _log.warning('loadInitialAuthState: token expiry check failed', e, st);
-      return const AuthSignedOut();
-    }
-
-    final cached = await readCachedProfile();
-    if (cached != null) {
-      return AuthSignedIn(profile: cached);
     }
 
     try {
@@ -338,10 +359,70 @@ class AuthRepository {
     }
   }
 
-  Future<bool> _isTokenExpired() async {
-    final raw = await _tokenStore.readTokenExpiresAt();
-    if (raw == null || raw.isEmpty) return false;
-    final expiresAt = DateTime.tryParse(raw);
+  List<Future<String?> Function()> _secureStorageReads() => [
+    _tokenStore.readAccessToken,
+    _tokenStore.readTokenExpiresAt,
+    _tokenStore.readCachedProfileJson,
+  ];
+
+  Future<String?> _readOrNull(Future<String?> Function() read) async {
+    try {
+      return await read();
+    } on PlatformException catch (e, st) {
+      _log.warning('loadInitialAuthState: secure storage read failed', e, st);
+      return null;
+    }
+  }
+
+  /// Upper bound for one background refresh attempt; matches the 15 s the
+  /// auth feature already uses for `profile_practice_stats_provider`.
+  static const _backgroundRefreshTimeout = Duration(seconds: 15);
+
+  /// Delay before the single retry of a transient background refresh
+  /// failure.
+  static const _backgroundRefreshRetryDelay = Duration(seconds: 30);
+
+  /// Refreshes the expired token behind the signed-in first frame.
+  ///
+  /// Contract:
+  /// - refresh succeeds: tokens are rotated, session stays;
+  /// - refresh refused and the stored access token was cleared (401/403):
+  ///   [onSessionLost] fires;
+  /// - transient failure — network error, timeout, or 5xx — leaves the
+  ///   stored access token intact: one delayed retry runs, then the session
+  ///   stays as-is; the 401-refresh interceptor on the next API call is the
+  ///   recovery path (see `registerOn401RefreshCallback`).
+  Future<void> _revalidateSessionInBackground({bool allowRetry = true}) async {
+    try {
+      final refreshed = await refreshSession().timeout(
+        _backgroundRefreshTimeout,
+      );
+      if (refreshed) return;
+      if (await hasAccessToken()) {
+        await _retryTransientRevalidation(allowRetry);
+        return;
+      }
+      _log.info('session revoked during background revalidation');
+      onSessionLost?.call();
+    } on TimeoutException catch (e) {
+      _log.warning('background session revalidation timed out', e);
+      await _retryTransientRevalidation(allowRetry);
+    } catch (e, st) {
+      _log.warning('background session revalidation failed', e, st);
+    }
+  }
+
+  /// Runs the single delayed retry after a transient revalidation failure;
+  /// the retried attempt itself never schedules another.
+  Future<void> _retryTransientRevalidation(bool allowRetry) async {
+    if (!allowRetry) return;
+    await Future<void>.delayed(_backgroundRefreshRetryDelay);
+    await _revalidateSessionInBackground(allowRetry: false);
+  }
+
+  static bool _isExpiredToken(String? expiresAtRaw) {
+    if (expiresAtRaw == null || expiresAtRaw.isEmpty) return false;
+    final expiresAt = DateTime.tryParse(expiresAtRaw);
     if (expiresAt == null) return false;
     return DateTime.now().toUtc().isAfter(expiresAt);
   }

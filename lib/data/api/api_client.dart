@@ -3,10 +3,10 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
+import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/core/json/json_cast.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
@@ -273,10 +273,7 @@ class ApiClient {
   Future<Object?> _decodeResponseBody(http.Response response) async {
     final raw = response.body;
     if (raw.isEmpty) return null;
-    if (raw.length > 8 * 1024) {
-      return compute(decodeJsonToCamel, raw);
-    }
-    return decodeJsonToCamel(raw);
+    return decodeJsonGated(raw, decode: decodeJsonToCamel);
   }
 
   /// Returns a bearer token to attach to the outgoing request, or `null`
@@ -474,9 +471,7 @@ class ApiClient {
     try {
       errBody = response.body.isEmpty
           ? null
-          : (response.body.length > 8 * 1024
-                ? await compute(decodeJsonToCamel, response.body)
-                : decodeJsonToCamel(response.body));
+          : await decodeJsonGated(response.body, decode: decodeJsonToCamel);
     } catch (_) {
       errBody = response.body;
     }
