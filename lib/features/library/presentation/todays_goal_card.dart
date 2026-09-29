@@ -3,7 +3,6 @@
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +11,7 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -42,57 +42,6 @@ String _encouragementText(AppLocalizations l10n, GoalEncouragementTier tier) {
       return l10n.homeGoalJustStarted;
     case GoalEncouragementTier.startNow:
       return l10n.homeGoalStartNow;
-  }
-}
-
-/// Circular ring matching web SVG dash-offset semantics, stroked with the
-/// aurora gradient (Aurora signature moment).
-class _GoalRingPainter extends CustomPainter {
-  _GoalRingPainter({
-    required this.percentage,
-    required this.trackColor,
-    required this.gradientColors,
-    required this.strokeWidth,
-  });
-
-  final int percentage;
-  final Color trackColor;
-  final List<Color> gradientColors;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    final fraction = percentage.clamp(0, 100) / 100;
-    if (fraction <= 0) return;
-    final sweep = 2 * math.pi * fraction;
-    final progressPaint = Paint()
-      ..shader = SweepGradient(
-        colors: gradientColors,
-        stops: [0, math.max(fraction, 0.02)],
-        transform: const GradientRotation(-math.pi / 2),
-      ).createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(rect, -math.pi / 2, sweep, false, progressPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GoalRingPainter oldDelegate) {
-    return oldDelegate.percentage != percentage ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.gradientColors != gradientColors ||
-        oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
@@ -232,8 +181,8 @@ class TodaysGoalCard extends ConsumerWidget {
         children: [
           CustomPaint(
             size: Size(size, size),
-            painter: _GoalRingPainter(
-              percentage: pct,
+            painter: EnjoyProgressRingPainter(
+              progress: pct / 100,
               trackColor: t.fill,
               gradientColors: done
                   ? [progressColor, progressColor]

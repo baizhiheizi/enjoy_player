@@ -10,6 +10,53 @@ enum EnjoyButtonVariant { primary, secondary, tonal, ghost, destructive }
 
 enum EnjoyButtonSize { small, medium, large }
 
+/// The lit fill's 1px inner top highlight (ADR-0089 §6), exposed as the
+/// [ShapeBorder.side] of the fill's shape.
+BorderSide enjoyLitHighlightSide({double alpha = 0.14}) =>
+    BorderSide(color: Colors.white.withValues(alpha: alpha));
+
+/// The lit fill's tinted drop shadow — pooled light under the control rather
+/// than Material elevation. Circular signature controls (the record FAB, the
+/// transport play ring) tune the intensity; buttons use the defaults.
+BoxShadow enjoyLitShadow(
+  Color base, {
+  double alpha = 0.32,
+  double blurRadius = 14,
+  double spreadRadius = -5,
+  Offset offset = const Offset(0, 5),
+}) => BoxShadow(
+  color: base.withValues(alpha: alpha),
+  blurRadius: blurRadius,
+  spreadRadius: spreadRadius,
+  offset: offset,
+);
+
+/// The lit fill (ADR-0089 §6) as one [ShapeDecoration]: a gentle top sheen
+/// over [fill] (defaults to [base]) plus a single tinted drop shadow. This is
+/// the decoration-level export behind [enjoyLitFillBuilder] — circular
+/// signature controls paint it with a [CircleBorder] (highlight attached via
+/// [enjoyLitHighlightSide]), while the button builder layers the highlight in
+/// front so the shadow stays cast by the un-stroked path. Pass `shadow: null`
+/// to suppress the glow (pressed states).
+ShapeDecoration enjoyLitFillDecoration({
+  required Color base,
+  required ShapeBorder shape,
+  Color? fill,
+  double sheen = 0.10,
+  BoxShadow? shadow,
+}) {
+  final resolved = fill ?? base;
+  return ShapeDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color.lerp(resolved, Colors.white, sheen)!, resolved],
+    ),
+    shape: shape,
+    shadows: shadow == null ? const [] : [shadow],
+  );
+}
+
 /// Background painter for lit (primary / destructive-solid) fills: a gentle
 /// top sheen, a 1px inner top highlight, and a soft tinted drop shadow. Hover
 /// brightens and press deepens the fill itself so the label never fades.
@@ -31,32 +78,21 @@ Widget enjoyLitFillBuilder(
       ? Color.lerp(base, Colors.white, 0.08)!
       : base;
   return DecoratedBox(
-    decoration: ShapeDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color.lerp(fill, Colors.white, pressed ? 0.02 : 0.10)!, fill],
-      ),
+    decoration: enjoyLitFillDecoration(
+      base: base,
       shape: RoundedSuperellipseBorder(
         borderRadius: BorderRadius.circular(radius),
       ),
-      shadows: pressed
-          ? const []
-          : [
-              BoxShadow(
-                color: base.withValues(alpha: 0.32),
-                blurRadius: 14,
-                spreadRadius: -5,
-                offset: const Offset(0, 5),
-              ),
-            ],
+      fill: fill,
+      sheen: pressed ? 0.02 : 0.10,
+      shadow: pressed ? null : enjoyLitShadow(base),
     ),
     child: DecoratedBox(
       position: DecorationPosition.foreground,
       decoration: ShapeDecoration(
         shape: RoundedSuperellipseBorder(
           borderRadius: BorderRadius.circular(radius),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+          side: enjoyLitHighlightSide(),
         ),
       ),
       child: child,

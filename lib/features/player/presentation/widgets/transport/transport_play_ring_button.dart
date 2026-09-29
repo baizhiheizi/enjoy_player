@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/colors.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 
 class TransportPlayRingButton extends StatefulWidget {
@@ -59,27 +60,19 @@ class _TransportPlayRingButtonState extends State<TransportPlayRingButton> {
                 child: Ink(
                   width: 46,
                   height: 46,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color.lerp(ringColor, Colors.white, 0.14)!,
-                        ringColor,
-                      ],
+                  decoration: enjoyLitFillDecoration(
+                    base: ringColor,
+                    shape: CircleBorder(
+                      side: enjoyLitHighlightSide(alpha: 0.16),
                     ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.16),
+                    sheen: 0.14,
+                    shadow: enjoyLitShadow(
+                      ringColor,
+                      alpha: 0.38,
+                      blurRadius: 16,
+                      spreadRadius: -4,
+                      offset: const Offset(0, 6),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ringColor.withValues(alpha: 0.38),
-                        blurRadius: 16,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
                   ),
                   child: Center(
                     child: widget.buffering
