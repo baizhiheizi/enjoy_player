@@ -19,12 +19,14 @@ import 'package:flutter/services.dart';
 final _log = logNamed('ai.azure_assessment_wav');
 
 /// Top-level so the ffmpeg invocation can run inside a worker isolate
-/// (see [normalizeWavForAzureAssessment]). Returns the same
-/// `({int exitCode, String stderr})` shape we used to capture from
-/// `Process.run` so the caller can log the same way.
-Future<({int exitCode, String stderr})> _runFfmpegWindowsInIsolate(
-  _WindowsFfmpegArgs args,
-) async {
+/// (see [normalizeWavForAzureAssessment]). Scans the input WAV peak first,
+/// then runs the ffmpeg subprocess in the same isolate, so the scan rides
+/// the spawn the encode already needs. Returns the `exitCode` / `stderr`
+/// pair we used to capture from `Process.run` plus the input scan, so the
+/// caller can log the same way.
+Future<({int exitCode, String stderr, WavPeakScan? inputScan})>
+_runFfmpegWindowsInIsolate(_WindowsFfmpegArgs args) async {
+  final inputScan = await scanWavDataPeakFromFile(args.inputPath);
   final r = await Process.run(args.exe, <String>[
     '-nostdin',
     '-hide_banner',
@@ -43,6 +45,7 @@ Future<({int exitCode, String stderr})> _runFfmpegWindowsInIsolate(
   return (
     exitCode: r.exitCode,
     stderr: r.stderr is String ? r.stderr as String : '',
+    inputScan: inputScan,
   );
 }
 
@@ -88,6 +91,18 @@ bool _looksSilent(WavPeakScan scan) {
       scan.peakNormalized < kWavSilencePeakNorm;
 }
 
+void _logInputScan(WavPeakScan? scan) {
+  if (scan == null) return;
+  _log.fine(
+    'normalizeWav: input fmt=${scan.fmt.audioFormat} '
+    'ch=${scan.fmt.numChannels} '
+    '${scan.fmt.sampleRate}Hz ${scan.fmt.bitsPerSample}bit '
+    'peak≈${scan.peakNormalized.toStringAsFixed(5)} '
+    'rms≈${scan.rmsNormalized.toStringAsFixed(6)} '
+    'nonZero=${(scan.nonZeroRatio * 100).toStringAsFixed(2)}%',
+  );
+}
+
 /// Runs FFmpeg to write **16 kHz, mono, signed 16-bit PCM** Microsoft WAV.
 ///
 /// Returns `true` when [outputWavPath] exists, has at least 100 bytes, and
@@ -95,26 +110,17 @@ bool _looksSilent(WavPeakScan scan) {
 ///
 /// The peak scans and the Windows ffmpeg invocation run in worker isolates
 /// (via [Isolate.run]) so the multi-MB reads and the re-encode never block
-/// the UI thread.
+/// the UI thread. The input peak scan shares the Windows ffmpeg isolate;
+/// FFmpegKit platforms cannot move the encode off the main isolate
+/// (platform channel), so their input scan keeps its own isolate, and the
+/// output scan always follows the encode. Assessments are user-initiated
+/// one-shots — the remaining spawn count is accepted over a persistent
+/// worker.
 Future<bool> normalizeWavForAzureAssessment({
   required String inputPath,
   required String outputWavPath,
 }) async {
   if (inputPath.trim().isEmpty) return false;
-
-  final inScan = await Isolate.run(
-    () => scanWavDataPeakFromFile(inputPath),
-    debugName: 'azure-wav-peak-scan',
-  );
-  if (inScan != null) {
-    _log.fine(
-      'normalizeWav: input fmt=${inScan.fmt.audioFormat} ch=${inScan.fmt.numChannels} '
-      '${inScan.fmt.sampleRate}Hz ${inScan.fmt.bitsPerSample}bit '
-      'peak≈${inScan.peakNormalized.toStringAsFixed(5)} '
-      'rms≈${inScan.rmsNormalized.toStringAsFixed(6)} '
-      'nonZero=${(inScan.nonZeroRatio * 100).toStringAsFixed(2)}%',
-    );
-  }
 
   const filter =
       'aresample=16000:resampler=swr,aformat=sample_fmts=s16:channel_layouts=mono';
@@ -139,6 +145,7 @@ Future<bool> normalizeWavForAzureAssessment({
         ),
         debugName: 'azure-wav-ffmpeg',
       );
+      _logInputScan(result.inputScan);
       if (result.exitCode != 0) {
         _log.fine(
           'normalizeWav: ffmpeg failed (exit ${result.exitCode}) '
@@ -152,6 +159,12 @@ Future<bool> normalizeWavForAzureAssessment({
       return false;
     }
   } else {
+    _logInputScan(
+      await Isolate.run(
+        () => scanWavDataPeakFromFile(inputPath),
+        debugName: 'azure-wav-peak-scan',
+      ),
+    );
     encoded = await _runFfmpegKit(
       inputPath: inputPath,
       outputWavPath: outputWavPath,
