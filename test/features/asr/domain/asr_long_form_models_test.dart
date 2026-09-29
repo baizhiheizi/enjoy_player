@@ -2,9 +2,6 @@ import 'package:enjoy_player/features/asr/domain/asr_long_form_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // ---------------------------------------------------------------------------
-  // AsrLongFormJobStatus enum
-  // ---------------------------------------------------------------------------
   group('AsrLongFormJobStatus', () {
     group('parse', () {
       test('parses "accepted"', () {
@@ -96,9 +93,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // AsrLongFormFailure
-  // ---------------------------------------------------------------------------
   group('AsrLongFormFailure', () {
     test('constructor assigns fields', () {
       const failure = AsrLongFormFailure(
@@ -141,9 +135,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // AsrLongFormUsage
-  // ---------------------------------------------------------------------------
   group('AsrLongFormUsage', () {
     test('constructor assigns fields', () {
       const usage = AsrLongFormUsage(
@@ -197,9 +188,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // AsrLongFormTranscript
-  // ---------------------------------------------------------------------------
   group('AsrLongFormTranscript', () {
     test('constructor assigns fields', () {
       const transcript = AsrLongFormTranscript(
@@ -286,9 +274,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // AsrLongFormJob
-  // ---------------------------------------------------------------------------
   group('AsrLongFormJob', () {
     test('constructor assigns fields', () {
       const failure = AsrLongFormFailure(category: 'error', retryable: false);
@@ -384,9 +369,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // AsrLongFormAttempt
-  // ---------------------------------------------------------------------------
   group('AsrLongFormAttempt', () {
     test('constructor assigns fields', () {
       final attempt = AsrLongFormAttempt(
@@ -482,7 +464,6 @@ void main() {
       final json = attempt.toJson();
       expect(json.containsKey('jobId'), isFalse);
       expect(json.containsKey('mediaReference'), isFalse);
-      // language is always present (even if null, but constructor doesn't null it)
     });
 
     test('copyWith updates jobId', () {
@@ -494,7 +475,7 @@ void main() {
       );
       final updated = attempt.copyWith(jobId: 'new-job');
       expect(updated.jobId, 'new-job');
-      expect(updated.mediaId, 'media-1'); // preserved
+      expect(updated.mediaId, 'media-1');
     });
 
     test('copyWith updates mediaReference', () {
@@ -507,7 +488,7 @@ void main() {
       );
       final updated = attempt.copyWith(mediaReference: 'new-ref');
       expect(updated.mediaReference, 'new-ref');
-      expect(updated.idempotencyKey, 'key-1'); // preserved
+      expect(updated.idempotencyKey, 'key-1');
     });
 
     test('copyWith with null keeps existing value', () {

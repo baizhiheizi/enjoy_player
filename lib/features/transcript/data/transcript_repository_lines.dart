@@ -62,10 +62,6 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
     final echo = await _db.echoSessionDao.getLatestForTarget(tt, mediaId);
     final id = primary ? echo?.transcriptId : echo?.secondaryTranscriptId;
     if (id == null) return <TranscriptLine>[];
-    // Fetch only the active row, not the entire transcript list. Avoids
-    // reading every transcript's timeline_json blob on every Drift tick —
-    // a frequent no-op tick when an in-active transcript row changes or
-    // when echo session aggregates (recordingsCount, lastActiveAt, …) bump.
     final row = await _db.transcriptDao.getById(id);
     if (row == null) return <TranscriptLine>[];
     await _preloadLinesForRow(row);

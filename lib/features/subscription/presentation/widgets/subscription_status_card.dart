@@ -75,7 +75,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
       );
     } on AppFailure catch (e) {
       if (!context.mounted) return;
-      // Credits rejections route through the shared friendly builder (045).
       final msg = e is CreditsFailure
           ? creditsFailureMessage(e, l10n)
           : e.message.isNotEmpty
@@ -128,7 +127,6 @@ class SubscriptionStatusCard extends ConsumerWidget {
       );
     }
 
-    // Free users get a basic card.
     final tierName = l10n.profileSubscriptionFree;
     final tierDescription = l10n.subscriptionTierFreeDescription;
 

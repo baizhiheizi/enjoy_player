@@ -195,7 +195,6 @@ void main() {
         .run(row);
 
     expect(outcome, isA<RecordingAssessmentSuccess>());
-    // YouTube-style und must not hard-fail; default learning locale is en-US.
     expect(fake.lastLanguage, 'en-US');
   });
 

@@ -35,9 +35,6 @@ void main() {
     final notifier = container.read(windowFullscreenProvider.notifier);
     expect(container.read(windowFullscreenProvider), isFalse);
 
-    // The default setWindowFullscreen is a no-op (test runs on Linux Flutter
-    // test host, not a real desktop binary), so the flip is driven solely by
-    // `state = value` inside setFullscreen.
     await notifier.toggle();
     expect(container.read(windowFullscreenProvider), isTrue);
   });
@@ -90,7 +87,6 @@ void main() {
     notifier.onWindowEnterFullScreen();
     notifier.onWindowLeaveFullScreen();
     notifier.onWindowEnterFullScreen();
-    // The initial value, plus three more events.
     expect(emissions, [false, true, false, true]);
     sub.close();
   });

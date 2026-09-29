@@ -32,9 +32,6 @@ class PlayerFrostedBackButton extends StatelessWidget {
       message: MaterialLocalizations.of(context).backButtonTooltip,
       child: EnjoyPressable(
         onTap: onPressed,
-        // CircleBorder (not a borderRadius of _size / 2): the wash and focus
-        // ring must fill the true circle — a superellipse wash of the same
-        // radius reads as a faint square halo inside the circular glass.
         shape: const CircleBorder(),
         child: GlassSurface(
           shape: const CircleBorder(),

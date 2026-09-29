@@ -41,8 +41,6 @@ UpdateCheckResult evaluateUpdate({
   if (snoozedVersion == manifest.version &&
       snoozeUntil != null &&
       clock.isBefore(snoozeUntil)) {
-    // Suppress the prompt, but keep [release] so the Settings badge can still
-    // indicate that a newer build exists.
     return UpdateCheckResult(
       availability: UpdateAvailability.upToDate,
       release: release,

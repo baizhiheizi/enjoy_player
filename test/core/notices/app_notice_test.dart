@@ -40,7 +40,7 @@ void main() {
       final ctx = tester.element(find.byType(Scaffold));
       AppNotice.success(ctx, 'hello success');
 
-      await tester.pump(); // schedules the post-frame callback
+      await tester.pump();
       await tester.pump();
 
       expect(find.text('hello success'), findsOneWidget);
@@ -69,8 +69,6 @@ void main() {
         appNoticeBackground(Theme.of(ctx).brightness),
       );
       expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
-      // Dismiss affordance is rendered by the notice body, not SnackBar's slot
-      // (the field is left at its null default; the theme resolves it off).
       expect(snackBar.showCloseIcon, isNull);
       expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     });
@@ -132,7 +130,6 @@ void main() {
     );
 
     testWidgets('no-op when no ScaffoldMessenger is available', (tester) async {
-      // No MaterialApp/Scaffold ancestor → both global key and maybeOf are null.
       late BuildContext bareContext;
       await tester.pumpWidget(
         Builder(
@@ -142,7 +139,6 @@ void main() {
           },
         ),
       );
-      // Bare BuildContext above any MaterialApp; AppNotice should silently skip.
       AppNotice.success(bareContext, 'should be skipped');
       await tester.pump();
       await tester.pump();
@@ -175,7 +171,6 @@ void main() {
           isTrue,
         );
 
-        // Dismiss explicitly — more reliable than advancing the timer in tests.
         messengerKey.currentState!.hideCurrentSnackBar();
         await tester.pumpAndSettle();
 
@@ -187,13 +182,6 @@ void main() {
       },
     );
 
-    // Regression: an ancestor Scaffold can leak padding.bottom greater than
-    // the physical safe inset into the body MediaQuery (extendBody feeds
-    // max(padding, bottomWidgetHeight)). The notice margin must clamp to
-    // viewPadding so the floating SnackBar can never be taller than the
-    // screen — a SnackBar that cannot fit trips the "Floating SnackBar
-    // presented off screen" layout assert on every frame (frozen UI in
-    // debug builds).
     testWidgets('clamps leaked bottom padding to the view inset', (
       tester,
     ) async {
@@ -244,23 +232,16 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('show'));
-      await tester.pump(); // post-frame notice
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      // 34 (view inset) + 0 (no shell inset here) + 16 (spacing) — not 850.9+.
       expect(snackBar.margin, const EdgeInsets.fromLTRB(16, 0, 16, 50));
       final box = tester.renderObject<RenderBox>(find.byType(SnackBar));
       expect(box.size.height, lessThan(200));
       expect(tester.takeException(), isNull);
     });
 
-    // Regression: when SnackBar's built-in action is wider than
-    // `actionOverflowThreshold` (25% of the bar) it moves to its own row and
-    // *still* reserves 40% of the width next to the message, so the
-    // credits-exhausted copy rendered as a narrow ~30% column on phones.
-    // AppNotice owns the action / dismiss layout, so the text keeps the bar's
-    // full inner width.
     testWidgets('action notice keeps the message at full inner width', (
       tester,
     ) async {
@@ -295,10 +276,7 @@ void main() {
           )
           .width;
       final textWidth = tester.getSize(find.text(message)).width;
-      // Icon (22) + gap (12) + gutters are all that is left of the bar, so the
-      // text owns ~82% of it; the broken layout sat at ~30%.
       expect(textWidth, greaterThan(barWidth * 0.75));
-      // An actionable notice still waits for the user instead of timing out.
       expect(tester.widget<SnackBar>(find.byType(SnackBar)).persist, isTrue);
       expect(tester.takeException(), isNull);
 
@@ -325,9 +303,6 @@ void main() {
       expect(find.text('careful'), findsNothing);
     });
 
-    // Regression: the dismiss button rides inline with the message (SDK
-    // geometry), so a dismiss-only notice stays at SnackBar's own
-    // single-line height instead of growing a trailing row.
     testWidgets('dismiss-only notice keeps the single-line height', (
       tester,
     ) async {
@@ -343,9 +318,6 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      // The close button's 48dp tap target sets the row height — anything
-      // taller means the dismiss button grew its own trailing row again.
-      // Measure the bar itself (inside the floating margin wrapper).
       final bar = tester.renderObject<RenderBox>(
         find
             .descendant(
@@ -358,8 +330,6 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    // Regression: the CTA is a body-owned button, so a long localized label
-    // must ellipsize instead of soft-wrapping into a multi-line button.
     testWidgets('long action label ellipsizes instead of wrapping', (
       tester,
     ) async {

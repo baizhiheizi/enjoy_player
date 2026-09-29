@@ -26,7 +26,6 @@ void main() {
     });
 
     test('treats <br/> as unknown tag (br/ token) and strips it', () {
-      // The parser splits on whitespace; "br/" != "br", so it's unknown.
       final segs = parseSubtitleMarkup('A<br/>B');
       expect(segs.length, 1);
       expect(segs[0].text, 'AB');
@@ -155,7 +154,6 @@ void main() {
     });
 
     test('closing tag with empty stack does not crash', () {
-      // Stack starts with 1 element; extra closing tags should not pop below 1.
       final segs = parseSubtitleMarkup('</b></i></u></font>Text');
       expect(segs.length, 1);
       expect(segs[0].text, 'Text');
@@ -164,7 +162,6 @@ void main() {
 
     test('closing unknown tag does not pop stack', () {
       final segs = parseSubtitleMarkup('<b>Bold</span>Still</b>');
-      // </span> is unknown so it should not pop the bold frame
       expect(segs.length, 1);
       expect(segs[0].text, 'BoldStill');
       expect(segs[0].bold, isTrue);
@@ -247,7 +244,6 @@ void main() {
 
   group('parseSubtitleMarkup - merging adjacent same-style segments', () {
     test('adjacent segments with same style are merged', () {
-      // Two bold segments separated by a zero-width style change should merge.
       final segs = parseSubtitleMarkup('<b>A</b><b>B</b>');
       expect(segs.length, 1);
       expect(segs[0].text, 'AB');
@@ -270,7 +266,6 @@ void main() {
     });
 
     test('parses 3-digit shorthand hex', () {
-      // #F80 -> #FF8800
       expect(parseSubtitleColorToArgb('#F80'), 0xFFFF8800);
     });
 
@@ -321,8 +316,6 @@ void main() {
 
   group('plainTextFromSubtitleMarkup', () {
     test('returns empty string for empty input', () {
-      // parseSubtitleMarkup('') returns [], then fallback strips tags from ''
-      // giving '', which is empty so returns ''.trim() = ''.
       expect(plainTextFromSubtitleMarkup(''), '');
     });
 
@@ -338,17 +331,10 @@ void main() {
     });
 
     test('fallback returns input.trim() when stripped result is empty', () {
-      // '<>' yields empty segments; stripping tags gives ''; plain.isEmpty
-      // triggers the branch returning input.trim() = '<>'.
       expect(plainTextFromSubtitleMarkup('<>'), '<>');
     });
 
     test('fallback returns trimmed input when stripped result is empty', () {
-      // Input that produces no segments and stripping tags yields empty:
-      // "<br>" actually produces a newline segment. Let's use just whitespace
-      // inside tags scenario. Actually, plainTextFromSubtitleMarkup('<>')
-      // covers the "plain.isEmpty" branch returning input.trim().
-      // For the non-empty plain branch:
       expect(plainTextFromSubtitleMarkup('<x>y</x>'), 'y');
     });
   });

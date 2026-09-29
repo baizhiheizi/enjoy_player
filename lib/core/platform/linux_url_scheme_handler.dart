@@ -34,8 +34,6 @@ String schemeHandlerExecValue({
   final target = (appImagePath != null && appImagePath.isNotEmpty)
       ? appImagePath
       : resolvedExecutablePath;
-  // Desktop-entry spec: quote paths (spaces are legal) and escape `%` as
-  // `%%`; append `%u` so the invoked URI reaches the binary.
   final escaped = target.replaceAll('%', '%%');
   return '"$escaped" %u';
 }

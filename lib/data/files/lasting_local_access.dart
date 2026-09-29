@@ -50,15 +50,11 @@ Future<List<String>> _ephemeralRoots() async {
   final roots = <String>[];
   try {
     roots.add(p.normalize((await getTemporaryDirectory()).path));
-  } on Object {
-    // Ignore — platform may not expose temp in some test doubles.
-  }
+  } on Object {} // ignore: empty_catches
   try {
     final cache = await getApplicationCacheDirectory();
     roots.add(p.normalize(cache.path));
-  } on Object {
-    // getApplicationCacheDirectory may be unimplemented on some platforms.
-  }
+  } on Object {} // ignore: empty_catches
   return roots;
 }
 

@@ -59,7 +59,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
           : AppColors.intelligenceInkDark,
       echoInk: light ? AppColors.echoInkLight : AppColors.echoInkDark,
       ccBadge: scheme.primary,
-      // Vertical padding is applied per-line via [transcriptDensityOf].
       transcriptLinePadding: const EdgeInsets.symmetric(horizontal: 16),
       contentMaxWidth: 720,
       formMaxWidth: 680,
@@ -128,14 +127,11 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.elevationCard,
     required this.elevationSheet,
     required this.elevationModal,
-    // ── Keep aliases for legacy call-sites ──────────────────────────
     required this.elevationBar,
     required this.elevationSurface,
-    // ── Breakpoints ────────────────────────────────────────────────
     required this.breakpointCompact,
     required this.breakpointRail,
     required this.breakpointTranscriptSideBySide,
-    // ── Motion ─────────────────────────────────────────────────────
     required this.motionFast,
     required this.motionStandard,
     required this.motionEnter,
@@ -143,7 +139,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
     /// Transport / layout morphs: 220ms (between [motionFast] and [motionStandard]).
     required this.motionMedium,
-    // ── Feature colors ─────────────────────────────────────────────
     required this.echoActive,
     required this.blurActive,
     required this.scoreGood,
@@ -157,7 +152,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.intelligenceInk,
     required this.echoInk,
     required this.ccBadge,
-    // ── Layout ─────────────────────────────────────────────────────
     required this.transcriptLinePadding,
     required this.contentMaxWidth,
     required this.formMaxWidth,
@@ -169,18 +163,15 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     required this.sidebarBrandHeight,
     required this.transportHeight,
     required this.heroTitleLetterSpacing,
-    // ── Glass & gradient ───────────────────────────────────────────
     required this.glassTint,
     required this.glassBorder,
     required this.gradientStart,
     required this.gradientEnd,
-    // ── Shell / modal layout ───────────────────────────────────────
     required this.bottomNavHeight,
     required this.desktopGutter,
     required this.modalMaxWidth,
     required this.modalMaxWidthLarge,
     required this.focusRingWidth,
-    // ── Aurora surfaces / shape / depth ─────────────────────────────
     required this.radiusXs,
     required this.radius2xl,
     required this.canvas,
@@ -215,7 +206,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     colors: [auroraStart, auroraEnd],
   );
 
-  // ── Spacing (4pt grid) ─────────────────────────────────────────────────
   final double space4;
   final double space8;
   final double space12;
@@ -226,14 +216,12 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final double space40;
   final double space48;
 
-  // ── Radii ──────────────────────────────────────────────────────────────
   final double radiusSm;
   final double radiusMd;
   final double radiusLg;
   final double radiusXl;
   final double radiusFull;
 
-  // ── Elevation scale (0 / 1 / 3 / 8) ───────────────────────────────────
   final double elevationNone;
   final double elevationCard;
   final double elevationSheet;
@@ -243,7 +231,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   final double elevationBar;
   final double elevationSurface;
 
-  // ── Breakpoints ────────────────────────────────────────────────────────
   /// Pane width below which [pageGutterCompact] applies.
   final double breakpointCompact;
 
@@ -253,7 +240,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Width at which player shows transcript side-by-side vs stacked.
   final double breakpointTranscriptSideBySide;
 
-  // ── Motion ─────────────────────────────────────────────────────────────
   /// Micro-interactions: 180ms.
   final Duration motionFast;
 
@@ -269,7 +255,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Transport compact/expanded and similar layout transitions.
   final Duration motionMedium;
 
-  // ── Feature colors ─────────────────────────────────────────────────────
   final Color echoActive;
 
   /// Accent used for the listening-focus (blur practice) toggle when active.
@@ -307,7 +292,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
 
   final Color ccBadge;
 
-  // ── Layout ─────────────────────────────────────────────────────────────
   final EdgeInsets transcriptLinePadding;
 
   /// Reading column / empty-state cap (legacy content column).
@@ -335,7 +319,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Letter-spacing for hero display titles (negative = tight).
   final double heroTitleLetterSpacing;
 
-  // ── Glass & gradient ───────────────────────────────────────────────────
   final Color glassTint;
   final Color glassBorder;
   final Color gradientStart;
@@ -356,7 +339,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Keyboard focus ring stroke width for custom controls.
   final double focusRingWidth;
 
-  // ── Aurora surfaces / shape / depth ───────────────────────────────────
   /// Tight radius for tiny badges and keycaps.
   final double radiusXs;
 
@@ -414,13 +396,11 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
   /// Menus / dialogs shadow.
   final List<BoxShadow> shadowPopover;
 
-  // ── Static accessor ────────────────────────────────────────────────────
   static EnjoyThemeTokens of(BuildContext context) {
     return Theme.of(context).extension<EnjoyThemeTokens>() ??
         EnjoyThemeTokens.build(Theme.of(context).colorScheme);
   }
 
-  // ── copyWith ───────────────────────────────────────────────────────────
   @override
   EnjoyThemeTokens copyWith({
     double? space4,
@@ -591,7 +571,6 @@ class EnjoyThemeTokens extends ThemeExtension<EnjoyThemeTokens> {
     );
   }
 
-  // ── lerp ──────────────────────────────────────────────────────────────
   @override
   ThemeExtension<EnjoyThemeTokens> lerp(
     covariant ThemeExtension<EnjoyThemeTokens>? other,

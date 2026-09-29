@@ -75,10 +75,6 @@ void main() {
     'EnjoyApp shows a localized RecoverySurface for a stale/corrupt local '
     'DB instead of crashing on a missing AppLocalizations delegate',
     (tester) async {
-      // Regression coverage: `_errorMaterialApp` used to omit
-      // `localizationsDelegates`, so `AppLocalizations.of(context)!` inside
-      // `RecoverySurface` threw a null-check error the instant this branch
-      // rendered — the "friendly notification" never actually appeared.
       FlutterSecureStorage.setMockInitialValues({});
       PackageInfo.setMockInitialValues(
         appName: 'Enjoy Player',
@@ -123,11 +119,6 @@ void main() {
           child: const EnjoyApp(themeBuilder: _testTheme),
         ),
       );
-      // Bare pumps only: Riverpod 3's default error-retry fires ~200ms of
-      // *fake* clock time after a failed build, and any `pump(duration)` /
-      // `pumpAndSettle()` advances that clock. This assertion only cares
-      // that the error branch renders correctly the first time — never let
-      // it flip into an auto-retried, indistinguishable success state.
       for (var i = 0; i < 6; i++) {
         await tester.pump();
       }
@@ -187,9 +178,6 @@ void main() {
         );
         addTearDown(container.dispose);
 
-        // Establish a listener so both providers are actually "alive" (and
-        // thus eligible to be invalidated / rebuilt) before the reset runs —
-        // mirrors how `EnjoyApp.build()` watches them.
         container.listen(appDatabaseProvider, (_, _) {});
         container.listen(
           appPreferencesCtrlProvider,
@@ -207,17 +195,9 @@ void main() {
 
         expect(outcome, RecoveryResetOutcome.success);
         expect(deviceGlobalDbFile.existsSync(), isFalse);
-        // Invalidating a provider with an active listener schedules its
-        // rebuild rather than running it inline, so wait for the rebuilt
-        // future to settle before counting builds.
         await container.read(appPreferencesCtrlProvider.future).catchError((_) {
           return AppPreferencesState.initial;
         });
-        // The provider was invalidated and rebuilt as a direct result of
-        // the reset — not merely because it kept failing and Riverpod
-        // auto-retried (this test runs with a real event loop, so a
-        // spurious ~200ms auto-retry would also show up as an extra
-        // build; asserting the exact count catches that).
         expect(prefsBuildCount, 2);
       },
     );

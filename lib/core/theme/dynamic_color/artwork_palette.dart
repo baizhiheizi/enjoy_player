@@ -80,7 +80,6 @@ ArtworkPalette? _lookupFresh(String path, FileStat stat) {
     if (key.path != path) continue;
     if (key == current) {
       hit = _cache[key];
-      // Move to end to mark it as most-recently-used.
       _cacheOrder.removeAt(i);
       _cacheOrder.add(key);
       break;
@@ -142,8 +141,6 @@ Future<ArtworkPalette?> extractArtworkPalette(String? thumbnailPath) async {
 
   final stat = await file.stat();
 
-  // Cache hit: re-use the previous palette only if the file is byte-identical
-  // (same `size` and `mtime`) to the entry we computed for.
   final hit = _lookupFresh(thumbnailPath, stat);
   if (hit != null) return hit;
 
@@ -165,7 +162,6 @@ Future<ArtworkPalette?> extractArtworkPalette(String? thumbnailPath) async {
         generator.dominantColor?.color ??
         dominant;
 
-    // Compute a readable on-color for the accent.
     final luminance = vibrant.computeLuminance();
     final onAccent = luminance > 0.4 ? const Color(0xFF0B0B10) : Colors.white;
 

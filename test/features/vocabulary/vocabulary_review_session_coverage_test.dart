@@ -17,10 +17,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_player_engine.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 final class _ThrowingDictionary implements DictionaryCapability {
   const _ThrowingDictionary();
 
@@ -48,10 +44,6 @@ final class _ThrowingContextual implements ContextualTranslationCapability {
     throw Exception('contextual network error');
   }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 VocabularyItem _makeItem({String id = 'i1', String word = 'hello'}) {
   return VocabularyItem(
@@ -90,10 +82,6 @@ VocabularyContext _makeContext({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
@@ -115,10 +103,6 @@ void main() {
     await fakeEngine.dispose();
     await db.close();
   });
-
-  // =========================================================================
-  // ReviewSessionState pure getters / edge cases
-  // =========================================================================
 
   group('ReviewSessionState getters', () {
     test('hasActiveSession is false for empty queue', () {
@@ -345,10 +329,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // copyWith clear flags
-  // =========================================================================
-
   group('copyWith clear flags', () {
     test('clearDictionaryError removes dictionaryError', () {
       final state = ReviewSessionState(
@@ -386,10 +366,6 @@ void main() {
       expect(updated.dictionaryError, 'new');
     });
   });
-
-  // =========================================================================
-  // startWithQueue
-  // =========================================================================
 
   group('startWithQueue', () {
     test('empty queue resets state', () {
@@ -438,10 +414,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // clear()
-  // =========================================================================
-
   group('clear', () {
     test('clears session and deactivates echo when practice was open', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
@@ -472,15 +444,10 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // clearPractice
-  // =========================================================================
-
   group('clearPractice', () {
     test('early return when phase is already none', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
-      // Should not throw or change state.
       await session.clearPractice();
       final state = container.read(vocabularyReviewSessionProvider);
       expect(state.practicePhase, ReviewPracticePhase.none);
@@ -503,10 +470,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // selectContext edge cases
-  // =========================================================================
-
   group('selectContext edge cases', () {
     test('no-op when completed', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
@@ -516,15 +479,12 @@ void main() {
           'i1': [_makeContext(id: 'c1'), _makeContext(id: 'c2')],
         },
       );
-      // Force completed state.
       session.debugSetPracticePhase(ReviewPracticePhase.none);
-      // Manually complete by rating the only item.
       session.flip();
       await session.rate(VocabularyRating.know);
       expect(container.read(vocabularyReviewSessionProvider).completed, isTrue);
 
       await session.selectContext(1);
-      // Should remain unchanged (no-op).
       expect(container.read(vocabularyReviewSessionProvider).completed, isTrue);
     });
 
@@ -532,7 +492,6 @@ void main() {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
       await session.selectContext(1);
-      // No contexts, so nothing changes.
       expect(
         container
             .read(vocabularyReviewSessionProvider)
@@ -541,10 +500,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // selectPreviousContext / selectNextContext
-  // =========================================================================
 
   group('selectPreviousContext / selectNextContext', () {
     test('selectPreviousContext no-op at index 0', () async {
@@ -619,28 +574,20 @@ void main() {
 
     test('selectPreviousContext no-op when item is null', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
-      // No active session.
       await session.selectPreviousContext();
-      // Should not throw.
     });
 
     test('selectNextContext no-op when item is null', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       await session.selectNextContext();
-      // Should not throw.
     });
   });
-
-  // =========================================================================
-  // flip / unflip / toggleFlip guards
-  // =========================================================================
 
   group('flip / unflip / toggleFlip guards', () {
     test('flip no-op when completed', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
       session.flip();
-      // Complete the session by rating.
       container.read(vocabularyReviewSessionProvider.notifier).skip();
       expect(container.read(vocabularyReviewSessionProvider).completed, isTrue);
       session.flip();
@@ -659,7 +606,6 @@ void main() {
       session.startWithQueue([_makeItem()]);
       session.flip();
       session.skip();
-      // Now completed; unflip should be no-op.
       session.unflip();
       expect(container.read(vocabularyReviewSessionProvider).flipped, isFalse);
     });
@@ -684,20 +630,13 @@ void main() {
     test('unflip no-op when practiceSheetOpen', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
-      // First flip without practice.
       session.flip();
       expect(container.read(vocabularyReviewSessionProvider).flipped, isTrue);
-      // Now open practice.
       session.debugSetPracticePhase(ReviewPracticePhase.echo);
       session.unflip();
-      // Should remain flipped because unflip is blocked.
       expect(container.read(vocabularyReviewSessionProvider).flipped, isTrue);
     });
   });
-
-  // =========================================================================
-  // rate guards and completion
-  // =========================================================================
 
   group('rate guards and completion', () {
     test('rate no-op when not flipped', () async {
@@ -717,7 +656,6 @@ void main() {
       session.flip();
       await session.rate(VocabularyRating.know);
       expect(container.read(vocabularyReviewSessionProvider).completed, isTrue);
-      // Try rating again — should be no-op.
       await session.rate(VocabularyRating.know);
       expect(
         container.read(vocabularyReviewSessionProvider).ratedStack,
@@ -751,17 +689,12 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // skip guards and completion
-  // =========================================================================
-
   group('skip guards and completion', () {
     test('skip no-op when completed', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
       session.skip();
       expect(container.read(vocabularyReviewSessionProvider).completed, isTrue);
-      // Skip again — no-op.
       session.skip();
       expect(
         container.read(vocabularyReviewSessionProvider).history,
@@ -802,10 +735,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // undo guards
-  // =========================================================================
-
   group('undo guards', () {
     test('undo no-op when ratedStack is empty', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
@@ -821,7 +750,6 @@ void main() {
       await session.rate(VocabularyRating.know);
       session.debugSetPracticePhase(ReviewPracticePhase.echo);
       await session.undo();
-      // Should not undo because practice is open.
       expect(
         container.read(vocabularyReviewSessionProvider).ratedStack,
         hasLength(1),
@@ -846,10 +774,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // previous
-  // =========================================================================
-
   group('previous', () {
     test('no-op when history is empty', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
@@ -864,7 +788,6 @@ void main() {
       session.skip();
       session.debugSetPracticePhase(ReviewPracticePhase.echo);
       session.previous();
-      // Should not go back.
       expect(container.read(vocabularyReviewSessionProvider).index, 1);
     });
 
@@ -885,22 +808,14 @@ void main() {
 
     test('handles item not found in queue gracefully', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
-      // Start with a queue, then manipulate history to reference missing item.
       session.startWithQueue([_makeItem(id: 'i1')]);
       session.skip();
-      // History now has entry for 'i1'. Start a new queue without 'i1'.
       session.startWithQueue([_makeItem(id: 'i99')]);
-      // Manually inject history with a missing item id via skip on i99.
       session.skip();
-      // Now history has i99. previous should find i99 in queue.
       session.previous();
       expect(container.read(vocabularyReviewSessionProvider).index, 0);
     });
   });
-
-  // =========================================================================
-  // fetchDictionary error paths
-  // =========================================================================
 
   group('fetchDictionary error paths', () {
     test('sets dictionaryError on fetch failure', () async {
@@ -964,10 +879,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // fetchContextualTranslation error paths
-  // =========================================================================
-
   group('fetchContextualTranslation error paths', () {
     test('sets contextualError on fetch failure', () async {
       final errorContainer = ProviderContainer(
@@ -1008,7 +919,6 @@ void main() {
 
     test('no-op when context is null', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
-      // Item with no contexts.
       session.startWithQueue([_makeItem()]);
       await session.fetchContextualTranslation();
       expect(
@@ -1049,10 +959,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // preparePracticeClip guards
-  // =========================================================================
 
   group('preparePracticeClip guards', () {
     test('no-op when context is null', () {
@@ -1140,30 +1046,20 @@ void main() {
           'i1': [_makeContext()],
         },
       );
-      // Inject a media error via debug phase + manual state.
       session.debugSetPracticePhase(ReviewPracticePhase.echo);
       session.preparePracticeClip();
-      // preparePracticeClip is blocked because practicePhase.isClip is false
-      // but overlayOpen is true (echo). Actually echo is not isClip, so it
-      // should proceed.
       final state = container.read(vocabularyReviewSessionProvider);
       expect(state.practicePhase, ReviewPracticePhase.clipOpening);
       expect(state.mediaError, isNull);
     });
   });
 
-  // =========================================================================
-  // startPracticeClipPlayback guards
-  // =========================================================================
-
   group('startPracticeClipPlayback guards', () {
     test('no-op when context is null', () async {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
       session.startWithQueue([_makeItem()]);
       session.debugSetPracticePhase(ReviewPracticePhase.clipOpening);
-      // No context for item, so currentPrimaryContext is null.
       await session.startPracticeClipPlayback();
-      // Should remain in clipOpening (no-op because ctx is null).
       expect(
         container.read(vocabularyReviewSessionProvider).practicePhase,
         ReviewPracticePhase.clipOpening,
@@ -1197,7 +1093,6 @@ void main() {
       session.skip();
       session.debugSetPracticePhase(ReviewPracticePhase.clipOpening);
       await session.startPracticeClipPlayback();
-      // completed guard fires first.
       expect(
         container.read(vocabularyReviewSessionProvider).practicePhase,
         ReviewPracticePhase.clipOpening,
@@ -1224,10 +1119,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // openPracticeEcho guards
-  // =========================================================================
 
   group('openPracticeEcho guards', () {
     test('no-op when context is null', () async {
@@ -1290,10 +1181,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // debugSetPracticePhase
-  // =========================================================================
-
   group('debugSetPracticePhase', () {
     test('sets explicit phase', () {
       final session = container.read(vocabularyReviewSessionProvider.notifier);
@@ -1309,10 +1196,6 @@ void main() {
       );
     });
   });
-
-  // =========================================================================
-  // start() with contexts
-  // =========================================================================
 
   group('start with contexts', () {
     test('loads and sorts contexts by createdAt', () async {
@@ -1348,14 +1231,9 @@ void main() {
       final state = container.read(vocabularyReviewSessionProvider);
       expect(state.total, 1);
       expect(state.currentContextsCount, 2);
-      // Sorted by createdAt: earlier first.
       expect(state.currentPrimaryContext?.text, 'earlier context');
     });
   });
-
-  // =========================================================================
-  // hasActiveSession on notifier
-  // =========================================================================
 
   group('notifier hasActiveSession', () {
     test('reflects state.hasActiveSession', () {
@@ -1367,8 +1245,4 @@ void main() {
       expect(session.hasActiveSession, isFalse);
     });
   });
-
-  // =========================================================================
-  // playClip (legacy alias)
-  // =========================================================================
 }

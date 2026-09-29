@@ -79,8 +79,6 @@ final class ContextualMarkdownDocument {
 
 /// Splits prepared markdown into a preamble and titled sections.
 ContextualMarkdownDocument parseContextualMarkdownDocument(String markdown) {
-  // Drop a leading redundant heading; empty sections are skipped inline
-  // below (`bodyText.isEmpty`), so no separate pruning pass is needed.
   final prepared = stripRedundantContextualHeading(markdown);
   if (prepared.trim().isEmpty) {
     return const ContextualMarkdownDocument(preamble: '', sections: []);

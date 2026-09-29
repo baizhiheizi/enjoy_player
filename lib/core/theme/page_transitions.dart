@@ -60,9 +60,6 @@ class _EnjoyGlideTransition extends StatelessWidget {
       curve: EnjoyThemeTokens.ease,
       reverseCurve: Curves.easeInCubic,
     );
-    // Shell pages are transparent (the canvas / content panel paints behind
-    // them), so the outgoing page must fade out too or its text would ghost
-    // through the incoming page.
     final exitFade = ReverseAnimation(
       CurvedAnimation(
         parent: secondaryAnimation,

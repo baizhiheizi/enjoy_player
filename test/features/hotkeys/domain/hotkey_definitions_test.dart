@@ -1,16 +1,3 @@
-// Invariants for the static `hotkey_definitions.dart` lookup tables.
-//
-// The definitions file is the source of truth for every shortcut the app
-// ships, and it feeds the Settings UI, the global keyboard listener, and
-// (via `hotkeyDefinitionMap`) per-action lookups. Guarding it with tests
-// means:
-//   * adding a duplicate `id` or `descriptionKey` triggers a CI failure,
-//   * the four `[`, `]`, `{`, `}` cursor-bound defaults remain `useKey: true`
-//     (so Settings renders a key-picker rather than text-input),
-//   * `hotkeyDefinitionMap` / `hotkeysByScope` stay in sync with the list.
-//
-// This file deliberately does not test dispatcher behaviour — that lives in
-// `hotkey_format_test.dart` and friends.
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definitions.dart';
@@ -113,17 +100,12 @@ void main() {
             reason: '${def.id} does not belong to ${scope.name}',
           );
         }
-        // Order within scope mirrors the source list — the Settings list
-        // view depends on this order to keep grouping stable.
         final expected = hotkeyDefinitions.where((d) => d.scope == scope);
         expect(picked, equals(expected));
       }
     });
 
     test('hotkeys custom-bindings key keeps its storage name', () {
-      // Declared once in the typed settings registry (JSON map of action id
-      // → binding string). Changing it silently migrates user customizations
-      // away forever — keep the test around as a tripwire.
       expect(SettingsKeys.hotkeysCustomBindings.name, isNotEmpty);
       expect(
         SettingsKeys.hotkeysCustomBindings.name,

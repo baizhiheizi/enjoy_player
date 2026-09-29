@@ -61,8 +61,6 @@ void main() {
       );
       expect(reference.words.where((w) => w.text == '77'), hasLength(1));
       final seventySeven = reference.words.firstWhere((w) => w.text == '77');
-      // "seventy seven" spans both eSpeak events, so the single token must own
-      // phones from both slots (loose bound: voice data may re-segment).
       expect(seventySeven.phones.length, greaterThanOrEqualTo(2));
     },
   );

@@ -1,6 +1,3 @@
-// Tests for `lib/features/update/application/update_evaluator.dart` — pure
-// logic that compares the running version to a remote manifest and produces
-// a `UpdateCheckResult` with the right availability + snooze handling.
 import 'package:enjoy_player/features/update/application/update_evaluator.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,7 +74,6 @@ void main() {
           snoozeUntil: now.add(const Duration(hours: 12)),
           now: now,
         );
-        // availability is upToDate (suppressed) but the badge still shows.
         expect(r.availability, UpdateAvailability.upToDate);
         expect(r.release, isNotNull);
         expect(r.showsUpdateBadge, isTrue);

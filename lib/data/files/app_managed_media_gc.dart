@@ -108,15 +108,12 @@ Future<bool> _otherPerUserDbReferencesLocalUri({
       }
     }
   } on Object {
-    // Best-effort — if we cannot scan, keep the file (safer than deleting).
     return true;
   }
   return false;
 }
 
 bool _isPerUserLibraryDbFileName(String name) {
-  // Per-user: enjoy_player_<sanitizedUserId>.sqlite
-  // Skip device-global enjoy_player.sqlite and sidecar -wal/-shm files.
   if (!name.startsWith('${AppDatabase.deviceGlobalDatabaseName}_')) {
     return false;
   }
@@ -133,7 +130,6 @@ bool _sqliteFileReferencesLocalUri(String dbPath, String fileUri) {
     }
     return false;
   } on Object {
-    // Missing tables / locked DB — treat as referenced to avoid data loss.
     return true;
   } finally {
     raw?.close();

@@ -229,7 +229,6 @@ class YoutubeCaptionFetcher {
           continue;
         }
 
-        // Deduplicate: for each language, prefer manual over auto
         final bestByLang = <String, CaptionTrack>{};
         for (final track in allTracks) {
           final code = track.languageCode;
@@ -248,7 +247,6 @@ class YoutubeCaptionFetcher {
           continue;
         }
 
-        // Fetch all tracks in parallel
         final futures = bestByLang.values.map((track) async {
           try {
             final source = _determineSource(track);
@@ -269,7 +267,6 @@ class YoutubeCaptionFetcher {
 
         final allResults = await Future.wait(futures);
 
-        // Sort: preferred language first, then alphabetical
         final sorted = [...allResults];
         sorted.sort((a, b) {
           if (a.language == preferredLang) return -1;

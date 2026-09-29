@@ -14,10 +14,6 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 class _FakeUrlLauncherPlatform extends UrlLauncherPlatform {
   _FakeUrlLauncherPlatform({this.launchResult = true});
 
@@ -105,10 +101,6 @@ class _FakeSubscriptionRepository extends SubscriptionRepository {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const _validSession = PaymentSession(
   id: 'sess-1',
   paymentType: 'prepaid',
@@ -162,10 +154,6 @@ ProviderContainer _container({required _FakeSubscriptionRepository repo}) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -209,11 +197,9 @@ void main() {
         'https://pay.example.com/checkout/123',
       );
 
-      // State returns to AsyncData after success.
       final state = container.read(subscriptionPurchaseCtrlProvider);
       expect(state, const AsyncData<void>(null));
 
-      // Tier reconcile pending flag is set.
       final reconcile = container.read(tierReconcileCtrlProvider.notifier);
       expect(reconcile.hasPendingPurchase, isTrue);
     });
@@ -240,7 +226,6 @@ void main() {
         ),
       );
 
-      // State is AsyncError after failure.
       final state = container.read(subscriptionPurchaseCtrlProvider);
       expect(state, isA<AsyncError<void>>());
     });

@@ -13,7 +13,6 @@ void main() {
     final tok = EnjoyThemeTokens.build(scheme);
     var assessTaps = 0;
 
-    // ~369dp phone content width after list padding (matches Xiaomi 15-class).
     await tester.binding.setSurfaceSize(const Size(345, 200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 

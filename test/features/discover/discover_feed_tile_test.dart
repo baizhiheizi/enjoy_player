@@ -231,9 +231,6 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // A RenderFlex overflow anywhere in the meta row would have thrown
-      // during layout above. Pin the shared tile budget too: 16:9 artwork
-      // (280 × 9 / 16 = 157.5) + mediaCardTileMetaHeight.
       expect(
         tester.getSize(find.byType(DiscoverFeedTile)).height,
         closeTo(157.5 + mediaCardTileMetaHeight, 0.1),

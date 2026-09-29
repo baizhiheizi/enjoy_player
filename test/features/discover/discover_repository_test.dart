@@ -371,7 +371,6 @@ void main() {
         final url = await repo.fetchChannelAvatarUrl(_channelId);
         expect(url, 'https://yt3.ggpht.com/avatar.jpg');
 
-        // Second call should hit cache (same result even if DB row changes)
         await db.youtubeChannelSubscriptionDao.updateThumbnail(
           _channelId,
           'https://yt3.ggpht.com/changed.jpg',
@@ -381,9 +380,6 @@ void main() {
       });
     });
 
-    // The "library bridge not bound" StateError is gone: `libraryRepository` is
-    // a required constructor argument, so the half-wired repository the throw
-    // guarded against can no longer be constructed (issue #764 candidate 6).
     group('addFeedEntryToLibrary', () {
       test('imports video with default language when none specified', () async {
         final fakeLib = _FakeLibraryRepository(db, FileStorage());

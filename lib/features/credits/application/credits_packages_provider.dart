@@ -27,8 +27,6 @@ class CreditsPackagePurchaseCtrl extends _$CreditsPackagePurchaseCtrl {
   }) async {
     state = const AsyncLoading();
     try {
-      // Prefer a cached summary (screen already loaded it) so a flaky refresh
-      // cannot leave baseline null and poison post-checkout verification.
       var baseline = ref
           .read(creditsSummaryProvider)
           .asData
@@ -44,10 +42,7 @@ class CreditsPackagePurchaseCtrl extends _$CreditsPackagePurchaseCtrl {
             baseline = (await ref.read(
               creditsSummaryProvider.future,
             )).permanentAvailable;
-          } catch (_) {
-            // Retry — checkout may still proceed without a baseline, but
-            // verification then relies on consecutive-sample growth only.
-          }
+          } catch (_) {}
         }
       }
 

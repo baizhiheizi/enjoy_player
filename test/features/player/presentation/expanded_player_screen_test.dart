@@ -31,8 +31,6 @@ Widget _wrap({required ProviderContainer container, required Widget child}) {
   return UncontrolledProviderScope(
     container: container,
     child: MediaQuery(
-      // Suppress skeleton AnimationController.repeat() so the test framework
-      // does not consider a timer pending after disposal.
       data: const MediaQueryData(disableAnimations: true, size: Size(800, 600)),
       child: MaterialApp(
         localizationsDelegates: const [
@@ -65,10 +63,6 @@ void main() {
     testWidgets(
       'renders the loading body when the launch future is still pending',
       (tester) async {
-        // The widget reads `openMediaLaunchProvider` and renders the loading
-        // body (SkeletonAppBootstrap inside _LocalLoadingVideoStage) before
-        // the future resolves. We override the provider body to never
-        // resolve so the loading state stays visible.
         final container = ProviderContainer(
           overrides: [
             appDatabaseProvider.overrideWithValue(db),
@@ -98,9 +92,6 @@ void main() {
     testWidgets(
       'passes the launch request mediaId through to the loading body',
       (tester) async {
-        // Verifies the ProviderContainer override is keyed by the same
-        // PlayerLaunchRequest shape used by the widget, so the pending
-        // future is observed.
         const customLaunch = PlayerLaunchRequest(
           mediaId: 'custom-media-id',
           autoplay: true,
@@ -159,16 +150,11 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      // Localized ADR-0048 notice — not the generic open-failure copy.
       expect(
         find.text('YouTube is not yet available on Linux — coming soon.'),
         findsOneWidget,
       );
 
-      // The override drops the provider's `retry: null`, so Riverpod's
-      // default backoff (10 retries: 200ms×2^n capped at 6.4s) re-runs the
-      // throwing body. Pump through the whole sequence so the error state
-      // settles and no FakeTimer is left pending at teardown.
       const backoffMs = [
         200,
         400,

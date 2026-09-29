@@ -120,23 +120,16 @@ void main() {
         }
       });
 
-      // Wait for the first emission (initial subscription list).
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final initialCount = emissions.length;
       expect(initialCount, greaterThanOrEqualTo(1));
 
-      // Bump lastFetchedAt on the existing row — Drift re-emits the same list.
       await db.youtubeChannelSubscriptionDao.touchLastFetched(
         channelId,
         DateTime.utc(2024, 3, 1),
       );
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      // Identical list (same channelId, displayName, source, subscribedAt,
-      // thumbnailUrl, lastFetchedAt as the existing one if we use the same
-      // timestamp) should not produce a new emission. The dedupe only skips
-      // strictly identical lists, so any actual change should still emit.
-      // We assert that emissions didn't grow unboundedly with our 1+1 inserts.
       expect(emissions.length, lessThanOrEqualTo(initialCount + 2));
 
       await sub.cancel();
@@ -157,7 +150,6 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Real change: rename the channel.
       await db.youtubeChannelSubscriptionDao.updateDisplayName(
         channelId,
         'TED Talks',
@@ -192,7 +184,6 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Re-upsert the same row — Drift re-emits the same list.
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
           videoId: 'videoA123456',
@@ -206,7 +197,6 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      // Identical list — no new emission expected.
       expect(emissions.length, baseline);
 
       await sub.cancel();
@@ -234,7 +224,6 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Add a new video — should re-emit with one more row.
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
           videoId: 'videoB123456',
@@ -276,7 +265,6 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Background enrichment writes duration — real change.
       await db.youtubeFeedEntryDao.updateDurationSeconds(
         channelId: channelId,
         videoId: 'videoA123456',
@@ -326,8 +314,6 @@ void main() {
       expect(emissions.last, hasLength(1));
       expect(emissions.last.first.videoId, 'videoA123456');
 
-      // A write to the OTHER channel's row should not produce a new emission
-      // for this channel's feed.
       await db.youtubeFeedEntryDao.upsertEntry(
         YoutubeFeedEntryRow(
           videoId: 'videoC999999',
@@ -341,7 +327,6 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      // Channel feed is filtered — the list for `channelId` should be unchanged.
       expect(emissions.length, baseline);
 
       await sub.cancel();
@@ -357,10 +342,6 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final baseline = emissions.length;
 
-      // 50 entries across two channels, all upserted in one batched call.
-      // Without batching, each per-row upsertEntry triggers an intermediate
-      // watch emission (later collapsed by .distinctBy upstream, but still
-      // paid for here in Drift + map + elementwise equals).
       final rows = <YoutubeFeedEntryRow>[];
       for (var i = 0; i < 50; i++) {
         rows.add(
@@ -379,7 +360,6 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 150));
 
-      // Batched write must yield exactly one new emission regardless of N.
       expect(emissions.length - baseline, lessThanOrEqualTo(1));
       expect(emissions.last, hasLength(50));
 
@@ -407,8 +387,6 @@ void main() {
       () async {
         const channelId = 'UCAuUUnT6oKwE6v1NGQxug';
 
-        // 1) Loop: each upsertEntry is its own Drift transaction + commit, so
-        //    the watcher pushes at least one intermediate row count per call.
         final loopEmissions = <List<FeedEntry>>[];
         final loopSub = repo.watchTimeline().listen(loopEmissions.add);
         await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -428,8 +406,6 @@ void main() {
             ),
           );
         }
-        // Sequential per-row upserts via the public DAO API (this is what the
-        // pre-PR refresh path did).
         for (final row in loopRows) {
           await db.youtubeFeedEntryDao.upsertEntry(row);
         }
@@ -437,7 +413,6 @@ void main() {
         await loopSub.cancel();
         final loopDelta = loopEmissions.length - loopBaseline;
 
-        // 2) Batched: same row set, one transaction.
         final batchEmissions = <List<FeedEntry>>[];
         final batchSub = repo.watchTimeline().listen(batchEmissions.add);
         await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -462,17 +437,9 @@ void main() {
         await batchSub.cancel();
         final batchDelta = batchEmissions.length - batchBaseline;
 
-        // The loop path must produce strictly more emissions than the batched
-        // path. In practice the loop emits 30× intermediate states (each
-        // suppressible by the upstream `.distinctBy` mask but still observable
-        // at the Drift stream); the batched path collapses to one.
         expect(batchDelta, lessThan(loopDelta));
-        // The final state of each path is the full row set.
         expect(loopEmissions.last, hasLength(30));
-        expect(
-          batchEmissions.last,
-          hasLength(60),
-        ); // 30 from loop + 30 from batch
+        expect(batchEmissions.last, hasLength(60));
       },
     );
   });

@@ -86,8 +86,6 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    // Horizontal inset comes from the Settings hub page metrics — same as
-    // [SettingsSectionCard]. Do not add a second gutter here.
     return Material(
       color: cs.surfaceContainerLow.withValues(alpha: 0.88),
       elevation: 0,
@@ -376,8 +374,6 @@ class _AboutSectionCardState extends ConsumerState<AboutSectionCard> {
                       endIndent: t.space16,
                       color: cs.outlineVariant.withValues(alpha: 0.18),
                     ),
-                    // Usage analytics opt-out (specs/046 US4) — persisted
-                    // device-globally; the provider applies it to the vendor.
                     const AnalyticsCaptureToggleRow(),
                   ],
                 ),

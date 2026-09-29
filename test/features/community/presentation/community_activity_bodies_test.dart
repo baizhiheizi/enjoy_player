@@ -1,9 +1,3 @@
-// Widget tests for the community activity card summary body.
-//
-// This widget is pure presentation built on top of an `ActiveUsersResponse`
-// payload — covering it gives cheap branch coverage on the long if/else
-// chains (`hasToday`, empty-users fallback, etc.) that aren't otherwise
-// easy to drive from the parent `CommunityActivityCard`.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
@@ -90,7 +84,6 @@ void main() {
       await tester.pumpWidget(
         _harness(SummaryBody(data: data, t: _tokens(), cs: _cs())),
       );
-      // homeNoActiveUsers string from AppLocalizationsEn should render.
       expect(find.byType(SummaryBody), findsOneWidget);
     });
   });
@@ -111,7 +104,6 @@ void main() {
     });
 
     test('skips non-alphanumeric leading characters', () {
-      // Leading emoji / space gets dropped, then "alice" gives "a".
       expect(initials('🎉 alice'), 'a');
     });
 
@@ -198,7 +190,6 @@ void main() {
           AvatarWrap(users: users, totalCount: 3, dense: false, maxShown: 8),
         ),
       );
-      // No "+N" overflow text expected.
       expect(find.textContaining(RegExp(r'^\+\d+$')), findsNothing);
     });
   });

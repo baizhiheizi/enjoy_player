@@ -132,8 +132,6 @@ void main() {
         lang: 'en',
       );
 
-      // Expect that with all-500 mock, the fetcher tries multiple profiles
-      // and eventually returns an error (relying on all failing)
       expect(
         attempts.length,
         greaterThanOrEqualTo(2),
@@ -828,7 +826,6 @@ void main() {
           final ua = request.headers['user-agent'] ?? '';
           if (ua.contains(iosUa)) {
             playerAttempts.add('ios');
-            // First video: IOS has no tracks; ANDROID_VR succeeds.
             if (playerAttempts.where((a) => a == 'ios').length == 1) {
               return http.Response(
                 jsonEncode(_cannedPlayerResponse(tracks: const [])),
@@ -836,7 +833,6 @@ void main() {
                 headers: {'content-type': 'application/json'},
               );
             }
-            // Second video: IOS would succeed, but sticky should skip to VR.
             return http.Response(
               jsonEncode(
                 _cannedPlayerResponse(
@@ -900,7 +896,6 @@ void main() {
       final second = await fetcher.fetchAllSubtitles(videoId: 'vid22222222');
       expect(second.isSuccess, isTrue);
       expect(second.fetchProfile, 'android_vr');
-      // Sticky puts android_vr first — no ios attempt on the second video.
       expect(playerAttempts, ['android_vr']);
     });
   });
@@ -914,10 +909,6 @@ void main() {
         });
 
         final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
-        // Per-profile `_fetchPlayer` throws, but the inner
-        // `try { ... } on Object catch` aggregates into `AllCaptionsResult.error`
-        // so callers see the typed exception via the embedded toString() —
-        // not as a propagated throw.
         final result = await fetcher.fetchAllSubtitles(videoId: 'test1234567');
         expect(result.isSuccess, isFalse);
         expect(result.error, isNotNull);
@@ -941,9 +932,6 @@ void main() {
         });
 
         final fetcher = YoutubeCaptionFetcher(httpClient: mockClient);
-        // The exception is caught inside fetchAllSubtitles (so chained
-        // profiles can still try), but `allResult.error` must reference the
-        // typed exception's `toString()` for log/monitoring correlation.
         final result = await fetcher.fetchAllSubtitles(videoId: 'test1234567');
         expect(result.isSuccess, isFalse);
         expect(result.error, isNotNull);
@@ -1007,8 +995,6 @@ void main() {
         stage: YoutubeCaptionErrorStage.innertubePlayer,
         message: 'x',
       );
-      // Existing `on Object catch` / `on Exception catch` blocks continue to
-      // catch this type without modification.
       expect(ex, isA<Exception>());
       try {
         throw ex;

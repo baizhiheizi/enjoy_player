@@ -41,8 +41,6 @@ void main() {
   });
 
   group('YoutubeSession mount lifecycle', () {
-    // The mount latches live on the session; the engine only forwards them
-    // through warmVideoSurface / teardownAfterClear (issue #630).
     test('requestMount arms the mount without duplicate host ticks', () {
       final session = YoutubeSession();
       expect(session.shouldMountWebView, isFalse);
@@ -92,9 +90,6 @@ void main() {
       expect(session.videoId, isEmpty);
     });
 
-    // The mount waiter is a push from noteWebViewMounted, not a flag poll —
-    // the 40 ms loop used to sit on the awaitSurfaceReady critical path of
-    // every open (issue #661).
     test('awaitWebViewMounted resolves immediately when already mounted', () {
       final session = YoutubeSession()..noteWebViewMounted();
       expect(session.awaitWebViewMounted(), completes);
@@ -121,7 +116,7 @@ void main() {
         final first = session.awaitWebViewMounted();
 
         session.noteWebViewMounted();
-        session.noteWebViewMounted(); // idempotent — must not throw
+        session.noteWebViewMounted();
         await expectLater(first, completes);
 
         session.noteWebViewUnmounted();
@@ -131,7 +126,6 @@ void main() {
         var secondCompleted = false;
         unawaited(second.then((_) => secondCompleted = true));
         await pumpEventQueue();
-        // A stale (already completed) waiter would have resolved this one too.
         expect(secondCompleted, isFalse);
 
         session.noteWebViewMounted();
@@ -144,10 +138,6 @@ void main() {
     testWidgets('a mount resolves awaitSurfaceReady with no poll tick', (
       tester,
     ) async {
-      // Not Linux, so the ADR-0048 opt-out does not short-circuit the wait.
-      // try/finally so the override is cleared *before* the testWidgets
-      // verification check runs (same pattern as the Linux availability
-      // test).
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final session = YoutubeSession();
       final engine = YoutubePlayerEngine(session: session);
@@ -156,8 +146,6 @@ void main() {
         unawaited(engine.awaitSurfaceReady().then((_) => resolved = true));
         session.noteWebViewMounted();
 
-        // One millisecond is less than the old 40 ms poll period: under the
-        // flag-poll this stayed false until a timer tick was pumped.
         await tester.pump(const Duration(milliseconds: 1));
         expect(resolved, isTrue);
       } finally {
@@ -177,8 +165,6 @@ void main() {
         unawaited(engine.awaitSurfaceReady().then((_) => resolved = true));
         await tester.pump();
 
-        // Advance past the 8 s mount ceiling: the wait must give up on its
-        // own instead of hanging the open.
         await tester.pump(const Duration(seconds: 8, milliseconds: 100));
         await tester.pump(const Duration(milliseconds: 1));
         expect(resolved, isTrue);
@@ -320,7 +306,6 @@ void main() {
         session.notePauseStreak(2);
         events.handle(['pause']);
 
-        // Streak must survive so poll confirmation is not delayed.
         expect(session.pausedPollStreak, 2);
         expect(session.volumeRestorePending, isFalse);
         await Future<void>.delayed(const Duration(milliseconds: 120));
@@ -381,8 +366,6 @@ void main() {
 
         session.beginUserPlay();
         events.handle(['playing']);
-        // Armed through the first `playing` — the D8 retry must stay
-        // reachable while playback is still inside the immediate window.
         expect(session.userPlayInFlight, isTrue);
 
         events.handle(['playRejected', 'NotAllowedError']);
@@ -415,9 +398,6 @@ void main() {
   });
 
   group('YoutubePlayerEngine video stage poster gating (issue #662)', () {
-    // The stage mounts the WebView host only when the session asked for a
-    // mount, so these drive the transport latches directly and never mount a
-    // surface (no InAppWebView backend in a unit test).
     Future<void> pumpStage(
       WidgetTester tester,
       YoutubePlayerEngine engine,
@@ -433,8 +413,6 @@ void main() {
           ),
         ),
       );
-      // Past the poster's 220 ms fade-out, so a hidden poster has actually
-      // left the tree rather than sitting there at opacity 0.
       await tester.pump(const Duration(milliseconds: 250));
     }
 
@@ -467,16 +445,12 @@ void main() {
         await pumpStage(tester, engine);
         expect(find.byType(Image), findsOneWidget);
 
-        // The wiring YoutubeWebViewEvents uses on a DOM `playing`: confirm,
-        // mark first playing, then clear buffering.
         session.notePlayingConfirmed();
         session.markFirstPlayingLogged();
         session.emitBuffering(false);
         await pumpStage(tester, engine);
         expect(find.byType(Image), findsNothing);
 
-        // A `waiting` mid-playback used to fade the static thumbnail back
-        // OVER the live video.
         session.emitBuffering(true);
         await pumpStage(tester, engine);
 
@@ -508,9 +482,6 @@ void main() {
       'isImmediatePause tracks the playing episode on the protocol clock',
       () {
         final session = YoutubeSession()..resetForOpen('vid');
-        // Nothing has played, so no pause can be immediate. The window's own
-        // boundary/expiry coverage lives in the retry policy's tests, which
-        // own the monotonic clock it is measured on.
         expect(session.isImmediatePause(), isFalse);
         session.emitPlaying(true);
         expect(session.isImmediatePause(), isTrue);
@@ -520,7 +491,6 @@ void main() {
     test('emitBuffering false then true then false bumps mountTick once', () {
       final session = YoutubeSession()..resetForOpen('vid');
       final tickAfterOpen = session.mountTick.value;
-      // resetForOpen already emitted buffering=true.
       session.emitBuffering(false);
       final tickAfterFirstOff = session.mountTick.value;
       expect(tickAfterFirstOff, greaterThan(tickAfterOpen));

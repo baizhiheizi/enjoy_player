@@ -14,7 +14,6 @@ import 'package:flutter/widgets.dart';
 void runOutsideMouseTracker(VoidCallback action) {
   final binding = WidgetsBinding.instance;
   binding.addPostFrameCallback((_) => action());
-  // Hover-only updates may not otherwise schedule a frame.
   binding.scheduleFrame();
 }
 

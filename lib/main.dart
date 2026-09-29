@@ -33,8 +33,6 @@ Future<void> _bootstrap() async {
   if (!kDebugMode) {
     installReleaseWidgetErrorBuilder();
   }
-  // Device-global settings DB + per-user signed-in DB use separate files and
-  // executors; Drift's runtime "multiple databases" check is a false positive.
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   await Future.wait([
     DiagnosticLogConfig.loadFromDeviceGlobalSettings(),
@@ -46,9 +44,6 @@ Future<void> _bootstrap() async {
   ]);
   _installFrameworkErrorHandlers();
   if (defaultTargetPlatform == TargetPlatform.linux) {
-    // Register the enjoyplayer:// handler so browser OAuth callbacks can
-    // find the running install (AppImage runs / dev builds ship no desktop
-    // entry of their own).
     unawaited(ensureEnjoyplayerSchemeHandler());
   }
   try {
@@ -71,9 +66,6 @@ Future<void> _bootstrap() async {
 
   const root = ProviderScope(child: EnjoyApp());
   Widget app = root;
-  // Windows AXTree sync bug (flutter/flutter#182444): semantics churn from
-  // ListView/Tooltip/etc. floods the console. Per-WebView ExcludeSemantics
-  // alone is not enough; skip semantics in debug/profile on Windows only.
   if (defaultTargetPlatform == TargetPlatform.windows &&
       (kDebugMode || kProfileMode)) {
     app = const ExcludeSemantics(child: root);

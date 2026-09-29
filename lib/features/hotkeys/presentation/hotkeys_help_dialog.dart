@@ -200,7 +200,6 @@ class _HotkeysHelpList extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    // Reserve trailing space so desktop scrollbars do not paint over key caps.
     final trailingPad = t.space16 + 12;
 
     return LayoutBuilder(

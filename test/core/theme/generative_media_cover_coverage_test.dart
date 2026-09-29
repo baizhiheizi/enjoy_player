@@ -118,7 +118,6 @@ void main() {
           ),
         );
 
-        // Verify the widget tree rendered without exceptions.
         expect(find.byType(GenerativeMediaCover), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
@@ -138,7 +137,6 @@ void main() {
       );
       expect(tester.takeException(), isNull);
 
-      // Change seed to force shouldRepaint == true on both painters.
       await tester.pumpWidget(
         const MaterialApp(
           home: SizedBox(
@@ -165,8 +163,6 @@ void main() {
         ),
       );
 
-      // Rebuild with same seed — shouldRepaint should return false for
-      // identical specs but the widget still renders correctly.
       await tester.pumpWidget(
         const MaterialApp(
           home: SizedBox(
@@ -229,7 +225,6 @@ void main() {
       final accents = _seeds
           .map((s) => generativeAccentForSeed(s).toARGB32())
           .toSet();
-      // With 10 diverse seeds we expect more than 1 unique accent.
       expect(accents.length, greaterThan(1));
     });
 
@@ -249,7 +244,6 @@ void main() {
     });
 
     test('offset larger than string length wraps via modulo', () {
-      // Should not throw even with large offsets.
       expect(hashToNumber('ab', 100), isA<int>());
     });
 

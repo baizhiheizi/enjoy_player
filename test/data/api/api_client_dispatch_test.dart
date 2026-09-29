@@ -1,14 +1,3 @@
-// Coverage for branches not exercised by `api_client_auth_test.dart`:
-//
-//   * HTTP method dispatcher in `_dispatch` (PATCH/PUT/DELETE paths)
-//   * 401 refresh-retry (single retry, no infinite loop)
-//   * `camelToSnakeToken` translation for query parameters
-//   * `getJsonList` happy path + non-array body rejection
-//   * `deleteJson` allowEmptyBody ⇒ empty body becomes {}
-//   * `putBytesAbsolute` happy path + non-2xx rejection
-//   * `_decodeResponseBody` short-body path (no compute() call)
-//   * `_throwApiError` covers non-JSON body (falls back to raw body)
-//   * `patchJson` / `putJson` transformBody = true vs false
 import 'dart:convert';
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -106,7 +95,6 @@ void main() {
         final mock = MockClient((request) async {
           attempts++;
           if (attempts == 1) {
-            // First attempt fails with 401.
             return http.Response(jsonEncode({'error': 'expired'}), 401);
           }
           return http.Response(jsonEncode({'ok': true}), 200);
@@ -150,8 +138,6 @@ void main() {
           },
         );
 
-        // Refresh was consulted exactly once, did not loop, and the 401 was
-        // surfaced to the caller as an ApiException.
         Object? caught;
         try {
           await client.getJson('/me');
@@ -331,7 +317,6 @@ void main() {
     test(
       'success-path decode falls back to raw text when response is not JSON',
       () async {
-        // Triggers the "decoded is not a map" branch in _sendMapWithOptionalRefresh.
         final mock = MockClient((_) async {
           return http.Response(
             '"plain string response"',

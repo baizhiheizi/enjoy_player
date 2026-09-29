@@ -149,14 +149,6 @@ class SecureTokenStore {
     await _writeWithDuplicateHeal(key, value);
     if (defaultTargetPlatform != TargetPlatform.linux) return;
 
-    // The Linux backend stores all keys in a single libsecret item and its
-    // D-Bus round-trips can silently misfire under gnome-keyring (observed:
-    // item left with an empty secret and a garbled `xdg:schema` attribute),
-    // so a write that reports success may not be readable back. Verify and
-    // self-heal once; if it still doesn't stick, fail loudly instead of
-    // silently dropping the session. (Empty values are unverifiable because
-    // the backend maps a stored "" back to null — never written here, but
-    // guard anyway so verification can't false-fail.)
     if (value.isEmpty || await _storage.read(key: key) == value) return;
     _log.warning(
       'secure storage write did not stick for "$key"; deleting and retrying',
@@ -188,8 +180,8 @@ class SecureTokenStore {
   }
 
   static bool _isDuplicateKeychainItem(PlatformException e) {
-    const duplicateItemStatus = -25299; // errSecDuplicateItem
-    return e.details == duplicateItemStatus ||
-        (e.message?.contains('$duplicateItemStatus') ?? false);
+    const errSecDuplicateItem = -25299;
+    return e.details == errSecDuplicateItem ||
+        (e.message?.contains('$errSecDuplicateItem') ?? false);
   }
 }

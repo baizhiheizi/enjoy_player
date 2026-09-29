@@ -17,11 +17,7 @@ import 'package:enjoy_player/data/db/settings_keys.dart';
 
 void main() {
   group('settings key placement (device vs user)', () {
-    // Golden table — the encoded two-database rule. Update this table ONLY
-    // together with the scope on the key declaration; the test fails on any
-    // new key that forgets to decide its scope.
     const expectedScopes = <String, SettingsScope>{
-      // Device-global: readable before sign-in, survives account switches.
       'api.base_url': SettingsScope.device,
       'api.ai_base_url': SettingsScope.device,
       'diagnostics.verbose_enabled': SettingsScope.device,
@@ -31,7 +27,6 @@ void main() {
       'update.last_check_at': SettingsScope.device,
       'update.snooze_until': SettingsScope.device,
       'update.snooze_version': SettingsScope.device,
-      // Per-user: follows the signed-in account.
       'prefs.locale': SettingsScope.user,
       'prefs.learning_language': SettingsScope.user,
       'prefs.native_language': SettingsScope.user,
@@ -54,8 +49,6 @@ void main() {
       final declaredNames = SettingsKeys.declaredKeys
           .map((k) => k.name)
           .toSet();
-      // No orphan expectations (a rename that forgets this table shows up
-      // here, not as a silently-passing row).
       expect(expectedScopes.keys.toSet(), declaredNames);
       for (final key in SettingsKeys.declaredKeys) {
         expect(key.scope, expectedScopes[key.name], reason: key.name);
@@ -103,8 +96,6 @@ void main() {
     test(
       'reading a device-scoped key through the per-user DB throws',
       () async {
-        // Previously this silently returned the default/null — the exact bug
-        // class the placement assert exists to surface (issue #722).
         await expectLater(
           deviceDb.settingsDao.readSetting(SettingsKeys.apiBaseUrl),
           completes,
@@ -126,9 +117,6 @@ void main() {
     test(
       'reading a user-scoped key through a device-global-named DB warns but does not throw',
       () {
-        // In-memory test DBs default to the device-global file name while
-        // legitimately impersonating both roles, so this direction is
-        // deliberately not fatal — documented on SettingsDao._assertPlacement.
         expect(
           deviceDb.settingsDao.readSetting(SettingsKeys.prefsLocale),
           completion(isNull),
@@ -155,7 +143,6 @@ void main() {
           ),
           isFalse,
         );
-        // Legacy/garbage values cannot silently flip a documented opt-out.
         await deviceDb.settingsDao.setValue(
           SettingsKeys.analyticsCaptureEnabled.name,
           'yes',
@@ -254,8 +241,6 @@ void main() {
         SettingsKeys.playerPreferencesV1.name,
         '{not json',
       );
-      // Corrupt blobs throw; consumers (player prefs hydrate) catch this and
-      // fall back to defaults — same contract as the inline jsonDecode.
       await expectLater(
         userDb.settingsDao.readSetting(SettingsKeys.playerPreferencesV1),
         throwsFormatException,
@@ -284,7 +269,6 @@ void main() {
         '2026-01-01T00:00:00Z',
       );
       expect(SettingsKeys.isKnown(cursor.name), isTrue);
-      // The cooldown family decodes as date-time.
       final cooldown = SettingsKeys.syncLastPullAtRecordingTargets.keyFor(
         'Video.m-1',
       );

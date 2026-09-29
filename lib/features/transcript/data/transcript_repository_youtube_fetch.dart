@@ -51,10 +51,6 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
     final videoLanguage = video.language.trim();
     final workerLanguage = _workerCaptionLanguage(video);
 
-    // Tier 1: Worker GET cache (skip when forcing a refresh OR when the
-    // video has no usable content language to query with). A missing
-    // worker language is *not* a reason to abort the chain — Tier 2 will
-    // still run and discover every available caption language.
     if (!force && workerLanguage != null) {
       _log.info(
         'YouTube Tier 1 (worker cache) GET '
@@ -102,7 +98,6 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
       );
     }
 
-    // Tier 2: Client-side direct YouTube fetch — download all tracks.
     final fetcher = _youtubeFetcher;
     if (fetcher == null) {
       _log.warning(
@@ -113,9 +108,6 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
       );
     }
 
-    // InnerTube always discovers every language. When `videos.language`
-    // is unknown we pass an empty preferredLang so no track is artificially
-    // ranked first and every available language is still returned.
     final preferredLang = workerLanguage ?? '';
     final allResult = await fetcher.fetchAllSubtitles(
       videoId: workerVideoId,

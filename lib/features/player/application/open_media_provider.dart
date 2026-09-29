@@ -15,15 +15,12 @@ final openMediaActionProvider = FutureProvider.autoDispose.family<void, String>(
       openMediaLaunchProvider(PlayerLaunchRequest(mediaId: mediaId)).future,
     );
   },
-  // Relocate / missing-file errors are expected UX — do not exponential-retry
-  // (Riverpod 3 default) or LocateMediaScreen never settles.
   retry: null,
 );
 
 /// Full launch pipeline: open → readiness → optional seek/clip → autoplay.
 final openMediaLaunchProvider = FutureProvider.autoDispose
     .family<void, PlayerLaunchRequest>((ref, request) async {
-      // Yield so notifier mutations are not attributed to FutureProvider mount.
       await Future<void>.delayed(Duration.zero);
 
       final player = ref.read(playerControllerProvider.notifier);
@@ -39,10 +36,6 @@ final openMediaLaunchProvider = FutureProvider.autoDispose
         await player.openMedia(request.mediaId);
       }
 
-      // Leaving the player mid-launch runs clearLivePlaybackSessionIfNeeded,
-      // whose clear() bumps the open generation. YouTube readiness can block
-      // for seconds, so every step after openMedia re-checks and bails instead
-      // of driving seek/play into the cleared engine (#654).
       final gen = player.openGeneration;
 
       await player.activeEngine.awaitSurfaceReady();

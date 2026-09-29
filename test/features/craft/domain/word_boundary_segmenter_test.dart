@@ -43,9 +43,6 @@ void main() {
     });
 
     test('attaches standalone clause punctuation to previous word', () {
-      // Azure emits clause punctuation as standalone tokens (see contract
-      // azure-speech-word-boundaries.md). They must merge so joined text reads
-      // "three," not "three ," (FR-007).
       final merged = mergePunctuationTokens([
         wb(0, 300, 'Hello'),
         wb(300, 40, ','),
@@ -54,7 +51,7 @@ void main() {
       expect(merged, hasLength(2));
       expect(merged[0].text, 'Hello,');
       expect(merged[0].audioOffsetMs, 0);
-      expect(merged[0].durationMs, 340); // extends to comma's release
+      expect(merged[0].durationMs, 340);
       expect(merged[1].text, 'world');
     });
 
@@ -139,14 +136,13 @@ void main() {
     });
 
     test('silence between lines is not included in a line duration', () {
-      // word A 0–300; word B 500–800 (200ms gap); sentence end.
       final segments = segmentWordBoundaries([
         wb(0, 300, 'A.'),
         wb(500, 300, 'B.'),
       ]);
       expect(segments, hasLength(2));
       expect(segments[0].startMs, 0);
-      expect(segments[0].durationMs, 300); // stops at A's release, not B.
+      expect(segments[0].durationMs, 300);
       expect(segments[1].startMs, 500);
       expect(segments[1].durationMs, 300);
     });
@@ -154,9 +150,6 @@ void main() {
     test(
       'merges standalone fragments shorter than minLineMs within a sentence',
       () {
-        // A long sentence that splits, leaving a short trailing word fragment
-        // (< minLineMs 1200) that merges back into the prior line.
-        // 7 words spanning ~7700ms forces a split; the last word alone is < 1200ms.
         final segments = segmentWordBoundaries([
           wb(0, 1000, 'one'),
           wb(1100, 1000, 'two'),
@@ -166,7 +159,6 @@ void main() {
           wb(5500, 1000, 'six'),
           wb(6600, 100, 'seven.'),
         ]);
-        // The short 'seven.' fragment must have merged — no standalone < 1200ms line.
         for (final s in segments) {
           expect(s.durationMs, greaterThanOrEqualTo(1200));
         }
@@ -176,9 +168,6 @@ void main() {
 
   group('segmentWordBoundaries — shadow-friendly sizing (FR-003/FR-004)', () {
     test('splits a long sentence so no line exceeds hardMaxMs', () {
-      // 7 words × ~1100ms = ~7700ms total — exceeds softMax (6000), forcing
-      // a split. The trailing word is too short to merge back (would exceed
-      // hardMax 7000), so it stays as its own short line.
       final segments = segmentWordBoundaries([
         wb(0, 1000, 'one'),
         wb(1100, 1000, 'two'),
@@ -197,28 +186,22 @@ void main() {
     test(
       'prefers largest silence gap when no clause punctuation is present',
       () {
-        // A long unpunctuated sentence with a big pause after word 3.
-        // Total span > 6000 to force a split; the largest gap wins.
         final segments = segmentWordBoundaries([
           wb(0, 500, 'one'),
           wb(600, 500, 'two'),
           wb(1200, 500, 'three'),
-          // 2300ms gap here — the largest natural pause.
           wb(4000, 500, 'four'),
           wb(4600, 500, 'five'),
           wb(5200, 500, 'six'),
           wb(5800, 500, 'seven.'),
         ]);
         expect(segments.length, greaterThanOrEqualTo(2));
-        // The first line should end at 'three' (the gap break).
         expect(segments.first.text, contains('three'));
         expect(segments.last.text, contains('four'));
       },
     );
 
     test('merges standalone fragments shorter than minLineMs', () {
-      // A single short word (well under minLineMs 1200) stays as one line
-      // because there's no neighbor — but the gate still emits it when solid.
       final segments = segmentWordBoundaries([wb(0, 100, 'hi.')]);
       expect(segments, hasLength(1));
       expect(segments.first.text, 'hi.');
@@ -244,8 +227,6 @@ void main() {
 
   group('segmentWordBoundaries — clause punctuation (FR-005)', () {
     test('Latin clause marks are preferred break points', () {
-      // A single long sentence (> softMax 6000) with an internal comma;
-      // the split should land at the comma (clause break priority).
       final segments = segmentWordBoundaries([
         wb(0, 1000, 'one'),
         wb(1100, 1000, 'two'),
@@ -258,14 +239,10 @@ void main() {
       for (final s in segments) {
         expect(s.text.trim().startsWith(RegExp(r'[,;:]')), isFalse);
       }
-      // The comma-bearing word ends a line (clause break honored).
       expect(segments.any((s) => s.text.contains(',')), isTrue);
     });
 
     test('standalone Azure clause tokens merge cleanly (no " ," spacing)', () {
-      // Real Azure shape: clause punctuation arrives as its own token
-      // (contract azure-speech-word-boundaries.md). The segmenter must
-      // attach it so joined text reads "three," not "three ,".
       final segments = segmentWordBoundaries([
         wb(0, 1000, 'one'),
         wb(1100, 1000, 'two'),
@@ -281,8 +258,6 @@ void main() {
     });
 
     test('CJK full-width clause punctuation (、，；：) guides breaks', () {
-      // language: zh-CN — CJK path. A single long sentence (> softMax 6000)
-      // with full-width clause commas (，); the split lands at a clause mark.
       final segments = segmentWordBoundaries([
         wb(0, 1000, '我'),
         wb(1100, 1000, '早上'),
@@ -293,11 +268,9 @@ void main() {
         wb(6600, 1000, '去上班。'),
       ], language: 'zh-CN');
       expect(segments.length, greaterThanOrEqualTo(2));
-      // No line begins with punctuation.
       for (final s in segments) {
         expect(isPunctuationOnlyToken(s.text), isFalse);
       }
-      // At least one line ends at a clause comma (not the sentence period).
       expect(segments.any((s) => s.text.endsWith('，')), isTrue);
     });
 
@@ -332,8 +305,6 @@ void main() {
           wb(1000, 400, 'great.'),
         ];
         final segments = segmentWordBoundaries(crafted);
-        // Joining the crafted words with spaces must reproduce the segment text
-        // (modulo sentence grouping). This proves no ASR substitution happens.
         final craftedJoined = crafted.map((w) => w.text).join(' ').trim();
         final segmentsJoined = segments.map((s) => s.text).join(' ').trim();
         expect(segmentsJoined, craftedJoined);
@@ -372,7 +343,6 @@ void main() {
       expect(json, isNotNull);
       final decoded = jsonDecode(json!) as List<dynamic>;
       expect(decoded, hasLength(1));
-      // Spaceless CJK join — no space between tokens.
       expect(decoded.first['text'], '你好。');
     });
   });

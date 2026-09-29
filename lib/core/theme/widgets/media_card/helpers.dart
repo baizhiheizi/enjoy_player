@@ -143,7 +143,6 @@ SliverGridDelegate mediaCardTileGridDelegateForMinTileWidth({
   double crossAxisSpacing = 12,
   int maxCrossAxisCount = 6,
 }) {
-  // Phones: two compact columns read better than one oversized 16:9 hero.
   final effectiveMin = crossAxisExtent < 520 ? 150.0 : minTileWidth;
   final crossAxisCount = (crossAxisExtent / effectiveMin).floor().clamp(
     1,

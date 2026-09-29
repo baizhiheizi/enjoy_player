@@ -180,14 +180,12 @@ void main() {
         ),
       );
 
-      // Second request is a no-op (cached).
       ctrl.requestTranslateLine(0);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(fake.calls, ['Hello']);
     });
 
     test('reuses same-key translation without a second API call', () async {
-      // Fresh media with two identical primary cues.
       const mediaDup = 'media-at-dup';
       final now = DateTime.now();
       await db.videoDao.insertRow(
@@ -343,8 +341,6 @@ void main() {
     });
 
     test('waiting queue prefers lines near playback highlight', () async {
-      // Highlight already at mid cue: early in-flight work may start, but the
-      // waiting queue should drain the viewport line next.
       container.dispose();
       container = ProviderContainer(
         overrides: [

@@ -39,7 +39,6 @@ void main() {
             entityId: 'v-txn',
             action: 'delete',
           );
-          // Mirror production: kick drain from inside the ambient txn Zone.
           Zone.root.run(() {
             unawaited(
               Future<void>.delayed(Duration.zero, () async {
@@ -79,7 +78,6 @@ void main() {
             entityId: 'v-bug',
             action: 'delete',
           );
-          // Anti-pattern that previously ran from enqueuePendingSync.
           unawaited(() async {
             try {
               await Future<void>.delayed(Duration.zero);
@@ -93,7 +91,6 @@ void main() {
         });
 
         await drainDone.future;
-        // Drift surfaces closed-txn differently for memory vs remote executors.
         expect(
           drainError,
           isNotNull,
@@ -198,8 +195,6 @@ void main() {
           ),
         );
 
-        // Create enqueued after delete (re-import), but create has earlier
-        // createdAt so naive oldest-first would POST first without sort.
         await queue.addOrUpsert(
           entityType: 'video',
           entityId: 'vid-same',
@@ -345,7 +340,6 @@ void main() {
           scheduleSyncQueueDrain(engine);
         });
 
-        // Allow Duration.zero drain + processQueue to finish.
         await Future<void>.delayed(const Duration(milliseconds: 50));
         for (var i = 0; i < 20; i++) {
           if ((await queue.pendingItems()).isEmpty) break;

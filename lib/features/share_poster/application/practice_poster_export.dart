@@ -34,7 +34,6 @@ Future<Uint8List?> captureRepaintBoundaryPng(
     final renderObject = boundaryKey.currentContext?.findRenderObject();
     if (renderObject is! RenderRepaintBoundary) return null;
 
-    // Yield so the pipeline can finish painting before rasterize.
     await Future<void>.delayed(Duration.zero);
 
     try {

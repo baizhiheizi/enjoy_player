@@ -47,7 +47,6 @@ void main() {
     });
 
     test('respects end boundary (cannot go past lineCount-1)', () {
-      // 20 lines, seed=17, radius=3 → forward is min(3, 19-17)=2 → end=19.
       final r = expandContextLines(17, 17, 20);
       expect(r.startArrayIndex, 14);
       expect(r.endArrayIndex, 19);
@@ -66,7 +65,6 @@ void main() {
     });
 
     test('respects the available distance at end of transcript', () {
-      // 20 lines, seed=15, radius=3 → forward is min(3, 19-15)=3 → end=18.
       final r = expandContextLines(15, 15, 20);
       expect(r.startArrayIndex, 12);
       expect(r.endArrayIndex, 18);
@@ -111,7 +109,7 @@ void main() {
       final r = resolveVocabularyContextSpan(
         lines: [_line('hello world')],
         echo: EchoState.inactive,
-        currentTimeSeconds: -100, // before any cue
+        currentTimeSeconds: -100,
         primaryLanguage: 'en',
       );
       expect(r, isNull);
@@ -140,7 +138,7 @@ void main() {
       final r = resolveVocabularyContextSpan(
         lines: lines,
         echo: EchoState.inactive,
-        currentTimeSeconds: 1.0, // inside second line
+        currentTimeSeconds: 1.0,
         primaryLanguage: 'en',
       );
       expect(r, isNotNull);
@@ -188,8 +186,6 @@ void main() {
         currentTimeSeconds: 0.5,
         primaryLanguage: 'en',
       );
-      // Echo single-sentence falls through to the bounded seed path; we
-      // accept any non-null result that does not return the single echo line.
       expect(r, isNotNull);
     });
 
@@ -202,15 +198,14 @@ void main() {
         lines: lines,
         echo: const EchoState(
           active: true,
-          startLineIndex: -1, // invalid
-          endLineIndex: 5, // also out of range
+          startLineIndex: -1,
+          endLineIndex: 5,
           startTimeSeconds: 0,
           endTimeSeconds: 1.0,
         ),
         currentTimeSeconds: 0.5,
         primaryLanguage: 'en',
       );
-      // echoValid=false, seedIdx falls back to activeIdx (0).
       expect(r, isNotNull);
       expect(r!.text, 'First line here.');
     });
@@ -232,7 +227,6 @@ void main() {
         currentTimeSeconds: -100,
         primaryLanguage: 'en',
       );
-      // Active = -1, seed falls back to echo.startLineIndex = 0.
       expect(r, isNotNull);
     });
   });

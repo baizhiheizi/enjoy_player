@@ -1,10 +1,3 @@
-// Coverage for lib/features/credits/presentation/credits_usage_screen.dart.
-//
-// We override the auth state provider (AuthCtrl), the filters controller,
-// and the credits API provider to drive the screen through its various
-// states: signed-out, loading, signed-in data, error, empty, filter clear,
-// pagination, and responsive wide layout.
-
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
@@ -117,7 +110,6 @@ void main() {
   testWidgets('loading state renders skeleton list', (tester) async {
     final stub = _StubCreditsApi(_fakeApiClient());
     await tester.pumpWidget(_wrap(stub: stub, auth: const AuthSignedOut()));
-    // Switch auth to loading by replacing the scope.
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
   });
@@ -158,7 +150,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
-    // Required / usedBefore / usedAfter columns all render their values.
     expect(find.text('10'), findsOneWidget);
     expect(find.text('100'), findsOneWidget);
     expect(find.text('110'), findsOneWidget);
@@ -191,7 +182,6 @@ void main() {
     await tester.tap(find.byType(DropdownButtonFormField<String>));
     await tester.pumpAndSettle();
 
-    // At least one of the service type labels should appear in the menu.
     final textWidgets = tester
         .widgetList<Text>(find.byType(Text))
         .map((t) => t.data ?? '');

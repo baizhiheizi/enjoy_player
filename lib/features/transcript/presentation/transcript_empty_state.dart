@@ -66,7 +66,6 @@ class TranscriptEmptyState extends StatelessWidget {
         ? l10n.noTranscriptHintRemote
         : (_hasActions ? l10n.noTranscriptHint : l10n.noTranscriptHintRemote);
 
-    // Primary local spotlight: Extract when available, else Add subtitle.
     final wrapExtract = showExtractButton && onExtract != null;
     final wrapImport = showImportButton && !wrapExtract;
 

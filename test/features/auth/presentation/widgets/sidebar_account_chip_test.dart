@@ -203,7 +203,6 @@ void main() {
     expect(find.text('Reader'), findsOneWidget);
     expect(find.text('Pro'), findsNothing);
     expect(find.byType(EnjoyAvatar), findsOneWidget);
-    // Upgrade button when free tier
     expect(find.text('Upgrade'), findsOneWidget);
   });
 
@@ -351,8 +350,6 @@ void main() {
         ),
       ),
     );
-    // One pump to attach. The LoadingIcon's CircularProgressIndicator is
-    // animated, so pumpAndSettle would hang.
     await tester.pump();
 
     expect(find.byType(LoadingIcon), findsOneWidget);
@@ -395,7 +392,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(EnjoyAvatar), findsOneWidget);
-    // Update dot exists
     expect(find.byType(Stack), findsWidgets);
   });
 
@@ -434,8 +430,6 @@ void main() {
 
     final upgradeFinder = find.text('Upgrade');
     expect(upgradeFinder, findsOneWidget);
-    // Tap the center of the upgrade text widget — the InkWell inside the
-    // upgrade button captures the gesture before the row's onTap.
     await tester.tap(upgradeFinder);
     await tester.pumpAndSettle();
 

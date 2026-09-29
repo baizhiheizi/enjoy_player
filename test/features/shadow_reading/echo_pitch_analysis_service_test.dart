@@ -78,7 +78,6 @@ void main() {
         startSec: 0,
         endSec: 1,
       );
-      // Let the pipeline register the first token.
       await Future<void>.delayed(Duration.zero);
       expect(pipeline.segmentTokens, hasLength(1));
       expect(pipeline.segmentTokens.first.isCancelled, isFalse);
@@ -89,13 +88,9 @@ void main() {
         endSec: 2,
       );
 
-      // The first request resolves to null (superseded) and its token was
-      // genuinely cancelled — i.e. the FFmpeg process would be killed, not
-      // merely have its result ignored.
       expect(await first, isNull);
       expect(pipeline.segmentTokens.first.isCancelled, isTrue);
 
-      // Allow the second request to finish cleanly.
       pipeline.segmentCompleters.last.complete(_result());
       final secondResult = await second;
       expect(secondResult, isNotNull);
@@ -129,7 +124,6 @@ void main() {
         final pipeline = _RecordingPipeline();
         final svc = EchoPitchAnalysisService(pipeline: pipeline);
 
-        // First call runs the pipeline.
         final first = svc.analyzeReference(
           mediaPath: 'a.mp3',
           startSec: 1,
@@ -139,7 +133,6 @@ void main() {
         pipeline.segmentCompleters.last.complete(_result());
         await first;
 
-        // Second call with the same key must hit the cache (no new token).
         final second = await svc.analyzeReference(
           mediaPath: 'a.mp3',
           startSec: 1,

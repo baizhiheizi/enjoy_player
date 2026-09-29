@@ -35,7 +35,6 @@ void main() {
 
   Future<void> pumpScreen(WidgetTester tester) async {
     await tester.pumpWidget(harness());
-    // Stream + first frame; avoid pumpAndSettle (Drift close timers / tab anim).
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
   }
@@ -78,7 +77,6 @@ void main() {
 
     expect(find.text('No words yet'), findsNothing);
     expect(find.text('Total'), findsNothing);
-    // Due badge on Review tab + large due count on Review CTA.
     expect(find.text('1'), findsWidgets);
 
     await tester.tap(find.byTooltip('Show status breakdown'));

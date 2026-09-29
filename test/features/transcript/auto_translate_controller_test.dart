@@ -895,8 +895,6 @@ void main() {
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
 
-      // Pre-subscribe to stream providers so they emit before the notifier
-      // reads their .value synchronously during build().
       container.listen(secondaryTranscriptIdProvider(mediaId), (_, _) {});
       container.listen(activeTranscriptIdProvider(mediaId), (_, _) {});
       await Future<void>.delayed(const Duration(milliseconds: 100));

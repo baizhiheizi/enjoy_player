@@ -39,7 +39,6 @@ void main() {
     });
 
     test('exposes an immutable list (cannot be modified by callers)', () {
-      // The list is declared `const` so it must be unmodifiable at runtime.
       expect(
         () => kCreditsUsageServiceTypeValues.add('mutation-attempt'),
         throwsUnsupportedError,
@@ -48,11 +47,6 @@ void main() {
   });
 
   group('pickCreditsUsageDate — supporting logic', () {
-    // `pickCreditsUsageDate` is a thin wrapper around `showDatePicker` plus
-    // a YMD string formatter. Driving the platform picker from a widget test
-    // requires Material Localizations plumbing that is heavy for the small
-    // ROI. Instead, exercise the supporting logic that the function relies on
-    // (ISO YMD parsing + formatter) directly.
     test('parses ISO YMD strings via DateTime.tryParse semantics', () {
       final parsed = DateTime.tryParse('2026-04-15');
       expect(parsed, isNotNull);
@@ -60,8 +54,6 @@ void main() {
       expect(parsed.month, 4);
       expect(parsed.day, 15);
 
-      // Invalid input is null (function would fall back to DateTime.now()
-      // in the production code path).
       expect(DateTime.tryParse('not-a-date'), isNull);
     });
 
@@ -72,8 +64,6 @@ void main() {
     });
 
     test('firstDate / lastDate clamps build the expected range', () {
-      // Production code uses `DateTime.utc(2020)` and
-      // `DateTime.utc(now.year + 1, 12, 31)`.
       final first = DateTime.utc(2020);
       final now = DateTime.now();
       final last = DateTime.utc(now.year + 1, 12, 31);
@@ -95,7 +85,6 @@ class _StubL10n implements AppLocalizations {
   static const String llm = 'Large language model';
   static const String assessment = 'Assessment';
 
-  // Properties that match the strings the production code looks up.
   @override
   String get creditsServiceTypeTts => tts;
   @override
@@ -107,8 +96,6 @@ class _StubL10n implements AppLocalizations {
   @override
   String get creditsServiceTypeAssessment => assessment;
 
-  // All other properties are unused by the test target. They throw so any
-  // accidental use is loud rather than silent.
   @override
   dynamic noSuchMethod(Invocation invocation) {
     throw UnimplementedError(

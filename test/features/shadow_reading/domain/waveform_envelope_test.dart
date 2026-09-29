@@ -18,7 +18,6 @@ void main() {
     });
 
     test('produces correct number of points for peak envelope', () {
-      // 1000 samples at 1000 Hz = 1 second, request 10 points.
       final samples = Float32List(1000);
       for (var i = 0; i < 1000; i++) {
         samples[i] = 0.5;
@@ -39,13 +38,12 @@ void main() {
         expect(pt.amp, greaterThanOrEqualTo(0.0));
         expect(pt.amp, lessThanOrEqualTo(1.0));
       }
-      // The max sample (1.0) should produce amp=1.0.
       final maxAmp = result.map((p) => p.amp).reduce((a, b) => a > b ? a : b);
       expect(maxAmp, closeTo(1.0, 1e-9));
     });
 
     test('time values span [0, duration]', () {
-      final samples = Float32List(2000); // 2 seconds at 1000 Hz.
+      final samples = Float32List(2000);
       for (var i = 0; i < 2000; i++) {
         samples[i] = 0.3;
       }
@@ -64,7 +62,6 @@ void main() {
         enhanceContrast: false,
       );
       expect(result, isNotEmpty);
-      // All samples equal → RMS = 0.5, normalized to 1.0.
       for (final pt in result) {
         expect(pt.amp, closeTo(1.0, 1e-6));
       }
@@ -80,7 +77,6 @@ void main() {
         enhanceContrast: false,
       );
       expect(result, isNotEmpty);
-      // Hybrid = 0.6*peak + 0.4*rms. All values should be positive.
       for (final pt in result) {
         expect(pt.amp, greaterThan(0.0));
         expect(pt.amp, lessThanOrEqualTo(1.0));
@@ -88,7 +84,6 @@ void main() {
     });
 
     test('enhanceContrast applies sqrt and dampens quiet parts', () {
-      // One loud sample and one very quiet sample.
       final samples = Float32List.fromList([1.0, 0.001]);
       final withContrast = computePeakEnvelope(
         samples,
@@ -102,13 +97,8 @@ void main() {
         points: 2,
         enhanceContrast: false,
       );
-      // With contrast: sqrt(0.001)≈0.0316, which is <0.1 so dampened *0.5≈0.0158.
-      // Without contrast: 0.001.
-      // sqrt boosts quiet parts but dampening applies, overall the loud part
-      // stays at 1.0 in both cases.
       expect(withContrast[0].amp, closeTo(1.0, 1e-9));
       expect(withoutContrast[0].amp, closeTo(1.0, 1e-9));
-      // The quiet part with contrast: sqrt(0.001)*0.5 ≈ 0.0158.
       expect(withContrast[1].amp, lessThan(0.05));
     });
 
@@ -117,7 +107,6 @@ void main() {
       for (var i = 0; i < 100; i++) {
         samples[i] = 0.5;
       }
-      // Request 2 points → clamped to 8.
       final result = computePeakEnvelope(samples, 100, points: 2);
       expect(result.length, greaterThanOrEqualTo(8));
     });
@@ -126,7 +115,6 @@ void main() {
       final samples = Float32List.fromList([0.8]);
       final result = computePeakEnvelope(samples, 1, points: 8);
       expect(result, isNotEmpty);
-      // Single bucket → t=0.
       expect(result.first.t, 0.0);
     });
   });

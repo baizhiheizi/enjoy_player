@@ -73,22 +73,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Dialog title
       expect(find.text('Manage channels'), findsOneWidget);
 
-      // Recommended section heading
       expect(find.text('Recommended'), findsOneWidget);
 
-      // Subscribe action button
       expect(find.text('Subscribe'), findsOneWidget);
 
-      // Your channels heading
       expect(find.text('Your channels'), findsOneWidget);
 
-      // Subscription row shows channel name
       expect(find.text('TED'), findsOneWidget);
 
-      // Close button present in dialog mode
       expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     });
 
@@ -110,7 +104,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Empty hint text
       expect(
         find.text('Subscribe to a recommended channel or paste a channel URL.'),
         findsOneWidget,
@@ -175,13 +168,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Sheet title
       expect(find.text('Manage channels'), findsOneWidget);
 
-      // Recommended heading
       expect(find.text('Recommended'), findsOneWidget);
 
-      // Your channels heading
       expect(find.text('Your channels'), findsOneWidget);
     });
   });

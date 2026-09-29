@@ -65,7 +65,6 @@ class ProfileHeroCard extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Aurora ring avatar.
               Container(
                 padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(

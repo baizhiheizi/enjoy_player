@@ -35,8 +35,6 @@ void main() {
       final resolved = await container.read(aiApiBaseUrlProvider.future);
 
       expect(resolved, 'https://worker.enjoy.bot');
-      // Guard against re-introducing the regression that followed the
-      // public API origin instead of the worker origin.
       expect(resolved, isNot('https://enjoy.bot'));
     },
   );
@@ -55,12 +53,10 @@ void main() {
   test(
     'clearOverride removes the row and rebuilds to the worker default',
     () async {
-      // Seed an override so we have something to clear.
       await db.settingsDao.setValue(
         SettingsKeys.apiAiBaseUrl.name,
         'https://ai-staging.example.com',
       );
-      // Eagerly resolve to force the override to be picked up by build().
       expect(
         await container.read(aiApiBaseUrlProvider.future),
         'https://ai-staging.example.com',
@@ -68,15 +64,11 @@ void main() {
 
       await container.read(aiApiBaseUrlProvider.notifier).clearOverride();
 
-      // The persisted row must actually be deleted (not just nulled) —
-      // see `SettingsDao.deleteValue`'s contract on `abcdee4`.
       expect(
         await db.settingsDao.getValue(SettingsKeys.apiAiBaseUrl.name),
         isNull,
       );
 
-      // Force the provider to rebuild so we exercise the no-override branch
-      // of `build()` rather than the cached state set by `clearOverride`.
       container.invalidate(aiApiBaseUrlProvider);
 
       final resolved = await container.read(aiApiBaseUrlProvider.future);

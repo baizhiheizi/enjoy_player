@@ -1,15 +1,3 @@
-// Regression test for the player-exit UI freeze.
-//
-// A floating AppNotice alive across a player-route exit used to trip the
-// "Floating SnackBar presented off screen" layout assert on the shell
-// Scaffold: EnjoyBottomNav expanded to the full screen height inside the
-// bottomNavigationBar slot, so the scaffold's contentBottom collapsed to 0
-// and any floating SnackBar was un-fittable. The thrown assert aborts the
-// frame before paint, and with the exit transition + loading skeleton
-// rescheduling frames the UI froze on the player page (black 16:9 stage).
-//
-// This exercises the real RootShell: enter /player/:id with a live session,
-// show a notice, then exit (clear() then pop()) — no snackbar layout error.
 library;
 
 import 'dart:async';
@@ -170,8 +158,6 @@ void main() {
     required GoRouter router,
     required List<Override> overrides,
   }) async {
-    // Consistent view metrics (logical 392.7x850.9 @ dpr 3, gesture-inset
-    // bottom) — a mismatched setSurfaceSize desyncs MediaQuery.fromView.
     tester.view.physicalSize = const Size(392.7 * 3, 850.9 * 3);
     tester.view.devicePixelRatio = 3;
     tester.view.padding = const FakeViewPadding(
@@ -258,18 +244,16 @@ void main() {
       addTearDown(router.dispose);
       await pumpShell(tester, router: router, overrides: overrides);
 
-      // A notice is shown on the home shell and stays alive (3s duration).
       await tester.tap(find.text('show-notice'));
-      await tester.pump(); // notice post-frame callback
-      await tester.pump(const Duration(milliseconds: 250)); // entrance
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
 
-      // Enter the player, then exit while the notice is still presented.
       unawaited(router.push('/player/$_kMediaId'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('exit-player'));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300)); // reverse fade
+      await tester.pump(const Duration(milliseconds: 300));
 
       final offScreen = errors.where(
         (e) => '${e.exception}'.contains('Floating SnackBar'),
@@ -285,7 +269,6 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('exit probe notice'), findsOneWidget);
 
-      // The notice must also be on screen, not just error-free.
       final box = tester.renderObject<RenderBox>(find.byType(SnackBar));
       expect(box.localToGlobal(Offset.zero).dy, greaterThanOrEqualTo(0));
       expect(router.routerDelegate.currentConfiguration.uri.path, '/');

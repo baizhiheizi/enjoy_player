@@ -99,19 +99,15 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Last sync label shows "never" when null.
       expect(find.text(l10n.syncScreenLastSyncLabel), findsOneWidget);
       expect(find.text(l10n.syncScreenLastSyncNever), findsOneWidget);
 
-      // Queue stats show zeros.
       expect(find.text(l10n.syncScreenStatRetryable), findsOneWidget);
       expect(find.text(l10n.syncScreenStatFailed), findsOneWidget);
       expect(find.text('0'), findsNWidgets(2));
 
-      // Sync now button is present.
       expect(find.text(l10n.syncScreenSyncNow), findsOneWidget);
 
-      // Retry failed button is present but disabled (0 failed).
       expect(find.text(l10n.syncScreenRetryFailed), findsOneWidget);
 
       expect(tester.takeException(), isNull);
@@ -143,9 +139,7 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Should NOT show "never" when a timestamp is available.
       expect(find.text(l10n.syncScreenLastSyncNever), findsNothing);
-      // The formatted date should contain the year.
       expect(find.textContaining('2025'), findsOneWidget);
 
       expect(tester.takeException(), isNull);
@@ -194,14 +188,11 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Non-zero counts displayed.
       expect(find.text('3'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
 
-      // Expansion tile for queue details.
       expect(find.text(l10n.syncQueueDetails), findsOneWidget);
 
-      // Expand the tile to see detail rows.
       await tester.tap(find.text(l10n.syncQueueDetails));
       await tester.pumpAndSettle();
 
@@ -235,7 +226,6 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Expand the details tile.
       await tester.tap(find.text(l10n.syncQueueDetails));
       await tester.pumpAndSettle();
 
@@ -267,7 +257,6 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Retry button should be enabled (find the OutlinedButton).
       final retryButton = tester.widget<OutlinedButton>(
         find.ancestor(
           of: find.text(l10n.syncScreenRetryFailed),

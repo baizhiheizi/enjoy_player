@@ -134,7 +134,6 @@ void main() {
     });
 
     test('interval uses increased ease * 1.5', () {
-      // round(2 * 2.5 * 1.5) = 8
       expect(
         review(
           interval: 2,

@@ -182,8 +182,6 @@ void main() {
       });
 
       test('non-map body typed as Map<dynamic, dynamic> yields nulls', () {
-        // decodeJsonToCamel always yields Map<String, dynamic> for JSON
-        // objects, but guard against other Map types reaching the parser.
         final failure = CreditsFailure.fromApiException(
           const ApiException(
             message: 'HTTP 402',

@@ -1,13 +1,3 @@
-// Tests for the two tab bodies in `local_library_tab_view.dart`:
-// `LocalAudioLibraryBody` and `LocalVideoLibraryBody`.
-//
-// The bodies branch on `(items.isEmpty, searchQuery.isNotEmpty,
-// totalInLibraryOfKind > 0)` to choose one of three views:
-//   * Empty + no filter → library-empty title/hint
-//   * Empty + filter active → search-no-matches title/hint (with Clear action)
-//   * Non-empty → ListView (audio) / GridView (video) of `LocalAudioRow` /
-//     `LocalVideoTile` (we don't exercise the row/tile internals here; that
-//     requires a ProviderScope + repository/auth overrides).
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/presentation/widgets/local_library_tab_view.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -117,7 +107,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The row title is rendered by MediaCardRow.
       expect(find.text('Track'), findsOneWidget);
     });
   });
@@ -176,7 +165,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Title text reaches the MediaCardTile subtree.
       expect(find.text('Clip'), findsOneWidget);
     });
   });

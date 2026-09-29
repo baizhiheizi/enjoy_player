@@ -1,15 +1,3 @@
-// Pure-helper coverage for lib/features/transcript/presentation/subtitle_track_picker_helpers.dart.
-//
-// The file holds:
-//   * a tiny enum + a max-height constant
-//   * `sheetHorizontalPadding`, `trackOptionPadding` — token math
-//   * `trackPickerRadioTheme` — ThemeData builder
-//   * `trackLabel`, `findTrack` — track metadata lookups
-//   * `providerLabel`, `providerBadgeColors` — source-switch tables
-//
-// Most of these are exercised transitively by widget tests. We pin them
-// directly so the contracts (e.g. "und" → empty label fallback, default
-// source → UPPERCASE label, missing id → null) don't drift under refactor.
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/transcript/domain/transcript_track.dart';
 import 'package:enjoy_player/features/transcript/presentation/subtitle_track_picker_helpers.dart';
@@ -94,7 +82,6 @@ void main() {
     test('uppercases unknown source names', () {
       final AppLocalizations l10n = _FakeL10n();
       expect(providerLabel(l10n, 'experimental'), 'EXPERIMENTAL');
-      // Empty source uppercases to empty string.
       expect(providerLabel(l10n, ''), '');
     });
   });
@@ -137,7 +124,6 @@ void main() {
     testWidgets('returns a ThemeData with customised splash/highlight/hover', (
       tester,
     ) async {
-      // Build a minimal Theme to source the ColorScheme from.
       late ThemeData built;
       await tester.pumpWidget(
         MaterialApp(
@@ -158,8 +144,6 @@ void main() {
   });
 }
 
-// Stand-in for [AppLocalizations] that only carries the strings read by
-// `providerLabel`. All other members throw so unintended access is loud.
 class _FakeL10n implements AppLocalizations {
   @override
   String get subtitlesProviderOfficial => 'Official';

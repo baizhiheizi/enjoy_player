@@ -22,7 +22,6 @@ void main() {
     });
 
     test('returns false when input file does not exist', () async {
-      // No input file → scan returns null, FFmpeg will fail (no plugin in tests).
       final ok = await normalizeWavForAzureAssessment(
         inputPath:
             '/tmp/__definitely_missing_${DateTime.now().microsecondsSinceEpoch}.wav',

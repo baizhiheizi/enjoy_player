@@ -15,14 +15,10 @@ import 'package:enjoy_player/features/lookup/domain/lookup_request.dart';
 import 'package:enjoy_player/features/lookup/presentation/dictionary_lookup_sheet.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedOutCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedOut();
 }
-
-// === Harness ===
 
 Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
@@ -79,20 +75,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The selected text is displayed.
       expect(find.text('hello world'), findsOneWidget);
 
-      // The sheet title is displayed.
       expect(find.text('Look up'), findsOneWidget);
 
-      // Language picker shows source and target labels.
       expect(find.text('English'), findsOneWidget);
       expect(find.text('中文'), findsOneWidget);
 
-      // Close button is present.
       expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
 
-      // Copy button is present.
       expect(find.byIcon(EnjoyIcons.copy), findsOneWidget);
     });
 
@@ -142,12 +133,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Open the sheet route.
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('sheet')), findsOneWidget);
 
-      // Tap close.
       await tester.tap(find.byIcon(EnjoyIcons.close));
       await tester.pumpAndSettle();
       expect(popped, isTrue);
@@ -203,15 +192,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Before swap: English is source, 中文 is target.
       expect(find.text('English'), findsOneWidget);
       expect(find.text('中文'), findsOneWidget);
 
-      // Tap swap.
       await tester.tap(find.byIcon(EnjoyIcons.swap));
       await tester.pumpAndSettle();
 
-      // After swap: 中文 is source, English is target — both still visible.
       expect(find.text('English'), findsOneWidget);
       expect(find.text('中文'), findsOneWidget);
     });
@@ -235,13 +221,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Selected text is displayed.
       expect(find.text('hello world'), findsOneWidget);
 
-      // Title is displayed.
       expect(find.text('Look up'), findsOneWidget);
 
-      // No DraggableScrollableSheet in dialog mode.
       expect(find.byType(DraggableScrollableSheet), findsNothing);
     });
   });

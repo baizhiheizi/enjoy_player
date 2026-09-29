@@ -56,8 +56,6 @@ void main() {
           ),
           findsOneWidget,
         );
-        // The blurred surface is clipped to the glass outline and tinted
-        // with the token fill + hairline.
         expect(
           find.descendant(
             of: find.byType(GlassSurface),
@@ -129,9 +127,7 @@ void main() {
       ),
     );
     final clipper = clip.clipper as ShapeBorderClipper;
-    // The outline keeps the glass hairline stroke.
     expect(clipper.shape, isA<CircleBorder>());
-    // The rectangular clipper is not used when an outline is provided.
     expect(
       find.descendant(
         of: find.byType(GlassSurface),
@@ -142,10 +138,6 @@ void main() {
   });
 
   test('rejects combining a custom shape with a corner radius', () {
-    // The outline override owns the geometry outright, so a stray radius
-    // must fail loudly in debug instead of being silently dead.
-    // Non-const on purpose: the constructor assert must fire at runtime so
-    // the contract is observable as an AssertionError.
     expect(
       () => GlassSurface(
         shape: const CircleBorder(),
@@ -154,7 +146,6 @@ void main() {
       ),
       throwsAssertionError,
     );
-    // shape on its own stays a valid construction.
     expect(
       () => const GlassSurface(shape: CircleBorder(), child: SizedBox.shrink()),
       returnsNormally,
@@ -172,8 +163,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The surface only paints decoration + blur. Callers own their Material
-    // needs (the transport bar supplies its own transparent one).
     expect(
       find.descendant(
         of: find.byType(GlassSurface),

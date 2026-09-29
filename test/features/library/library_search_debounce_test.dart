@@ -26,7 +26,6 @@ void main() {
       final notifier = container.read(librarySearchProvider.notifier);
 
       notifier.setQuery('alpha');
-      // Inside the debounce window the state is still the previous value.
       expect(container.read(librarySearchProvider), '');
 
       await Future<void>.delayed(
@@ -46,7 +45,6 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       notifier.setQuery('abc');
 
-      // Still inside the final debounce window.
       expect(container.read(librarySearchProvider), '');
 
       await Future<void>.delayed(
@@ -63,7 +61,6 @@ void main() {
       notifier.setQuery('hello');
       notifier.commit();
 
-      // No wait — the value is committed right away.
       expect(container.read(librarySearchProvider), 'hello');
     });
 
@@ -83,12 +80,9 @@ void main() {
       final notifier = container.read(librarySearchProvider.notifier);
 
       notifier.setQuery('alpha');
-      // Clear while the debounce is still pending.
       notifier.clear();
       expect(container.read(librarySearchProvider), '');
 
-      // Wait past the debounce window: the cancelled timer must not
-      // flip state back to 'alpha'.
       await Future<void>.delayed(
         kLibrarySearchDebounce + const Duration(milliseconds: 50),
       );
@@ -124,12 +118,10 @@ void main() {
       await db.videoDao.insertRow(_videoRow(id, 'V1', 'hash-1'));
       await repo.deleteMedia(id);
 
-      // Sync enqueue was called for the video delete.
       expect(enqueue.calls, hasLength(1));
       expect(enqueue.calls.single.type, SyncEntityType.video);
       expect(enqueue.calls.single.action, SyncAction.delete);
 
-      // Local row is gone.
       expect(await db.videoDao.getById(id), isNull);
     });
 
@@ -155,8 +147,6 @@ void main() {
 
       await expectLater(repo.deleteMedia(id), throwsA(isA<StateError>()));
 
-      // The local row must still exist because the enqueue failed and
-      // the transaction rolled back.
       expect(await db.audioDao.getById(id), isNotNull);
     });
 

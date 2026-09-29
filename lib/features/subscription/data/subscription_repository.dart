@@ -57,7 +57,6 @@ class SubscriptionRepository with RestRepository {
 
   Future<AutoRenewBilling> cancelAutoRenew() => apiCall(() async {
     final json = await _api.cancelAutoRenew();
-    // Cancel may return billing fields at top level or nested.
     final nested = json['autoRenew'];
     if (nested is Map) {
       return AutoRenewBilling.fromJson(Map<String, dynamic>.from(nested));

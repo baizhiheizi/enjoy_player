@@ -61,7 +61,7 @@ String enjoyVocabularyItemId({
 /// [stableLocatorJson] must match web `JSON.stringify(locator, sortedKeys)`.
 String enjoyVocabularyContextId({
   required String vocabularyItemId,
-  required String sourceType, // Video|Audio|Ebook
+  required String sourceType,
   required String sourceId,
   required String text,
   required String stableLocatorJson,

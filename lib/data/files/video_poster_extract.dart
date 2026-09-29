@@ -52,10 +52,8 @@ double posterSeekSeconds(int? durationSeconds) {
     if (d <= 2) {
       return (d * 0.45).clamp(0.1, d - 0.05);
     }
-    // ~12% into the clip, at least 2.5s from start, before end.
     final fromPercent = d * 0.12;
     final bounded = fromPercent.clamp(2.5, d - 0.25);
-    // Fast input-seek beyond ~90s can miss badly on some files; cap there.
     return bounded > 90 ? 90.0 : bounded;
   }
   return 6.0;

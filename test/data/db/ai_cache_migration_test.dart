@@ -6,22 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('v11 → v12 migration', () {
     test('creates ai_cache table and preserves existing data', () async {
-      // Construct a v11 schema directly by mimicking what _runMigrations
-      // would have set up. We open a fresh in-memory database, run the
-      // v11 schema creation explicitly, populate every existing table
-      // with one row, then run the v11→v12 migration step manually and
-      // assert every row survives.
       final db = AppDatabase(executor: NativeDatabase.memory());
 
       try {
-        // Phase 1: simulate the v11 schema by recreating every table from
-        // scratch. Drift's onCreate is only invoked when the database has
-        // no `user_version` pragma — opening a memory db invokes it. We
-        // immediately bump schemaVersion to v11 by writing to user_version
-        // so we can re-run only the v12 step.
         await db.customStatement('PRAGMA user_version = 11');
 
-        // Insert a row into every existing table to verify data preservation.
         final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
         await db.videoDao.insertRow(
@@ -52,8 +41,6 @@ void main() {
         );
         await db.settingsDao.setValue('api.base_url', 'value-mig');
 
-        // Phase 2: invoke the v12 migration step directly. We mirror what
-        // `_runMigrations` does for `next == 12`.
         await db.customStatement(
           'CREATE TABLE IF NOT EXISTS ai_cache ('
           'kind TEXT NOT NULL, '
@@ -67,13 +54,11 @@ void main() {
           'ON ai_cache (kind, updated_at DESC)',
         );
 
-        // Phase 3: verify the new table exists and the existing data is
-        // preserved.
         final aiCacheCount = await db
             .customSelect('SELECT COUNT(*) AS c FROM ai_cache')
             .map((row) => row.read<int>('c'))
             .getSingle();
-        expect(aiCacheCount, 0); // empty table
+        expect(aiCacheCount, 0);
 
         final videoRows = await db
             .customSelect(
@@ -94,7 +79,6 @@ void main() {
         final settingValue = await db.settingsDao.getValue('api.base_url');
         expect(settingValue, 'value-mig');
 
-        // Phase 4: verify the new index exists.
         final indexRows = await db
             .customSelect(
               'SELECT name FROM sqlite_master '
@@ -103,7 +87,6 @@ void main() {
             .get();
         expect(indexRows.length, 1);
 
-        // Phase 5: write to the new table to confirm it works.
         await db.aiCacheDao.upsert('translation', 'k1', '{"v":1}', now);
         final newRow = await db.aiCacheDao.read('translation', 'k1');
         expect(newRow, isNotNull);

@@ -104,8 +104,6 @@ void main() {
 
   group('applyPreferredOrientationsForFormFactor', () {
     test('desktop is a no-op (null orientations)', () async {
-      // Manual SystemChrome verification is device-only; desktop path must
-      // not throw and must not require a binding channel call.
       await applyPreferredOrientationsForFormFactor(DeviceFormFactor.desktop);
     });
   });

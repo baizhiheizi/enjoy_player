@@ -50,7 +50,6 @@ void main() {
           expect(args['language'], 'en-US');
           final audioPath = args['audioPath'] as String;
           expect(audioPath, isNotEmpty);
-          // Native FromWavFileInput must not see non-ASCII Windows profile paths.
           expect(pathContainsNonAscii(audioPath), isFalse);
           return 'Hello from Azure';
         });

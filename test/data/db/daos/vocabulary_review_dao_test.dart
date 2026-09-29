@@ -45,7 +45,6 @@ void main() {
   group('VocabularyReviewDao', () {
     test('insertRow persists a review', () async {
       await db.vocabularyReviewDao.insertRow(_vocabReview(id: 'a'));
-      // No public read API exists — verify by deleteById round-trip.
       final deleted = await db.vocabularyReviewDao.deleteById('a');
       expect(deleted, 1);
     });

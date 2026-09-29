@@ -77,8 +77,6 @@ void main() {
         );
 
         expect(result, isNull);
-        // Operators need to see the transport failure so they can distinguish
-        // a worker outage from a 404 cache miss.
         expect(
           logs.any(
             (r) => r.level == Level.WARNING && r.message.contains('GET'),
@@ -172,10 +170,6 @@ void main() {
         );
 
         expect(result, isFalse);
-        // The cache-warming upload must NOT be a silent failure: a warning
-        // carrying the video id + language + line count is what lets an
-        // operator correlate a "no captions on Android" report with a
-        // failed Windows-side worker upload.
         expect(
           logs.any(
             (r) =>
@@ -192,11 +186,6 @@ void main() {
       test(
         'treats 409 as success — replay of an already-cached upload',
         () async {
-          // Issue #717 review followup (F2): the worker treats a replayed
-          // upload as idempotent and replies 409 when the transcript is
-          // already cached. Without the explicit 409 branch the durable
-          // retry stays queued and exhausts its retries even though the
-          // worker already has the transcript.
           final logs = captureLogs('YouTubeTranscripts');
 
           final mock = MockClient((request) async {
@@ -218,8 +207,6 @@ void main() {
           );
 
           expect(result, isTrue, reason: '409 must clear the retry queue');
-          // Operators should see the replay path, but at INFO (not WARNING
-          // — the cache is in the desired state, the retry succeeded).
           expect(
             logs.any(
               (r) =>
@@ -229,7 +216,6 @@ void main() {
             ),
             isTrue,
           );
-          // No warning — 409 is not a failure.
           expect(
             logs.any(
               (r) =>
@@ -263,8 +249,6 @@ void main() {
         );
 
         expect(result, isFalse);
-        // 400 is a real validation failure — warning must still fire
-        // so operators see the "Android cache miss" root cause.
         expect(
           logs.any(
             (r) =>
@@ -279,7 +263,6 @@ void main() {
     group('fetchClientProfiles', () {
       test('extracts the profiles list from the worker envelope', () async {
         final mock = MockClient((request) async {
-          // Wire format matches worker contracts/api.md (snake_case).
           return http.Response(
             jsonEncode({
               'version': '2026-07-12',
@@ -308,7 +291,6 @@ void main() {
         final api = YoutubeTranscriptsApi(apiClient(mock));
         final profiles = await api.fetchClientProfiles();
         expect(profiles, hasLength(2));
-        // ApiClient converts snake_case → camelCase.
         expect(profiles[0]['name'], 'IOS');
         expect(profiles[0]['version'], '20.12.1');
         expect(profiles[0]['clientNameHeader'], '5');
@@ -336,8 +318,6 @@ void main() {
         final api = YoutubeTranscriptsApi(apiClient(mock));
         final profiles = await api.fetchClientProfiles();
         expect(profiles, isEmpty);
-        // Same rationale as the two previous cases: the InnerTube profiles
-        // fallback chain depends on visibility here.
         expect(
           logs.any(
             (r) =>

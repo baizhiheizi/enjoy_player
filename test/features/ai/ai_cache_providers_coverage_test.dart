@@ -53,10 +53,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 class _NullHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
@@ -105,10 +101,6 @@ class _SignedInAuthCtrl extends AuthCtrl {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 AiModalityConfigs _configsWith({
   AIServiceConfig? asr,
   AIServiceConfig? tts,
@@ -151,15 +143,7 @@ ProviderContainer _capabilityContainer(AiModalityConfigs configs) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
-  // =========================================================================
-  // ai_capability_providers.dart — resolve function coverage
-  // =========================================================================
-
   group('resolveAsrCapability', () {
     test(
       'byok with null speechByok returns ByokNotConfiguredAsrCapability',
@@ -302,9 +286,6 @@ void main() {
         ),
       );
       addTearDown(container.dispose);
-      // ByokTranslationCapability wraps the resolved LLM (which will be
-      // ByokNotConfiguredLlmCapability), but the translation capability
-      // itself is still ByokTranslationCapability.
       expect(
         container.read(translationCapabilityProvider),
         isA<ByokTranslationCapability>(),
@@ -508,10 +489,6 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // ai_result_cache.dart — Riverpod provider coverage
-  // =========================================================================
-
   group('aiTranslationCacheProvider', () {
     late AppDatabase db;
 
@@ -587,16 +564,11 @@ void main() {
     });
   });
 
-  // =========================================================================
-  // ai_result_cache.dart — additional edge-case coverage for cache methods
-  // =========================================================================
-
   group('AiResultCache remember L2 write failure is swallowed', () {
     test('remember succeeds in L1 even when L2 dao throws', () async {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(() => db.close());
 
-      // Close the DB to force L2 writes to fail.
       final cache = AiResultCache<Map<String, dynamic>>(
         dao: db.aiCacheDao,
         l1: L1Store<String, Map<String, dynamic>>(
@@ -608,7 +580,6 @@ void main() {
         toJson: (value) => value,
       );
 
-      // First verify it works normally.
       await cache.remember(
         kind: AiKind.translation,
         key: 'k1',
@@ -616,16 +587,13 @@ void main() {
       );
       expect(cache.peek(kind: AiKind.translation, key: 'k1'), isNotNull);
 
-      // Now close the DB to make L2 writes fail.
       await db.close();
 
-      // remember should not throw — L2 failure is swallowed.
       await cache.remember(
         kind: AiKind.translation,
         key: 'k2',
         value: {'v': 'l2-fails'},
       );
-      // L1 should still have the value.
       expect(cache.peek(kind: AiKind.translation, key: 'k2'), isNotNull);
     });
   });
@@ -645,16 +613,10 @@ void main() {
         toJson: (value) => value,
       );
 
-      // Seed L1 only (no L2).
       cache.peek(kind: AiKind.translation, key: 'miss');
 
-      // Close DB so L2 read throws.
       await db.close();
 
-      // lookup should catch the L2 error and call the loader.
-      // Note: The current implementation may propagate the DB error since
-      // it only catches decode errors, not DAO read errors. This test
-      // documents the actual behavior.
       try {
         final result = await cache.lookup(
           kind: AiKind.translation,
@@ -662,10 +624,7 @@ void main() {
           loader: () async => {'v': 'from-loader'},
         );
         expect(result['v'], 'from-loader');
-      } on Object {
-        // If the DAO read throws (closed DB), the error propagates.
-        // This is acceptable — the test documents the behavior.
-      }
+      } on Object {} // ignore: empty_catches
     });
   });
 }

@@ -118,8 +118,6 @@ class YoutubePlayerEngine
   void markOpenTimingStart() => _webView.markOpenTimingStart();
 
   void _ensureWebViewAttached() {
-    // ADR-0048: on opted-out platforms never request a mount — constructing
-    // InAppWebView without a platform backend asserts on every rebuild.
     if (youTubeEngineOptedOutHere) return;
     _session.requestMount();
     _logInitPhase('mount_requested');
@@ -159,10 +157,6 @@ class YoutubePlayerEngine
   @override
   Future<void> open(PlayableSource source) async {
     if (youTubeEngineOptedOutHere) {
-      // Typed so the player surface can show the ADR-0048 "coming soon"
-      // message instead of the generic open-failure body. The open
-      // coordinator gates Linux YouTube opens before any engine swap; this
-      // guard is defense in depth.
       throw const YouTubePlaybackUnavailableException.linuxOptedOut();
     }
     if (source is! YoutubePlayableSource) {
@@ -199,9 +193,6 @@ class YoutubePlayerEngine
 
   @override
   Future<void> playOrPause() async {
-    // Never branch on [_session.playing] alone — DOM can already be paused
-    // while Dart still reports playing (pause confirmation lags ~750 ms).
-    // After end-of-media, force the restart path instead of a DOM toggle.
     final restart = decideYouTubePlayRestart(
       playbackCompleted: _session.playbackCompleted,
     );
@@ -224,15 +215,6 @@ class YoutubePlayerEngine
       );
       try {
         final domDirection = await YoutubeWebViewBridge.playOrPause(controller);
-        // Latch from the direction the DOM actually took (D9) — never
-        // from [_session.playing], which lags DOM pauses by up to ~750 ms.
-        // Classifying from stale session state armed/consumed opposite to
-        // the command really issued in exactly the windows where it
-        // matters: a page-corrected pause (session still playing → toggle
-        // plays → budget wrongly consumed → recovery-hint instead of the
-        // silent retry), and the mirror race after the D8 retry's own
-        // play (session still not-playing → toggle pauses → budget
-        // wrongly armed → deliberate pause auto-resumed).
         switch (_session.playRetry.classifyTransportToggle(
           domDirection: domDirection,
         )) {
@@ -268,11 +250,6 @@ class YoutubePlayerEngine
     if (restart) {
       _webView.prepareWatchReload(resetFirstPlaying: true);
       _webView.onExplicitPlayAttempt();
-      // A replay after end-of-media is a play-intent command like any
-      // other: the fresh document can be page-corrected back to paused
-      // inside the immediate window, and the D8 retry must cover it.
-      // The session owns the four latch transitions in lockstep so the
-      // engine does not have to remember the order.
       _session.beginPlayAfterEnd();
       await _webView.loadCurrentVideoIfAttached();
     } else {
@@ -284,7 +261,6 @@ class YoutubePlayerEngine
         return;
       }
       _webView.onExplicitPlayAttempt();
-      // In-flight latch + stale-buffering clear live in the transition.
       _session.beginUserPlay();
       _logYoutube.fine(
         'youtube play command vid=${_session.videoId} '
@@ -306,9 +282,6 @@ class YoutubePlayerEngine
 
   @override
   Future<void> pause() async {
-    // Pause-intent consumes the D8 retry budget — otherwise a confirmed
-    // pause right after this command (still within the immediate window of
-    // a fresh start) would be auto-resumed against the caller's intent.
     _session.noteUserPauseCommand();
     _logYoutube.fine('youtube pause command vid=${_session.videoId}');
     try {

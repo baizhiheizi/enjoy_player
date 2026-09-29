@@ -94,7 +94,6 @@ void main() {
         matching: find.byType(SettingsRow),
       );
 
-      // Default display locale is zh-CN.
       expect(
         find.descendant(
           of: displayRow,
@@ -106,15 +105,11 @@ void main() {
       await tester.tap(find.text(l10n.settingsAppearanceDisplayLanguage));
       await tester.pumpAndSettle();
 
-      // The picker sheet is open, appended above the rest of the tree, so
-      // its option row is the last "English" match.
       expect(find.byType(PaddedSheetDragHandle), findsOneWidget);
 
       await tester.tap(find.text(l10n.settingsLanguageOptionEnUs).last);
       await tester.pumpAndSettle();
 
-      // The sheet is dismissed and the row's value badge reflects the pick,
-      // with no need to navigate away from the settings hub.
       expect(find.byType(AppearanceLanguageSectionBody), findsOneWidget);
       expect(
         find.descendant(
@@ -131,7 +126,6 @@ void main() {
     'the native-language row is disabled with its explanatory subtitle when '
     'the learning language leaves only one native choice',
     (tester) async {
-      // en-US learning language leaves only zh-CN as a native choice.
       await tester.pumpWidget(_harness(db: db, learningLanguage: 'en-US'));
       await tester.pumpAndSettle();
 
@@ -150,7 +144,6 @@ void main() {
       expect(rowWidget.showChevron, isFalse);
       expect(rowWidget.subtitle, isNotEmpty);
 
-      // Tapping a disabled row does nothing — no picker sheet appears.
       await tester.tap(find.text(l10n.settingsAppearanceNativeLanguage));
       await tester.pumpAndSettle();
       expect(find.byType(PaddedSheetDragHandle), findsNothing);
@@ -162,7 +155,6 @@ void main() {
     'the native-language row is enabled when the learning language allows '
     'more than one native choice',
     (tester) async {
-      // ja-JP learning language leaves both en-US and zh-CN as native choices.
       await tester.pumpWidget(_harness(db: db, learningLanguage: 'ja-JP'));
       await tester.pumpAndSettle();
 

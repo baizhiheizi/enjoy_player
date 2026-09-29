@@ -74,7 +74,6 @@ void main() {
     };
 
     test('respects the page cap and persists the cooldown timestamp', () async {
-      // Six full pages so the cap (5) is hit.
       api = _FakeRecordingApi(
         List.generate(
           6,
@@ -103,7 +102,6 @@ void main() {
         now: t0,
       );
 
-      // 5 pages * 50 = 250 rows synced, then the cap stops the loop.
       expect(result.success, isTrue);
       expect(result.synced, 250);
       expect(api.callCount, 5);
@@ -123,7 +121,6 @@ void main() {
         service = RecordingTargetSyncService(db: db, recordingApi: api);
         final t0 = DateTime.utc(2024, 6, 1, 12);
 
-        // First call hits the API.
         final r1 = await service.pullRecordingsForTarget(
           targetType: 'audio',
           targetId: 't1',
@@ -132,7 +129,6 @@ void main() {
         expect(r1.synced, 10);
         expect(api.callCount, 1);
 
-        // Second call 1 minute later is short-circuited.
         final r2 = await service.pullRecordingsForTarget(
           targetType: 'audio',
           targetId: 't1',
@@ -164,8 +160,6 @@ void main() {
       );
       expect(r1.synced, 10);
 
-      // 6 minutes later: cooldown is over, cursor persisted, the next
-      // call should resume from the cursor and pick up new rows.
       final r2 = await service.pullRecordingsForTarget(
         targetType: 'audio',
         targetId: 't1',
@@ -192,7 +186,6 @@ void main() {
       );
       expect(r1.synced, 3);
 
-      // Different targetId — separate cooldown bucket.
       final r2 = await service.pullRecordingsForTarget(
         targetType: 'audio',
         targetId: 't2',

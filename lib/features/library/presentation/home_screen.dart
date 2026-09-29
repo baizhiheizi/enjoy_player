@@ -73,13 +73,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           data: (recent) {
             return CustomScrollView(
               slivers: [
-                // Editorial header
                 const SliverToBoxAdapter(child: _HomeHeader()),
 
-                // Today's goal + community (signed-in, responsive grid) —
-                // always rendered, even when the recents grid below is
-                // replaced by the empty state, so returning users still
-                // see their streak/community progress on a fresh library.
                 const SliverToBoxAdapter(child: _HomeInsightCards()),
 
                 if (recent.isEmpty)
@@ -96,7 +91,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   )
                 else ...[
-                  // Recents section label
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(
                       gutter,
@@ -117,7 +111,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  // Media grid — aspect ratio tracks actual tile width so rows stay tight.
                   SliverPadding(
                     padding: EdgeInsets.symmetric(horizontal: gutter),
                     sliver: SliverLayoutBuilder(
@@ -293,8 +286,6 @@ class _HomeHeaderActions extends ConsumerWidget {
   final VoidCallback onImport;
 
   void _act(WidgetRef ref, OnboardingTipId tip, VoidCallback action) {
-    // Persist even if the showcase overlay did not receive the tap (button
-    // under the hole) or dismiss raced ahead of onTargetClick.
     unawaited(
       ref.read(onboardingControllerProvider.notifier).onTargetActed(tip),
     );
@@ -314,7 +305,6 @@ class _HomeHeaderActions extends ConsumerWidget {
         OnboardingTarget(
           tipId: OnboardingTipId.homeCraft,
           onTargetAction: onCraft,
-          // Direct taps (overlay hole miss) still resolve the tip.
           child: narrow
               ? EnjoyIconButton(
                   icon: EnjoyIcons.sparkle,
@@ -472,12 +462,6 @@ class _HomeMediaTile extends ConsumerWidget {
     final thumb = localThumbnailFileForMedia(media);
     final netThumb = networkThumbnailForMedia(media);
     final dur = formatDurationHmsMs(media.durationMs);
-    // Grid tiles use the deterministic generative accent — running
-    // `PaletteGenerator.fromImageProvider` per tile decodes + analyses pixels
-    // on the main isolate (palette_generator 0.3.x predates isolate
-    // support), and with 15+ tiles the parallel completions serialize into
-    // multi-second UI freezes on Windows debug builds. The artwork-derived
-    // palette is still used for the active player (hero artwork).
     final accent = generativeAccentForSeed(media.coverSeed);
 
     return MediaCardTile(

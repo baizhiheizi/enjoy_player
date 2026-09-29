@@ -1,7 +1,3 @@
-// Tests for `lib/features/ai/data/enjoy/enjoy_llm_capability.dart` — pure
-// content-extraction logic for OpenAI-compatible `/chat/completions`
-// responses. We fake the `ChatApi` boundary and exercise every `_contentFromResponse`
-// branch.
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
 import 'package:enjoy_player/data/api/services/ai/chat_api.dart';

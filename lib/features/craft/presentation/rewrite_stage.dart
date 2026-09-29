@@ -114,8 +114,6 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
       _lastSyncedNative = currentNative;
     }
 
-    // First rewrite (no target yet): keep the full-screen loading hint.
-    // Re-translate / regenerate: keep the form visible with inline progress.
     if (state.isTranslating && !state.hasTranslation) {
       return CraftLoadingView(message: l10n.craftLoadingRewriting);
     }
@@ -239,8 +237,6 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
     );
   }
 }
-
-// === Sub-widgets ===
 
 class _NativeTextCard extends StatelessWidget {
   const _NativeTextCard({

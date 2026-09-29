@@ -92,7 +92,6 @@ class NavItemPill extends StatelessWidget {
         borderRadius: radius,
         pressedScale: 0.985,
         showHoverWash: !selected,
-        // The lifted plate already marks the selected row.
         showFocusRing: !selected,
         selected: selected,
         child: AnimatedContainer(

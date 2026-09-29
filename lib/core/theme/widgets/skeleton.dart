@@ -230,7 +230,6 @@ class SkeletonMediaList extends StatelessWidget {
           vertical: t.space8,
         );
 
-        // Bounded tab bodies: scroll instead of overflowing.
         if (constraints.maxHeight.isFinite) {
           return ListView.separated(
             padding: padding,
@@ -240,7 +239,6 @@ class SkeletonMediaList extends StatelessWidget {
           );
         }
 
-        // Sliver/box adapters: shrink-wrap a fixed number of placeholder rows.
         return Padding(
           padding: padding,
           child: Column(

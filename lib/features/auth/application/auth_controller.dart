@@ -186,9 +186,6 @@ class AuthCtrl extends _$AuthCtrl {
         state = const AsyncData(AuthSignedOut());
       }
     });
-    // Refresh the enjoyplayer:// handler registration right before the
-    // browser opens: a moved binary or fresh AppImage run may not have a
-    // valid handler yet. Failures are contained inside the helper.
     if (defaultTargetPlatform == TargetPlatform.linux) {
       await ensureEnjoyplayerSchemeHandler();
     }
@@ -207,9 +204,6 @@ class AuthCtrl extends _$AuthCtrl {
   Future<void> handleAuthCallbackUri(Uri uri) async {
     final current = state.valueOrNull;
     if (current is! AuthSigningInWebPkce) {
-      // Typical when the callback arrives in a fresh process (the app was
-      // restarted while the browser was open): the in-memory PKCE verifier
-      // and state are gone, so sign-in must be retried.
       _log.info('auth callback ignored: no web PKCE flow in progress');
       return;
     }
@@ -239,10 +233,6 @@ class AuthCtrl extends _$AuthCtrl {
       state = const AsyncData(AuthSignedOut());
       rethrow;
     } catch (e, st) {
-      // Any other failure here (e.g. a secure-storage PlatformException
-      // persisting tokens) must still reset state and surface to the user —
-      // otherwise the flow stays stuck on the "waiting for browser" pane
-      // forever even though the server-side exchange already succeeded.
       if (gen != _flowGeneration) return;
       _cancelPkceTimeout();
       state = const AsyncData(AuthSignedOut());
@@ -255,9 +245,6 @@ class AuthCtrl extends _$AuthCtrl {
     _flowGeneration++;
     _cancelPkceTimeout();
     await ref.read(authRepositoryProvider).clearSession();
-    // Update auth state before optional provider sign-out so a Google SDK
-    // failure (common when the user signed in via email or PKCE) cannot
-    // leave the UI showing a signed-in session after tokens were cleared.
     state = const AsyncData(AuthSignedOut());
     try {
       await ref.read(googleSignInServiceProvider).signOut();

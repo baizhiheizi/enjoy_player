@@ -66,18 +66,6 @@ void main() {
     'EnjoyApp loading branch renders the skeleton with a localized context '
     'instead of crashing on a missing AppLocalizations delegate',
     (tester) async {
-      // Regression coverage: the loading branch of [_EnjoyAppState]
-      // (formerly `_loadingMaterialApp`, now `_loadingBranch`) used to
-      // omit `localizationsDelegates`, so any widget further down the
-      // tree that did `AppLocalizations.of(context)!` would null-check
-      // crash before the first frame ever painted. The bug surfaced in
-      // production as a blank/white screen during cold start while
-      // preferences were still resolving; the fix in 8f7d301 introduced
-      // `_fallbackLocalizationsDelegates` so the loading branch shares the
-      // delegate bundle with the router branch.
-      //
-      // This test pins that the structural fix has not regressed. The
-      // companion error-branch coverage lives in `app_recovery_flow_test`.
       FlutterSecureStorage.setMockInitialValues({});
       PackageInfo.setMockInitialValues(
         appName: 'Enjoy Player',
@@ -116,10 +104,6 @@ void main() {
         ),
       );
 
-      // Pump for a few frames; the AsyncValue stays loading forever, so
-      // the test isn't pumping for completion. The point is that no
-      // exception ever reaches the test framework and the MaterialApp +
-      // localizations context render.
       for (var i = 0; i < 4; i++) {
         await tester.pump();
       }

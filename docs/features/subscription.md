@@ -8,6 +8,7 @@ Signed-in users open **Subscription** from any of:
 - Profile → Account → **Subscription**.
 - Direct route `/subscription`.
 - AI credits-limit errors — **View plans & packages** → `/subscription`. Every Enjoy-hosted AI surface (lookup dictionary / translation / contextual translation, pronounce, transcript auto-translate, ASR generation, shadow-reading assessment, Craft translate / rewrite / capture / synthesize, vocabulary review dictionary + contextual tabs) shows the shared friendly credits message — with the worker's credit numbers (required vs. remaining) and reset time when provided — and this same one-tap CTA (spec 045). BYOK provider billing rejections never show this CTA.
+- **Balance → credits transfer** (`balance_to_credits.dart`): on desktop, transfers are not yet routable to the dedicated `/credits?transfer=1` page — the button surfaces a friendly notice instead, keeping the path visible until that page ships on desktop.
 
 ### All platforms
 

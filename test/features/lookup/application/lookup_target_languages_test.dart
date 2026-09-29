@@ -65,7 +65,6 @@ void main() {
     });
 
     test('keeps unknown but valid tag verbatim as a last resort', () {
-      // "klingon" is not unknown (not in kInvalidLanguageTags) so we keep it.
       expect(canonicalMediaLanguageTag('klingon'), 'klingon');
     });
   });
@@ -130,8 +129,6 @@ void main() {
     test('handles empty / whitespace input', () {
       expect(normalizeLanguageAlias(''), '');
       expect(primaryLanguageSubtag(''), '');
-      // whitespace is not aliased, so it stays as whitespace
-      // (no language subtag to extract).
     });
   });
 
@@ -211,7 +208,6 @@ void main() {
     });
 
     test('returns null for unsupported language (not unknown)', () {
-      // "klingon" is not unknown and not supported → null
       expect(
         resolveAzureAssessmentLocaleForPractice(
           'klingon',
@@ -293,12 +289,10 @@ void main() {
     test('groups by primary subtag, with learning primary first', () {
       final input = ['en-GB', 'en-US', 'ja-JP', 'ko-KR'];
       final sorted = sortLookupLanguages(input, learningTag: 'en-US');
-      // en-* all share the learning primary → they sort by region (GB < US).
       expect(sorted, ['en-GB', 'en-US', 'ja-JP', 'ko-KR']);
     });
 
     test('puts learning language first when its primary is unique', () {
-      // learning=ja-JP, so ja-JP comes first, then the rest by primary + region.
       final sorted = sortLookupLanguages([
         'en-US',
         'ja-JP',
@@ -311,7 +305,7 @@ void main() {
       final input = ['ja-JP', 'en-US'];
       final sorted = sortLookupLanguages(input, learningTag: 'en-US');
       expect(sorted, isNot(same(input)));
-      expect(input, ['ja-JP', 'en-US']); // original preserved
+      expect(input, ['ja-JP', 'en-US']);
     });
 
     test('preserves stable order for ties by index', () {
@@ -321,14 +315,12 @@ void main() {
     });
   });
 
-  // ── sentence_boundaries ───────────────────────────────────────────────
   group('getSentenceBoundaries', () {
     test('returns empty list for empty input', () {
       expect(getSentenceBoundaries('', 'en'), isEmpty);
     });
 
     test('finds ASCII sentence terminators in English', () {
-      // '. ' terminates at position 10 (after the period AND its trailing space).
       final b = getSentenceBoundaries('Hi there. How are you?', 'en');
       expect(b, isNotEmpty);
       expect(b.first, 'Hi there. '.length);
@@ -346,7 +338,6 @@ void main() {
     });
   });
 
-  // ── lookup_target_languages ───────────────────────────────────────────
   group('resolveLookupSource', () {
     test('returns canonical lookup tag for direct en/zh match', () {
       expect(resolveLookupSource('en-GB', learningTag: 'zh-CN'), 'en-US');
@@ -410,7 +401,6 @@ void main() {
     });
 
     test('primary-subtag fallback skips source and learning', () {
-      // de-AT → de-DE (only de-DE is in catalog)
       expect(
         resolveLookupTarget(
           'de-AT',

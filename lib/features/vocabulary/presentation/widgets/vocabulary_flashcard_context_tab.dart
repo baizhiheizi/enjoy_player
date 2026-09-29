@@ -231,8 +231,6 @@ class FlashcardContextTab extends ConsumerWidget {
           if (contextualError != null)
             Padding(
               padding: EdgeInsets.only(bottom: t.space8),
-              // Credits rejection gets its own truthful copy instead of the
-              // network-flavored fallback (spec 045).
               child: FlashcardSoftError(
                 message: contextualError == 'credits'
                     ? l10n.subscriptionCreditsLimitMessageWithPackages
@@ -242,7 +240,6 @@ class FlashcardContextTab extends ConsumerWidget {
           if (contextualError == 'credits')
             Padding(
               padding: EdgeInsets.only(bottom: t.space8),
-              // One-tap recovery for the credits block (spec 045).
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(

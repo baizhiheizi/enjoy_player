@@ -1,7 +1,3 @@
-// Tests for `lib/features/update/application/update_providers.dart` — covers
-// the two provider factories (`versionManifestRepositoryProvider`,
-// `updateStrategyProvider`) and the strategy selection branch driven by the
-// compile-time `isDirectDistributionChannel` flag.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,8 +38,6 @@ void main() {
 
   group('updateStrategyProvider', () {
     test('builds NoOpUpdateStrategy on store distribution channel', () {
-      // Sanity check: this assertion only fires when running on iOS/Android
-      // distribution. On direct we expect DirectUpdateStrategy below.
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -83,15 +77,9 @@ void main() {
   group('update_providers.dart source shape', () {
     test('factory functions `versionManifestRepository` and '
         '`updateStrategy` are exposed at file scope', () {
-      // Smoke test for the @Riverpod factories themselves — calling them
-      // directly with a NoOpRef (ProviderContainer) exercises the body
-      // defined in the source file.
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      // Both `create` paths invoked through Provider machinery above — no
-      // direct call possible without a Ref, but the read above already
-      // hits the source code we want covered.
       expect(
         container.read(versionManifestRepositoryProvider),
         isA<VersionManifestRepository>(),

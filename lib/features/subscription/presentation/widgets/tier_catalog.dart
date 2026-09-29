@@ -87,8 +87,6 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
     final tt = Theme.of(context).textTheme;
     final plansAsync = ref.watch(subscriptionPlansProvider);
 
-    // Hide the catalog entirely when a non-terminal auto-renew blocks new
-    // subscriptions — the status card already conveys the entitlement.
     if (widget.status.hasActiveAutoRenewPlan) {
       return const SizedBox.shrink();
     }
@@ -128,8 +126,6 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    // Pick the better savings percent across Lite and Pro (helps the yearly
-    // badge stay meaningful when either tier is missing from the catalog).
     final liteSavings = _savingsPercentForTier(plans, 'lite');
     final proSavings = _savingsPercentForTier(plans, 'pro');
     final savingsPercent = proSavings ?? liteSavings;
@@ -142,8 +138,6 @@ class _TierCatalogState extends ConsumerState<TierCatalog> {
           onChanged: (v) => setState(() => _interval = v),
           yearlyLabel: l10n.subscriptionAutoRenewYearly,
           monthlyLabel: l10n.subscriptionAutoRenewMonthly,
-          // Savings only applies to yearly billing, so hide the badge on the
-          // monthly tab (null collapses the toggle to its centered solo layout).
           savingsLabel:
               _interval == CatalogInterval.year && savingsPercent != null
               ? l10n.subscriptionTierCatalogIntervalYearSavings(
@@ -537,7 +531,6 @@ class _PaidTierCard extends StatelessWidget {
 
     Widget? badges;
     if (!_isLite) {
-      // Lite has no "Recommended" badge — Pro is the recommended tier.
       badges = Row(
         children: [
           EnjoyTierBadge(
@@ -620,7 +613,6 @@ class _PaidTierCard extends StatelessWidget {
       ),
     );
 
-    // Pro card gets the gradient treatment; Lite uses the standard card.
     if (!_isLite) {
       return DecoratedBox(
         decoration: BoxDecoration(

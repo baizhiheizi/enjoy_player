@@ -157,8 +157,6 @@ void main() {
     test(
       'media end stops polling and surfaces completion (ADR-0044)',
       () async {
-        // Repeat policy is NOT decided here — the transport's CompletionLoop is
-        // the single consumer of `completed`.
         final driver = _FakePollDriver();
         final completedEvents = <void>[];
         final sub = session.completed.listen(completedEvents.add);
@@ -192,11 +190,6 @@ void main() {
     );
 
     test('skips the tick while a poll is still in flight', () async {
-      // Timer.periodic does not wait for the previous callback: a read that
-      // outlives one pollTick (heavy page, the 300 ms inject interval, GC)
-      // used to let the next tick start a second read, and the two resolved
-      // in completion order rather than issue order. One read at a time is
-      // the whole invariant (issue #655).
       final driver = _GatedPollDriver();
       var firstPlayingCalls = 0;
       final loop = YoutubeWebViewPollLoop(
@@ -208,7 +201,6 @@ void main() {
 
       loop.start();
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      // One full extra period elapses while read #0 is still awaited.
       await Future<void>.delayed(const Duration(milliseconds: 300));
 
       expect(
@@ -218,8 +210,6 @@ void main() {
       );
       expect(firstPlayingCalls, 0);
 
-      // Skipping the tick costs nothing: settling the one read still drives
-      // the transport.
       driver.settle(0, position: const Duration(milliseconds: 250));
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(session.playing, isTrue);
@@ -229,10 +219,6 @@ void main() {
     });
 
     test('a late read cannot resurrect playing after end-of-media', () async {
-      // Issue #655's worst case: the read issued first resolved LAST with a
-      // stale s=1 and landed after the fresher read had reported ended —
-      // notePlayingConfirmed() then cleared _playbackCompleted and re-emitted
-      // playing=true on a video that was already over.
       final driver = _GatedPollDriver();
       var completedFired = false;
       var playingTrueAfterCompleted = 0;
@@ -240,9 +226,6 @@ void main() {
         completedFired = true;
       });
       final playingSub = session.playingStream.listen((v) {
-        // The `playing=false` of the ended transition itself is delivered
-        // after `completed` (both controllers deliver asynchronously); only a
-        // later `true` is a resurrection.
         if (completedFired && v) playingTrueAfterCompleted++;
       });
       session.emitPlaying(true);
@@ -255,8 +238,6 @@ void main() {
       );
 
       loop.start();
-      // Two full periods: read #0 is still awaited and the overlapping tick
-      // has been skipped.
       await Future<void>.delayed(const Duration(milliseconds: 600));
       expect(
         driver.reads,
@@ -266,7 +247,6 @@ void main() {
             'stale snapshot apply after the end-of-media one',
       );
 
-      // The DOM truth arrives through the only in-flight read: ended.
       driver.settle(
         0,
         position: const Duration(seconds: 60),
@@ -277,7 +257,6 @@ void main() {
 
       expect(session.playbackCompleted, isTrue);
       expect(session.playing, isFalse);
-      // Nothing may follow the completion — above all no stale `playing`.
       expect(playingTrueAfterCompleted, 0);
       expect(loop.isRunning, isFalse);
 
@@ -327,7 +306,6 @@ void main() {
       );
 
       loop.start();
-      // Wait for at least one periodic tick to capture [latest].
       await Future<void>.delayed(const Duration(milliseconds: 300));
       expect(driver.latest, isNotNull);
 
@@ -390,13 +368,6 @@ void main() {
     test(
       'play → playing → page pauses again: retries once (production order)',
       () async {
-        // Regression (PR #620 follow-up): the page player state machine can
-        // correct a freshly started video back to paused. This is the exact
-        // field sequence — beginUserPlay, playing resolves the command, THEN
-        // the pause confirms — and the retry must still fire. Seeding
-        // emitPlaying(true) after beginUserPlay() hid the bug: production can
-        // only reach playing via notePlayingConfirmed, which used to consume
-        // the budget ~750 ms before the pause could confirm.
         final driver = _FakePollDriver();
         var retryCalls = 0;
         session.beginUserPlay();
@@ -412,8 +383,6 @@ void main() {
 
         loop.start();
         await Future<void>.delayed(const Duration(milliseconds: 300));
-        // Position magnitude is irrelevant — the immediate-pause decision is
-        // wall-clock from the playing transition; simple increasing ticks.
         for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
           driver.emit(position: Duration(milliseconds: i * 10), jsPaused: true);
         }
@@ -429,9 +398,6 @@ void main() {
     test(
       'deliberate user pause within the immediate window is not retried',
       () async {
-        // The inverse defect: a pause-intent command (toggle while playing)
-        // must consume the budget, or the retry un-pauses a video the user
-        // just paused.
         final driver = _FakePollDriver();
         var retryCalls = 0;
         session.beginUserPlay();
@@ -493,10 +459,6 @@ void main() {
     test(
       'echo wedge: escalation retries the retried episode, capped',
       () async {
-        // Field sequence (Android, echo mode): the user-commanded play dies
-        // immediately (retry #1), the RETRIED play dies immediately too —
-        // the old one-shot budget wedged here. Escalation grants retry #2
-        // because the dying episode was our own, then surfaces at the cap.
         final driver = _FakePollDriver();
         var retryCalls = 0;
         session.beginUserPlay();
@@ -522,25 +484,17 @@ void main() {
           }
         }
 
-        // Episode 1 (user command) dies → retry #1.
         confirmPause();
         expect(retryCalls, 1);
-        // Retry #1's play resolves to playing (attribution latches)…
         session.notePlayingConfirmed();
-        // …and the poll loop keeps re-confirming playing every tick while
-        // the episode lives — those ticks must not erase the attribution
-        // (round-5 field bug: they did, and retry #2 never fired).
         driver.emit(
           position: const Duration(milliseconds: 400),
           jsPaused: false,
         );
         session.notePlayingConfirmed();
-        // Episode 2 (auto-retry) dies → escalation retry #2.
         confirmPause();
         expect(retryCalls, 2);
-        // Retry #2's play resolves to playing.
         session.notePlayingConfirmed();
-        // Episode 3 dies at the cap → surfaced, no third retry.
         confirmPause();
         expect(retryCalls, 2);
 
@@ -549,8 +503,6 @@ void main() {
     );
 
     test('deliberate pause command stops the escalation chain', () async {
-      // A user pausing while an escalation chain is live must not be
-      // un-paused: the pause-intent command drops the attribution.
       final driver = _FakePollDriver();
       var retryCalls = 0;
       session.beginUserPlay();
@@ -570,8 +522,8 @@ void main() {
         driver.emit(position: Duration(milliseconds: i * 10), jsPaused: true);
       }
       expect(retryCalls, 1);
-      session.notePlayingConfirmed(); // retry #1 produced playing
-      session.noteUserPauseCommand(); // …but the user just chose pause
+      session.notePlayingConfirmed();
+      session.noteUserPauseCommand();
 
       for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
         driver.emit(position: Duration(milliseconds: i * 10), jsPaused: true);
@@ -584,9 +536,6 @@ void main() {
     test(
       'failed retry surfaces a warning instead of an unhandled rejection',
       () async {
-        // The one-shot budget is spent before retryPlay runs; a rejected
-        // evaluateJavascript (e.g. renderer gone) must not escape as a
-        // context-free zone error.
         final driver = _FakePollDriver();
         session.beginUserPlay();
         session.notePlayingConfirmed();
@@ -604,12 +553,9 @@ void main() {
         for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
           driver.emit(position: Duration(milliseconds: i * 10), jsPaused: true);
         }
-        // Give the rejected future a microtask turn to prove it is caught.
         await Future<void>.delayed(const Duration(milliseconds: 50));
 
         expect(session.playing, isFalse);
-        // The protocol advanced before the throw: the budget was spent and
-        // the retry counted against the escalation cap.
         expect(session.playRetry.autoRetriesIssued, 1);
 
         loop.stop();
@@ -617,12 +563,6 @@ void main() {
     );
 
     test('budget expires once playback outlives the attempt window', () async {
-      // A page-UI resume the app never commanded refreshes the playing
-      // clock without arming a new budget; a pause confirmed long after
-      // the budget's episode must not spend it — even when the pause is
-      // "immediate" relative to the resume. The retry protocol's
-      // monotonic clock is injected, so the expiry is deterministic
-      // instead of sleeping past the real 2 s window.
       final clock = FakeMonotonicClock();
       final fastSession = YoutubeSession(
         playRetry: YouTubePlayRetryPolicy(
@@ -649,9 +589,6 @@ void main() {
       clock.advance(const Duration(milliseconds: 400));
       expect(fastSession.userPlayInFlight, isFalse);
 
-      // A later playing episode (page-UI resume: no beginUserPlay) inside
-      // the 2 s immediate window, then a quick pause — the stale budget
-      // must not be spent.
       fastSession.emitPlaying(false);
       fastSession.notePlayingConfirmed();
       for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
@@ -690,10 +627,6 @@ void main() {
     );
 
     group('cadence (issue #662)', () {
-      // `onFirstPlaying` is wired the way the controller wires it. That is
-      // not cosmetic: without the first-playing latch the session's
-      // recovery-hint timer would be armed on every pause confirmation and
-      // would still be pending when the testWidgets zone is verified.
       YoutubeWebViewPollLoop buildLoop(_FakePollDriver driver) {
         return YoutubeWebViewPollLoop(
           session: session,
@@ -739,18 +672,12 @@ void main() {
         expect(driver.calls, 4, reason: 'one read per 250 ms while playing');
         expect(session.loggedFirstPlaying, isTrue);
 
-        // The fake-async zone is verified for pending timers before the
-        // tearDowns run, so the chain must be stopped inside the body.
         loop.stop();
       });
 
       testWidgets('a document that never played is NOT backed off', (
         tester,
       ) async {
-        // Dart never believed this document was playing, so no pause is ever
-        // confirmed (every paused read is a PollIdleTick). The loop must stay
-        // fast: this is the document still waiting for its first metadata,
-        // and the backoff may only follow a confirmed pause.
         final driver = _FakePollDriver();
         final loop = buildLoop(driver);
 
@@ -779,7 +706,6 @@ void main() {
           session.emitPlaying(true);
 
           loop.start();
-          // Playing: four full-cadence samples.
           for (var i = 1; i <= 4; i++) {
             await tester.pump(loop.pollTick);
             await tester.idle();
@@ -788,7 +714,6 @@ void main() {
               jsPaused: false,
             );
           }
-          // Then a pause confirming at a still position.
           for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
             await tester.pump(loop.pollTick);
             await tester.idle();
@@ -796,8 +721,6 @@ void main() {
           }
           expect(session.playing, isFalse);
 
-          // The tick armed BEFORE the confirming read is still fast; consume
-          // it so the measurement below starts on a backoff-armed boundary.
           await tester.pump(loop.pollTick);
           await tester.idle();
 
@@ -812,7 +735,6 @@ void main() {
             reason: 'the backoff holds while nothing changes',
           );
 
-          // A play intent must not wait out the backed-off period.
           loop.start();
           expect(
             await readsOver(tester, driver, loop.pollTick),
@@ -858,8 +780,6 @@ void main() {
             reason: 'precondition: backed off',
           );
 
-          // The user seeks while paused. The tick armed before this delivery is
-          // still backed off; the one after it runs at the fast cadence.
           driver.emit(position: const Duration(seconds: 45), jsPaused: true);
           expect(
             await readsOver(tester, driver, loop.pausedPollBackoff),
@@ -872,7 +792,6 @@ void main() {
             reason: 'a moving position is live state — pollTick cadence',
           );
 
-          // The position settles again, and the loop backs off with it.
           driver.emit(position: const Duration(seconds: 45), jsPaused: true);
           expect(
             await readsOver(tester, driver, const Duration(seconds: 1)),

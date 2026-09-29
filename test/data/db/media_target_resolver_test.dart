@@ -115,8 +115,6 @@ void main() {
     test(
       'video takes precedence over audio when both exist (should not happen)',
       () async {
-        // Defensive: production code never inserts the same id into both tables,
-        // but verify the documented ordering — Video wins.
         await db.videoDao.insertRow(_video(id: 'shared'));
         await db.audioDao.insertRow(_audio(id: 'shared'));
         expect(await dexieTargetTypeForId(db, 'shared'), 'Video');
@@ -174,7 +172,6 @@ void main() {
     test(
       'returns RemoteUrlPlayableSource when local fails trust check',
       () async {
-        // localUri is set but no size/mtime → untrusted → falls back to remote.
         await db.videoDao.insertRow(
           _video(
             id: 'untrusted-local',
@@ -220,8 +217,6 @@ void main() {
     test('resolves bookmark when present and uses the resolved path '
         'with a scope token (ADR-0060)', () async {
       final realFile = await touchFile('real.mp4', 100);
-      // Stale localUri (the file moved). With a bookmark present the
-      // resolver must use the resolved path instead.
       await db.videoDao.insertRow(
         _video(
           id: 'bookmarked',
@@ -291,7 +286,6 @@ void main() {
             });
 
         final src = await resolvePlayableSource(db, 'rebound-untrusted');
-        // Falls through to localUri path, which IS trusted (size matches).
         expect(src, isA<LocalFilePlayableSource>());
         expect((src as LocalFilePlayableSource).uri, untouchedFile.path);
       },
@@ -319,7 +313,6 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(mockChannel, (call) async {
               if (call.method == 'resolveBookmark') {
-                // Native side fails to resolve (file gone).
                 throw PlatformException(code: 'RESOLVE_FAILED');
               }
               if (call.method == 'releaseBookmark') return null;

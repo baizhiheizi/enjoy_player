@@ -62,11 +62,6 @@ AppDatabase _acquireDeviceGlobalDatabase() {
 Future<void> _releaseDeviceGlobalDatabase() async {
   if (_deviceGlobalDatabaseRefCount <= 0) return;
   _deviceGlobalDatabaseRefCount--;
-  // Intentionally keep [_deviceGlobalDatabaseInstance] open until
-  // [closeAndClearAllAppDatabases] — closing on every Riverpod dispose
-  // (widget tests, hot restart) and re-opening the same drift file triggers
-  // Drift's multiple-[AppDatabase] warning while the prior close is still
-  // settling.
 }
 
 /// Closes every open device-global / per-user [AppDatabase] and clears caches.
@@ -86,9 +81,7 @@ Future<void> closeAndClearAllAppDatabases() async {
   for (final db in toClose) {
     try {
       await db.close();
-    } on Object {
-      // Best-effort — recovery is about to delete files anyway.
-    }
+    } on Object {} // ignore: empty_catches
   }
 }
 
@@ -157,8 +150,6 @@ AppDatabase appDatabase(Ref ref) {
     );
   }
 
-  // Re-inserting an existing key moves it to the end (most recently used) so
-  // the eviction loop below drops the truly idle DBs first.
   final existing = _userSessionDatabases.remove(sessionName);
   if (existing != null) {
     _userSessionDatabases[sessionName] = existing;

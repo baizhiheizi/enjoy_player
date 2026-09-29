@@ -34,11 +34,6 @@ class OnboardingTarget extends ConsumerWidget {
     final (title, description) = _copyFor(l10n, tipId);
     final key = OnboardingKeys.keyFor(tipId);
 
-    // ShowcaseView throws when no scope is registered (see ShowcaseService
-    // getScope). OnboardingShowcaseHost owns the registration lifecycle in the
-    // app shell, but feature tests that pump widgets containing OnboardingTarget
-    // without mounting that host must still render. Skip the Showcase wrapper
-    // in that case so the child renders unchanged.
     if (!_isShowcaseViewRegistered) {
       return child;
     }
@@ -53,7 +48,6 @@ class OnboardingTarget extends ConsumerWidget {
       overlayColor: OnboardingTooltipTheme.overlayColor(context),
       disposeOnTap: true,
       onTargetClick: () {
-        // Flags must be set before showcaseview's dismiss finalize microtask.
         final ctrl = ref.read(onboardingControllerProvider.notifier);
         unawaited(ctrl.onTargetActed(tipId));
         onTargetAction?.call();

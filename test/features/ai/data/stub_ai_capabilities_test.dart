@@ -1,8 +1,3 @@
-// Tests for `lib/features/ai/data/stub_ai_capabilities.dart`.
-//
-// Each stub is a constant `throw` — we just need to assert the right exception
-// type is thrown so the UI / cache layer can switch on it (UnimplementedError
-// vs `ByokNotConfiguredFailure`, etc.).
 import 'dart:typed_data';
 
 import 'package:enjoy_player/features/ai/data/stub_ai_capabilities.dart';
@@ -88,8 +83,6 @@ void main() {
   });
 
   group('ChatMessage defaults', () {
-    // Smoke test for the `ChatMessage` constructor used in `generateChatCompletion`
-    // calls above — guards against accidental signature changes.
     test('default ctor populates role + content', () {
       const m = ChatMessage(role: 'user', content: 'hi');
       expect(m.role, 'user');

@@ -12,8 +12,6 @@ import 'settings_schema.dart';
 export 'settings_schema.dart';
 
 abstract final class SettingsKeys {
-  // ---------------------------------------------------------------- device --
-
   static const apiBaseUrl = SettingKey<String>(
     name: 'api.base_url',
     scope: SettingsScope.device,
@@ -85,8 +83,6 @@ abstract final class SettingsKeys {
     codec: StringSettingCodec(),
     defaultValue: null,
   );
-
-  // ------------------------------------------------------------------ user --
 
   /// Display locale tag. Nullable: missing lets [AppPreferencesCtrl]
   /// canonicalize and persist the platform default on first read.
@@ -224,8 +220,6 @@ abstract final class SettingsKeys {
     defaultValue: null,
   );
 
-  // ------------------------------------------------------- dynamic families --
-
   /// Per-target recording pull cursors
   /// (`sync.cursor.recording.{targetType}.{targetId}`).
   static const syncCursorRecordingTargets = SettingKeyFamily<String?>(
@@ -265,8 +259,6 @@ abstract final class SettingsKeys {
     allowPrefixDelete: true,
   );
 
-  // ------------------------------------------------------------ dynamic keys --
-
   /// Per-target recording pull cursor (`sync.cursor.recording.{type}.{id}`).
   static String syncCursorRecordingTarget(String targetType, String targetId) =>
       syncCursorRecordingTargets.keyFor('$targetType.$targetId').name;
@@ -289,8 +281,6 @@ abstract final class SettingsKeys {
   /// Prefix for [onboardingEmptyTranscript] keys.
   static String get onboardingEmptyTranscriptPrefix =>
       onboardingEmptyTranscripts.prefix;
-
-  // -------------------------------------------------------------- registry --
 
   /// Every declared static key — the single source for [isKnown] and for the
   /// placement table test.

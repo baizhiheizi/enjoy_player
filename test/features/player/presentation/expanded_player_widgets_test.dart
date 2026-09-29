@@ -106,18 +106,14 @@ void main() {
           child: ExpandedPlayerLoadingBody(colorScheme: scheme, mediaId: 'm1'),
         ),
       );
-      // Pumps to settle the preview / row AsyncValues (loading -> data).
       await tester.pump();
       await tester.pump();
       await tester.pump();
 
-      // Local video → PlayerSurfaceTarget claims the loading viewport.
       expect(find.byType(PlayerSurfaceTarget), findsWidgets);
     },
   );
 
-  // Audio has no 16:9 video stage to claim — flashing a black video box
-  // before the audio layout reads as a broken player.
   testWidgets(
     'ExpandedPlayerLoadingBody shows no video stage for audio (no video row)',
     (tester) async {
@@ -136,7 +132,6 @@ void main() {
       await tester.pump();
 
       expect(find.byType(PlayerSurfaceTarget), findsNothing);
-      // The collapse control must still be reachable while opening.
       expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
     },
   );
@@ -156,7 +151,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Body renders a Scaffold + a Text widget.
       expect(find.byType(Scaffold), findsWidgets);
       expect(find.byType(Text), findsWidgets);
     },
@@ -190,7 +184,6 @@ void main() {
     );
     await tester.pump();
 
-    // Video path never reserves an AppBar slot (even when playing).
     expect(find.byType(AppBar), findsNothing);
   });
 
@@ -284,7 +277,6 @@ void main() {
     expect(chrome!.mediaId, 'm1');
     expect(chrome.mediaTitle, 'T');
     expect(chrome.thumbnailUrl, 'thumb');
-    // playbackChromeOf returns null when session is null.
     expect(playbackChromeOf(null), isNull);
   });
 
@@ -301,7 +293,6 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    // Force the controller to build.
     final initial = container.read(playerPreferencesCtrlProvider);
     expect(initial.volume, greaterThanOrEqualTo(0));
     expect(initial.playbackRate, greaterThan(0));

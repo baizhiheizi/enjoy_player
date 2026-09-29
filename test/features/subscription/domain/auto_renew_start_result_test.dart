@@ -20,7 +20,6 @@ void main() {
       expect(result.payUrl, 'https://stripe.example/checkout');
       expect(result.currentPeriodEnd, '2026-12-31T00:00:00Z');
       expect(result.planId, '7');
-      // tier defaults to 'pro' when missing.
       expect(result.tier, 'pro');
       expect(result.interval, isEmpty);
       expect(result.priceAmount, isNull);
@@ -43,7 +42,6 @@ void main() {
         'tier': 'pro_plus',
         'interval': 'year',
       });
-      // price sub-map wins over top-level 'amount'.
       expect(result.priceAmount, 12.50);
       expect(result.priceInterval, 'month');
       expect(result.currencyNote, 'USD');
@@ -67,7 +65,7 @@ void main() {
         'id': 'sub',
         'provider': 'stripe',
         'status': 'pending',
-        'autoRenew': 'true', // string → not true
+        'autoRenew': 'true',
       });
       expect(result.autoRenew, isFalse);
     });

@@ -45,7 +45,6 @@ void main() {
       expect(find.text('Vendor'), findsNothing);
       expect(find.text('Base URL'), findsNothing);
       expect(find.text('Whisper model'), findsNothing);
-      // Azure subscription key + region labels visible
       expect(find.text('Azure subscription key'), findsOneWidget);
       expect(find.byType(TextField), findsNWidgets(2));
       expect(find.byType(ByokApiKeyField), findsOneWidget);
@@ -67,7 +66,6 @@ void main() {
       ),
     );
 
-    // Region field has label "Azure region" and hint "eastus"
     expect(find.text('Azure region'), findsOneWidget);
     expect(find.text('eastus'), findsOneWidget);
   });
@@ -95,12 +93,10 @@ void main() {
       expect(find.byType(SegmentedButton<SpeechByokKind>), findsOneWidget);
       expect(find.text('OpenAI Whisper'), findsOneWidget);
       expect(find.text('Azure Speech'), findsOneWidget);
-      // baseUrl + apiKey + model = 3 text fields
       expect(find.byType(TextField), findsNWidgets(3));
       expect(find.byType(ByokApiKeyField), findsOneWidget);
       expect(find.text('Base URL'), findsOneWidget);
       expect(find.text('Whisper model'), findsOneWidget);
-      // No region field
       expect(find.text('Azure region'), findsNothing);
     },
   );
@@ -126,13 +122,10 @@ void main() {
       );
 
       expect(find.byType(SegmentedButton<SpeechByokKind>), findsOneWidget);
-      // Azure mode hides baseUrl and model fields
       expect(find.text('Base URL'), findsNothing);
       expect(find.text('Whisper model'), findsNothing);
-      // apiKey + region = 2 text fields
       expect(find.byType(TextField), findsNWidgets(2));
       expect(find.text('Azure region'), findsOneWidget);
-      // API key label switches to subscription key label
       expect(find.text('Azure subscription key'), findsOneWidget);
     },
   );
@@ -155,7 +148,6 @@ void main() {
         ),
       );
 
-      // Tap "Azure Speech" segment.
       await tester.tap(find.text('Azure Speech'));
       await tester.pump();
       expect(changed, SpeechByokKind.azureSpeech);
@@ -178,7 +170,6 @@ void main() {
         ),
       );
 
-      // Only apiKey (byok field is a TextField too) — 1 TextField
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text('Base URL'), findsNothing);
       expect(find.text('Whisper model'), findsNothing);
@@ -227,7 +218,6 @@ void main() {
       ),
     );
 
-    // SectionLabel's text comes from l10n.settingsAiProvidersSpeechKindLabel == "Vendor"
     expect(find.text('Vendor'), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.route), findsOneWidget);
   });

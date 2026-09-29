@@ -1,4 +1,3 @@
-// Simple sanity test for `lib/features/hotkeys/presentation/hotkey_capture_dialog.dart`.
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_capture_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +58,6 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    // Send only KeyUp — the dialog ignores non-Down events.
     HardwareKeyboard.instance.handleKeyEvent(
       const KeyUpEvent(
         physicalKey: PhysicalKeyboardKey(0),

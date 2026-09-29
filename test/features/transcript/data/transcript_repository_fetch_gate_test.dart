@@ -34,7 +34,6 @@ void main() {
     test(
       'no persisted row is not skippable (next open should fetch)',
       () async {
-        // dexieTargetTypeForId only resolves known mediaIds — insert a video.
         final now = DateTime.utc(2026, 9, 16);
         await db.videoDao.insertRow(
           VideoRow(
@@ -97,9 +96,6 @@ void main() {
         expect(await repo.isCloudFetchSkippable('v-1'), isTrue);
         expect((await repo.readCloudFetchState('v-1'))!.lastStatus, 'success');
 
-        // lastStatus=error is the same "force retry" signal the
-        // pre-seam controller computed — the repo carries the same
-        // predicate.
         await db.transcriptFetchStateDao.upsertOutcome(
           targetType: 'Video',
           targetId: 'v-1',

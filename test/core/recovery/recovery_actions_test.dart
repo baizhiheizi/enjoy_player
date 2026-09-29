@@ -27,11 +27,6 @@ void main() {
 
   group('recovery_actions', () {
     late Directory tmpRoot;
-    // drift_flutter's driftDatabase() (no `native:` override) puts every
-    // .sqlite file directly under getApplicationDocumentsDirectory() — this
-    // must match AppDatabase's real on-disk location, not an arbitrary
-    // "databases" subfolder, or backup/wipe silently no-op against an
-    // empty directory (see the "wrong directory" bug this regression-tests).
     late Directory dbDir;
     late Directory logsDir;
     late List<MethodCall> clipboardCalls;
@@ -124,7 +119,6 @@ void main() {
             ),
           ).writeAsString('x');
         }
-        // Add an unrelated file to make sure we don't over-delete.
         await File(p.join(dbDir.path, 'keepme.txt')).writeAsString('keep');
 
         await wipeLocalDatabaseFiles();
@@ -216,9 +210,6 @@ void main() {
     test(
       'isUnrecoverableDatabaseError matches a real SqliteException.toString()',
       () {
-        // SqliteException's actual toString() has no underscore
-        // ("SqliteException(1): ..."), unlike an earlier version of this
-        // matcher which looked for "sqlite_exception" and never matched.
         expect(
           isUnrecoverableDatabaseError(
             Exception(

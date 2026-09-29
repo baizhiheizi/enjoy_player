@@ -46,8 +46,6 @@ class OnboardingController extends _$OnboardingController {
 
   Future<void> tryStartEmptyTranscript(TriggerContext ctx) async {
     if (_active) return;
-    // Never start while transcript is still loading — target Showcase is absent
-    // and skipIfTargetNotPresent would finish instantly and poison progress.
     if (ctx.hasTranscript) return;
     final progress = await ref.read(onboardingProgressProvider.future);
     if (!TipEligibility.emptyTranscriptEligible(ctx, progress)) return;
@@ -105,8 +103,6 @@ class OnboardingController extends _$OnboardingController {
     if (_active) return;
     final key = OnboardingKeys.keyFor(tip);
 
-    // Wait until the Showcase target is mounted; starting earlier races the
-    // empty/loading player UI and marks tips completed via skip/finish.
     final mounted = await _waitForTarget(key);
     if (!mounted) {
       _log.fine('defer startShowCase ${tip.id}: target not mounted');
@@ -119,9 +115,6 @@ class OnboardingController extends _$OnboardingController {
   }
 
   Future<bool> _waitForTarget(GlobalKey key, {int maxFrames = 48}) async {
-    // ShowcaseView stores the GlobalKey as showcaseKey and does NOT attach it
-    // to the Element — key.currentContext is always null. Use the package's
-    // registration check instead.
     for (var i = 0; i < maxFrames; i++) {
       if (_isTargetRendered(key)) return true;
       await _endOfFrame();
@@ -187,13 +180,10 @@ class OnboardingController extends _$OnboardingController {
   }
 
   void onShowcaseFinished() {
-    // Finished via next/natural end — treat as completed for active tip.
     unawaited(_finalizeActive(completed: true, chainNext: true));
   }
 
   void onShowcaseDismissed(GlobalKey? key) {
-    // showcaseview disposeOnTap calls dismiss() *before* onTargetClick.
-    // Defer so onTargetActed can set _completedByTarget first.
     scheduleMicrotask(() {
       unawaited(
         _finalizeActive(
@@ -241,7 +231,6 @@ class OnboardingController extends _$OnboardingController {
     state++;
     if (tip == null) return;
 
-    // Ghost finish (target missing / skip) must not poison tip progress.
     if (!wasPresented) {
       _log.fine('ignore unpresented finish for ${tip.id}');
       return;
@@ -265,7 +254,6 @@ class OnboardingController extends _$OnboardingController {
       }
     }
 
-    // Skip/dismiss of a Home tip ends the whole Home sequence (T022).
     if (!treatedComplete &&
         tip.sequenceId == OnboardingSequenceId.homeEntries) {
       for (final homeTip in kHomeEntriesOrder) {
@@ -278,7 +266,6 @@ class OnboardingController extends _$OnboardingController {
 
     if (!chainNext || !treatedComplete) return;
 
-    // Chain next home / practice tip in the same visit.
     final homeCtx = _lastHomeCtx;
     if (homeCtx != null && tip.sequenceId == OnboardingSequenceId.homeEntries) {
       await tryStartHomeEntries(homeCtx);

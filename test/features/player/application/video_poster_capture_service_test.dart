@@ -110,8 +110,6 @@ void main() {
 
         await capture(restoredPositionMs: 0);
 
-        // No poster seek, no seek-back-to-zero, no screenshot: enforcement must
-        // not be fighting the capture right after open (issue #659).
         expect(fake.seekCalls, isEmpty);
         expect(fake.screenshotCalls, 0);
         expect((await db.videoDao.getById(mediaId))!.thumbnailUrl, isNull);
@@ -122,7 +120,6 @@ void main() {
       await capture(restoredPositionMs: 0);
 
       expect(fake.screenshotCalls, 1);
-      // Poster seek, then the restore back to position zero.
       expect(fake.seekCalls, hasLength(2));
       expect(fake.seekCalls.first, const Duration(seconds: 72));
       expect(fake.seekCalls.last, Duration.zero);

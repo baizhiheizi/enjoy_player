@@ -9,7 +9,6 @@ library;
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  // ── Brand ───────────────────────────────────────────────────────────────
   /// Iris fill for light surfaces — white labels 5.8:1, ink on page 5.4:1.
   static const brand = Color(0xFF5B4BE8);
 
@@ -32,7 +31,6 @@ abstract final class AppColors {
   static const auroraViolet = Color(0xFFA855F7);
   static const auroraPink = Color(0xFFEC6FCF);
 
-  // ── Echo (warm speaking) ────────────────────────────────────────────────
   /// Echo fill — coral, white icons ≥ 3.9:1.
   static const echoActive = Color(0xFFE0512B);
 
@@ -42,7 +40,6 @@ abstract final class AppColors {
   /// Listening-focus / blur practice (teal, distinct from echo + iris).
   static const blurActive = Color(0xFF0F8C80);
 
-  // ── Score inks (theme-tuned) ────────────────────────────────────────────
   static const scoreGoodLight = Color(0xFF0E8050);
   static const scoreWarnLight = Color(0xFFA35F00);
   static const scoreBadLight = Color(0xFFD02A37);
@@ -54,12 +51,10 @@ abstract final class AppColors {
   static const scoreWarnContainer = Color(0x24F5B83D);
   static const scoreBadContainer = Color(0x29FF6369);
 
-  // ── Intelligence blue inks ──────────────────────────────────────────────
   static const intelligenceInkLight = Color(0xFF1D5FD1);
   static const intelligenceInkDark = Color(0xFF6FA8FF);
   static const intelligenceFill = Color(0xFF1F6FE5);
 
-  // ── Light — porcelain (cool neutral, faint iris cast) ───────────────────
   /// Window canvas behind the sidebar and the floating content panel.
   static const canvasLight = Color(0xFFECECF1);
   static const surfaceLight = Color(0xFFF7F7F9);
@@ -80,7 +75,6 @@ abstract final class AppColors {
   static const gradientStartLight = Color(0xFFF7F7F9);
   static const gradientEndLight = Color(0xFFF3F3F6);
 
-  // ── Dark — midnight (near-black, cool cast) ─────────────────────────────
   static const canvasDark = Color(0xFF09090B);
   static const surfaceDark = Color(0xFF111115);
   static const surfaceContainerLowestDark = Color(0xFF0C0C0F);

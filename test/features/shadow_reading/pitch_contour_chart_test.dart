@@ -1,4 +1,3 @@
-// Shadow-reading widget + pure-data coverage.
 import 'package:enjoy_player/features/shadow_reading/domain/echo_region_analysis.dart';
 import 'package:enjoy_player/features/shadow_reading/domain/waveform_envelope.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/pitch_contour_chart.dart';
@@ -68,7 +67,6 @@ void main() {
         EchoRegionSeriesPoint(t: 1.0, ampRef: 0.2, pitchRefHz: 200),
         EchoRegionSeriesPoint(t: 2.0, ampRef: 0.3, pitchRefHz: 200),
       ];
-      // user duration 2s -> scale 2 ; user point at t=0.5 maps to ref t=1.0
       const user = [
         EchoRegionSeriesPoint(t: 0.5, ampRef: 0.7, pitchRefHz: 220),
       ];
@@ -219,8 +217,6 @@ void main() {
         ),
       );
       expect(find.byType(PitchContourChart), findsOneWidget);
-      // The empty-points branch returns SizedBox.shrink directly (no CustomPaint
-      // inside the chart subtree).
       expect(
         find.descendant(
           of: find.byType(PitchContourChart),

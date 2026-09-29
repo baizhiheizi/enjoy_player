@@ -77,14 +77,6 @@ class EnjoyBottomNav extends StatelessWidget {
       minimum: EdgeInsets.fromLTRB(t.space16, 0, t.space16, t.space8 + 2),
       child: Align(
         alignment: Alignment.bottomCenter,
-        // Unconstrained Align expands to the bottomNavigationBar slot's loose
-        // maxHeight (the whole screen). Scaffold then reports a full-height
-        // bottom widget: contentBottom collapses to 0 — so every floating
-        // SnackBar presented on the shell Scaffold trips the "Floating
-        // SnackBar presented off screen" layout assert (which aborts the
-        // frame in debug and froze the player-exit transition) — and the
-        // body's MediaQuery.padding.bottom leaks the full screen height into
-        // AppNotice margins. heightFactor sizes this box to the capsule.
         heightFactor: 1,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
@@ -121,7 +113,6 @@ class EnjoyBottomNav extends StatelessWidget {
                           final itemWidth = constraints.maxWidth / n;
                           return Stack(
                             children: [
-                              // Selection lens.
                               AnimatedPositioned(
                                 duration: instant
                                     ? Duration.zero

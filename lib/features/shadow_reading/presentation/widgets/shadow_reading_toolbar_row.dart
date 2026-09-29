@@ -80,9 +80,6 @@ class ShadowReadingToolbarRow extends StatelessWidget {
             ),
     );
 
-    // FAB stays at true horizontal center: overlay it on a Row whose middle
-    // reserves ring width so pitch/takes hug the center without shifting the
-    // mic.
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
@@ -110,11 +107,6 @@ class ShadowReadingToolbarRow extends StatelessWidget {
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                // Scale the takes cluster into the half-width budget so
-                // play / assess / menu stay inside hit-test bounds. Without
-                // this, Clip.none lets overflow paint while ancestors'
-                // size.contains(position) drops taps (common on ~360dp
-                // phones where three ≥44 controls exceed the right half).
                 child: Padding(
                   padding: EdgeInsets.only(left: tok.space12),
                   child: FittedBox(

@@ -152,7 +152,6 @@ class _MediaCardRowState extends State<MediaCardRow> {
         ),
         child: Row(
           children: [
-            // Thumbnail square
             DecoratedBox(
               decoration: ShapeDecoration(
                 shape: RoundedSuperellipseBorder(borderRadius: artRadius),
@@ -214,7 +213,6 @@ class _MediaCardRowState extends State<MediaCardRow> {
               ),
             ),
             SizedBox(width: t.space12 + 2),
-            // Title + meta
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +265,6 @@ class _MediaCardRowState extends State<MediaCardRow> {
               ),
             ),
             SizedBox(width: t.space8),
-            // Trailing
             _buildTrailing(cs, t),
           ],
         ),

@@ -106,7 +106,6 @@ void main() {
           durationMs: 1000,
           sourceKey: key0,
         ),
-        // Wrong timing neighbor — must not be used for index 0.
         const TranscriptLine(
           text: '世界',
           startMs: 500,

@@ -49,7 +49,6 @@ class HotkeysCtrl extends _$HotkeysCtrl {
       );
       return decoded == null ? {} : _validatedBindings(decoded);
     } catch (_) {
-      // Corrupt blob (codec throw) — same as the old jsonDecode catch.
       return {};
     }
   }

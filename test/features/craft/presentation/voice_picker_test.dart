@@ -15,8 +15,6 @@ void main() {
           home: Scaffold(
             body: VoicePicker(
               language: 'en-US',
-              // Chinese voice id while language is English — previously
-              // crashed DropdownButton with a value-not-in-items assertion.
               selectedVoice: 'zh-CN-XiaoxiaoNeural',
               onChanged: (_) {},
             ),

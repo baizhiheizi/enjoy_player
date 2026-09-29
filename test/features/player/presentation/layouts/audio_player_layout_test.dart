@@ -29,7 +29,6 @@ void main() {
     await tester.pump();
 
     expect(find.text('transcript body'), findsOneWidget);
-    // The transcript is wrapped in a ConstrainedBox(maxWidth: contentMaxWidth).
     final constrainedBoxes = find
         .byWidgetPredicate((w) => w is ConstrainedBox)
         .evaluate();
@@ -46,8 +45,6 @@ void main() {
     expect(find.byType(PlayerFrostedBackButton), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
     expect(find.byType(SafeArea), findsOneWidget);
-    // No reserved toolbar strip: the only fixed-height boxes belong to the
-    // 38x38 frosted control itself.
     expect(
       find.byWidgetPredicate(
         (w) => w is SizedBox && w.height == kToolbarHeight,

@@ -112,7 +112,6 @@ void main() {
       forMedia,
       transcriptId,
     );
-    // ensure lastActiveAt is current
     final existing = await db.echoSessionDao.getLatestForTarget(
       'Audio',
       forMedia,
@@ -211,7 +210,7 @@ void main() {
   test('nextLine seeks to next line start and plays (no echo)', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
-    setUpSession(currentTime: 2.5); // inside line 2
+    setUpSession(currentTime: 2.5);
 
     final n = container.read(playerInteractionsProvider);
     await n.nextLine();
@@ -222,7 +221,7 @@ void main() {
   test('nextLine clamps at last line', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
-    setUpSession(currentTime: 8.0); // past last line
+    setUpSession(currentTime: 8.0);
 
     final n = container.read(playerInteractionsProvider);
     await n.nextLine();
@@ -233,7 +232,7 @@ void main() {
   test('prevLine seeks to previous line start and plays (no echo)', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
-    setUpSession(currentTime: 4.5); // inside line 3
+    setUpSession(currentTime: 4.5);
 
     final n = container.read(playerInteractionsProvider);
     await n.prevLine();
@@ -255,7 +254,7 @@ void main() {
   test('nextLine uses echo.endLineIndex when echo is active', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
-    setUpSession(currentTime: 4.0); // past echo region
+    setUpSession(currentTime: 4.0);
     container
         .read(echoModeProvider.notifier)
         .activate(
@@ -267,7 +266,6 @@ void main() {
 
     final n = container.read(playerInteractionsProvider);
     await n.nextLine();
-    // next = endLineIndex + 1 = 2 -> startSeconds=4
     expect(fake.seekCalls, [const Duration(seconds: 4)]);
     expect(fake.playCallCount, 1);
   });
@@ -275,7 +273,7 @@ void main() {
   test('prevLine uses echo.startLineIndex when echo is active', () async {
     await insertAudioRow(mediaId);
     await seedTranscript();
-    setUpSession(currentTime: 5.0); // past echo region
+    setUpSession(currentTime: 5.0);
     container
         .read(echoModeProvider.notifier)
         .activate(
@@ -357,8 +355,6 @@ void main() {
 
   test('toggleEcho bails out when currentTime is not in any line', () async {
     await insertAudioRow(mediaId);
-    // Override the seeded transcript with lines that all start after the
-    // session's currentTime, so indexOfActiveLine returns -1.
     final futureLines = <TranscriptLine>[
       const TranscriptLine(text: 'a', startMs: 20000, durationMs: 2000),
       const TranscriptLine(text: 'b', startMs: 22000, durationMs: 2000),
@@ -395,7 +391,7 @@ void main() {
       mediaId,
       't-future',
     );
-    setUpSession(currentTime: 1.0); // before any future line
+    setUpSession(currentTime: 1.0);
 
     final n = container.read(playerInteractionsProvider);
     await n.toggleEcho();
@@ -411,14 +407,12 @@ void main() {
     await n.toggleBlur();
     expect(container.read(transcriptBlurModeProvider), isTrue);
 
-    // Should have written the session (echo session row exists)
     final row = await db.echoSessionDao.getLatestForTarget('Audio', mediaId);
     expect(row, isNotNull);
   });
 
   test('toggleBlur deactivates even when there are no lines', () async {
     await insertAudioRow(mediaId);
-    // No transcript — but blur can still turn off.
     setUpSession();
     container.read(transcriptBlurModeProvider.notifier).activate();
 
@@ -450,14 +444,12 @@ void main() {
       setUpSession(currentTime: 4.5);
 
       final n = container.read(playerInteractionsProvider);
-      // echo is off — all four should be no-ops
       await n.expandEchoBackward();
       await n.expandEchoForward();
       await n.shrinkEchoBackward();
       await n.shrinkEchoForward();
       expect(container.read(echoModeProvider).active, isFalse);
 
-      // Now turn echo on with a multi-line region so we can exercise each.
       container
           .read(echoModeProvider.notifier)
           .activate(
@@ -490,7 +482,6 @@ void main() {
         );
 
     final n = container.read(playerInteractionsProvider);
-    // No transcript — echo state should be unchanged.
     await n.expandEchoBackward();
     await n.expandEchoForward();
     await n.shrinkEchoBackward();
@@ -506,12 +497,12 @@ void main() {
 
     final n = container.read(playerInteractionsProvider);
     await n.seekToProgressFraction(0.5);
-    expect(fake.seekCalls, [const Duration(seconds: 15)]); // 30 * 0.5
+    expect(fake.seekCalls, [const Duration(seconds: 15)]);
 
-    await n.seekToProgressFraction(1.5); // over 1 → clamped to 1
+    await n.seekToProgressFraction(1.5);
     expect(fake.seekCalls.last, const Duration(seconds: 30));
 
-    await n.seekToProgressFraction(-1.0); // under 0 → clamped to 0
+    await n.seekToProgressFraction(-1.0);
     expect(fake.seekCalls.last, Duration.zero);
   });
 
@@ -574,10 +565,9 @@ void main() {
     setUpSession(currentTime: 0.5);
 
     final n = container.read(playerInteractionsProvider);
-    await n.nextLine(); // populates cache via primaryTranscriptRowForMedia
+    await n.nextLine();
     expect(fake.seekCalls, hasLength(1));
 
-    // Second call re-fetches the row but hits the codec's memoized decode.
     await n.nextLine();
     expect(fake.seekCalls, hasLength(2));
   });
@@ -588,7 +578,6 @@ void main() {
       await insertAudioRow(mediaId);
       await seedTranscript();
       await insertAudioRow(altMediaId);
-      // No transcript seeded for alt — should clear cache to empty.
 
       setUpSession(forMedia: mediaId, currentTime: 0.5);
       final n = container.read(playerInteractionsProvider);
@@ -599,7 +588,6 @@ void main() {
           .read(playerControllerProvider.notifier)
           .publishSession(sessionFor(altMediaId, currentTime: 0.5));
       await n.nextLine();
-      // No transcript for altMedia — _lines() returns [], method is no-op.
       expect(fake.seekCalls, hasLength(1));
     },
   );
@@ -623,10 +611,9 @@ void main() {
       setUpSession(currentTime: 0.5);
 
       final n = container.read(playerInteractionsProvider);
-      await n.nextLine(); // populates the keepAlive cache with the old import
+      await n.nextLine();
       expect(fake.seekCalls, [const Duration(seconds: 2)]);
 
-      // Re-import re-segments to a shorter, differently timed transcript.
       await reimportTranscript(const [
         TranscriptLine(text: 'new 1', startMs: 0, durationMs: 2000),
         TranscriptLine(text: 'new 2', startMs: 9000, durationMs: 2000),
@@ -634,7 +621,6 @@ void main() {
       await pumpEventQueue();
 
       await n.nextLine();
-      // Stale lines would seek to 2s again; the fresh import lands on 9s.
       expect(fake.seekCalls.last, const Duration(seconds: 9));
     },
   );

@@ -27,8 +27,6 @@ void main() {
   test('nativeAppleSignInSupported is false on macOS direct builds', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    // Desktop defaults to direct when DISTRIBUTION_CHANNEL is unset (see
-    // resolveDistributionChannel); Developer ID builds omit Apple Sign-In.
     expect(nativeAppleSignInSupported, isFalse);
   });
 

@@ -31,8 +31,6 @@ Future<void> runEmbeddedSubtitleExtract({
     return;
   }
 
-  // Embedded track listing is a MediaKit capability (issue #720): the
-  // WebView engine has no libmpv track list and reports none.
   final engine = ref.read(playerEngineProvider);
   final SubtitleTrackControl? subtitles = switch (engine) {
     SubtitleTrackControl control => control,
@@ -46,10 +44,7 @@ Future<void> runEmbeddedSubtitleExtract({
           .firstWhere((e) => e.subtitle.isNotEmpty)
           .timeout(const Duration(seconds: 2));
       playerSubs = t.subtitle;
-    } on TimeoutException {
-      // media_kit may not list subtitles until metadata is ready — ffmpeg probe
-      // in [TranscriptRepository.extractEmbeddedTracks] still runs.
-    }
+    } on TimeoutException {} // ignore: empty_catches
   }
 
   final count = await ref

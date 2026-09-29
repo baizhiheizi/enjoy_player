@@ -35,8 +35,6 @@ void main() {
 
   group('setWindowFullscreen', () {
     test('is a no-op (returns without throwing) when not desktop', () async {
-      // On the Linux test host isDesktop=true and the underlying
-      // window_manager API may not be wired; calling should not throw.
       await setWindowFullscreen(true);
       await setWindowFullscreen(false);
     });
@@ -44,9 +42,6 @@ void main() {
 
   group('getWindowFullscreen', () {
     test('returns false on non-desktop targets via inlined gate', () async {
-      // Same caveat as setWindowFullscreen: the function only branches on
-      // isDesktop, and on this test host we cannot assume window_manager
-      // resolution. We verify the function returns a bool in both cases.
       final result = await getWindowFullscreen();
       expect(result, isA<bool>());
     });

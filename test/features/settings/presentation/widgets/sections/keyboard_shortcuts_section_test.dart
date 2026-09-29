@@ -1,7 +1,3 @@
-// Tests for `lib/features/settings/presentation/widgets/sections/`
-// `keyboard_shortcuts_section.dart` — exercises the cheatsheet row, the
-// customize row push, and the trailing binding chip rendered via the
-// `hotkeysCtrlProvider.effectiveKeys('global.help')` resolution.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +72,6 @@ void main() {
 
       expect(find.byIcon(EnjoyIcons.help), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.tune), findsOneWidget);
-      // Default binding is "shift+slash" → the chip row shows "Shift /".
       expect(find.byType(KbdChordRow), findsOneWidget);
     },
   );
@@ -87,12 +82,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap the first SettingsRow (cheatsheet opener).
     await tester.tap(find.byIcon(EnjoyIcons.help));
     await tester.pumpAndSettle();
 
     expect(find.text('Keyboard shortcuts'), findsOneWidget);
-    // Search bar present in the dialog.
     expect(find.byIcon(EnjoyIcons.search), findsWidgets);
   });
 
@@ -121,7 +114,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap the customize row.
       await tester.tap(find.text('Customize shortcuts'));
       await tester.pumpAndSettle();
 
@@ -143,8 +135,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(KbdChordRow), findsOneWidget);
-    // Verify the chip renders the custom chord text instead of the default.
-    // KbdChordRow shows each segment as Text; "Ctrl" + "H" appear.
     expect(find.text('Ctrl'), findsWidgets);
     expect(find.text('H'), findsWidgets);
   });

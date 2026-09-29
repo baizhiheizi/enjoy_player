@@ -317,11 +317,8 @@ Future<void> _runFfmpegWindowsProcess({
     stderrBuf.add,
     onError: (Object e) => _log.fine('echo ffmpeg stderr read error: $e'),
   );
-  // Drain stdout so its pipe never fills and blocks the child.
   unawaited(proc.stdout.drain<void>());
 
-  // Real cancellation: kill the live child process. (Harmless if the process
-  // has already exited — kill()/the completer guard make this safe.)
   token?.onCancel(() {
     try {
       proc.kill(ProcessSignal.sigterm);
@@ -385,8 +382,6 @@ Future<void> _runFfmpegKit({
       );
     });
   } on MissingPluginException {
-    // `flutter test` and embedders without the FFmpegKit platform impl —
-    // surface as "FFmpeg unavailable" instead of a silent null.
     throw const EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegMissing,
       'FFmpegKit is not registered in this environment',
@@ -423,7 +418,6 @@ Future<void> _runFfmpegKit({
   } on EchoPcmExtractionException {
     rethrow;
   } catch (e, st) {
-    // Session-start failures from a missing platform impl etc.
     _log.fine('echo FFmpegKit $failLabel failed', e, st);
     throw EchoPcmExtractionException(
       EchoPcmFailureReason.ffmpegFailed,

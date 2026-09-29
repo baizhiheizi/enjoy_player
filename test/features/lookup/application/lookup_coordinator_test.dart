@@ -1,8 +1,3 @@
-// Tests for `lib/features/lookup/application/lookup_coordinator.dart` —
-// covers the rail breakpoint branch (`w >= 900` → dialog) and the
-// compact branch (`w < 900` → bottom sheet) by exercising
-// `LookupCoordinator.open()` in widget tests with synthetic MediaQuery sizes
-// and inspecting the resulting modal widget.
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -57,7 +52,6 @@ Widget _wrap({
         child: Scaffold(
           body: Consumer(
             builder: (context, ref, _) {
-              // Capture a FutureProvider that resolves after open() completes.
               return Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -133,14 +127,9 @@ void main() {
       );
       await tester.pump();
 
-      // Tap the button to fire open().
       await tester.tap(find.text('OpenLookup'));
       await tester.pumpAndSettle();
 
-      // The DictionaryLookupSheet wraps the lookup content with a Header
-      // that contains the "Look up" / "Lookup" label and language picker.
-      // Both branches end up rendering at least one DictionaryLookupSheet
-      // widget; we just need to verify *which* presentation flag it got.
       final sheetWidgets = tester
           .widgetList(find.byType(DictionaryLookupSheet))
           .toList();

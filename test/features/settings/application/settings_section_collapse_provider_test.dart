@@ -16,9 +16,6 @@ void main() {
       expect(state[SettingsSectionIds.about], isTrue);
       expect(state[SettingsSectionIds.cloudSync], isFalse);
       expect(state[SettingsSectionIds.appearanceLanguage], isFalse);
-      // Seeded keys are exactly the registry's section headers — no orphan
-      // ids for sections that no longer exist (e.g. the removed Account /
-      // Transcript sections).
       expect(
         state.keys,
         unorderedEquals(

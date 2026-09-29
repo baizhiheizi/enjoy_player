@@ -48,8 +48,6 @@ String creditsCtaLabel(AppLocalizations l10n) =>
 /// one-tap CTA to the subscription screen (plans + credits packages).
 void showCreditsFailureNotice(BuildContext context, CreditsFailure failure) {
   final l10n = AppLocalizations.of(context)!;
-  // Router captured while the context is alive: the persisted notice
-  // can outlive the originating route (see AppNotice).
   final router = GoRouter.of(context);
   AppNotice.error(
     context,

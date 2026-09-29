@@ -43,7 +43,6 @@ void main() {
     });
 
     test('toJson converts local DateTime to UTC before formatting', () {
-      // Construct a non-UTC DateTime to ensure the conversion runs.
       final ts = DateTime.utc(2026, 6, 30, 23, 0, 0);
       final m = DiagnosticExportManifest(
         appVersion: '1',
@@ -116,7 +115,6 @@ void main() {
         buildDiagnosticArchive(manifest: manifest),
       );
       expect(bytes, isNotEmpty);
-      // ZIP magic: 0x50 0x4B ("PK").
       expect(bytes[0], 0x50);
       expect(bytes[1], 0x4B);
     });
@@ -125,8 +123,6 @@ void main() {
   group('defaultExportManifest', () {
     test('buildMode reflects compile-time mode', () {
       final m = defaultExportManifest(appVersion: '1', buildNumber: '1');
-      // Tests run in debug mode, but accept any of the three values since the
-      // build mode is global.
       expect(['release', 'profile', 'debug'].contains(m.buildMode), isTrue);
       expect(m.platform, isNotEmpty);
       expect(m.appVersion, '1');
@@ -135,7 +131,6 @@ void main() {
 
     test('distributionChannel uses the resolved channel name', () {
       final m = defaultExportManifest(appVersion: '1', buildNumber: '1');
-      // Valid channel names defined in [resolveDistributionChannel].
       expect(['store', 'direct'].contains(m.distributionChannel), isTrue);
     });
 

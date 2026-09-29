@@ -1,17 +1,3 @@
-// Tests for `lib/features/update/presentation/update_prompt_host.dart`.
-//
-// Covers:
-// - `UpdatePromptHost` listening to updateCtrlProvider state changes and
-//   suppressing the prompt dialog when the player is playing.
-// - `runManualUpdateCheck` helper for Settings/About flows across all paths:
-//   store-channel notice, offline error, up-to-date notice, and the full
-//   update prompt dialog when an update is available.
-//
-// The update controller is tested directly (snooze/dismiss/etc.) in
-// `update_controller_test.dart`. Here we focus on the widget glue and the
-// manual flow, both of which depend on `isDirectDistributionChannel`
-// (compile-time). We override `debugDefaultTargetPlatformOverride` to flip
-// the channel on demand.
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -163,7 +149,6 @@ void main() {
         );
         await tester.pump();
 
-        // Trigger an update - state has hasUpdate=true.
         container.read(updateCtrlProvider.notifier).state = UpdateCheckResult(
           availability: UpdateAvailability.updateAvailable,
           release: _release(),
@@ -171,7 +156,6 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Dialog should appear since player is not playing.
         expect(find.byType(UpdatePromptDialog), findsOneWidget);
         expect(find.text('payload'), findsOneWidget);
       },
@@ -182,8 +166,6 @@ void main() {
     ) async {
       final container = makeContainer();
       addTearDown(container.dispose);
-      // Default test target is android (store channel), so bootstrap
-      // should not be scheduled. The widget should still render fine.
       await tester.pumpWidget(
         _wrap(
           container: container,
@@ -292,7 +274,6 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
-      // Should display info notice about store channel.
       expect(find.byType(SnackBar), findsOneWidget);
     });
 
@@ -330,7 +311,6 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      // Update dialog should be shown.
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.byType(UpdatePromptDialog), findsOneWidget);
       debugDefaultTargetPlatformOverride = null;

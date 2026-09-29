@@ -118,7 +118,6 @@ bool _isUsableDataDir(String path) {
 
 bool _libraryPathIsUsable(String path) {
   if (File(path).existsSync()) return true;
-  // Bare soname: Android's linker namespace finds the packaged JNI lib.
   return path == kEspeakAndroidSoname;
 }
 

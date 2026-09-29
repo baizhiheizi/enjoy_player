@@ -1,17 +1,3 @@
-// Issue #663 (rebuild scope, item B): opening / closing a transient overlay
-// (dialog, sheet, menu, notice) must not rebuild RootShell.
-//
-// The shell used to watch `playerSurfaceShouldParkForOverlayProvider`, so
-// every coordinator token change re-ran its build — LayoutBuilder, nav or
-// sidebar, and both scaffolds — when only [PlayerSurfaceHost] needed to move
-// the surface. The host now watches the coordinator itself (pinned by
-// `player_surface_host_test.dart`); this file pins that the *shell* stays
-// untouched.
-//
-// Structural signal: RootShell constructs a fresh non-const [AppBackground]
-// (wrapping a fresh [LayoutBuilder]) on every build, so widget-instance
-// identity is a build counter — no timing involved
-// (docs/perf-measurement.md, "structural, deterministic assertions").
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/player/player_surface_overlay_coordinator.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -154,7 +140,6 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    // The overlay hold must not have re-run the shell's build…
     expect(
       tester.widget<AppBackground>(find.byType(AppBackground)),
       same(shellBefore),
@@ -162,7 +147,6 @@ void main() {
           'Acquiring an overlay token rebuilt RootShell; the park decision '
           'belongs to PlayerSurfaceHost alone (issue #663)',
     );
-    // …nor re-allocated the shell-level host wiring.
     expect(
       tester.widget<PlayerSurfaceHost>(find.byType(PlayerSurfaceHost)),
       same(hostBefore),
@@ -181,8 +165,6 @@ void main() {
   });
 
   testWidgets('shell keeps only the /youtube/login path flag', (tester) async {
-    // The route flag is the one park reason RootShell still owns: it is
-    // derived from the path it already computes for nav chrome.
     final container = await _pump(tester, initial: '/', db: db);
     expect(
       tester
@@ -192,7 +174,6 @@ void main() {
     );
 
     container.dispose();
-    // Re-pump on the login route: the shell passes its path flag through.
     final loginContainer = await _pump(
       tester,
       initial: '/youtube/login',

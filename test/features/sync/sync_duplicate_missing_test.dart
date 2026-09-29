@@ -27,8 +27,6 @@ void main() {
         action: 'create',
         payloadJson: '{}',
       );
-      // Give the row prior retries so markPermanentlyFailed visibly pushes
-      // it over the limit (issue #752).
       await repo.markAttempted(id, error: 'boom');
       await repo.markAttempted(id, error: 'boom');
 

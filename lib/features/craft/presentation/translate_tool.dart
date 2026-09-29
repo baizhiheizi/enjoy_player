@@ -56,7 +56,6 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
     final controller = ref.read(craftControllerProvider.notifier);
     final theme = Theme.of(context);
 
-    // Sync result controller with state.
     if (state.translatedText != null &&
         _resultCtrl.text != state.translatedText &&
         !_resultCtrl.selection.isValid) {
@@ -191,7 +190,6 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                       color: theme.colorScheme.error,
                     ),
                   ),
-                  // One-tap recovery for credits rejections (spec 045).
                   if (state.failure is CraftCreditsFailure)
                     TextButton(
                       style: TextButton.styleFrom(

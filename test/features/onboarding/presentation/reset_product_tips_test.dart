@@ -23,7 +23,6 @@ Widget _harness({required AppDatabase db}) {
     overrides: [
       deviceGlobalAppDatabaseProvider.overrideWithValue(db),
       appDatabaseProvider.overrideWithValue(db),
-      // Avoid update-check side effects while tapping About rows.
       updateAvailableBadgeProvider.overrideWith((ref) => false),
     ],
     child: MaterialApp(
@@ -140,8 +139,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text(l10n.settingsResetProductTipsConfirmAction));
-    await tester.pump(); // dialog pop + reset
-    await tester.pump(); // AppNotice post-frame
+    await tester.pump();
+    await tester.pump();
     await tester.pump();
 
     final progress = container.read(onboardingProgressProvider).requireValue;

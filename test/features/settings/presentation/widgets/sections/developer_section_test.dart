@@ -1,7 +1,3 @@
-// Tests for `lib/features/settings/presentation/widgets/sections/developer_section.dart`.
-//
-// Renders the API URL / AI API URL editors with a fake in-memory Drift DB
-// so the providers build and resolve cleanly.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/api_client_provider.dart';
@@ -52,7 +48,6 @@ void main() {
     await tester.pumpWidget(buildHost(container));
     await tester.pumpAndSettle();
 
-    // Both expansion tiles should be present with their titles.
     expect(find.byType(ExpansionTile), findsNWidgets(2));
     expect(find.byIcon(EnjoyIcons.server), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.robot), findsOneWidget);
@@ -62,11 +57,9 @@ void main() {
     await tester.pumpWidget(buildHost(container));
     await tester.pumpAndSettle();
 
-    // First ExpansionTile → tap to expand.
     await tester.tap(find.byType(ExpansionTile).first);
     await tester.pumpAndSettle();
 
-    // Editor widgets appear (TextField + FilledButton).
     expect(find.byType(TextField), findsAtLeast(1));
     expect(find.byType(FilledButton), findsAtLeast(1));
   });
@@ -77,11 +70,9 @@ void main() {
       await tester.pumpWidget(buildHost(container));
       await tester.pumpAndSettle();
 
-      // Second ExpansionTile → tap to expand.
       await tester.tap(find.byType(ExpansionTile).at(1));
       await tester.pumpAndSettle();
 
-      // Editor should now have TextField + FilledButton (Save) + OutlinedButton (Use default).
       expect(find.byType(TextField), findsAtLeast(1));
       expect(find.byType(FilledButton), findsAtLeast(1));
       expect(find.byType(OutlinedButton), findsAtLeast(1));
@@ -91,7 +82,6 @@ void main() {
   test(
     'apiBaseUrlProvider builds from default when no persisted value',
     () async {
-      // No settings persisted → default URL.
       final url = await container.read(apiBaseUrlProvider.future);
       expect(url, startsWith('https://'));
     },

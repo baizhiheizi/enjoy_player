@@ -319,7 +319,6 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
-        // GET returns 500, not 404
         return http.Response(
           jsonEncode({'error': 'server error'}),
           500,
@@ -690,7 +689,6 @@ void main() {
         final upload = _service(db, _client(mock));
         await upload.uploadVocabularyItem(row);
 
-        // Only the POST, no GET refetch needed
         expect(paths, ['POST /api/v1/mine/vocabulary_items']);
         final saved = await db.vocabularyItemDao.getById('item-1');
         expect(saved?.syncStatus, 'synced');

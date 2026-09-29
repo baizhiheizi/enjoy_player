@@ -1,6 +1,3 @@
-// Failure vocabulary mapping (spec 046 T029): every AppFailure variant maps
-// into the closed AnalyticsFailureReason enum — coarse tags only, never
-// payloads.
 library;
 
 import 'dart:async';

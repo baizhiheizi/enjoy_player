@@ -136,7 +136,6 @@ void main() {
           timeline: const Stream<List<FeedEntry>>.empty(),
         ),
       );
-      // Initial frame, no pumpAndSettle (avoid hanging on animations).
       await tester.pump();
 
       expect(find.byType(Skeleton), findsWidgets);
@@ -182,7 +181,6 @@ void main() {
 
       expect(find.text('First video'), findsOneWidget);
       expect(find.text('Second video'), findsOneWidget);
-      // At narrow constraints a SliverList is used.
       expect(find.byType(SliverList), findsWidgets);
     });
 

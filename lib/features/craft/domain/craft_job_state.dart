@@ -15,10 +15,8 @@ import 'translation_style.dart';
 @immutable
 class CraftJobState {
   const CraftJobState({
-    // Screen mode + stage (Express flow)
     this.screenMode = CraftScreenMode.express,
     this.stage = CraftStage.capture,
-    // Translate tool
     this.sourceText = '',
     this.sourceLanguage,
     this.targetLanguage = 'en',
@@ -26,14 +24,12 @@ class CraftJobState {
     this.customPrompt,
     this.translatedText,
     this.isTranslating = false,
-    // Express capture
     this.capturedAudioBytes,
     this.rawTranscript,
     this.rewrittenFromTranscript,
     this.isCapturing = false,
     this.isTranscribing = false,
     this.captureCancelTick = 0,
-    // Synthesize tool
     this.synthText = '',
     this.synthLanguage = 'en',
     this.selectedVoice,
@@ -42,20 +38,16 @@ class CraftJobState {
     this.previewWordBoundaries = const [],
     this.isSynthesizing = false,
     this.isSaving = false,
-    // Result
     this.resultMediaId,
     this.dedupedExistingId,
     this.failure,
     this.generation = 0,
-    // Editing an existing Craft item (from Craft history)
     this.editingMediaId,
   });
 
-  // --- Screen mode + stage (Express flow) ---
   final CraftScreenMode screenMode;
   final CraftStage stage;
 
-  // --- Translate tool ---
   final String sourceText;
   final String? sourceLanguage;
   final String targetLanguage;
@@ -64,7 +56,6 @@ class CraftJobState {
   final String? translatedText;
   final bool isTranslating;
 
-  // --- Express capture ---
   final Uint8List? capturedAudioBytes;
   final String? rawTranscript;
 
@@ -79,7 +70,6 @@ class CraftJobState {
   /// discard the live mic without committing ASR.
   final int captureCancelTick;
 
-  // --- Synthesize tool ---
   final String synthText;
   final String synthLanguage;
   final String? selectedVoice;
@@ -89,7 +79,6 @@ class CraftJobState {
   final bool isSynthesizing;
   final bool isSaving;
 
-  // --- Result ---
   final String? resultMediaId;
   final String? dedupedExistingId;
   final CraftFailure? failure;
@@ -100,7 +89,6 @@ class CraftJobState {
   /// `CraftController.loadForEdit`; cleared on reset / mode switch.
   final String? editingMediaId;
 
-  // --- Derived ---
   bool get isBusy =>
       isCapturing ||
       isTranscribing ||

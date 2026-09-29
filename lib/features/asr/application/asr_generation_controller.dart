@@ -76,7 +76,6 @@ class AsrGenerationController extends _$AsrGenerationController {
     String? mediaSourceUri,
     MediaKind kind = MediaKind.video,
   }) async {
-    // Cancel any prior in-flight job cleanly (FR-015).
     final prior = _cancelToken;
     if (prior != null && !prior.isCompleted) {
       prior.complete();
@@ -193,7 +192,6 @@ class AsrGenerationController extends _$AsrGenerationController {
       final skipExtract = resumeJobId != null && resumeJobId.isNotEmpty;
 
       if (!skipExtract) {
-        // 1. Extract audio (skip for audio-only files).
         if (mediaSourceUri == null || mediaSourceUri.isEmpty) {
           _setError('asrErrorUnsupportedSource');
           return;
@@ -228,7 +226,6 @@ class AsrGenerationController extends _$AsrGenerationController {
         return;
       }
 
-      // 2. Recognition.
       if (!isLongForm) {
         _setPhase(AsrGenerationPhase.recognizing);
       }
@@ -285,7 +282,6 @@ class AsrGenerationController extends _$AsrGenerationController {
           return;
         }
         _log.info('Long-form job failed: ${e.category}');
-        // Retryable failures clear attempt so next Generate uses a new key.
         await attemptStore.clear(mediaId);
         final key = asrLongFormFailureMessageKey(e);
         _setError(
@@ -319,7 +315,6 @@ class AsrGenerationController extends _$AsrGenerationController {
         return;
       }
 
-      // 3. Build the timeline.
       final lines = buildAsrTranscriptLines(
         result: result,
         mediaDurationMs: mediaDurationMs,
@@ -336,7 +331,6 @@ class AsrGenerationController extends _$AsrGenerationController {
         return;
       }
 
-      // 4. Persist.
       _setPhase(AsrGenerationPhase.persisting);
       final repo = ref.read(transcriptRepositoryProvider);
       final trackLanguage = result.language?.trim().isNotEmpty == true
@@ -352,7 +346,6 @@ class AsrGenerationController extends _$AsrGenerationController {
         return;
       }
 
-      // 5. Propagate detected language when it differs.
       await _maybeUpdateMediaLanguage(
         detected: result.language,
         persistedLanguage: trackLanguage,
@@ -387,7 +380,6 @@ class AsrGenerationController extends _$AsrGenerationController {
             ),
           );
     } finally {
-      // Free audio bytes eagerly.
       audio = null;
     }
   }
@@ -405,8 +397,6 @@ class AsrGenerationController extends _$AsrGenerationController {
   }) async {
     if (detected == null || detected.isEmpty) return;
     final registry = ref.read(mediaRegistryProvider);
-    // Same-tag short-circuit stays here (repo-style caller policy); the
-    // registry owns only the videos/audios write dispatch.
     final hit = await registry.probeBoth(mediaId);
     final current = hit.video?.language ?? hit.audio?.language;
     if (current == null || current == persistedLanguage) return;

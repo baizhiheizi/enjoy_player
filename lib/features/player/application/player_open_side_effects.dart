@@ -123,8 +123,6 @@ Future<void> _runYoutubeMetadataRefresh(
   required int Function() currentOpenGeneration,
   required String? Function() currentSessionMediaId,
 }) async {
-  // Same catch-and-log contract as the sibling helpers: this future is
-  // fire-and-forget, so an escaping throw becomes an unhandled async error.
   try {
     final row = await ref.read(mediaRegistryProvider).getVideoById(mediaId);
     if (row == null || row.provider.toLowerCase() != 'youtube') return;

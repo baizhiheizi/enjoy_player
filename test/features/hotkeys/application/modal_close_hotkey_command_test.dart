@@ -1,10 +1,3 @@
-// Per-command tests for the Escape (`modal.close`) command (issue #719).
-//
-// The dismissal PRIORITY ladder is pure and unit-tested in
-// `escape_dismissal_test.dart`; these tests pin the command's execution arms
-// against a mounted router + real provider state (navigator pops, fullscreen
-// exit, capture cancel, bus pulse, practice clear), and the fall-through when
-// nothing applies.
 import 'dart:async';
 
 import 'package:enjoy_player/core/routing/app_router.dart';
@@ -230,8 +223,6 @@ _mountHarness(
   );
   addTearDown(container.dispose);
 
-  // Warm up every override so the listeners can read `state` synchronously
-  // inside `_resolve` and the dispatch arms.
   container.read(hotkeysCtrlProvider.notifier);
   container.read(windowFullscreenProvider.notifier);
   container.read(shadowReadingHotkeyBusProvider.notifier);

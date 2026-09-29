@@ -38,12 +38,6 @@ class YoutubeVideoStage extends StatelessWidget {
     engine.noteStageViewportSize(width: maxWidth, height: maxHeight);
 
     final session = engine.session;
-    // Stage root: rebuilt only by mount changes ([session.mountTick]). The
-    // buffering stream is read in a leaf below so a `waiting` → `playing`
-    // flip cannot rebuild the WebView host subtree — every flip used to
-    // re-create the whole [Stack], including a fresh [YoutubeWebViewHost]
-    // (and therefore a fresh settings object) on each mid-playback stall
-    // (issue #663).
     return ValueListenableBuilder<int>(
       valueListenable: session.mountTick,
       builder: (context, _, _) {
@@ -51,9 +45,6 @@ class YoutubeVideoStage extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            // ADR-0048: on opted-out platforms the host must never mount
-            // (defense in depth — mount requests are gated too, but the
-            // InAppWebView constructor itself asserts without a backend).
             if (!youTubeEngineOptedOutHere && session.shouldMountWebView)
               _webViewHost(),
             _StageBufferingLeaf(engine: engine),
@@ -124,8 +115,6 @@ class _YoutubeTapToPlayHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // IgnorePointer: empty regions must still reach the WebView so a real
-    // user gesture can satisfy platform autoplay policy.
     return IgnorePointer(
       ignoring: true,
       child: ColoredBox(
@@ -164,8 +153,6 @@ class _YoutubeBufferingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // IgnorePointer: a stall must stay tappable (pause / seek) like any
-    // other moment of playback.
     return const IgnorePointer(
       ignoring: true,
       child: ColoredBox(

@@ -61,7 +61,6 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
     expect(find.byType(FilledButton), findsOneWidget);
-    // Not busy -> spinner should be absent, refresh icon shown
     expect(find.byType(LoadingIcon), findsNothing);
     expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
   });
@@ -108,7 +107,6 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Retry'));
     await tester.pump();
-    // Latched: button disabled while we never toggle isRetrying=true
     final latchedButton = tester.widget<FilledButton>(
       find.byType(FilledButton),
     );
@@ -119,19 +117,16 @@ void main() {
       reason: '_tapLatched keeps the row busy after a tap',
     );
 
-    // Parent flips isRetrying=true -> didUpdateWidget clears _tapLatched
     await tester.pumpWidget(_wrap(build(isRetrying: true)));
     await tester.pump();
     expect(find.byType(LoadingIcon), findsOneWidget);
 
-    // Now flip isRetrying=false (post retry completion) -> latch still cleared.
     await tester.pumpWidget(_wrap(build(isRetrying: false)));
     await tester.pump();
     final afterButton = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(afterButton.onPressed, isNotNull);
     expect(find.byType(LoadingIcon), findsNothing);
 
-    // Tapping again should fire onRetry again.
     await tester.tap(find.text('Retry'));
     await tester.pump();
     expect(taps, 2);

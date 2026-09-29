@@ -42,7 +42,6 @@ void main() {
       await tester.pumpWidget(
         _harness(source: 'ko-KR', target: 'ja-JP', learningTag: 'en-US'),
       );
-      // Korean label (catalog or fallback) and Japanese label.
       expect(find.text('한국어'), findsOneWidget);
       expect(find.text('日本語'), findsOneWidget);
     });
@@ -66,13 +65,9 @@ void main() {
         ),
       );
 
-      // Tap the target pill (label "English").
       await tester.tap(find.text('English'));
       await tester.pumpAndSettle();
 
-      // Verify a representative cross-section of catalog labels is present.
-      // (Sheet uses ListView; not all labels may render at once if the
-      // bottom-sheet height is constrained, so we check a few distinct ones.)
       final representativeLabels = <String>[
         'Deutsch',
         'Italiano',
@@ -87,7 +82,6 @@ void main() {
         );
       }
 
-      // Pick Japanese.
       await tester.tap(find.text('日本語'));
       await tester.pumpAndSettle();
       expect(captured, 'ja-JP');
@@ -105,7 +99,6 @@ void main() {
           onSwap: () => swapped++,
         ),
       );
-      // Find the swap icon and tap it.
       final swapIcon = find.byIcon(EnjoyIcons.swap);
       expect(swapIcon, findsOneWidget);
       await tester.tap(swapIcon);
@@ -153,7 +146,6 @@ void main() {
       );
       await tester.tap(find.byTooltip('Swap languages'));
       await tester.pumpAndSettle();
-      // Confirm swap fired (source=ko-KR now, target=en-US).
       expect(source, isNull);
     });
 
@@ -166,9 +158,6 @@ void main() {
           tester.view.resetPhysicalSize();
           tester.view.resetDevicePixelRatio();
         });
-        // Just verify swapping source→target and target→source calls the
-        // swap callback (which swaps them). This covers the second branch of
-        // the picker logic through the same code path.
         var swapped = 0;
         await tester.pumpWidget(
           _harness(

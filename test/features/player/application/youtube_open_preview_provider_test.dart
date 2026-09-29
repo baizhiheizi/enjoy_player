@@ -73,7 +73,6 @@ void main() {
     test(
       'uses bare YouTube vid when it parses as a valid 11-char id',
       () async {
-        // Rick Astley's id — exactly 11 chars, parses as bare id.
         await seedVideo(id: 'v1', vid: 'dQw4w9WgXcQ');
         final result = await container.read(
           youtubeOpenPreviewProvider('v1').future,
@@ -99,7 +98,6 @@ void main() {
           youtubeOpenPreviewProvider('v2').future,
         );
         expect(result!.videoId, 'unused');
-        // The CDN URL supplies the real video id, so the maxres URL matches that.
         expect(
           result.thumbnailUrl,
           'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',

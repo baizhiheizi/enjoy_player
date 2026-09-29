@@ -69,20 +69,16 @@ void main() {
   test('duration >= 900 uploads, submits JSON, and polls', () async {
     final phases = <AsrLongFormClientPhase>[];
     final httpClient = _ScriptedClient([
-      // upload
       (_) => _jsonResponse({
         'media_reference': 'ref.wav',
         'byte_length': 3,
       }, status: 201),
-      // submit
       (_) => _jsonResponse({
         'job_id': 'job-1',
         'status': 'accepted',
         'created_at': '2026-07-19T00:00:00.000Z',
       }, status: 202),
-      // poll processing
       (_) => _jsonResponse({'job_id': 'job-1', 'status': 'processing'}),
-      // poll completed
       (_) => _jsonResponse({
         'job_id': 'job-1',
         'status': 'completed',

@@ -7,9 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('clip open vs restored position', () {
     test('echo enforcer pause-rewinds when position is past clip window', () {
-      // Documents why playVocabularyClip must seek before echo.activate:
-      // openMedia restores ~lesson position; activating the clip window first
-      // yields pauseAndRewind and aborts HTML5 play().
       const window = (start: 10.0, end: 15.0);
       final decision = decideEchoPlaybackTime(712.0, window);
       expect(decision, isA<EchoPauseAndRewind>());

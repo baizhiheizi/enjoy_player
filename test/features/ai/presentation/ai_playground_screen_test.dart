@@ -1,11 +1,3 @@
-// Widget-level coverage for lib/features/ai/presentation/ai_playground_screen.dart.
-//
-// The screen exercises five AI capabilities (ASR, chat, translation,
-// dictionary, assessment) backed by Riverpod services. We override each
-// capability with a fake so the build path runs end-to-end without
-// hitting the network, then drive a subset of the run-method flows via
-// `ProviderContainer.read(...)` so every public method on the screen
-// state is exercised.
 import 'dart:typed_data';
 
 import 'package:enjoy_player/features/ai/application/ai_capability_providers.dart';
@@ -202,9 +194,6 @@ void main() {
     testWidgets('renders the five section titles', (tester) async {
       await tester.pumpWidget(wrap());
       await tester.pumpAndSettle();
-      // The screen has section titles for ASR, Chat, Translation, Dictionary,
-      // and Assessment (the last one is "TTS / Assessment"). Just sanity-check
-      // that the screen rendered past the providers row.
       expect(find.byType(TextField), findsWidgets);
     });
   });

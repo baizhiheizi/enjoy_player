@@ -1,8 +1,3 @@
-// Tests the PostHog facade wrapper: setup contract, gating (not-ready /
-// disabled), the beforeSend UGC guard, identity dedupe, opt-out behavior,
-// flag fallbacks, and vendor-exception swallowing. The vendor method channel
-// is mocked, so every assertion observes the exact calls that would reach
-// the native SDK.
 library;
 
 import 'package:flutter/services.dart';
@@ -77,8 +72,6 @@ void main() {
 
       await impl.setup(PostHogConfig('tok')..host = 'https://x.example');
       impl.capture(AnalyticsEvents.practiceSessionStarted);
-      // setup done but the stored opt-out has not been applied yet — the
-      // opted-out-user guarantee (no events before setEnabled(true)).
       expect(calls('capture'), isEmpty);
 
       impl.setEnabled(true);
@@ -119,7 +112,7 @@ void main() {
         AnalyticsEvents.dictionaryLookupPerformed,
         properties: {
           AnalyticsEvents.propSource: AnalyticsEvents.sourceSelection,
-          'selectedText': 'bonjour', // UGC-shaped — must never leave the app
+          'selectedText': 'bonjour',
         },
       );
       expect(calls('capture'), isEmpty);
@@ -154,7 +147,6 @@ void main() {
       impl.reset();
       expect(calls('reset'), hasLength(1));
 
-      // Re-identify after reset goes through again (fresh identity).
       impl.identify('u-1');
       expect(calls('identify'), hasLength(2));
     });
@@ -164,7 +156,6 @@ void main() {
       () async {
         final impl = PosthogAnalytics();
         await impl.setup(PostHogConfig('tok')..host = 'https://x.example');
-        // Not enabled: the opted-out-user state.
         impl.identify('u-9', userProperties: {'name': 'Ana'});
         expect(calls('identify'), isEmpty);
 
@@ -202,8 +193,6 @@ void main() {
     });
 
     test('falls back when the vendor errors', () async {
-      // The vendor's IO layer converts channel errors into `false`, so the
-      // only way to exercise the guard is the test-only short-circuit.
       final impl = PosthogAnalytics(shortCircuitOnError: true);
       final config = PostHogConfig('tok')..host = 'https://x.example';
       await impl.setup(config);
@@ -237,7 +226,7 @@ void main() {
     test('falls back when the value type does not match', () async {
       handlerOverride = (call) async {
         invoked.add(call);
-        if (call.method == 'getFeatureFlag') return true; // bool, not String
+        if (call.method == 'getFeatureFlag') return true;
         return null;
       };
       final impl = await readyWrapper();
@@ -265,7 +254,6 @@ void main() {
         ),
         returnsNormally,
       );
-      // Let the guarded future settle.
       await Future<void>.delayed(Duration.zero);
     });
   });

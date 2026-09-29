@@ -19,10 +19,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 ApiClient _fakeApiClient(MockClient client) {
   return ApiClient(
     httpClient: client,
@@ -165,10 +161,6 @@ Map<String, dynamic> _serverTranscriptItem({
   };
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
   group('resolveOnOpen', () {
     late AppDatabase db;
@@ -234,7 +226,6 @@ void main() {
         'Audio',
         'a4',
       );
-      // api is null → skipped → no persist
       expect(state, isNull);
     });
 
@@ -359,7 +350,6 @@ void main() {
 
     test('returns error when all server items fail to produce rows', () async {
       await _insertAudio(db, 'b7');
-      // Items missing required fields → _transcriptRowFromServerMap returns null
       final api = _transcriptApiReturning([
         {'id': null, 'targetType': 'Audio', 'targetId': 'b7'},
         {'id': 'x', 'targetType': null, 'targetId': 'b7'},
@@ -403,8 +393,6 @@ void main() {
 
       final row = await db.transcriptDao.getById('srv-dates');
       expect(row, isNotNull);
-      // Drift stores as epoch millis and reads back as local time;
-      // compare via millisecondsSinceEpoch to be timezone-independent.
       expect(
         row!.createdAt.millisecondsSinceEpoch,
         DateTime.utc(2025, 6, 15, 10, 30).millisecondsSinceEpoch,
@@ -436,7 +424,6 @@ void main() {
 
       final row = await db.transcriptDao.getById('srv-nodate');
       expect(row, isNotNull);
-      // fallback is DateTime.now() — just verify it's recent
       expect(
         row!.createdAt.isAfter(
           DateTime.now().subtract(const Duration(minutes: 1)),
@@ -505,7 +492,6 @@ void main() {
 
     test('returns null when session has no transcriptId', () async {
       await _insertAudio(db, 'c2');
-      // Create a session without a transcript
       await db.echoSessionDao.updatePrimaryTranscriptForTarget(
         'Audio',
         'c2',
@@ -662,7 +648,6 @@ void main() {
         label: 'My Custom Label',
       );
 
-      // Re-generate without a label
       final id = await repo.upsertAsrGeneratedTrack(
         mediaId: 'e3',
         language: 'en',
@@ -704,7 +689,6 @@ void main() {
       final lines1 = repo.linesForRow(row1!);
       expect(lines1.first.text, 'v1');
 
-      // Upsert again with different content
       await repo.upsertAsrGeneratedTrack(
         mediaId: 'e5',
         language: 'en',
@@ -729,7 +713,6 @@ void main() {
     tearDown(() => db.close());
 
     test('no-ops when transcript does not exist', () async {
-      // Should not throw
       await repo.deleteTranscript('nonexistent');
     });
 
@@ -826,12 +809,10 @@ void main() {
     tearDown(() => db.close());
 
     test('setActiveTranscript no-ops for unknown media id', () async {
-      // Should not throw
       await repo.setActiveTranscript('ghost', 'tr-x');
     });
 
     test('setSecondaryTranscript no-ops for unknown media id', () async {
-      // Should not throw
       await repo.setSecondaryTranscript('ghost', 'tr-x');
     });
 
@@ -1049,11 +1030,9 @@ void main() {
         ),
       );
 
-      // No fetcher, no youtube transcripts client
       final repo = TranscriptRepository(db);
       final result = await repo.fetchCloudTranscripts('v-yt', force: true);
 
-      // YouTube path: fetcher is null → skipped
       expect(result.status, TranscriptCloudFetchStatus.skipped);
     });
   });

@@ -34,8 +34,6 @@ Future<void> analyticsInit(Ref ref) async {
   final analytics = ref.read(analyticsProvider);
   if (analytics is! PosthogAnalytics) {
     _log.info('analytics: inert (unsupported platform or no token configured)');
-    // Auth sync is still attached (it all no-ops) so the wiring is identical
-    // in every build and testable without a token.
     ref.read(analyticsAuthSyncProvider);
     return;
   }

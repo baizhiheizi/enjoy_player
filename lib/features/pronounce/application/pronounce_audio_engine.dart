@@ -56,10 +56,6 @@ final class AudioplayersPronounceEngine implements PronounceAudioEngine {
   Future<void> playUrl(String url) async {
     _ensureWired();
     await _player.stop();
-    // Windows Media Foundation `CreateObjectFromURL` often returns
-    // ACCESS_DENIED (0x80070005) for remote HTTPS URLs. Craft already plays
-    // TTS via [BytesSource]; use the same path on Windows, and fall back
-    // elsewhere when streaming fails (see specs/031-word-pronounce/research R3).
     if (Platform.isWindows) {
       await _playFromBytes(url);
       return;

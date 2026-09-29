@@ -1,10 +1,3 @@
-// Invariants for the `launch_pay_url.dart` checkout-launch helper.
-//
-// The function is consumed by both the credits and subscription purchase
-// sheets, which pattern-match on `StateError(:final message)` to surface a
-// user-facing reason. These tests pin the three message keys — the public
-// contract consumed by the UI — verbatim, so a rename would break this test
-// on purpose.
 import 'package:enjoy_player/core/utils/launch_pay_url.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher_platform_interface/link.dart';
@@ -38,7 +31,6 @@ void main() {
     });
 
     test('unparseable url throws invalid_pay_url', () async {
-      // `Uri.tryParse` returns null for malformed authority / IPv6 forms.
       try {
         await launchPayUrl('http://[');
         fail('expected launchPayUrl to throw on unparseable input');

@@ -56,8 +56,6 @@ void main() {
     });
 
     test('preserves non-string map keys verbatim', () {
-      // Symmetric mapping type is `Map<dynamic, dynamic>`, but most call sites
-      // use String keys. Keep non-string keys stable.
       final input = <dynamic, dynamic>{1: 'a', 'userId': 2};
       final result = convertKeysToSnake(input);
       expect(result[1], 'a');
@@ -99,9 +97,6 @@ void main() {
     });
 
     test('preserves non-ASCII key characters unchanged', () {
-      // Non-ASCII keys (e.g. localized metadata) are not in the API contract
-      // but the helper must not corrupt them — lock in the original
-      // Unicode-aware behaviour.
       final result = convertKeysToSnake({'caféName': 1, 'naïve': 2});
       expect(result['caféName'], 1);
       expect(result['naïve'], 2);
@@ -176,9 +171,6 @@ void main() {
     });
 
     test('collapses consecutive underscores between segments', () {
-      // `__` has no real-world source in the API contract, but the helper
-      // currently drops the empty segment rather than emitting `__`. Lock that
-      // in so behavior stays predictable if the wire format ever shifts.
       final result = convertKeysToCamel({'user__id': 1});
       expect(result, {'userId': 1});
     });

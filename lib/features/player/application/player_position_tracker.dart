@@ -82,9 +82,6 @@ class PlayerPositionTracker {
 
   Future<void> cancel() async {
     _detachSubscriptions();
-    // Release the enforcement slot and neutralize any in-flight op so a
-    // pending pause-and-rewind can't seek a stale engine or block the next
-    // media's enforcement.
     _echoEnforcer.reset();
     _wordLoopEnforcer.reset();
     final mediaId = _subscribedMediaId;
@@ -101,9 +98,6 @@ class PlayerPositionTracker {
     required String mediaId,
     required String dexieTargetType,
   }) {
-    // Defensive: since #674 only the open coordinator calls this, and only
-    // after [cancel] — but overwriting a live subscription would leak the
-    // previous engine's stream, so detach instead of trusting the convention.
     _detachSubscriptions();
     _subscribedGeneration = openGeneration;
     _subscribedMediaId = mediaId;
@@ -115,11 +109,6 @@ class PlayerPositionTracker {
         if (_subscribedGeneration != currentOpenGeneration()) return;
         final seconds = pos.inMilliseconds / 1000.0;
 
-        // Echo enforcement runs on every position event — the decision is cheap
-        // and this is what keeps pause-and-rewind within ~50 ms of the segment
-        // end. Single-flight inside the enforcer drops concurrent ticks.
-        // Guarded so a single engine error cannot surface as an uncaught async
-        // exception and stall enforcement for the rest of the session (M7).
         unawaited(() async {
           try {
             final skipEcho = await _wordLoopEnforcer.enforceTick(
@@ -132,8 +121,6 @@ class PlayerPositionTracker {
           }
         }());
 
-        // Heavy session emit + persistence stays on the 400 ms bucket (or fires
-        // immediately on a detected seek) so the recorded clip window lines up.
         final bucket = pos.inMilliseconds ~/ positionBucketMs;
         final prevSec = getSession()?.currentTimeSeconds;
         final likelySeek =
@@ -178,11 +165,6 @@ class PlayerPositionTracker {
         }
         final sec = d.inMilliseconds ~/ 1000;
         setSession(getSession()?.copyWith(durationSeconds: newSec));
-        // One-off duration backfill through the registry (same write-after-read
-        // as the ffmpeg probe; skips when the row already has a duration).
-        // Guarded like the position tick above: a Drift throw must not
-        // surface as an uncaught async exception from a stream listener and
-        // take playback down with it.
         try {
           await ref
               .read(mediaRegistryProvider)

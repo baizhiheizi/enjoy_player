@@ -209,8 +209,6 @@ class PlayerInteractions {
       if (lines.isEmpty) return;
       ref.read(transcriptBlurModeProvider.notifier).activate();
     }
-    // Persist immediately so a quick media switch cannot race a debounced
-    // write against the newly restored blur state for a different target.
     await ref
         .read(playbackSessionPersisterProvider)
         .writeNow(

@@ -55,7 +55,6 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
     scheme: cs,
   );
 
-  // ── Interaction overlays (no ink; quiet hover / press washes) ────────────
   final hover = cs.onSurface.withValues(alpha: light ? 0.045 : 0.06);
   final pressed = cs.onSurface.withValues(alpha: light ? 0.08 : 0.10);
   final focus = cs.primary.withValues(alpha: 0.14);
@@ -361,8 +360,6 @@ ThemeData _buildAppThemeImpl(Brightness brightness) {
       color: cs.onSurfaceVariant,
     ),
     switchTheme: SwitchThemeData(
-      // A constant (empty) thumb icon keeps the thumb full-size in both
-      // states — the continuous iOS-style knob instead of M3's growing dot.
       thumbIcon: const WidgetStatePropertyAll(Icon(null)),
       thumbColor: WidgetStateProperty.resolveWith((s) {
         if (s.contains(WidgetState.disabled)) {
@@ -610,7 +607,6 @@ SystemUiOverlayStyle enjoySystemUiOverlayStyle(Brightness brightness) {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
     statusBarBrightness: dark ? Brightness.dark : Brightness.light,
-    // Matches the page surface so the gesture area blends into content.
     systemNavigationBarColor: dark
         ? AppColors.surfaceDark
         : AppColors.surfaceLight,

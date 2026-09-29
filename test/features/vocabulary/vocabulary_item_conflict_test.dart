@@ -153,8 +153,6 @@ void main() {
         expect(result.keptLocalSrs, isTrue);
         expect(result.reviewsCount, 5);
         expect(result.lastReviewedAt, DateTime.utc(2026, 2, 1));
-        // server.updatedAt (Jan 15) is before local's SRS reference (Feb 1
-        // lastReviewedAt) — local metadata wins too.
         expect(result.word, 'Local Word');
         expect(result.explanation, 'local-explanation');
         expect(result.serverUpdatedAt, DateTime.utc(2026, 2, 1));
@@ -177,7 +175,6 @@ void main() {
         explanation: 'server-explanation',
         lastReviewedAt: DateTime.utc(2025, 12, 1),
         reviewsCount: 1,
-        // Newer than local's lastReviewedAt (the SRS reference).
         updatedAt: DateTime.utc(2026, 1, 10),
       );
 
@@ -218,8 +215,6 @@ void main() {
 
       expect(result.keptLocalSrs, isTrue);
       expect(result.reviewsCount, 3);
-      // server.updatedAt (Jan 5) is after local.updatedAt (Jan 1) since
-      // local never reviewed — adopt server word.
       expect(result.word, 'Server Word');
     });
   });

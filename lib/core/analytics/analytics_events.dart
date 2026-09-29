@@ -23,8 +23,6 @@ enum AnalyticsFailureReason {
 
 /// Event names, property keys, and per-event property builders.
 abstract final class AnalyticsEvents {
-  // --- Event names ---------------------------------------------------------
-
   static const String practiceSessionStarted = 'practice_session_started';
   static const String practiceSessionCompleted = 'practice_session_completed';
   static const String transcriptGenerationRequested =
@@ -61,8 +59,6 @@ abstract final class AnalyticsEvents {
     creditsPackagePurchased,
   ];
 
-  // --- Property keys -------------------------------------------------------
-
   static const String propSurface = 'surface';
   static const String propItemCount = 'item_count';
   static const String propDurationSeconds = 'duration_seconds';
@@ -78,30 +74,23 @@ abstract final class AnalyticsEvents {
   static const String propTier = 'tier';
   static const String propPackageId = 'package_id';
 
-  // --- Closed value vocabulary --------------------------------------------
-
-  // `surface` (practice)
   static const String surfaceShadowReading = 'shadow_reading';
   static const String surfaceWordPractice = 'word_practice';
   static const String surfaceFlashcard = 'flashcard';
 
-  // `source` (transcripts / lookup)
   static const String sourceAsr = 'asr';
   static const String sourceYoutube = 'youtube';
   static const String sourceLocalFile = 'local_file';
   static const String sourceSelection = 'selection';
   static const String sourceManual = 'manual';
 
-  // `kind` (translation / craft practice style)
   static const String kindStandard = 'standard';
   static const String kindContextual = 'contextual';
 
-  // `mode` (craft)
   static const String modeFromText = 'from_text';
   static const String modeCapture = 'capture';
   static const String modeImport = 'import';
 
-  // Common context (super properties — registered once at init).
   static const String propDisplayLocale = 'display_locale';
   static const String propLearningLanguage = 'learning_language';
   static const String propDistributionChannel = 'distribution_channel';
@@ -129,8 +118,6 @@ abstract final class AnalyticsEvents {
     propLearningLanguage,
     propDistributionChannel,
   ];
-
-  // --- Property builders (allowlists; values are tags/ints only) ----------
 
   static Map<String, Object> practiceStarted({
     required String surface,

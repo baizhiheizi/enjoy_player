@@ -114,15 +114,12 @@ class PracticeTipTrigger {
         .read(transcriptLinesForMediaProvider(mediaId))
         .asData
         ?.value;
-    // Wait until the transcript query resolves — starting while loading
-    // races the empty-state Showcase mount.
     if (lines == null) return;
     if (lines.isNotEmpty) {
       _controller.onTranscriptAvailable(mediaId).ignore();
       return;
     }
     final fetchState = _ref.read(transcriptFetchStatusProvider(mediaId));
-    // Loading/error empty UIs do not mount tip targets.
     if (fetchState.status == TranscriptFetchStatus.loading ||
         fetchState.status == TranscriptFetchStatus.error) {
       return;

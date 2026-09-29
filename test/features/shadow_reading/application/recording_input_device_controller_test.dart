@@ -37,8 +37,6 @@ void main() {
     });
 
     test('autoPicked is false even when persistedId is an empty string', () {
-      // The upstream `_readPersistedId` treats empty/missing as null, but the
-      // state class itself only checks `== null`.
       const state = RecordingInputDeviceState(
         devices: <InputDevice>[],
         selectedId: 'real-mic',

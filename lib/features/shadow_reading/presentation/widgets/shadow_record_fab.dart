@@ -48,8 +48,6 @@ class ShadowRecordFab extends StatelessWidget {
     final trackAlpha = showProgressArc ? 0.38 : 0.18;
     final iconSize = _fabInner <= 44 ? 22.0 : (_fabInner <= 56 ? 24.0 : 28.0);
     final litBase = recording ? tok.echoActive : scheme.primary;
-    // The FAB counts *down*: the arc is the time remaining, and over-target
-    // pins it to a full warning ring.
     final double arcProgress = !showProgressArc
         ? 0
         : overTarget

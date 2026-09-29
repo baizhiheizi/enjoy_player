@@ -79,7 +79,6 @@ void main() {
         const Locale('en', 'US'),
       );
 
-      // Auto-picked mic-1 is shown via the "Auto · <label>" subtitle.
       expect(
         find.text(l10n.settingsRecordingMicAuto('USB Microphone')),
         findsOneWidget,
@@ -94,7 +93,6 @@ void main() {
       await tester.tap(find.text('Built-in Microphone'));
       await tester.pumpAndSettle();
 
-      // The dialog is dismissed and the row reflects the explicit pick.
       expect(find.text(l10n.settingsRecordingMicDialogTitle), findsNothing);
       expect(find.text('Built-in Microphone'), findsOneWidget);
       expect(

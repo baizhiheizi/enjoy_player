@@ -34,7 +34,6 @@ void main() {
       );
       expect(copy.currentTimeSeconds, 55.0);
       expect(copy.mediaTitle, 'New Title');
-      // Unchanged fields:
       expect(copy.mediaId, 'm1');
       expect(copy.durationSeconds, 120.0);
       expect(copy.currentSegmentIndex, 2);
@@ -68,7 +67,7 @@ void main() {
 
     test('identical returns true for same instance', () {
       final s = _session();
-      expect(s == s, isTrue); // identical check
+      expect(s == s, isTrue);
     });
 
     test('not equal to non-PlaybackSession object', () {
@@ -100,10 +99,8 @@ void main() {
     });
 
     test('chrome excludes currentTimeSeconds and timestamps', () {
-      // PlaybackChrome record type has no currentTimeSeconds field.
       final s = _session(currentTimeSeconds: 42.0);
       final chrome = playbackChromeOf(s)!;
-      // The record only has the 7 fields; verify durationSeconds is present.
       expect(chrome.durationSeconds, 120.0);
     });
   });

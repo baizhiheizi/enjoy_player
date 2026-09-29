@@ -141,7 +141,6 @@ void main() {
           thumbnailUrl: null,
         );
         final found = await db.videoDao.getById('v-1');
-        // null thumbnail → Value.absent → existing thumbnail preserved
         expect(found!.title, 'new');
         expect(found.thumbnailUrl, 'http://old');
       },

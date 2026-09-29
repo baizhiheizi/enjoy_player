@@ -182,8 +182,6 @@ void main() {
     testWidgets('selecting byStatus and changing status value updates filter', (
       tester,
     ) async {
-      // One due item with future date so it is not due.
-      // Use two items with same status to verify filter counts.
       await tester.pumpWidget(
         _harness(
           items: [
@@ -213,7 +211,6 @@ void main() {
       await tester.tap(find.text('By status'));
       await tester.pumpAndSettle();
 
-      // Default status filter is .new_ -> 2 words.
       expect(find.text('2 words'), findsOneWidget);
 
       await tester.tap(find.byType(DropdownButton<VocabularyStatus>));
@@ -221,7 +218,6 @@ void main() {
       await tester.tap(find.text('Mastered').last);
       await tester.pumpAndSettle();
 
-      // After switching to Mastered, queue count drops to 1.
       expect(find.text('1 words'), findsOneWidget);
     });
 

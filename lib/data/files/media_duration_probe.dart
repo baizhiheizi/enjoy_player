@@ -50,8 +50,6 @@ Future<void> probeAndPatchMediaDuration(
 /// missing / the input is unreadable / the stderr does not contain a
 /// `Duration:` line.
 Duration? _probeDurationInIsolate(String ffmpeg, String input) {
-  // Run synchronously inside the worker isolate; ffmpeg `-i` only
-  // inspects metadata so this typically returns in < 2s.
   final result = Process.runSync(ffmpeg, ['-hide_banner', '-i', input]);
   if (result.exitCode != 0 && result.exitCode != 1) {
     return null;

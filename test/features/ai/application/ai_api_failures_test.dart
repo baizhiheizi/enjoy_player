@@ -59,8 +59,6 @@ void main() {
     });
 
     test('409 stays NetworkFailure at the AI seam (subscription-only)', () {
-      // The 409 → SubscriptionConflictFailure mapping lives in the
-      // subscription repository mapper, not the AI guard.
       expect(mapApiExceptionToAppFailure(err(409)), isA<NetworkFailure>());
     });
 

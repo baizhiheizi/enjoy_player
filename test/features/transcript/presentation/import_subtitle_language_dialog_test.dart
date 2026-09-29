@@ -1,7 +1,3 @@
-// Tests for `lib/features/transcript/presentation/import_subtitle_language_dialog.dart`.
-//
-// Covers both dialog entry points (`showImportSubtitleLanguageDialog`,
-// `showAsrLanguageDialog`) and the `AsrLanguageSelection` constructors.
 import 'package:enjoy_player/features/transcript/presentation/import_subtitle_language_dialog.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -160,7 +156,6 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      // Dialog is still mounted (Cancel still present).
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('OK'), findsOneWidget);
     },

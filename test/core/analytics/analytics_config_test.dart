@@ -1,5 +1,3 @@
-// Verifies the structural inertness guarantees that hold on any host:
-// no token in test/dev builds (config) and unsupported-platform gating.
 library;
 
 import 'dart:io' show Platform;
@@ -23,8 +21,6 @@ void main() {
     test('matches the vendor-supported platform list', () {
       final expected = Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
       expect(analyticsSupported(), expected);
-      // This suite runs on the Linux/CI host, where the vendor has no
-      // native implementation — the gate must resolve false.
       if (Platform.isLinux) expect(analyticsSupported(), isFalse);
     });
   });

@@ -33,7 +33,6 @@ void main() {
         return preview.when(
           data: (v) => v,
           loading: () async {
-            // Sleep briefly so async loading state can settle.
             await Future<void>.delayed(const Duration(milliseconds: 1));
             return null;
           },
@@ -56,7 +55,6 @@ void main() {
         ),
       ),
     );
-    // Allow the FutureProvider to resolve.
     await tester.pumpAndSettle();
   }
 
@@ -85,7 +83,6 @@ void main() {
         expect(find.byType(PlayerSurfaceTarget), findsOneWidget);
         expect(find.byType(Stack), findsWidgets);
 
-        // The Stack children include a ColoredBox (black backdrop).
         expect(find.byType(ColoredBox), findsWidgets);
       },
     );
@@ -142,7 +139,6 @@ void main() {
           engine: fake,
         );
 
-        // Even while loading, a poster widget is rendered (with primaryUrl=null).
         expect(find.byType(YoutubeVideoPoster), findsOneWidget);
         final poster = tester.widget<YoutubeVideoPoster>(
           find.byType(YoutubeVideoPoster),
@@ -185,7 +181,6 @@ void main() {
         final target = tester.widget<PlayerSurfaceTarget>(
           find.byType(PlayerSurfaceTarget),
         );
-        // showSurface = (yt != null) is false for the non-YouTube fake engine.
         expect(target.enabled, isFalse);
       },
     );

@@ -1,13 +1,3 @@
-// Per-command unit tests for the session-gated player hotkey commands
-// (issue #719) — togglePlay, toggleFullscreen, and the PlayerInteractions
-// line / echo commands — using a plain [ProviderContainer] (no widget tree).
-//
-// `player.toggleExpand`'s execution arms stay covered end-to-end in
-// `test/features/hotkeys/app_hotkeys_keyboard_listener_test.dart`: both arms
-// navigate through mounted contexts (collapse pops the router stack; the
-// open arm intentionally uses the listener's own context above the router).
-// The playback-rate commands have their own suite
-// (`playback_rate_commands_test.dart`).
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/player/application/hotkeys/player_hotkey_commands.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -148,7 +138,6 @@ void main() {
     );
     addTearDown(container.dispose);
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    // Initialize the interactions provider so the override has run.
     container.read(playerInteractionsProvider);
   });
 

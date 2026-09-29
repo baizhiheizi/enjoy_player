@@ -166,11 +166,6 @@ class FileStorage {
       final title = p.basenameWithoutExtension(file.name);
       final linkExternally = await canLinkExternally(path);
 
-      // Capture the macOS security-scoped bookmark *before* the isolate
-      // hops away from the main isolate (and while the implicit
-      // `NSOpenPanel` grant is still alive). Only persist when the file
-      // is going to be externally linked — copied bytes inside the app
-      // sandbox container don't need one.
       final bookmarkData = linkExternally
           ? await SecurityScopedBookmarkChannel.createBookmark(path)
           : null;
@@ -219,9 +214,7 @@ class FileStorage {
       if (await file.exists()) {
         await file.delete();
       }
-    } on Object {
-      // Best-effort cleanup only.
-    }
+    } on Object {} // ignore: empty_catches
   }
 
   /// Reads the bytes of an app-managed media file off the main isolate.
@@ -253,7 +246,6 @@ class FileStorage {
         }
       });
     } on Object {
-      // Best-effort only.
       return null;
     }
   }

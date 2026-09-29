@@ -174,9 +174,6 @@ class AuthRepository {
       } on ApiException catch (e) {
         _log.warning('refresh session failed', e);
         if (_shouldRevokeSessionOnApiException(e)) {
-          // clearSession must never escape this handler: this completer is
-          // shared with every concurrent 401 awaiter (single-flight), and a
-          // throw here would leave them awaiting forever.
           try {
             await clearSession();
           } catch (e2, st2) {
@@ -336,8 +333,6 @@ class AuthRepository {
       await clearSession();
       return const AuthSignedOut();
     } catch (e, st) {
-      // Transient network errors at cold start must not block the app behind
-      // the sign-in "Network error" screen — mirror refreshSession behavior.
       _log.warning('loadInitialAuthState: profile fetch failed', e, st);
       return const AuthSignedOut();
     }

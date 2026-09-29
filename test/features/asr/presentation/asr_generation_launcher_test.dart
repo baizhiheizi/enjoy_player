@@ -152,9 +152,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // No dialog should appear.
       expect(find.byType(AlertDialog), findsNothing);
-      // No controller activity expected.
       expect(
         container.read(asrGenerationControllerProvider('m1')).valueOrNull,
         isNull,
@@ -194,11 +192,6 @@ void main() {
     },
   );
 
-  // Registry-mediated read, found-row branch: the launcher resolves the row
-  // via one MediaRegistry.getById (replacing kindOf + per-table
-  // language/duration lookups); a local row whose file is gone fails the
-  // source gate after the registry read succeeds — same unsupported-source
-  // notice as the missing-row branch, but past the registry lookup.
   testWidgets(
     'unsupported source: local row with an unresolvable file shows the notice',
     (tester) async {
@@ -229,23 +222,7 @@ void main() {
     },
   );
 
-  // Refresh-after-language-dialog tests (Copilot review F7): the launcher
-  // re-reads the media row after the language dialog so a duration backfill
-  // (or any other row change) while the dialog was open is reflected in
-  // the long-media confirmation.
-  //
-  // These cases reach the language dialog, so the row needs:
-  //   * a real `localUri` file (so the source gate passes), and
-  //   * a `vid` longer than 11 chars so [resolvePlayableSource] does not
-  //     classify it as YouTube (its bare-id regex is 11 chars of
-  //     `[A-Za-z0-9_-]`). The default 11-char test `vid` would route the
-  //     launcher to the unsupported-source branch before the dialog opens.
   group('refresh after language dialog', () {
-    // Each test gets its own tempDir (setUp recreates it). Create the
-    // real local files up front — file I/O inside `testWidgets` blocks
-    // because the test framework's fake clock doesn't drive dart:io
-    // futures, so the source gate's `file.exists`/`file.stat` would
-    // hang forever otherwise.
     setUp(() async {
       for (final name in ['refresh.mp4', 'deleted.mp4']) {
         await File(
@@ -268,9 +245,6 @@ void main() {
       await tester.pumpWidget(
         _wrap(container: container, child: const SizedBox(), mediaId: mediaId),
       );
-      // The launcher's async chain awaits real I/O (`localUriTrusted` →
-      // `file.exists` / `file.stat`); drive it in real time so the
-      // language dialog actually opens before we assert.
       await tester.runAsync(() async {
         await tester.tap(find.text('launch'));
         await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -283,9 +257,6 @@ void main() {
     testWidgets('a duration backfilled while the dialog is open is picked up', (
       tester,
     ) async {
-      // Seeded with durationSeconds = 0 — the pre-dialog snapshot sees
-      // 0, so without the re-read the long-media confirmation would be
-      // skipped entirely.
       await _insertVideo(
         db,
         id: 'refresh-1',
@@ -296,22 +267,15 @@ void main() {
 
       await pumpTapAndDialog(tester, 'refresh-1');
 
-      // Simulate the ffmpeg probe landing while the dialog is open.
       final row = await db.videoDao.getById('refresh-1');
-      await db.videoDao.insertRow(
-        row!.copyWith(durationSeconds: 1200), // 20 min — past the 900s gate
-      );
+      await db.videoDao.insertRow(row!.copyWith(durationSeconds: 1200));
 
       await tester.runAsync(() async {
         await tester.tap(find.text('OK'));
-        // Let the launcher's re-read + showAsrLongMediaConfirmDialog
-        // chain complete in real time.
         await Future<void>.delayed(const Duration(milliseconds: 200));
       });
       await tester.pumpAndSettle();
 
-      // The refreshed duration crossed the long-form gate, so the
-      // confirmation dialog must appear.
       expect(find.text('This may take a while'), findsOneWidget);
     });
 
@@ -328,7 +292,6 @@ void main() {
 
         final container = await pumpTapAndDialog(tester, 'gone-1');
 
-        // Simulate a delete from another surface while the dialog is open.
         await db.videoDao.deleteId('gone-1');
 
         await tester.runAsync(() async {
@@ -337,9 +300,6 @@ void main() {
         });
         await tester.pumpAndSettle();
 
-        // The launcher bails out at the re-read with the unsupported-source
-        // notice; the long-media confirmation must NOT appear, and no
-        // controller activity should have been triggered.
         expect(find.text('This may take a while'), findsNothing);
         expect(
           container.read(asrGenerationControllerProvider('gone-1')).valueOrNull,
@@ -348,14 +308,6 @@ void main() {
       },
     );
   });
-
-  // Full dialog interaction (typing a language, confirming long media) is
-  // excluded here because the Material AlertDialog + TextField +
-  // StatefulBuilder in showAsrLanguageDialog hang pumpAndSettle even with
-  // disableAnimations — the local-file test above stops at a single pump
-  // after the dialog opens. The dialog logic itself is covered by:
-  //   - asr_long_media_dialog_test.dart (showAsrLongMediaConfirmDialog)
-  //   - asr_generation_controller_test.dart (controller branches)
 }
 
 const AsrResult _emptyResult = AsrResult(text: '');

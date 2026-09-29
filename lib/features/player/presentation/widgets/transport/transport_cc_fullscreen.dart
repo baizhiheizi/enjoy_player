@@ -74,7 +74,6 @@ class TransportFullscreenButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
 
-    // Button is only enabled for video on desktop; hidden otherwise.
     if (!isDesktop || !isVideo) return const SizedBox.shrink();
 
     final isFullscreen = ref.watch(windowFullscreenProvider);

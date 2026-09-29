@@ -44,9 +44,6 @@ void main() {
           if (file.existsSync()) file.deleteSync();
         });
 
-        // Seed a v17 schema with duplicate rows that pre-#726 would have
-        // produced: every failed worker upload inserted a new row for the
-        // same composite key.
         final seed = AppDatabase(executor: NativeDatabase(file));
         await seed.customStatement('PRAGMA user_version = 17');
         await seed.syncQueueDao.enqueue(
@@ -67,7 +64,6 @@ void main() {
           action: 'update',
           payloadJson: '{"v":2}',
         );
-        // An unrelated row that must survive untouched.
         await seed.syncQueueDao.enqueue(
           entityType: 'video',
           entityId: 'oQ4w9WgXcQ/fr',
@@ -76,14 +72,12 @@ void main() {
         );
         await seed.close();
 
-        // Reopen → triggers onUpgrade(from: 17, to: 18).
         final reopened = AppDatabase(executor: NativeDatabase(file));
         addTearDown(reopened.close);
         await reopened.customSelect('SELECT 1').get();
 
         final remaining = await reopened.select(reopened.syncQueue).get();
 
-        // Three duplicates collapsed to one; unrelated row untouched.
         expect(remaining, hasLength(2));
         final byEntity = {
           for (final r in remaining) '${r.entityId}/${r.action}': r,
@@ -93,8 +87,6 @@ void main() {
           containsAll(['dQw4w9WgXcQ/en/update', 'oQ4w9WgXcQ/fr/update']),
         );
 
-        // The kept row for the duplicated composite must be the newest
-        // (highest id) — the latest payload the producer wrote.
         final kept = byEntity['dQw4w9WgXcQ/en/update']!;
         expect(kept.payloadJson, '{"v":2}');
       },

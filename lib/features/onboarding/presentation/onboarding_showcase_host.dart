@@ -29,8 +29,6 @@ class _OnboardingShowcaseHostState
     super.initState();
     ShowcaseView.register(
       enableAutoScroll: true,
-      // Prefer waiting for targets in OnboardingController; skipping missing
-      // targets still finishes the tour and used to poison tip progress.
       skipIfTargetNotPresent: false,
       disableBarrierInteraction: false,
       onStart: (_, _) {

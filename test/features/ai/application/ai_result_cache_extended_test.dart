@@ -190,7 +190,6 @@ void main() {
         key: 'k2',
         value: 'v2',
       );
-      // This evicts k1 from L1 (capacity=2).
       await tinyCache.remember(
         kind: AiKind.translation,
         key: 'k3',

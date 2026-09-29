@@ -124,7 +124,6 @@ void main() {
       expect(media, isNotNull);
       expect(media!.kind, MediaKind.audio);
       expect(media.contentHash, 'aid-1');
-      // No localUri: sourceUri falls back to mediaUrl.
       expect(media.sourceUri, 'https://x.example/a.mp3');
       expect(media.durationMs, 30000);
       expect(media.fileSize, 0);
@@ -188,8 +187,6 @@ void main() {
     test(
       'a kind-known read misses when the id lives in the other table',
       () async {
-        // Direct-DAO semantics preserved: an audio id must read as null from
-        // the video side (and vice versa) — no cross-table fallback.
         await db.audioDao.insertRow(_audio(id: 'a-only'));
         await db.videoDao.insertRow(_video(id: 'v-only'));
         expect(await registry.getVideoById('a-only'), isNull);
@@ -206,8 +203,6 @@ void main() {
     });
 
     test('getAudioByMd5 ignores a video row sharing the md5', () async {
-      // Craft dedupe is audio-only by design — a videos row with the same
-      // hash must not shadow or satisfy the lookup.
       await db.videoDao.insertRow(_video(id: 'v-md5', md5: 'hash-1'));
       expect(await registry.getAudioByMd5('hash-1'), isNull);
     });
@@ -270,17 +265,11 @@ void main() {
       await sub.cancel();
     });
 
-    // Issue #764 candidate 6: the discover timeline and a channel view both
-    // join membership, and the timeline provider is keep-alive, so two
-    // listeners can exist at once.
     test('two listeners on the same stream both receive', () async {
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
       );
 
-      // ONE stream object, two listeners. The earlier version of this test
-      // called the factory twice, which builds two independent streams and so
-      // never exercised the shared-dedupe-state hazard it appeared to cover.
       final stream = registry.watchYoutubeVideoIds();
       final first = <Set<String>>[];
       final second = <Set<String>>[];
@@ -301,8 +290,6 @@ void main() {
       await subB.cancel();
     });
 
-    // Independent calls are independent streams (the production shape: the
-    // timeline and channel providers each call the factory).
     test('independent calls are independent streams', () async {
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
@@ -373,10 +360,6 @@ void main() {
 
   group('watchAll', () {
     test('emits once for an empty library', () async {
-      // Moved pin (issue #753): the merged stream now lives on the registry;
-      // `lastEmitted` staying nullable is what keeps a zero-row library from
-      // being swallowed by the dedupe check (see `a12634c3` and the
-      // library_repository_test copy of this pin).
       final emissions = <List<Media>>[];
       final sub = registry.watchAll().listen(emissions.add);
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -396,13 +379,10 @@ void main() {
       expect(emissions, hasLength(1));
       expect(emissions.first, hasLength(1));
 
-      // No-op write: same row, same fields. Both DAO streams re-query and
-      // push the unchanged merged list back — the registry must suppress it.
       await db.audioDao.insertRow(_audio(id: 'dup-1', title: 'x'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(emissions, hasLength(1));
 
-      // A real change must still emit.
       await db.audioDao.insertRow(_audio(id: 'dup-1', title: 'renamed'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(emissions, hasLength(2));
@@ -426,8 +406,6 @@ void main() {
       final sub = registry.watchAll().listen(emissions.add);
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      // The final emission carries the full merged, createdAt-desc list —
-      // the two DAO streams may have delivered one partial snapshot first.
       expect(emissions.last.map((m) => m.id), ['a-new', 'v-mid', 'v-old']);
 
       await sub.cancel();
@@ -436,25 +414,10 @@ void main() {
     test(
       'characterizes Drift delivery: single- vs both-table writes',
       () async {
-        // Characterization first (PR #756 thread 2): this pins HOW Drift
-        // delivers re-query events to the registry's two DAO listeners
-        // before deciding whether `watchAll` may coalesce them:
-        //
-        // * (a) a single-table write, (b) a write touching both tables in
-        //   one go — the production shape being sequential awaited upserts
-        //   (`library_repository.importMedia`, `cloud_add_to_library`).
-        //
-        // `turn` counts event-loop iterations: a zero-duration periodic
-        // timer fires exactly once per iteration, strictly between
-        // microtask drains — so listener callbacks that observed the same
-        // `turn` value ran within ONE event-loop turn (no timer/IO
-        // boundary between them), while differing values mean the
-        // delivery spanned a turn boundary.
         var turn = 0;
         final turnTicker = Timer.periodic(Duration.zero, (_) => turn++);
         addTearDown(turnTicker.cancel);
 
-        // stream name -> observed turn id per delivered snapshot
         final daoEvents = <String, List<int>>{};
         void recordDao(String stream) =>
             daoEvents.putIfAbsent(stream, () => <int>[]).add(turn);
@@ -473,7 +436,6 @@ void main() {
           await subReg.cancel();
         });
 
-        // Initial snapshots from both DAO streams + first merged emission.
         await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(
           daoEvents.keys,
@@ -485,7 +447,6 @@ void main() {
         emissions.clear();
         emissionTurns.clear();
 
-        // (a) Single-table write: a videos-row insert.
         await db.videoDao.insertRow(_video(id: 'v-single'));
         await Future<void>.delayed(const Duration(milliseconds: 50));
         final singleDaoEvents = {
@@ -497,7 +458,6 @@ void main() {
         emissions.clear();
         emissionTurns.clear();
 
-        // (b) Both-tables write: one upsert per table, back to back.
         await db.videoDao.insertRow(
           _video(id: 'v-both', createdAt: DateTime(2026, 7, 2)),
         );
@@ -510,24 +470,12 @@ void main() {
         };
         final bothEmissions = List<List<Media>>.of(emissions);
 
-        // --- (a) pins ---
-        // A single-table write re-delivers ONLY on that table's DAO stream
-        // (Drift's watch is per-table: `select(videos)` is invalidated by
-        // `videos` updates only) and produces exactly one merged emission
-        // carrying the new row. The other side's cached snapshot is still
-        // accurate — its table did not change — so a single-table write
-        // can never emit a stale partial snapshot.
         expect(singleDaoEvents.keys, equals(<String>['video']));
         expect(singleDaoEvents['video'], hasLength(1));
         expect(singleEmissions, hasLength(1));
         expect(singleEmissions.single.map((m) => m.id), ['v-single']);
         expect(singleEmissionTurns, hasLength(1));
 
-        // --- (b) pins ---
-        // THE decision criterion for PR #756 thread 2: do both DAO
-        // re-deliveries of a both-tables write land in the SAME
-        // event-loop turn (-> same-turn coalescing is possible) or in
-        // different turns (-> coalescing would stall one side)?
         expect(bothDaoEvents.keys, unorderedEquals(<String>['video', 'audio']));
         expect(
           bothDaoEvents['video'],
@@ -537,8 +485,6 @@ void main() {
               'event-loop turns — the emit path must NOT wait for the '
               'other side (it would stall single-table updates)',
         );
-        // Whatever the turn story, the final state is correct and ordered
-        // (createdAt desc: a-both 07-03 > v-both 07-02 > v-single 07-01).
         expect(bothEmissions.last.map((m) => m.id), [
           'a-both',
           'v-both',
@@ -547,24 +493,11 @@ void main() {
       },
     );
 
-    // Architecture review #794 candidate 6: the merge state used to live in
-    // one shared closure above the `Stream.multi` wrapper, so a second
-    // concurrent listener on the same stream threw (single-subscription
-    // wrapper) instead of receiving.
-    //
-    // The multi-subscriber tests below wait deterministically (review on
-    // #801): `take(1).toList()` / `first` complete on the emission itself,
-    // and `pumpEventQueue()` settles the drift delivery chains — no
-    // wall-clock sleeps.
     test('two listeners on the same stream both receive', () async {
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
       );
 
-      // ONE stream object, two concurrent listeners — the shape the
-      // ids-watch tests above use for the same hazard. Each `take(1)`
-      // future completes on that listener's own first emission (and
-      // unsubscribes), so both waits are exact.
       final stream = registry.watchAll();
       final first = stream.map(_mediaIds).take(1).toList();
       final second = stream.map(_mediaIds).take(1).toList();
@@ -608,37 +541,12 @@ void main() {
           _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
         );
 
-        // `first` both waits for the emission and cancels, so the earlier
-        // listener is gone before the fresh one subscribes.
         expect(await registry.watchAll().map(_mediaIds).first, ['a']);
 
-        // Per-listener dedupe state: the new listener's `distinctBy` gate
-        // starts unset, so it receives the current library even though an
-        // earlier listener on an earlier stream already saw it.
         expect(await registry.watchAll().map(_mediaIds).first, ['a']);
       },
     );
 
-    // Review on #801: a cancel landing between a DAO delivery and its
-    // coalescing microtask strands that microtask on the listener's
-    // already-cancelled controller — `emit()` must bail on the `closed`
-    // guard instead of adding to the dead controller. (The ids-watch
-    // carried this exact guard — "a coalesced microtask can outlive the
-    // last listener" — until the #795 branch's rewrite retired its
-    // hand-rolled emit; this `watchAll` rewrite must not lose it.)
-    //
-    // The window opens deterministically, without timing: on a write, the
-    // keyed drift query stream re-delivers to its subscribers in
-    // subscription order within one turn — the merge's DAO listener
-    // (subscribed first) buffers the snapshot and queues its emit
-    // microtask, and this test's canceller watcher (subscribed last)
-    // then cancels while that microtask is still pending.
-    //
-    // Dart 3.12 silently drops `add`s on a cancelled `Stream.multi`
-    // controller rather than throwing, so the pinned contract is the
-    // observable one: the stranded microtask produces no unhandled error
-    // and no post-cancel delivery, while the surviving listener proves
-    // the write + delivery pipeline actually ran through that window.
     test(
       'an emit scheduled before a cancel does not reach the closed controller',
       () async {
@@ -654,33 +562,29 @@ void main() {
         await runZonedGuarded(() async {
           final subCancelled = stream.map(_mediaIds).listen(cancelled.add);
           final subKept = stream.map(_mediaIds).listen(kept.add);
-          await pumpEventQueue(); // initial emission for both listeners
+          await pumpEventQueue();
 
           var armed = false;
           final canceller = db.videoDao.watchAll().listen((_) {
             cancellerFired = true;
             if (armed) unawaited(subCancelled.cancel());
           });
-          await pumpEventQueue(); // canceller's inert initial delivery
+          await pumpEventQueue();
 
           armed = true;
           await db.videoDao.insertRow(
             _video(id: 'b', vid: 'vid-b', provider: 'youtube'),
           );
-          await pumpEventQueue(); // run the stranded microtask
+          await pumpEventQueue();
           await canceller.cancel();
           await subKept.cancel();
         }, (error, _) => zoneErrors.add(error));
 
         expect(cancellerFired, isTrue, reason: 'the cancel window opened');
-        // The surviving listener proves the write was delivered through
-        // the same window the stranded microtask sat in.
         expect(kept, [
           ['a'],
           ['a', 'b'],
         ]);
-        // The cancelled listener received nothing after its cancel, and
-        // the stranded emit microtask raised no unhandled error.
         expect(cancelled, [
           ['a'],
         ]);

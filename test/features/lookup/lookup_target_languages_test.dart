@@ -63,11 +63,12 @@ void main() {
       expect(resolveLookupTarget('zh', learningTag: learn), 'zh-CN');
     });
 
-    test('prefers lookup-catalog entry over narrow coercion (en-GB → en-GB)', () {
-      // en-GB is now in the lookup catalog; the new spec returns en-GB directly
-      // (the user can change to zh-CN in the picker if they want).
-      expect(resolveLookupTarget('en-GB', learningTag: learn), 'en-GB');
-    });
+    test(
+      'prefers lookup-catalog entry over narrow coercion (en-GB → en-GB)',
+      () {
+        expect(resolveLookupTarget('en-GB', learningTag: learn), 'en-GB');
+      },
+    );
 
     test('when native equals learning, coerces to other supported', () {
       expect(resolveLookupTarget('en-US', learningTag: learn), 'zh-CN');
@@ -95,12 +96,8 @@ void main() {
     test(
       'falls back to primary-subtag match when stored native is not in lookup list',
       () {
-        // de-AT → primary 'de' → first de-* in lookup list is de-DE
         expect(resolveLookupTarget('de-AT', learningTag: learn), 'de-DE');
-        // fr-CH → primary 'fr' → first fr-* is fr-FR
         expect(resolveLookupTarget('fr-CH', learningTag: learn), 'fr-FR');
-        // en-AU (not in lookup list, primary 'en', learning 'en-US') →
-        // first en-* != en-US = en-GB
         expect(resolveLookupTarget('en-AU', learningTag: learn), 'en-GB');
       },
     );

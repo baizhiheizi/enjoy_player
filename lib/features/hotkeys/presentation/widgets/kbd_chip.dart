@@ -89,7 +89,6 @@ class KbdChordRow extends StatelessWidget {
       ],
     );
 
-    // Stay on one line; scale down only if a parent gives a tight max width.
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: AlignmentDirectional.centerEnd,

@@ -23,7 +23,6 @@ class YoutubeLoadingVideoStage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(youtubeOpenPreviewProvider(mediaId));
-    // Capability via provider, not engine type tag (issue #720).
     final isYoutube = ref.watch(playerEnginePlaysYoutubeProvider);
 
     final thumb = preview.maybeWhen(
@@ -31,9 +30,6 @@ class YoutubeLoadingVideoStage extends ConsumerWidget {
       orElse: () => null,
     );
 
-    // Claim the loading portal whenever a YouTube engine is active — same
-    // pattern as the local loading stage. WebView visibility is gated by
-    // [YoutubePlayerEngine.shouldMountWebView] inside the surface host.
     final showSurface = isYoutube;
 
     return PlayerLoadingStage(

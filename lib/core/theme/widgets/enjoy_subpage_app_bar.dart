@@ -33,7 +33,6 @@ class EnjoySubpageAppBar extends StatelessWidget
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
-    // Same rule [AppBar] uses for its implied back button.
     final canPop = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
     final effectiveLeading =

@@ -97,7 +97,6 @@ void main() {
       var secondRan = false;
       token.onCancel(() => throw StateError('boom'));
       token.onCancel(() => secondRan = true);
-      // Should not propagate the exception.
       token.cancel();
       expect(secondRan, isTrue);
     });
@@ -121,7 +120,6 @@ void main() {
     });
 
     test('truncates trailing bytes that do not form a full float', () {
-      // 6 bytes = 1 full float + 2 leftover bytes
       final bd = ByteData(6);
       bd.setFloat32(0, -0.75, Endian.little);
       bd.setUint8(4, 0xFF);

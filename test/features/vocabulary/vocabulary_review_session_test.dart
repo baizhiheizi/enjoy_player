@@ -93,7 +93,6 @@ void main() {
   test('start returns false for empty due queue', () async {
     await seedWords(1);
     final session = container.read(vocabularyReviewSessionProvider.notifier);
-    // Items are due in 24h from 2020 seed; "now" before that → empty due.
     final started = await session.start(
       const ReviewSelectionOptions(mode: VocabularyReviewMode.due),
       now: DateTime.utc(2019, 1, 1),

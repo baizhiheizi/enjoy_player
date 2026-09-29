@@ -39,8 +39,6 @@ AsrResult mapLongFormTranscriptToAsrResult(AsrLongFormTranscript transcript) {
     );
   }).toList();
 
-  // Prefer segment list; if empty but root words exist, wrap words in one
-  // synthetic segment so the timeline builder's word path can run.
   List<AsrSegment>? outSegments = segments.isEmpty ? null : segments;
   if ((outSegments == null || outSegments.isEmpty) && words.isNotEmpty) {
     outSegments = [

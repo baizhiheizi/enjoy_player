@@ -1,7 +1,3 @@
-// Per-command tests for `player.toggleExpand` (issue #719) — the one player
-// command whose execution arms are mounted-tree concerns: the on-player arm
-// pops the router stack via [collapseExpandedPlayerWith], the off-player arm
-// opens the player route through the listener's own context.
 import 'dart:async';
 
 import 'package:enjoy_player/core/routing/app_router.dart';
@@ -114,7 +110,6 @@ _mountHarness(
   );
   addTearDown(container.dispose);
 
-  // Warm up every override so the command's `read` is safe.
   container.read(hotkeysCtrlProvider.notifier);
   container.read(windowFullscreenProvider.notifier);
   container.read(shadowReadingHotkeyBusProvider.notifier);
@@ -123,10 +118,6 @@ _mountHarness(
   container.read(playerInteractionsProvider);
   container.read(playerPreferencesCtrlProvider.notifier);
 
-  // Mirror production mounting: the listener's context is captured from
-  // MaterialApp.router's `builder`, which sits ABOVE the Router (and
-  // therefore has no GoRouter ancestor) — exactly the context
-  // [ToggleExpandHotkeyCommand] receives in the app.
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
@@ -140,8 +131,6 @@ _mountHarness(
     ),
   );
   await tester.pumpAndSettle();
-  // The builder runs during layout; hand the captured context back through
-  // the callback so the test can pass it as `listenerContext`.
   return (container: container, player: player);
 }
 
@@ -185,8 +174,6 @@ void main() {
       session: _videoSession(),
       onBuilderContext: (context) => builderContext = context,
     );
-    // Push an overlay onto the root navigator so the collapse arm has a route
-    // to pop (mirrors the expanded player chrome in production).
     final rootNav = h.container
         .read(appRouterProvider)
         .configuration

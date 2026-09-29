@@ -1,25 +1,3 @@
-// One owner for the outbound `sync_queue` retry protocol (issue #752).
-//
-// The "permanently failed" threshold, the exponential backoff, and the wall
-// clock the decision reads used to be spread across four files:
-// `SyncEngine._kMaxRetries`/`_kRetryBaseMs` (library-private, so the
-// repository could not share them), the hardcoded threshold literals in
-// `SyncQueueRepository` (`pendingItems` / `watchSnapshot` / `resetFailed`),
-// and the hardcoded write in `SyncQueueDao.markPermanentlyFailed` — plus a
-// bare `DateTime.now()` hidden inside the old retry-decision helper.
-// Changing the threshold in that shape silently diverged from the
-// repository predicates and the DAO write (a moved threshold would leave
-// "permanently failed" rows carrying the old value and looking retryable).
-//
-// All of it lives here now: engine, repository, and DAO derive their
-// predicates and written retry count from this policy (the DAO takes the
-// threshold as a parameter so `lib/data/db` never imports `lib/features`),
-// and the decision reads the injectable clock — the in-repo precedent for
-// that seam is `YouTubePlayRetryPolicy` in the player feature.
-//
-// Behavior is pinned to the pre-refactor defaults: `defaultMaxRetries` and
-// `defaultBaseDelayMs` are the single spelling of each value in `lib/`.
-
 import 'package:drift/drift.dart';
 
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -73,7 +51,6 @@ class SyncRetryPolicy {
   ///
   /// Throws [RangeError] outside `0..30`, where the shift would overflow.
   int backoffDelayMs(int retryCount) {
-    // Cap the exponent so `baseDelayMs * (1 << retryCount)` cannot overflow.
     RangeError.checkValueInInterval(retryCount, 0, 30, 'retryCount');
     return baseDelayMs * (1 << retryCount);
   }

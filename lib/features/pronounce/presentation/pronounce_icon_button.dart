@@ -91,7 +91,6 @@ class PronounceIconButton extends ConsumerWidget {
       if (!canTap) return;
       final notifier = ref.read(pronouncePlaybackControllerProvider.notifier);
       try {
-        // Stop competing take/clip audio only when starting model play.
         if (!isPlaying) {
           await beforePlay?.call();
         }
@@ -101,11 +100,7 @@ class PronounceIconButton extends ConsumerWidget {
         AppNotice.info(context, l10n.pronounceSignInRequired);
       } on CreditsFailure catch (failure) {
         if (!context.mounted) return;
-        // Router captured while the context is alive: the persisted notice
-        // can outlive this route (see AppNotice).
         final router = GoRouter.of(context);
-        // Numbered message when the worker envelope was parsed (spec 045)
-        // plus the one-tap recovery CTA; warning tone retained.
         AppNotice.warning(
           context,
           creditsFailureMessage(failure, l10n),

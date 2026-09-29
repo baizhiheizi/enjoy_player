@@ -35,8 +35,6 @@ class _YoutubeVideoPosterState extends State<YoutubeVideoPoster> {
   void initState() {
     super.initState();
     _activeUrl = widget.primaryUrl;
-    // Built hidden from the start: nothing is on screen to fade, so there is
-    // no animation to wait for either.
     _fadedOut = !widget.visible;
   }
 
@@ -48,7 +46,6 @@ class _YoutubeVideoPosterState extends State<YoutubeVideoPoster> {
       _activeUrl = widget.primaryUrl;
     }
     if (widget.visible) {
-      // Re-arm the fade for the next hide.
       _fadedOut = false;
     }
   }
@@ -59,7 +56,6 @@ class _YoutubeVideoPosterState extends State<YoutubeVideoPoster> {
     if (url == null || url.isEmpty) {
       return const SizedBox.shrink();
     }
-    // Nothing was on screen to fade, so go straight to the empty box.
     if (!widget.visible && _fadedOut) {
       return const SizedBox.shrink();
     }

@@ -27,8 +27,6 @@ final class SecureStorageOpLock {
 
   Future<T> run<T>(Future<T> Function() operation) {
     final result = _tail.then((_) => operation());
-    // Keep the chain alive regardless of the operation's outcome, but hand
-    // the caller the original future so errors still propagate to them.
     _tail = result.then<void>((_) {}, onError: (Object _) {});
     return result;
   }

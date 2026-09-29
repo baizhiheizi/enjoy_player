@@ -15,10 +15,6 @@ void main() {
       if (file.existsSync()) file.deleteSync();
     });
 
-    // Simulate a migration that added `duration_seconds` /
-    // `language` on a previous launch but crashed before the schema
-    // version pragma was bumped past 6 (see the "duplicate column
-    // name" bug this regression-tests).
     final seed = AppDatabase(executor: NativeDatabase(file));
     await seed.customStatement('PRAGMA user_version = 6');
     await seed.close();
@@ -26,7 +22,6 @@ void main() {
     final reopened = AppDatabase(executor: NativeDatabase(file));
     addTearDown(reopened.close);
 
-    // Opening triggers onUpgrade(from: 6, to: 10); it must not throw.
     await reopened.customStatement('SELECT 1');
   });
 
@@ -39,13 +34,6 @@ void main() {
       if (file.existsSync()) file.deleteSync();
     });
 
-    // Simulate opening a DB file that was last written by a newer app
-    // build (e.g. a rolled-back release, or a downgrade during testing).
-    // `onUpgrade` still fires whenever `versionBefore != versionNow`
-    // (drift doesn't distinguish upgrade from downgrade), so
-    // `_runMigrations`'s `from >= to` guard must short-circuit before any
-    // migration step tries to touch tables/columns that may not match
-    // this schemaVersion's expectations.
     final seed = AppDatabase(executor: NativeDatabase(file));
     await seed.customStatement('PRAGMA user_version = 999');
     await seed.close();
@@ -53,7 +41,6 @@ void main() {
     final reopened = AppDatabase(executor: NativeDatabase(file));
     addTearDown(reopened.close);
 
-    // Opening triggers onUpgrade(from: 999, to: 10); it must not throw.
     await reopened.customStatement('SELECT 1');
   });
 

@@ -41,8 +41,6 @@ void main() {
     test(
       'returns null for whitespace-only path because no such file exists',
       () {
-        // Whitespace is not an empty string for `String.isEmpty`, so it falls
-        // through to the `File.existsSync` check, which returns null.
         expect(localThumbnailFile('   '), isNull);
       },
     );

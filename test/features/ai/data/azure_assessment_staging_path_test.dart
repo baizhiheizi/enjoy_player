@@ -75,7 +75,6 @@ void main() {
     });
 
     test('returns preferred ASCII path when candidates include ASCII', () {
-      // systemRoot is ASCII so it should win.
       final out = preferAsciiTempRoot(
         isWindows: true,
         systemTemp: r'中文\Temp',
@@ -104,8 +103,6 @@ void main() {
 
   group('stageWavForAzureAssessment', () {
     test('returns the original path on non-Windows', () async {
-      // On Windows, a leading-/ path is resolved against the current drive
-      // root by File.absolute — this case only asserts the POSIX short-circuit.
       if (Platform.isWindows) return;
       final result = await stageWavForAzureAssessment('/tmp/audio.wav');
       expect(result.$1, '/tmp/audio.wav');

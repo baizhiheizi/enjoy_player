@@ -73,9 +73,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _cancelAmplitudeStream();
     _textController.dispose();
     _focusNode.dispose();
-    // Leaving mid-record must clear the session-scoped isCapturing flag;
-    // otherwise reopen shows a dead Stop UI that can never recover.
-    // Do not use [ref] here — Riverpod forbids it during unmount.
     if (_sessionCapturing) {
       _craft?.cancelCapture();
       _sessionCapturing = false;
@@ -109,7 +106,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     if (state.isBusy) return;
     _recordingPending = true;
 
-    // Permission check.
     bool granted;
     try {
       granted = await _recorder.hasPermission();
@@ -127,7 +123,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
       return;
     }
 
-    // Temp output path.
     final support = await getApplicationSupportDirectory();
     final dir = Directory('${support.path}/craft_recordings');
     await dir.create(recursive: true);
@@ -175,15 +170,12 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
 
     if (path == null || path.isEmpty) {
       _log.warning('recorder.stop returned no path');
-      // Defensive: clear stuck isCapturing when stop yields nothing
-      // (e.g. reopen after ESC disposed the previous recorder).
       _sessionCapturing = false;
       ref.read(craftControllerProvider.notifier).cancelCapture();
       if (mounted) setState(() {});
       return;
     }
 
-    // Read the WAV bytes.
     Uint8List? bytes;
     try {
       bytes = await File(path).readAsBytes();
@@ -267,8 +259,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     _amplitudeSub = _recorder
         .onAmplitudeChanged(const Duration(milliseconds: 100))
         .listen((amp) {
-          // Normalize dBFS to 0..1 range for bar visualization.
-          // Typical speech is roughly -20 to 0 dBFS.
           final level = ((amp.current + 40) / 40).clamp(0.05, 1.0);
           if (mounted) {
             setState(() {
@@ -294,8 +284,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     final theme = Theme.of(context);
     final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
 
-    // Escape / external cancelCapture: discard the live mic without re-entering
-    // cancelCapture (avoids a captureCancelTick feedback loop).
     ref.listen<int>(
       craftControllerProvider.select((s) => s.captureCancelTick),
       (prev, next) {
@@ -306,12 +294,10 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
       },
     );
 
-    // Show transcribing indicator.
     if (state.isTranscribing) {
       return CraftLoadingView(message: l10n.craftLoadingTranscribing);
     }
 
-    // Show failure card if any.
     if (state.failure != null) {
       return CraftFailureCard(
         failure: state.failure!,
@@ -320,7 +306,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
       );
     }
 
-    // Text fallback mode.
     if (_textMode) {
       return _TextFallback(
         controller: _textController,
@@ -331,7 +316,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
       );
     }
 
-    // Recording active.
     if (state.isCapturing) {
       return _RecordingView(
         elapsed: _elapsed,
@@ -345,12 +329,10 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
       );
     }
 
-    // Recording pending (permission check).
     if (_recordingPending) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Idle state.
     return _IdleView(
       state: state,
       l10n: l10n,
@@ -361,8 +343,6 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     );
   }
 }
-
-// === Sub-widgets ===
 
 class _IdleView extends StatelessWidget {
   const _IdleView({
@@ -551,8 +531,6 @@ class _RecordingViewState extends State<_RecordingView>
             ),
           ),
           const SizedBox(height: 28),
-          // Fixed-width track so bars stay centered with the timer / stop
-          // control (CustomPaint alone expands to max width and left-aligns).
           Center(
             child: SizedBox(
               width: _AmplitudeBarsPainter.trackWidthFor(
@@ -654,13 +632,10 @@ class _AmplitudeBarsPainter extends CustomPainter {
     const minHeight = 6.0;
     final maxHeight = size.height;
     final radius = const Radius.circular(2);
-    // Keep the full buffer-length track centered; samples fill L→R inside it
-    // so the waveform never drifts as amplitude arrives.
     final trackWidth = trackWidthFor(buffer.length);
     final startX = (size.width - trackWidth) / 2;
 
     if (count == 0) {
-      // Placeholder bars centered in the track.
       const placeholderCount = 12;
       final placeholderWidth = trackWidthFor(placeholderCount);
       final placeholderStart = startX + (trackWidth - placeholderWidth) / 2;
@@ -679,7 +654,6 @@ class _AmplitudeBarsPainter extends CustomPainter {
       return;
     }
 
-    // Render oldest-to-newest from the ring buffer.
     for (var i = 0; i < count; i++) {
       final readIndex =
           (writeIndex - count + i + buffer.length) % buffer.length;

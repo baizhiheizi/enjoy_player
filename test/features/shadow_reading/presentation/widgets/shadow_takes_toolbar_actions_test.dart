@@ -1,10 +1,3 @@
-// Coverage for
-// lib/features/shadow_reading/presentation/widgets/shadow_takes_toolbar_actions.dart.
-//
-// The widget composes a play/pause IconButton with the preview-player stream,
-// an assessment button (driven by RecordingAssessmentButton), and a popup menu
-// that lists takes with optional score badges plus Re-assess / Delete entries.
-// `confirmShadowDeleteTake` is the dialog helper extracted alongside the widget.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
@@ -116,7 +109,6 @@ class _RecordingPreviewStub implements RecordingPreviewPlayback {
   @override
   Future<void> playOrPauseTake(String path) async {
     if (_loaded == path) {
-      // toggle
     } else {
       _loaded = path;
     }
@@ -411,7 +403,7 @@ void main() {
             tt: env.tt,
             scheme: env.scheme,
             tok: env.tok,
-            row: r2, // current is r2 -> take #2 (middle of 3)
+            row: r2,
             list: [r1, r2, r3],
             echoActive: true,
             db: db,
@@ -423,11 +415,9 @@ void main() {
         await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
-        // Highest take number (length - 0) shown first when iterating from i=0.
         expect(find.text('Take 3 · 1.0 s'), findsOneWidget);
         expect(find.text('Take 2 · 2.0 s'), findsOneWidget);
         expect(find.text('Take 1 · 3.0 s'), findsOneWidget);
-        // Current take gets the check icon.
         expect(find.byIcon(EnjoyIcons.check), findsOneWidget);
       },
     );
@@ -614,7 +604,6 @@ void main() {
 
         await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
-        // r1 is at list index 0, so it shows as "Take 2 · 1.0 s".
         await tester.tap(find.text('Take 2 · 1.0 s'));
         await tester.pump();
 
@@ -653,7 +642,6 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Delete this take?'), findsOneWidget);
-        // AlertDialog has exactly one TextButton (cancel) + one FilledButton (delete).
         expect(
           find.descendant(
             of: find.byType(AlertDialog),
@@ -702,7 +690,6 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
-      // Tap the dialog's confirm FilledButton labeled "Delete".
       final confirmButton = find.descendant(
         of: find.byType(AlertDialog),
         matching: find.widgetWithText(FilledButton, 'Delete'),
@@ -745,7 +732,6 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
-        // Tap the cancel TextButton.
         await tester.tap(
           find
               .descendant(
@@ -812,7 +798,7 @@ void main() {
           tt: env.tt,
           scheme: env.scheme,
           tok: env.tok,
-          row: orphan, // not in list
+          row: orphan,
           list: [r1, r2],
           echoActive: true,
           db: db,
@@ -821,8 +807,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Take summary on the play button tooltip uses list.length (2)
-      // when the row isn't found in list; orphan default duration=1500ms.
       expect(find.byTooltip('Take 2 · 1.5 s'), findsOneWidget);
     });
 
@@ -835,7 +819,7 @@ void main() {
         final preview = _RecordingPreviewStub();
         addTearDown(preview.dispose);
         final r1 = _row(id: 'r1', assessmentJson: _kScoredJson);
-        final r2 = _row(id: 'r2'); // no score, no json
+        final r2 = _row(id: 'r2');
         await tester.pumpWidget(
           _wrap(
             l10n: env.l10n,
@@ -854,7 +838,6 @@ void main() {
         await tester.tap(find.byIcon(EnjoyIcons.more));
         await tester.pumpAndSettle();
 
-        // r1 -> 92 (parsed from JSON), r2 -> no score badge.
         expect(find.text('92'), findsWidgets);
       },
     );

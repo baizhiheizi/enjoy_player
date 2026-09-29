@@ -50,7 +50,6 @@ void main() {
         overrides: [authCtrlProvider.overrideWith(_AuthSignedInCtrl.new)],
       ),
     );
-    // AuthCtrl is async — wait for signed-in, then post-frame autoload.
     await tester.pump();
     await tester.pump();
     await tester.pump();

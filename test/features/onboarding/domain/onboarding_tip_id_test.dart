@@ -83,7 +83,6 @@ void main() {
       for (final tip in OnboardingTipId.values) {
         expect(tip.sequenceId, isIn(OnboardingSequenceId.values));
       }
-      // No two tips in different sequences; ensure partition coverage.
       expect(OnboardingSequenceId.values.toSet().length, 3);
     });
   });

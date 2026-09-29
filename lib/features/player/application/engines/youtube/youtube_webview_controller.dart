@@ -42,9 +42,6 @@ class YoutubeWebViewController {
            unawaited(onStallRecovery());
          },
        ) {
-    // The audible policy lives on the session now; the events / navigation
-    // observers stay here because they need WebView-bound actions
-    // (seekTo, controller-lookups, generation bumps).
     _events = YoutubeWebViewEvents(
       session: session,
       jsChannel: () => jsChannel,
@@ -70,8 +67,6 @@ class YoutubeWebViewController {
         session.bumpMountTick();
       },
     );
-    // Wire the session's poll loop to this controller. The poll loop
-    // lives on the session; the controller is its attachment.
     session.attachWebView(_attachment());
   }
 
@@ -115,11 +110,6 @@ class YoutubeWebViewController {
         ? null
         : (controller: controller, channel: InAppWebViewJsChannel(controller));
   }
-
-  // ---------------------------------------------------------------------------
-  // YoutubeSessionWebAttachment — the session's WebView controller getter and
-  // first-playing ack live here.
-  // ---------------------------------------------------------------------------
 
   /// Adapts this controller to the session's attachment contract. Kept as a
   /// method (not a stored field) so the lambda always reads the latest
@@ -300,8 +290,6 @@ class YoutubeWebViewController {
       session.audibility.cancelPending();
       _bumpVerifyGeneration();
       session.pollLoop.stop();
-      // Defer: notifying during StatefulElement.unmount locks the tree
-      // (ValueListenableBuilder markNeedsBuild assertion).
       session.scheduleMountTickBump();
     }
   }
@@ -318,9 +306,6 @@ class YoutubeWebViewController {
       return;
     }
     session.noteWatchPageLoaded();
-    // Fresh document: its <video> starts muted, so the next `playing` event
-    // re-arms the per-document volume restore (covers cold open AND the
-    // post-ad page reload).
     session.noteWatchDocumentLoaded();
     onLogInitPhase('load_stop');
     if (!session.loggedFirstPlaying) {

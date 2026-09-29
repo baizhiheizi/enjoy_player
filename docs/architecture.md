@@ -96,6 +96,10 @@ Media persists in two sibling tables (`videos` / `audios`), but callers think in
 
 `app_database_provider.dart` keeps the most recent **two** per-user [`AppDatabase`](../lib/data/db/app_database.dart) instances in a bounded `LinkedHashMap`. On sign-in for a third account, the **oldest** entry is closed (and its Drift connections released) before the new one is inserted — see [ADR-0012](decisions/0012-per-user-sqlite-isolation.md) for the per-user isolation rationale. The cap keeps the file-handle / mmap footprint stable across guest ↔ account churn.
 
+### Desktop quit hook
+
+Desktop quit (`Cmd+Q`, window close → `-[NSApplication terminate:]`) closes every open [`AppDatabase`](../lib/data/db/app_database.dart) through the `AppLifecycleListener.detached` hook in [`app.dart`](../lib/app.dart) → [`closeAndClearAllAppDatabases`](../lib/data/db/app_database_provider.dart). The hook exists because `ref.onDispose` on the keep-alive DB providers never fires on a normal quit — Riverpod only disposes when its `ProviderContainer` tears down (tests, hot restart) — and without an explicit close the two Drift DartWorker isolates are killed by the VM mid-shutdown, racing `sqlite3_finalize` on stale prepared-statement handles (macOS crash signature `EXC_BAD_ACCESS / sqlite3_finalize + 36`; [ADR-0002](decisions/0002-persistence-drift.md)). The hook is best-effort: the Dart VM may exit before the close completes.
+
 ## Optional Enjoy account (auth)
 
 - **HTTP:** `package:http` + small `ApiClient` under `lib/data/api/` (camelCase ↔ snake_case like `@enjoy/api`).

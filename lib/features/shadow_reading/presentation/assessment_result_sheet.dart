@@ -45,10 +45,6 @@ class _AssessmentResultSheetState extends ConsumerState<AssessmentResultSheet> {
     final padH = t.space16 + t.space4;
     final bottomInset = MediaQuery.paddingOf(context).bottom + t.space24;
 
-    // Match dictionary / subtitle pickers: [showEnjoySheet] already passes
-    // useSafeArea: true. Wrapping [DraggableScrollableSheet] in another
-    // [SafeArea] fights the sheet's height fraction math on notched Android
-    // devices and can make the sheet appear to "do nothing".
     return DraggableScrollableSheet(
       initialChildSize: 0.58,
       minChildSize: 0.35,

@@ -107,9 +107,6 @@ class BalanceToCredits extends ConsumerWidget {
 
   Future<void> _openTransferFlow(BuildContext context, String usdLabel) async {
     final l10n = AppLocalizations.of(context)!;
-    // TODO(credits-transfer): route to the dedicated `/credits?transfer=1`
-    // page once it ships on desktop. Until then, surface a friendly
-    // notice so users still see the path exists.
     await showEnjoyAlertDialog<void>(
       context: context,
       title: Text(l10n.subscriptionBalanceToCreditsComingSoonTitle),

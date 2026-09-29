@@ -54,7 +54,6 @@ bool shouldAllowYoutubeWatchNavigation({
   required String videoId,
   required bool isForMainFrame,
 }) {
-  // Never block CDN / static asset requests (e.g. googlevideo.com segments).
   if (!isForMainFrame) {
     return true;
   }
@@ -66,7 +65,6 @@ bool shouldAllowYoutubeWatchNavigation({
     return false;
   }
 
-  // Never leave the watch surface for Google account flows (passive or active).
   if (url.contains('accounts.google.com')) {
     return false;
   }

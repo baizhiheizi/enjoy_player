@@ -113,7 +113,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     }
 
     setState(() => _saving = true);
-    // True only while the avatar upload step is in flight / failed.
     var failedOnAvatarStep = false;
     try {
       if (nameChanged) {
@@ -130,7 +129,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               filename: _pendingAvatarFilename ?? 'avatar.jpg',
               contentType: _pendingAvatarContentType,
             );
-        // Only discard local preview after a successful upload.
         _clearPendingAvatar();
         failedOnAvatarStep = false;
       }
@@ -208,7 +206,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   Center(
                     child: Column(
                       children: [
-                        // Aurora-ringed avatar (matches the profile hero).
                         Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(

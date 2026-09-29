@@ -38,9 +38,6 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
   }
 
   Future<void> _hydrate() async {
-    // The read is inside the try on purpose: a Drift or codec (corrupt blob)
-    // throw here would escape [build]'s microtask as an unhandled async
-    // error and kill the provider.
     try {
       final db = ref.read(appDatabaseProvider);
       final map = await db.settingsDao.readSetting(
@@ -55,17 +52,12 @@ class PlayerPreferencesCtrl extends _$PlayerPreferencesCtrl {
             RepeatMode.values[repeatIdx.clamp(0, RepeatMode.values.length - 1)],
         videoTranscriptSplitWidthPx: (map['splitPx'] as num?)?.toDouble(),
       );
-      // Hydration is a microtask behind [build], so the learner may already
-      // have changed volume / rate in this session. Only apply the stored
-      // values when nothing has moved off the defaults (issue #668).
       if (!_hasSameValues(state, PlayerPreferences.defaults)) return;
       state = hydrated;
       final v = state.volume;
       _lastNonZeroVolume = v > 0.01 ? v : 1;
       await applyCurrentToEngine();
-    } catch (_) {
-      /* ignore corrupt prefs */
-    }
+    } catch (_) {}
   }
 
   Future<void> _persist() async {

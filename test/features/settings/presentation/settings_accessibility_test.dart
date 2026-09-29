@@ -134,16 +134,13 @@ void main() {
 
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-      // Developer content is always visible (no collapse header).
       expect(find.text(l10n.settingsApiBaseUrl), findsOneWidget);
 
-      // Scroll down to reach About content.
       final scrollable = find.byType(Scrollable).first;
       for (var i = 0; i < 15; i++) {
         await tester.drag(scrollable, const Offset(0, -500));
         await tester.pump();
       }
-      // About content is always visible (no collapse header).
       expect(find.text(l10n.appTitle), findsWidgets);
       expect(tester.takeException(), isNull);
     },

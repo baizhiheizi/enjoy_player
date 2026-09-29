@@ -87,7 +87,6 @@ class SyncDownloadService {
       getLocal: _db.videoDao.getById,
       insertRow: _db.videoDao.insertRow,
       merge: mergeVideoLastWriteWins,
-      // Mine `deletedAt` = leave library; drop the local row (membership tombstone).
       onTombstone: (id) => _db.videoDao.deleteId(id),
     );
   }
@@ -123,8 +122,6 @@ class SyncDownloadService {
         return raw.map<Map<String, dynamic>>(castJsonObject).toList();
       },
       getLocal: _db.vocabularyItemDao.getById,
-      // `updateRow` is `InsertMode.replace` — an upsert, unlike `insertRow`
-      // (plain insert) which would throw on an existing row from a prior sync.
       insertRow: _db.vocabularyItemDao.updateRow,
       merge: mergeVocabularyItemConflict,
     );
@@ -170,8 +167,6 @@ class SyncDownloadService {
     var synced = 0;
     var failed = 0;
     if (resetCursor) {
-      // An empty string means "re-download from scratch" (distinct from a
-      // missing row) and is normalized back to null below.
       await _db.settingsDao.writeSetting(cursorKey, '');
     }
     var cursor = await _db.settingsDao.readSetting(cursorKey);

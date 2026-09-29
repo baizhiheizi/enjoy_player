@@ -166,8 +166,6 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       themeMode: themeMode,
     );
 
-    // Apply server-side prefs on sign-in / profile refresh (was previously
-    // pushed from AuthCtrl, which created a Riverpod cycle).
     ref.listen(authCtrlProvider, (previous, next) {
       final v = next.valueOrNull;
       if (v is! AuthSignedIn) {
@@ -177,7 +175,6 @@ class AppPreferencesCtrl extends _$AppPreferencesCtrl {
       final sig = _profileSignature(v.profile);
       if (sig == _lastAppliedProfileSignature) return;
       _lastAppliedProfileSignature = sig;
-      // Defer so we don't mutate state mid-listener.
       unawaited(Future<void>.microtask(() => applyFromUserProfile(v.profile)));
     }, fireImmediately: true);
 

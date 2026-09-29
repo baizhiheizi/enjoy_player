@@ -117,7 +117,6 @@ class EnjoyIconOrb extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Halo
           DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -130,7 +129,6 @@ class EnjoyIconOrb extends StatelessWidget {
             ),
             child: SizedBox(width: size * 1.5, height: size * 1.5),
           ),
-          // Disc
           Container(
             width: size,
             height: size,

@@ -23,7 +23,6 @@ void main() {
 
     test('audio: oversized file → fileTooLarge', () async {
       final tmp = Directory.systemTemp.createTempSync('asr_test_big_');
-      // 4 KB file, but cap at 1 KB.
       final file = File('${tmp.path}/big.wav')
         ..writeAsBytesSync(List.filled(4096, 0));
       addTearDown(() => tmp.delete(recursive: true));
@@ -126,7 +125,6 @@ void main() {
 
     test('oversized video file → fileTooLarge', () async {
       final tmp = Directory.systemTemp.createTempSync('asr_test_video_big_');
-      // 4 KB file, but cap at 1 KB.
       final file = File('${tmp.path}/big.mp4')
         ..writeAsBytesSync(List.filled(4096, 0));
       addTearDown(() => tmp.delete(recursive: true));

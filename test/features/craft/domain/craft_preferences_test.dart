@@ -122,10 +122,7 @@ void main() {
     test('drops unknown voice ids and base-lang mismatches', () {
       final prefs = CraftPreferences.fromJson(const {
         'v': 1,
-        'voices': {
-          'en': 'xx-UnknownNeural', // not in the catalog
-          'ja': 'en-US-GuyNeural', // wrong language for the key
-        },
+        'voices': {'en': 'xx-UnknownNeural', 'ja': 'en-US-GuyNeural'},
       });
       expect(prefs.voices, isEmpty);
     });

@@ -87,8 +87,6 @@ void main() {
           reason: 'table $name missing',
         );
         final t = tables[name] as Map<String, dynamic>;
-        // Unknown tables are exported as {rowCount: 0, rows: [], missing: true}.
-        // Real ones carry rows with at least the rowCount key.
         if (t['missing'] == null) {
           expect(t['rowCount'], isA<int>());
           expect(t['rows'], isA<List>());

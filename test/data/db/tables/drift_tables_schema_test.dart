@@ -1,13 +1,3 @@
-// Tests for `lib/data/db/tables/*.dart` — walks every column on every Drift
-// `TableInfo` registered on the `AppDatabase` so lcov attributes the
-// `tableName` override and each `text()()`, `integer()()`, `.nullable()`,
-// `.withDefault(...)`, `.named(...)`, `.autoIncrement()`, and `textEnum<T>()`
-// chain in the source files.
-//
-// Schema-only DSL files cannot be exercised through the bare `Table`
-// constructor (Drift throws `_isGenerated` because columns are only valid
-// inside a generated `TableInfo`). Building an in-memory `AppDatabase`
-// forces the generator to call every column getter, which is what we want.
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -281,8 +271,6 @@ void main() {
 
   test('VocabularyContexts uses renamed text/locator columns', () {
     final cols = tableColumns()['vocabulary_contexts']!;
-    // SQL column `text` (web field name) and `locator` are exposed via
-    // `.named('text')` / `.named('locator')` in the source file.
     expect(
       cols,
       containsAll(<String>{
@@ -319,9 +307,6 @@ void main() {
   test(
     'Every TableInfo is keyed by the SQL column names declared in source',
     () {
-      // Sanity check: the drift DSL getters must produce SQL snake_case names
-      // matching what we see in the generated TableInfo. The audit helpers
-      // below let us trace any future drift regen back to its source file.
       for (final entity in db.allSchemaEntities.whereType<TableInfo>()) {
         expect(entity.actualTableName, isNotEmpty);
         expect(entity.$columns, isNotEmpty);

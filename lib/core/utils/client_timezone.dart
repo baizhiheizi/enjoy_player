@@ -25,8 +25,6 @@ Future<String> clientTimezoneId() async {
     final info = await FlutterTimezone.getLocalTimezone();
     final id = info.identifier.trim();
     if (id.isNotEmpty) return id;
-  } catch (_) {
-    // Method channel unavailable in tests / rare platform failures.
-  }
+  } catch (_) {}
   return formatUtcOffset(DateTime.now().timeZoneOffset);
 }

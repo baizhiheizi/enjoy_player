@@ -1,12 +1,3 @@
-// Tests for `lib/features/update/application/update_controller.dart` —
-// covers build(), bootstrap(), checkForUpdatesStartup/Manual() (both
-// non-direct early-return and direct-channel paths via DB state),
-// snoozeOptionalUpdate(), dismissOptionalPrompt(), applyPendingUpdate()
-// (no-release path), and cancelPendingUpdate().
-//
-// The CI test target defaults to TargetPlatform.android (store channel),
-// so the strategy is not invoked. We exercise the direct-channel code
-// paths by seeding `state` directly and via persistLastCheck side effects.
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -138,7 +129,6 @@ void main() {
       addTearDown(container.dispose);
 
       final release = _release();
-      // Seed state with release so snooze can mutate it.
       container.read(updateCtrlProvider.notifier).state = UpdateCheckResult(
         availability: UpdateAvailability.updateAvailable,
         release: release,
@@ -198,7 +188,6 @@ void main() {
       final optional = _release(severity: UpdateSeverity.optional);
       final mandatory = _release(severity: UpdateSeverity.mandatory);
 
-      // Optional release → dismiss.
       container.read(updateCtrlProvider.notifier).state = UpdateCheckResult(
         availability: UpdateAvailability.updateAvailable,
         release: optional,
@@ -209,7 +198,6 @@ void main() {
         UpdateAvailability.upToDate,
       );
 
-      // Mandatory release → dismiss is a no-op.
       container.read(updateCtrlProvider.notifier).state = UpdateCheckResult(
         availability: UpdateAvailability.mandatoryUpdate,
         release: mandatory,
@@ -226,7 +214,6 @@ void main() {
         overrides: [deviceGlobalAppDatabaseProvider.overrideWithValue(db)],
       );
       addTearDown(container.dispose);
-      // Empty state.
       container.read(updateCtrlProvider.notifier).dismissOptionalPrompt();
       expect(container.read(updateCtrlProvider), isNull);
     });

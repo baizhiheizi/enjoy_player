@@ -127,13 +127,10 @@ void main() {
 
     final l10n = lookupAppLocalizations(const Locale('en'));
     expect(find.text(l10n.subscriptionTitle), findsWidgets);
-    // Catalog title is shown.
     expect(find.text(l10n.subscriptionTierCatalogTitle), findsOneWidget);
-    // Free + Lite + Pro tier names appear on their cards.
     expect(find.text(l10n.subscriptionTierFreeName), findsWidgets);
     expect(find.text(l10n.subscriptionTierLiteName), findsWidgets);
     expect(find.text(l10n.subscriptionTierProName), findsWidgets);
-    // Pro tier CTA is "Choose Pro" (the user is not on Pro yet).
     expect(find.text(l10n.subscriptionTierCatalogChoosePro), findsOneWidget);
     expect(find.text(l10n.subscriptionTierCatalogChooseLite), findsOneWidget);
   });
@@ -214,8 +211,6 @@ void main() {
       expect(find.text(l10n.subscriptionProMemberTitle), findsOneWidget);
       expect(find.text(l10n.subscriptionAutoRenewCancel), findsOneWidget);
       expect(find.text(l10n.subscriptionPayOnceTitle), findsNothing);
-      // TierCatalog hides itself when a non-terminal auto-renew blocks new
-      // subscriptions.
       expect(find.text(l10n.subscriptionTierCatalogTitle), findsNothing);
       expect(find.text(l10n.subscriptionTierCatalogChoosePro), findsNothing);
     },
@@ -248,8 +243,6 @@ void main() {
       await tester.pumpAndSettle();
 
       final l10n = lookupAppLocalizations(const Locale('en'));
-      // The balance card lives below the fold on a default test viewport;
-      // scroll the ListView until it's built.
       await tester.scrollUntilVisible(
         find.text(l10n.subscriptionBalanceToCreditsTitle),
         200,

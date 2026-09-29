@@ -69,7 +69,6 @@ void main() {
       final api = _FakeAzureTokenApi(() async {
         inFlight += 1;
         if (inFlight > maxInFlight) maxInFlight = inFlight;
-        // Simulate the worker taking a moment to respond.
         await Future<void>.delayed(const Duration(milliseconds: 20));
         inFlight -= 1;
         return <String, dynamic>{'token': 'tok-1', 'region': 'westus'};
@@ -94,8 +93,6 @@ void main() {
         return <String, dynamic>{'token': 'tok-$n', 'region': 'westus'};
       });
       final cache = AzureTokenCache(api: api);
-      // First fetch returns a token that is *just* about to expire;
-      // we clear the cache so the next call has to fetch again.
       await cache.getToken(durationSeconds: 30);
       cache.clear();
       final second = await cache.getToken(durationSeconds: 30);
@@ -114,19 +111,12 @@ void main() {
       try {
         await cache.getToken(durationSeconds: 30);
         fail('expected StateError');
-      } on StateError {
-        // expected
-      }
+      } on StateError {} // ignore: empty_catches
 
-      // After a failure the in-flight slot is cleared so the next
-      // call can retry instead of being permanently stuck on the
-      // rejected Completer.
       try {
         await cache.getToken(durationSeconds: 30);
         fail('expected StateError');
-      } on StateError {
-        // expected
-      }
+      } on StateError {} // ignore: empty_catches
       expect(n, 2, reason: 'second call should retry after a failure');
     });
 
@@ -166,7 +156,6 @@ void main() {
         );
         final cache = AzureTokenCache(api: api);
 
-        // Pass a nonsense durationSeconds to prove it is NOT forwarded for TTS.
         await cache.getToken(
           purpose: 'tts',
           textLength: 42,

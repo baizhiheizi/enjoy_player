@@ -66,18 +66,11 @@ class VideoPosterCaptureService {
     required void Function(String absoluteThumbPath) onSessionThumbnail,
   }) async {
     var soughtForPoster = false;
-    // Frame capture is a capability (issue #720): the caller gates on it, but
-    // re-check here so a mismatch degrades to "no poster" instead of throwing.
     final PosterCapture? capture = switch (activeEngine) {
       PosterCapture posterCapture => posterCapture,
       _ => null,
     };
     try {
-      // Opening at position 0 while echo is active makes the capture seek (and
-      // the seek-back-to-zero below) fight the live enforcer: the seek is
-      // corrected back into the echo window, so the wrong frame is captured and
-      // playback is paused / churned right after open (issue #659). Skip — a
-      // later open without echo still captures the poster.
       if (restoredPositionMs == 0 && _ref.read(echoModeProvider).active) return;
 
       await Future<void>.delayed(const Duration(milliseconds: 450));

@@ -20,8 +20,6 @@ import 'package:enjoy_player/features/craft/application/craft_library_repository
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -68,8 +66,6 @@ class _FakeLibraryRepository implements CraftLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-// === Harness ===
-
 Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
@@ -99,23 +95,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Title and button both say "Translate".
       expect(find.text('Translate'), findsNWidgets(2));
 
-      // Language labels.
       expect(find.text('Source language'), findsOneWidget);
       expect(find.text('Learning language'), findsOneWidget);
 
-      // Style picker label.
       expect(find.text('Style'), findsOneWidget);
 
-      // Source text field label.
       expect(find.text('Source text'), findsOneWidget);
 
-      // Swap button.
       expect(find.byIcon(EnjoyIcons.swap), findsOneWidget);
 
-      // Paste button in the source text field.
       expect(find.byIcon(EnjoyIcons.paste), findsOneWidget);
     });
 
@@ -127,11 +117,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find the FilledButton with the translate icon.
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       expect(button, findsOneWidget);
 
-      // The button should be disabled (onPressed is null).
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNull);
     });
@@ -142,12 +130,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Enter text into the source field.
       final textField = find.byType(TextField).first;
       await tester.enterText(textField, 'Hello world, this is a test sentence');
       await tester.pumpAndSettle();
 
-      // The translate button should now be enabled.
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
@@ -178,7 +164,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Set languages directly to avoid same-language guard.
       final controller = container.read(craftControllerProvider.notifier);
       controller
         ..setSourceLanguage('zh-CN')
@@ -186,17 +171,14 @@ void main() {
         ..setSourceText('Hello world, this is a test sentence');
       await tester.pumpAndSettle();
 
-      // Tap translate.
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.translate);
       await tester.tap(button);
       await tester.pumpAndSettle();
 
-      // Translated text section appears.
       expect(find.text('Translated text'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
       expect(find.text('Use translated text'), findsOneWidget);
 
-      // The result text is shown.
       expect(find.text('translated result'), findsOneWidget);
     });
 
@@ -206,17 +188,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Open the style dropdown and pick "Custom".
       final dropdown = find.byType(DropdownButton<TranslationStyle>);
       expect(dropdown, findsOneWidget);
       await tester.tap(dropdown);
       await tester.pumpAndSettle();
 
-      // Select Custom style.
       await tester.tap(find.text('Custom').last);
       await tester.pumpAndSettle();
 
-      // Custom prompt field should appear with its hint text.
       expect(
         find.text('Enter your custom translation prompt…'),
         findsOneWidget,
@@ -246,7 +225,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Set languages directly.
       final controller = container.read(craftControllerProvider.notifier);
       controller
         ..setSourceLanguage('zh-CN')
@@ -267,19 +245,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Title and button both say "Synthesize".
       expect(find.text('Synthesize'), findsNWidgets(2));
 
-      // Language tile label.
       expect(find.text('Learning language'), findsOneWidget);
 
-      // Voice picker label.
       expect(find.text('Voice'), findsOneWidget);
 
-      // Text input field label.
       expect(find.text('Text to synthesize'), findsOneWidget);
 
-      // Paste button.
       expect(find.byIcon(EnjoyIcons.paste), findsOneWidget);
     });
 
@@ -302,12 +275,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Enter text.
       final textField = find.byType(TextField).first;
       await tester.enterText(textField, 'Hello world, this is a test sentence');
       await tester.pumpAndSettle();
 
-      // The synthesize button should now be enabled.
       final button = find.widgetWithIcon(FilledButton, EnjoyIcons.speak);
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
@@ -338,22 +309,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Set text and synthesize directly via the controller.
       final controller = container.read(craftControllerProvider.notifier);
-      // Ensure auth is resolved before synthesize (it checks sign-in).
       await container.read(authCtrlProvider.future);
       controller.setSynthText('Hello world, this is a test sentence');
       await tester.pumpAndSettle();
       await controller.synthesize();
       await tester.pumpAndSettle();
 
-      // Preview section appears.
       expect(find.text('Preview'), findsAtLeast(1));
 
-      // Save to library button appears.
       expect(find.text('Save to library'), findsOneWidget);
 
-      // Play button appears.
       expect(find.byIcon(EnjoyIcons.play), findsOneWidget);
     });
 
@@ -363,7 +329,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Default synth language is 'en' → displayed as 'EN'.
       expect(find.text('EN'), findsOneWidget);
     });
   });

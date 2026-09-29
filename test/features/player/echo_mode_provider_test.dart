@@ -225,8 +225,6 @@ void main() {
       });
     });
     group('re-segmented transcript (issue #659)', () {
-      // `restoreFromSession` persists line indices without validation; a
-      // re-import that shortened the transcript leaves them past the end.
       final shortLines = <TranscriptLine>[
         const TranscriptLine(text: 'only', startMs: 0, durationMs: 2000),
       ];

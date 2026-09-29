@@ -158,8 +158,6 @@ void main() {
     );
   });
 
-  // Anchor: import the bottom-nav widget to ensure that consumers of the
-  // clearance (e.g. AppNotice) compile against the same token surface.
   test('enjoyBottomNav exists and is a Widget', () {
     expect(EnjoyBottomNav, isNotNull);
   });

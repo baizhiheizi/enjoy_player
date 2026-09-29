@@ -1,6 +1,3 @@
-// Widget test for the Usage-analytics opt-out row (spec 046 US4): the switch
-// reflects the persisted preference and toggling writes it through the
-// notifier (the provider applies it to the vendor).
 library;
 
 import 'package:drift/native.dart';

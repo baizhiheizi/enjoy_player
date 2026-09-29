@@ -7,8 +7,6 @@ import 'package:media_kit/media_kit.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   try {
-    // media_kit requires this once per process — the player engine tests
-    // do the same thing.
     MediaKit.ensureInitialized();
   } on Object catch (e) {
     test('(skipped) media_kit native library not available', () {}, skip: '$e');
@@ -33,7 +31,6 @@ void main() {
       final player = RecordingPreviewPlayer();
       await player.dispose();
       await player.dispose();
-      // Subsequent calls on a disposed player should not crash (stop short-circuits).
       await player.stop();
     });
 
@@ -64,8 +61,6 @@ void main() {
     test('position/duration/playing streams are exposed', () {
       final player = RecordingPreviewPlayer();
       addTearDown(player.dispose);
-      // Just check the streams are exposed — we never subscribe here so
-      // there is no real playback to wait on.
       expect(player.position, isNotNull);
       expect(player.duration, isNotNull);
       expect(player.playing, isNotNull);
@@ -79,9 +74,6 @@ void main() {
         if (tmp.existsSync()) tmp.deleteSync(recursive: true);
       });
       final file = File('${tmp.path}/tone.wav');
-      // Minimal RIFF header (44 bytes) — enough for media_kit's open to be
-      // called without immediately raising. We don't actually assert playback;
-      // we only assert loadedPath is set after a successful open.
       final header = <int>[
         ...'RIFF'.codeUnits,
         36,
@@ -122,8 +114,6 @@ void main() {
         await player.play(file.path);
         expect(player.loadedPath, file.absolute.path);
       } on Object catch (_) {
-        // media_kit can refuse the empty WAV on some hosts; treat as
-        // acceptable evidence that the file existence check passed.
         expect(file.existsSync(), isTrue);
       }
     });

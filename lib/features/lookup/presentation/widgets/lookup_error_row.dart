@@ -18,8 +18,6 @@ import 'package:enjoy_player/l10n/app_localizations.dart';
 String lookupErrorUserMessage(Object error, AppLocalizations l10n) {
   return switch (error) {
     AuthFailure() => l10n.lookupCloudRequiresSignIn,
-    // BYOK provider billing rejection — provider copy, never the Enjoy
-    // upsell (spec 045 FR-008).
     ProviderBillingFailure() => l10n.byokProviderBillingMessage,
     CreditsFailure() => creditsFailureMessage(error, l10n),
     AppFailure(:final message) => message,

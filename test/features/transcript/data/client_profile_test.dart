@@ -32,7 +32,6 @@ void main() {
     });
 
     test('fromJson accepts worker wire shape after camelCase conversion', () {
-      // Matches GET /youtube/client-profiles after ApiClient snake→camel.
       final json = {
         'name': 'IOS',
         'version': '20.12.1',
@@ -58,7 +57,6 @@ void main() {
     });
 
     test('fromJson tolerates nested Map<dynamic, dynamic> context', () {
-      // jsonDecode + key conversion yields Map<dynamic, dynamic> nests.
       final decoded = jsonDecode(
         '{"name":"WEB","version":"2.20250709.00.00",'
         '"clientNameHeader":"1","userAgent":"ua",'

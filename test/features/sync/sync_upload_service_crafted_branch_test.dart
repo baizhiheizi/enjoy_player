@@ -118,17 +118,12 @@ void main() {
     test(
       'crafted row sends signedId in JSON payload when uploader returns it',
       () async {
-        // Write a real audio file into the app-managed media directory so
-        // `isAppManagedMediaPath()` returns true and `readAppManagedMedia()`
-        // finds the bytes.
         final mediaDir = Directory(p.join(docsRoot.path, 'media'))
           ..createSync();
         final audioFile = File(p.join(mediaDir.path, 'abc.wav'));
         audioFile.writeAsBytesSync([1, 2, 3, 4, 5, 6, 7, 8]);
         final localUri = Uri.file(audioFile.path).toString();
 
-        // Stub: direct-uploads POST returns a signedId + a (mock) PUT URL.
-        // The PUT is just a 200 OK; we don't care about the bytes.
         final mock = MockClient((req) async {
           if (req.url.path == '/api/v1/direct_uploads') {
             return http.Response(
@@ -143,23 +138,18 @@ void main() {
               headers: {'content-type': 'application/json'},
             );
           }
-          // Catch-all for the PUT to the storage backend (absolute URL).
           if (req.method == 'PUT') {
             return http.Response('', 200);
           }
           if (req.url.path == '/api/v1/mine/audios' && req.method == 'POST') {
             final body = jsonDecode(req.body) as Map<String, dynamic>;
             final audio = body['audio'] as Map<String, dynamic>;
-            // ApiClient converts camelCase to snake_case on the wire; the
-            // server reads `signed_id`. Verify it round-trips.
             expect(
               audio['signed_id'],
               'signed-id-craft-12345',
               reason: 'crafted upload must include the blob signed_id',
             );
-            // Provider must remain 'craft'.
             expect(audio['provider'], 'craft');
-            // media_url in payload should be absent (we haven't synced yet).
             expect(audio.containsKey('media_url'), isFalse);
             return http.Response(
               jsonEncode({
@@ -195,12 +185,8 @@ void main() {
           size: 8,
           mediaUrl: null,
         );
-        // The file at `localUri` is under `{docs}/media/`, so
-        // `isAppManagedMediaPath()` returns true and the uploader reads the
-        // bytes via `FileStorage.readAppManagedMedia`.
         await svc.uploadAudio(row);
 
-        // Verify the row got mediaUrl stamped from the server response.
         final reloaded = await db.audioDao.getById(row.id);
         expect(reloaded, isNotNull);
         expect(reloaded!.mediaUrl, 'https://cdn.example.com/audios/abc.wav');
@@ -209,7 +195,6 @@ void main() {
     );
 
     test('provider=user row does not trigger the uploader (SC-003)', () async {
-      // Track whether direct_uploads was ever hit.
       var directUploadsCalled = false;
 
       final mock = MockClient((req) async {
@@ -220,7 +205,6 @@ void main() {
         if (req.url.path == '/api/v1/mine/audios' && req.method == 'POST') {
           final body = jsonDecode(req.body) as Map<String, dynamic>;
           final audio = body['audio'] as Map<String, dynamic>;
-          // CRITICAL: signedId MUST NOT be in the JSON body for user imports.
           expect(
             audio.containsKey('signed_id'),
             isFalse,
@@ -343,8 +327,6 @@ void main() {
           return http.Response('not found', 404);
         });
 
-        // Note: deliberately NOT wiring the uploader — service should still
-        // work in legacy configurations.
         final svc = _serviceNoUploader(db, _client(mock));
         final row = _row(
           id: 'aud-craft-legacy',

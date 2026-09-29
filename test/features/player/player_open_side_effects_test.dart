@@ -23,10 +23,6 @@ import 'package:http/http.dart' as http;
 
 import '../../support/fake_player_engine.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 const _profile = UserProfile(id: 'u1', email: 'a@b.com', name: 'Test');
 
 class _SignedInAuthCtrl extends AuthCtrl {
@@ -124,10 +120,6 @@ class _FakeMediaLibraryRepository extends MediaLibraryRepository {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 /// Captures a [Ref] from the container so top-level functions that accept
 /// [Ref] can be called in tests.
 final _refCapture = Provider<Ref>((ref) => ref);
@@ -221,10 +213,6 @@ Future<void> _insertVideoRow(
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -310,7 +298,6 @@ void main() {
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
 
-      // Should not throw despite transcript error.
       schedulePlayerOpenSideEffects(
         _ref(container),
         openGeneration: 1,
@@ -322,7 +309,6 @@ void main() {
       await pumpEventQueue();
 
       expect(_FakeTranscriptFetchCtrl.resolveCalls, 1);
-      // Recording pull still runs independently.
       expect(_FakeRecordingTargetSyncService.pullCalls, 1);
     });
 
@@ -332,7 +318,6 @@ void main() {
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
 
-      // Should not throw despite recording pull error.
       schedulePlayerOpenSideEffects(
         _ref(container),
         openGeneration: 1,
@@ -354,7 +339,6 @@ void main() {
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
 
-      // No row inserted for 'missing-id' — should return early.
       _scheduleYoutubeRefresh(container, mediaId: 'missing-id');
 
       await pumpEventQueue();
@@ -376,7 +360,6 @@ void main() {
       _scheduleYoutubeRefresh(container, mediaId: 'v-user');
 
       await pumpEventQueue();
-      // Returned early because provider != 'youtube'.
       expect(_FakeMediaLibraryRepository.refreshCalls, isEmpty);
     });
 
@@ -396,7 +379,6 @@ void main() {
       _scheduleYoutubeRefresh(container, mediaId: 'v-complete');
 
       await pumpEventQueue();
-      // Returned early because title is real and thumbnail exists.
       expect(_FakeMediaLibraryRepository.refreshCalls, isEmpty);
     });
 
@@ -413,7 +395,6 @@ void main() {
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
 
-      // Buffering settles so the readiness gate resolves.
       final engine = FakePlayerEngine();
       _scheduleYoutubeRefresh(
         container,
@@ -465,7 +446,6 @@ void main() {
         mediaId: 'v-stale',
         openGeneration: 1,
         engine: engine,
-        // A newer open landed meanwhile — the host reports generation 2.
         currentOpenGeneration: () => 2,
         currentSessionMediaId: () => 'v-stale',
       );
@@ -486,7 +466,6 @@ void main() {
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
 
-      // Should not surface as an unhandled async error despite the throw.
       final engine = FakePlayerEngine();
       _scheduleYoutubeRefresh(container, mediaId: 'v-boom', engine: engine);
       await _driveYoutubeRefreshReady(engine);

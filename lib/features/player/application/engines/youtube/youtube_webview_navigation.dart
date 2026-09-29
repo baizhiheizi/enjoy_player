@@ -44,8 +44,6 @@ class YoutubeWebViewNavigation {
     final controller = jsChannel();
     if (controller == null || session.videoId.isEmpty) return;
     final videoId = session.videoId;
-    // Bumped so a verify scheduled from this load cannot judge a superseding
-    // navigation current.
     bumpNavGeneration();
     try {
       await YoutubeWebViewBridge.loadWatchPage(controller, videoId);
@@ -68,7 +66,6 @@ class YoutubeWebViewNavigation {
       return;
     }
     if (session.loggedFirstPlaying) return;
-    // Do not reload over an in-flight user/app play attempt.
     if (session.explicitPlayAttempted) return;
     if (skipIfLoadStopReceived && session.watchPageLoadStopReceived) return;
     _logNav.info('youtube verify watch load vid=${session.videoId}');
@@ -150,7 +147,6 @@ class YoutubeWebViewNavigation {
       cancelStallWatchdog();
       return;
     }
-    // User already pressed play — reload would abort the in-flight attempt.
     if (session.explicitPlayAttempted) {
       _logNav.info(
         'youtube stall recovery deferred; explicit play in progress vid=$vid',

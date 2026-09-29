@@ -39,12 +39,9 @@ class JsonFeedResult {
 String extractVideoId(dynamic idValue) {
   if (idValue == null) return '';
   final idStr = idValue.toString().trim();
-  // Try extracting from URL: https://www.youtube.com/watch?v=VIDEO_ID
   final urlMatch = _kYTUrlV.firstMatch(idStr);
   if (urlMatch != null) return urlMatch.group(1)!;
-  // Try bare 11-char video ID
   if (bareYoutubeIdRegExp.hasMatch(idStr)) return idStr;
-  // Try youtu.be short URL
   final shortMatch = _kYTShort.firstMatch(idStr);
   if (shortMatch != null) return shortMatch.group(1)!;
   return idStr;
@@ -77,13 +74,11 @@ class JsonFeedParser {
     }
     final data = decoded;
 
-    // Validate JSON Feed version
     final version = data['version'] as String?;
     if (version == null || !version.contains('jsonfeed.org')) {
       throw FormatException('Not a JSON Feed response: $version');
     }
 
-    // Feed-level fields
     final title = data['title'] as String?;
     if (title == null || title.isEmpty) {
       throw const FormatException('Missing feed title');
@@ -93,7 +88,6 @@ class JsonFeedParser {
     final homePageUrl = data['home_page_url'] as String? ?? '';
     final iconUrl = data['icon'] as String?;
 
-    // Parse items
     final items = data['items'];
     if (items is! List) {
       throw const FormatException('Missing items array in JSON Feed');
@@ -111,14 +105,12 @@ class JsonFeedParser {
       final entryTitle = item['title'] as String? ?? '';
       final image = item['image'] as String?;
 
-      // Parse published date
       DateTime? publishedAt;
       final dateStr = item['date_published'] as String?;
       if (dateStr != null) {
         publishedAt = DateTime.tryParse(dateStr);
       }
 
-      // Extract duration from attachments
       int? durationSeconds;
       final attachments = item['attachments'];
       if (attachments is List && attachments.isNotEmpty) {
@@ -137,10 +129,7 @@ class JsonFeedParser {
         }
       }
 
-      // Extract channelId from the first item's authors or feed home_page_url
-      // We use the home_page_url channel ID as the channelId placeholder;
-      // the caller sets the actual channelId from the subscription context.
-      final channelId = ''; // caller fills this in
+      final channelId = '';
 
       entries.add(
         FeedEntry(

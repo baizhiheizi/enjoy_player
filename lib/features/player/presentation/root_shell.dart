@@ -70,9 +70,6 @@ class _RootShellState extends ConsumerState<RootShell> {
     final l10n = AppLocalizations.of(context)!;
     final path = GoRouterState.of(context).uri.path;
     final onPlayer = path.startsWith('/player/');
-    // Immersive flashcard review: hide shell chrome (sidebar / bottom nav)
-    // while `/vocabulary/review` is active — same path-flag family as
-    // `/player/` nav hiding (specs/033-immersive-flashcard-review).
     final onReview = path.startsWith('/vocabulary/review');
 
     return OnboardingShowcaseHost(
@@ -154,24 +151,12 @@ class _RootShellState extends ConsumerState<RootShell> {
               /// space via [bottomNavigationBar] instead.
               final playerWithTransport = sessionActive && onPlayer;
 
-              // Leaving the player tears the live session down in
-              // [LeavePlayerRouteObserver] (registered on the shell navigator
-              // in `app_router.dart`) — never from a build: a build-posted
-              // teardown re-fires on every rebuild that still holds the
-              // condition, and only stayed safe because clear() bumps the
-              // open generation.
-
               final bottomClearance = !useSidebar && !onPlayer && !onReview
                   ? rootShellBottomNavClearance(context)
                   : 0.0;
 
               Widget mobileShellScaffold() {
                 if (playerWithTransport) {
-                  // Same floating treatment as [EnjoyBottomNav]: transparent
-                  // scaffold + [extendBody] so transcript / [AppBackground]
-                  // show around (and through) the glass capsule. Native video
-                  // stays in the upper [PlayerSurfaceTarget] stage, not in this
-                  // bottom slot (ADR-0066 parks the surface for overlays).
                   return Scaffold(
                     backgroundColor: Colors.transparent,
                     extendBody: true,
@@ -196,10 +181,6 @@ class _RootShellState extends ConsumerState<RootShell> {
                     ),
                   );
                 }
-                // Transparent + [extendBody] so [AppBackground] and page content
-                // show around (and through) the floating glass capsule. Do not
-                // wrap the nav in a [Column] inside [SafeArea] — that paints an
-                // opaque home-indicator tray behind the bar.
                 return Scaffold(
                   backgroundColor: Colors.transparent,
                   extendBody: bottomNav != null,
@@ -223,9 +204,6 @@ class _RootShellState extends ConsumerState<RootShell> {
               final shell = useSidebar
                   ? RootShellBottomInset(
                       bottomClearance: bottomClearance,
-                      // Desktop: the sidebar sits on the window canvas and
-                      // routed pages live on a floating continuous-corner
-                      // panel lit by the aurora glow (ADR-0089).
                       child: ColoredBox(
                         color: tokens.canvas,
                         child: Scaffold(
@@ -256,14 +234,6 @@ class _RootShellState extends ConsumerState<RootShell> {
                       ),
                     );
 
-              // Permanent video/WebView surface — follows PlayerSurfaceTarget.
-              // Park while `/youtube/login` is open: that route pushes above the
-              // player page (target stays attached) but this host paints above
-              // the whole shell, so an unparked stage covers the login WebView.
-              // Overlays (dialogs/sheets/snackbars, ADR-0066) are handled inside
-              // [PlayerSurfaceHost] — watching the coordinator here used to
-              // rebuild the whole shell (nav, sidebar, both scaffolds) on every
-              // dialog/sheet/notice token change (issue #663).
               final parkForYoutubeLogin = path.startsWith('/youtube/login');
               return Stack(
                 fit: StackFit.expand,

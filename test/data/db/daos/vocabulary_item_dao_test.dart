@@ -165,7 +165,6 @@ void main() {
       'listDue filters rows whose nextReviewAt is not after lastReviewedAt',
       () async {
         final now = DateTime.utc(2026, 7, 1);
-        // reviewed before, due in past — eligible (nextReviewAt after review)
         await db.vocabularyItemDao.insertRow(
           _vocabItem(
             id: 'reviewed-due',
@@ -173,9 +172,6 @@ void main() {
             lastReviewedAt: now.subtract(const Duration(days: 5)),
           ),
         );
-        // nextReviewAt still in past relative to last review — not eligible
-        // (system has not yet updated nextReviewAt after the most recent
-        // review).
         await db.vocabularyItemDao.insertRow(
           _vocabItem(
             id: 'reviewed-not-scheduled',
@@ -183,7 +179,6 @@ void main() {
             lastReviewedAt: now.subtract(const Duration(hours: 1)),
           ),
         );
-        // reviewed in future relative to last review (scheduling race) — skip
         await db.vocabularyItemDao.insertRow(
           _vocabItem(
             id: 'reviewed-future-skip',

@@ -137,7 +137,6 @@ void main() {
 
     controller.add(const UpdateInstallProgress.completed());
     await tester.pump();
-    // Dialog route exit animation (avoid pumpAndSettle — progress indicators animate forever).
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Update available'), findsNothing);

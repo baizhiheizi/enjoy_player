@@ -74,7 +74,6 @@ class _DictionaryLookupSheetState extends ConsumerState<DictionaryLookupSheet> {
 
   @override
   void dispose() {
-    // Cached notifier — ref is unsafe after unmount.
     unawaited(_pronounce?.stop() ?? Future<void>.value());
     _dialogScroll?.dispose();
     super.dispose();

@@ -32,9 +32,7 @@ void main() {
   tearDown(() {
     try {
       ShowcaseView.get().unregister();
-    } on Object {
-      // Already unregistered.
-    }
+    } on Object {} // ignore: empty_catches
   });
 
   testWidgets('YouTube empty state shows Fetch transcript CTA', (tester) async {

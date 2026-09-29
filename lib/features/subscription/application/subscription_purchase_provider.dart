@@ -35,8 +35,6 @@ class SubscriptionPurchaseCtrl extends _$SubscriptionPurchaseCtrl {
         PurchaseRequest(months: months, processor: processor, tier: tier),
       );
       state = const AsyncData(null);
-      // Checkout session created — the user-visible purchase journey began
-      // (spec 046 catalog). Confirmation is observed by TierReconcileCtrl.
       ref
           .read(analyticsProvider)
           .capture(

@@ -27,7 +27,6 @@ final class CraftTranslationServiceTranslator implements CraftTranslator {
     final sourceBase = workerLanguageBase(sourceLanguage);
     final targetBase = workerLanguageBase(targetLanguage);
 
-    // Build the system prompt based on the selected style.
     final String systemPrompt;
     if (style == TranslationStyle.auto) {
       systemPrompt = _autoStylePrompt(sourceBase, targetBase);

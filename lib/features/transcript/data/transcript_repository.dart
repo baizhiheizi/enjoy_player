@@ -83,10 +83,6 @@ class TranscriptRepository {
 
   final TranscriptTimelineCache _linesCache = TranscriptTimelineCache();
 
-  // ---
-  // Lines cache + reactive watches
-  // ---
-
   /// Decodes [row.timelineJson] with memoization on `(id, timelineJsonHash)`
   /// via the timeline codec's cache (issue #766) — the one decode home shared
   /// with Craft enrichment and the player's line controls.
@@ -105,10 +101,6 @@ class TranscriptRepository {
 
   Stream<List<TranscriptTrack>> watchTracks(String mediaId) =>
       _watchTracks(mediaId);
-
-  // ---
-  // Open-time resolution
-  // ---
 
   /// Orchestrates transcript resolution when media is opened.
   ///
@@ -133,10 +125,6 @@ class TranscriptRepository {
     nativeLanguage: nativeLanguage,
     learningLanguage: learningLanguage,
   );
-
-  // ---
-  // Cloud / YouTube fetch
-  // ---
 
   /// Fetches transcripts from the Enjoy API and upserts them locally.
   ///
@@ -169,10 +157,6 @@ class TranscriptRepository {
   /// status without re-deriving the predicate).
   Future<TranscriptFetchStateRow?> readCloudFetchState(String mediaId) =>
       _readCloudFetchState(mediaId);
-
-  // ---
-  // Track / session management
-  // ---
 
   /// Persists a generated `source: 'ai'` transcript for [mediaId] +
   /// [language] using a deterministic row id so re-generation upserts
@@ -217,10 +201,6 @@ class TranscriptRepository {
     required List<TranscriptLine> lines,
   }) => _replaceTimeline(transcriptId: transcriptId, lines: lines);
 
-  // ---
-  // Subtitle import
-  // ---
-
   /// Imports a user-supplied `.srt` / `.vtt` file as a `source: user` track.
   Future<void> importSubtitle({
     required String mediaId,
@@ -249,10 +229,6 @@ class TranscriptRepository {
     sourceUri: sourceUri,
     playerSubtitleTracks: playerSubtitleTracks,
   );
-
-  // ---
-  // Auto-translate track management
-  // ---
 
   /// Ensures a durable `source: ai` track exists with a timing skeleton for
   /// auto-translate. Returns the track id, or null when the target is unknown.

@@ -14,14 +14,11 @@ import 'package:enjoy_player/core/errors/app_failure.dart';
 AnalyticsFailureReason analyticsFailureReasonFromAppFailure(
   AppFailure failure,
 ) => switch (failure) {
-  // Socket/DNS-level breakage vs an answered-but-failed server.
   NetworkFailure(:final statusCode) =>
     statusCode != null && statusCode >= 500
         ? AnalyticsFailureReason.server
         : AnalyticsFailureReason.network,
   CreditsFailure() => AnalyticsFailureReason.credits,
-  // A BYOK provider's billing rejection is still "credits" at this
-  // coarseness (the Enjoy-vs-provider distinction is presentation only).
   ProviderBillingFailure() => AnalyticsFailureReason.credits,
   AuthFailure() => AnalyticsFailureReason.auth,
   SubscriptionConflictFailure() => AnalyticsFailureReason.server,

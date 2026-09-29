@@ -47,7 +47,6 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
   @override
   void initState() {
     super.initState();
-    // Safe when provider is already cached empty; no-ops while still loading.
     WidgetsBinding.instance.addPostFrameCallback((_) => _startTipsIfSettled());
   }
 
@@ -97,8 +96,6 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // Start the SettingsDao read during skeleton/empty so a persisted on is
-    // resolved before (or as) the list mounts — not frozen off until then.
     ref.watch(karaokeHighlightSettingsProvider);
     ref.watch(ipaOverlaySettingsProvider);
     final linesAsync = ref.watch(transcriptLinesForMediaProvider(mediaId));
@@ -130,7 +127,6 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
       }
     });
 
-    // Layout parents size this panel; Expanded here is invalid under DecoratedBox.
     return linesAsync.when(
       data: (lines) {
         if (lines.isEmpty) {

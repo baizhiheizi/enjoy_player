@@ -1,4 +1,3 @@
-// Community coverage: avatars, summary metrics, JSON parsing.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_avatars.dart';

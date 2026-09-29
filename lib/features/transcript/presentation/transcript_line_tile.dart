@@ -261,8 +261,6 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
         }
 
         final isRevealed = !blurEnabled || hover || providerRevealed;
-        // Lyric-style focus: cues away from the playhead rest slightly
-        // dimmed so the active line leads the eye (Aurora, ADR-0089).
         final focused =
             !widget.dimWhenInactive ||
             widget.isActive ||

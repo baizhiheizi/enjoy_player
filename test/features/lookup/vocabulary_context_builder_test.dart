@@ -57,7 +57,6 @@ void main() {
           _line('to the whole room.', startMs: 1000),
           _line('Then she left.', startMs: 2000),
         ];
-        // Echo covers only the first fragment line — should grow to the sentence.
         const echo = EchoState(
           active: true,
           startLineIndex: 0,
@@ -121,7 +120,6 @@ void main() {
           primaryLanguage: 'en',
         );
         expect(span, isNotNull);
-        // Seed line 0 → expand forward by radius only (no backward room).
         expect(span!.startLineIndex, 0);
         expect(span.endLineIndex, kVocabularyContextLineRadius);
         expect(span.text, 'line0 line1 line2 line3');
@@ -142,7 +140,7 @@ void main() {
       final span = resolveVocabularyContextSpan(
         lines: lines,
         echo: echo,
-        currentTimeSeconds: 10.5, // active ~ line 10
+        currentTimeSeconds: 10.5,
         primaryLanguage: 'en',
       );
       expect(span, isNotNull);

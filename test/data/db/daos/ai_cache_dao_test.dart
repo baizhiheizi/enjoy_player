@@ -1,5 +1,3 @@
-// Tests for `lib/data/db/daos/ai_cache_dao.dart` (and the AiCache table
-// generated accessors in `app_database.g.dart`).
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,7 +58,6 @@ void main() {
     });
 
     test('deleteRow on missing row is a no-op', () async {
-      // Should not throw.
       await db.aiCacheDao.deleteRow('dictionary', 'missing');
     });
 
@@ -84,8 +81,6 @@ void main() {
     });
 
     test('evictOldestExcept keeps the N most recent entries', () async {
-      // Insert 4 entries in a stable order; evictOldestExcept(2) should
-      // delete the 2 oldest.
       for (var i = 0; i < 4; i++) {
         await db.aiCacheDao.upsert(
           'dictionary',
@@ -97,7 +92,6 @@ void main() {
       final removed = await db.aiCacheDao.evictOldestExcept('dictionary', 2);
       expect(removed, 2);
       expect(await db.aiCacheDao.countForKind('dictionary'), 2);
-      // The two newest keys (k2, k3) should survive.
       expect(await db.aiCacheDao.read('dictionary', 'k0'), isNull);
       expect(await db.aiCacheDao.read('dictionary', 'k1'), isNull);
       expect(await db.aiCacheDao.read('dictionary', 'k2'), isNotNull);

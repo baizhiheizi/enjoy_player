@@ -151,7 +151,6 @@ class ProfileStatsRow extends StatelessWidget {
       ),
     ];
 
-    // One card, three hairline-divided columns (Aurora stat strip).
     return EnjoyCard(
       child: IntrinsicHeight(
         child: Row(

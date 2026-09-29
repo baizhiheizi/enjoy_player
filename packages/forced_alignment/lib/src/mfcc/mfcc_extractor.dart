@@ -60,8 +60,6 @@ List<List<double>> extractMfccFrames(List<double> signal, MfccPreset preset) {
   final processor = MFCC(
     sampleRate: kAlignmentSampleRate,
     fftSize: fftSize,
-    // mcfcc_nsn defaults (26 filters / 13 coefficients); no caller ever
-    // overrode them, so the preset fields were folded away (audit #695).
     numFilters: 26,
     numCoefs: 13,
   );

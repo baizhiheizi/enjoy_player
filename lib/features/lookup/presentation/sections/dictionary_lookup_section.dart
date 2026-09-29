@@ -140,7 +140,6 @@ class _DictionaryBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Headword: full-width row so refresh sits at panel end (like contextual) ──
         SizedBox(
           width: double.infinity,
           child: Stack(
@@ -183,7 +182,6 @@ class _DictionaryBody extends StatelessWidget {
             ],
           ),
         ],
-        // ── Senses ───────────────────────────────────────────────────
         SizedBox(height: t.space12),
         for (var i = 0; i < d.senses.length; i++) ...[
           if (i > 0) ...[

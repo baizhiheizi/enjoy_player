@@ -1,5 +1,3 @@
-// Tests for `lib/data/db/daos/echo_session_dao.dart` (and the EchoSessions
-// table generated accessors in `app_database.g.dart`).
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +67,6 @@ void main() {
       expect(row.targetType, 'Video');
       expect(row.targetId, 'm1');
       expect(row.id, isNotEmpty);
-      // A new row should be persisted.
       final found = await db.echoSessionDao.getLatestForTarget('Video', 'm1');
       expect(found?.id, row.id);
     });

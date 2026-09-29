@@ -1,9 +1,3 @@
-// Regression test: the collapse (back) control lives inside the player chrome
-// body. clear() nulls the session mid-flight, which rebuilds the player page
-// from the chrome body into the loading placeholder and unmounts the control's
-// context. The route pop must not depend on that context surviving the
-// teardown awaits — otherwise the learner is stranded on the placeholder
-// (only the system back gesture could leave, since the route never popped).
 library;
 
 import 'dart:async';
@@ -65,8 +59,6 @@ class _PlayerPage extends ConsumerWidget {
       body: Center(
         child: Builder(
           builder: (buttonCtx) => TextButton(
-            // Same shape as PlayerCollapseControl: context captured from inside
-            // the chrome body subtree that unmounts on session clear.
             onPressed: () => collapseExpandedPlayer(ref, buttonCtx),
             child: const Text('collapse'),
           ),
@@ -146,15 +138,12 @@ void main() {
       expect(find.text('collapse'), findsOneWidget);
 
       await tester.tap(find.text('collapse'));
-      // Let the interleaved frames run through the slow clear.
       await tester.pump(const Duration(milliseconds: 16));
       await tester.pump(const Duration(milliseconds: 16));
       await tester.pump(const Duration(milliseconds: 16));
       await tester.pump(const Duration(milliseconds: 16));
 
-      // The chrome body swapped to the placeholder mid-clear…
       expect(find.text('player-placeholder'), findsOneWidget);
-      // …but the route must still have popped back home.
       expect(
         router.state.uri.path,
         '/',

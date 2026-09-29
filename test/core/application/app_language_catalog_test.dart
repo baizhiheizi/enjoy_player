@@ -114,9 +114,6 @@ void main() {
     test(
       'assessment-only rows (argless, no lookup label) stay in the Azure set',
       () {
-        // `azureAssessment` defaults to `true` (review on #798): the rows
-        // that carry nothing but a tag must still widen the assessment
-        // allowlist, and stay distinguishable via lookupLabel == null.
         final assessmentOnly = <String>{
           for (final row in kLanguageDescriptorRows)
             if (row.lookupLabel == null) row.tag,
@@ -354,9 +351,6 @@ void main() {
   });
 
   group('Norwegian Bokmål (nb-NO)', () {
-    // ADR-0087: `no` is a macrolanguage tag; essentially all Norwegian
-    // content in the wild is Bokmål, so `no` / `nob` / `nor` collapse onto
-    // `nb-NO`. Nynorsk (`nn`) is deliberately left unsupported.
     const bokmalAliases = <String>['no', 'no-NO', 'nb', 'nb-NO', 'nob', 'nor'];
 
     test('is in the focus, media, and lookup catalogs', () {

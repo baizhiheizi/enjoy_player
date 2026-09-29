@@ -12,10 +12,6 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 class _FakeUrlLauncherPlatform extends UrlLauncherPlatform {
   _FakeUrlLauncherPlatform({this.launchResult = true});
 
@@ -85,10 +81,6 @@ class _FakeCreditsPackagesRepository extends CreditsPackagesRepository {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 CreditsSummary _summary({required int permanent}) => CreditsSummary(
   tier: 'free',
   dailyUsed: 0,
@@ -148,10 +140,6 @@ ProviderContainer _container({
     ],
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -214,7 +202,6 @@ void main() {
         );
         addTearDown(container.dispose);
 
-        // Prime the credits summary cache so baseline is available.
         await container.read(creditsSummaryProvider.future);
 
         final result = await container
@@ -230,11 +217,9 @@ void main() {
           'https://pay.example.com/credits/checkout',
         );
 
-        // State returns to AsyncData after success.
         final state = container.read(creditsPackagePurchaseCtrlProvider);
         expect(state, const AsyncData<void>(null));
 
-        // Tier reconcile pending flag is set with baseline.
         final reconcile = container.read(tierReconcileCtrlProvider.notifier);
         expect(reconcile.hasPendingPackagePurchase, isTrue);
       },
@@ -250,7 +235,6 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Do NOT prime the cache — the provider must fetch via .future.
       final result = await container
           .read(creditsPackagePurchaseCtrlProvider.notifier)
           .purchaseExternal(packageId: 'pkg-1', expectedCredits: 50000);
@@ -273,7 +257,6 @@ void main() {
           .read(creditsPackagePurchaseCtrlProvider.notifier)
           .purchaseExternal(packageId: 'pkg-1', expectedCredits: 100000);
 
-      // Purchase still proceeds — baseline is null.
       expect(result, isNotNull);
       expect(repo.startPurchaseCalls, 1);
     });

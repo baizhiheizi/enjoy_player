@@ -206,9 +206,6 @@ void main() {
     });
 
     test('falls back to most-practiced line when echo range is empty', () {
-      // Build lines with overlapping reference windows:
-      //   line 0: 0..1000  ("hi there")
-      //   line 1: 1000..2000 ("this is short")
       final lines = [
         _line('hi there', startMs: 0, durationMs: 1000),
         _line('this is short', startMs: 1000, durationMs: 1000),
@@ -216,7 +213,6 @@ void main() {
       final q = resolvePracticePosterQuote(
         lines: lines,
         recordings: [
-          // 3 recordings overlap line 1's window (1000..2000)
           _recording(
             id: 'r1',
             referenceText: 'short',
@@ -235,7 +231,6 @@ void main() {
             referenceStart: 1500,
             referenceDuration: 500,
           ),
-          // 1 recording overlaps line 0
           _recording(
             id: 'r4',
             referenceText: 'short',

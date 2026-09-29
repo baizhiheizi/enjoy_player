@@ -107,7 +107,6 @@ void main() {
         ByokValidationError.apiSpecRequired,
         ByokValidationError.azureKindRequired,
       ]);
-      // Expect 6 newline separators (7 messages → 6 newlines).
       expect('\n'.allMatches(result).length, 6);
       expect(result.split('\n'), hasLength(7));
     });

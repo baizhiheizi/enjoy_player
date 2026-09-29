@@ -41,14 +41,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Title stays visible and fully legible.
       expect(find.text('Account'), findsOneWidget);
-      // The value pill (and its ellipsis-truncated but present text) still
-      // renders — it isn't hidden entirely by the narrow row.
       expect(find.byType(SettingsValuePill), findsOneWidget);
       expect(find.text(longValue), findsOneWidget);
-      // No RenderFlex/overflow exceptions from squeezing title + value badge
-      // onto a single line at this width.
       expect(tester.takeException(), isNull);
     },
   );

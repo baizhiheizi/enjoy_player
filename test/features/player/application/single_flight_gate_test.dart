@@ -37,7 +37,6 @@ void main() {
         expect(gate.isStale(gen), isTrue);
         expect(gate.inFlight, isFalse);
 
-        // The abandoned op settles late; its release must not restore it.
         wedged.complete();
         await done;
         expect(gate.inFlight, isFalse);
@@ -79,7 +78,6 @@ void main() {
       final wedged = Completer<void>();
       final done = gate.run(wedged.future);
 
-      // Bounded-wait pattern: the caller gave up and released the slot.
       gate.release(wedged.future);
       expect(gate.inFlight, isFalse);
 
@@ -87,7 +85,6 @@ void main() {
       final nextDone = gate.run(next.future);
       expect(gate.pending, same(next.future));
 
-      // The wedged op finally settles; its release must be a no-op.
       wedged.complete();
       await done;
       expect(gate.pending, same(next.future));

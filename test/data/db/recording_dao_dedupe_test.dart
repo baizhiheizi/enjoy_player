@@ -67,13 +67,11 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Re-upsert the same row — Drift re-emits the same list.
       await db.recordingDao.insertRow(
         recording(id: 'rec-1', createdAt: DateTime.utc(2024, 6, 1)),
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      // Identical list — no new emission expected.
       expect(emissions.length, baseline);
 
       await sub.cancel();
@@ -147,7 +145,6 @@ void main() {
       expect(baseline, greaterThanOrEqualTo(1));
       expect(emissions.last.first.pronunciationScore, isNull);
 
-      // Assessment write — a real change to a recorded column.
       await db.recordingDao.updateAssessment(
         id: 'rec-1',
         pronunciationScore: 85,
@@ -180,8 +177,6 @@ void main() {
       final baseline = emissions.length;
       expect(emissions.last, hasLength(1));
 
-      // Insert for a DIFFERENT target — Drift's row-level change feed
-      // should not fire our filtered query at all.
       await db.recordingDao.insertRow(
         recording(
           id: 'rec-2',
@@ -221,7 +216,6 @@ void main() {
       final baseline = emissions.length;
       expect(baseline, greaterThanOrEqualTo(1));
 
-      // Re-upsert identical row.
       await db.recordingDao.insertRow(
         recording(
           id: 'rec-1',
@@ -262,7 +256,6 @@ void main() {
       final baseline = emissions.length;
       expect(emissions.last, hasLength(1));
 
-      // Insert a second recording that overlaps the same echo region.
       await db.recordingDao.insertRow(
         recording(
           id: 'rec-2',
@@ -306,7 +299,6 @@ void main() {
         final baseline = emissions.length;
         expect(emissions.last, hasLength(1));
 
-        // Outside the echo region (starts at 5000ms, echo ends at 1000ms).
         await db.recordingDao.insertRow(
           recording(
             id: 'rec-2',
@@ -317,7 +309,6 @@ void main() {
         );
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
-        // Filtered out — no new emission.
         expect(emissions.length, baseline);
 
         await sub.cancel();
@@ -349,7 +340,6 @@ void main() {
       final baseline = emissions.length;
       expect(emissions.last, hasLength(1));
 
-      // Same echo region, different language — must be filtered out.
       await db.recordingDao.insertRow(
         recording(
           id: 'rec-2',

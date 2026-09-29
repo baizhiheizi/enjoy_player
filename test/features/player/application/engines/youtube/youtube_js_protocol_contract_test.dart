@@ -16,9 +16,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// result decode — is now *executed* over the scripted channel adapter in
 /// `youtube_js_protocol_channel_test.dart`.
 void main() {
-  // Every Dart-reachable JS source that can call `flutter_inappwebview
-  // .callHandler`. The bridge's play scripts embed the shared
-  // `_startPlaybackBody`, so `playRejected` is included via interpolation.
   final jsSources = [
     kYoutubeMobileWatchInjectScript,
     YoutubeWebViewBridge.playScript,
@@ -48,8 +45,6 @@ void main() {
 
   test('every event name the JS emits is a name the Dart switch handles', () {
     final emitted = {...literalEventNames, ...arrayEventNames};
-    // Sanity on the extraction itself: the known emission styles must all
-    // have been found before the comparison means anything.
     expect(literalEventNames, containsAll(<String>['playRejected', 'ended']));
     expect(arrayEventNames, isNotEmpty);
 

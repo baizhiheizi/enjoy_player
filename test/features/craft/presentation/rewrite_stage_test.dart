@@ -20,8 +20,6 @@ import 'package:enjoy_player/features/craft/application/craft_library_repository
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -75,8 +73,6 @@ class _FakeLibraryRepository implements CraftLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-// === Harness ===
-
 Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
@@ -105,7 +101,6 @@ void main() {
         _harness(overrides: _baseOverrides(), child: const RewriteStage()),
       );
 
-      // Drive the controller into the rewrite stage via text input.
       final container = ProviderScope.containerOf(
         tester.element(find.byType(RewriteStage)),
       );
@@ -114,15 +109,12 @@ void main() {
           .useTextInput('I had a wonderful day today.');
       await tester.pumpAndSettle();
 
-      // Native + target cards.
       expect(find.text('Your words'), findsOneWidget);
       expect(find.text('I had a wonderful day today.'), findsOneWidget);
       expect(find.byType(TextField), findsNWidgets(2));
 
-      // The rewritten text should appear.
       expect(find.text('Rewritten text in target language.'), findsOneWidget);
 
-      // Style + voice options are always visible.
       expect(find.text('Style'), findsOneWidget);
       expect(find.byType(DropdownButton<TranslationStyle>), findsOneWidget);
     },
@@ -133,7 +125,6 @@ void main() {
       _harness(overrides: _baseOverrides(), child: const RewriteStage()),
     );
 
-    // Drive into rewrite stage.
     final container = ProviderScope.containerOf(
       tester.element(find.byType(RewriteStage)),
     );
@@ -142,13 +133,10 @@ void main() {
         .useTextInput('Some text to rewrite.');
     await tester.pumpAndSettle();
 
-    // Generate audio button.
     expect(find.text('Generate audio'), findsOneWidget);
 
-    // Re-record button.
     expect(find.text('Re-record'), findsOneWidget);
 
-    // Regenerate button.
     expect(find.text('Regenerate'), findsOneWidget);
   });
 
@@ -222,7 +210,6 @@ void main() {
       expect(find.text('Re-translate'), findsNothing);
       expect(translator.callCount, 1);
 
-      // Edit the native STT field (first TextField).
       await tester.enterText(
         find.byType(TextField).first,
         'I had a wonderful day yesterday instead.',

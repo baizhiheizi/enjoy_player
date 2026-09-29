@@ -15,7 +15,6 @@ Future<bool?> showAsrLongMediaConfirmDialog(
   BuildContext context, {
   required int mediaDurationSeconds,
 }) {
-  // Only show for media that crosses the long-form Enjoy gate (15 min).
   if (mediaDurationSeconds < kLongFormMinDurationSeconds) {
     return Future.value(true);
   }

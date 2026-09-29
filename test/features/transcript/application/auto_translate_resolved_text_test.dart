@@ -86,9 +86,6 @@ void main() {
           inFlightIndexes: const {0},
         );
         expect(result.secondaryText, isNull);
-        // Even with failed/inFlight flags set, isFailed / isInFlight are
-        // suppressed when autoTranslateActive is false — only the
-        // auto-translate overlay surfaces them.
         expect(result.isFailed, isFalse);
         expect(result.isInFlight, isFalse);
         expect(result.canRetranslate, isFalse);
@@ -377,7 +374,6 @@ void main() {
           l10nLineFailed: failedL10n,
           l10nLinePending: pendingL10n,
         );
-        // Empty raw + no flags → display stays null (no fallback).
         expect(result.secondaryText, isNull);
       });
     });

@@ -1,7 +1,3 @@
-// Tests for `lib/features/ai/presentation/settings/ai_providers_screen.dart`.
-//
-// Renders the AI providers settings screen with a fake in-memory Drift DB
-// and a fake BYOK secret store so the providers build and resolve cleanly.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/byok_secret_store.dart';
@@ -87,9 +83,7 @@ void main() {
       await tester.pumpWidget(buildHost(container));
       await tester.pumpAndSettle();
 
-      // Title is rendered.
       expect(find.byType(AppBar), findsOneWidget);
-      // Four ModalityProviderCards rendered.
       expect(find.byType(ModalityProviderCard), findsNWidgets(4));
     },
   );
@@ -98,7 +92,6 @@ void main() {
     await tester.pumpWidget(buildHost(container));
     await tester.pumpAndSettle();
 
-    // Shield icon should be present as part of the privacy callout.
     expect(find.byIcon(EnjoyIcons.shield), findsOneWidget);
   });
 }

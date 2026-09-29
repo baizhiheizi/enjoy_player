@@ -143,7 +143,6 @@ void main() {
     await tester.pumpWidget(wrap(const SizedBox.shrink(), router: router));
     await tester.pumpAndSettle();
 
-    // The action label also doubles as the failure message; tap the button.
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in to use Craft'));
     await tester.pumpAndSettle();
 
@@ -192,10 +191,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Numbered message, no raw status.
     expect(find.textContaining('1500'), findsOneWidget);
     expect(find.text('HTTP 402'), findsNothing);
-    // Retry still present, plus the unified recovery CTA.
     expect(find.text('Retry'), findsOneWidget);
     expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
 

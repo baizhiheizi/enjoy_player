@@ -98,7 +98,6 @@ class _EditorialHeaderSlot extends ConsumerWidget {
       subtitle: l10n.settingsSubtitle,
       widthMode: EditorialHeaderWidthMode.column,
       columnMaxWidth: t.hubMaxWidth,
-      // Outer padding already applied by the settings layout.
       padding: EdgeInsets.fromLTRB(0, t.space24, 0, t.space16),
     );
   }

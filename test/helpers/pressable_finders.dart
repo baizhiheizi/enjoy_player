@@ -15,7 +15,5 @@ BorderSide pressableFocusRingSide(WidgetTester tester, Finder of) {
         .first,
   );
   final decoration = container.foregroundDecoration! as ShapeDecoration;
-  // Shaped pressables (e.g. circular chrome) may override the default
-  // RoundedSuperellipseBorder wash, so read the side off the outline itself.
   return (decoration.shape as OutlinedBorder).side;
 }

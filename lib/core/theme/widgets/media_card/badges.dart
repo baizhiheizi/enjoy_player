@@ -215,8 +215,6 @@ class MediaCardMetaLanguage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    // Tiles are narrow: drop the parenthetical region ("English (United
-    // States)" → "English"); the full label stays in the tooltip.
     final short = label.split(RegExp(r'\s*[（(]')).first.trim();
     final text = Row(
       mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,3 @@
-// Tests for ShadowTakeStore (issue #597) through its seam: in-memory Drift,
-// a fake MicRecorder, a temp take directory, and a recording SyncEnqueueFn.
-// The interface is the test surface — no widget tree, no platform channels.
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -32,7 +29,7 @@ Uint8List buildPcm16Wav(List<int> samples, {int sampleRate = 16000}) {
   ascii(8, 'WAVE');
   ascii(12, 'fmt ');
   data.setUint32(16, 16, Endian.little);
-  data.setUint16(20, 1, Endian.little); // PCM
+  data.setUint16(20, 1, Endian.little);
   data.setUint16(22, numChannels, Endian.little);
   data.setUint32(24, sampleRate, Endian.little);
   data.setUint32(28, byteRate, Endian.little);
@@ -198,7 +195,7 @@ void main() {
         expect(row.referenceText, 'hello world');
         expect(row.referenceStart, 10000);
         expect(row.referenceDuration, 2500);
-        expect(row.duration, 100); // 1600 samples @ 16 kHz
+        expect(row.duration, 100);
         expect(row.md5, sha256.convert(bytes).toString());
         expect(row.localPath, path);
         expect(row.syncStatus, 'local');
@@ -225,7 +222,6 @@ void main() {
 
     test('throws TakeFileMissingException when the WAV is gone', () async {
       final path = await startTake();
-      // No file written — simulates the recorder yielding nothing on disk.
       await expectLater(
         store.stopAndPersist(region: _region),
         throwsA(isA<TakeFileMissingException>()),

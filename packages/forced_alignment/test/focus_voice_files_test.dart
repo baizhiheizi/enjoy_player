@@ -19,9 +19,6 @@ void main() {
   });
 
   test('nb-NO spoken reference can be built', () async {
-    // Norwegian needs both `lang/nb` and `no_dict`: eSpeak-NG names the voice
-    // `nb` but keeps the phoneme table + dictionary under the `no`
-    // macrolanguage, so there is no `nb_dict` to vendor.
     final ref = await EspeakSynthHost.synthesize(
       text: 'hei verden',
       language: 'nb-NO',

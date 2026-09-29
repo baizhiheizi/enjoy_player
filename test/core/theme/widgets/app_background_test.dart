@@ -79,7 +79,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byKey(key), findsOneWidget);
-      // No Stack is created when accentColor is null.
       expect(
         find.descendant(
           of: find.byType(PlayerAmbientBackdrop),

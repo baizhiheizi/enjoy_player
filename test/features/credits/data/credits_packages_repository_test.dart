@@ -1,7 +1,3 @@
-// Tests for `lib/features/credits/data/credits_packages_repository.dart` —
-// exercises the `parseJsonListField` + `apiCall` happy path and the
-// `CreditsFailure` / `NetworkFailure` mapping inside the `RestRepository`
-// mixin using a fake `CreditsPackagesApi` so no real network is touched.
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
@@ -80,7 +76,7 @@ void main() {
               'credits': 250000,
               'rate': {'usd': 19.99, 'credits': 250000},
             },
-            'not-a-map', // entries that aren't JSON objects are skipped.
+            'not-a-map',
           ],
         },
       );
@@ -195,7 +191,6 @@ void main() {
       expect(session.payUrl, 'https://pay.example.com/checkout');
       expect(session.package.id, 'pkg-1');
       expect(session.package.credits, 100000);
-      // Default rate injected when package map omitted one.
       expect(session.package.rate.usd, 1);
       expect(session.package.rate.credits, 100000);
     });

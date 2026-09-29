@@ -54,11 +54,6 @@ void main() {
     test(
       'play scripts never touch mute state (play-then-pause regression guard)',
       () {
-        // Chromium's autoplay gesture lock pauses an element that becomes
-        // audible without user activation. A forced muted start here is
-        // always followed by a programmatic unmute in the volume-restore
-        // path — the exact play→pause sequence. Play must preserve the
-        // current audible state; only setVolumeScript may flip audibility.
         for (final script in [
           YoutubeWebViewBridge.playScript,
           YoutubeWebViewBridge.playOrPauseScript,
@@ -89,9 +84,6 @@ void main() {
     test(
       'playOrPauseScript reports the DOM-decided direction (D9 contract)',
       () {
-        // The engine classifies toggle intent from this return value — never
-        // from stale session playing state. A dropped or renamed return
-        // silently reverts intent classification to a guess.
         expect(
           YoutubeWebViewBridge.playOrPauseScript,
           contains("return 'play';"),
@@ -108,8 +100,6 @@ void main() {
     );
 
     test('play scripts route through the page player API when available', () {
-      // Mutating the raw element behind the page's back lets YouTube's
-      // autoplay policy re-pause the video; the page player object must win.
       for (final script in [
         YoutubeWebViewBridge.playScript,
         YoutubeWebViewBridge.playOrPauseScript,
@@ -125,28 +115,17 @@ void main() {
 
   group('playWhenReadyScript', () {
     test('gates the play on data readiness with a bounded wait', () {
-      // Buffer exhaustion was the dominant immediate-pause cause (field
-      // rounds 3–5: pause ctx pstate=3, decoder input ~10× slower than
-      // realtime); an unconditional re-play just re-exhausts the buffer.
       final script = YoutubeWebViewBridge.playWhenReadyScript;
       expect(script, contains('v.readyState>=3'));
       expect(script, contains('ahead()>=1'));
       expect(script, contains('tries++>20'));
-      // Superseded by any newer transport command (stale-guard protocol).
       expect(script, contains('__enjoyYtPlayAttempt'));
-      // Routes through the page player when available.
       expect(script, contains('mp.playVideo()'));
     });
   });
 
   group('focusWindowScript', () {
     test('pins document focus and dispatches a synthetic focus event', () {
-      // The page player pauses programmatic playback while the document
-      // reports unfocused (field: every wedge pause carries ctx foc=0 with
-      // vis=visible). Parking (ADR-0066) can clear the WebView's view
-      // focus and the plugin has no requestFocus — the page signal is the
-      // only lever. A dropped patch or event silently re-opens the
-      // play-then-pause wedge.
       final script = YoutubeWebViewBridge.focusWindowScript;
       expect(script, contains('document.hasFocus=function(){return true;}'));
       expect(script, contains("window.dispatchEvent(new Event('focus'))"));
@@ -161,8 +140,6 @@ void main() {
     });
 
     test('pause bumps the play-attempt counter (stale rejection guard)', () {
-      // A pause must invalidate any in-flight play attempt's rejection
-      // callback, or a late play error could surface after the pause won.
       expect(
         YoutubeWebViewBridge.pauseScript,
         contains('__enjoyYtPlayAttempt'),
@@ -180,7 +157,6 @@ void main() {
       final script = YoutubeWebViewBridge.setVolumeScript(1.0);
       expect(script, contains('mp.unMute'));
       expect(script, contains('mp.setVolume(Math.round(vol*100))'));
-      // Element mutation remains only as the no-API fallback.
       expect(script, contains('v.muted=(vol<=0.001)'));
     });
 
@@ -198,8 +174,6 @@ void main() {
     });
 
     test('exits without mutation when element state already matches', () {
-      // Redundant unMutes are pause triggers under the autoplay gesture
-      // lock; the script must early-return on a no-op request.
       final script = YoutubeWebViewBridge.setVolumeScript(1.0);
       expect(script, contains('stateMatches'));
       expect(script, contains('if(stateMatches) return;'));

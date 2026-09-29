@@ -116,11 +116,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     echoEndMs: (widget.endSec * 1000).round(),
   );
 
-  // One store per panel: the store owns a microphone recorder and an `_active`
-  // flag, and several panels can be mounted at once (transcript echo cards are
-  // list items). The application layer supplies the wiring
-  // (`shadowTakeStoreFactoryProvider`); the panel keeps ownership so it can
-  // dispose the recorder with itself.
   ShadowTakeStore get _takeStore =>
       _takeStoreInstance ??= ref.read(shadowTakeStoreFactoryProvider)();
 
@@ -288,8 +283,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
         AppNotice.warning(context, l10n.shadowRecordingSilentWarning);
       }
       setState(() => _selectedRecordingId = outcome.row.id);
-      // Take persisted — a completed practice session (spec 046 catalog).
-      // `Recordings.duration` is milliseconds.
       ref
           .read(analyticsProvider)
           .capture(
@@ -308,8 +301,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
     _setRecordingActiveOnBus(true);
     _recordingPending = true;
 
-    // Refresh so a USB mic plugged in since app start is considered by the
-    // auto-pick heuristic (selection is then read from the provider state).
     await ref.read(recordingInputDeviceCtrlProvider.notifier).refresh();
     final deviceState = ref.read(recordingInputDeviceCtrlProvider).valueOrNull;
     final selectedDevice = deviceState?.selectedDevice;
@@ -380,7 +371,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
   }
 
   Future<void> _deleteRecording(RecordingRow r) async {
-    // Stop preview playback of this take before its file is removed.
     final preview = ref.read(recordingPreviewPlayerProvider);
     final lp = r.localPath;
     if (lp != null && lp.isNotEmpty) {
@@ -505,8 +495,6 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel>
           echoRegionRecordingsProvider(_regionQuery),
         );
 
-        // Type is inferred from [recordings]; naming `List<RecordingRow>` here
-        // would drag `app_database.dart` back into presentation.
         return StreamBuilder(
           stream: recordings,
           builder: (context, recSnap) {

@@ -1,7 +1,3 @@
-// Tests for `lib/features/player/presentation/widgets/app_sidebar.dart`.
-//
-// Renders the primary navigation sidebar with a fake in-memory Drift DB and
-// GoRouter so that providers and navigation-dependent logic resolve cleanly.
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -98,11 +94,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Three nav pills (Home, Discover, Library) rendered.
     expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
     expect(findChromeIcon(EnjoyChromeGlyph.compass), findsOneWidget);
     expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
-    // Search field is present.
     expect(find.byType(TextField), findsOneWidget);
   });
 
@@ -135,11 +129,9 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'foo');
     await tester.pump();
 
-    // Commit the search so the debounce Timer cancels before teardown.
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
 
-    // The TextField's local controller should now reflect the typed text.
     final textField = tester.widget<TextField>(find.byType(TextField).first);
     expect(textField.controller?.text, 'foo');
   });
@@ -154,7 +146,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // The widget mounts but renders shrink — no card content appears.
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     expect(find.text(l10n.homeContinuePracticing), findsNothing);
   });

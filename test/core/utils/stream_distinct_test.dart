@@ -24,9 +24,6 @@ void main() {
     });
 
     test('uses caller-provided equality (structural)', () async {
-      // Two logically-equal list-of-ints; identity differs because each `[]`
-      // literal allocates a new instance. The default `==` on `List` would
-      // see them as different — the extension's `equals` callback decides.
       final source = Stream<List<int>>.fromIterable([
         const [1, 2, 3],
         const [1, 2, 3],
@@ -47,8 +44,6 @@ void main() {
     });
 
     test('keeps dedupe state per subscriber', () async {
-      // Two independent subscribers on the same source stream must each see
-      // every emission — dedupe state is not shared.
       final controller = StreamController<int>.broadcast();
       final aFut = controller.stream.distinctBy((p, c) => p == c).toList();
       final bFut = controller.stream.distinctBy((p, c) => p == c).toList();
@@ -66,10 +61,6 @@ void main() {
     test(
       'the same returned stream can be listened to more than once',
       () async {
-        // Providers cache one deduped stream per key and hand it to every
-        // widget that mounts (e.g. a StreamBuilder remounted when its list item
-        // is rebuilt). A second listen must not throw "Stream has already been
-        // listened to"; each listener gets its own dedupe state.
         final controller = StreamController<int>.broadcast();
         final shared = controller.stream.distinctBy((p, c) => p == c);
 

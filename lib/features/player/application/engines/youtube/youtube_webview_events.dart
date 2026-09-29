@@ -46,8 +46,6 @@ class YoutubeWebViewEvents {
     final event = args[0] as String;
     switch (event) {
       case YoutubeVideoEventName.play:
-        // Optimistic request only — do not touch pause streak (DOM may still
-        // pause before `playing`). Transport waits for authoritative `playing`.
         _logEvents.fine('youtube video play requested vid=${session.videoId}');
         break;
       case YoutubeVideoEventName.playing:
@@ -60,10 +58,6 @@ class YoutubeWebViewEvents {
         _logEvents.fine('youtube video playing vid=${session.videoId}');
         break;
       case YoutubeVideoEventName.pause:
-        // Do NOT reset the pause streak — a DOM pause while Dart still thinks
-        // playing must accumulate toward poll confirmation. Resetting here
-        // previously extended the stale-`playing` window and made the next
-        // transport toggle issue `pause()` instead of `play()`.
         audibility.onPause();
         final context = args.length > 1 ? '${args[1]}' : '';
         _logEvents.fine(
@@ -79,7 +73,6 @@ class YoutubeWebViewEvents {
           'youtube play rejected vid=${session.videoId} reason=$reason '
           'explicitPlay=${session.explicitPlayAttempted}',
         );
-        // Keep poll running so a later user retry can still reconcile state.
         startPolling();
         session.scheduleRecoveryHint();
         break;
@@ -114,9 +107,6 @@ class YoutubeWebViewEvents {
         session.noteUserPlayUnresolved();
         break;
       default:
-        // A name the Dart side does not switch over cannot reach here without
-        // failing youtube_js_protocol_contract_test first — log so a stray
-        // name surfaces in diagnostics instead of vanishing.
         _logEvents.warning('youtube unknown video event name=$event');
         break;
     }

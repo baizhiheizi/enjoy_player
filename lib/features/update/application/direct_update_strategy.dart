@@ -122,8 +122,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
     }
 
     final expected = normalizeSha256Hex(asset.sha256);
-    // Fresh instance per attempt — ota_update caches the first stream on the
-    // Dart object and would otherwise reuse a closed/finished stream on retry.
     final ota = _otaUpdateFactory();
     _activeOta = ota;
 
@@ -141,14 +139,11 @@ class DirectUpdateStrategy implements UpdateStrategy {
         final mapped = mapOtaEvent(event);
         if (mapped == null) continue;
 
-        // INSTALLING is emitted after optional checksum verification and just
-        // before the system installer intent — surface both stages.
         if (mapped.phase == UpdateInstallPhase.openingInstaller) {
           if (expected != null) {
             yield const UpdateInstallProgress.verifying();
           }
           yield mapped;
-          // Default install path closes the plugin stream after INSTALLING.
           yield const UpdateInstallProgress.completed();
           terminalEmitted = true;
           break;
@@ -161,7 +156,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
         }
       }
       if (!terminalEmitted) {
-        // Stream ended without an explicit terminal; treat as handoff success.
         yield const UpdateInstallProgress.completed();
       }
     } on TimeoutException catch (e, st) {
@@ -199,8 +193,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
         return UpdateInstallProgress.downloading(percent);
       case OtaStatus.INSTALLING:
         _log.info('APK install starting');
-        // Plugin emits INSTALLING after checksum (when provided) and just
-        // before the system installer intent.
         return const UpdateInstallProgress.openingInstaller();
       case OtaStatus.INSTALLATION_DONE:
         return const UpdateInstallProgress.completed();
@@ -248,7 +240,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
     if (raw == null || raw.isEmpty) return 0;
     final value = double.tryParse(raw);
     if (value == null) return 0;
-    // Plugin reports 0–100 integers as strings.
     final fraction = value > 1.0 ? value / 100.0 : value;
     if (fraction.isNaN || fraction.isInfinite) return 0;
     return fraction.clamp(0.0, 1.0);
@@ -270,7 +261,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
     final preferred = <String>[];
     final normalized = abi?.trim().toLowerCase();
     if (normalized != null && normalized.isNotEmpty) {
-      // Device ABI from ota_update, e.g. arm64-v8a / armeabi-v7a / x86_64.
       preferred.addAll(_keysForAbi(normalized));
     }
     preferred.addAll(const [
@@ -294,7 +284,6 @@ class DirectUpdateStrategy implements UpdateStrategy {
   }
 
   static List<String> _keysForAbi(String abi) {
-    // Match keys emitted by generate_update_feeds / release_android.sh.
     if (abi.contains('arm64') || abi == 'aarch64') {
       return const ['android_arm64_v8a', 'android_arm64', 'android-arm64-v8a'];
     }

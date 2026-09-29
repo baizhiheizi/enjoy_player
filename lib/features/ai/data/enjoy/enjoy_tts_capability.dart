@@ -43,9 +43,6 @@ final class EnjoyTtsCapability implements TtsCapability {
       );
     }
 
-    // The worker-side cost signal for TTS is the character count of the
-    // text to synthesize (mirrors the web `@enjoy/ai` `textLength` field,
-    // and the `azureTokenBodySchema` Zod validator on the worker).
     final textLength = text.length;
 
     log.info(

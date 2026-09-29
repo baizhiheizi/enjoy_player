@@ -97,10 +97,6 @@ class CompletionLoop {
 
         final decision = decideOnMediaEnd(repeatMode: _repeatMode());
         _log.fine('completion fired for $mediaId; decision=$decision');
-        // A replay that throws (engine seek/play failing at end-of-media) must
-        // not escape [unawaited] — it would surface as an unhandled async
-        // error and the `finally` would drop the loop either way, killing
-        // repeat/segment-loop for the rest of the stint. Log and stop instead.
         try {
           switch (decision) {
             case StopAtEnd():
@@ -166,8 +162,6 @@ class CompletionLoop {
     try {
       return await completer.future;
     } finally {
-      // Only clear if this iteration still owns the slot — a fresh loop may
-      // have armed a new cancel completer while this one drained.
       if (identical(_completionCancel, cancel)) _completionCancel = null;
       await sub.cancel();
     }

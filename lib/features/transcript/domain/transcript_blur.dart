@@ -60,9 +60,6 @@ String cueIdFor(TranscriptLine line) {
   if (plain.isEmpty) {
     return '__invalid__:$start:$end';
   }
-  // Short FNV-1a 32-bit hash of the trimmed plain text. Avoids pulling
-  // in `crypto` for a non-cryptographic identity. Inline keeps the
-  // helper allocation-free for the common case (no `Iterable` build).
   var hash = 0x811c9dc5;
   for (final code in plain.codeUnits) {
     hash ^= code;

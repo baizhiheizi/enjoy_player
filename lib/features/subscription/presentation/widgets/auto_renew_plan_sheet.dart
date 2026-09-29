@@ -141,7 +141,6 @@ class _UnifiedPurchaseSheetBodyState
       );
     } on AppFailure catch (e) {
       if (!mounted) return;
-      // Credits rejections route through the shared friendly builder (045).
       final msg = e is CreditsFailure
           ? creditsFailureMessage(e, l10n)
           : e.message.isNotEmpty
@@ -210,11 +209,6 @@ class _UnifiedPurchaseSheetBodyState
         ? l10n.subscriptionTierLiteName
         : l10n.subscriptionTierProName;
 
-    // Resolve the selected plan from the loaded plans list. When the provider
-    // is still loading, errored, or returned an empty list, the bottom panel
-    // stays hidden. When plans loaded but no row matches the chosen
-    // tier/interval, [selectedPlan] is null and the CTA is shown disabled —
-    // never a hardcoded fallback price.
     final selectedPlan = plansAsync.maybeWhen(
       data: (plans) => plans.isEmpty
           ? null
@@ -234,10 +228,6 @@ class _UnifiedPurchaseSheetBodyState
       data: (plans) => _prepaidTotal(plans),
       orElse: () => null,
     );
-
-    // The path defaults to auto-renew; if an active auto-renew already exists
-    // the CTA is disabled and a warning explains why — the user can still
-    // switch to the prepaid path to top up their period.
 
     return SafeArea(
       child: ConstrainedBox(

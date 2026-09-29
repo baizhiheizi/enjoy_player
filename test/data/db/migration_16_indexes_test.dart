@@ -28,9 +28,6 @@ void main() {
           .get();
       final names = indexes.map((r) => r.read<String>('name')).toSet();
 
-      // Migration 16 indexes (issue #467) — declared as @TableIndex on the
-      // table classes so createAll() creates them on fresh databases, and
-      // also in migration step 16 for upgrades.
       expect(
         names,
         containsAll([

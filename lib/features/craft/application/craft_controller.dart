@@ -62,10 +62,6 @@ class CraftController extends Notifier<CraftJobState> {
   @override
   CraftJobState build() {
     _prefsHydrationMutated = false;
-    // Seed the language pair synchronously from the learner's profile
-    // settings so the Express idle screen never renders '—'. The router
-    // gates on prefs having data, so valueOrNull is resolved in practice;
-    // 'en' is the cold-start fallback.
     final prefs = ref.read(appPreferencesCtrlProvider).valueOrNull;
     final native = canonicalMediaLanguageTag(
       prefs?.effectiveNativeLanguage ?? 'en',
@@ -100,12 +96,9 @@ class CraftController extends Notifier<CraftJobState> {
       screenMode: prefs.screenMode,
       style: prefs.styleFor(prefs.screenMode),
       customPrompt: prefs.customPrompt,
-      // null (invalid / absent) keeps the current voice in copyWith.
       selectedVoice: rememberedValid ? remembered : null,
     );
   }
-
-  // === Translate tool actions ===
 
   void setSourceText(String text) {
     state = state.copyWith(sourceText: text, clearFailure: true);
@@ -187,7 +180,6 @@ class CraftController extends Notifier<CraftJobState> {
     final src = state.sourceLanguage;
     if (src == null || src.isEmpty) return;
 
-    // Same-language guard.
     if (_sameBaseLanguage(src, state.targetLanguage)) {
       state = state.copyWith(failure: const CraftSameLanguageFailure());
       return;
@@ -222,14 +214,11 @@ class CraftController extends Notifier<CraftJobState> {
     }
   }
 
-  // === Synthesize tool actions ===
-
   void setSynthText(String text) {
     state = state.copyWith(synthText: text, clearFailure: true);
   }
 
   void setSynthLanguage(String lang) {
-    // Auto-pick default voice for the new language if current voice doesn't match.
     _prefsHydrationMutated = true;
     state = state.copyWith(
       synthLanguage: lang,
@@ -262,7 +251,6 @@ class CraftController extends Notifier<CraftJobState> {
     final normalized = normalizeCraftText(state.synthText);
     if (normalized.length < craftMinTextLength) return;
 
-    // Check sign-in.
     final auth = ref.read(authCtrlProvider).valueOrNull;
     if (auth is! AuthSignedIn) {
       state = state.copyWith(failure: const CraftSignInRequiredFailure());
@@ -294,8 +282,6 @@ class CraftController extends Notifier<CraftJobState> {
     }
   }
 
-  // === Save action ===
-
   Future<CraftSaveResult?> saveToLibrary() async {
     if (state.previewAudioBytes == null) return null;
 
@@ -313,15 +299,12 @@ class CraftController extends Notifier<CraftJobState> {
           ? normalized.substring(0, craftMaxTextLength)
           : normalized;
 
-      // Solid word timings → timed AI transcript. Otherwise blank (null):
-      // no fabricated duration estimates; learner generates via STT in player.
       final timelineJson030 = buildCraftPrimaryTimelineJson(
         state.previewWordBoundaries,
         language: state.synthLanguage,
       );
       final wroteSolid = timelineJson030 != null;
 
-      // Determine if this is a translate-then-synthesize or direct synthesize.
       final hasSourceLang =
           state.sourceLanguage != null &&
           state.sourceLanguage!.isNotEmpty &&
@@ -330,17 +313,12 @@ class CraftController extends Notifier<CraftJobState> {
       final sourceFlag = state.screenMode == CraftScreenMode.express
           ? 'craft-express'
           : (hasSourceLang ? 'craft-translate' : 'craft-direct');
-      // Express stores the original native transcript as sourceText.
       final sourceTextForImport = state.screenMode == CraftScreenMode.express
           ? (state.rawTranscript ?? state.synthText)
           : state.synthText;
 
       final repo = ref.read(craftLibraryRepositoryProvider);
 
-      // Editing an existing Craft item (from Craft history) — update it in
-      // place instead of creating a new library entry. Skip dedupe: the
-      // user is intentionally re-saving the same item, possibly with
-      // identical text.
       final editingId = state.editingMediaId;
       if (editingId != null) {
         final timelineJson = await _enrichTimeline(timelineJson030);
@@ -362,7 +340,6 @@ class CraftController extends Notifier<CraftJobState> {
         );
       }
 
-      // Check dedupe before writing.
       final existingId = await repo.findExistingCrafted(
         learningLanguage: state.synthLanguage,
         normalizedText: truncated,
@@ -393,9 +370,6 @@ class CraftController extends Notifier<CraftJobState> {
       );
 
       state = state.copyWith(isSaving: false, resultMediaId: mediaId);
-      // A new crafted item landed in the library (spec 046 catalog). The
-      // app's source flags map onto the catalog `mode` vocabulary; edits and
-      // dedupe hits are not creations and are not counted.
       ref
           .read(analyticsProvider)
           .capture(
@@ -437,8 +411,6 @@ class CraftController extends Notifier<CraftJobState> {
       clearFailure: true,
     );
   }
-
-  // === Craft history edit ===
 
   /// Loads an existing Crafted item for editing and prefills the working
   /// state so [saveToLibrary] updates it in place instead of creating a
@@ -496,8 +468,6 @@ class CraftController extends Notifier<CraftJobState> {
     );
     return true;
   }
-
-  // === Express mode actions ===
 
   /// Switch between Express and Advanced screen layouts.
   /// Resets all working state so each mode starts fresh, restores the
@@ -561,7 +531,6 @@ class CraftController extends Notifier<CraftJobState> {
       clearFailure: true,
     );
     if (normalized.isEmpty) return;
-    // Run rewrite immediately.
     await _rewriteTranscript(normalized);
   }
 
@@ -595,7 +564,6 @@ class CraftController extends Notifier<CraftJobState> {
       return;
     }
 
-    // Empty / too-short transcript guard.
     if (transcript.trim().length < craftMinTextLength) {
       state = state.copyWith(
         isTranscribing: false,
@@ -693,7 +661,7 @@ class CraftController extends Notifier<CraftJobState> {
   /// written) so callers can show hints before the reset clears preview.
   Future<CraftSaveResult?> saveAndCaptureNext() async {
     final result = await saveToLibrary();
-    if (result == null) return null; // failure already surfaced
+    if (result == null) return null;
     resetForNextCapture();
     return result;
   }
@@ -723,8 +691,6 @@ class CraftController extends Notifier<CraftJobState> {
       synthText: '',
     );
   }
-
-  // === Helpers ===
 
   /// Keep [current] when it belongs to [language]; otherwise fall back to
   /// the remembered voice for that language, then the catalog default.

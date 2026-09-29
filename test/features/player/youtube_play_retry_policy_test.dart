@@ -10,9 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// beyond the timing constants the joint invariant is checked against.
 void main() {
   group('joint timing invariant', () {
-    // The three-way constraint that previously spanned four files with no
-    // owner. If any constant changes, this fails before the play-then-pause
-    // bug ships.
     test('a pause can be confirmed inside the immediate window, and the budget '
         'outlives that window', () {
       final confirmWindow =
@@ -47,8 +44,6 @@ void main() {
     });
 
     test('a default-constructed policy carries the asserted constants', () {
-      // Guards the wiring, not just the constants: the instance fields must
-      // not silently drift from what the joint invariant above asserts.
       final policy = YouTubePlayRetryPolicy();
       expect(
         policy.immediatePauseWindow,
@@ -129,15 +124,13 @@ void main() {
     test(
       'escalates when the dying episode was an auto retry, under the cap',
       () {
-        // Field wedge (echo mode, Android): the page re-paused the retried
-        // play too; the command budget is spent but the episode was ours.
         final policy = YouTubePlayRetryPolicy()
           ..beginUserPlay()
-          ..notePlayingTransition(true) // the user episode
-          ..notePlayingTransition(false) // it dies
-          ..consumeBudget() // the poll loop spent the budget on it
-          ..noteAutoPlayRetry() // retry #1
-          ..notePlayingTransition(true); // the retried episode
+          ..notePlayingTransition(true)
+          ..notePlayingTransition(false)
+          ..consumeBudget()
+          ..noteAutoPlayRetry()
+          ..notePlayingTransition(true);
 
         expect(policy.userPlayInFlight, isFalse);
         expect(policy.lastPlayingFromAutoRetry, isTrue);
@@ -156,14 +149,14 @@ void main() {
     test('stops escalating at the auto-retry cap', () {
       final policy = YouTubePlayRetryPolicy()
         ..beginUserPlay()
-        ..notePlayingTransition(true) // the user episode
+        ..notePlayingTransition(true)
         ..notePlayingTransition(false)
         ..consumeBudget()
-        ..noteAutoPlayRetry() // retry #1
-        ..notePlayingTransition(true) // the retried episode
+        ..noteAutoPlayRetry()
+        ..notePlayingTransition(true)
         ..notePlayingTransition(false)
         ..consumeBudget()
-        ..noteAutoPlayRetry() // retry #2 — at the cap
+        ..noteAutoPlayRetry()
         ..notePlayingTransition(true);
 
       expect(policy.autoRetriesIssued, 2);
@@ -179,7 +172,6 @@ void main() {
     });
 
     test('no escalation when the dying episode was not an auto retry', () {
-      // e.g. a page-UI resume the app never commanded: no coverage.
       final policy = YouTubePlayRetryPolicy()
         ..beginUserPlay()
         ..notePlayingTransition(true)
@@ -288,9 +280,6 @@ void main() {
 
   group('clocks', () {
     test('the budget retires once playback outlives the attempt window', () {
-      // The fulfilment condition from the field doc, made literal: without
-      // the expiry a budget armed minutes ago could be spent by a pause
-      // after a page-UI resume the app never commanded.
       final clock = FakeMonotonicClock();
       final policy = YouTubePlayRetryPolicy(
         clock: clock,
@@ -308,8 +297,6 @@ void main() {
     });
 
     test('a later playing episode does not refresh the fulfilment clock', () {
-      // A page-UI resume the app never commanded must not revive a stale
-      // budget: the clock is keyed to the episode that RESOLVED the attempt.
       final clock = FakeMonotonicClock();
       final policy =
           YouTubePlayRetryPolicy(
@@ -320,8 +307,8 @@ void main() {
             ..notePlayingTransition(true);
 
       clock.advance(const Duration(seconds: 1));
-      policy.notePlayingTransition(false); // pause confirmed
-      policy.notePlayingTransition(true); // page-UI resume
+      policy.notePlayingTransition(false);
+      policy.notePlayingTransition(true);
 
       clock.advance(const Duration(seconds: 1));
       expect(
@@ -332,8 +319,6 @@ void main() {
     });
 
     test('an attempt that never reached playing does not expire', () {
-      // No resolving episode → nothing to measure the window against. The
-      // next consuming transition (or the next open) retires it.
       final clock = FakeMonotonicClock();
       final policy = YouTubePlayRetryPolicy(clock: clock)..beginUserPlay();
 
@@ -379,10 +364,6 @@ void main() {
     });
 
     test('one injected clock drives every budget in lockstep', () {
-      // The reason the protocol stopped reading DateTime.now(): an NTP step
-      // or a manual clock change used to jump the budgets independently (a
-      // two-second window could expire instantly or never). One monotonic
-      // source means one advance retires them together.
       final clock = FakeMonotonicClock();
       final policy =
           YouTubePlayRetryPolicy(
@@ -410,39 +391,30 @@ void main() {
         ..notePlayingTransition(true);
       expect(policy.lastPlayingFromAutoRetry, isFalse);
 
-      policy.noteAutoPlayRetry(); // retry #1 issued → count + attribution
+      policy.noteAutoPlayRetry();
       expect(policy.autoRetriesIssued, 1);
-      policy.notePlayingTransition(
-        false,
-      ); // episode ends before the retry plays
-      policy.notePlayingTransition(true); // the retry's episode
+      policy.notePlayingTransition(false);
+      policy.notePlayingTransition(true);
       expect(policy.lastPlayingFromAutoRetry, isTrue);
 
-      // A deliberate pause drops the attribution — no further escalation.
       policy.noteUserPauseCommand();
       expect(policy.lastPlayingFromAutoRetry, isFalse);
 
-      // A fresh play command resets the chain entirely.
       policy.beginUserPlay();
       expect(policy.autoRetriesIssued, 0);
       expect(policy.lastPlayingFromAutoRetry, isFalse);
     });
 
     test('poll-tick re-confirmations do not erase the attribution', () {
-      // The poll loop re-emits playing on EVERY tick while playing; per-call
-      // attribution consumption let the first tick after the retry's playing
-      // event erase it, so the escalation arm never fired for the second
-      // wedge pause (field round 5). Attribution must latch per episode
-      // (false→true transition) instead.
       final policy = YouTubePlayRetryPolicy()
         ..beginUserPlay()
-        ..notePlayingTransition(true) // user episode
-        ..noteAutoPlayRetry(); // retry #1 issued
+        ..notePlayingTransition(true)
+        ..noteAutoPlayRetry();
 
-      policy.notePlayingTransition(false); // episode ends
-      policy.notePlayingTransition(true); // retry episode begins (transition)
-      policy.notePlayingTransition(true); // re-confirmation — no-op
-      policy.notePlayingTransition(true); // …and again
+      policy.notePlayingTransition(false);
+      policy.notePlayingTransition(true);
+      policy.notePlayingTransition(true);
+      policy.notePlayingTransition(true);
       expect(
         policy.lastPlayingFromAutoRetry,
         isTrue,

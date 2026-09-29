@@ -35,7 +35,6 @@ class AzureVoice {
 ///
 /// Filtered at runtime by [voicesForLanguage].
 const List<AzureVoice> kAzureVoices = [
-  // English (US)
   AzureVoice(
     id: 'en-US-JennyNeural',
     label: 'Jenny (US, Female)',
@@ -64,7 +63,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'en-US',
     baseLang: 'en',
   ),
-  // English (UK)
   AzureVoice(
     id: 'en-GB-SoniaNeural',
     label: 'Sonia (UK, Female)',
@@ -79,7 +77,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'en-GB',
     baseLang: 'en',
   ),
-  // Chinese (Simplified)
   AzureVoice(
     id: 'zh-CN-XiaoxiaoNeural',
     label: 'Xiaoxiao (CN, Female)',
@@ -108,7 +105,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'zh-CN',
     baseLang: 'zh',
   ),
-  // Japanese
   AzureVoice(
     id: 'ja-JP-NanamiNeural',
     label: 'Nanami (JP, Female)',
@@ -130,7 +126,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'ja-JP',
     baseLang: 'ja',
   ),
-  // Korean
   AzureVoice(
     id: 'ko-KR-SunHiNeural',
     label: 'Sun-Hi (KR, Female)',
@@ -145,7 +140,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'ko-KR',
     baseLang: 'ko',
   ),
-  // Spanish (Spain)
   AzureVoice(
     id: 'es-ES-ElviraNeural',
     label: 'Elvira (ES, Female)',
@@ -160,7 +154,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'es-ES',
     baseLang: 'es',
   ),
-  // Spanish (Mexico)
   AzureVoice(
     id: 'es-MX-DaliaNeural',
     label: 'Dalia (MX, Female)',
@@ -175,7 +168,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'es-MX',
     baseLang: 'es',
   ),
-  // French (France)
   AzureVoice(
     id: 'fr-FR-DeniseNeural',
     label: 'Denise (FR, Female)',
@@ -190,7 +182,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'fr-FR',
     baseLang: 'fr',
   ),
-  // German
   AzureVoice(
     id: 'de-DE-KatjaNeural',
     label: 'Katja (DE, Female)',
@@ -205,7 +196,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'de-DE',
     baseLang: 'de',
   ),
-  // Italian
   AzureVoice(
     id: 'it-IT-ElsaNeural',
     label: 'Elsa (IT, Female)',
@@ -220,7 +210,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'it-IT',
     baseLang: 'it',
   ),
-  // Portuguese (Brazil)
   AzureVoice(
     id: 'pt-BR-FranciscaNeural',
     label: 'Francisca (BR, Female)',
@@ -235,7 +224,6 @@ const List<AzureVoice> kAzureVoices = [
     locale: 'pt-BR',
     baseLang: 'pt',
   ),
-  // Russian
   AzureVoice(
     id: 'ru-RU-SvetlanaNeural',
     label: 'Svetlana (RU, Female)',

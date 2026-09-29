@@ -40,7 +40,6 @@ void main() {
     final shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
     late final GoRouter router;
 
-    // Review Focus handles study shortcuts only — not Escape (global modal.close).
     router = GoRouter(
       initialLocation: '/profile',
       routes: [
@@ -59,7 +58,6 @@ void main() {
                 autofocus: true,
                 onKeyEvent: (node, event) {
                   if (event is! KeyDownEvent) return KeyEventResult.ignored;
-                  // Intentionally ignore Escape — same as production session.
                   if (event.logicalKey == LogicalKeyboardKey.space) {
                     return KeyEventResult.handled;
                   }
@@ -82,7 +80,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(router.state.uri.path, '/vocabulary/review');
 
-    // Global hotkey path (HardwareKeyboard) — single pop.
     _dispatchGlobalEscape(router);
     await tester.pumpAndSettle();
 
@@ -90,7 +87,6 @@ void main() {
     expect(find.text('vocabulary'), findsOneWidget);
     expect(find.text('profile'), findsNothing);
 
-    // Focus must not also pop when Escape is delivered to the focus tree.
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(router.state.uri.path, '/vocabulary');

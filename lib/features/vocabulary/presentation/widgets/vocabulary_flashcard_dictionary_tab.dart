@@ -41,7 +41,6 @@ class _FlashcardDictionaryTabState
   @override
   void didUpdateWidget(covariant FlashcardDictionaryTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // New cache payload (or cleared after navigation) may need a fresh load.
     if (oldWidget.explanation != widget.explanation) {
       _autoloadRequested = false;
     }
@@ -83,7 +82,6 @@ class _FlashcardDictionaryTabState
       );
     }
 
-    // Kick off load once auth is ready and cache is empty.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeAutoload(signedIn: signedIn);
     });
@@ -92,8 +90,6 @@ class _FlashcardDictionaryTabState
       return _DictionaryLoading(label: l10n.vocabularyFetching);
     }
 
-    // Credits rejection gets its own truthful copy instead of the
-    // network-flavored fallback (spec 045), plus the one-tap recovery CTA.
     final isCredits = widget.error == 'credits';
     final errorMessage = isCredits
         ? l10n.subscriptionCreditsLimitMessageWithPackages

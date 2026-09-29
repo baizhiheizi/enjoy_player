@@ -21,15 +21,12 @@ void main() {
   tearDown(() {
     try {
       ShowcaseView.get().unregister();
-    } on Object {
-      // Already unregistered.
-    }
+    } on Object {} // ignore: empty_catches
   });
 
   testWidgets(
     'Craft-like local empty state exposes AI transcript generate CTA',
     (tester) async {
-      // Mirrors TranscriptPanel for non-YouTube media (including Craft).
       const showLocalActions = true;
 
       await tester.pumpWidget(

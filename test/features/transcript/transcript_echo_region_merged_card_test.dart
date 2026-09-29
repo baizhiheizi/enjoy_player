@@ -169,8 +169,6 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      // Mobile density was applied: the divider thickness on the
-      // EchoRegionControlsBar is 0.5 (vs 1.0 desktop).
       final dividers = tester.widgetList<Divider>(find.byType(Divider));
       expect(dividers, isNotEmpty);
       expect(dividers.first.thickness, 0.5);

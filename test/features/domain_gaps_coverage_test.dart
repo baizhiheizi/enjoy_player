@@ -294,7 +294,6 @@ void main() {
 
   group('CraftFailure subclasses', () {
     test('CraftOfflineFailure has retry action', () {
-      // Non-const to ensure runtime constructor coverage.
       final failure = const CraftOfflineFailure();
       expect(failure.action, CraftFailureAction.retry);
     });
@@ -310,7 +309,6 @@ void main() {
 
   group('TtsWordBoundary', () {
     test('stores fields', () {
-      // Non-const to cover the constructor at runtime.
       final wb = const TtsWordBoundary(
         text: 'hello',
         audioOffsetMs: 100,

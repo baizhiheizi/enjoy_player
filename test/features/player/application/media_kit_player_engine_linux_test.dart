@@ -60,31 +60,31 @@ class _StubPlayer implements mk.Player {
 
   @override
   final mk.PlayerStream stream = const mk.PlayerStream(
-    Stream.empty(), // playlist
-    Stream.empty(), // playing
-    Stream.empty(), // completed
-    Stream.empty(), // position
-    Stream.empty(), // duration
-    Stream.empty(), // volume
-    Stream.empty(), // rate
-    Stream.empty(), // pitch
-    Stream.empty(), // buffering
-    Stream.empty(), // bufferingPercentage
-    Stream.empty(), // buffer
-    Stream.empty(), // playlistMode
-    Stream.empty(), // shuffle
-    Stream.empty(), // audioParams
-    Stream.empty(), // videoParams
-    Stream.empty(), // audioBitrate
-    Stream.empty(), // audioDevice
-    Stream.empty(), // audioDevices
-    Stream.empty(), // track
-    Stream.empty(), // tracks
-    Stream.empty(), // width
-    Stream.empty(), // height
-    Stream.empty(), // subtitle
-    Stream.empty(), // log
-    Stream.empty(), // error
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
+    Stream.empty(),
   );
 
   @override
@@ -117,9 +117,6 @@ void main() {
 
     test('nativeBackendAllowedListenable fires when prepareNativeBackend arms '
         'the gate (issue #751)', () {
-      // The mounted stage listens to this instead of a hand-bumped
-      // playerEngineRevProvider: the rev now signals identity changes only,
-      // so arming the backend must notify through the engine itself.
       final engine = MediaKitPlayerEngine();
       var fired = 0;
       engine.nativeBackendAllowedListenable.addListener(() => fired++);
@@ -149,18 +146,12 @@ void main() {
           ),
         );
 
-        // Not allowed yet: a bare placeholder — the video controller is not
-        // even read, hence no [Video] and no mpv allocation.
         expect(engine.nativeBackendAllowed, isFalse);
         await pumpStage();
         expect(find.byType(Video), findsNothing);
         expect(engine.videoControllerReads, 0);
         expect(tester.takeException(), isNull);
 
-        // Engine entry points other than [prepareNativeBackend] must not
-        // approve the gate. The old `_player` getter did exactly that (it set
-        // `_nativeBackendAllowed = true` while claiming to check it), so the
-        // gate is stage-only and nothing else can flip it.
         engine.warmVideoSurface();
         expect(engine.nativeBackendAllowed, isFalse);
         await pumpStage();
@@ -168,14 +159,6 @@ void main() {
         expect(engine.videoControllerReads, 0);
         expect(tester.takeException(), isNull);
 
-        // Arming the gate while the placeholder is already mounted must
-        // rebuild through the stage's own listener and mount [Video] — the
-        // signal that used to ride a second hand-bumped playerEngineRev
-        // (issue #751). Without this path a YouTube→MediaKit swap would show
-        // a black placeholder forever. The disallowed-phase zero-read pins
-        // above make this order-sensitive: if the stage ever read the
-        // controller before the gate check, [Video] would have mounted early
-        // and those zeros would have failed.
         engine.prepareNativeBackend();
         expect(engine.nativeBackendAllowed, isTrue);
         await tester.pump();

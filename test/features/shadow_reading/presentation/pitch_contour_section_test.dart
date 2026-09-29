@@ -1,9 +1,3 @@
-// Coverage for lib/features/shadow_reading/presentation/pitch_contour_section.dart.
-//
-// The section is a ConsumerStatefulWidget that loads reference + user pitch
-// analysis through `echoPitchAnalysisServiceProvider` and listens to
-// `shadowReadingHotkeyBusProvider` for the pitch-contour hotkey. We stub the
-// analysis pipeline so we don't need a live FFmpeg session.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
@@ -109,8 +103,6 @@ void main() {
 
       expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
       expect(find.text('Pitch contour'), findsOneWidget);
-      // Chart should NOT be present (collapsed). Tooltip/InkWell may still
-      // use CustomPaint for ink effects, so we only check the chart is absent.
       expect(find.byType(PitchContourChart), findsNothing);
     });
 
@@ -154,15 +146,10 @@ void main() {
         );
         await tester.pumpAndSettle();
         await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
-        // Pump frames to flip _expanded and start _loadReference. The
-        // FakePipeline's gate keeps the future pending, so loading state
-        // stays visible until we complete it below.
         await tester.pump();
         await tester.pump();
-        // Loading skeleton + analyzing text present while _loading=true.
         expect(find.text('Analyzing pitch…'), findsOneWidget);
 
-        // Release the gate and let analysis complete.
         pipeline.referenceGate!.complete(
           const EchoRegionAnalysisResult(
             points: [EchoRegionSeriesPoint(t: 0, ampRef: 0.5, pitchRefHz: 200)],
@@ -191,11 +178,9 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
-      // Let analysis complete.
       await tester.pumpAndSettle();
 
       expect(find.text('Analyzing pitch…'), findsNothing);
-      // Three filter chips.
       expect(find.text('Waveform'), findsOneWidget);
       expect(find.text('Reference pitch'), findsOneWidget);
       expect(find.text('Your pitch'), findsOneWidget);
@@ -217,7 +202,6 @@ void main() {
       await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
-      // Initially all chips are selected. Find the Waveform chip widget.
       FilterChip waveformChip() => tester
           .widgetList<FilterChip>(find.byType(FilterChip))
           .firstWhere(
@@ -307,12 +291,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Change media path -> didUpdateWidget resets state and re-triggers load.
       setter(() => path = '/tmp/b.wav');
       await tester.pumpAndSettle();
 
-      // No crash, panel re-renders. Internal state reset is private; the
-      // observable effect is the chart re-rendering with new path context.
       expect(find.byType(PitchContourSection), findsOneWidget);
     });
 
@@ -349,7 +330,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap header -> onToggleExpanded invoked, parent updates state.
       await tester.tap(find.byIcon(EnjoyIcons.chevronDown));
       await tester.pumpAndSettle();
 
@@ -377,7 +357,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Chart + chips render after both analyses complete.
         expect(find.byType(PitchContourSection), findsOneWidget);
       },
     );

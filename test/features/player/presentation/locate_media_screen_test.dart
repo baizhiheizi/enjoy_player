@@ -1,6 +1,3 @@
-// Tests for `lib/features/player/presentation/locate_media_screen.dart` and
-// the `_formatExpectedSize` helper (verified by inspecting the rendered Text
-// widget within the screen body).
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,7 +57,6 @@ void main() {
     final ctx = tester.element(find.byType(LocateMediaScreen));
     final l10n = AppLocalizations.of(ctx)!;
     expect(find.text(l10n.mediaLocateChooseFile), findsOneWidget);
-    // Verify title rendered (exercise audio branch).
     expect(find.text('Sample Audiobook'), findsOneWidget);
   });
 

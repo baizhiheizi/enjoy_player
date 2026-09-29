@@ -3,9 +3,6 @@ import 'package:enjoy_player/features/player/domain/transport_decisions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // ---------------------------------------------------------------------------
-  // D1 — decideSeekRouting
-  // ---------------------------------------------------------------------------
   group('decideSeekRouting', () {
     test('routes through echo when active', () {
       expect(decideSeekRouting(echoActive: true), isTrue);
@@ -16,9 +13,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // D3 — decideReplayTarget
-  // ---------------------------------------------------------------------------
   group('decideReplayTarget', () {
     test('returns echo start when echo active', () {
       final d = decideReplayTarget(
@@ -41,9 +35,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // D4 — decideProgressSeekTime
-  // ---------------------------------------------------------------------------
   group('decideProgressSeekTime', () {
     test('invalid when duration is zero', () {
       expect(decideProgressSeekTime(fraction: 0.5, durationSeconds: 0), isNull);
@@ -73,9 +64,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // D5 — decideYouTubePlayRestart
-  // ---------------------------------------------------------------------------
   group('decideYouTubePlayRestart', () {
     test('restarts when playback completed', () {
       expect(decideYouTubePlayRestart(playbackCompleted: true), isTrue);
@@ -86,9 +74,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // D6 — decidePollTransition
-  // ---------------------------------------------------------------------------
   group('decidePollTransition', () {
     final playing = true;
     final notPlaying = false;
@@ -177,9 +162,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // D7 — decideOnMediaEnd
-  // ---------------------------------------------------------------------------
   group('decideOnMediaEnd', () {
     test('RepeatMode.none stops', () {
       final d = decideOnMediaEnd(repeatMode: RepeatMode.none);
@@ -197,13 +179,6 @@ void main() {
     });
   });
 
-  // D8 (immediate-pause retry) and D9 (transport-toggle latch) moved to
-  // youtube_play_retry_policy_test.dart with the protocol they decide about
-  // (issue #665).
-
-  // ---------------------------------------------------------------------------
-  // D10 — decidePlaybackRateStep (player.slowDown / player.speedUp)
-  // ---------------------------------------------------------------------------
   group('decidePlaybackRateStep', () {
     test('slower steps down by 0.05 inside the range', () {
       final d = decidePlaybackRateStep(
@@ -260,8 +235,6 @@ void main() {
     });
 
     test('floor / ceiling still apply the rate (no further movement)', () {
-      // The pre-reducer hotkey always called setPlaybackRate with the clamped
-      // value; the decision keeps that contract via `rate`.
       final floor = decidePlaybackRateStep(
         rate: 0.26,
         direction: PlaybackRateDirection.slower,

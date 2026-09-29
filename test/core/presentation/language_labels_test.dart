@@ -16,10 +16,6 @@ void main() {
     test(
       'localized getters cover exactly the focus + native descriptor rows',
       () {
-        // The .arb seam of the descriptor table (issue #798): the map keys
-        // are DERIVED from the rows (focus ∪ native, table order), so this
-        // pins the filter — and building the map throws when a covered row
-        // lacks a case in the tag → getter dispatch.
         final expectedKeys = <String>[
           for (final row in kLanguageDescriptorRows)
             if (row.focus || row.native) row.tag,
@@ -74,10 +70,6 @@ void main() {
       );
     });
 
-    // Regression guard for the library content-language badge
-    // (local_library_tab_view / home_screen): routing the fallback through
-    // `canonicalFocusLanguageTag` would coerce Nynorsk `nn` to `en-US` and
-    // render a Norwegian item as "English".
     test('keeps Nynorsk (nn) showing its raw tag, never "English"', () {
       expect(focusLanguageLabel(l10n, 'nn'), 'nn');
       expect(focusLanguageLabel(l10n, 'nn-NO'), 'nn-NO');

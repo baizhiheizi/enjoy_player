@@ -59,9 +59,6 @@ class _MediaKitStageGateState extends State<MediaKitVideoStage> {
 
   @override
   void dispose() {
-    // removeListener is legal after the notifier is disposed (engine teardown
-    // can race the stage unmount); the swap itself unmounts the old stage via
-    // ADR-0057 re-keying before it disposes the engine.
     widget.engine.nativeBackendAllowedListenable.removeListener(_rebuild);
     super.dispose();
   }
@@ -81,9 +78,6 @@ class _MediaKitStageGateState extends State<MediaKitVideoStage> {
       return const ColoredBox(color: Colors.black);
     }
 
-    // Fill the host slot and let [Video] letterbox. An outer [ClipRect] plus a
-    // child taller than the slot makes Android's Surface/Texture stay black
-    // until a later layout (transcript splitter / rotation).
     return ColoredBox(
       color: Colors.black,
       child: _MediaKitVideoStage(
@@ -132,9 +126,6 @@ class _MediaKitVideoStageState extends State<_MediaKitVideoStage> {
   @override
   void didUpdateWidget(covariant _MediaKitVideoStage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Loading 16:9 → side-by-side chrome is a large viewport change. The first
-    // kick already ran; without another pulse the Texture stays black until
-    // the user resizes the window / splitter.
     final dw = (oldWidget.maxWidth - widget.maxWidth).abs();
     final dh = (oldWidget.maxHeight - widget.maxHeight).abs();
     if (dw > kVideoTextureKickMinViewportDelta ||

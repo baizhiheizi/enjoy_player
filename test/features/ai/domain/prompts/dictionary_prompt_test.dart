@@ -1,4 +1,3 @@
-// Coverage: lib/features/ai/domain/prompts/dictionary_prompt.dart
 import 'package:enjoy_player/features/ai/domain/prompts/dictionary_prompt.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -39,7 +38,6 @@ void main() {
         sourceLanguage: 'zh-CN',
         targetLanguage: 'en-US',
       );
-      // workerLanguageBase should extract the base 'zh' / 'en'
       expect(prompt, contains('zh'));
       expect(prompt, contains('en'));
     });

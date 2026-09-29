@@ -56,7 +56,6 @@ class UpdateCtrl extends _$UpdateCtrl {
       SettingsKeys.updateSnoozeVersion,
       release.manifest.version,
     );
-    // Keep [release] so the Settings badge remains visible while snoozed.
     state = UpdateCheckResult(
       availability: UpdateAvailability.upToDate,
       release: release,
@@ -95,7 +94,6 @@ class UpdateCtrl extends _$UpdateCtrl {
   void dismissOptionalPrompt() {
     final release = state?.release;
     if (release?.severity == UpdateSeverity.optional) {
-      // Suppress re-prompt for this result, but keep the badge.
       state = UpdateCheckResult(
         availability: UpdateAvailability.upToDate,
         release: release,

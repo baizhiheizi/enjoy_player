@@ -170,8 +170,6 @@ void main() {
           matching: find.byType(Material),
         ),
       );
-      // Transparent canvas Material drops taps on Android; transparency type
-      // keeps the InkWell hittable (regression for echo-mode assess button).
       expect(material.type, MaterialType.transparency);
       expect(material.color, Colors.transparent);
 
