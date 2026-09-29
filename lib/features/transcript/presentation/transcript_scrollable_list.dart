@@ -18,6 +18,7 @@ import 'package:enjoy_player/features/transcript/application/auto_translate_cont
 import 'package:enjoy_player/features/transcript/application/auto_translate_resolved_text.dart';
 import 'package:enjoy_player/features/transcript/application/auto_translate_line_request_policy.dart';
 import 'package:enjoy_player/features/transcript/application/echo_region_bounds.dart';
+import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_alignment.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_line_recording_counts_provider.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_lines_provider.dart';
@@ -35,6 +36,15 @@ const double kTranscriptScrollAlignment = 0.42;
 /// overshoot when the active cue is bootstrapped via raw line index (single-line
 /// tile height) rather than the actual widget height.
 const double kTranscriptScrollEstimateFactor = 0.85;
+
+/// Off-screen pre-build window for the transcript list (px above + below the
+/// viewport).
+const double kTranscriptScrollCacheExtentPx = 1400;
+
+/// Shrunk pre-build window while blur practice mode is on (issue #810 G):
+/// every cached blurred cue is a GPU saveLayer, and cached blurred text is
+/// unreadable until revealed anyway.
+const double kTranscriptBlurPracticeCacheExtentPx = 200;
 
 sealed class _TranscriptVirtualItem {
   const _TranscriptVirtualItem();
@@ -439,6 +449,7 @@ class _TranscriptScrollableListState
         autoTranslateMode.aiTranscriptId != null &&
         secondaryId == autoTranslateMode.aiTranscriptId;
     final l10n = AppLocalizations.of(context);
+    final blurPractice = ref.watch(transcriptBlurModeProvider);
     final items = _virtualItems(echo);
     final lineRecordingCounts = ref.watch(
       transcriptLineRecordingCountsProvider(widget.mediaId),
@@ -487,7 +498,11 @@ class _TranscriptScrollableListState
       child: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
         child: ListView.builder(
-          scrollCacheExtent: const ScrollCacheExtent.pixels(1400),
+          scrollCacheExtent: ScrollCacheExtent.pixels(
+            blurPractice
+                ? kTranscriptBlurPracticeCacheExtentPx
+                : kTranscriptScrollCacheExtentPx,
+          ),
           controller: _scrollController,
           padding: EdgeInsets.fromLTRB(
             density.listHorizontalPadding,
