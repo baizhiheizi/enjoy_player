@@ -7,7 +7,9 @@ Local-only diagnostic logging and export for support handoff. Phase 1 does **not
 - All builds write redacted logs to `{applicationSupport}/logs/enjoy-player.log`.
 - Rotation: ~2 MB per file, keep 3 files (`enjoy-player.log`, `.1`, `.2`).
 - Default level: **INFO** and above for all loggers.
-- Each cold start writes a session header (version, platform, distribution channel, locale, verbose flag).
+- Each cold start writes a session header (version, platform, distribution channel, locale, verbose flag). The header write runs off the startup critical path: bootstrap kicks logging setup unawaited, and records emitted while the header is still composing are buffered and flushed after it, so the header remains the **first line of the session** in the file.
+- The `diagnosticVerbose=` value in the header waits for the device-global settings read (the flag may land a moment after startup); `webViewUserData=` on Windows waits for the shared WebView2 environment to resolve.
+- Because the verbose flag can arrive after the first records, allowlisted FINE lines logged before the flag lands are written at default tier (dropped) — same as a session where the flag was off; FINE persistence starts once the flag resolves.
 
 ## Diagnostic logging toggle
 

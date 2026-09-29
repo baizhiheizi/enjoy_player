@@ -1,6 +1,7 @@
 /// Runtime diagnostic logging verbosity (allowlisted loggers only).
 library;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/data/db/app_database_provider.dart';
@@ -23,7 +24,17 @@ class DiagnosticLogConfig {
 
   static bool verboseEnabled = false;
 
-  static Future<void> loadFromDeviceGlobalSettings() async {
+  static Future<void>? _sessionLoad;
+
+  /// Reads the persisted flag from the device-global database once per
+  /// session; concurrent or repeated callers share the same future. The
+  /// session banner and any flag consumer await this future instead of
+  /// blocking startup on the database open.
+  static Future<void> loadFromDeviceGlobalSettings() {
+    return _sessionLoad ??= _readFromDeviceGlobalSettings();
+  }
+
+  static Future<void> _readFromDeviceGlobalSettings() async {
     try {
       await withDeviceGlobalAppDatabaseForBootstrap((db) async {
         verboseEnabled = await db.settingsDao.readSetting(
@@ -33,6 +44,14 @@ class DiagnosticLogConfig {
     } on Object {
       verboseEnabled = false;
     }
+  }
+
+  /// Clears the session-load cache so the next
+  /// [loadFromDeviceGlobalSettings] call reads the database again.
+  @visibleForTesting
+  static void debugResetSessionLoad() {
+    _sessionLoad = null;
+    verboseEnabled = false;
   }
 
   static void setVerboseEnabled(bool enabled) {
