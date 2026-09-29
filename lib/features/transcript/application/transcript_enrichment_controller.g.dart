@@ -73,7 +73,7 @@ final class TranscriptEnrichmentControllerProvider
   }) : super(
          retry: null,
          name: r'transcriptEnrichmentControllerProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -113,7 +113,7 @@ final class TranscriptEnrichmentControllerProvider
 }
 
 String _$transcriptEnrichmentControllerHash() =>
-    r'4b554b8e23a0c6f639509820c19bc8c6482eefe2';
+    r'b4c984e59f2441f8a5c4f21319468dc7abcb02ba';
 
 final class TranscriptEnrichmentControllerFamily extends $Family
     with
@@ -130,7 +130,7 @@ final class TranscriptEnrichmentControllerFamily extends $Family
         name: r'transcriptEnrichmentControllerProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
   TranscriptEnrichmentControllerProvider call(String mediaId) =>
