@@ -119,9 +119,8 @@ class TodaysGoalCard extends ConsumerWidget {
     final statsAsync = ref.watch(learningStatisticsProvider);
     final authAsync = ref.watch(authCtrlProvider);
 
-    final profileGoal = authAsync.maybeWhen(
+    final profileGoal = authAsync.whenOrNull(
       data: (auth) => auth is AuthSignedIn ? auth.profile.goal : null,
-      orElse: () => null,
     );
 
     return statsAsync.when(
@@ -144,7 +143,7 @@ class TodaysGoalCard extends ConsumerWidget {
                 t,
                 cs,
                 l10n,
-                stats.today.recordingDurationMs,
+                progress.recordingDurationMs,
                 progress.completedMinutes,
                 progress.goalMinutes,
                 progress.percent,
@@ -157,7 +156,7 @@ class TodaysGoalCard extends ConsumerWidget {
                 t,
                 cs,
                 l10n,
-                stats.today.recordingDurationMs,
+                progress.recordingDurationMs,
                 progress.completedMinutes,
                 progress.goalMinutes,
                 progress.percent,

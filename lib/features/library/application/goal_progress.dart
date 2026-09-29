@@ -56,29 +56,26 @@ int normalizeGoalMinutes(int? goalMinutes) {
 int goalCompletedMinutes(int recordingDurationMs) =>
     recordingDurationMs ~/ (60 * 1000);
 
-/// Percentage of the goal completed, from already-floored whole minutes.
+/// Percentage of the goal completed, from raw recording milliseconds: floors
+/// to whole minutes *first*, then converts.
 ///
 /// Rounded half away from zero and capped at 100 (over-goal practice never
-/// renders above 100%). A non-positive [goalMinutes] yields 0 defensively —
-/// callers are expected to pass [normalizeGoalMinutes] output.
-int goalPercentFromMinutes(int completedMinutes, int goalMinutes) {
-  if (goalMinutes <= 0) return 0;
-  return math.min(100, ((completedMinutes / goalMinutes) * 100).round());
-}
-
-/// Percentage used for the card's ring and label: floors raw recording
-/// milliseconds to whole minutes *first*, then converts.
+/// renders above 100%). This ordering is deliberate web parity. The web
+/// client derives its ring's SVG `stroke-dashoffset` from the same
+/// floored-minute percentage, and the figure line renders
+/// `completedMinutes / goalMinutes` — the ring, the percent figure, and the
+/// "n / goal min" line must all move together on whole-minute boundaries, so
+/// a 59,999 ms recording against a 1-minute goal shows 0%, not 100%.
 ///
-/// This ordering is deliberate web parity. The web client derives its ring's
-/// SVG `stroke-dashoffset` from the same floored-minute percentage, and the
-/// figure line renders `completedMinutes / goalMinutes` — the ring, the label,
-/// and the figure must all move together on whole-minute boundaries, so a
-/// 59,999 ms recording against a 1-minute goal shows 0%, not 100%.
-int goalPercentForLabel(int recordingDurationMs, int goalMinutes) =>
-    goalPercentFromMinutes(
-      goalCompletedMinutes(recordingDurationMs),
-      goalMinutes,
-    );
+/// [goalMinutes] must be [normalizeGoalMinutes] output — a non-positive
+/// value is a precondition violation and trips an assert in debug builds.
+int goalPercent(int recordingDurationMs, int goalMinutes) {
+  assert(goalMinutes > 0, 'goalMinutes must be normalizeGoalMinutes output');
+  return math.min(
+    100,
+    ((goalCompletedMinutes(recordingDurationMs) / goalMinutes) * 100).round(),
+  );
+}
 
 /// Encouragement band for [percentage]. Boundaries: 0 is [startNow];
 /// >0 starts [justStarted]; then 25 / 50 / 75 / 100 step up inclusively.
@@ -109,8 +106,8 @@ class GoalProgress {
   /// [goalCompletedMinutes] of [recordingDurationMs].
   final int completedMinutes;
 
-  /// [goalPercentForLabel] — the single percentage rendered by the ring,
-  /// label, and semantics string.
+  /// [goalPercent] — the single percentage rendered by the ring, label,
+  /// and semantics string.
   final int percent;
 
   /// Whether the goal is reached ([percent] >= 100).
@@ -134,6 +131,6 @@ GoalProgress computeGoalProgress({
     recordingDurationMs: recordingDurationMs,
     goalMinutes: goal,
     completedMinutes: goalCompletedMinutes(recordingDurationMs),
-    percent: goalPercentForLabel(recordingDurationMs, goal),
+    percent: goalPercent(recordingDurationMs, goal),
   );
 }

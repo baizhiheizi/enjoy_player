@@ -41,72 +41,59 @@ void main() {
     });
   });
 
-  group('goalPercentFromMinutes', () {
+  group('goalPercent', () {
     test('zero completed minutes is zero percent', () {
-      expect(goalPercentFromMinutes(0, 30), 0);
+      expect(goalPercent(0, 30), 0);
     });
 
     test('exactly at goal is 100 percent', () {
-      expect(goalPercentFromMinutes(30, 30), 100);
+      expect(goalPercent(30 * 60 * 1000, 30), 100);
     });
 
     test('over-goal practice caps at 100 percent', () {
-      expect(goalPercentFromMinutes(31, 30), 100);
-      expect(goalPercentFromMinutes(60, 30), 100);
-      expect(goalPercentFromMinutes(1440, 30), 100);
+      expect(goalPercent(31 * 60 * 1000, 30), 100);
+      expect(goalPercent(60 * 60 * 1000, 30), 100);
+      expect(goalPercent(24 * 60 * 60 * 1000, 30), 100);
     });
 
     test('rounds to nearest percent, half away from zero', () {
-      expect(goalPercentFromMinutes(15, 30), 50);
+      expect(goalPercent(15 * 60 * 1000, 30), 50);
       // 23.33 -> 23, 26.67 -> 27.
-      expect(goalPercentFromMinutes(7, 30), 23);
-      expect(goalPercentFromMinutes(8, 30), 27);
+      expect(goalPercent(7 * 60 * 1000, 30), 23);
+      expect(goalPercent(8 * 60 * 1000, 30), 27);
       // 12.5 -> 13 (exact .5 rounds up).
-      expect(goalPercentFromMinutes(1, 8), 13);
+      expect(goalPercent(60 * 1000, 8), 13);
     });
 
     test('a minute of a huge goal still rounds to zero percent', () {
-      expect(goalPercentFromMinutes(1, 24 * 60), 0);
+      expect(goalPercent(60 * 1000, 24 * 60), 0);
     });
 
-    test('defensive: non-positive goal yields zero, not a crash', () {
-      expect(goalPercentFromMinutes(15, 0), 0);
-      expect(goalPercentFromMinutes(15, -3), 0);
-    });
-  });
-
-  group('goalPercentForLabel', () {
     test('floors raw milliseconds to minutes before converting', () {
-      // 59,999 ms against a 1-minute goal is 0% (not 100%): the label, the
-      // ring, and the "0 / 1 min" figure must move on whole-minute steps.
-      expect(goalPercentForLabel(60 * 1000 - 1, 1), 0);
-      expect(goalPercentForLabel(60 * 1000, 1), 100);
+      // 59,999 ms against a 1-minute goal is 0% (not 100%): the ring, the
+      // percent figure, and the "0 / 1 min" line must move on whole-minute
+      // steps.
+      expect(goalPercent(60 * 1000 - 1, 1), 0);
+      expect(goalPercent(60 * 1000, 1), 100);
     });
 
-    test('sub-minute remainder does not tip an in-progress label', () {
+    test('sub-minute remainder does not tip an in-progress percent', () {
       // 29m59.999s of a 30-minute goal: 29/30 -> 97%, not 100%.
-      expect(goalPercentForLabel(30 * 60 * 1000 - 1, 30), 97);
-      expect(goalPercentForLabel(30 * 60 * 1000, 30), 100);
+      expect(goalPercent(30 * 60 * 1000 - 1, 30), 97);
+      expect(goalPercent(30 * 60 * 1000, 30), 100);
     });
 
-    test('matches percent computed from floored minutes', () {
-      const cases = [
-        (0, 30),
-        (59 * 1000, 30),
-        (60 * 1000, 30),
-        (17 * 60 * 1000, 30),
-        (30 * 60 * 1000, 30),
-        (45 * 60 * 1000, 30),
-        (5 * 60 * 1000, 24 * 60),
-        (60 * 60 * 1000, 24 * 60),
-      ];
-      for (final (ms, goal) in cases) {
-        expect(
-          goalPercentForLabel(ms, goal),
-          goalPercentFromMinutes(goalCompletedMinutes(ms), goal),
-          reason: 'ms=$ms goal=$goal',
-        );
-      }
+    test('non-positive goal is a precondition violation', () {
+      // [goalPercent] trusts its contract: callers pass normalizeGoalMinutes
+      // output, so a non-positive goal is an assert, not a silent 0.
+      expect(
+        () => goalPercent(15 * 60 * 1000, 0),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => goalPercent(15 * 60 * 1000, -3),
+        throwsA(isA<AssertionError>()),
+      );
     });
   });
 
