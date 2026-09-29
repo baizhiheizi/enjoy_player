@@ -14,6 +14,7 @@ import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -367,6 +368,126 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('C'), findsOneWidget);
+    });
+
+    test('meta is mutually exclusive with the built-in meta block', () {
+      // Both slots at once trips the debug assert…
+      expect(
+        () => MediaCardTile(title: 'T', meta: const Text('C'), onTap: () {}),
+        throwsA(isA<AssertionError>()),
+      );
+      // …while either slot alone is fine (title defaults to '').
+      expect(() => MediaCardTile(title: 'T', onTap: () {}), returnsNormally);
+      expect(
+        () => MediaCardTile(meta: const Text('C'), onTap: () {}),
+        returnsNormally,
+      );
+    });
+
+    testWidgets('meta slot is clamped to the mediaCardTileMetaHeight budget', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          child: SizedBox(
+            width: 280,
+            child: MediaCardTile(onTap: () {}, meta: const Text('custom meta')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // The custom slot renders inside the same fixed-height box the built-in
+      // block uses, so grid rows stay aligned whichever slot a caller picks.
+      final budget = find.ancestor(
+        of: find.text('custom meta'),
+        matching: find.byWidgetPredicate(
+          (w) => w is SizedBox && w.height == mediaCardTileMetaHeight,
+        ),
+      );
+      expect(budget, findsOneWidget);
+      // Total tile height: 16:9 artwork (280 × 9 / 16 = 157.5) + budget.
+      expect(
+        tester.getSize(find.byType(MediaCardTile)).height,
+        closeTo(157.5 + mediaCardTileMetaHeight, 0.1),
+      );
+    });
+
+    testWidgets('hover play glyph is present but invisible while adding', (
+      tester,
+    ) async {
+      // EnjoyPressable's hover arrives via FocusableActionDetector, which only
+      // reports hover highlight in "traditional" mode. Tests boot in touch
+      // mode, so pin the strategy for this test.
+      final previousStrategy = FocusManager.instance.highlightStrategy;
+      FocusManager.instance.highlightStrategy =
+          FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(
+        () => FocusManager.instance.highlightStrategy = previousStrategy,
+      );
+
+      var adding = false;
+      late StateSetter setTileState;
+      await tester.pumpWidget(
+        _wrap(
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              setTileState = setState;
+              return MediaCardTile(onTap: () {}, adding: adding);
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Hover the tile with a mouse pointer.
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer();
+      await gesture.moveTo(tester.getCenter(find.byType(MediaCardTile)));
+      await tester.pumpAndSettle();
+
+      final glyph = find.byType(MediaCardPlayGlyph);
+      // Hover established: the glyph is in the tree and fully visible…
+      final glyphOpacity = find.ancestor(
+        of: glyph,
+        matching: find.byType(AnimatedOpacity),
+      );
+      expect(tester.widget<AnimatedOpacity>(glyphOpacity).opacity, 1.0);
+
+      // An import starts mid-hover. (EnjoyPressable wraps the whole tile in
+      // its own AnimatedScale — the glyph's is the unique one below its
+      // AnimatedOpacity.)
+      final glyphScale = find.descendant(
+        of: glyphOpacity,
+        matching: find.byType(AnimatedScale),
+      );
+      setTileState(() => adding = true);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The glyph is still mounted…
+      expect(glyph, findsOneWidget);
+
+      // …but opacity-zero while the import is in flight.
+      expect(tester.widget<AnimatedOpacity>(glyphOpacity).opacity, 0.0);
+
+      // The scale is driven by the same `adding` guard, so the glyph parks at
+      // its 0.85 rest scale for the whole import (no pop to 1 mid-hover).
+      expect(tester.widget<AnimatedScale>(glyphScale).scale, 0.85);
+
+      // And it is not hit-testable at its own center.
+      final hit = tester.hitTestOnBinding(tester.getCenter(glyph));
+      final glyphBox = tester.renderObject<RenderBox>(glyph);
+      expect(hit.path.any((entry) => entry.target == glyphBox), isFalse);
+
+      // Import settles mid-hover: the glyph fades back in and scales up from
+      // 0.85 instead of popping in at full size.
+      setTileState(() => adding = false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.widget<AnimatedOpacity>(glyphOpacity).opacity, 1.0);
+      expect(tester.widget<AnimatedScale>(glyphScale).scale, 1.0);
+
+      await gesture.removePointer();
     });
   });
 

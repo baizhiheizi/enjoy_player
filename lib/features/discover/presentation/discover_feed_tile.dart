@@ -153,8 +153,12 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       durationLabel: durationLabel,
       adding: _adding,
       inLibrary: inLibrary,
+      // This row renders inside MediaCardTile's shared mediaCardTileMetaHeight
+      // budget (58px), so its vertical math is pinned: 6 gap + 2-line title
+      // (14px × 1.25 leading = 35) + 2 gap + published line (12px × 1.2 ≈ 14.4)
+      // = ~57.4 ≤ 58. Loosen any of these and grid rows drift / overflow.
       meta: Padding(
-        padding: EdgeInsets.only(top: t.space12 - 2),
+        padding: EdgeInsets.only(top: t.space8 - 2),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -177,10 +181,10 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.2,
-                      height: 1.3,
+                      height: 1.25,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
                     '$channelName · $publishedLabel',
                     maxLines: 1,
