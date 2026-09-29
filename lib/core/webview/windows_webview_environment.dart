@@ -15,20 +15,26 @@ import 'package:enjoy_player/core/logging/log.dart';
 
 final _log = logNamed('WebViewEnvironment');
 
+Future<WebViewEnvironment?>? _windowsEnvironmentFuture;
+final Future<WebViewEnvironment?> _unsupportedPlatformEnvironment =
+    Future<WebViewEnvironment?>.value(null);
 WebViewEnvironment? _windowsEnvironment;
 String? _windowsUserDataFolder;
 
-/// Active Windows WebView2 environment, or null on other platforms / init failure.
-WebViewEnvironment? get windowsWebViewEnvironment => _windowsEnvironment;
-
-/// Resolved user-data path when [ensureWindowsWebViewEnvironment] succeeded.
+/// Resolved user-data path when environment creation succeeded.
 String? get windowsWebViewUserDataFolder => _windowsUserDataFolder;
 
-/// Creates one shared environment before any [InAppWebView] is mounted.
-Future<WebViewEnvironment?> ensureWindowsWebViewEnvironment() async {
-  if (!Platform.isWindows) return null;
-  if (_windowsEnvironment != null) return _windowsEnvironment;
+/// Starts (once per process) or joins the shared environment creation.
+///
+/// Returns the created environment, or null on other platforms / init
+/// failure — callers must fall back to the plugin's default environment,
+/// exactly as they would without this call.
+Future<WebViewEnvironment?> ensureWindowsWebViewEnvironment() {
+  if (!Platform.isWindows) return _unsupportedPlatformEnvironment;
+  return _windowsEnvironmentFuture ??= _createWindowsWebViewEnvironment();
+}
 
+Future<WebViewEnvironment?> _createWindowsWebViewEnvironment() async {
   try {
     final support = await getApplicationSupportDirectory();
     final folder = p.join(support.path, 'WebView2');

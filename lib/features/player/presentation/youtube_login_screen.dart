@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
+import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/application/youtube_auth_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -103,8 +104,9 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     color: colorScheme.onSurfaceVariant,
                     onPressed: () async {
                       unawaited(HapticFeedback.lightImpact());
+                      final environment = await ensureAppWebViewEnvironment();
                       await CookieManager.instance(
-                        webViewEnvironment: appWebViewEnvironment,
+                        webViewEnvironment: environment,
                       ).deleteAllCookies();
                       await _controller?.loadUrl(
                         urlRequest: URLRequest(
@@ -125,43 +127,45 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
               ),
             Expanded(
               child: ExcludeSemantics(
-                child: InAppWebView(
-                  webViewEnvironment: appWebViewEnvironment,
-                  initialUrlRequest: URLRequest(
-                    url: WebUri(YoutubeLoginScreen._signInUrl),
+                child: WebViewEnvironmentGate(
+                  builder: (context, environment) => InAppWebView(
+                    webViewEnvironment: environment,
+                    initialUrlRequest: URLRequest(
+                      url: WebUri(YoutubeLoginScreen._signInUrl),
+                    ),
+                    initialSettings: YoutubeWebViewSettings.forLogin(),
+                    onWebViewCreated: (controller) {
+                      _controller = controller;
+                    },
+                    onLoadStart: (_, _) {
+                      if (mounted) setState(() => _isLoading = true);
+                    },
+                    onLoadStop: (controller, url) async {
+                      if (!mounted) return;
+                      final title = await controller.getTitle();
+                      setState(() {
+                        _isLoading = false;
+                        _currentTitle = title;
+                      });
+                      ref.invalidate(youtubeLoginStateProvider);
+                    },
+                    onTitleChanged: (_, title) {
+                      if (mounted && title != null) {
+                        setState(() => _currentTitle = title);
+                      }
+                    },
+                    shouldOverrideUrlLoading: (controller, action) async {
+                      final url = action.request.url?.toString() ?? '';
+                      if (url.contains('youtube.com') ||
+                          url.contains('google.com') ||
+                          url.contains('googleapis.com') ||
+                          url.contains('gstatic.com') ||
+                          url.contains('accounts.google')) {
+                        return NavigationActionPolicy.ALLOW;
+                      }
+                      return NavigationActionPolicy.CANCEL;
+                    },
                   ),
-                  initialSettings: YoutubeWebViewSettings.forLogin(),
-                  onWebViewCreated: (controller) {
-                    _controller = controller;
-                  },
-                  onLoadStart: (_, _) {
-                    if (mounted) setState(() => _isLoading = true);
-                  },
-                  onLoadStop: (controller, url) async {
-                    if (!mounted) return;
-                    final title = await controller.getTitle();
-                    setState(() {
-                      _isLoading = false;
-                      _currentTitle = title;
-                    });
-                    ref.invalidate(youtubeLoginStateProvider);
-                  },
-                  onTitleChanged: (_, title) {
-                    if (mounted && title != null) {
-                      setState(() => _currentTitle = title);
-                    }
-                  },
-                  shouldOverrideUrlLoading: (controller, action) async {
-                    final url = action.request.url?.toString() ?? '';
-                    if (url.contains('youtube.com') ||
-                        url.contains('google.com') ||
-                        url.contains('googleapis.com') ||
-                        url.contains('gstatic.com') ||
-                        url.contains('accounts.google')) {
-                      return NavigationActionPolicy.ALLOW;
-                    }
-                    return NavigationActionPolicy.CANCEL;
-                  },
                 ),
               ),
             ),
