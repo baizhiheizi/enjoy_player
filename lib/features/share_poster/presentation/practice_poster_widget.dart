@@ -1,10 +1,9 @@
 /// Fixed 9:16 branded practice poster layout for export and preview.
 library;
 
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -12,6 +11,7 @@ import 'package:enjoy_player/core/theme/colors.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_logo.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
+import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/features/share_poster/domain/practice_poster_data.dart';
 
 /// User-visible poster strings (from l10n).
@@ -348,6 +348,16 @@ class _PracticePosterCoverState extends State<PracticePosterCover> {
     widget.onCoverReady?.call();
   }
 
+  Widget _coverFallback() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyReadyOnce();
+    });
+    return GenerativeMediaCover(
+      seed: widget.data.coverSeed,
+      isVideo: widget.data.isVideo,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final echoBytes = widget.data.echoCoverBytes;
@@ -358,54 +368,61 @@ class _PracticePosterCoverState extends State<PracticePosterCover> {
       return Image.memory(echoBytes, fit: BoxFit.cover);
     }
 
-    final localPath = widget.data.localThumbnailPath;
-    if (localPath != null && localPath.isNotEmpty) {
-      final file = File(localPath);
-      if (file.existsSync()) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _notifyReadyOnce();
-        });
-        return Image.file(file, fit: BoxFit.cover);
-      }
-    }
-
-    final url = widget.data.networkThumbnailUrl;
-    if (url != null && url.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        placeholder: (_, _) => GenerativeMediaCover(
-          seed: widget.data.coverSeed,
-          isVideo: widget.data.isVideo,
-        ),
-        errorWidget: (_, _, _) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _notifyReadyOnce();
-          });
+    return Consumer(
+      builder: (context, ref, _) {
+        final thumbAsync = ref.watch(
+          localThumbnailFileProvider(widget.data.localThumbnailPath),
+        );
+        if (thumbAsync.isLoading) {
           return GenerativeMediaCover(
             seed: widget.data.coverSeed,
             isVideo: widget.data.isVideo,
           );
-        },
-        imageBuilder: (context, imageProvider) {
+        }
+        final file = thumbAsync.value;
+        if (file != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _notifyReadyOnce();
           });
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-            ),
-          );
-        },
-      );
-    }
+          return Image.file(file, fit: BoxFit.cover);
+        }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _notifyReadyOnce();
-    });
-    return GenerativeMediaCover(
-      seed: widget.data.coverSeed,
-      isVideo: widget.data.isVideo,
+        final url = widget.data.networkThumbnailUrl;
+        if (url != null && url.isNotEmpty) {
+          return CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            placeholder: (_, _) => GenerativeMediaCover(
+              seed: widget.data.coverSeed,
+              isVideo: widget.data.isVideo,
+            ),
+            errorWidget: (_, _, _) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _notifyReadyOnce();
+              });
+              return GenerativeMediaCover(
+                seed: widget.data.coverSeed,
+                isVideo: widget.data.isVideo,
+              );
+            },
+            imageBuilder: (context, imageProvider) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _notifyReadyOnce();
+              });
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        return _coverFallback();
+      },
     );
   }
 }

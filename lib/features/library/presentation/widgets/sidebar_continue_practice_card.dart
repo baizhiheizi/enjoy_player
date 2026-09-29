@@ -19,6 +19,7 @@ import 'package:enjoy_player/core/theme/widgets/media_card/badges.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/features/library/application/continue_practice_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -109,7 +110,13 @@ class SidebarContinuePracticeCard extends ConsumerWidget {
                 AspectRatio(
                   aspectRatio: 16 / 9,
                   child: MediaCardThumbnail(
-                    file: localThumbnailFileForMedia(media),
+                    file: ref
+                        .watch(
+                          localThumbnailFileProvider(
+                            localThumbnailPathForMedia(media),
+                          ),
+                        )
+                        .value,
                     networkUrl: networkThumbnailForMedia(media),
                     coverSeed: media.coverSeed,
                     isVideo: media.kind == MediaKind.video,

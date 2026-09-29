@@ -21,6 +21,7 @@ import 'package:enjoy_player/features/library/application/library_media_provider
 import 'package:enjoy_player/features/library/application/library_search_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/library/presentation/library_actions.dart';
+import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -34,15 +35,19 @@ class LocalLibraryTabView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listsAsync = ref.watch(libraryFilteredListsProvider);
-    final allMediaAsync = ref.watch(libraryMediaProvider);
+    final totals = ref.watch(
+      libraryMediaProvider.select((s) {
+        final items = s.asData?.value ?? const <Media>[];
+        return (
+          audio: items.where((m) => m.kind == MediaKind.audio).length,
+          video: items.where((m) => m.kind == MediaKind.video).length,
+        );
+      }),
+    );
     final query = ref.watch(librarySearchProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-
-    final allItems = allMediaAsync.asData?.value ?? const <Media>[];
-    final totalAudio = allItems.where((m) => m.kind == MediaKind.audio).length;
-    final totalVideo = allItems.where((m) => m.kind == MediaKind.video).length;
 
     return listsAsync.when(
       data: (lists) {
@@ -52,12 +57,12 @@ class LocalLibraryTabView extends ConsumerWidget {
             LocalVideoLibraryBody(
               items: lists.video,
               searchQuery: query,
-              totalInLibraryOfKind: totalVideo,
+              totalInLibraryOfKind: totals.video,
             ),
             LocalAudioLibraryBody(
               items: lists.audio,
               searchQuery: query,
-              totalInLibraryOfKind: totalAudio,
+              totalInLibraryOfKind: totals.audio,
             ),
           ],
         );
@@ -165,7 +170,13 @@ class LocalAudioRow extends ConsumerWidget {
     final playingId = ref.watch(
       playerControllerProvider.select((s) => s?.mediaId),
     );
-    final thumb = localThumbnailFileForCard(media.thumbnailPath);
+    final thumb = ref
+        .watch(
+          localThumbnailFileProvider(
+            localThumbnailPathForCard(media.thumbnailPath),
+          ),
+        )
+        .value;
     final netThumb = remoteThumbnailForCard(media.thumbnailPath);
     final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
@@ -275,7 +286,9 @@ class LocalVideoTile extends ConsumerWidget {
     final playingId = ref.watch(
       playerControllerProvider.select((s) => s?.mediaId),
     );
-    final thumb = localThumbnailFileForMedia(media);
+    final thumb = ref
+        .watch(localThumbnailFileProvider(localThumbnailPathForMedia(media)))
+        .value;
     final netThumb = networkThumbnailForMedia(media);
     final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);
