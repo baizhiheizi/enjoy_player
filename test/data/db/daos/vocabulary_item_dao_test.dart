@@ -140,6 +140,37 @@ void main() {
       expect(list.map((r) => r.id), unorderedEquals(['a', 'b']));
     });
 
+    test('watchAll omits the explanation blob (issue #810 G)', () async {
+      final row = _vocabItem(id: 'blob');
+      await db.vocabularyItemDao.insertRow(
+        VocabularyItemRow(
+          id: row.id,
+          word: row.word,
+          language: row.language,
+          targetLanguage: row.targetLanguage,
+          status: row.status,
+          easeFactor: row.easeFactor,
+          interval: row.interval,
+          lastReviewedAt: row.lastReviewedAt,
+          nextReviewAt: row.nextReviewAt,
+          reviewsCount: row.reviewsCount,
+          contextsCount: row.contextsCount,
+          explanation: '{"senses":[{"gloss":"你好"}]}',
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        ),
+      );
+
+      final watched = await db.vocabularyItemDao.watchAll().first;
+      expect(watched, hasLength(1));
+      expect(watched.single.explanation, isNull);
+      expect(watched.single.word, 'hello');
+      expect(watched.single.nextReviewAt, row.nextReviewAt);
+
+      final fetched = await db.vocabularyItemDao.getById('blob');
+      expect(fetched!.explanation, isNotNull);
+    });
+
     test('listDue returns rows with nextReviewAt <= now', () async {
       final now = DateTime.utc(2026, 7, 1);
       await db.vocabularyItemDao.insertRow(

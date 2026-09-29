@@ -96,4 +96,37 @@ void main() {
       }
     });
   });
+
+  group('fresh install (issue #810 G)', () {
+    test(
+      'onCreate yields idx_ai_cache_kind_updated_at for evictOldestExcept',
+      () async {
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        try {
+          final indexRows = await db
+              .customSelect(
+                'SELECT name FROM sqlite_master '
+                "WHERE type = 'index' AND name = 'idx_ai_cache_kind_updated_at'",
+              )
+              .get();
+          expect(indexRows, hasLength(1));
+
+          final plan = await db
+              .customSelect(
+                'EXPLAIN QUERY PLAN '
+                'SELECT key FROM ai_cache WHERE kind = ? '
+                'ORDER BY updated_at ASC LIMIT 1',
+                variables: [Variable.withString('translation')],
+              )
+              .get();
+          final planText = plan
+              .map((row) => row.read<String>('detail'))
+              .join('\n');
+          expect(planText, contains('idx_ai_cache_kind_updated_at'));
+        } finally {
+          await db.close();
+        }
+      },
+    );
+  });
 }
