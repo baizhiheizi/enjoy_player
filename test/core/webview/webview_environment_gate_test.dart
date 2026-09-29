@@ -41,6 +41,37 @@ void main() {
     expect(find.text('built environment=true'), findsOneWidget);
   });
 
+  testWidgets(
+    'shows the supplied placeholder while the environment future is pending',
+    (tester) async {
+      final completer = Completer<WebViewEnvironment?>();
+      var builderCalls = 0;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: WebViewEnvironmentGate(
+            environmentFuture: completer.future,
+            placeholder: const Text('pending'),
+            builder: (context, environment) {
+              builderCalls++;
+              return const Text('ready');
+            },
+          ),
+        ),
+      );
+
+      expect(find.text('pending'), findsOneWidget);
+      expect(builderCalls, 0);
+
+      completer.complete(null);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ready'), findsOneWidget);
+      expect(find.text('pending'), findsNothing);
+    },
+  );
+
   testWidgets('hands the resolved environment to the builder', (tester) async {
     final environment = _FakeWebViewEnvironment();
     final completer = Completer<WebViewEnvironment?>();

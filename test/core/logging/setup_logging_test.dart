@@ -157,6 +157,101 @@ void main() {
       expect(await readLog(), contains('[INFO] early: fail-open line'));
     },
   );
+
+  test(
+    'a record emitted while the banner settles lands after flushed records',
+    () async {
+      final documentsGate = Completer<void>();
+      PathProviderPlatform.instance = _GatedDocumentsPathProvider(
+        documentsPath,
+        supportPath: supportPath,
+        gate: documentsGate.future,
+      );
+
+      await setupAppLogging();
+      Logger('early').info('buffered before banner');
+      final banner = debugSessionBannerFuture!;
+
+      documentsGate.complete();
+      await untilLogContains('[INFO] session:');
+      Logger('settling').info('emitted while banner settles');
+      await banner;
+      await untilLogContains('emitted while banner settles');
+
+      final lines = (await readLog())
+          .split('\n')
+          .where((l) => l.isNotEmpty)
+          .toList();
+      final bannerIndex = lines.indexWhere((l) => l.contains('session:'));
+      final bufferedIndex = lines.indexWhere(
+        (l) => l.contains('buffered before banner'),
+      );
+      final settlingIndex = lines.indexWhere(
+        (l) => l.contains('emitted while banner settles'),
+      );
+      expect(bufferedIndex, greaterThan(bannerIndex));
+      expect(settlingIndex, greaterThan(bufferedIndex));
+    },
+  );
+
+  test(
+    'reset while the banner is in flight discards its buffered records',
+    () async {
+      final documentsGate = Completer<void>();
+      PathProviderPlatform.instance = _GatedDocumentsPathProvider(
+        documentsPath,
+        supportPath: supportPath,
+        gate: documentsGate.future,
+      );
+
+      await setupAppLogging();
+      Logger('stale').info('stale pre-banner record');
+      final staleBanner = debugSessionBannerFuture!;
+
+      await debugResetAppLogging();
+      documentsGate.complete();
+      await staleBanner;
+      await untilLogContains('[INFO] session:');
+
+      expect(await readLog(), isNot(contains('stale pre-banner record')));
+
+      await setupAppLogging();
+      await debugSessionBannerFuture!;
+
+      final content = await readLog();
+      expect(content, contains('[INFO] session:'));
+      expect(content, isNot(contains('stale pre-banner record')));
+    },
+  );
+
+  test('pre-banner buffer drops the oldest records beyond capacity', () async {
+    final documentsGate = Completer<void>();
+    PathProviderPlatform.instance = _GatedDocumentsPathProvider(
+      documentsPath,
+      supportPath: supportPath,
+      gate: documentsGate.future,
+    );
+
+    await setupAppLogging();
+    for (var i = 0; i < 300; i++) {
+      Logger('burst').info('burst record $i');
+    }
+
+    documentsGate.complete();
+    await debugSessionBannerFuture!;
+    await untilLogContains('burst record 299');
+
+    final content = await readLog();
+    expect(content, contains('burst record 299'));
+    expect(content, contains('burst record 45'));
+    expect(content, isNot(contains('burst record 44')));
+    expect(content, isNot(contains('burst record 0')));
+    expect('capped at'.allMatches(content), hasLength(1));
+    expect(
+      content.indexOf('[INFO] session:'),
+      lessThan(content.indexOf('burst record 45')),
+    );
+  });
 }
 
 class _DocumentsBrokenPathProvider extends TestPathProvider {

@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
@@ -33,7 +34,30 @@ class YoutubeLoginScreen extends ConsumerStatefulWidget {
 class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
   InAppWebViewController? _controller;
   bool _isLoading = true;
+  bool _isSigningOut = false;
   String? _currentTitle;
+
+  Future<void> _signOut() async {
+    if (_isSigningOut) return;
+    setState(() => _isSigningOut = true);
+    try {
+      unawaited(HapticFeedback.lightImpact());
+      final controller = _controller;
+      final environment = await ensureAppWebViewEnvironment();
+      if (!mounted) return;
+      await CookieManager.instance(
+        webViewEnvironment: environment,
+      ).deleteAllCookies();
+      if (!mounted) return;
+      await controller?.loadUrl(
+        urlRequest: URLRequest(url: WebUri('https://m.youtube.com')),
+      );
+      if (!mounted) return;
+      ref.invalidate(youtubeLoginStateProvider);
+    } finally {
+      if (mounted) setState(() => _isSigningOut = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,21 +124,11 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(EnjoyIcons.signOut, size: 22),
+                    icon: _isSigningOut
+                        ? LoadingIcon(color: colorScheme.onSurfaceVariant)
+                        : const Icon(EnjoyIcons.signOut, size: 22),
                     color: colorScheme.onSurfaceVariant,
-                    onPressed: () async {
-                      unawaited(HapticFeedback.lightImpact());
-                      final environment = await ensureAppWebViewEnvironment();
-                      await CookieManager.instance(
-                        webViewEnvironment: environment,
-                      ).deleteAllCookies();
-                      await _controller?.loadUrl(
-                        urlRequest: URLRequest(
-                          url: WebUri('https://m.youtube.com'),
-                        ),
-                      );
-                      ref.invalidate(youtubeLoginStateProvider);
-                    },
+                    onPressed: _isSigningOut ? null : _signOut,
                     tooltip: l10n.youtubeLogout,
                   ),
                 ],
@@ -128,6 +142,7 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
             Expanded(
               child: ExcludeSemantics(
                 child: WebViewEnvironmentGate(
+                  placeholder: const Center(child: CircularProgressIndicator()),
                   builder: (context, environment) => InAppWebView(
                     webViewEnvironment: environment,
                     initialUrlRequest: URLRequest(
