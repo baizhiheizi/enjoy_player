@@ -275,4 +275,38 @@ void main() {
       expect(find.byType(ClipRRect), findsWidgets);
     },
   );
+
+  testWidgets('a hosted list shares one ticker for every box (#810 G)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const SkeletonSettingsList(rowCount: 6)));
+    expect(find.byType(Skeleton), findsAtLeastNWidgets(12));
+    expect(
+      find.byType(SkeletonTickerHost),
+      findsOneWidget,
+      reason: 'one shared shimmer clock serves the whole loading list',
+    );
+  });
+
+  testWidgets('a lone skeleton hosts its own ticker (#810 G)', (tester) async {
+    await tester.pumpWidget(_wrap(const Skeleton(width: 80, height: 12)));
+    expect(find.byType(Skeleton), findsOneWidget);
+    expect(find.byType(SkeletonTickerHost), findsOneWidget);
+  });
+
+  testWidgets('SkeletonSettingsList keeps shimmering across the shared clock', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const SkeletonSettingsList(rowCount: 3)));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(
+      find.descendant(
+        of: find.byType(Skeleton),
+        matching: find.byType(CustomPaint),
+      ),
+      findsWidgets,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.takeException(), isNull);
+  });
 }

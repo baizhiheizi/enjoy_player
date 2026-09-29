@@ -14,27 +14,29 @@ class LookupSectionShimmer extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: t.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Skeleton.line(
-            width: 180,
-            height: (tt.titleLarge?.fontSize ?? 22) - 2,
-          ),
-          SizedBox(height: t.space12),
-          Skeleton.line(width: 120, height: tt.labelMedium?.fontSize ?? 12),
-          SizedBox(height: t.space8),
-          for (var i = 0; i < 3; i++) ...[
+    return SkeletonTickerHost(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: t.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Skeleton.line(
-              width: i == 2 ? 220.0 : double.infinity,
-              height: tt.bodyMedium?.fontSize ?? 14,
+              width: 180,
+              height: (tt.titleLarge?.fontSize ?? 22) - 2,
             ),
+            SizedBox(height: t.space12),
+            Skeleton.line(width: 120, height: tt.labelMedium?.fontSize ?? 12),
             SizedBox(height: t.space8),
+            for (var i = 0; i < 3; i++) ...[
+              Skeleton.line(
+                width: i == 2 ? 220.0 : double.infinity,
+                height: tt.bodyMedium?.fontSize ?? 14,
+              ),
+              SizedBox(height: t.space8),
+            ],
+            Skeleton.line(width: 260, height: tt.bodySmall?.fontSize ?? 12),
           ],
-          Skeleton.line(width: 260, height: tt.bodySmall?.fontSize ?? 12),
-        ],
+        ),
       ),
     );
   }
