@@ -60,9 +60,7 @@ Future<String?> backupToJson(
       payload['tables'][tableName] = await _exportTable(db, tableName);
     }
 
-    await dest.writeAsString(
-      const JsonEncoder.withIndent('  ').convert(_jsonify(payload)),
-    );
+    await dest.writeAsString(jsonEncode(_jsonify(payload)));
     _log.warning(
       'backupToJson: wrote ${dest.path} before destructive migration '
       '($from → $to)',
