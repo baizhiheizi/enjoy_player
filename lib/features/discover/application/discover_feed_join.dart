@@ -52,115 +52,70 @@ class DiscoverFeedItem {
       Object.hash(entry.videoId, inLibrary, channelName, channelAvatarUrl);
 }
 
-/// Joins two streams into a projection over both, emitting only once *both*
-/// sides have produced at least one value.
+/// Joins [sources] into a projection over their latest values, emitting only
+/// once *every* stream has produced at least one value.
 ///
-/// [combine] is re-run whenever either input emits, so a library write updates
-/// the `inLibrary` flags without the feed stream re-emitting, and a feed write
-/// lands with the current membership without waiting for the library stream.
-///
-/// Waits for both first values on purpose: emitting a feed list against an
-/// unknown membership set would paint every tile as "not in library" and then
-/// flip them all on the library's first delivery — the exact flicker the
-/// per-tile probe avoided by awaiting its own future.
-Stream<R> joinLatest<A, B, R>(
-  Stream<A> a,
-  Stream<B> b,
-  R Function(A a, B b) combine,
+/// [combine] is re-run whenever any input emits, so a write on one side
+/// updates the projection without the other sides re-emitting. The typed
+/// arity wrappers ([joinLatest3]) keep call sites free of element casts.
+Stream<R> joinLatestN<A, R>(
+  List<Stream<A>> sources,
+  R Function(List<A> values) combine,
 ) {
   return Stream<R>.multi((controller) {
-    A? latestA;
-    B? latestB;
-    var hasA = false;
-    var hasB = false;
+    final latest = List<A?>.filled(sources.length, null);
+    final received = List<bool>.filled(sources.length, false);
+    var pending = sources.length;
+    final subs = <StreamSubscription<A>>[];
 
     void push() {
-      if (!hasA || !hasB) return;
-      controller.add(combine(latestA as A, latestB as B));
+      if (pending > 0) return;
+      controller.add(combine(List<A>.from(latest)));
     }
 
-    final subA = a.listen(
-      (value) {
-        latestA = value;
-        hasA = true;
-        push();
-      },
-      onError: controller.addError,
-      onDone: controller.close,
-    );
-    final subB = b.listen(
-      (value) {
-        latestB = value;
-        hasB = true;
-        push();
-      },
-      onError: controller.addError,
-      onDone: controller.close,
-    );
+    for (var i = 0; i < sources.length; i++) {
+      subs.add(
+        sources[i].listen(
+          (value) {
+            if (!received[i]) {
+              received[i] = true;
+              pending--;
+            }
+            latest[i] = value;
+            push();
+          },
+          onError: controller.addError,
+          onDone: controller.close,
+        ),
+      );
+    }
 
     controller.onCancel = () {
-      unawaited(subA.cancel());
-      unawaited(subB.cancel());
+      for (final sub in subs) {
+        unawaited(sub.cancel());
+      }
     };
   });
 }
 
-/// Same contract as [joinLatest] for three inputs: emits only once every
-/// stream has produced at least one value, re-running [combine] whenever any
-/// input emits.
+/// [joinLatestN] for three inputs: emits only once every stream has produced
+/// at least one value, re-running [combine] whenever any input emits.
+///
+/// Waits for all first values on purpose: emitting a feed list against an
+/// unknown membership set would paint every tile as "not in library" and then
+/// flip them all on the library's first delivery — the exact flicker the
+/// per-tile probe avoided by awaiting its own future.
 Stream<R> joinLatest3<A, B, C, R>(
   Stream<A> a,
   Stream<B> b,
   Stream<C> c,
   R Function(A a, B b, C c) combine,
 ) {
-  return Stream<R>.multi((controller) {
-    A? latestA;
-    B? latestB;
-    C? latestC;
-    var hasA = false;
-    var hasB = false;
-    var hasC = false;
-
-    void push() {
-      if (!hasA || !hasB || !hasC) return;
-      controller.add(combine(latestA as A, latestB as B, latestC as C));
-    }
-
-    final subA = a.listen(
-      (value) {
-        latestA = value;
-        hasA = true;
-        push();
-      },
-      onError: controller.addError,
-      onDone: controller.close,
-    );
-    final subB = b.listen(
-      (value) {
-        latestB = value;
-        hasB = true;
-        push();
-      },
-      onError: controller.addError,
-      onDone: controller.close,
-    );
-    final subC = c.listen(
-      (value) {
-        latestC = value;
-        hasC = true;
-        push();
-      },
-      onError: controller.addError,
-      onDone: controller.close,
-    );
-
-    controller.onCancel = () {
-      unawaited(subA.cancel());
-      unawaited(subB.cancel());
-      unawaited(subC.cancel());
-    };
-  });
+  return joinLatestN<Object?, R>([
+    a,
+    b,
+    c,
+  ], (values) => combine(values[0] as A, values[1] as B, values[2] as C));
 }
 
 /// Projects a feed entry list onto the library's YouTube vid set and the
