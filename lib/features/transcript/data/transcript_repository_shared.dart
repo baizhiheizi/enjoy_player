@@ -50,6 +50,9 @@ void _sortTranscriptSummaries(List<TranscriptTrackSummary> summaries) {
   });
 }
 
+TranscriptTimelineRevision _revisionOf(TranscriptRow row) =>
+    (updatedAt: row.updatedAt, jsonLength: row.timelineJson.length);
+
 String _normalizeSource(String raw) {
   switch (raw) {
     case 'official':

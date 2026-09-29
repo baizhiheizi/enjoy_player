@@ -100,9 +100,74 @@ class TranscriptDao extends DatabaseAccessor<AppDatabase>
           ))
           .get();
 
-  Future<void> upsert(TranscriptRow row) =>
-      into(transcripts).insert(row, mode: InsertMode.insertOrReplace);
+  /// Inserts or replaces [row], keeping the stored `updated_at` a per-row
+  /// content revision: drift stores `DateTime` at whole-second granularity,
+  /// so a second write landing in the same stored second is nudged one
+  /// second forward. Together with the JSON length this guarantees the
+  /// `(updated_at, length)` pair changes on every content change — the key
+  /// the timeline decode memo relies on (issue #810 D5).
+  Future<void> upsert(TranscriptRow row) async {
+    final existingUpdatedAt = await _readUpdatedAt(row.id);
+    await into(transcripts).insert(
+      _withDistinctStoredSecond(row, existingUpdatedAt),
+      mode: InsertMode.insertOrReplace,
+    );
+  }
+
+  /// Bulk variant of [upsert] with the same revision guarantee.
+  Future<void> upsertAll(List<TranscriptRow> rows) async {
+    if (rows.isEmpty) return;
+    final existingUpdatedAts = await _readUpdatedAts(
+      rows.map((r) => r.id).toSet(),
+    );
+    await batch((b) {
+      for (final row in rows) {
+        b.insert(
+          transcripts,
+          _withDistinctStoredSecond(row, existingUpdatedAts[row.id]),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
 
   Future<void> deleteId(String id) =>
       (delete(transcripts)..where((t) => t.id.equals(id))).go();
+
+  Future<DateTime?> _readUpdatedAt(String id) async {
+    final query = selectOnly(transcripts)
+      ..addColumns([transcripts.updatedAt])
+      ..where(transcripts.id.equals(id));
+    final row = await query.getSingleOrNull();
+    return row?.read<DateTime>(transcripts.updatedAt);
+  }
+
+  Future<Map<String, DateTime>> _readUpdatedAts(Set<String> ids) async {
+    if (ids.isEmpty) return {};
+    final query = selectOnly(transcripts)
+      ..addColumns([transcripts.id, transcripts.updatedAt])
+      ..where(transcripts.id.isIn(ids));
+    return {
+      for (final row in await query.get())
+        row.read<String>(transcripts.id)!: row.read<DateTime>(
+          transcripts.updatedAt,
+        )!,
+    };
+  }
+
+  TranscriptRow _withDistinctStoredSecond(
+    TranscriptRow row,
+    DateTime? existingUpdatedAt,
+  ) {
+    if (existingUpdatedAt == null) return row;
+    final existingSecond = existingUpdatedAt.millisecondsSinceEpoch ~/ 1000;
+    if (row.updatedAt.millisecondsSinceEpoch ~/ 1000 != existingSecond) {
+      return row;
+    }
+    return row.copyWith(
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        (existingSecond + 1) * 1000,
+      ),
+    );
+  }
 }

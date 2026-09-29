@@ -87,6 +87,54 @@ void main() {
     });
 
     test(
+      'upsert nudges updatedAt forward on a same-second rewrite (issue #810 D5)',
+      () async {
+        final first = _transcript(id: 't-1', label: 'first');
+        await db.transcriptDao.upsert(first);
+        await db.transcriptDao.upsert(_transcript(id: 't-1', label: 'second'));
+
+        final stored = await db.transcriptDao.getById('t-1');
+        expect(
+          stored!.updatedAt.difference(first.updatedAt),
+          const Duration(seconds: 1),
+        );
+      },
+    );
+
+    test(
+      'upsert keeps the caller updatedAt when writes are a second apart',
+      () async {
+        final first = _transcript(id: 't-1');
+        await db.transcriptDao.upsert(first);
+        final later = _transcript(
+          id: 't-1',
+          timelineJson: '[{"text":"b","start":0,"duration":100}]',
+        ).copyWith(updatedAt: first.updatedAt.add(const Duration(seconds: 2)));
+        await db.transcriptDao.upsert(later);
+
+        final stored = await db.transcriptDao.getById('t-1');
+        expect(stored!.updatedAt, later.updatedAt);
+      },
+    );
+
+    test('upsertAll applies the same same-second revision guarantee', () async {
+      final t = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+      await db.transcriptDao.upsertAll([
+        _transcript(id: 't-1').copyWith(updatedAt: t),
+        _transcript(id: 't-2').copyWith(updatedAt: t),
+      ]);
+      await db.transcriptDao.upsertAll([
+        _transcript(id: 't-1', label: 'again').copyWith(updatedAt: t),
+      ]);
+
+      expect(
+        (await db.transcriptDao.getById('t-1'))!.updatedAt,
+        t.add(const Duration(seconds: 1)),
+      );
+      expect((await db.transcriptDao.getById('t-2'))!.updatedAt, t);
+    });
+
+    test(
       'watchSummariesForTarget orders by source, language, createdAt',
       () async {
         final earlier = DateTime.fromMillisecondsSinceEpoch(1600000000000);

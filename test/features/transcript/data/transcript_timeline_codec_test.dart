@@ -70,27 +70,116 @@ void main() {
     );
   });
 
-  group('timelineJsonHash', () {
-    test('is stable for equal content and differs for changed content', () {
-      final a = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
-      final b = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
-      final c = timelineJson([lineJson(startMs: 0, durationMs: 200)]);
-      expect(timelineJsonHash(a), timelineJsonHash(b));
-      expect(timelineJsonHash(a), isNot(timelineJsonHash(c)));
+  group('encodeTimelineJsonGated (issue #810 D4)', () {
+    test('small payloads stay on the calling isolate', () {
+      final lines = [
+        for (var i = 0; i < 4; i++)
+          TranscriptLine(text: 'line $i', startMs: i * 1000, durationMs: 900),
+      ];
+      expect(timelineEncodeNeedsIsolate(lines), isFalse);
+    });
+
+    test('large payloads are routed to a background isolate', () {
+      const phone = TranscriptPhone(
+        phone: 'w',
+        text: 'w',
+        startTime: 0,
+        endTime: 0.2,
+      );
+      const word = TranscriptWord(
+        text: 'word',
+        startMs: 0,
+        durationMs: 400,
+        phones: [phone],
+      );
+      final lines = [
+        for (var i = 0; i < 200; i++)
+          TranscriptLine(
+            text: 'line $i with enough length to cross the gate threshold',
+            startMs: i * 1000,
+            durationMs: 900,
+            timeline: const [word],
+          ),
+      ];
+      expect(timelineEncodeNeedsIsolate(lines), isTrue);
+    });
+
+    test('both paths round-trip through decodeTimelineJson', () async {
+      const small = [TranscriptLine(text: 'hi', startMs: 0, durationMs: 100)];
+      final smallEncoded = await encodeTimelineJsonGated(small);
+      expect(smallEncoded, encodeTimelineJson(small));
+      expect(decodeTimelineJson(smallEncoded), equals(small));
+
+      const phone = TranscriptPhone(
+        phone: 'w',
+        text: 'w',
+        startTime: 0,
+        endTime: 0.2,
+      );
+      final large = [
+        for (var i = 0; i < 200; i++)
+          TranscriptLine(
+            text: 'line $i with enough length to cross the gate threshold',
+            startMs: i * 1000,
+            durationMs: 900,
+            timeline: const [
+              TranscriptWord(
+                text: 'word',
+                startMs: 0,
+                durationMs: 400,
+                phones: [phone],
+              ),
+            ],
+          ),
+      ];
+      expect(timelineEncodeNeedsIsolate(large), isTrue);
+      final largeEncoded = await encodeTimelineJsonGated(large);
+      expect(largeEncoded, encodeTimelineJson(large));
+      expect(decodeTimelineJson(largeEncoded), equals(large));
+    });
+
+    test('estimatedTimelineJsonBytes grows with nested spans', () {
+      const plain = [TranscriptLine(text: 'hello', startMs: 0, durationMs: 100)];
+      const enriched = [
+        TranscriptLine(
+          text: 'hello',
+          startMs: 0,
+          durationMs: 100,
+          timeline: [
+            TranscriptWord(text: 'hello', startMs: 0, durationMs: 100),
+          ],
+        ),
+      ];
+      expect(
+        estimatedTimelineJsonBytes(enriched),
+        greaterThan(estimatedTimelineJsonBytes(plain)),
+      );
     });
   });
 
   group('TranscriptTimelineCache', () {
-    test('memoizes on (rowId, content) — same instance on hit', () {
+    TranscriptTimelineRevision revisionFor(String json, DateTime updatedAt) =>
+        (updatedAt: updatedAt, jsonLength: json.length);
+
+    test('memoizes on (rowId, revision) — same instance on hit', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final revision = revisionFor(json, DateTime.utc(2026));
 
-      final first = cache.linesFor(rowId: 'r1', timelineJson: json);
-      final second = cache.linesFor(rowId: 'r1', timelineJson: json);
+      final first = cache.linesFor(
+        rowId: 'r1',
+        revision: revision,
+        timelineJson: json,
+      );
+      final second = cache.linesFor(
+        rowId: 'r1',
+        revision: revision,
+        timelineJson: json,
+      );
       expect(identical(first, second), isTrue);
     });
 
-    test('issue #659: re-segmentation under the same row id re-decodes', () {
+    test('issue #659: a revision change under the same row id re-decodes', () {
       final cache = TranscriptTimelineCache();
       final before = timelineJson([
         lineJson(startMs: 0, durationMs: 2000, text: 'one long cue'),
@@ -99,36 +188,76 @@ void main() {
         lineJson(startMs: 0, durationMs: 1000, text: 'split'),
         lineJson(startMs: 1000, durationMs: 1000, text: 'apart'),
       ]);
+      final t0 = DateTime.utc(2026);
+      final t1 = t0.add(const Duration(seconds: 1));
 
-      final stale = cache.linesFor(rowId: 'r1', timelineJson: before);
+      final stale = cache.linesFor(
+        rowId: 'r1',
+        revision: revisionFor(before, t0),
+        timelineJson: before,
+      );
       expect(stale, hasLength(1));
 
-      final fresh = cache.linesFor(rowId: 'r1', timelineJson: after);
+      final fresh = cache.linesFor(
+        rowId: 'r1',
+        revision: revisionFor(after, t1),
+        timelineJson: after,
+      );
       expect(fresh, hasLength(2));
       expect(fresh.first.text, 'split');
       expect(identical(fresh, stale), isFalse);
     });
 
+    test('same content under a new revision still re-decodes', () {
+      final cache = TranscriptTimelineCache();
+      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final t0 = DateTime.utc(2026);
+      final t1 = t0.add(const Duration(seconds: 1));
+
+      final first = cache.linesFor(
+        rowId: 'r1',
+        revision: revisionFor(json, t0),
+        timelineJson: json,
+      );
+      final second = cache.linesFor(
+        rowId: 'r1',
+        revision: revisionFor(json, t1),
+        timelineJson: json,
+      );
+      expect(identical(first, second), isFalse);
+      expect(second, equals(first));
+    });
+
     test('separates rows with identical content', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final revision = revisionFor(json, DateTime.utc(2026));
 
-      final a = cache.linesFor(rowId: 'r1', timelineJson: json);
-      final b = cache.linesFor(rowId: 'r2', timelineJson: json);
+      final a = cache.linesFor(
+        rowId: 'r1',
+        revision: revision,
+        timelineJson: json,
+      );
+      final b = cache.linesFor(
+        rowId: 'r2',
+        revision: revision,
+        timelineJson: json,
+      );
       expect(identical(a, b), isFalse);
     });
 
     test('isCached/store round-trip serves the stored instance', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
-      expect(cache.isCached(rowId: 'r1', timelineJson: json), isFalse);
+      final revision = revisionFor(json, DateTime.utc(2026));
+      expect(cache.isCached(rowId: 'r1', revision: revision), isFalse);
 
       final decodedOffThread = decodeTimelineJson(json);
-      cache.store(rowId: 'r1', timelineJson: json, lines: decodedOffThread);
-      expect(cache.isCached(rowId: 'r1', timelineJson: json), isTrue);
+      cache.store(rowId: 'r1', revision: revision, lines: decodedOffThread);
+      expect(cache.isCached(rowId: 'r1', revision: revision), isTrue);
       expect(
         identical(
-          cache.linesFor(rowId: 'r1', timelineJson: json),
+          cache.linesFor(rowId: 'r1', revision: revision, timelineJson: json),
           decodedOffThread,
         ),
         isTrue,
@@ -138,38 +267,72 @@ void main() {
     test('remove drops the memo so the next read re-decodes', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
-      final first = cache.linesFor(rowId: 'r1', timelineJson: json);
+      final revision = revisionFor(json, DateTime.utc(2026));
+      final first = cache.linesFor(
+        rowId: 'r1',
+        revision: revision,
+        timelineJson: json,
+      );
       cache.remove('r1');
-      expect(cache.isCached(rowId: 'r1', timelineJson: json), isFalse);
+      expect(cache.isCached(rowId: 'r1', revision: revision), isFalse);
       expect(
-        identical(cache.linesFor(rowId: 'r1', timelineJson: json), first),
+        identical(
+          cache.linesFor(rowId: 'r1', revision: revision, timelineJson: json),
+          first,
+        ),
         isFalse,
       );
     });
 
     test('overflow drops the least-recently-used decode (issue #810 C1)', () {
       final cache = TranscriptTimelineCache();
+      final t0 = DateTime.utc(2026);
       String jsonFor(int i) =>
           timelineJson([lineJson(startMs: i * 1000, durationMs: 100)]);
+      TranscriptTimelineRevision revisionForIndex(int i) => (
+        updatedAt: t0.add(Duration(seconds: i)),
+        jsonLength: jsonFor(i).length,
+      );
 
-      final oldest = cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      final oldest = cache.linesFor(
+        rowId: 'r0',
+        revision: revisionForIndex(0),
+        timelineJson: jsonFor(0),
+      );
       for (var i = 1; i <= kTranscriptTimelineMemoCapacity; i++) {
-        cache.linesFor(rowId: 'r$i', timelineJson: jsonFor(i));
+        cache.linesFor(
+          rowId: 'r$i',
+          revision: revisionForIndex(i),
+          timelineJson: jsonFor(i),
+        );
       }
 
       expect(
         identical(
-          cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0)),
+          cache.linesFor(
+            rowId: 'r0',
+            revision: revisionForIndex(0),
+            timelineJson: jsonFor(0),
+          ),
           oldest,
         ),
         isFalse,
       );
       final newestId = 'r$kTranscriptTimelineMemoCapacity';
       final newestJson = jsonFor(kTranscriptTimelineMemoCapacity);
-      final newest = cache.linesFor(rowId: newestId, timelineJson: newestJson);
+      final newestRevision = revisionForIndex(kTranscriptTimelineMemoCapacity);
+      final newest = cache.linesFor(
+        rowId: newestId,
+        revision: newestRevision,
+        timelineJson: newestJson,
+      );
       expect(
         identical(
-          cache.linesFor(rowId: newestId, timelineJson: newestJson),
+          cache.linesFor(
+            rowId: newestId,
+            revision: newestRevision,
+            timelineJson: newestJson,
+          ),
           newest,
         ),
         isTrue,
@@ -178,25 +341,54 @@ void main() {
 
     test('a re-read row survives overflow, the untouched one is evicted', () {
       final cache = TranscriptTimelineCache();
+      final t0 = DateTime.utc(2026);
       String jsonFor(int i) =>
           timelineJson([lineJson(startMs: i * 1000, durationMs: 100)]);
+      TranscriptTimelineRevision revisionForIndex(int i) => (
+        updatedAt: t0.add(Duration(seconds: i)),
+        jsonLength: jsonFor(i).length,
+      );
 
-      final untouched = cache.linesFor(rowId: 'r1', timelineJson: jsonFor(1));
-      final touched = cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
-      cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      final untouched = cache.linesFor(
+        rowId: 'r1',
+        revision: revisionForIndex(1),
+        timelineJson: jsonFor(1),
+      );
+      final touched = cache.linesFor(
+        rowId: 'r0',
+        revision: revisionForIndex(0),
+        timelineJson: jsonFor(0),
+      );
+      cache.linesFor(
+        rowId: 'r0',
+        revision: revisionForIndex(0),
+        timelineJson: jsonFor(0),
+      );
       for (var i = 2; i <= kTranscriptTimelineMemoCapacity; i++) {
-        cache.linesFor(rowId: 'r$i', timelineJson: jsonFor(i));
+        cache.linesFor(
+          rowId: 'r$i',
+          revision: revisionForIndex(i),
+          timelineJson: jsonFor(i),
+        );
       }
       expect(
         identical(
-          cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0)),
+          cache.linesFor(
+            rowId: 'r0',
+            revision: revisionForIndex(0),
+            timelineJson: jsonFor(0),
+          ),
           touched,
         ),
         isTrue,
       );
       expect(
         identical(
-          cache.linesFor(rowId: 'r1', timelineJson: jsonFor(1)),
+          cache.linesFor(
+            rowId: 'r1',
+            revision: revisionForIndex(1),
+            timelineJson: jsonFor(1),
+          ),
           untouched,
         ),
         isFalse,
@@ -206,18 +398,26 @@ void main() {
     test('store over capacity also evicts the least-recently-used row', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final revision = revisionFor(json, DateTime.utc(2026));
 
-      final first = cache.linesFor(rowId: 'r0', timelineJson: json);
+      final first = cache.linesFor(
+        rowId: 'r0',
+        revision: revision,
+        timelineJson: json,
+      );
       for (var i = 1; i <= kTranscriptTimelineMemoCapacity; i++) {
         cache.store(
           rowId: 'r$i',
-          timelineJson: json,
+          revision: revision,
           lines: decodeTimelineJson(json),
         );
       }
 
       expect(
-        identical(cache.linesFor(rowId: 'r0', timelineJson: json), first),
+        identical(
+          cache.linesFor(rowId: 'r0', revision: revision, timelineJson: json),
+          first,
+        ),
         isFalse,
       );
     });

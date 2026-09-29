@@ -90,13 +90,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
         if (row != null) rowsToUpsert.add(row);
       }
       if (rowsToUpsert.isNotEmpty) {
-        await _db.batch(
-          (b) => b.insertAll(
-            _db.transcripts,
-            rowsToUpsert,
-            mode: InsertMode.insertOrReplace,
-          ),
-        );
+        await _db.transcriptDao.upsertAll(rowsToUpsert);
       }
       final storedCount = rowsToUpsert.length;
 

@@ -17,7 +17,7 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:drift/drift.dart' show InsertMode, Value;
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:media_kit/media_kit.dart' as mk;
@@ -83,9 +83,10 @@ class TranscriptRepository {
 
   final TranscriptTimelineCache _linesCache = TranscriptTimelineCache();
 
-  /// Decodes [row.timelineJson] with memoization on `(id, timelineJsonHash)`
-  /// via the timeline codec's cache (issue #766) — the one decode home shared
-  /// with Craft enrichment and the player's line controls.
+  /// Decodes [row.timelineJson] with memoization on `(id, revision)` via the
+  /// timeline codec's cache (issue #766; revision key: issue #810 D5) — the
+  /// one decode home shared with Craft enrichment and the player's line
+  /// controls.
   List<TranscriptLine> linesForRow(TranscriptRow row) => _linesForRow(row);
 
   /// Reactive lines for the active primary (shadow-reading) transcript.
