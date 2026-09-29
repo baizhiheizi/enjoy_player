@@ -410,6 +410,13 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   /// open. Guards: an open landed since (session live or open in flight), the
   /// engine was swapped out, or the controller died — then the timer stays
   /// cancelled and the engine's lifecycle belongs to that path instead.
+  ///
+  /// The engine leaves the identity slot before teardown starts, not after:
+  /// a concurrent open must not take the `owned != null && haveYt == wantYt`
+  /// fast path against a disposing engine (issue #774, item 1), and the
+  /// surface host drops the stage in reaction to that ownership change.
+  /// Detach and dispose failures are logged and swallowed — the slot stays
+  /// empty either way, and dispose still runs after a failed detach.
   Future<void> _evictWarmedYoutubeEngine(YoutubePlayerEngine engine) async {
     if (_disposed || !identical(ownedEngine, engine)) return;
     if (state != null || _engineSwap.isOpenInFlight) return;
@@ -422,13 +429,28 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
         'warmed YouTube engine surface detach timed out after '
         '$kEngineSurfaceDetachTimeout; evicting anyway',
       );
+    } on Object catch (error, stackTrace) {
+      _log.warning(
+        'warmed YouTube engine surface detach failed; disposing anyway',
+        error,
+        stackTrace,
+      );
     }
     await Future<void>.delayed(kEngineSurfaceSettleDelay);
-    await engine.dispose();
-    _log.info(
-      'evicted warmed YouTube engine after $warmedYoutubeEvictionDelay '
-      'idle without an open',
-    );
+    try {
+      await engine.dispose();
+      _log.info(
+        'evicted warmed YouTube engine after $warmedYoutubeEvictionDelay '
+        'idle without an open',
+      );
+    } on Object catch (error, stackTrace) {
+      _log.warning(
+        'warmed YouTube engine dispose failed after eviction; '
+        'identity slot stays empty',
+        error,
+        stackTrace,
+      );
+    }
   }
 
   void abandonPendingOpen() {

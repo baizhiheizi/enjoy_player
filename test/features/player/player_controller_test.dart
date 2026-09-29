@@ -1291,6 +1291,43 @@ void main() {
       await pumpEventQueue();
       expect(n.ownedEngine, isNull);
     });
+
+    test(
+      'a failing surface detach still completes the engine dispose',
+      () async {
+        final n = container.read(playerControllerProvider.notifier);
+        final engine = _EvictionSeamEngine(detachError: StateError('detach'));
+        n.ownedEngine = engine;
+        n.warmYoutubeSurface();
+
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        await pumpEventQueue();
+
+        expect(
+          n.ownedEngine,
+          isNull,
+          reason: 'the identity slot must stay empty after a failed detach',
+        );
+        expect(
+          engine.disposeCalled,
+          isTrue,
+          reason: 'dispose must land even when the detach wait throws',
+        );
+      },
+    );
+
+    test('a failing engine dispose after eviction stays contained', () async {
+      final n = container.read(playerControllerProvider.notifier);
+      final engine = _EvictionSeamEngine(disposeError: StateError('dispose'));
+      n.ownedEngine = engine;
+      n.warmYoutubeSurface();
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await pumpEventQueue();
+
+      expect(n.ownedEngine, isNull);
+      expect(engine.disposeCalled, isTrue);
+    });
   });
 }
 
@@ -1367,5 +1404,28 @@ class _ThrowingYoutubeRefreshRepository extends MediaLibraryRepository {
   ) async {
     refreshCalls.add(mediaId);
     throw StateError('oembed_boom');
+  }
+}
+
+/// Warms like a stock engine but lets a test fail the detach wait or the
+/// dispose, installed through the plain `ownedEngine` field seam.
+class _EvictionSeamEngine extends YoutubePlayerEngine {
+  _EvictionSeamEngine({this.detachError, this.disposeError});
+
+  final Object? detachError;
+  final Object? disposeError;
+  bool disposeCalled = false;
+
+  @override
+  Future<void> awaitSurfaceDetached() async {
+    final error = detachError;
+    if (error != null) throw error;
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposeCalled = true;
+    final error = disposeError;
+    if (error != null) throw error;
   }
 }
