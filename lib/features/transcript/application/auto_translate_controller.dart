@@ -47,6 +47,11 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     });
 
     ref.listen(secondaryTranscriptIdProvider(mediaId), (prev, next) {
+      if (state.aiTranscriptId == null &&
+          next.value != null &&
+          next.value != prev?.value) {
+        unawaited(_hydrateIfAiSecondaryActive());
+      }
       final aiId = state.aiTranscriptId;
       if (aiId == null) return;
       if (next.value != aiId && state.status == AutoTranslateStatus.active) {

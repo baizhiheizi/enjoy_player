@@ -137,6 +137,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -145,6 +146,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
     });
 
     tearDown(() async {
@@ -242,6 +244,7 @@ void main() {
         primaryId,
       );
 
+      container.listen(autoTranslateCtrlProvider(mediaDup), (_, _) {});
       final ctrl = container.read(autoTranslateCtrlProvider(mediaDup).notifier);
       await ctrl.selectAutoTranslate();
 
@@ -345,6 +348,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -356,6 +360,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();

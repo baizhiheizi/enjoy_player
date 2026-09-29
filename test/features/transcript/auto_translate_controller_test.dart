@@ -157,6 +157,7 @@ void main() {
       return ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(authOverride),
@@ -354,6 +355,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -362,6 +364,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
@@ -493,6 +496,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -501,6 +505,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
@@ -665,6 +670,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -673,6 +679,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
@@ -886,6 +893,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -894,6 +902,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       container.listen(secondaryTranscriptIdProvider(mediaId), (_, _) {});
       container.listen(activeTranscriptIdProvider(mediaId), (_, _) {});
@@ -973,6 +982,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -981,6 +991,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       container.listen(secondaryTranscriptIdProvider(mediaId), (_, _) {});
       container.listen(activeTranscriptIdProvider(mediaId), (_, _) {});
@@ -1064,6 +1075,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -1072,6 +1084,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       container.listen(secondaryTranscriptIdProvider(mediaId), (_, _) {});
       container.listen(activeTranscriptIdProvider(mediaId), (_, _) {});
@@ -1183,6 +1196,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -1191,6 +1205,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
@@ -1355,6 +1370,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -1366,6 +1382,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
@@ -1389,6 +1406,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -1400,6 +1418,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       for (final g in gates) {
         g.complete();
@@ -1620,7 +1639,6 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
-
       final result = await container.read(
         autoTranslateSelectionIdProvider('nonexistent-media').future,
       );
@@ -1700,6 +1718,7 @@ void main() {
       container = ProviderContainer(
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           transcriptRepositoryProvider.overrideWithValue(repo),
           translationCapabilityProvider.overrideWithValue(fake),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
@@ -1708,6 +1727,7 @@ void main() {
       );
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
 
       final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
       await ctrl.selectAutoTranslate();
