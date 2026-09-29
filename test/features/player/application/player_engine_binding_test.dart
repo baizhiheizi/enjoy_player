@@ -84,16 +84,28 @@ _wire(ProviderContainer container) {
 /// first dispose prefix bumps the generation at exactly that point without
 /// any polling. One-shot so the fresh verification open below can discard
 /// the same prior engine without superseding itself.
+///
+/// Because the one-shot bump lives on this engine's `dispose()`, whichever
+/// call site disposes it first is the one that fires the bump. The fake
+/// therefore records [bumpOrigin] — the stack at the dispose call that
+/// bumped — and the tests assert it names the expected call site, so a bump
+/// triggered by any other dispose fails while pointing at the actual
+/// caller.
 class _GenerationBumpingYoutubeEngine extends FakeYoutubeEngine {
   _GenerationBumpingYoutubeEngine(this.onDisposeStarted);
 
   final void Function() onDisposeStarted;
   bool _bumped = false;
 
+  /// Stack captured inside the dispose call that fired the one-shot bump;
+  /// `null` until then.
+  StackTrace? bumpOrigin;
+
   @override
   Future<void> dispose() {
     if (!_bumped) {
       _bumped = true;
+      bumpOrigin = StackTrace.current;
       onDisposeStarted();
     }
     return super.dispose();
@@ -365,9 +377,19 @@ void main() {
     expect(wiring.getOwned(), isA<MediaKitPlayerEngine>());
     expect(wiring.getOwned(), isNot(same(prior)));
 
-    // A newer open / clear bumps the generation before the yield resolves —
-    // still synchronous test code, so no timer can have fired yet.
+    // A newer open / clear bumps the generation. The swap body has already
+    // run synchronously to the first guarded step and is parked on its
+    // `Future.delayed(Duration.zero)` timer; timers cannot fire during
+    // synchronous test code, so the bump lands while the swap is parked
+    // there — the generation is stale BEFORE the yield's timer fires, which
+    // is what makes the FIRST step's post-await check the exit the test
+    // exercises.
     wiring.bumpGeneration();
+
+    // Release the event loop: the parked zero-timer (scheduled before this
+    // delay) now fires, the first step's post-await check sees the bump,
+    // and the swap unwinds from there.
+    await Future<void>.delayed(Duration.zero);
 
     final result = await swapFuture;
     expect(result, isFalse, reason: 'superseded swap must return false');
@@ -436,6 +458,19 @@ void main() {
           'the discard fired before the trailing check observed the '
           'bump — the restore deliberately puts the prior engine back even '
           'though its unawaited teardown started',
+    );
+    // The bump must fire from the swap body's `discardWithoutAwaiting(prior)`
+    // call. Anything else in the choreography disposing this engine first
+    // would fire the one-shot bump at the wrong instant and let this test
+    // pass for the wrong reason — so pin the origin; on failure the recorded
+    // stack below points at the actual dispose call site.
+    expect(
+      prior.bumpOrigin?.toString() ?? '',
+      contains('discardWithoutAwaiting'),
+      reason:
+          'the generation bump must come from the swap body\'s '
+          '`discardWithoutAwaiting` dispose, not any other teardown. '
+          'Recorded bump origin:\n${prior.bumpOrigin}',
     );
     // Install + single restore — the one unwind path is the only writer
     // after the initial install.

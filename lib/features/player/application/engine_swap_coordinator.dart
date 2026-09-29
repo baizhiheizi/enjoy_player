@@ -121,22 +121,10 @@ class EngineSwapCoordinator {
     return previous;
   }
 
-  /// The **one** supersede-unwind path for the swap choreography (issue
-  /// #774, item 1): [ensureEngineForPlayableSource] runs every guarded step
-  /// of its post-install choreography inside [body], and when any of those
-  /// steps observes a stale open generation — [OpenSupersededException]
-  /// unwinding out of `OpenSteps.run`, or staleness still detectable after
-  /// [body] completed — this method alone performs the whole unwind: dispose
-  /// the abandoned replacement, then restore [priorOwned] to the identity
-  /// slot so the slot is never left holding a disposed engine and the
-  /// replacement never leaks.
-  ///
-  /// Stating the invariant once here — next to [install], which put the
-  /// replacement into the slot — is what makes a future fourth guarded await
-  /// unable to forget it: a step added to [body] inherits the unwind for
-  /// free instead of each exit restating dispose + restore, which is exactly
-  /// how bug #774 happened. Returns `true` when every step landed with the
-  /// generation still current.
+  /// Runs [body]'s guarded swap steps; if any of them goes stale
+  /// ([OpenSupersededException], or staleness observed after [body]
+  /// returns), disposes [replacement] and restores [priorOwned]. Returns
+  /// `true` when every step landed with the generation still current.
   Future<bool> _runSupersededSwapSteps({
     required OpenSteps steps,
     required PlayerEngine replacement,
@@ -151,7 +139,19 @@ class EngineSwapCoordinator {
       superseded = true;
     }
     if (!superseded) return true;
-    await replacement.dispose();
+    try {
+      await replacement.dispose();
+    } on Object catch (error, stackTrace) {
+      // The restore below must run even when the replacement's dispose
+      // throws (it can be half-torn-down already) — otherwise the slot is
+      // left holding the abandoned engine.
+      _swapLog.warning(
+        'superseded replacement dispose failed '
+        '(${replacement.runtimeType}); restoring prior engine anyway',
+        error,
+        stackTrace,
+      );
+    }
     _setOwnedEngine(priorOwned);
     return false;
   }
@@ -244,10 +244,9 @@ class EngineSwapCoordinator {
 
     final next = wantYt ? YoutubePlayerEngine() : MediaKitPlayerEngine();
     install(next);
-    // One unwind path for every superseded exit (issue #774, item 1): each
-    // guarded step below runs inside [_runSupersededSwapSteps], which
-    // disposes the abandoned `next` and restores `owned` to the slot if any
-    // of them goes stale — stated once, next to the [install] above.
+    // Every guarded step below runs inside [_runSupersededSwapSteps] — the
+    // one supersede-unwind path (issue #774, item 1): on staleness it
+    // disposes the abandoned `next` and restores `owned`.
     final landed = await _runSupersededSwapSteps(
       steps: steps,
       replacement: next,
@@ -261,13 +260,12 @@ class EngineSwapCoordinator {
           'yield to surface host',
           () => Future<void>.delayed(Duration.zero),
         );
-        final prior = owned;
-        if (prior == null) return;
+        if (owned == null) return;
         await steps.run(
           'await prior surface detach',
-          () => awaitPriorSurfaceSettled(prior),
+          () => awaitPriorSurfaceSettled(owned),
         );
-        discardWithoutAwaiting(prior);
+        discardWithoutAwaiting(owned);
       },
     );
     if (!landed) return false;
