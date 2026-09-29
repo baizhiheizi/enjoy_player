@@ -1,8 +1,22 @@
 part of '../app_database.dart';
 
 @DriftAccessor(tables: [Videos])
-class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
+class VideoDao extends DatabaseAccessor<AppDatabase>
+    with _$VideoDaoMixin, BulkPkRowsMixin<AppDatabase, VideoRow> {
   VideoDao(super.db);
+
+  @override
+  TableInfo<Table, VideoRow> get bulkPkTable => videos;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => videos.id;
+
+  @override
+  String Function(VideoRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
 
   Stream<List<VideoRow>> watchAll() => (select(
     videos,
@@ -10,16 +24,6 @@ class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
 
   Future<VideoRow?> getById(String id) =>
       (select(videos)..where((t) => t.id.equals(id))).getSingleOrNull();
-
-  /// Bulk-fetch rows by primary key in one `WHERE id IN (…)` query (issue
-  /// #810 D3 — replaces a per-id `getById` round trip per server row in the
-  /// sync download loop). Missing ids are absent from the map.
-  Future<Map<String, VideoRow>> getManyByIds(Iterable<String> ids) async {
-    final values = ids.toList();
-    if (values.isEmpty) return const {};
-    final rows = await (select(videos)..where((t) => t.id.isIn(values))).get();
-    return {for (final row in rows) row.id: row};
-  }
 
   Future<VideoRow?> getYoutubeByVid(String youtubeVid) =>
       (select(videos)..where(
@@ -31,15 +35,6 @@ class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
 
   Future<void> insertRow(VideoRow row) =>
       into(videos).insert(row, mode: InsertMode.insertOrReplace);
-
-  /// Batch upsert sharing [insertRow]'s semantics in one Drift `batch`
-  /// (single transaction + COMMIT). Empty input is a no-op.
-  Future<void> upsertRows(List<VideoRow> rows) async {
-    if (rows.isEmpty) return;
-    await batch((b) {
-      b.insertAll(videos, rows, mode: InsertMode.insertOrReplace);
-    });
-  }
 
   Future<void> updateLocalThumbnail(String id, String absoluteThumbPath) async {
     await (update(videos)..where((t) => t.id.equals(id))).write(

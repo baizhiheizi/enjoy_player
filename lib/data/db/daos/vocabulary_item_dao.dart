@@ -2,26 +2,27 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [VocabularyItems])
 class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
-    with _$VocabularyItemDaoMixin {
+    with
+        _$VocabularyItemDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VocabularyItemRow> {
   VocabularyItemDao(super.db);
+
+  @override
+  TableInfo<Table, VocabularyItemRow> get bulkPkTable => vocabularyItems;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => vocabularyItems.id;
+
+  @override
+  String Function(VocabularyItemRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.replace;
 
   Future<VocabularyItemRow?> getById(String id) => (select(
     vocabularyItems,
   )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-  /// Bulk-fetch rows by primary key in one `WHERE id IN (…)` query (issue
-  /// #810 D3 — replaces a per-id `getById` round trip per server row in the
-  /// sync download loop). Missing ids are absent from the map.
-  Future<Map<String, VocabularyItemRow>> getManyByIds(
-    Iterable<String> ids,
-  ) async {
-    final values = ids.toList();
-    if (values.isEmpty) return const {};
-    final rows = await (select(
-      vocabularyItems,
-    )..where((t) => t.id.isIn(values))).get();
-    return {for (final row in rows) row.id: row};
-  }
 
   Future<VocabularyItemRow?> getByWordLanguageTarget({
     required String word,
@@ -41,15 +42,6 @@ class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> updateRow(VocabularyItemRow row) =>
       into(vocabularyItems).insert(row, mode: InsertMode.replace);
-
-  /// Batch upsert sharing [updateRow]'s semantics in one Drift `batch`
-  /// (single transaction + COMMIT). Empty input is a no-op.
-  Future<void> upsertRows(List<VocabularyItemRow> rows) async {
-    if (rows.isEmpty) return;
-    await batch((b) {
-      b.insertAll(vocabularyItems, rows, mode: InsertMode.replace);
-    });
-  }
 
   Future<int> deleteById(String id) =>
       (delete(vocabularyItems)..where((t) => t.id.equals(id))).go();

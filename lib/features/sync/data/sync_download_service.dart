@@ -6,6 +6,7 @@
 library;
 
 import 'package:enjoy_player/core/json/json_cast.dart';
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
 import 'package:enjoy_player/data/api/services/audio_api.dart';
@@ -14,6 +15,8 @@ import 'package:enjoy_player/data/api/services/video_api.dart';
 import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+
+final _log = logNamed('sync.download');
 
 /// Downloads server rows into local Drift tables (paged, cursor-based).
 ///
@@ -220,6 +223,12 @@ class SyncDownloadService {
           }
           continue;
         }
+        if (pendingUpserts.containsKey(id)) {
+          _log.warning(
+            'duplicate id "$id" in one server page; keeping the last payload '
+            '(last-write-wins, matching the historical per-row path)',
+          );
+        }
         pendingUpserts[id] = m;
       }
 
@@ -278,11 +287,11 @@ class SyncDownloadService {
     try {
       locals = await getManyByIds(pendingUpserts.keys.toList());
     } on Object {
-      return _upsertRowsIndividually(
-        pendingUpserts,
-        getLocal: getLocal,
-        insertRow: insertRow,
-        merge: merge,
+      return _runPerRow<MapEntry<String, Map<String, dynamic>>, E>(
+        pendingUpserts.entries,
+        lookupLocal: (entry) => getLocal(entry.key),
+        insertOne: (entry, local) =>
+            insertRow(merge(local: local, server: entry.value)),
       );
     }
 
@@ -300,9 +309,10 @@ class SyncDownloadService {
       await upsertRows(mergedRows);
       return (synced: mergedRows.length, failed: errors.length, errors: errors);
     } on Object {
-      final fallback = await _insertMergedRowsIndividually(
+      final fallback = await _runPerRow<E, E>(
         mergedRows,
-        insertRow: insertRow,
+        lookupLocal: (_) async => null,
+        insertOne: (row, _) => insertRow(row),
       );
       return (
         synced: fallback.synced,
@@ -312,42 +322,21 @@ class SyncDownloadService {
     }
   }
 
-  Future<({int synced, int failed, List<String> errors})>
-  _upsertRowsIndividually<E>(
-    Map<String, Map<String, dynamic>> pendingUpserts, {
-    required Future<E?> Function(String id) getLocal,
-    required Future<void> Function(E row) insertRow,
-    required E Function({
-      required E? local,
-      required Map<String, dynamic> server,
-    })
-    merge,
+  /// Runs [insertOne] over [items] one at a time, isolating per-item
+  /// failures so one bad row cannot fail its page neighbors. [lookupLocal]
+  /// resolves the local row an item merges against (or returns `null` when
+  /// the item is already merged).
+  Future<({int synced, int failed, List<String> errors})> _runPerRow<T, E>(
+    Iterable<T> items, {
+    required Future<E?> Function(T item) lookupLocal,
+    required Future<void> Function(T item, E? local) insertOne,
   }) async {
     var synced = 0;
     final errors = <String>[];
-    for (final entry in pendingUpserts.entries) {
+    for (final item in items) {
       try {
-        final local = await getLocal(entry.key);
-        final merged = merge(local: local, server: entry.value);
-        await insertRow(merged);
-        synced++;
-      } catch (e) {
-        errors.add('$e');
-      }
-    }
-    return (synced: synced, failed: errors.length, errors: errors);
-  }
-
-  Future<({int synced, int failed, List<String> errors})>
-  _insertMergedRowsIndividually<E>(
-    List<E> mergedRows, {
-    required Future<void> Function(E row) insertRow,
-  }) async {
-    var synced = 0;
-    final errors = <String>[];
-    for (final row in mergedRows) {
-      try {
-        await insertRow(row);
+        final local = await lookupLocal(item);
+        await insertOne(item, local);
         synced++;
       } catch (e) {
         errors.add('$e');

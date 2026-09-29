@@ -12,8 +12,60 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/update_profile_request.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+
+/// Platform-channel free [SecureTokenStore] so background-revalidation tests
+/// can run under `fakeAsync` (whose zone cannot deliver mock platform-channel
+/// replies).
+class _InMemorySecureTokenStore extends SecureTokenStore {
+  _InMemorySecureTokenStore() : super(const FlutterSecureStorage());
+
+  final Map<String, String> _values = {};
+
+  @override
+  Future<String?> readAccessToken() async => _values['access'];
+
+  @override
+  Future<void> writeAccessToken(String token) async {
+    _values['access'] = token;
+  }
+
+  @override
+  Future<String?> readRefreshToken() async => _values['refresh'];
+
+  @override
+  Future<void> writeRefreshToken(String token) async {
+    _values['refresh'] = token;
+  }
+
+  @override
+  Future<String?> readTokenExpiresAt() async => _values['expiresAt'];
+
+  @override
+  Future<void> writeTokenExpiresAt(String expiresAt) async {
+    _values['expiresAt'] = expiresAt;
+  }
+
+  @override
+  Future<String?> readCachedProfileJson() async => _values['profile'];
+
+  @override
+  Future<void> writeCachedProfileJson(String json) async {
+    _values['profile'] = json;
+  }
+
+  @override
+  Future<void> clearCachedProfile() async {
+    _values.remove('profile');
+  }
+
+  @override
+  Future<void> clearAllAuthSecrets() async {
+    _values.clear();
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +126,26 @@ void main() {
       directUploadsApi: DirectUploadsApi(sharedClient),
       tokenStore: tokenStore,
       getBaseUrl: getBaseUrl,
+    );
+  }
+
+  AuthRepository buildRepoWithStore(
+    http.Client client,
+    SecureTokenStore store, {
+    void Function()? onSessionLost,
+  }) {
+    final sharedClient = ApiClient(
+      httpClient: client,
+      getBaseUrl: () async => 'https://enjoy.bot',
+      getAccessToken: store.readAccessToken,
+    );
+    final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
+    return AuthRepository(
+      authApi: api,
+      directUploadsApi: DirectUploadsApi(sharedClient),
+      tokenStore: store,
+      getBaseUrl: () async => 'https://enjoy.bot',
+      onSessionLost: onSessionLost,
     );
   }
 
@@ -811,28 +883,69 @@ void main() {
       },
     );
 
+    test('keeps the session and retries once when background refresh keeps '
+        'failing transiently (network error)', () async {
+      final store = _InMemorySecureTokenStore();
+      await store.writeAccessToken('expired-token');
+      await store.writeRefreshToken('refresh-1');
+      await store.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
+      await store.writeCachedProfileJson(
+        jsonEncode({'id': 'u-offline', 'email': 'o@x.com', 'name': 'O'}),
+      );
+
+      var refreshCalls = 0;
+      var sessionLostCalls = 0;
+      final client = MockClient((_) async {
+        refreshCalls++;
+        throw const SocketException('offline');
+      });
+      final repo = buildRepoWithStore(
+        client,
+        store,
+        onSessionLost: () => sessionLostCalls++,
+      );
+
+      late AuthState state;
+      fakeAsync((async) {
+        unawaited(repo.loadInitialAuthState().then((s) => state = s));
+        async.elapse(const Duration(seconds: 45));
+      });
+
+      expect(state, isA<AuthSignedIn>());
+      expect(sessionLostCalls, 0);
+      expect(refreshCalls, 2);
+      expect(await store.readAccessToken(), 'expired-token');
+    });
+
     test(
-      'keeps the session when background refresh fails transiently',
+      'keeps the session and retries once when background refresh times out',
       () async {
-        await tokenStore.writeAccessToken('expired-token');
-        await tokenStore.writeRefreshToken('refresh-1');
-        await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
-        await tokenStore.writeCachedProfileJson(
-          jsonEncode({'id': 'u-offline', 'email': 'o@x.com', 'name': 'O'}),
+        final store = _InMemorySecureTokenStore();
+        await store.writeAccessToken('expired-token');
+        await store.writeRefreshToken('refresh-1');
+        await store.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
+        await store.writeCachedProfileJson(
+          jsonEncode({'id': 'u-hang', 'email': 'h@x.com', 'name': 'H'}),
         );
 
+        final neverResponds = Completer<http.Response>();
         var sessionLostCalls = 0;
-        final client = MockClient(
-          (_) async => throw const SocketException('offline'),
+        final client = MockClient((_) => neverResponds.future);
+        final repo = buildRepoWithStore(
+          client,
+          store,
+          onSessionLost: () => sessionLostCalls++,
         );
-        final repo = buildRepoWithSessionLost(client, () => sessionLostCalls++);
 
-        final state = await repo.loadInitialAuthState();
-        await repo.sessionRevalidation;
+        late AuthState state;
+        fakeAsync((async) {
+          unawaited(repo.loadInitialAuthState().then((s) => state = s));
+          async.elapse(const Duration(minutes: 2));
+        });
 
         expect(state, isA<AuthSignedIn>());
         expect(sessionLostCalls, 0);
-        expect(await tokenStore.readAccessToken(), 'expired-token');
+        expect(await store.readAccessToken(), 'expired-token');
       },
     );
 

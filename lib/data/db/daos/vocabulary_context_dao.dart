@@ -2,8 +2,23 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [VocabularyContexts])
 class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
-    with _$VocabularyContextDaoMixin {
+    with
+        _$VocabularyContextDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VocabularyContextRow> {
   VocabularyContextDao(super.db);
+
+  @override
+  TableInfo<Table, VocabularyContextRow> get bulkPkTable => vocabularyContexts;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => vocabularyContexts.id;
+
+  @override
+  String Function(VocabularyContextRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.replace;
 
   Future<List<VocabularyContextRow>> getByItemId(String vocabularyItemId) =>
       (select(
@@ -37,34 +52,11 @@ class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
     vocabularyContexts,
   )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  /// Bulk-fetch rows by primary key in one `WHERE id IN (…)` query (issue
-  /// #810 D3 — replaces a per-id `getById` round trip per server row in the
-  /// sync download loop). Missing ids are absent from the map.
-  Future<Map<String, VocabularyContextRow>> getManyByIds(
-    Iterable<String> ids,
-  ) async {
-    final values = ids.toList();
-    if (values.isEmpty) return const {};
-    final rows = await (select(
-      vocabularyContexts,
-    )..where((t) => t.id.isIn(values))).get();
-    return {for (final row in rows) row.id: row};
-  }
-
   Future<void> insertRow(VocabularyContextRow row) =>
       into(vocabularyContexts).insert(row);
 
   Future<void> updateRow(VocabularyContextRow row) =>
       into(vocabularyContexts).insert(row, mode: InsertMode.replace);
-
-  /// Batch upsert sharing [updateRow]'s semantics in one Drift `batch`
-  /// (single transaction + COMMIT). Empty input is a no-op.
-  Future<void> upsertRows(List<VocabularyContextRow> rows) async {
-    if (rows.isEmpty) return;
-    await batch((b) {
-      b.insertAll(vocabularyContexts, rows, mode: InsertMode.replace);
-    });
-  }
 
   Future<int> deleteByItemId(String vocabularyItemId) => (delete(
     vocabularyContexts,

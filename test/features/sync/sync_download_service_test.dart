@@ -10,6 +10,7 @@ import 'package:enjoy_player/features/sync/data/sync_download_service.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 
 final _dummyClient = ApiClient(
   httpClient: http.Client(),
@@ -305,6 +306,41 @@ void main() {
       final row = await db.audioDao.getById('valid');
       expect(row, isNotNull);
     });
+
+    test(
+      'duplicate id in one page keeps the last server payload and warns',
+      () async {
+        final records = <LogRecord>[];
+        final sub = Logger('sync.download').onRecord.listen(records.add);
+        addTearDown(sub.cancel);
+
+        final first = {
+          ..._audioJson('dup', updatedAt: '2026-01-01T00:00:00.000Z'),
+          'title': 'Audio dup first',
+        };
+        final second = {
+          ..._audioJson('dup', updatedAt: '2026-01-02T00:00:00.000Z'),
+          'title': 'Audio dup second',
+        };
+        final service = buildService(
+          audioApi: _FakeAudioApi([
+            [first, second],
+          ]),
+        );
+
+        final result = await service.downloadAudios();
+
+        expect(result.success, isTrue);
+        expect(result.synced, 1);
+        final row = await db.audioDao.getById('dup');
+        expect(row!.title, 'Audio dup second');
+        expect(row.updatedAt.toUtc(), DateTime.utc(2026, 1, 2));
+        expect(
+          records.where((r) => r.level == Level.WARNING).map((r) => r.message),
+          anyElement(contains('duplicate id "dup"')),
+        );
+      },
+    );
 
     test('returns empty success when no data', () async {
       final service = buildService(audioApi: _FakeAudioApi([]));

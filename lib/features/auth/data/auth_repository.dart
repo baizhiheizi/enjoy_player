@@ -4,6 +4,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -78,8 +79,10 @@ class AuthRepository {
 
   /// In-flight session revalidation kicked by the most recent
   /// [loadInitialAuthState] that found an expired token plus a cached
-  /// profile, or `null` when no revalidation is running. Exposed so callers
-  /// (and tests) can await the background refresh.
+  /// profile, or `null` when no revalidation is running. Tests use it to
+  /// await the background refresh; production code treats revalidation as
+  /// fire-and-forget.
+  @visibleForTesting
   Future<void>? get sessionRevalidation => _sessionRevalidation;
   Future<void>? _sessionRevalidation;
 
@@ -371,16 +374,50 @@ class AuthRepository {
     }
   }
 
-  Future<void> _revalidateSessionInBackground() async {
+  /// Upper bound for one background refresh attempt; matches the 15 s the
+  /// auth feature already uses for `profile_practice_stats_provider`.
+  static const _backgroundRefreshTimeout = Duration(seconds: 15);
+
+  /// Delay before the single retry of a transient background refresh
+  /// failure.
+  static const _backgroundRefreshRetryDelay = Duration(seconds: 30);
+
+  /// Refreshes the expired token behind the signed-in first frame.
+  ///
+  /// Contract:
+  /// - refresh succeeds: tokens are rotated, session stays;
+  /// - refresh refused and the stored access token was cleared (401/403):
+  ///   [onSessionLost] fires;
+  /// - transient failure — network error, timeout, or 5xx — leaves the
+  ///   stored access token intact: one delayed retry runs, then the session
+  ///   stays as-is; the 401-refresh interceptor on the next API call is the
+  ///   recovery path (see `registerOn401RefreshCallback`).
+  Future<void> _revalidateSessionInBackground({bool allowRetry = true}) async {
     try {
-      final refreshed = await refreshSession();
+      final refreshed = await refreshSession().timeout(
+        _backgroundRefreshTimeout,
+      );
       if (refreshed) return;
-      if (await hasAccessToken()) return;
+      if (await hasAccessToken()) {
+        await _retryTransientRevalidation(allowRetry);
+        return;
+      }
       _log.info('session revoked during background revalidation');
       onSessionLost?.call();
+    } on TimeoutException catch (e) {
+      _log.warning('background session revalidation timed out', e);
+      await _retryTransientRevalidation(allowRetry);
     } catch (e, st) {
       _log.warning('background session revalidation failed', e, st);
     }
+  }
+
+  /// Runs the single delayed retry after a transient revalidation failure;
+  /// the retried attempt itself never schedules another.
+  Future<void> _retryTransientRevalidation(bool allowRetry) async {
+    if (!allowRetry) return;
+    await Future<void>.delayed(_backgroundRefreshRetryDelay);
+    await _revalidateSessionInBackground(allowRetry: false);
   }
 
   static bool _isExpiredToken(String? expiresAtRaw) {
