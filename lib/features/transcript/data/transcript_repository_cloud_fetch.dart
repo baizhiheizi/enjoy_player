@@ -86,7 +86,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
       final now = DateTime.now();
       final rowsToUpsert = <TranscriptRow>[];
       for (final item in list) {
-        final row = _transcriptRowFromServerMap(item, fallbackNow: now);
+        final row = await _transcriptRowFromServerMap(item, fallbackNow: now);
         if (row != null) rowsToUpsert.add(row);
       }
       if (rowsToUpsert.isNotEmpty) {
@@ -121,10 +121,10 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     }
   }
 
-  TranscriptRow? _transcriptRowFromServerMap(
+  Future<TranscriptRow?> _transcriptRowFromServerMap(
     Map<String, dynamic> json, {
     required DateTime fallbackNow,
-  }) {
+  }) async {
     final id = json['id'] as String?;
     final targetType = json['targetType'] as String?;
     final targetId = json['targetId'] as String?;
@@ -144,7 +144,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     final lines = transcriptLinesFromApiTimeline(timeline);
     if (lines.isEmpty) return null;
 
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final timelineJson = await encodeTimelineJsonGated(lines);
     final createdAt = _parseServerDate(json['createdAt'], fallbackNow);
     final updatedAt = _parseServerDate(json['updatedAt'], fallbackNow);
     final label = (json['label'] as String?) ?? '';

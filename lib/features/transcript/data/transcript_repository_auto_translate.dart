@@ -29,7 +29,7 @@ extension _TranscriptRepositoryAutoTranslate on TranscriptRepository {
     }
 
     final skeleton = buildAutoTranslateSkeleton(primaryLines);
-    final json = jsonEncode(skeleton.map((e) => e.toJson()).toList());
+    final json = await encodeTimelineJsonGated(skeleton);
     final now = DateTime.now();
 
     await _db.transcriptDao.upsert(

@@ -30,7 +30,7 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
         : (existing?.label.isNotEmpty == true
               ? existing!.label
               : 'Generated ($language)');
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final timelineJson = await encodeTimelineJsonGated(lines);
 
     await _db.transcriptDao.upsert(
       TranscriptRow(
@@ -134,7 +134,7 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
   }) async {
     final existing = await _db.transcriptDao.getById(transcriptId);
     if (existing == null) return false;
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final timelineJson = await encodeTimelineJsonGated(lines);
     await _db.transcriptDao.upsert(
       existing.copyWith(
         timelineJson: timelineJson,

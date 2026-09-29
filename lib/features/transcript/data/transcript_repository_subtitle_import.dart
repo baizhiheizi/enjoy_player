@@ -55,7 +55,7 @@ extension _TranscriptRepositorySubtitleImport on TranscriptRepository {
       text,
       fileName: file.name,
     );
-    final json = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final json = await encodeTimelineJsonGated(lines);
     const source = 'user';
     final id = enjoyTranscriptId(
       targetType: tt,
