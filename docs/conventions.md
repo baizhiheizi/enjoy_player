@@ -180,9 +180,10 @@ For new in-memory caches, prefer the shared
 [`L1Store<K, V>`](../lib/core/cache/lru_store.dart) primitive in
 `lib/core/cache/` over a hand-rolled `LinkedHashMap` LRU. It
 encapsulates the boring bookkeeping (move-to-end on hit, evict the
-tail on overflow) and adds an **optional TTL** so entries older than
-the configured lifetime are treated as misses on the next `peek`. The
-primitive is intentionally generic and lives under `lib/core/` because
+tail on overflow) and adds an **optional TTL** — omit `ttl` (or pass
+`null`) and entries never age-expire, leaving only LRU overflow and
+explicit removal; a no-TTL store never consults the clock on reads.
+The primitive is intentionally generic and lives under `lib/core/` because
 several features need the same shape — do not re-implement it
 feature-local.
 
@@ -191,11 +192,13 @@ Current call sites:
 - [`AiResultCache` L1 tier](../lib/features/ai/application/ai_result_cache.dart) — 256 entries / 30 min TTL per AI modality, see [ADR-0045](decisions/0045-ai-result-cache-hierarchy.md).
 - `LookupSheetResultCache` — same primitive after ADR-0045 slimmed down its internal maps.
 - [`DiscoverRepository`](../lib/features/discover/data/discover_repository.dart) — channel-avatar URL cache, 256 entries / 6 h TTL, see [features/discover.md § Channel avatar cache](features/discover.md#channel-avatar-cache).
-- [`TranscriptTimelineCache`](../lib/features/transcript/data/transcript_timeline_codec.dart) — decoded `timelineJson` memo, 8 rows / no effective TTL (invalidation is content-hash based), see [features/transcript.md](features/transcript.md).
+- [`youtubeProfiles`](../lib/features/transcript/data/youtube_profiles_provider.dart) — worker client-profile list, 1 entry / 24 h TTL.
+- [`TranscriptTimelineCache`](../lib/features/transcript/data/transcript_timeline_codec.dart) — decoded `timelineJson` memo, 8 rows / no TTL (invalidation is content-hash based), see [features/transcript.md](features/transcript.md).
 
 Behavior contract:
 
 - `peek(key)` returns the value and bumps the entry to MRU; on TTL expiry it removes the entry and returns `null`.
+- `peekNoTouch(key)` is the read-only probe: it returns the value without reordering LRU, so "do I have this?" checks cannot keep entries alive. Expired entries read as misses but are left in place.
 - `put(key, value)` overwrites existing entries and evicts the LRU tail when at capacity.
 - `invalidate(key)` and `clear()` are the only escape hatches — call them on explicit cache busts (`forceRefresh`, sign-out, schema migration).
 

@@ -135,6 +135,22 @@ void main() {
       );
     });
 
+    test('isCached is a pure probe — it does not touch LRU order', () {
+      final cache = TranscriptTimelineCache();
+      String jsonFor(int i) =>
+          timelineJson([lineJson(startMs: i * 1000, durationMs: 100)]);
+
+      cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      cache.linesFor(rowId: 'r1', timelineJson: jsonFor(1));
+      expect(cache.isCached(rowId: 'r0', timelineJson: jsonFor(0)), isTrue);
+      for (var i = 2; i <= kTranscriptTimelineMemoCapacity; i++) {
+        cache.linesFor(rowId: 'r$i', timelineJson: jsonFor(i));
+      }
+
+      expect(cache.isCached(rowId: 'r0', timelineJson: jsonFor(0)), isFalse);
+      expect(cache.isCached(rowId: 'r1', timelineJson: jsonFor(1)), isTrue);
+    });
+
     test('remove drops the memo so the next read re-decodes', () {
       final cache = TranscriptTimelineCache();
       final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);

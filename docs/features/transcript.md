@@ -123,10 +123,10 @@ Interface notes:
   `autoDispose` families (issue #810 C2): decoded lines and their Drift
   watch streams are released once no widget watches the media, while the
   repository — and its `TranscriptTimelineCache` decode memo — survives for
-  warm re-entry. That memo is an `L1Store` LRU bounded to 8 rows (issue
-  #810 C1): content-hash mismatch on the same row id and explicit removal
-  on row mutation are the only invalidations, and the least-recently-used
-  decode is dropped on overflow.
+  warm re-entry. That memo is an `L1Store` LRU bounded to 8 rows with no
+  TTL (issue #810 C1): content-hash mismatch on the same row id and
+  explicit removal on row mutation are the only invalidations, and the
+  least-recently-used decode is dropped on overflow.
 
 ## Blur practice (listening-focus) mode
 

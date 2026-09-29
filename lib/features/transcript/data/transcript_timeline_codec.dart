@@ -74,11 +74,6 @@ String timelineJsonHash(String timelineJson) =>
 /// used decode is dropped on overflow (issue #810, item C1).
 const int kTranscriptTimelineMemoCapacity = 8;
 
-/// Age never invalidates a memo entry — a content-hash mismatch on the same
-/// row id and explicit [TranscriptTimelineCache.remove] are the only
-/// invalidations.
-const Duration kTranscriptTimelineMemoTtl = Duration(days: 365);
-
 class _CachedLines {
   const _CachedLines(this.hash, this.lines);
   final String hash;
@@ -99,13 +94,13 @@ class _CachedLines {
 /// paths call [remove] (see `transcript_repository_tracks.dart` /
 /// `transcript_repository_auto_translate.dart`) — and the memo set is
 /// bounded by an [L1Store] LRU of [kTranscriptTimelineMemoCapacity] rows
-/// (issue #810, item C1): the least-recently-used decode is dropped on
-/// overflow and re-decoded on demand, so decoding many distinct transcripts
-/// in one session no longer keeps every decode resident.
+/// with no TTL (issue #810, item C1): age never invalidates a memo entry,
+/// and the least-recently-used decode is dropped on overflow and
+/// re-decoded on demand, so decoding many distinct transcripts in one
+/// session no longer keeps every decode resident.
 class TranscriptTimelineCache {
   final L1Store<String, _CachedLines> _entries = L1Store<String, _CachedLines>(
     capacity: kTranscriptTimelineMemoCapacity,
-    ttl: kTranscriptTimelineMemoTtl,
   );
 
   /// Decoded lines for `(rowId, timelineJson)`, memoized.
@@ -122,8 +117,12 @@ class TranscriptTimelineCache {
   }
 
   /// Whether `(rowId, timelineJson)` already holds a decode.
+  ///
+  /// A pure probe: unlike [linesFor] it does not touch the entry's LRU
+  /// position, so a background pre-decode gate cannot keep a row resident
+  /// or reorder the eviction queue.
   bool isCached({required String rowId, required String timelineJson}) {
-    final hit = _entries.peek(rowId);
+    final hit = _entries.peekNoTouch(rowId);
     return hit != null && hit.hash == timelineJsonHash(timelineJson);
   }
 
