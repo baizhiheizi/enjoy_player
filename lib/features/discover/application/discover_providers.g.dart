@@ -298,7 +298,8 @@ final class DiscoverTimelineProvider
 
 String _$discoverTimelineHash() => r'3e942de2ba42045ba9935cc68b25c1d12896de33';
 
-/// The Discover feed with library membership already resolved.
+/// The Discover feed with library membership and channel display fields
+/// already resolved.
 ///
 /// Tiles render this instead of probing per item; after "add to library" the
 /// membership arrives through the registry stream, so the manual
@@ -307,7 +308,8 @@ String _$discoverTimelineHash() => r'3e942de2ba42045ba9935cc68b25c1d12896de33';
 @ProviderFor(discoverFeedItems)
 final discoverFeedItemsProvider = DiscoverFeedItemsProvider._();
 
-/// The Discover feed with library membership already resolved.
+/// The Discover feed with library membership and channel display fields
+/// already resolved.
 ///
 /// Tiles render this instead of probing per item; after "add to library" the
 /// membership arrives through the registry stream, so the manual
@@ -323,7 +325,8 @@ final class DiscoverFeedItemsProvider
     with
         $FutureModifier<List<DiscoverFeedItem>>,
         $StreamProvider<List<DiscoverFeedItem>> {
-  /// The Discover feed with library membership already resolved.
+  /// The Discover feed with library membership and channel display fields
+  /// already resolved.
   ///
   /// Tiles render this instead of probing per item; after "add to library" the
   /// membership arrives through the registry stream, so the manual
@@ -354,7 +357,7 @@ final class DiscoverFeedItemsProvider
   }
 }
 
-String _$discoverFeedItemsHash() => r'391c9d904b22dfa571e0ec4a912f1ae3c94b5775';
+String _$discoverFeedItemsHash() => r'188545e931bdc73070a19fc1b226b9fe5cb5374b';
 
 @ProviderFor(discoverChannelFeed)
 final discoverChannelFeedProvider = DiscoverChannelFeedFamily._();
@@ -432,16 +435,18 @@ final class DiscoverChannelFeedFamily extends $Family
   String toString() => r'discoverChannelFeedProvider';
 }
 
-/// Channel feed with library membership already resolved — the same join as
-/// [discoverFeedItemsProvider], so a single-channel view gets membership
-/// without falling back to per-tile probes.
+/// Channel feed with library membership and channel display fields already
+/// resolved — the same join as [discoverFeedItemsProvider], so a
+/// single-channel view gets membership without falling back to per-tile
+/// probes.
 
 @ProviderFor(discoverChannelFeedItems)
 final discoverChannelFeedItemsProvider = DiscoverChannelFeedItemsFamily._();
 
-/// Channel feed with library membership already resolved — the same join as
-/// [discoverFeedItemsProvider], so a single-channel view gets membership
-/// without falling back to per-tile probes.
+/// Channel feed with library membership and channel display fields already
+/// resolved — the same join as [discoverFeedItemsProvider], so a
+/// single-channel view gets membership without falling back to per-tile
+/// probes.
 
 final class DiscoverChannelFeedItemsProvider
     extends
@@ -453,9 +458,10 @@ final class DiscoverChannelFeedItemsProvider
     with
         $FutureModifier<List<DiscoverFeedItem>>,
         $StreamProvider<List<DiscoverFeedItem>> {
-  /// Channel feed with library membership already resolved — the same join as
-  /// [discoverFeedItemsProvider], so a single-channel view gets membership
-  /// without falling back to per-tile probes.
+  /// Channel feed with library membership and channel display fields already
+  /// resolved — the same join as [discoverFeedItemsProvider], so a
+  /// single-channel view gets membership without falling back to per-tile
+  /// probes.
   DiscoverChannelFeedItemsProvider._({
     required DiscoverChannelFeedItemsFamily super.from,
     required String super.argument,
@@ -502,11 +508,12 @@ final class DiscoverChannelFeedItemsProvider
 }
 
 String _$discoverChannelFeedItemsHash() =>
-    r'8eb902cb635fe96e5b4b451ddbe9465ce79a77b1';
+    r'aab7243418e681d88bae5c01b1ff23db67264e7d';
 
-/// Channel feed with library membership already resolved — the same join as
-/// [discoverFeedItemsProvider], so a single-channel view gets membership
-/// without falling back to per-tile probes.
+/// Channel feed with library membership and channel display fields already
+/// resolved — the same join as [discoverFeedItemsProvider], so a
+/// single-channel view gets membership without falling back to per-tile
+/// probes.
 
 final class DiscoverChannelFeedItemsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<DiscoverFeedItem>>, String> {
@@ -519,9 +526,10 @@ final class DiscoverChannelFeedItemsFamily extends $Family
         isAutoDispose: false,
       );
 
-  /// Channel feed with library membership already resolved — the same join as
-  /// [discoverFeedItemsProvider], so a single-channel view gets membership
-  /// without falling back to per-tile probes.
+  /// Channel feed with library membership and channel display fields already
+  /// resolved — the same join as [discoverFeedItemsProvider], so a
+  /// single-channel view gets membership without falling back to per-tile
+  /// probes.
 
   DiscoverChannelFeedItemsProvider call(String channelId) =>
       DiscoverChannelFeedItemsProvider._(argument: channelId, from: this);
