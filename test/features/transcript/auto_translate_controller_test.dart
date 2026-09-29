@@ -77,6 +77,43 @@ class _ZhNativePrefsCtrl extends AppPreferencesCtrl {
       .copyWith(nativeLanguage: 'zh-CN', learningLanguage: 'en-US');
 }
 
+class _GatedTranscriptRepository extends TranscriptRepository {
+  _GatedTranscriptRepository(super.db);
+
+  final rowReads = <String>[];
+  final _rowGates = <String, Completer<void>>{};
+
+  Completer<void> gateRowRead(String transcriptId) {
+    final gate = Completer<void>();
+    _rowGates[transcriptId] = gate;
+    return gate;
+  }
+
+  @override
+  Future<TranscriptRow?> transcriptRowById(String transcriptId) async {
+    rowReads.add(transcriptId);
+    final gate = _rowGates[transcriptId];
+    if (gate != null) {
+      await gate.future;
+    }
+    return super.transcriptRowById(transcriptId);
+  }
+}
+
+Future<void> _pumpUntil(
+  ProviderContainer container,
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 2),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition not met before timeout');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 void main() {
   group('AutoTranslateCtrl selectAutoTranslate error paths', () {
     late AppDatabase db;
@@ -918,6 +955,155 @@ void main() {
       expect(state.sourceLanguage, 'en');
       expect(state.targetLanguage, 'zh-CN');
     });
+
+    test(
+      'late hydration for an older secondary id cannot clobber the newer one',
+      () async {
+        final now = DateTime.now();
+        await db.videoDao.insertRow(
+          VideoRow(
+            id: mediaId,
+            vid: 'vid12345678',
+            provider: 'user',
+            title: 'Test',
+            description: null,
+            thumbnailUrl: null,
+            durationSeconds: 60,
+            language: 'en',
+            source: 'local',
+            localUri: '/tmp/test.mp4',
+            md5: null,
+            size: null,
+            mediaUrl: null,
+            syncStatus: null,
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        final primaryId = enjoyTranscriptId(
+          targetType: 'Video',
+          targetId: mediaId,
+          language: 'en',
+          source: 'user',
+        );
+        const lines = [
+          TranscriptLine(text: 'Hello', startMs: 0, durationMs: 1000),
+        ];
+        await db.transcriptDao.upsert(
+          TranscriptRow(
+            id: primaryId,
+            targetType: 'Video',
+            targetId: mediaId,
+            language: 'en',
+            source: 'user',
+            timelineJson: jsonEncode(lines.map((e) => e.toJson()).toList()),
+            referenceId: null,
+            label: 'English',
+            trackIndex: null,
+            syncStatus: 'local',
+            serverUpdatedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+          'Video',
+          mediaId,
+          primaryId,
+        );
+
+        Future<void> seedAiTrack({required String id, required String lang}) {
+          final skeleton = buildAutoTranslateSkeleton(lines);
+          return db.transcriptDao.upsert(
+            TranscriptRow(
+              id: id,
+              targetType: 'Video',
+              targetId: mediaId,
+              language: lang,
+              source: 'ai',
+              timelineJson: jsonEncode(
+                skeleton.map((e) => e.toJson()).toList(),
+              ),
+              referenceId: primaryId,
+              label: 'Auto translate ($lang)',
+              trackIndex: null,
+              syncStatus: 'local',
+              serverUpdatedAt: null,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+
+        final aiZh = enjoyTranscriptId(
+          targetType: 'Video',
+          targetId: mediaId,
+          language: 'zh-CN',
+          source: 'ai',
+        );
+        final aiJa = enjoyTranscriptId(
+          targetType: 'Video',
+          targetId: mediaId,
+          language: 'ja',
+          source: 'ai',
+        );
+        await seedAiTrack(id: aiZh, lang: 'zh-CN');
+        await seedAiTrack(id: aiJa, lang: 'ja');
+
+        final gated = _GatedTranscriptRepository(db);
+        final gateZh = gated.gateRowRead(aiZh);
+        final gateJa = gated.gateRowRead(aiJa);
+
+        container = ProviderContainer(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+            transcriptRepositoryProvider.overrideWithValue(gated),
+            translationCapabilityProvider.overrideWithValue(fake),
+            authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+            appPreferencesCtrlProvider.overrideWith(_ZhNativePrefsCtrl.new),
+          ],
+        );
+        await container.read(authCtrlProvider.future);
+        await container.read(appPreferencesCtrlProvider.future);
+        container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
+        container.listen(secondaryTranscriptIdProvider(mediaId), (_, _) {});
+
+        await db.echoSessionDao.updateSecondaryTranscriptForTarget(
+          'Video',
+          mediaId,
+          aiZh,
+        );
+        await _pumpUntil(container, () => gated.rowReads.contains(aiZh));
+
+        await db.echoSessionDao.updateSecondaryTranscriptForTarget(
+          'Video',
+          mediaId,
+          aiJa,
+        );
+        await _pumpUntil(container, () => gated.rowReads.contains(aiJa));
+
+        gateJa.complete();
+        await _pumpUntil(
+          container,
+          () =>
+              container
+                  .read(autoTranslateCtrlProvider(mediaId))
+                  .aiTranscriptId ==
+              aiJa,
+        );
+
+        gateZh.complete();
+        await pumpEventQueue();
+
+        final state = container.read(autoTranslateCtrlProvider(mediaId));
+        expect(state.status, AutoTranslateStatus.active);
+        expect(state.aiTranscriptId, aiJa);
+        expect(state.targetLanguage, 'ja');
+        expect(state.primaryTranscriptId, primaryId);
+      },
+    );
 
     test('does not hydrate when secondary is not AI source', () async {
       final now = DateTime.now();
