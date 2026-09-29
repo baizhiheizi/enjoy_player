@@ -55,4 +55,4 @@ final class CraftLibraryRepositoryProvider
 }
 
 String _$craftLibraryRepositoryHash() =>
-    r'47d9af12d166a59f036e3a0e9ed6061deccb2c0e';
+    r'54f098a6945f79874b8fc7caf1a08bfc926ea5cd';

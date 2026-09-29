@@ -2,8 +2,23 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [VocabularyContexts])
 class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
-    with _$VocabularyContextDaoMixin {
+    with
+        _$VocabularyContextDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VocabularyContextRow> {
   VocabularyContextDao(super.db);
+
+  @override
+  TableInfo<Table, VocabularyContextRow> get bulkPkTable => vocabularyContexts;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => vocabularyContexts.id;
+
+  @override
+  String Function(VocabularyContextRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.replace;
 
   Future<List<VocabularyContextRow>> getByItemId(String vocabularyItemId) =>
       (select(

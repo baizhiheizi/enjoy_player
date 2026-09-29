@@ -36,6 +36,20 @@ List<TranscriptLine> decodeTimelineJson(String timelineJson) {
   return decoded.map(TranscriptLine.fromJson).toList();
 }
 
+/// [decodeTimelineJson] that leaves the UI isolate (via [compute]) when the
+/// payload exceeds [kPreloadTimelineJsonBytes] — the gate behind the
+/// repository's line preload, shared with the Craft listing path.
+Future<List<TranscriptLine>> decodeTimelineJsonGated(String timelineJson) {
+  if (timelineJson.length <= kPreloadTimelineJsonBytes) {
+    return Future.value(decodeTimelineJson(timelineJson));
+  }
+  return compute(
+    decodeTimelineJson,
+    timelineJson,
+    debugLabel: 'timeline-json-decode',
+  );
+}
+
 /// Fail-closed decode for untrusted timelines (Craft enrichment input).
 ///
 /// Returns `null` on a malformed shape — including a list that mixes valid
@@ -114,11 +128,6 @@ typedef TranscriptTimelineRevision = ({DateTime updatedAt, int jsonLength});
 /// used decode is dropped on overflow (issue #810, item C1).
 const int kTranscriptTimelineMemoCapacity = 8;
 
-/// Age never invalidates a memo entry — a revision mismatch on the same row
-/// id and explicit [TranscriptTimelineCache.remove] are the only
-/// invalidations.
-const Duration kTranscriptTimelineMemoTtl = Duration(days: 365);
-
 class _CachedLines {
   const _CachedLines(this.revision, this.lines);
   final TranscriptTimelineRevision revision;
@@ -141,17 +150,18 @@ class _CachedLines {
 /// revision and forces a re-decode. Writes that bypass the DAO have no such
 /// guarantee.
 ///
-/// Eviction: the row's mutation points call [remove] (see
-/// `transcript_repository_tracks.dart` /
-/// `transcript_repository_auto_translate.dart`) and the memo set is bounded
-/// by an [L1Store] LRU of [kTranscriptTimelineMemoCapacity] rows (issue
-/// #810, item C1): the least-recently-used decode is dropped on overflow
-/// and re-decoded on demand, so decoding many distinct transcripts in one
+/// Eviction: entries are removed on the row's mutation points —
+/// `_deleteTranscript`, `_replaceTimeline`, and the auto-translate rewrite
+/// paths call [remove] (see `transcript_repository_tracks.dart` /
+/// `transcript_repository_auto_translate.dart`) — and the memo set is
+/// bounded by an [L1Store] LRU of [kTranscriptTimelineMemoCapacity] rows
+/// with no TTL (issue #810, item C1): age never invalidates a memo entry,
+/// and the least-recently-used decode is dropped on overflow and
+/// re-decoded on demand, so decoding many distinct transcripts in one
 /// session no longer keeps every decode resident.
 class TranscriptTimelineCache {
   final L1Store<String, _CachedLines> _entries = L1Store<String, _CachedLines>(
     capacity: kTranscriptTimelineMemoCapacity,
-    ttl: kTranscriptTimelineMemoTtl,
   );
 
   /// Decoded lines for `(rowId, revision)`, memoized; [timelineJson] is
@@ -169,11 +179,15 @@ class TranscriptTimelineCache {
   }
 
   /// Whether `(rowId, revision)` already holds a decode.
+  ///
+  /// A pure probe: unlike [linesFor] it does not touch the entry's LRU
+  /// position, so a background pre-decode gate cannot keep a row resident
+  /// or reorder the eviction queue.
   bool isCached({
     required String rowId,
     required TranscriptTimelineRevision revision,
   }) {
-    final hit = _entries.peek(rowId);
+    final hit = _entries.peekNoTouch(rowId);
     return hit != null && hit.revision == revision;
   }
 

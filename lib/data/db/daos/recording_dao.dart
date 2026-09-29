@@ -2,8 +2,21 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [Recordings])
 class RecordingDao extends DatabaseAccessor<AppDatabase>
-    with _$RecordingDaoMixin {
+    with _$RecordingDaoMixin, BulkPkRowsMixin<AppDatabase, RecordingRow> {
   RecordingDao(super.db);
+
+  @override
+  TableInfo<Table, RecordingRow> get bulkPkTable => recordings;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => recordings.id;
+
+  @override
+  String Function(RecordingRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
 
   Stream<List<RecordingRow>> watchByTarget(
     String targetType,

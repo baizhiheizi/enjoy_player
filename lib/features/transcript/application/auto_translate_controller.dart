@@ -35,6 +35,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   final _inFlight = <int>{};
   final _waiting = ListQueue<int>();
   final _forceRefreshLines = <int>{};
+  var _hydrateRunId = 0;
   TranscriptRepository? _flushHookRepo;
 
   /// Repository access for this controller; the first successful read also
@@ -59,6 +60,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
 
   @override
   AutoTranslateUiState build(String mediaId) {
+    _hydrateRunId++;
     ref.listen(activeTranscriptIdProvider(mediaId), (prev, next) {
       if (state.aiTranscriptId == null) return;
       if (state.status != AutoTranslateStatus.active) return;
@@ -71,7 +73,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       if (state.aiTranscriptId == null &&
           next.value != null &&
           next.value != prev?.value) {
-        unawaited(_hydrateIfAiSecondaryActive());
+        unawaited(_hydrateIfAiSecondaryActive(secondaryId: next.value));
       }
       final aiId = state.aiTranscriptId;
       if (aiId == null) return;
@@ -94,22 +96,28 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     return const AutoTranslateUiState();
   }
 
-  Future<void> _hydrateIfAiSecondaryActive() async {
-    final secondaryId = ref.read(secondaryTranscriptIdProvider(mediaId)).value;
-    if (secondaryId == null) return;
+  /// Only the latest hydration run may write [state] — a secondary-id flip
+  /// while an older run is between awaits must not clobber the newer run's
+  /// write with stale row reads. [secondaryId] pins the trigger's id so the
+  /// row fetch cannot drift to a newer provider value mid-flight.
+  Future<void> _hydrateIfAiSecondaryActive({String? secondaryId}) async {
+    final runId = ++_hydrateRunId;
+    final id =
+        secondaryId ?? ref.read(secondaryTranscriptIdProvider(mediaId)).value;
+    if (id == null) return;
 
     final repo = _repo();
-    final row = await repo.transcriptRowById(secondaryId);
+    final row = await repo.transcriptRowById(id);
+    if (!ref.mounted || runId != _hydrateRunId) return;
     if (row == null || row.source != 'ai') return;
 
     final primaryId = ref.read(activeTranscriptIdProvider(mediaId)).value;
-    if (!ref.mounted) return;
     String? sourceLanguage;
     if (primaryId != null) {
       final primaryRow = await repo.transcriptRowById(primaryId);
       sourceLanguage = primaryRow?.language;
     }
-    if (!ref.mounted) return;
+    if (!ref.mounted || runId != _hydrateRunId) return;
     state = state.copyWith(
       status: AutoTranslateStatus.active,
       clearBlockReason: true,
@@ -191,6 +199,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     if (!ref.mounted) return;
 
     _waiting.clear();
+    _hydrateRunId++;
     state = state.copyWith(
       status: AutoTranslateStatus.active,
       clearBlockReason: true,
@@ -302,6 +311,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     if (!ref.mounted) return;
 
     _clearInFlightTracking();
+    _hydrateRunId++;
     state = state.copyWith(
       status: AutoTranslateStatus.active,
       clearBlockReason: true,
