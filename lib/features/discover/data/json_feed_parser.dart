@@ -3,6 +3,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 
@@ -56,98 +58,112 @@ String _stripYouTubeSuffix(String title) {
   return title;
 }
 
+/// Feed bodies longer than this are decoded + mapped in a background isolate.
+const int kJsonFeedIsolateParseBytes = 8 * 1024;
+
 /// Parses a JSON Feed v1.1 response body into a [JsonFeedResult].
 ///
 /// Throws [FormatException] if the JSON structure is invalid or
 /// required fields are missing.
 class JsonFeedParser {
-  JsonFeedResult parse(String jsonBody) {
-    final dynamic decoded;
-    try {
-      decoded = jsonDecode(jsonBody);
-    } catch (e) {
-      throw FormatException('Invalid JSON: $e');
+  JsonFeedResult parse(String jsonBody) => parseJsonFeed(jsonBody);
+
+  /// [parse] for feed bodies large enough (a merged channel feed reaches a
+  /// few hundred KB) to justify decoding off the UI isolate via [compute].
+  Future<JsonFeedResult> parseGated(String jsonBody) {
+    if (jsonBody.length <= kJsonFeedIsolateParseBytes) {
+      return Future<JsonFeedResult>.value(parseJsonFeed(jsonBody));
+    }
+    return compute(parseJsonFeed, jsonBody, debugLabel: 'json-feed-parse');
+  }
+}
+
+JsonFeedResult parseJsonFeed(String jsonBody) {
+  final dynamic decoded;
+  try {
+    decoded = jsonDecode(jsonBody);
+  } catch (e) {
+    throw FormatException('Invalid JSON: $e');
+  }
+
+  if (decoded is! Map<String, dynamic>) {
+    throw const FormatException('JSON Feed must be a JSON object');
+  }
+  final data = decoded;
+
+  final version = data['version'] as String?;
+  if (version == null || !version.contains('jsonfeed.org')) {
+    throw FormatException('Not a JSON Feed response: $version');
+  }
+
+  final title = data['title'] as String?;
+  if (title == null || title.isEmpty) {
+    throw const FormatException('Missing feed title');
+  }
+  final displayName = _stripYouTubeSuffix(title);
+
+  final homePageUrl = data['home_page_url'] as String? ?? '';
+  final iconUrl = data['icon'] as String?;
+
+  final items = data['items'];
+  if (items is! List) {
+    throw const FormatException('Missing items array in JSON Feed');
+  }
+
+  final entries = <FeedEntry>[];
+  final now = DateTime.now();
+
+  for (final item in items) {
+    if (item is! Map<String, dynamic>) continue;
+
+    final videoId = extractVideoId(item['id']);
+    if (videoId.isEmpty) continue;
+
+    final entryTitle = item['title'] as String? ?? '';
+    final image = item['image'] as String?;
+
+    DateTime? publishedAt;
+    final dateStr = item['date_published'] as String?;
+    if (dateStr != null) {
+      publishedAt = DateTime.tryParse(dateStr);
     }
 
-    if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('JSON Feed must be a JSON object');
-    }
-    final data = decoded;
-
-    final version = data['version'] as String?;
-    if (version == null || !version.contains('jsonfeed.org')) {
-      throw FormatException('Not a JSON Feed response: $version');
-    }
-
-    final title = data['title'] as String?;
-    if (title == null || title.isEmpty) {
-      throw const FormatException('Missing feed title');
-    }
-    final displayName = _stripYouTubeSuffix(title);
-
-    final homePageUrl = data['home_page_url'] as String? ?? '';
-    final iconUrl = data['icon'] as String?;
-
-    final items = data['items'];
-    if (items is! List) {
-      throw const FormatException('Missing items array in JSON Feed');
-    }
-
-    final entries = <FeedEntry>[];
-    final now = DateTime.now();
-
-    for (final item in items) {
-      if (item is! Map<String, dynamic>) continue;
-
-      final videoId = extractVideoId(item['id']);
-      if (videoId.isEmpty) continue;
-
-      final entryTitle = item['title'] as String? ?? '';
-      final image = item['image'] as String?;
-
-      DateTime? publishedAt;
-      final dateStr = item['date_published'] as String?;
-      if (dateStr != null) {
-        publishedAt = DateTime.tryParse(dateStr);
-      }
-
-      int? durationSeconds;
-      final attachments = item['attachments'];
-      if (attachments is List && attachments.isNotEmpty) {
-        for (final att in attachments) {
-          if (att is Map<String, dynamic>) {
-            final dur = att['duration_in_seconds'];
-            if (dur is int && dur > 0) {
-              durationSeconds = dur;
-              break;
-            }
-            if (dur is double && dur > 0) {
-              durationSeconds = dur.round();
-              break;
-            }
+    int? durationSeconds;
+    final attachments = item['attachments'];
+    if (attachments is List && attachments.isNotEmpty) {
+      for (final att in attachments) {
+        if (att is Map<String, dynamic>) {
+          final dur = att['duration_in_seconds'];
+          if (dur is int && dur > 0) {
+            durationSeconds = dur;
+            break;
+          }
+          if (dur is double && dur > 0) {
+            durationSeconds = dur.round();
+            break;
           }
         }
       }
-
-      final channelId = '';
-
-      entries.add(
-        FeedEntry(
-          videoId: videoId,
-          channelId: channelId,
-          title: entryTitle,
-          thumbnailUrl: image,
-          durationSeconds: durationSeconds,
-          publishedAt: publishedAt ?? now,
-        ),
-      );
     }
 
-    return JsonFeedResult(
-      displayName: displayName,
-      homePageUrl: homePageUrl,
-      iconUrl: iconUrl,
-      entries: entries,
+    final channelId = '';
+
+    entries.add(
+      FeedEntry(
+        videoId: videoId,
+        channelId: channelId,
+        title: entryTitle,
+        thumbnailUrl: image,
+        durationSeconds: durationSeconds,
+        publishedAt: publishedAt ?? now,
+      ),
     );
   }
+
+  return JsonFeedResult(
+    displayName: displayName,
+    homePageUrl: homePageUrl,
+    iconUrl: iconUrl,
+    entries: entries,
+  );
 }

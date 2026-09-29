@@ -119,7 +119,7 @@ class YoutubeFeedClient {
     final body = response.body;
     final JsonFeedResult feedResult;
     try {
-      feedResult = parser.parse(body);
+      feedResult = await parser.parseGated(body);
     } catch (e) {
       _log.warning('Worker feed parse error: $e');
       throw WorkerFeedException.parseError();
