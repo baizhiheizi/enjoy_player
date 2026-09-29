@@ -48,6 +48,13 @@ class ShadowRecordFab extends StatelessWidget {
     final trackAlpha = showProgressArc ? 0.38 : 0.18;
     final iconSize = _fabInner <= 44 ? 22.0 : (_fabInner <= 56 ? 24.0 : 28.0);
     final litBase = recording ? tok.echoActive : scheme.primary;
+    // The FAB counts *down*: the arc is the time remaining, and over-target
+    // pins it to a full warning ring.
+    final double arcProgress = !showProgressArc
+        ? 0
+        : overTarget
+        ? 1
+        : 1 - ringProgress;
 
     return OnboardingTarget(
       tipId: OnboardingTipId.playerRecord,
@@ -66,13 +73,7 @@ class ShadowRecordFab extends StatelessWidget {
               CustomPaint(
                 size: const Size(ringOuterHitSize, ringOuterHitSize),
                 painter: EnjoyProgressRingPainter(
-                  // The FAB counts *down*: the arc is the time remaining, and
-                  // over-target pins it to a full warning ring.
-                  progress: !showProgressArc
-                      ? 0
-                      : overTarget
-                      ? 1
-                      : 1 - ringProgress,
+                  progress: arcProgress,
                   trackColor: scheme.onSurface.withValues(
                     alpha: trackAlpha * 0.4,
                   ),

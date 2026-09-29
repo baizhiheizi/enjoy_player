@@ -7,6 +7,11 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
+/// Minimum second stop for the sweep gradient: a near-zero arc would put the
+/// two stops almost on top of each other, rendering a hard color step instead
+/// of a gradient across the short arc.
+const double _kMinArcGradientStop = 0.02;
+
 /// Circular ring: a track circle plus a clockwise progress arc starting at
 /// 12 o'clock, stroked with round caps. The arc is either a solid color
 /// ([progressColor]) or a sweep gradient ([gradientColors], e.g. the aurora),
@@ -66,7 +71,7 @@ class EnjoyProgressRingPainter extends CustomPainter {
     if (gradient != null) {
       arcPaint.shader = SweepGradient(
         colors: gradient,
-        stops: [0, math.max(fraction, 0.02)],
+        stops: [0, math.max(fraction, _kMinArcGradientStop)],
         transform: const GradientRotation(-math.pi / 2),
       ).createShader(rect);
     } else {

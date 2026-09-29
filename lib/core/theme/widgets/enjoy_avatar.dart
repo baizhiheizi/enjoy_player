@@ -105,6 +105,7 @@ class EnjoyTierBadge extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
     this.color,
     this.textColor,
+    this.shape = const StadiumBorder(),
   });
 
   final String label;
@@ -127,24 +128,28 @@ class EnjoyTierBadge extends StatelessWidget {
   /// on a solid [color], and `onSurfaceVariant` when [muted].
   final Color? textColor;
 
+  /// Pill shape — stadium by default. Exposed the same way the lit-fill
+  /// decoration takes a shape: one kit surface, any shape, so a non-pill
+  /// caller never needs a parallel widget.
+  final ShapeBorder shape;
+
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    final solid = color ?? (muted ? t.fill : null);
-    final fg =
-        textColor ??
-        (color != null
-            ? cs.onSurface
-            : muted
-            ? cs.onSurfaceVariant
-            : Colors.white);
+    final solid = _resolveSolid(color, muted: muted, fill: t.fill);
+    final fg = _resolveFg(
+      textColor,
+      hasColor: color != null,
+      muted: muted,
+      cs: cs,
+    );
     return Container(
       padding: padding,
       decoration: ShapeDecoration(
         gradient: solid == null ? t.aurora : null,
         color: solid,
-        shape: const StadiumBorder(),
+        shape: shape,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -170,6 +175,32 @@ class EnjoyTierBadge extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Background fill: an explicit [color], else the muted surface fill, else
+  /// null (the aurora gradient paints).
+  static Color? _resolveSolid(
+    Color? color, {
+    required bool muted,
+    required Color fill,
+  }) => color ?? (muted ? fill : null);
+
+  /// Foreground: a [textColor] override, else `onSurface` on an explicit
+  /// [color], `onSurfaceVariant` when muted, white on the aurora.
+  ///
+  /// Note the deliberate asymmetry with [_resolveSolid]: a muted badge fills
+  /// with `t.fill` but keeps the `onSurfaceVariant` label, so this keys off
+  /// whether a color override was given, not whether the fill resolved solid.
+  static Color _resolveFg(
+    Color? override, {
+    required bool hasColor,
+    required bool muted,
+    required ColorScheme cs,
+  }) {
+    if (override != null) return override;
+    if (hasColor) return cs.onSurface;
+    if (muted) return cs.onSurfaceVariant;
+    return Colors.white;
   }
 }
 

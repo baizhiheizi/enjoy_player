@@ -106,4 +106,19 @@ void main() {
       const Color(0xFFEDE7FF),
     );
   });
+
+  testWidgets('shape override replaces the stadium pill', (tester) async {
+    const shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(4)),
+    );
+    await tester.pumpWidget(
+      _host(const EnjoyTierBadge(label: 'Pro', shape: shape)),
+    );
+    await tester.pumpAndSettle();
+
+    final decoration = _badgeContainer(tester).decoration as ShapeDecoration;
+    expect(decoration.shape, shape);
+    // The aurora gradient still paints behind the custom shape.
+    expect(decoration.gradient, _tokens(tester).aurora);
+  });
 }
