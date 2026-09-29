@@ -4,20 +4,22 @@
 /// in [`language_descriptor.dart`](language_descriptor.dart) (issue #794,
 /// ADR-0090) — the public names, shapes, order, and contents are unchanged;
 /// only their definitions went from hand-maintained parallel literals to
-/// derivations. `kLanguageTagAliases` stays a standalone policy map
-/// (ADR-0087 macrolanguage policy).
+/// derivations. Shared tag parsing and the `kLanguageTagAliases` policy map
+/// (ADR-0087 macrolanguage policy) live next to the rows in
+/// [`language_descriptor.dart`](language_descriptor.dart) and are re-exported
+/// below, so this file adds no per-language literals of its own.
 library;
 
 import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:flutter/material.dart';
 
-// Shared separator for BCP-47 / language-tag splits. The hyphen-or-underscore
-// pattern was repeated in five call sites; routing it through [_splitLanguageTag]
-// keeps the character class in one place. File-private so the post-commit lint
-// pass cannot revert a public symbol.
-final RegExp _kLanguageTagSeparator = RegExp(r'[-_]');
-
-List<String> _splitLanguageTag(String tag) => tag.split(_kLanguageTagSeparator);
+// Tag parsing (`splitLanguageTag`, `primaryLanguageSubtag`, alias policy)
+// lives in `language_descriptor.dart` next to the rows — re-exported here so
+// the catalog stays the one-stop import for its existing consumers (the
+// descriptor cannot import this file, so the shared helpers had to move the
+// other way; review on #798).
+export 'package:enjoy_player/core/application/language_descriptor.dart'
+    show kLanguageTagAliases, normalizeLanguageAlias, primaryLanguageSubtag;
 
 /// Default UI locale when none is stored and not overridden by profile.
 const Locale kAppDefaultDisplayLocale = Locale('zh', 'CN');
@@ -64,27 +66,6 @@ final Set<String> kAzurePronunciationAssessmentLocales = <String>{
 final Map<String, String> kAzureDefaultLocaleByPrimary = firstTagPerPrimary(
   kLanguageDescriptorRows.where((row) => row.focus || row.native),
 );
-
-/// ISO 639-2 / legacy aliases → ISO 639-1 primary subtag.
-///
-/// The Norwegian entries encode a deliberate **policy**, not a neutral
-/// equivalence: `no` is a macrolanguage tag, and essentially all Norwegian
-/// content in the wild is Bokmål, so `no` / `nob` / `nor` collapse onto
-/// Bokmål. Genuine Nynorsk (`nn`) is deliberately **not** aliased and stays
-/// unsupported. See ADR-0087.
-const Map<String, String> kLanguageTagAliases = <String, String>{
-  'eng': 'en',
-  'jpn': 'ja',
-  'kor': 'ko',
-  'spa': 'es',
-  'fre': 'fr',
-  'fra': 'fr',
-  'zho': 'zh',
-  'chi': 'zh',
-  'no': 'nb',
-  'nob': 'nb',
-  'nor': 'nb',
-};
 
 /// ISO 639 / BCP-47 language subtags that must not be used for lookup or worker calls.
 const Set<String> kInvalidLanguageTags = <String>{
@@ -160,35 +141,6 @@ bool isValidLanguageTag(String? tag) {
   final primary = primaryLanguageSubtag(trimmed);
   if (primary.isEmpty) return false;
   return !kInvalidLanguageTags.contains(primary);
-}
-
-/// Resolves legacy aliases such as `kor` → `ko`.
-String normalizeLanguageAlias(String tag) {
-  final trimmed = tag.trim();
-  if (trimmed.isEmpty) return trimmed;
-  final lower = trimmed.toLowerCase();
-  final alias = kLanguageTagAliases[lower];
-  if (alias != null) return alias;
-  if (lower.contains('-') || lower.contains('_')) {
-    final parts = _splitLanguageTag(lower);
-    final primary = parts.first;
-    final aliased = kLanguageTagAliases[primary];
-    if (aliased != null && parts.length >= 2) {
-      return '$aliased-${parts[1].toUpperCase()}';
-    }
-  }
-  return trimmed;
-}
-
-/// Primary language subtag of [tag], lowercased (`en-US` → `en`, `kor` → `ko`).
-///
-/// Normalizes legacy aliases first (e.g. `kor` → `ko`) via [normalizeLanguageAlias],
-/// then splits on `-` / `_` and returns the first subtag lowercased. Shared by the
-/// catalog resolvers and the lookup language resolvers so both use one definition
-/// of "same language" (see [matchesLanguageBroad], [resolveLookupSource], etc.).
-String primaryLanguageSubtag(String tag) {
-  final normalized = normalizeLanguageAlias(tag);
-  return _splitLanguageTag(normalized).first.toLowerCase();
 }
 
 /// Maps a tag to a supported native tag (`en-US` / `zh-CN`), or `null` if unknown/invalid.
@@ -324,13 +276,13 @@ bool isAzurePronunciationAssessmentSupportedForPractice(
 String workerLanguageBase(String tag) {
   final t = normalizeLanguageAlias(tag.trim());
   if (t.isEmpty) return 'en';
-  return _splitLanguageTag(t).first.toLowerCase();
+  return splitLanguageTag(t).first.toLowerCase();
 }
 
 String normalizeBcp47Tag(String tag) {
   final t = normalizeLanguageAlias(tag.trim());
   if (t.isEmpty) return t;
-  final parts = _splitLanguageTag(t);
+  final parts = splitLanguageTag(t);
   if (parts.length >= 2) {
     return '${parts[0].toLowerCase()}-${parts[1].toUpperCase()}';
   }
@@ -375,7 +327,7 @@ String localeToBcp47(Locale locale) => locale.toLanguageTag();
 /// Maps [locale] to a supported display locale, or [kAppDefaultDisplayLocale].
 Locale displayLocaleFromRawOrDefault(String? raw) {
   if (raw == null || raw.trim().isEmpty) return kAppDefaultDisplayLocale;
-  final parts = _splitLanguageTag(raw.trim());
+  final parts = splitLanguageTag(raw.trim());
   // Normalize for case-insensitive match against [kAppDisplayLocales] (the
   // catalog stores BCP-47 canonical form: lowercase language, uppercase region).
   final Locale candidate = parts.length >= 2

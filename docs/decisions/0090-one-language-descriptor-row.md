@@ -28,8 +28,11 @@ map every catalogued primary to that primary's first regional variant.
 
 1. **ONE descriptor table** — `kLanguageDescriptorRows` in
    [`lib/core/application/language_descriptor.dart`](../../lib/core/application/language_descriptor.dart):
-   one const row per language carrying tag, static lookup label, focus /
-   native / pronounce / Azure-assessment membership.
+   one const row per language carrying tag, static lookup label, and focus /
+   native / pronounce membership. `azureAssessment` defaults to `true` (every
+   row today is assessable; the flag is only written to *exclude* a row), so
+   assessment-only rows carry nothing but a tag and stay distinguishable by
+   `lookupLabel == null`.
 2. **A non-null `lookupLabel` *is* lookup membership** — the row's endonym
    label derives both `kSupportedLookupLanguageTags` and
    `kLookupLanguageLabels`, so "every lookup tag has a label" holds by
@@ -38,22 +41,34 @@ map every catalogued primary to that primary's first regional variant.
    shapes, contents, and orders are unchanged (collections go `const` →
    `final`; no consumer used them in const contexts). The pronounce allowlist
    and its primary→default map derive in `pronounce_locale.dart`; the
-   localized label ladder's coverage derives in `language_labels.dart`.
+   localized label map in `language_labels.dart` derives its **keys** from the
+   rows (focus ∪ native, table order) — only the tag → getter dispatch is
+   hand-written, and a covered row without a case throws instead of silently
+   missing.
 4. **Broad-tag defaults derive from row order**: within a primary subtag the
    default regional variant is listed first, and `firstTagPerPrimary` makes
    that convention the rule for both `kAzureDefaultLocaleByPrimary` (first
    focus-or-native row per primary) and `kPronounceDefaultLocaleByPrimary`
    (first pronounce row per primary). Row order is load-bearing, not cosmetic.
-5. **The enumerating pin tests became derivation checks**: counts,
+   `firstTagPerPrimary` resolves primaries through the one shared
+   `primaryLanguageSubtag` helper rather than restating the split.
+5. **Shared tag parsing lives with the rows.** `splitLanguageTag`,
+   `primaryLanguageSubtag`, and the `kLanguageTagAliases` policy map live in
+   `language_descriptor.dart` (the descriptor cannot import the catalog, so
+   the helpers moved the other way); `app_language_catalog.dart` re-exports
+   them so existing consumers keep their imports, and the separator regex
+   exists exactly once.
+6. **The enumerating pin tests became derivation checks**: counts,
    focus/native ⊆ lookup, lookup ⊆ Azure, pronounce == lookup (worker parity
    policy), default maps stay inside their primary, localized getters cover
-   exactly focus ∪ native, plus ADR-0087 spot-asserts (nb-NO everywhere,
-   nn-NO nowhere).
-6. **Unchanged seams**: `kLanguageTagAliases` stays a standalone policy map
-   (ADR-0087); `packages/forced_alignment` stays app-import-free with its
-   `==` pin test as the package boundary (ADR-0071/0072); `.arb` files and
-   gen-l10n are untouched (the localized getters keep pointing at the same
-   gen-l10n members).
+   exactly focus ∪ native, assessment-only (argless) rows stay in the Azure
+   set, plus ADR-0087 spot-asserts (nb-NO everywhere, nn-NO nowhere).
+7. **Unchanged seams**: `kLanguageTagAliases` stays a standalone policy map
+   (ADR-0087 — standalone in *shape*, now homed in `language_descriptor.dart`
+   next to the helper that consumes it); `packages/forced_alignment` stays
+   app-import-free with its `==` pin test as the package boundary
+   (ADR-0071/0072); `.arb` files and gen-l10n are untouched (the localized
+   getters keep pointing at the same gen-l10n members).
 
 ## Consequences
 
@@ -79,8 +94,9 @@ map every catalogued primary to that primary's first regional variant.
   carry only tags, so label / membership / default knowledge would still need
   a second home. The row is the smallest structure that carries all of it.
 - *Move the localized (.arb) getters into the descriptor row* — rejected;
-  `core/application` stays l10n-free; the getter map keeps that seam in
-  `language_labels.dart` with a derivation test on its coverage.
+  `core/application` stays l10n-free; the seam stays in
+  `language_labels.dart`, but its map keys derive from the rows and only the
+  tag → getter dispatch (which throws on a missing case) is hand-written.
 
 ## Artifacts
 

@@ -68,7 +68,10 @@ void main() {
     test('no tag is in kInvalidLanguageTags', () {
       for (final tag in kSupportedLookupLanguageTags) {
         expect(kInvalidLanguageTags.contains(tag), isFalse);
-        expect(kInvalidLanguageTags.contains(_primary(tag)), isFalse);
+        expect(
+          kInvalidLanguageTags.contains(primaryLanguageSubtag(tag)),
+          isFalse,
+        );
       }
     });
 
@@ -116,6 +119,3 @@ void main() {
     });
   });
 }
-
-String _primary(String tag) =>
-    normalizeLanguageAlias(tag).split(RegExp(r'[-_]')).first.toLowerCase();

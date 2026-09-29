@@ -110,6 +110,29 @@ void main() {
       };
       expect(kAzurePronunciationAssessmentLocales, azureRows);
     });
+
+    test(
+      'assessment-only rows (argless, no lookup label) stay in the Azure set',
+      () {
+        // `azureAssessment` defaults to `true` (review on #798): the rows
+        // that carry nothing but a tag must still widen the assessment
+        // allowlist, and stay distinguishable via lookupLabel == null.
+        final assessmentOnly = <String>{
+          for (final row in kLanguageDescriptorRows)
+            if (row.lookupLabel == null) row.tag,
+        };
+        expect(assessmentOnly, isNotEmpty);
+        expect(
+          kAzurePronunciationAssessmentLocales.containsAll(assessmentOnly),
+          isTrue,
+          reason: 'an argless row lost its assessment membership',
+        );
+        expect(
+          kSupportedLookupLanguageTags.toSet().containsAll(assessmentOnly),
+          isFalse,
+        );
+      },
+    );
   });
 
   group('matchesLanguageBroad', () {
