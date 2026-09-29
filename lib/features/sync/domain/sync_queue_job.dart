@@ -29,6 +29,13 @@ import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
+/// Syntactic probe for the retry payload's `kind` member (quoted key,
+/// tolerant of insignificant whitespace) — see
+/// [SyncQueueJob.decodeYoutubeUploadRetry].
+final RegExp _kYoutubeUploadKindProbe = RegExp(
+  r'"kind"\s*:\s*"youtube_upload"',
+);
+
 /// The `sync_queue` wire columns a [SyncQueueJob] persists to — the exact
 /// pre-seam row shape (`entityType` / `entityId` / `action` / `payloadJson`),
 /// unchanged for web/Dexie parity.
@@ -237,15 +244,19 @@ sealed class SyncQueueJob {
   /// [SyncEntityType] value for the worker upload (web/Dexie wire parity pins
   /// the enum), so the `kind` discriminator is decoded here.
   ///
-  /// Called by the drain only when the retry is actually dispatched: a cheap
-  /// substring probe skips plain video snapshots without any JSON parse, and
-  /// the full payload decode (the embedded caption timeline can reach MBs)
-  /// leaves the UI isolate via [decodeJsonGated]. Returns `null` for a plain
-  /// video payload or a malformed retry.
+  /// Called by the drain only when the retry is actually dispatched: the
+  /// quoted-key probe [_kYoutubeUploadKindProbe] skips plain video snapshots
+  /// without any JSON parse — in valid JSON an unescaped `"kind":` can only
+  /// introduce an object member, never string content, so user text that
+  /// merely mentions `youtube_upload` cannot trip it — and the full payload
+  /// decode (the embedded caption timeline can reach MBs) leaves the UI
+  /// isolate via [decodeJsonGated]. Returns `null` for a plain video payload
+  /// or a malformed retry.
   static Future<SyncYoutubeUploadRetry?> decodeYoutubeUploadRetry(
     String? payloadJson,
   ) async {
-    if (payloadJson == null || !payloadJson.contains('youtube_upload')) {
+    if (payloadJson == null ||
+        !_kYoutubeUploadKindProbe.hasMatch(payloadJson)) {
       return null;
     }
     final Object? decoded;

@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/core/utils/youtube_video_identity.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 
@@ -58,9 +59,6 @@ String _stripYouTubeSuffix(String title) {
   return title;
 }
 
-/// Feed bodies longer than this are decoded + mapped in a background isolate.
-const int kJsonFeedIsolateParseBytes = 8 * 1024;
-
 /// Parses a JSON Feed v1.1 response body into a [JsonFeedResult].
 ///
 /// Throws [FormatException] if the JSON structure is invalid or
@@ -69,9 +67,10 @@ class JsonFeedParser {
   JsonFeedResult parse(String jsonBody) => parseJsonFeed(jsonBody);
 
   /// [parse] for feed bodies large enough (a merged channel feed reaches a
-  /// few hundred KB) to justify decoding off the UI isolate via [compute].
+  /// few hundred KB) to justify decoding + mapping off the UI isolate via
+  /// [compute], gated by the shared [kGatedJsonDecodeChars] threshold.
   Future<JsonFeedResult> parseGated(String jsonBody) {
-    if (jsonBody.length <= kJsonFeedIsolateParseBytes) {
+    if (jsonBody.length <= kGatedJsonDecodeChars) {
       return Future<JsonFeedResult>.value(parseJsonFeed(jsonBody));
     }
     return compute(parseJsonFeed, jsonBody, debugLabel: 'json-feed-parse');

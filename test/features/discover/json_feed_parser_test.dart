@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/features/discover/data/json_feed_parser.dart';
 
 void main() {
@@ -257,7 +258,7 @@ void main() {
         final body =
             '{"version": "https://jsonfeed.org/version/1.1", '
             '"title": "Big - YouTube", "items": ${jsonEncode(items)}}';
-        expect(body.length, greaterThan(kJsonFeedIsolateParseBytes));
+        expect(body.length, greaterThan(kGatedJsonDecodeChars));
 
         final result = await parser.parseGated(body);
         expect(result.displayName, 'Big');

@@ -14,16 +14,16 @@ void main() {
     'decodes payloads above the threshold through the isolate path',
     () async {
       final body = jsonEncode({
-        'padding': List<String>.filled(kGatedJsonDecodeBytes + 1, 'x'),
+        'padding': List<String>.filled(kGatedJsonDecodeChars + 1, 'x'),
       });
-      expect(body.length, greaterThan(kGatedJsonDecodeBytes));
+      expect(body.length, greaterThan(kGatedJsonDecodeChars));
       final decoded = await decodeJsonGated(body);
       expect((decoded as Map<String, dynamic>)['padding'], isNotEmpty);
     },
   );
 
   test('propagates FormatException from the isolate path', () async {
-    final body = '${' ' * (kGatedJsonDecodeBytes + 1)}not json';
+    final body = '${' ' * (kGatedJsonDecodeChars + 1)}not json';
     await expectLater(decodeJsonGated(body), throwsFormatException);
   });
 
@@ -34,7 +34,7 @@ void main() {
     expect(small, {'decoded': 1});
 
     final big = await decodeJsonGated(
-      jsonEncode(List.filled(kGatedJsonDecodeBytes + 1, 1)),
+      jsonEncode(List.filled(kGatedJsonDecodeChars + 1, 1)),
       decode: withEnvelope,
     );
     expect((big as Map<String, dynamic>)['decoded'], isA<List>());

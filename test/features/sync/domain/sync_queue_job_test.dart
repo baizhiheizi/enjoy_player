@@ -289,6 +289,43 @@ void main() {
     );
 
     test(
+      'plain video payloads whose text mentions youtube_upload stay plain',
+      () async {
+        final payloadJson = jsonEncode(<String, dynamic>{
+          'id': 'media-1',
+          'provider': 'youtube',
+          'title': 'how I uploaded to youtube_upload',
+          'description': 'my youtube_upload workflow, part 2',
+          'tags': <String>['youtube_upload', 'uploading'],
+          'source': 'youtube_upload',
+        });
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(payloadJson),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'whitespace between the kind key and value still resolves as a retry',
+      () async {
+        final payloadJson = '''{
+  "kind" : "youtube_upload",
+  "videoId": "dQw4w9WgXcQ",
+  "language": "en",
+  "source": "official",
+  "timeline": [
+    {"text": "hello", "start": 0, "duration": 1000}
+  ]
+}''';
+        final retry = await SyncQueueJob.decodeYoutubeUploadRetry(payloadJson);
+        expect(retry, isNotNull);
+        expect(retry!.videoId, 'dQw4w9WgXcQ');
+        expect(retry.language, 'en');
+      },
+    );
+
+    test(
       'delete wins over a youtube_upload payload (payload only rides upserts)',
       () {
         final job = SyncQueueJob.decode(
