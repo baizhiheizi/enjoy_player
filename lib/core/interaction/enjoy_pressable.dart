@@ -19,6 +19,7 @@ class EnjoyPressable extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.borderRadius,
+    this.shape,
     this.pressedScale = 0.975,
     this.hoverScale = 1.0,
     this.showHoverWash = true,
@@ -32,7 +33,11 @@ class EnjoyPressable extends StatefulWidget {
     this.autofocus = false,
     this.mouseCursor,
     this.onHoverChanged,
-  });
+  }) : assert(
+         shape == null || borderRadius == null,
+         'EnjoyPressable.shape owns the wash outline entirely — pass either '
+         'shape or borderRadius, never both.',
+       );
 
   final Widget child;
   final VoidCallback? onTap;
@@ -40,6 +45,14 @@ class EnjoyPressable extends StatefulWidget {
 
   /// Shape of the hover wash and focus ring. Defaults to [EnjoyThemeTokens.radiusMd].
   final BorderRadius? borderRadius;
+
+  /// Full outline override for the hover/press wash and focus ring — pass
+  /// [CircleBorder] for circular chrome so the wash does not read as a
+  /// superellipse halo inside the true circle. When null (the default) the
+  /// wash uses a [RoundedSuperellipseBorder] built from [borderRadius];
+  /// when set, [borderRadius] must be omitted. Mutually exclusive with
+  /// [borderRadius].
+  final OutlinedBorder? shape;
 
   /// Scale while the pointer is down (1.0 disables).
   final double pressedScale;
@@ -94,6 +107,14 @@ class _EnjoyPressableState extends State<EnjoyPressable> {
     onTap();
   }
 
+  BorderSide _ringSide(EnjoyThemeTokens t) {
+    if (!_focused || !widget.showFocusRing) return BorderSide.none;
+    return BorderSide(
+      color: t.accentInk.withValues(alpha: 0.85),
+      width: t.focusRingWidth,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
@@ -125,15 +146,9 @@ class _EnjoyPressableState extends State<EnjoyPressable> {
       washAlpha = 0;
     }
 
-    final shape = RoundedSuperellipseBorder(
-      borderRadius: radius,
-      side: _focused && widget.showFocusRing
-          ? BorderSide(
-              color: t.accentInk.withValues(alpha: 0.85),
-              width: t.focusRingWidth,
-            )
-          : BorderSide.none,
-    );
+    final shape =
+        widget.shape?.copyWith(side: _ringSide(t)) ??
+        RoundedSuperellipseBorder(borderRadius: radius, side: _ringSide(t));
 
     Widget core = AnimatedContainer(
       duration: t.motionFast,

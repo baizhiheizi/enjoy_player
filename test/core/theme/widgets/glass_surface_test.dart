@@ -140,4 +140,46 @@ void main() {
       findsNothing,
     );
   });
+
+  test('rejects combining a custom shape with a corner radius', () {
+    // The outline override owns the geometry outright, so a stray radius
+    // must fail loudly in debug instead of being silently dead.
+    // Non-const on purpose: the constructor assert must fire at runtime so
+    // the contract is observable as an AssertionError.
+    expect(
+      () => GlassSurface(
+        shape: const CircleBorder(),
+        borderRadius: 12,
+        child: const SizedBox.shrink(),
+      ),
+      throwsAssertionError,
+    );
+    // shape on its own stays a valid construction.
+    expect(
+      () => const GlassSurface(shape: CircleBorder(), child: SizedBox.shrink()),
+      returnsNormally,
+    );
+  });
+
+  testWidgets('does not insert a Material into the caller subtree', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const _Harness(
+        brightness: Brightness.dark,
+        child: GlassSurface(child: Text('inside')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The surface only paints decoration + blur. Callers own their Material
+    // needs (the transport bar supplies its own transparent one).
+    expect(
+      find.descendant(
+        of: find.byType(GlassSurface),
+        matching: find.byType(Material),
+      ),
+      findsNothing,
+    );
+  });
 }

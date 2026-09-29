@@ -101,7 +101,7 @@ Focus ring: 2px iris ink
 |--------|------|---------|
 | `EnjoyIcons` | `core/theme/enjoy_icons.dart` | Semantic Phosphor glyphs (`const IconData`) |
 | `EnjoyChromeIcon` | `core/theme/widgets/enjoy_chrome_icon.dart` | Shell / transport glyph enum → `EnjoyIcons` (`filled:` for active) |
-| `EnjoyPressable` | `core/interaction/enjoy_pressable.dart` | Press-scale + hover wash + focus ring + keyboard activation + haptics (no ripple) |
+| `EnjoyPressable` | `core/interaction/enjoy_pressable.dart` | Press-scale + hover wash + focus ring + keyboard activation + haptics (no ripple); wash/ring default to a superellipse from `borderRadius`, `shape` overrides it (e.g. `CircleBorder` for circular chrome) |
 | `EnjoyTappableSurface` / `EnjoyTappableIcon` | `core/interaction/enjoy_tappable.dart` | Legacy API over `EnjoyPressable` / `IconButton` |
 | `EnjoyButton` (`primary` / `secondary` / `tonal` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons; primary is "lit" (`enjoyLitFillBuilder`) |
 | `EnjoyIconButton` | same | Square icon-only action in the same variants |
