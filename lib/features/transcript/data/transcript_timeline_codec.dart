@@ -16,6 +16,7 @@ library;
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../data/subtitle/transcript_line.dart';
 
@@ -32,6 +33,20 @@ List<TranscriptLine> decodeTimelineJson(String timelineJson) {
   final decoded = (jsonDecode(timelineJson) as List)
       .cast<Map<String, dynamic>>();
   return decoded.map(TranscriptLine.fromJson).toList();
+}
+
+/// [decodeTimelineJson] that leaves the UI isolate (via [compute]) when the
+/// payload exceeds [kPreloadTimelineJsonBytes] — the gate behind the
+/// repository's line preload, shared with the Craft listing path.
+Future<List<TranscriptLine>> decodeTimelineJsonGated(String timelineJson) {
+  if (timelineJson.length <= kPreloadTimelineJsonBytes) {
+    return Future.value(decodeTimelineJson(timelineJson));
+  }
+  return compute(
+    decodeTimelineJson,
+    timelineJson,
+    debugLabel: 'timeline-json-decode',
+  );
 }
 
 /// Fail-closed decode for untrusted timelines (Craft enrichment input).

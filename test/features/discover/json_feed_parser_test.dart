@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:enjoy_player/core/json/gated_json_decode.dart';
 import 'package:enjoy_player/features/discover/data/json_feed_parser.dart';
 
 void main() {
@@ -230,5 +233,38 @@ void main() {
       final result = parser.parse(json);
       expect(result.entries.length, 1);
     });
+  });
+
+  group('parseGated', () {
+    test('parses small bodies inline', () async {
+      final result = await parser.parseGated(
+        '{"version": "https://jsonfeed.org/version/1.1", "title": "T", '
+        '"items": [{"id": "dQw4w9WgXcQ", "title": "V"}]}',
+      );
+      expect(result.displayName, 'T');
+      expect(result.entries, hasLength(1));
+    });
+
+    test(
+      'parses bodies above the threshold through the isolate path',
+      () async {
+        final items = List<Map<String, dynamic>>.generate(
+          200,
+          (i) => {
+            'id': 'dQw4w9WgXc$i'.padRight(11, 'x'),
+            'title': 'Video $i ${'t' * 100}',
+          },
+        );
+        final body =
+            '{"version": "https://jsonfeed.org/version/1.1", '
+            '"title": "Big - YouTube", "items": ${jsonEncode(items)}}';
+        expect(body.length, greaterThan(kGatedJsonDecodeChars));
+
+        final result = await parser.parseGated(body);
+        expect(result.displayName, 'Big');
+        expect(result.entries, hasLength(200));
+        expect(result.entries.first.title, startsWith('Video 0'));
+      },
+    );
   });
 }

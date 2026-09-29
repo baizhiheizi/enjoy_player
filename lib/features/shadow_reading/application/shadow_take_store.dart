@@ -10,6 +10,7 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
@@ -157,6 +158,29 @@ class ShadowTakeStoreFactory {
   );
 }
 
+final class _TakeAudioFacts {
+  const _TakeAudioFacts({
+    required this.byteLength,
+    required this.sha256Hex,
+    required this.durationMs,
+    required this.peak,
+  });
+  final int byteLength;
+  final String sha256Hex;
+  final int? durationMs;
+  final WavPeakScan? peak;
+}
+
+_TakeAudioFacts _readTakeAudioFacts(String wavPath) {
+  final bytes = File(wavPath).readAsBytesSync();
+  return _TakeAudioFacts(
+    byteLength: bytes.length,
+    sha256Hex: sha256.convert(bytes).toString(),
+    durationMs: wavDurationMsFromBytes(bytes),
+    peak: scanWavDataPeakFromBytes(bytes),
+  );
+}
+
 class ShadowTakeStore {
   ShadowTakeStore({
     required AppDatabase db,
@@ -300,19 +324,20 @@ class ShadowTakeStore {
       _log.warning('recording wav missing at path: $wavPath');
       throw TakeFileMissingException(wavPath);
     }
-    final bytes = await file.readAsBytes();
-    final hash = sha256.convert(bytes).toString();
+    final facts = await Isolate.run(
+      () => _readTakeAudioFacts(wavPath),
+      debugName: 'shadow-take-facts',
+    );
 
-    final parsedMs = wavDurationMsFromBytes(bytes);
-    final durationMs = parsedMs ?? 0;
-    if (parsedMs == null && bytes.isNotEmpty) {
+    final durationMs = facts.durationMs ?? 0;
+    if (facts.durationMs == null && facts.byteLength > 0) {
       _log.warning(
-        'could not parse WAV duration ($wavPath, ${bytes.length} bytes)',
+        'could not parse WAV duration ($wavPath, ${facts.byteLength} bytes)',
       );
     }
 
     var looksSilent = false;
-    final peak = scanWavDataPeakFromBytes(bytes);
+    final peak = facts.peak;
     if (peak != null) {
       _log.fine(
         'recording wav fmt=${peak.fmt.audioFormat} '
@@ -322,7 +347,7 @@ class ShadowTakeStore {
         'rms≈${peak.rmsNormalized.toStringAsFixed(6)} '
         'nonZero=${(peak.nonZeroRatio * 100).toStringAsFixed(2)}% '
         'samples=${peak.totalSamples} '
-        'bytes=${bytes.length} durMs=$durationMs',
+        'bytes=${facts.byteLength} durMs=$durationMs',
       );
       const minRms = 0.001;
       const minNonZeroRatio = 0.01;
@@ -352,7 +377,7 @@ class ShadowTakeStore {
       referenceText: region.referenceText,
       language: region.language,
       duration: durationMs,
-      md5: hash,
+      md5: facts.sha256Hex,
       audioUrl: null,
       pronunciationScore: null,
       assessmentJson: null,

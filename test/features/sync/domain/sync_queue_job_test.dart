@@ -175,26 +175,37 @@ void main() {
       );
     });
 
-    test('decodes a youtube_upload retry payload inside the video variant', () {
-      final job = SyncQueueJob.decode(
+    test('video upsert rows decode without parsing the payload; the retry '
+        'resolves lazily', () async {
+      final payloadJson = jsonEncode({
+        'kind': 'youtube_upload',
+        'videoId': 'dQw4w9WgXcQ',
+        'language': 'en',
+        'source': 'official',
+        'timeline': [
+          {'text': 'hello', 'start': 0, 'duration': 1000},
+        ],
+      });
+      final decoded = SyncQueueJob.decode(
         _row(
           entityType: 'video',
           entityId: 'dQw4w9WgXcQ/en',
           action: 'update',
-          payloadJson: jsonEncode({
-            'kind': 'youtube_upload',
-            'videoId': 'dQw4w9WgXcQ',
-            'language': 'en',
-            'source': 'official',
-            'timeline': [
-              {'text': 'hello', 'start': 0, 'duration': 1000},
-            ],
-          }),
+          payloadJson: payloadJson,
         ),
       );
-      expect(job, isA<SyncYoutubeUploadRetry>());
-      final retry = job! as SyncYoutubeUploadRetry;
-      expect(retry.videoId, 'dQw4w9WgXcQ');
+      expect(
+        decoded,
+        isA<SyncVideoUpsert>().having(
+          (j) => j.payloadJson,
+          'payload',
+          payloadJson,
+        ),
+      );
+
+      final retry = await SyncQueueJob.decodeYoutubeUploadRetry(payloadJson);
+      expect(retry, isNotNull);
+      expect(retry!.videoId, 'dQw4w9WgXcQ');
       expect(retry.language, 'en');
       expect(retry.source, 'official');
       expect(retry.timeline, [
@@ -202,25 +213,29 @@ void main() {
       ]);
     });
 
-    test('malformed youtube_upload payloads are undecodable (null)', () {
-      expect(
-        SyncQueueJob.decode(
-          _row(
-            entityType: 'video',
-            entityId: 'broken/en',
-            action: 'update',
-            payloadJson: jsonEncode({'kind': 'youtube_upload'}),
+    test(
+      'malformed youtube_upload payloads resolve to no retry (dropped)',
+      () async {
+        expect(
+          SyncQueueJob.decode(
+            _row(
+              entityType: 'video',
+              entityId: 'broken/en',
+              action: 'update',
+              payloadJson: jsonEncode({'kind': 'youtube_upload'}),
+            ),
           ),
-        ),
-        isNull,
-      );
-      expect(
-        SyncQueueJob.decode(
-          _row(
-            entityType: 'video',
-            entityId: 'broken/en',
-            action: 'update',
-            payloadJson: jsonEncode({
+          isA<SyncVideoUpsert>(),
+        );
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(
+            jsonEncode({'kind': 'youtube_upload'}),
+          ),
+          isNull,
+        );
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(
+            jsonEncode({
               'kind': 'youtube_upload',
               'videoId': 'v',
               'language': 'en',
@@ -228,16 +243,11 @@ void main() {
               'timeline': <Object>[],
             }),
           ),
-        ),
-        isNull,
-      );
-      expect(
-        SyncQueueJob.decode(
-          _row(
-            entityType: 'video',
-            entityId: 'broken/en',
-            action: 'update',
-            payloadJson: jsonEncode({
+          isNull,
+        );
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(
+            jsonEncode({
               'kind': 'youtube_upload',
               'videoId': 'v',
               'language': 'en',
@@ -248,21 +258,72 @@ void main() {
               ],
             }),
           ),
-        ),
-        isNull,
-      );
-      expect(
-        SyncQueueJob.decode(
-          _row(
-            entityType: 'video',
-            entityId: 'broken/en',
-            action: 'update',
-            payloadJson: 'not json',
+          isNull,
+        );
+        expect(
+          SyncQueueJob.decode(
+            _row(
+              entityType: 'video',
+              entityId: 'broken/en',
+              action: 'update',
+              payloadJson: 'not json',
+            ),
           ),
-        ),
-        isA<SyncVideoUpsert>(),
-      );
-    });
+          isA<SyncVideoUpsert>(),
+        );
+        expect(await SyncQueueJob.decodeYoutubeUploadRetry('not json'), isNull);
+      },
+    );
+
+    test(
+      'plain video payloads skip the retry resolver without a JSON parse',
+      () async {
+        expect(await SyncQueueJob.decodeYoutubeUploadRetry(null), isNull);
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(
+            jsonEncode({'title': 'plain video snapshot'}),
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'plain video payloads whose text mentions youtube_upload stay plain',
+      () async {
+        final payloadJson = jsonEncode(<String, dynamic>{
+          'id': 'media-1',
+          'provider': 'youtube',
+          'title': 'how I uploaded to youtube_upload',
+          'description': 'my youtube_upload workflow, part 2',
+          'tags': <String>['youtube_upload', 'uploading'],
+          'source': 'youtube_upload',
+        });
+        expect(
+          await SyncQueueJob.decodeYoutubeUploadRetry(payloadJson),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'whitespace between the kind key and value still resolves as a retry',
+      () async {
+        final payloadJson = '''{
+  "kind" : "youtube_upload",
+  "videoId": "dQw4w9WgXcQ",
+  "language": "en",
+  "source": "official",
+  "timeline": [
+    {"text": "hello", "start": 0, "duration": 1000}
+  ]
+}''';
+        final retry = await SyncQueueJob.decodeYoutubeUploadRetry(payloadJson);
+        expect(retry, isNotNull);
+        expect(retry!.videoId, 'dQw4w9WgXcQ');
+        expect(retry.language, 'en');
+      },
+    );
 
     test(
       'delete wins over a youtube_upload payload (payload only rides upserts)',
@@ -371,7 +432,7 @@ void main() {
       },
     );
 
-    test('encode/decode round-trips the youtube_upload retry row', () {
+    test('encode/decode round-trips the youtube_upload retry row', () async {
       const retry = SyncYoutubeUploadRetry(
         videoId: 'dQw4w9WgXcQ',
         language: 'en',
@@ -381,24 +442,18 @@ void main() {
         ],
       );
       final wire = retry.encode();
-      final decoded = SyncQueueJob.decode(
-        _row(
-          entityType: wire.entityType,
-          entityId: wire.entityId,
-          action: wire.action,
-          payloadJson: wire.payloadJson,
-        ),
+      final roundTripped = await SyncQueueJob.decodeYoutubeUploadRetry(
+        wire.payloadJson,
       );
-      expect(decoded, isA<SyncYoutubeUploadRetry>());
-      final roundTripped = decoded! as SyncYoutubeUploadRetry;
-      expect(roundTripped.videoId, retry.videoId);
+      expect(roundTripped, isNotNull);
+      expect(roundTripped!.videoId, retry.videoId);
       expect(roundTripped.language, retry.language);
       expect(roundTripped.source, retry.source);
       expect(roundTripped.timeline, retry.timeline);
     });
 
     test('encode is byte-stable: same content → same bytes, decode → encode '
-        'reproduces them (issue #749)', () {
+        'reproduces them (issue #749)', () async {
       const retry = SyncYoutubeUploadRetry(
         videoId: 'dQw4w9WgXcQ',
         language: 'en',
@@ -421,15 +476,8 @@ void main() {
       ).encode().payloadJson;
       expect(rebuilt, original);
 
-      final decoded = SyncQueueJob.decode(
-        _row(
-          entityType: 'video',
-          entityId: 'dQw4w9WgXcQ/en',
-          action: 'update',
-          payloadJson: original,
-        ),
-      );
-      expect(decoded, isA<SyncYoutubeUploadRetry>());
+      final decoded = await SyncQueueJob.decodeYoutubeUploadRetry(original);
+      expect(decoded, isNotNull);
       expect(decoded!.encode().payloadJson, original);
     });
   });
