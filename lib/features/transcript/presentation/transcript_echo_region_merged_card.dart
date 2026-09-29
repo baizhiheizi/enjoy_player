@@ -9,7 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/transcript/transcript_density.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
-import 'package:enjoy_player/features/player/application/display_position_provider.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
@@ -241,7 +240,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
         ),
         if (showShadow) ...[
           SizedBox(height: density.echoBottomPanelGap),
-          _EchoShadowReadingPanel(
+          ShadowReadingPanel(
             mediaId: mediaId,
             targetType: chrome?.dexieTargetType ?? 'Audio',
             language: chrome?.language ?? 'en',
@@ -249,6 +248,7 @@ class EchoRegionMergedCard extends ConsumerWidget {
             endSec: echo.endTimeSeconds,
             referenceText: echoReferencePlainText(lines, echo),
             echoActive: echo.active,
+            showLiveProgress: true,
           ),
         ],
       ],
@@ -261,44 +261,4 @@ void _deferEchoResize(WidgetRef ref, VoidCallback apply) {
     if (!ref.context.mounted) return;
     apply();
   });
-}
-
-/// Isolates [displayPositionProvider] so echo cue tiles do not rebuild every tick.
-class _EchoShadowReadingPanel extends ConsumerWidget {
-  const _EchoShadowReadingPanel({
-    required this.mediaId,
-    required this.targetType,
-    required this.language,
-    required this.startSec,
-    required this.endSec,
-    required this.referenceText,
-    required this.echoActive,
-  });
-
-  final String mediaId;
-  final String targetType;
-  final String language;
-  final double startSec;
-  final double endSec;
-  final String referenceText;
-  final bool echoActive;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final posAsync = ref.watch(displayPositionProvider);
-    final currentTimeSec = switch (posAsync) {
-      AsyncData(:final value) => value.inMilliseconds / 1000.0,
-      _ => 0.0,
-    };
-    return ShadowReadingPanel(
-      mediaId: mediaId,
-      targetType: targetType,
-      language: language,
-      startSec: startSec,
-      endSec: endSec,
-      referenceText: referenceText,
-      echoActive: echoActive,
-      currentTimeSec: currentTimeSec,
-    );
-  }
 }
