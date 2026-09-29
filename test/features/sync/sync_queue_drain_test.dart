@@ -219,6 +219,79 @@ void main() {
       },
     );
 
+    test(
+      'video row missing + youtube_upload payload dispatches the durable retry',
+      () async {
+        final uploads = <String>[];
+        final mock = MockClient((request) async {
+          if (request.method == 'POST' &&
+              request.url.path == '/youtube/transcripts') {
+            uploads.add('${request.method} ${request.url.path}');
+            return http.Response(
+              '{}',
+              201,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response(
+            'unexpected ${request.method} ${request.url.path}',
+            500,
+          );
+        });
+
+        final client = ApiClient(
+          httpClient: mock,
+          getBaseUrl: () async => 'https://enjoy.example.com',
+          getAccessToken: () async => 'tok',
+        );
+        final db = AppDatabase(executor: NativeDatabase.memory());
+        addTearDown(db.close);
+        final queue = SyncQueueRepository(db);
+        final upload = SyncUploadService(
+          db: db,
+          audioApi: AudioApi(client),
+          videoApi: VideoApi(client),
+          recordingApi: RecordingApi(client),
+          vocabularyApi: VocabularyApi(client),
+        );
+        final download = SyncDownloadService(
+          db: db,
+          audioApi: AudioApi(client),
+          videoApi: VideoApi(client),
+          recordingApi: RecordingApi(client),
+          vocabularyApi: VocabularyApi(client),
+        );
+        final engine = SyncEngine(
+          db: db,
+          queue: queue,
+          upload: upload,
+          download: download,
+          youtubeTranscripts: YoutubeTranscriptsApi(client),
+        );
+
+        await queue.addOrUpsert(
+          entityType: 'video',
+          entityId: 'dQw4w9WgXcQ/en',
+          action: 'update',
+          payloadJson: jsonEncode({
+            'kind': 'youtube_upload',
+            'videoId': 'dQw4w9WgXcQ',
+            'language': 'en',
+            'source': 'official',
+            'timeline': [
+              {'text': 'hello', 'start': 0, 'duration': 1000},
+            ],
+          }),
+        );
+
+        final result = await engine.processQueue(const SyncOptions());
+        expect(result.success, isTrue);
+        expect(result.synced, 1);
+        expect(uploads, ['POST /youtube/transcripts']);
+        expect(await queue.pendingItems(), isEmpty);
+      },
+    );
+
     test('overlapping processQueue calls coalesce', () async {
       var deleteCalls = 0;
       final started = Completer<void>();

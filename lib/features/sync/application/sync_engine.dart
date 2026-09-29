@@ -147,6 +147,30 @@ class SyncEngine {
     return SyncResult(success: failed == 0, synced: synced, failed: failed);
   }
 
+  Future<bool> _processYoutubeUploadRetry(
+    SyncYoutubeUploadRetry retry,
+    SyncQueueRow item,
+  ) async {
+    await retry.processRetry(
+      rowId: item.id,
+      upload: retry.toUploadCall(_youtubeTranscripts),
+      removeByIdIfPayload: _queue.removeByIdIfPayload,
+    );
+    _log.info(
+      'youtube_upload retry accepted for ${retry.videoId}/${retry.language} '
+      '(source=${retry.source}, ${retry.timeline.length} lines)',
+    );
+    return true;
+  }
+
+  Future<void> _dropQueueRow(SyncQueueRow item) async {
+    if (item.payloadJson == null) {
+      await _queue.removeById(item.id);
+    } else {
+      await _queue.removeByIdIfPayload(item.id, item.payloadJson!);
+    }
+  }
+
   Future<bool> _processOne(SyncQueueRow item) async {
     final job = SyncQueueJob.decode(item);
     if (job == null) {
@@ -154,11 +178,7 @@ class SyncEngine {
         'sync ${item.entityType}:${item.entityId} ${item.action}: '
         'undecodable queue row, drop',
       );
-      if (item.payloadJson == null) {
-        await _queue.removeById(item.id);
-      } else {
-        await _queue.removeByIdIfPayload(item.id, item.payloadJson!);
-      }
+      await _dropQueueRow(item);
       return true;
     }
 
@@ -188,9 +208,15 @@ class SyncEngine {
         case SyncVideoUpsert(:final id):
           final row = await MediaRegistry(_db).getVideoById(id);
           if (row == null) {
-            _log.warning('sync video $id: missing locally, drop queue row');
-            await _queue.removeById(item.id);
-            return true;
+            final retry = await SyncQueueJob.decodeYoutubeUploadRetry(
+              item.payloadJson,
+            );
+            if (retry == null) {
+              _log.warning('sync video $id: missing locally, drop queue row');
+              await _dropQueueRow(item);
+              return true;
+            }
+            return await _processYoutubeUploadRetry(retry, item);
           }
           await _upload.uploadVideo(row);
         case SyncRecordingUpsert(:final id):
@@ -225,16 +251,7 @@ class SyncEngine {
           break;
 
         case SyncYoutubeUploadRetry():
-          await job.processRetry(
-            rowId: item.id,
-            upload: job.toUploadCall(_youtubeTranscripts),
-            removeByIdIfPayload: _queue.removeByIdIfPayload,
-          );
-          _log.info(
-            'youtube_upload retry accepted for ${job.videoId}/${job.language} '
-            '(source=${job.source}, ${job.timeline.length} lines)',
-          );
-          return true;
+          return await _processYoutubeUploadRetry(job, item);
       }
 
       await _queue.removeById(item.id);
