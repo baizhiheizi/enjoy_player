@@ -134,6 +134,93 @@ void main() {
         isTrue,
       );
     });
+
+    test('remove drops the memo so the next read re-decodes', () {
+      final cache = TranscriptTimelineCache();
+      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final first = cache.linesFor(rowId: 'r1', timelineJson: json);
+      cache.remove('r1');
+      expect(cache.isCached(rowId: 'r1', timelineJson: json), isFalse);
+      expect(
+        identical(cache.linesFor(rowId: 'r1', timelineJson: json), first),
+        isFalse,
+      );
+    });
+
+    test('overflow drops the least-recently-used decode (issue #810 C1)', () {
+      final cache = TranscriptTimelineCache();
+      String jsonFor(int i) =>
+          timelineJson([lineJson(startMs: i * 1000, durationMs: 100)]);
+
+      final oldest = cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      for (var i = 1; i <= kTranscriptTimelineMemoCapacity; i++) {
+        cache.linesFor(rowId: 'r$i', timelineJson: jsonFor(i));
+      }
+
+      expect(
+        identical(
+          cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0)),
+          oldest,
+        ),
+        isFalse,
+      );
+      final newestId = 'r$kTranscriptTimelineMemoCapacity';
+      final newestJson = jsonFor(kTranscriptTimelineMemoCapacity);
+      final newest = cache.linesFor(rowId: newestId, timelineJson: newestJson);
+      expect(
+        identical(
+          cache.linesFor(rowId: newestId, timelineJson: newestJson),
+          newest,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a re-read row survives overflow, the untouched one is evicted', () {
+      final cache = TranscriptTimelineCache();
+      String jsonFor(int i) =>
+          timelineJson([lineJson(startMs: i * 1000, durationMs: 100)]);
+
+      final untouched = cache.linesFor(rowId: 'r1', timelineJson: jsonFor(1));
+      final touched = cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0));
+      for (var i = 2; i <= kTranscriptTimelineMemoCapacity; i++) {
+        cache.linesFor(rowId: 'r$i', timelineJson: jsonFor(i));
+      }
+      expect(
+        identical(
+          cache.linesFor(rowId: 'r0', timelineJson: jsonFor(0)),
+          touched,
+        ),
+        isTrue,
+      );
+      expect(
+        identical(
+          cache.linesFor(rowId: 'r1', timelineJson: jsonFor(1)),
+          untouched,
+        ),
+        isFalse,
+      );
+    });
+
+    test('store over capacity also evicts the least-recently-used row', () {
+      final cache = TranscriptTimelineCache();
+      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+
+      final first = cache.linesFor(rowId: 'r0', timelineJson: json);
+      for (var i = 1; i <= kTranscriptTimelineMemoCapacity; i++) {
+        cache.store(
+          rowId: 'r$i',
+          timelineJson: json,
+          lines: decodeTimelineJson(json),
+        );
+      }
+
+      expect(
+        identical(cache.linesFor(rowId: 'r0', timelineJson: json), first),
+        isFalse,
+      );
+    });
   });
 
   group('transcriptActiveIndex (UI highlight policy)', () {

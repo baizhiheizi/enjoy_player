@@ -191,6 +191,7 @@ Current call sites:
 - [`AiResultCache` L1 tier](../lib/features/ai/application/ai_result_cache.dart) — 256 entries / 30 min TTL per AI modality, see [ADR-0045](decisions/0045-ai-result-cache-hierarchy.md).
 - `LookupSheetResultCache` — same primitive after ADR-0045 slimmed down its internal maps.
 - [`DiscoverRepository`](../lib/features/discover/data/discover_repository.dart) — channel-avatar URL cache, 256 entries / 6 h TTL, see [features/discover.md § Channel avatar cache](features/discover.md#channel-avatar-cache).
+- [`TranscriptTimelineCache`](../lib/features/transcript/data/transcript_timeline_codec.dart) — decoded `timelineJson` memo, 8 rows / no effective TTL (invalidation is content-hash based), see [features/transcript.md](features/transcript.md).
 
 Behavior contract:
 
