@@ -220,15 +220,9 @@ class _TransportProgressStripState
     final streamFraction = durationSec > 0
         ? pos.inMilliseconds / 1000 / durationSec
         : 0.0;
-    // Render the thumb from the local override, not the stream position,
-    // while the user is dragging (#470) or while a just-issued seek has not
-    // landed yet (#660) — the stream reports the stale pre-seek position in
-    // both cases.
     final holdFraction = _dragFraction ?? _pendingSeekFraction;
     final fraction = holdFraction ?? streamFraction.clamp(0.0, 1.0);
 
-    // The stream caught up, so hand the thumb back to it. Done post-frame
-    // because this runs during build (pos arrives via ref.watch above).
     if (_streamCaughtUp(pos, durationSec)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _releasePendingSeek();
@@ -261,8 +255,6 @@ class _TransportProgressStripState
                   value: fraction.clamp(0, 1),
                   onChangeStart: (_) {
                     _scrubSecond = null;
-                    // A re-grab supersedes any hold from the previous seek;
-                    // the drag value wins for as long as the finger is down.
                     _pendingSeekTimer?.cancel();
                     _pendingSeekFraction = null;
                   },
@@ -277,8 +269,6 @@ class _TransportProgressStripState
                     setState(() => _dragFraction = v);
                   },
                   onChangeEnd: (v) {
-                    // Keep the thumb on the target instead of snapping back
-                    // to the stale pre-seek stream position (issue #660).
                     setState(() {
                       _dragFraction = null;
                       _holdPendingSeek(v);

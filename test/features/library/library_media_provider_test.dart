@@ -33,7 +33,6 @@ void main() {
       PathProviderPlatform.instance = TestPathProvider(root.path);
       db = AppDatabase(executor: NativeDatabase.memory());
       repo = MediaLibraryRepository(db, FileStorage());
-      // Seed two audio + one video so the lists are non-trivial.
       await db.audioDao.insertRow(
         _audio('a-old', 'Alpha', 'old', DateTime(2026, 1, 1)),
       );
@@ -74,15 +73,10 @@ void main() {
         final sub = container.listen(libraryHomeRecentsProvider, (_, next) {
           if (next.hasValue) emissions.add(next.requireValue.length);
         }, fireImmediately: true);
-        // Wait for the initial emission (seeded data).
         await container.read(libraryHomeRecentsProvider.future);
         emissions.clear();
 
-        // Force watchAll to re-query without changing mapped [Media] values.
-        // syncStatus is not surfaced on [Media]; preserve updatedAt so the
-        // top-12 ordering and element equality stay the same.
         await _touchSyncStatusOnly(db, 'a-old');
-        // Yield enough times for the StreamProvider to flush.
         await Future<void>.delayed(const Duration(milliseconds: 30));
         expect(
           emissions,
@@ -92,7 +86,6 @@ void main() {
               'Got $emissions emissions after a no-op write.',
         );
 
-        // Real change to the top-12 (a brand-new most-recent item) MUST emit.
         await db.videoDao.insertRow(
           _video('v-newest', 'Delta', 'newest', DateTime(2026, 12, 1)),
         );
@@ -135,8 +128,6 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 30));
         expect(emissions, isEmpty, reason: 'No-op write should be deduped.');
 
-        // Real change: rename Alpha → Zebra. Now audio list is
-        // [Bravo, Zebra], which differs, so we must see an emission.
         final renamedRow = await db.audioDao.getById('a-old');
         await db.audioDao.insertRow(renamedRow!.copyWith(title: 'Zebra'));
         await Future<void>.delayed(const Duration(milliseconds: 30));
@@ -157,8 +148,6 @@ void main() {
       () async {
         final container = makeContainer();
         addTearDown(container.dispose);
-        // watchAll() may emit a partial merge before both DAO watches fire;
-        // wait until both kinds are present.
         late _FilteredLists lists;
         final done = Completer<_FilteredLists>();
         final sub = container.listen(libraryFilteredListsProvider, (_, next) {
@@ -170,7 +159,6 @@ void main() {
         }, fireImmediately: true);
         addTearDown(sub.close);
         lists = await done.future.timeout(const Duration(seconds: 5));
-        // Seeded: a-old @ Jan, b-new @ Jun — newest first (not title A→B).
         expect(lists.audio.map((m) => m.id).toList(), ['b-new', 'a-old']);
         expect(lists.video.map((m) => m.id).toList(), ['v-mid']);
       },
@@ -199,7 +187,6 @@ void main() {
         await Future<void>.delayed(
           kLibrarySearchDebounce + const Duration(milliseconds: 50),
         );
-        // Empty result set is a real change; should emit.
         expect(emissions, isNotEmpty);
         expect(emissions.last, 0);
 

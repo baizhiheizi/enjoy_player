@@ -6,10 +6,6 @@ import 'package:enjoy_player/core/utils/text_normalization.dart';
 /// Normalizes text for hashing and synthesis: NFC-normalize, collapse
 /// whitespace runs to single spaces, trim leading/trailing.
 String normalizeCraftText(String input) {
-  // NFC normalization via Dart's default String representation on most
-  // platforms is already NFC; explicit normalization is deferred to a
-  // future enhancement (Dart core does not expose ICU normalization).
-  // Collapse whitespace runs and trim.
   final collapsed = collapseWhitespace(input);
   return collapsed;
 }

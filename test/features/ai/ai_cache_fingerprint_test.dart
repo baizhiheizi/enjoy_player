@@ -85,8 +85,6 @@ void main() {
         kind: 'translation',
         payload: const {'text': 'hi', 'sourceLanguage': 'null'},
       );
-      // Both encode to the canonical form ...sourceLanguage=null... so the
-      // hash matches. This documents the encoding, not a bug.
       expect(a, equals(b));
     });
 
@@ -123,7 +121,6 @@ void main() {
           'text': 'hi',
         },
       );
-      // list 'a','b' canonicalises to 'a,b' which equals the scalar 'a,b'.
       expect(a, equals(b));
     });
 

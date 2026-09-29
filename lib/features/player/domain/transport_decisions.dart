@@ -14,18 +14,10 @@ library;
 
 import 'player_settings.dart';
 
-// ---------------------------------------------------------------------------
-// D1 — seek routing (echo-aware vs direct)
-// ---------------------------------------------------------------------------
-
 /// When echo is active, seeks should pass through the single-flight
 /// [EchoEnforcer] so a user seek cannot interleave with a reactive per-tick
 /// enforcement (no double-seek). Returns `true` for the echo-routed path.
 bool decideSeekRouting({required bool echoActive}) => echoActive;
-
-// ---------------------------------------------------------------------------
-// D3 — replay target (echo start vs active-line start)
-// ---------------------------------------------------------------------------
 
 sealed class ReplayTargetDecision {
   const ReplayTargetDecision();
@@ -60,10 +52,6 @@ ReplayTargetDecision decideReplayTarget({
   return ReplayTargetDecision.lineStart(activeLineStartSeconds);
 }
 
-// ---------------------------------------------------------------------------
-// D4 — progress seek (fraction → target time)
-// ---------------------------------------------------------------------------
-
 /// Convert a [0, 1] progress fraction and the current duration into a seek
 /// target in seconds, or `null` when the seek is impossible (no / zero
 /// duration).
@@ -76,19 +64,11 @@ double? decideProgressSeekTime({
   return (durationSeconds * clamped).clamp(0.0, durationSeconds);
 }
 
-// ---------------------------------------------------------------------------
-// D5 — YouTube play restart
-// ---------------------------------------------------------------------------
-
 /// When the video previously completed playback, a new [play] must reload the
 /// watch page (returns `true`); otherwise a simple JS `play()` call is
 /// sufficient (returns `false`).
 bool decideYouTubePlayRestart({required bool playbackCompleted}) =>
     playbackCompleted;
-
-// ---------------------------------------------------------------------------
-// D6 — YouTube poll-loop transport-state transition
-// ---------------------------------------------------------------------------
 
 sealed class PollTransitionDecision {
   const PollTransitionDecision();
@@ -143,9 +123,6 @@ PollTransitionDecision decidePollTransition({
   return const PollIdleTick();
 }
 
-// ---------------------------------------------------------------------------
-// D7 — media-end action (RepeatMode consumer)
-// ---------------------------------------------------------------------------
 sealed class MediaEndDecision {
   const MediaEndDecision();
 
@@ -182,14 +159,6 @@ MediaEndDecision decideOnMediaEnd({required RepeatMode repeatMode}) {
       return MediaEndDecision.loopSegment;
   }
 }
-
-// ---------------------------------------------------------------------------
-// D8/D9 moved to youtube_play_retry_policy.dart (issue #665).
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// D10 — hotkey playback-rate step (player.slowDown / player.speedUp)
-// ---------------------------------------------------------------------------
 
 /// Direction of a hotkey playback-rate nudge.
 enum PlaybackRateDirection { slower, faster }

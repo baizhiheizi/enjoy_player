@@ -46,6 +46,5 @@ Widget buildPlayerVideoStage(
       maxHeight: maxHeight,
     );
   }
-  // Test double (no native surface of its own) — mount nothing.
   return const SizedBox.shrink();
 }

@@ -77,7 +77,6 @@ void main() {
       expect(find.text('WeChat'), findsOneWidget);
       expect(find.text('Alipay'), findsOneWidget);
       expect(find.text('Google Pay'), findsOneWidget);
-      // Brand icons render as SvgPicture widgets.
       final svgCount = tester
           .widgetList<SvgPicture>(find.byType(SvgPicture))
           .length;
@@ -101,7 +100,6 @@ void main() {
       expect(find.text('ETH'), findsOneWidget);
       expect(find.text('Doge'), findsOneWidget);
       expect(find.text('and more'), findsOneWidget);
-      // Five SVGs (one per crypto), the last entry has icon == null.
       final svgCount = tester
           .widgetList<SvgPicture>(find.byType(SvgPicture))
           .length;

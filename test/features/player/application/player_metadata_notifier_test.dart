@@ -112,7 +112,6 @@ void main() {
     final patched = container.read(playerControllerProvider);
     expect(patched!.mediaTitle, 'patched title');
     expect(patched.thumbnailUrl, 'https://example.com/cover.jpg');
-    // The patch is a copyWith — every other field is preserved.
     expect(patched.mediaId, sessionBefore.mediaId);
     expect(patched.durationSeconds, sessionBefore.durationSeconds);
   });
@@ -147,7 +146,6 @@ void main() {
     await controller.openMedia(idA);
     final captureGen = controller.openGeneration;
 
-    // Open another media — this bumps openGeneration.
     await controller.openMedia(idB);
     final newGen = controller.openGeneration;
     expect(newGen, isNot(captureGen));
@@ -156,7 +154,7 @@ void main() {
         .read(playerMetadataProvider)
         .patchIfCurrent(
           mediaId: idB,
-          openGeneration: captureGen, // stale snapshot
+          openGeneration: captureGen,
           title: 'stale-gen',
           thumbnailUrl: 'https://example.com/x.jpg',
         );
@@ -166,7 +164,6 @@ void main() {
   });
 
   test('no-op when session is null (no media open)', () async {
-    // No openMedia call — session is null.
     container
         .read(playerMetadataProvider)
         .patchIfCurrent(
@@ -186,7 +183,6 @@ void main() {
 
     final captureGen = controller.openGeneration;
 
-    // First, set a thumbnail.
     container
         .read(playerMetadataProvider)
         .patchIfCurrent(
@@ -200,14 +196,12 @@ void main() {
       'https://example.com/first.jpg',
     );
 
-    // Now patch again with null thumbnail — implementation must preserve.
     container
         .read(playerMetadataProvider)
         .patchIfCurrent(
           mediaId: id,
           openGeneration: controller.openGeneration,
           title: 'newer-title',
-          // thumbnailUrl: null (default)
         );
     final session = container.read(playerControllerProvider);
     expect(session!.mediaTitle, 'newer-title');
@@ -226,7 +220,7 @@ void main() {
         .read(playerMetadataProvider)
         .patchIfCurrent(
           mediaId: id,
-          openGeneration: exactGen + 1, // not the real gen
+          openGeneration: exactGen + 1,
           title: 'wrong-gen',
         );
 

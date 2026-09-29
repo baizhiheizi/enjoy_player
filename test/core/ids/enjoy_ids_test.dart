@@ -12,15 +12,8 @@ import 'package:uuid/uuid.dart';
 /// given input and must vary when any input component varies. These tests
 /// pin both halves of that contract so a refactor cannot drift them apart.
 void main() {
-  // ---------------------------------------------------------------------------
-  // Namespace constant
-  // ---------------------------------------------------------------------------
-
   group('enjoyUuidNamespaceUrl', () {
     test('is the RFC 4122 URL namespace', () {
-      // The URL namespace is a stable UUID published in RFC 4122 §4.4. If this
-      // ever changes the entire v5 ID space shifts and merge with weapp
-      // breaks. The test pins the value down to the byte.
       expect(enjoyUuidNamespaceUrl, '6ba7b811-9dad-11d1-80b4-00c04fd430c8');
     });
 
@@ -29,10 +22,6 @@ void main() {
       expect(parsed, isNotNull);
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoyVideoId
-  // ---------------------------------------------------------------------------
 
   group('enjoyVideoId', () {
     test('returns a UUID v5 (36 chars, dashed)', () {
@@ -74,10 +63,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // enjoyAudioId
-  // ---------------------------------------------------------------------------
-
   group('enjoyAudioId', () {
     test('returns a UUID v5 (36 chars, dashed)', () {
       final id = enjoyAudioId(aid: '010203');
@@ -105,18 +90,11 @@ void main() {
     });
 
     test('does not collide with enjoyVideoId for the same key', () {
-      // video:user:abc and audio:user:abc share the namespace but encode
-      // different "namespaces" in the UUID v5 name string — they must not
-      // collide. This guards weapp's audio-vs-video ID space.
       final video = enjoyVideoId(vid: 'abc');
       final audio = enjoyAudioId(aid: 'abc');
       expect(video, isNot(audio));
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoySha256HexOfString
-  // ---------------------------------------------------------------------------
 
   group('enjoySha256HexOfString', () {
     test('returns a 64-char lowercase hex digest', () {
@@ -139,7 +117,6 @@ void main() {
     });
 
     test('handles the empty string (sha256 of empty bytes)', () {
-      // sha256("") = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       expect(
         enjoySha256HexOfString(''),
         'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
@@ -147,15 +124,10 @@ void main() {
     });
 
     test('handles unicode correctly via utf8.encode', () {
-      // sha256("héllo") hashes the UTF-8 bytes [0x68, 0xc3, 0xa9, 0x6c, 0x6c, 0x6f]
       final want = sha256.convert(utf8.encode('héllo')).toString();
       expect(enjoySha256HexOfString('héllo'), want);
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoyLocalAudioAid
-  // ---------------------------------------------------------------------------
 
   group('enjoyLocalAudioAid', () {
     test('is sha256(contentHashHex:userId) hex', () {
@@ -189,17 +161,11 @@ void main() {
     });
 
     test('does not collide with the audio api UUID for the same input', () {
-      // sanity: the two id spaces use different algorithms (sha256 vs uuid v5)
-      // so even the same string cannot collide.
       final local = enjoyLocalAudioAid(contentHashHex: 'x', userId: 'u');
       final api = enjoyAudioId(aid: 'x');
       expect(local, isNot(api));
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoyLocalVideoVid
-  // ---------------------------------------------------------------------------
 
   group('enjoyLocalVideoVid', () {
     test('is content-addressed (ignores userId)', () {
@@ -211,10 +177,6 @@ void main() {
       );
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoyTranscriptId
-  // ---------------------------------------------------------------------------
 
   group('enjoyTranscriptId', () {
     test('returns a UUID v5 (36 chars, dashed)', () {
@@ -321,10 +283,6 @@ void main() {
       expect(captions, isNot(whisper));
     });
   });
-
-  // ---------------------------------------------------------------------------
-  // enjoyVocabularyItemId / enjoyVocabularyContextId
-  // ---------------------------------------------------------------------------
 
   group('enjoyVocabularyItemId', () {
     test('returns a UUID v5', () {
@@ -469,14 +427,8 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Cross-function stability
-  // ---------------------------------------------------------------------------
-
   group('cross-function stability', () {
     test('enjoyVideoId + enjoyAudioId + enjoyTranscriptId share namespace', () {
-      // Same UUID v5 namespace ⇒ all three start with the namespace-derived
-      // 8-4-4 prefix. Locks the namespace constant in place across edits.
       final v = enjoyVideoId(vid: 'k');
       final a = enjoyAudioId(aid: 'k');
       final t = enjoyTranscriptId(
@@ -485,16 +437,12 @@ void main() {
         language: 'en',
         source: 'src',
       );
-      // Version digit (position 14, 0-indexed) must be '5' (v5) for all.
       expect(v[14], '5');
       expect(a[14], '5');
       expect(t[14], '5');
     });
 
     test('across a restart-like cycle, IDs are bit-identical', () {
-      // Determinism smoke test — re-computing every public function twice
-      // must yield the same bytes. This protects against accidental hoisting
-      // of any seed into non-const storage.
       for (var i = 0; i < 3; i++) {
         expect(enjoyVideoId(vid: 'k'), enjoyVideoId(vid: 'k'));
         expect(enjoyAudioId(aid: 'k'), enjoyAudioId(aid: 'k'));

@@ -109,11 +109,6 @@ class TranscriptFetchCtrl extends _$TranscriptFetchCtrl {
       );
     }
     final repo = ref.read(transcriptRepositoryProvider);
-    // Read the learner's native + learning languages here, in the single
-    // shared helper used by BOTH `resolveOnOpen` (media open) and
-    // `refreshFromCloud` (manual refresh), so the language-aware primary
-    // picker engages on refresh too. Kept out of the repository to keep it
-    // UI-free.
     final prefs = signedIn
         ? ref.read(appPreferencesCtrlProvider).valueOrNull
         : null;

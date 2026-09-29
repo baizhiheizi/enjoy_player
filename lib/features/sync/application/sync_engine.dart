@@ -1,5 +1,3 @@
-// Coordinates download + upload queue processing.
-
 import 'dart:async';
 
 import 'package:enjoy_player/core/logging/log.dart';
@@ -63,13 +61,6 @@ class SyncEngine {
   var _resetFailedPending = false;
 
   Future<SyncResult> fullSync(SyncOptions options) async {
-    // Local-first: do not mirror remote audios/videos/recordings into the
-    // library (ADR-0013). Vocabulary is an intentional exception — a
-    // cross-device word book, not local-path media — so it pulls on every
-    // signed-in sync alongside the outbound queue drain (ADR-0054).
-    //
-    // processQueue and pullVocabulary don't share state — run them
-    // concurrently (issue #481).
     final results = await Future.wait([
       processQueue(options),
       pullVocabulary(),
@@ -134,10 +125,6 @@ class SyncEngine {
       }
     }
 
-    // One threshold filter + one backoff filter on this path: pendingItems
-    // already excludes permanently failed rows (policy threshold, SQL), so
-    // the in-memory filter is backoff-only — the old helper's dead threshold
-    // re-check is gone (issue #752).
     final pending = await _queue.pendingItems();
     final work = pending
         .where((row) => SyncEntityTypeWire.tryParse(row.entityType) != null)
@@ -148,8 +135,6 @@ class SyncEngine {
     var synced = 0;
     var failed = 0;
 
-    // Sequential: avoids parallel DELETE/POST for the same entityId when a
-    // user deletes then re-imports the same local file (deterministic ids).
     for (final item in work) {
       final ok = await _processOne(item);
       if (ok) {
@@ -165,20 +150,10 @@ class SyncEngine {
   Future<bool> _processOne(SyncQueueRow item) async {
     final job = SyncQueueJob.decode(item);
     if (job == null) {
-      // Unknown entityType/action or a payload the seam cannot interpret
-      // (e.g. a malformed youtube_upload retry) — drop the row instead of
-      // retrying it forever. Never crash the drain loop over an
-      // unrecoverable row.
       _log.warning(
         'sync ${item.entityType}:${item.entityId} ${item.action}: '
         'undecodable queue row, drop',
       );
-      // Same issue-#717 producer race the success path guards against
-      // below: a youtube_upload row may have been refreshed with a valid
-      // payload between the `pendingItems()` snapshot and this remove, and
-      // dropping the row would lose that fresh retry. Rows without a
-      // payload (deletes, unknown triples) have no producer refresh, so
-      // they drop unconditionally as before the typed seam.
       if (item.payloadJson == null) {
         await _queue.removeById(item.id);
       } else {
@@ -196,7 +171,7 @@ class SyncEngine {
         case SyncRecordingDelete(:final id):
           await _upload.deleteRecording(id);
         case SyncYoutubeSubscriptionDelete():
-          break; // subscription deletion is local-only
+          break;
         case SyncVocabularyItemDelete(:final id):
           await _upload.deleteVocabularyItem(id);
         case SyncVocabularyContextDelete(:final id):
@@ -247,18 +222,9 @@ class SyncEngine {
           }
           await _upload.uploadVocabularyContext(row);
         case SyncYoutubeSubscriptionUpsert():
-          // Subscription sync deferred — server API not yet ready. Nothing
-          // is uploaded; like every processed row, the queue row is removed
-          // below (no producer enqueues this variant today, and
-          // subscription deletion is the only wire shape web parity pins).
           break;
 
         case SyncYoutubeUploadRetry():
-          // The retry contract (throw-on-false + encode-derived conditional
-          // remove) and the upload-call binding live on the job module
-          // (issue #749); the switch stays the only variant consumer.
-          // `await` it — a returned Future's error would skip the catch
-          // blocks below (and thus markAttempted).
           await job.processRetry(
             rowId: item.id,
             upload: job.toUploadCall(_youtubeTranscripts),

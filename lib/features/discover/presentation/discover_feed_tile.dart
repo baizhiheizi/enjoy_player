@@ -153,10 +153,6 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       durationLabel: durationLabel,
       adding: _adding,
       inLibrary: inLibrary,
-      // This row renders inside MediaCardTile's shared mediaCardTileMetaHeight
-      // budget (58px), so its vertical math is pinned: 6 gap + 2-line title
-      // (14px × 1.25 leading = 35) + 2 gap + published line (12px × 1.2 ≈ 14.4)
-      // = ~57.4 ≤ 58. Loosen any of these and grid rows drift / overflow.
       meta: Padding(
         padding: EdgeInsets.only(top: t.space8 - 2),
         child: Row(

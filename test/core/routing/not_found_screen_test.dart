@@ -46,7 +46,6 @@ void main() {
 
     expect(find.byIcon(EnjoyIcons.compassOff), findsOneWidget);
     expect(find.text('Page not found'), findsOneWidget);
-    // The subtitle references the unknown uri verbatim.
     expect(find.textContaining('/missing'), findsOneWidget);
     expect(find.text('Back to home'), findsOneWidget);
   });

@@ -71,10 +71,6 @@ library;
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';
 
-// ---------------------------------------------------------------------------
-// D8 result — what the poll loop must do about a confirmed pause.
-// ---------------------------------------------------------------------------
-
 sealed class ImmediatePauseRetryDecision {
   const ImmediatePauseRetryDecision();
 
@@ -92,10 +88,6 @@ final class RetryPlayOnce extends ImmediatePauseRetryDecision {
 final class SurfacePause extends ImmediatePauseRetryDecision {
   const SurfacePause();
 }
-
-// ---------------------------------------------------------------------------
-// D9 result — what a transport toggle did to the budget.
-// ---------------------------------------------------------------------------
 
 sealed class TransportToggleLatchDecision {
   const TransportToggleLatchDecision();
@@ -214,10 +206,6 @@ class YouTubePlayRetryPolicy {
   /// immediate-pause measurement ([isImmediatePause]).
   Duration? _lastPlayingAt;
 
-  // ---------------------------------------------------------------------------
-  // Reads.
-  // ---------------------------------------------------------------------------
-
   /// The D8 budget is live only while its attempt is unresolved in time:
   /// armed AND (no resolving playing episode yet, or that episode started
   /// within [playAttemptExpiry]). This is the fulfilment condition from the
@@ -251,10 +239,6 @@ class YouTubePlayRetryPolicy {
     if (at == null) return false;
     return _clock.now() - at < window;
   }
-
-  // ---------------------------------------------------------------------------
-  // Budget transitions (armed → consumed).
-  // ---------------------------------------------------------------------------
 
   /// An explicit play command is on the wire (engine play / playOrPause).
   /// Arms a fresh attempt: its fulfilment clock starts at ITS resolving
@@ -294,10 +278,6 @@ class YouTubePlayRetryPolicy {
   /// Consumes the one-shot immediate-pause retry budget (D8) before the poll
   /// loop re-issues play; a second immediate pause surfaces to the user.
   void consumeBudget() => _budgetArmed = false;
-
-  // ---------------------------------------------------------------------------
-  // Episode transitions.
-  // ---------------------------------------------------------------------------
 
   /// A `playing` transition (false→true or true→false) was emitted. Three
   /// protocol facts are keyed to the false→true direction:
@@ -356,10 +336,6 @@ class YouTubePlayRetryPolicy {
     _episodeLive = false;
   }
 
-  // ---------------------------------------------------------------------------
-  // Decisions.
-  // ---------------------------------------------------------------------------
-
   /// D8: reduce a confirmed pause into the retry verdict. [immediate] is the
   /// [isImmediatePause] measurement taken at confirmation; [disposed] and
   /// [playbackCompleted] are the session facts that veto a retry regardless
@@ -369,8 +345,6 @@ class YouTubePlayRetryPolicy {
     required bool disposed,
     required bool playbackCompleted,
   }) {
-    // The fulfilment-filtered budget, not the raw armed latch: an attempt
-    // whose resolving episode outlived [playAttemptExpiry] is no longer
     // coverage, even though it was never explicitly consumed.
     final covered =
         userPlayInFlight ||

@@ -30,7 +30,6 @@ class CraftScreen extends ConsumerWidget {
     } else if (state.hasUnsavedPreview) {
       final discard = await confirmDiscardUnsavedCraftPreview(context);
       if (discard != true || !context.mounted) return;
-      // Drop in-memory TTS so reopening Craft cannot revive a "discarded" preview.
       ref.read(craftControllerProvider.notifier).resetForNextCapture();
     }
 
@@ -71,7 +70,6 @@ class CraftScreen extends ConsumerWidget {
         unawaited(_leave(context, ref));
       },
       child: EnjoyPage(
-        // Express = form column; Advanced = hub width (matches AI settings).
         kind: isAdvanced ? EnjoyPageKind.hub : EnjoyPageKind.form,
         showBack: true,
         title: l10n.craftScreenTitle,

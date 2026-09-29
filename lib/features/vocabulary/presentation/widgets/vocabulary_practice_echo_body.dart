@@ -32,7 +32,6 @@ ShadowReadingPanel buildVocabularyEchoRecorder({
     startSec: locator.start / 1000.0,
     endSec: (locator.start + locator.duration) / 1000.0,
     referenceText: contextItem.text,
-    // Enables recorder/assessment actions; global player EchoMode remains off.
     echoActive: true,
     analyticsSurface: AnalyticsEvents.surfaceFlashcard,
   );

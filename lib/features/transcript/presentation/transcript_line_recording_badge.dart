@@ -24,7 +24,6 @@ class TranscriptLineRecordingBadge extends StatelessWidget {
     final label =
         l10n?.transcriptLineRecordingCount(resolved) ?? '$resolved recordings';
 
-    // Tile-level semantics already announce the count; exclude nested label.
     return ExcludeSemantics(
       child: Tooltip(
         message: label,

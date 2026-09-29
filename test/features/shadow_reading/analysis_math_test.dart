@@ -77,8 +77,6 @@ void main() {
         referenceDurationSec: 2,
         userDurationSec: 1.5,
       );
-      // A playback tick only changes the progress cursor — not the merge
-      // inputs — so the merged series must be the identical list instance.
       final second = memo.resolve(
         reference: ref,
         user: user,

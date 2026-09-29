@@ -29,13 +29,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // toImage / toByteData need a real async zone (fakeAsync hangs otherwise).
     final bytes = await tester.runAsync(
       () => captureRepaintBoundaryPng(key, pixelRatio: 1),
     );
     expect(bytes, isNotNull);
     expect(bytes!.length, greaterThan(8));
-    // PNG signature
     expect(bytes.sublist(0, 8), [
       0x89,
       0x50,

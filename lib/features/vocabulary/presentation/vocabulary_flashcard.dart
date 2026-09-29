@@ -484,8 +484,6 @@ class _TabBodyState extends State<_TabBody> {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    // Explicit controller: desktop Scrollbar defaults to PrimaryScrollController,
-    // but SingleChildScrollView does not attach to it — scrolling then throws.
     return Scrollbar(
       controller: _scrollController,
       child: SingleChildScrollView(

@@ -1,16 +1,4 @@
 // ignore_for_file: scoped_providers_should_specify_dependencies
-//
-// Tests for the top-level helpers in `library_actions.dart`:
-//
-//   * `confirmAndDeleteMedia` (dialog + deleteMedia + SnackBar surfaces)
-//   * `showImportChooser` (bottom sheet with file / YouTube / Craft)
-//   * `editMediaLanguage` (tagsEqual short-circuit + update paths)
-//
-// We deliberately avoid driving the actual `FilePicker.platform` channel
-// (no platform side in widget tests) — the file-pick and YouTube dialogs
-// use `FilePicker.pickFiles` and `showContentLanguagePicker`, which are
-// exercised end-to-end by hand / integration tests. Here we cover the
-// deterministic deletion + edit-language flows so the helper gains real
 // coverage.
 import 'dart:async';
 
@@ -252,7 +240,6 @@ void main() {
       expect(find.text('Delete from library?'), findsOneWidget);
       expect(find.textContaining('Sample'), findsWidgets);
 
-      // Dismiss by tapping the barrier area.
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
       expect(repo.deleteCalls, 0);
@@ -268,7 +255,6 @@ void main() {
       await tester.tap(find.text('Delete media'));
       await tester.pumpAndSettle();
 
-      // MaterialLocalizations.deleteButtonTooltip renders as 'Delete' for en_US.
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
 
@@ -289,8 +275,6 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Delete'));
-      // AppNotice schedules its snack bar via addPostFrameCallback, so pump
-      // a couple more frames before checking the SnackBar widget.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pump(const Duration(milliseconds: 500));
@@ -302,8 +286,6 @@ void main() {
     testWidgets('confirms a different media id without affecting session', (
       tester,
     ) async {
-      // Open session is for a different media, so the notifier branch must be
-      // skipped (would otherwise require a live PlayerController).
       final session = PlaybackSession(
         mediaId: 'media-other',
         dexieTargetType: 'Video',
@@ -347,7 +329,6 @@ void main() {
       await tester.tap(find.text('Delete media'));
       await tester.pumpAndSettle();
 
-      // Tap Cancel — MaterialLocalizations.cancelButtonLabel = 'Cancel'.
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
@@ -370,7 +351,6 @@ void main() {
       expect(find.text('From YouTube URL…'), findsOneWidget);
       expect(find.text('Craft…'), findsOneWidget);
 
-      // Close the sheet by tapping the scrim.
       await tester.tapAt(const Offset(20, 20));
       await tester.pumpAndSettle();
     });
@@ -396,8 +376,6 @@ void main() {
     testWidgets('does not touch the repository without a picker selection', (
       tester,
     ) async {
-      // The picker opens then dismisses without picking anything in this
-      // stub (no platform backend). The repository must remain untouched.
       final repo = _CountingLibraryRepository();
       await tester.pumpWidget(
         _wrap(repo: repo, action: _ActionKind.editLanguage, media: _media),
@@ -410,9 +388,4 @@ void main() {
       expect(repo.updateCalls, 0);
     });
   });
-
-  // The `delete failure surfaces error notice` test already exercises the
-  // `AppNotice.error` call site through `confirmAndDeleteMedia`, which is
-  // what we care about for `library_actions.dart` coverage. Direct
-  // `AppNotice` surface tests live with the notice helper instead.
 }

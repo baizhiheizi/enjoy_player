@@ -65,7 +65,6 @@ void main() {
     test(
       'returns null when the key has the prefix as a substring but not a prefix',
       () {
-        // "home-media-" should not match "xhome-media-b".
         final found = findSliverIndexByPrefixedId<_Item>(
           items: items,
           key: const ValueKey<String>('xhome-media-b'),
@@ -107,8 +106,6 @@ void main() {
     });
 
     test('handles ids that contain the prefix substring', () {
-      // `home-media-` is a prefix; an item id of `home-media-x` should
-      // still match because we slice off exactly the prefix.
       final tricky = <_Item>[const _Item('home-media-x')];
       final found = findSliverIndexByPrefixedId<_Item>(
         items: tricky,

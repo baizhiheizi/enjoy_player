@@ -1,6 +1,3 @@
-// Catalog contract sync (spec 046, contracts/event-catalog.md): every code
-// constant stays inside the documented closed vocabulary — snake_case names,
-// no duplicates, and every builder emitting only allowlisted property keys.
 library;
 
 import 'package:flutter_test/flutter_test.dart';

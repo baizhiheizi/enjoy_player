@@ -2,7 +2,6 @@ import 'package:enjoy_player/features/vocabulary/domain/vocabulary_relative_revi
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // Local calendar midnight anchors — avoid UTC/local ambiguity in CI.
   final today = DateTime(2024, 6, 15, 14, 30);
   final todayMorning = DateTime(2024, 6, 15, 1, 0);
   final yesterday = DateTime(2024, 6, 14, 23, 0);
@@ -50,9 +49,6 @@ void main() {
     });
 
     test('uses local date of UTC timestamps', () {
-      // 2024-06-15 02:00 UTC → local depends on offset; pin via toLocal path
-      // by constructing local DateTimes above. This case ensures UTC midnight
-      // of "tomorrow UTC" still maps through toLocal before day math.
       final nowLocal = DateTime(2024, 6, 15, 12);
       final nextUtc = DateTime.utc(2024, 6, 16, 0, 0);
       final label = relativeNextReviewLabel(

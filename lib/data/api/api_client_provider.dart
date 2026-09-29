@@ -58,7 +58,6 @@ class ApiBaseUrl extends _$ApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    // Missing row resolves to the key's declared default.
     final raw = await db.settingsDao.readSetting(SettingsKeys.apiBaseUrl);
     return normalizeApiBaseUrl(raw, kDefaultApiBaseUrl);
   }
@@ -80,17 +79,6 @@ class AiApiBaseUrl extends _$AiApiBaseUrl {
   @override
   Future<String> build() async {
     final db = ref.watch(deviceGlobalAppDatabaseProvider);
-    // Worker routes (chat, ASR, translation, YouTube transcripts, …) live
-    // on a separate origin from the public API, so with no persisted
-    // override we always default to the worker origin. Following
-    // [apiBaseUrl] here would let the no-override branch land on
-    // `https://enjoy.bot`, which 404s on `/youtube/transcripts`.
-    //
-    // Users who actually want the AI URL to follow a non-default API URL
-    // (e.g. a staging origin where worker + API share a host) can opt in
-    // explicitly via the "Use API URL" button — that calls
-    // [clearOverride], which makes the in-memory state follow
-    // [apiBaseUrl] until the next override. See #83, #105, #120.
     final raw = await db.settingsDao.readSetting(SettingsKeys.apiAiBaseUrl);
     return normalizeApiBaseUrl(raw, kDefaultAiApiBaseUrl);
   }

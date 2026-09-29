@@ -93,13 +93,11 @@ class CraftLibraryRepository {
       voice: voice,
     );
 
-    // Dedupe: if the same content hash exists, return the existing id.
     final existing = await MediaRegistry(_db).getAudioByMd5(contentHash);
     if (existing != null) {
       return existing.id;
     }
 
-    // Write audio bytes to local storage.
     final importResult = await _storage.importBytes(
       audioBytes,
       extension: audioFormat,
@@ -114,8 +112,6 @@ class CraftLibraryRepository {
     final now = DateTime.now();
     final canonicalLearning = canonicalMediaLanguageTag(learningLanguage);
 
-    // Solid timeline → AI transcript row. Null → blank (no fabricated cues);
-    // learner generates via STT in the player.
     final primaryTranscriptId = enjoyTranscriptId(
       targetType: 'Audio',
       targetId: id,
@@ -123,18 +119,12 @@ class CraftLibraryRepository {
       source: 'ai',
     );
 
-    // Single transaction: audio row + optional primary transcript.
-    // We do NOT save a secondary source-text transcript — without word-level
-    // alignment between source and synthesized target text, a secondary
-    // transcript with fabricated timestamps is worse than no secondary.
     await _db.transaction(() async {
       final audioRow = AudioRow(
         id: id,
         aid: aid,
         provider: 'craft',
         title: importResult.title,
-        // Full practice/synth text for edit when the timed transcript is blank
-        // (Express stores native ASR in [sourceText], not practice wording).
         description: normalizedText,
         thumbnailUrl: null,
         durationSeconds: 0,
@@ -175,10 +165,8 @@ class CraftLibraryRepository {
       }
     });
 
-    // Probe duration asynchronously (same path as library import).
     unawaited(probeAndPatchMediaDuration(_db, id, importResult.localPath));
 
-    // Enqueue sync.
     await _enqueueSync?.call(SyncEntityType.audio, id, SyncAction.create);
     return id;
   }
@@ -193,8 +181,6 @@ class CraftLibraryRepository {
     if (row == null || row.provider != 'craft') return null;
 
     final transcripts = await _db.transcriptDao.listForTarget('Audio', mediaId);
-    // Prefer timed AI cues; else description (full practice text); else
-    // sourceText (Advanced speak-direct / legacy rows).
     final practiceText =
         _joinTimelineText(transcripts) ??
         row.description ??
@@ -271,19 +257,12 @@ class CraftLibraryRepository {
           size: Value(importResult.fileSize),
           localMtimeMs: Value(importResult.mtimeMs),
           durationSeconds: 0,
-          // Reset the previous cloud URL so CraftAudioCloudUploader re-uploads
-          // the new bytes. Otherwise the upload pre-step in SyncUploadService
-          // would short-circuit (mediaUrl != null) and the cloud copy would
-          // stay stale. See specs/043-craft-cloud-sync/US2.
           mediaUrl: const Value(null),
           syncStatus: const Value('pending'),
           updatedAt: now,
         ),
       );
 
-      // Drop all prior transcripts for this media — solid rewrite replaces
-      // the primary track; blank clears estimated/stale cues entirely.
-      // Single bulk DELETE instead of per-row loop (issue #468).
       await _db.customStatement(
         'DELETE FROM transcripts WHERE target_type = ? AND target_id = ?',
         ['Audio', mediaId],

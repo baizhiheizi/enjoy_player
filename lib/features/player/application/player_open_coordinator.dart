@@ -228,18 +228,6 @@ Future<void> runPlayerOpen(
   final steps = OpenSteps(isStale: () => scope.isOpenStale(gen));
 
   try {
-    // Flush the previous media's pending debounced write while its echo/blur
-    // state is still live in the providers. The restore below replaces that
-    // state with the NEW media's values; a stale debounce/max-age timer firing
-    // afterwards would write the new media's echo window + blur flag into the
-    // old media's row (issue #653).
-    //
-    // BEST-EFFORT BY CONSTRUCTION: flushing the previous session must never
-    // abort opening the new media — a flush failure is logged and swallowed
-    // inside the step (see the catch below), so neither this guard nor
-    // `runPlayerOpenGuarded` ever surfaces it as an open failure. The
-    // [steps.run] wrapper here contributes only the generation guard (skip the
-    // flush for a superseded open), not a failure contract.
     await steps.run('flush previous playback session', () async {
       final previous = scope.session;
       if (previous == null) {
@@ -253,9 +241,6 @@ Future<void> runPlayerOpen(
           session: previous,
         );
       } catch (e, st) {
-        // Deliberately swallowed (best-effort by construction, see above):
-        // opening the new media must not fail because the previous media's
-        // trailing position write hit the DB.
         _openLog.warning('flushing previous playback session failed', e, st);
       }
     });
@@ -263,8 +248,6 @@ Future<void> runPlayerOpen(
     final resolved = await steps.run('resolve playback open', () async {
       final open = await resolvePlaybackOpen(deps.db(), mediaId);
       if (open == null) {
-        // Do not silently succeed — ExpandedPlayerScreen would stay on the
-        // loading skeleton forever (open completes, session never publishes).
         throw StateError('No playable source for media $mediaId');
       }
       return open;
@@ -279,19 +262,6 @@ Future<void> runPlayerOpen(
     final language = resolved.language;
     final durationSec = resolved.durationSeconds;
 
-    // ADR-0048: Linux has no YouTube WebView backend, so the open can never
-    // proceed. Fail with the typed exception BEFORE any engine swap — the
-    // swap would dispose the live MediaKit engine (and its native mpv
-    // player) to install a YouTube engine that can never mount, and after it
-    // every later local/URL open rebuilds MediaKit against a wedged native
-    // event pump: `engine.open` never completes and the player screen stays
-    // on the loading skeleton forever (2026-08-29 field report).
-    //
-    // Guarded like every other async boundary in the choreography: `run`'s
-    // pre-guard swallows a generation that went stale between
-    // `resolvePlaybackOpen` and this check (quiet unwind via
-    // [OpenSupersededException]), while a fresh generation lets the typed
-    // exception propagate as the open failure it is.
     await steps.run('gate Linux YouTube open (ADR-0048)', () async {
       if (playable is YoutubePlayableSource && youTubeEngineOptedOutHere) {
         throw const YouTubePlaybackUnavailableException.linuxOptedOut();
@@ -304,16 +274,11 @@ Future<void> runPlayerOpen(
       dexieTargetType: dexie,
     );
 
-    // Drop position listeners before the swap so YouTube closeStreams is
-    // not blocked by the tracker still subscribed to the old engine.
     await steps.run(
       'cancel position tracker',
       () => scope.positionTracker.cancel(),
     );
 
-    // The swap waits for surface detach, then fire-and-forgets old dispose.
-    // Do not bound it — that would cut off prepareNativeBackend and leave
-    // MediaKit allocating mpv while the YouTube WebView is still destroying.
     final swapped = await steps.run(
       'ensure engine for playable source',
       () => scope.ensureEngineForPlayableSource(
@@ -322,7 +287,6 @@ Future<void> runPlayerOpen(
       ),
     );
 
-    // Sync from here until the next guarded step: no interleaving possible.
     final engine = scope.activeEngine;
 
     String? openPosterUrl;
@@ -333,8 +297,6 @@ Future<void> runPlayerOpen(
         mediaUrl: video?.mediaUrl,
       );
     }
-    // Metadata is a capability (issue #664): engines without a loading poster
-    // / init timing have none, so the calls are skipped instead of no-oped.
     final metadata = engine.metadata;
     if (metadata != null) {
       metadata.markOpenTimingStart();
@@ -342,25 +304,11 @@ Future<void> runPlayerOpen(
     }
     engine.warmVideoSurface();
 
-    // The echo-session read does not depend on the engine: issue it beside
-    // `engine.open` instead of after the post-open commands, so the restore
-    // below is not serialized behind a cold engine start (issue #661). It is
-    // still *consumed* only under the same guarded step as before, so a
-    // superseded generation can no more apply this row than it could when
-    // the read started late. `ignore` keeps a read nobody ever awaits (stale
-    // unwind, or the open retry gave up) from surfacing as an unhandled async
-    // error — the guarded consume below still sees the result and rethrows
-    // failures.
     final persistedFuture = deps.db().echoSessionDao.getLatestForTarget(
       dexie,
       mediaId,
     )..ignore();
 
-    // After a YouTube → MediaKit swap the first `open` races WebView
-    // teardown and can hang (2026-08-30: skeleton until back + reopen).
-    // Use the short command ceiling for that first attempt, then retry
-    // once — reopen works because the native side has settled / a fresh
-    // player is installed. A timeout must not fail the open on try 1.
     await steps.run(
       'open engine with retry',
       () => scope.openEngineWithRetry(
@@ -374,16 +322,10 @@ Future<void> runPlayerOpen(
       onSuperseded: () async {
         try {
           await engine.stop();
-        } catch (_) {
-          // Engine may have been disposed by a new open generation;
-          // best-effort.
-        }
+        } catch (_) {}
       },
     );
 
-    // Subtitle control is a capability (issue #720): only the engine that
-    // owns a libmpv track list implements it — YouTube force-suppresses CC in
-    // the inject script instead, and the await is skipped entirely there.
     final SubtitleTrackControl? subtitles = switch (engine) {
       SubtitleTrackControl control => control,
       _ => null,
@@ -416,9 +358,6 @@ Future<void> runPlayerOpen(
       );
     }
 
-    // Sync tail: guarded structurally — no await since the last step's
-    // post-check, so the generation cannot have moved (the choreography's
-    // inline `isOpenStale` checks that used to sit here were unreachable).
     if (options.restoreEcho && persisted != null && persisted.echoActive) {
       deps.echoMode().restoreFromSession(
         startLine: persisted.echoStartLine,
@@ -434,10 +373,6 @@ Future<void> runPlayerOpen(
     );
 
     final now = DateTime.now();
-    // [PlaybackSession.startedAt] is the wall-clock time this playback stint
-    // began. It is set on every successful [PlayerController.openMedia]
-    // (including re-open after [PlayerController.clear]); it is not preserved
-    // across clear → re-open.
     scope.publishSession(
       PlaybackSession(
         mediaId: mediaId,
@@ -472,9 +407,6 @@ Future<void> runPlayerOpen(
       );
     }
 
-    // Frame capture is a capability (issue #720): the YouTube WebView shot
-    // would capture only the HTML chrome, so engines without [PosterCapture]
-    // never schedule one.
     if (kind == MediaKind.video && video != null && engine is PosterCapture) {
       deps.posterService().scheduleCapture(
         mediaId: mediaId,
@@ -486,11 +418,6 @@ Future<void> runPlayerOpen(
         sessionDurationSeconds: () => scope.session?.durationSeconds,
         activeEngine: engine,
         onSessionThumbnail: (path) {
-          // Stale-media gate: media A's late capture resolves after media B
-          // has published its own session — publishing A's poster path then
-          // would stomp B's thumbnailUrl. Only apply the capture while the
-          // live session still belongs to the capture's media; otherwise drop
-          // it (the DB write already landed for the rightful row).
           final live = scope.session;
           if (live == null || live.mediaId != mediaId) {
             _openLog.fine(
@@ -504,8 +431,6 @@ Future<void> runPlayerOpen(
       );
     }
   } on OpenSupersededException {
-    // A newer open / clear / abandon moved the generation on: unwind quietly
-    // — the newer generation owns session publication from here.
     return;
   }
 }
@@ -520,7 +445,6 @@ Future<void> runPlayerOpenGuarded(
     await runPlayerOpen(scope, mediaId, options: options);
   } on MediaNeedsRelocateException catch (e, st) {
     onFailureResetSession();
-    // Expected when a path-linked file moved — UI shows LocateMediaScreen.
     _openLog.info('openMedia needs relocate for $mediaId', e, st);
     rethrow;
   } on Object catch (e, st) {

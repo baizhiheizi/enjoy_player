@@ -30,9 +30,6 @@ void main() {
     });
 
     testWidgets('fades out over 220ms before leaving the tree', (tester) async {
-      // Issue #662: `visible: false` used to return SizedBox.shrink()
-      // directly, so the AnimatedOpacity was replaced before it could animate
-      // to 0 — the fade-out was dead code.
       var visible = true;
       late StateSetter setVisible;
 
@@ -57,15 +54,12 @@ void main() {
       setVisible(() => visible = false);
       await tester.pump();
 
-      // Mid-fade: still mounted, on its way to transparent.
       final opacity = tester
           .widget<AnimatedOpacity>(find.byType(AnimatedOpacity))
           .opacity;
       expect(opacity, 0, reason: 'the fade target is fully transparent');
       expect(find.byType(Image), findsOneWidget);
 
-      // After the fade the poster leaves the tree instead of painting an
-      // invisible image forever.
       await tester.pumpAndSettle();
       expect(find.byType(Image), findsNothing);
     });
@@ -87,8 +81,6 @@ void main() {
           ),
         );
 
-        // AnimatedOpacity + Image.network with a fake URL: image will fail to
-        // resolve, but the Image widget should still be present.
         expect(find.byType(Image), findsOneWidget);
       },
     );
@@ -123,8 +115,6 @@ void main() {
       });
       await tester.pump();
 
-      // The Image widget is rebuilt with the new URL; the AnimatedOpacity
-      // is still in the tree.
       expect(find.byType(Image), findsOneWidget);
       expect(find.byType(AnimatedOpacity), findsOneWidget);
     });

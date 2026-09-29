@@ -53,7 +53,6 @@ class _SettingsSearchFieldState extends ConsumerState<SettingsSearchField> {
       settingsSearchQueryProvider.select((q) => q.isNotEmpty),
     );
 
-    // Horizontal inset comes from the Settings hub page metrics.
     return Padding(
       padding: EdgeInsets.only(bottom: t.space16),
       child: TextField(

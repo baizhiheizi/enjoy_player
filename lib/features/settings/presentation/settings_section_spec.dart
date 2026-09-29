@@ -346,7 +346,7 @@ List<SettingsSectionSpec> visibleSettingsSections(
   for (final d in kSettingsRegistry) {
     if (!d.isSectionHeader) continue;
     final spec = _specsById[d.sectionId];
-    if (spec == null) continue; // registry/spec drift — caught by the test
+    if (spec == null) continue;
     if (!spec.isVisible()) continue;
     if (searching && !matchedSectionIds.contains(spec.sectionId)) continue;
     visible.add(spec);

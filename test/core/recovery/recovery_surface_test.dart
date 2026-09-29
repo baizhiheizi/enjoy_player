@@ -30,10 +30,7 @@ void main() {
     expect(find.text('Local data needs attention'), findsOneWidget);
     expect(find.text('Copy error'), findsOneWidget);
     expect(find.text('Open logs folder'), findsOneWidget);
-    // "Reset local library" appears as both the card title and the
-    // button label; the important assertion is the button is present.
     expect(find.text('Reset local library'), findsAtLeastNWidgets(1));
-    // The error preview is truncated; just confirm the snippet is present.
     expect(
       find.textContaining('file is not a database'),
       findsAtLeastNWidgets(1),

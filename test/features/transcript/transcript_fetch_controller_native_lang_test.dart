@@ -70,10 +70,6 @@ void main() {
     });
 
     tearDown(() async {
-      // Drain the keepAlive controller's unawaited `_hydrateFromPersisted`
-      // (it reads against this in-memory db) before closing it — otherwise its
-      // async continuation hits a closed db and leaks a "can't re-open" error
-      // into the next test.
       for (var i = 0; i < 8; i++) {
         await Future<void>.delayed(Duration.zero);
       }
@@ -84,7 +80,6 @@ void main() {
     test(
       'T009: resolveOnOpen forwards native language when signed in',
       () async {
-        // Prime the (async) prefs so valueOrNull is populated before the call.
         await container.read(appPreferencesCtrlProvider.future);
 
         const mediaId = 'media-native-open';
@@ -127,8 +122,6 @@ void main() {
       expect(repo.calls, hasLength(1));
       expect(repo.calls.single.fetchCloud, isTrue);
       expect(repo.calls.single.forceCloud, isTrue);
-      // The refresh path must see the same native language as open — this is
-      // the FR-010 gap that reading inside _runResolve closes.
       expect(repo.calls.single.nativeLanguage, 'zh-CN');
       expect(repo.calls.single.learningLanguage, 'en-US');
     });

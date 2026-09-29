@@ -148,9 +148,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   @override
   late final PlayerOpenDeps deps = PlayerOpenDeps(
     persister: () => ref.read(playbackSessionPersisterProvider),
-    // A resolver, not an instance: the per-user database is closed and
-    // replaced on a session switch / recovery reset while this keepAlive
-    // controller survives, so every open must read the current one.
     db: () => ref.read(appDatabaseProvider),
     preferences: () => ref.read(playerPreferencesCtrlProvider.notifier),
     echoMode: () => ref.read(echoModeProvider.notifier),
@@ -223,13 +220,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
 
   @override
   PlaybackSession? build() {
-    // Captured here (not read inside onDispose) — Riverpod forbids Ref use
-    // during life-cycles.
     final persister = ref.read(playbackSessionPersisterProvider);
     ref.onDispose(() {
-      // Captured so [teardown] can be awaited; Riverpod itself does not await
-      // onDispose, but the [_disposed] guard makes re-entrant disposal a no-op
-      // and the sequenced awaits keep mpv teardown off the hot path.
       _teardown = _disposeResources(persister);
     });
 
@@ -264,12 +256,9 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     OpenMediaOptions options = OpenMediaOptions.defaults,
   }) async {
     if (state?.mediaId == mediaId) {
-      // Same media already open — still honor explicit launches that must
-      // clear restored echo before the caller seeks.
       if (!options.restoreEcho) {
         ref.read(echoModeProvider.notifier).deactivate();
       }
-      // Still bump library updatedAt so Home "Recent media" reflects this open.
       unawaited(
         ref.read(mediaLibraryRepositoryProvider).touchMediaUpdatedAt(mediaId),
       );
@@ -277,9 +266,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     }
 
     final gen = _openGate.bump();
-    // Marked before the first await so a speculative [warmYoutubeSurface] that
-    // lands inside this window sees the open that is already coordinating the
-    // engine (issue #657). Latch lives on the swap coordinator (issue #720).
     _engineSwap.markOpenInFlight();
     _completionLoop.bump();
 
@@ -295,17 +281,11 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
         },
       );
     } finally {
-      // Only a still-current open clears the flag — an open superseded by a
-      // newer one must not report "idle" while that newer one is still running.
       _engineSwap.clearOpenInFlightIfCurrent(gen);
     }
 
-    // Start the deterministic completion loop for the new playback stint
-    // (ADR-0044). Only when the open actually landed (state's mediaId matches
-    // and the generation is still current).
     if (!_disposed && !_openGate.isStale(gen) && state?.mediaId == mediaId) {
       _completionLoop.arm();
-      // Promote to Home "Recent media" even if playback is still starting.
       unawaited(
         ref.read(mediaLibraryRepositoryProvider).touchMediaUpdatedAt(mediaId),
       );
@@ -316,9 +296,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     Duration target, {
     EchoWindow? echoWindowForSeekClamp,
   }) async {
-    // Invalidate any in-flight completion await so a stale `completed` event
-    // from mpv (fired before the seek took effect) cannot trigger a stray
-    // repeat/advance (ADR-0044 edge case).
     _completionLoop.bump();
     final echo = ref.read(echoModeProvider);
     final seconds = secondsFromDuration(target);
@@ -330,7 +307,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     } else {
       await activeEngine.seek(durationFromSeconds(seconds));
     }
-    // Re-arm the completion loop for the post-seek playback stint.
     _completionLoop.arm();
   }
 
@@ -346,16 +322,11 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
 
   Future<void> togglePlay() async {
     await activeEngine.playOrPause();
-    // Re-arm the loop in case playback was resumed from a completed state
-    // (no-op if the loop is already active).
     _completionLoop.arm();
   }
 
   Future<void> play() async {
     await activeEngine.play();
-    // If the completion loop has ended (e.g. RepeatMode.none and the media
-    // completed), start a fresh loop so repeat/stop behavior is active for the
-    // new playback stint (ADR-0044).
     _completionLoop.arm();
   }
 
@@ -376,10 +347,6 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     }
 
     _openGate.bump();
-    // Clear invalidates any open still in flight, so drop the flag too — that
-    // open's `finally` skips the reset (its generation is stale) and the latch
-    // would otherwise disable speculative warming for the rest of the session
-    // (issue #657).
     _engineSwap.clearOpenInFlight();
 
     final engine = activeEngine;
@@ -388,22 +355,12 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     ref.read(transcriptBlurModeProvider.notifier).deactivate();
     state = null;
 
-    // WebView engines idle and keep their process alive across clear; native
-    // engines stop — the policy lives behind the engine seam (issue #595).
     await engine.teardownAfterClear(keepSurfaceMounted: keepVideoSurface);
   }
 
   void warmYoutubeSurface() {
     if (ref.read(playerEngineTestDoubleProvider) != null) return;
-    // ADR-0048: on Linux the YouTube engine has no inappwebview backend and
-    // can never mount — do not install or warm it from feed scrolling.
     if (youTubeEngineOptedOutHere) return;
-    // Issue #657: warming is best-effort pre-work for a *possible* YouTube
-    // open, so it must never disturb a live engine. Disposing MediaKit outside
-    // the open path wedges the native mpv event pump (every later open then
-    // hangs on the loading skeleton), and swapping `ownedEngine` while an open
-    // is in flight replaces the engine that open is about to drive — without
-    // generation coordination there is nothing to undo it.
     if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
 
     final owned = ownedEngine;
@@ -412,20 +369,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
       return;
     }
     if (owned != null) {
-      // An idle MediaKit engine (cleared session, parked surface) is still
-      // alive. Keep it — only the open path swaps engines, and it does so with
-      // generation coordination ([EngineSwapCoordinator]). A speculative warm
-      // that disposed mpv here would buy a WebView we may never use and leave
-      // the next local open rebuilding against a wedged pump (2026-08-29
-      // field report).
       return;
     }
-    // Genuinely no engine yet — install the YouTube one. The install
-    // publishes through [engineIdentity.setOwned], which bumps the rev
-    // (ADR-0057) so PlayerSurfaceHost keys a stage for the new engine. There
-    // is no prior engine to tear down, and this path never calls
-    // [EngineSwapCoordinator.discardWithoutAwaiting]: a speculative warm must
-    // not be able to dispose an engine even if the guards above rot.
     _engineSwap.install(YoutubePlayerEngine());
     ownedEngine!.warmVideoSurface();
   }

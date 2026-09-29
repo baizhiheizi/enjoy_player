@@ -266,8 +266,6 @@ class MediaRegistry {
         .watchAll()
         .map<Set<String>>(
           (rows) => <String>{
-            // `vid` is non-null on the row but empty for locally-added
-            // files, which carry no provider id.
             for (final row in rows)
               if (row.vid.isNotEmpty) row.vid,
           },
@@ -302,29 +300,13 @@ class MediaRegistry {
         late StreamSubscription<List<AudioRow>> subA;
         var videos = <VideoRow>[];
         var audios = <AudioRow>[];
-        // Previous merge inputs (PR #756): content-compared before any
-        // allocation so an unchanged-input re-query skips merge+sort
-        // outright; the `distinctBy` gate below stays as the final
-        // backstop for changed inputs that map to an equal `Media` list.
         List<VideoRow>? lastVideos;
         List<AudioRow>? lastAudios;
         var emitScheduled = false;
-        // Cancellation guard (review on #801): `onCancel` below closes
-        // this listener's controller and cancels the DAO subscriptions,
-        // but a coalescing microtask scheduled before the cancel can
-        // still run `emit()` after it — bail instead of `add`-ing on a
-        // closed broadcast controller. Unreachable with the old
-        // single-listener shape; real once a second listener can cancel
-        // while this one's microtask is pending.
         var closed = false;
 
         void emit() {
           if (closed) return;
-          // Input pre-check (PR #756): neither table's snapshot changed
-          // content-wise since the last processed event (the common
-          // re-query after a no-op write) — the merged+sorted output
-          // would be identical, so skip the allocation and O(n log n)
-          // sort before they even happen.
           if (lastVideos != null &&
               _listEquals(lastVideos!, videos) &&
               _listEquals(lastAudios!, audios)) {
@@ -340,18 +322,11 @@ class MediaRegistry {
           );
         }
 
-        // Same closed-controller window as `emit`: an upstream error
-        // delivered during the pending-cancel gap must not be forwarded
-        // to the already-closed controller either.
         void forwardError(Object error, StackTrace stackTrace) {
           if (closed) return;
           controller.addError(error, stackTrace);
         }
 
-        // Buffer-and-schedule: at most one emit is pending per event-loop
-        // turn; the first DAO delivery of a turn schedules it, any second
-        // delivery that lands before the microtask runs just refreshes its
-        // input buffer (see the same-turn coalescing note above).
         void scheduleEmit() {
           if (emitScheduled) return;
           emitScheduled = true;

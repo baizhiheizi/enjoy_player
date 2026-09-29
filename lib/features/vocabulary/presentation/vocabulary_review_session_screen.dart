@@ -64,7 +64,6 @@ class _VocabularyReviewSessionScreenState
   }
 
   void _exit() {
-    // Session clear is owned by GoRoute.onExit for `/vocabulary/review`.
     if (context.canPop()) {
       context.pop();
     } else {
@@ -75,8 +74,6 @@ class _VocabularyReviewSessionScreenState
   Future<void> _openPractice(ReviewPracticeMode mode) async {
     final notifier = ref.read(vocabularyReviewSessionProvider.notifier);
     if (mode == ReviewPracticeMode.clip) {
-      // Mount InAppWebView in-tree first; playing before the stage exists
-      // deallocates the Windows WebView and blanks the review route.
       notifier.preparePracticeClip();
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
@@ -112,8 +109,6 @@ class _VocabularyReviewSessionScreenState
     }
 
     final window = mediaLocatorWindow(ctx.locator!);
-    // Single replace — review onExit clears the session. Do not pop first
-    // (that unmounts this State and used to abort navigation → mini-bar only).
     replacePlayerLaunch(
       context,
       PlayerLaunchRequest.vocabularyOpenSource(
@@ -130,9 +125,6 @@ class _VocabularyReviewSessionScreenState
     final notifier = ref.read(vocabularyReviewSessionProvider.notifier);
     if (!session.hasActiveSession) return KeyEventResult.ignored;
 
-    // Escape is owned by AppHotkeys (modal.close → popGoRouter). Handling it
-    // here as well double-pops (review → vocabulary → profile).
-    // Practice overlay is in-tree — dismiss it before the review route pops.
     if (session.practiceSheetOpen) {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
         unawaited(notifier.clearPractice());
@@ -379,7 +371,6 @@ class _VocabularyReviewSessionScreenState
                       ],
                     ),
             ),
-            // Video/WebView is owned by RootShell [PlayerSurfaceHost].
             const VocabularyPracticeOverlay(),
           ],
         ),

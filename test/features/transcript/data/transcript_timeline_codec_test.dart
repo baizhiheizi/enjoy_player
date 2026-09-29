@@ -64,9 +64,6 @@ void main() {
     test(
       'returns null when a list mixes valid lines with garbage (fail-closed)',
       () {
-        // Craft enrichment treats partial input as garbage: a dropped line
-        // desynchronizes indices from alignment segments, so the original
-        // JSON must survive untouched.
         final json = '[{"text":"ok","startMs":0,"durationMs":100}, 42]';
         expect(tryDecodeTimelineJson(json), isNull);
       },
@@ -94,9 +91,6 @@ void main() {
     });
 
     test('issue #659: re-segmentation under the same row id re-decodes', () {
-      // A re-import re-segments cues under the SAME transcript row id.
-      // Serving the stale decode would feed echo stale line indices, so
-      // the changed timelineJson must force a fresh decode.
       final cache = TranscriptTimelineCache();
       final before = timelineJson([
         lineJson(startMs: 0, durationMs: 2000, text: 'one long cue'),
@@ -198,7 +192,6 @@ void main() {
     });
 
     test('returns the earliest containing cue when cues overlap', () {
-      // Transport semantics: a tap at t means the FIRST cue covering it.
       final lines = [cue(0, 3000), cue(1000, 1000)];
       expect(indexOfActiveLine(lines, 1.5), 0);
     });
@@ -225,10 +218,6 @@ void main() {
     });
 
     test('agrees at every cue boundary (starts and ends, off-grid)', () {
-      // Boundaries are where a wrong comparison operator (`<` vs `<=`)
-      // drifts the two policies apart; the 0.25 s sweep skips most of them
-      // (1.2, 2.0, 3.0, 4.5, 6.0 are all off-grid), so land on each start
-      // and end explicitly.
       final lines = [
         cue(0, 1000),
         cue(1200, 800),
@@ -247,15 +236,10 @@ void main() {
 
     test('boundary pinning: start of a cue is inside, end is a gap', () {
       final lines = [cue(0, 1000), cue(1200, 800)];
-      // t == start: contained — both policies index the cue.
       expect(indexOfActiveLine(lines, 1.2), 1);
       expect(transcriptActiveIndex(lines, 1.2), 1);
-      // t == end: NOT contained (half-open interval); the transport policy
-      // falls back to the rightmost started cue, which for this grid is
-      // still cue 1 — a `<` vs `<=` flip must not move it.
       expect(indexOfActiveLine(lines, 2.0), 1);
       expect(transcriptActiveIndex(lines, 2.0), 1);
-      // t == end of cue 0 while cue 1 has not started: fallback is cue 0.
       expect(indexOfActiveLine(lines, 1.0), 0);
       expect(transcriptActiveIndex(lines, 1.0), 0);
     });

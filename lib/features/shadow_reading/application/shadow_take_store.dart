@@ -138,8 +138,6 @@ class ShadowTakeStoreFactory {
     required AppDatabase db,
     required SyncEnqueueFn enqueueSync,
   })
-    // Initializing formals would have to be named `_db` / `_enqueueSync`, which
-    // are unusable from another library — and the provider lives in one.
     // ignore: prefer_initializing_formals
     : _db = db,
        // ignore: prefer_initializing_formals
@@ -326,9 +324,6 @@ class ShadowTakeStore {
         'samples=${peak.totalSamples} '
         'bytes=${bytes.length} durMs=$durationMs',
       );
-      // Real speech captured at moderate volume gives RMS in the rough
-      // 0.02-0.3 range. RMS below ~0.001 with non-zero ratio under ~1% means
-      // the WAV is essentially silent even when peak looks healthy.
       const minRms = 0.001;
       const minNonZeroRatio = 0.01;
       looksSilent =

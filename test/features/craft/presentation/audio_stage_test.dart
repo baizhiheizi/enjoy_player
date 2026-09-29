@@ -21,8 +21,6 @@ import 'package:enjoy_player/features/craft/application/craft_library_repository
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -91,8 +89,6 @@ class _FakeLibraryRepository implements CraftLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-// === Harness ===
-
 Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
@@ -120,14 +116,11 @@ void main() {
       await tester.pumpWidget(
         _harness(overrides: _baseOverrides(), child: const AudioStage()),
       );
-      // Let async providers (auth, prefs) resolve.
       await tester.pumpAndSettle();
 
-      // Drive the controller: text input → rewrite → generate audio.
       final container = ProviderScope.containerOf(
         tester.element(find.byType(AudioStage)),
       );
-      // Ensure auth provider has resolved.
       await container.read(authCtrlProvider.future);
       await container.read(appPreferencesCtrlProvider.future);
       await container
@@ -137,17 +130,13 @@ void main() {
       await container.read(craftControllerProvider.notifier).generateAudio();
       await tester.pumpAndSettle();
 
-      // Script block should show the rewritten text (not truncated).
       expect(find.textContaining('Rewritten text'), findsOneWidget);
       expect(find.byType(SelectableText), findsOneWidget);
 
-      // Preview player: play/pause button.
       expect(find.byIcon(EnjoyIcons.play), findsWidgets);
 
-      // Progress slider.
       expect(find.byType(Slider), findsOneWidget);
 
-      // Unsaved hint + save CTAs (preview is in-memory until save).
       expect(find.textContaining('Not saved yet'), findsOneWidget);
       expect(find.text('Save & say another'), findsOneWidget);
       expect(find.text('Save & practice'), findsOneWidget);
@@ -193,7 +182,6 @@ void main() {
     await container.read(craftControllerProvider.notifier).generateAudio();
     await tester.pumpAndSettle();
 
-    // Full script is present — not the former 100-char truncated preview.
     expect(find.text(longScript), findsOneWidget);
     final selectable = tester.widget<SelectableText>(
       find.byType(SelectableText),
@@ -207,14 +195,11 @@ void main() {
     await tester.pumpWidget(
       _harness(overrides: _baseOverrides(), child: const AudioStage()),
     );
-    // Let async providers resolve.
     await tester.pumpAndSettle();
 
-    // Drive to rewrite stage first.
     final container = ProviderScope.containerOf(
       tester.element(find.byType(AudioStage)),
     );
-    // Ensure auth provider has resolved.
     await container.read(authCtrlProvider.future);
     await container.read(appPreferencesCtrlProvider.future);
     await container
@@ -222,11 +207,9 @@ void main() {
         .useTextInput('Some text.');
     await tester.pumpAndSettle();
 
-    // Start audio generation.
     await container.read(craftControllerProvider.notifier).generateAudio();
     await tester.pumpAndSettle();
 
-    // After audio generation, we should NOT see a loading indicator.
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
@@ -261,7 +244,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // hasPreview defaults to false (no audio generated yet).
     expect(find.text('Generate audio'), findsOneWidget);
   });
 
@@ -290,9 +272,7 @@ void main() {
         .copyWith(isSaving: true);
     await tester.pump();
 
-    // CircularProgressIndicator shown in the saving slot.
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    // Practice now button is hidden during save.
     expect(find.text('Practice now'), findsNothing);
   });
 
@@ -316,11 +296,9 @@ void main() {
     await container.read(craftControllerProvider.notifier).generateAudio();
     await tester.pumpAndSettle();
 
-    // Tap the voice chip toggle row.
     await tester.tap(find.text('Voice'));
     await tester.pumpAndSettle();
 
-    // Voice picker should be visible (dropdown for voices).
     expect(find.byType(DropdownButton<String>), findsOneWidget);
   });
 }

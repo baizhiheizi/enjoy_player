@@ -40,8 +40,6 @@ void main() {
     await tester.pumpWidget(wrap(const SizedBox.shrink()));
     final ctx = tester.element(find.byType(Scaffold));
     maybeShowCraftSolidTranscriptSttHint(ctx, savedSolidTimeline: true);
-    // AppNotice mounts one frame later than a synchronous SnackBar (it shows
-    // from a post-frame callback).
     await tester.pump();
     await tester.pump();
     expect(find.byType(SnackBar), findsOneWidget);
@@ -56,7 +54,6 @@ void main() {
     await tester.pump();
     expect(find.byType(SnackBar), findsOneWidget);
 
-    // Clear current snackbar and call again with a fresh BuildContext.
     ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
     await tester.pumpAndSettle();
 

@@ -110,8 +110,6 @@ class TierReconcileCtrl extends _$TierReconcileCtrl {
         _log.fine('reconcile already in progress; skipping');
         return null;
       }
-      // Eager resume must not report a false timeout while a non-eager
-      // refresh (or a peer eager poll) holds the lock.
       final waitDeadline = DateTime.now().add(
         _eagerPollTimeout + const Duration(seconds: 5),
       );
@@ -218,9 +216,6 @@ class TierReconcileCtrl extends _$TierReconcileCtrl {
       final status = await ref.read(subscriptionStatusProvider.future);
       if (status.isPaidTier) {
         await _safeProfileRefresh();
-        // Only reached from the eager poll, which runs exactly once per
-        // app-initiated purchase (pending flag cleared right after) — so a
-        // confirmed poll here is a completed purchase journey (spec 046).
         _analytics.capture(
           AnalyticsEvents.subscriptionPurchaseCompleted,
           properties: AnalyticsEvents.purchaseCompleted(
@@ -261,10 +256,6 @@ class TierReconcileCtrl extends _$TierReconcileCtrl {
         final delta = current - baseline;
         confirmed = delta >= expected && delta > 0;
       } else {
-        // No pre-checkout snapshot: confirm only when permanent balance grows
-        // across successive polls. Do not adopt the first sample as baseline —
-        // if the grant already landed, that would freeze a post-purchase value
-        // and every later poll would see a zero delta.
         final previous = _packageLastSamplePermanent;
         _packageLastSamplePermanent = current;
         if (previous != null) {

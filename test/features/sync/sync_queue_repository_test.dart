@@ -31,9 +31,6 @@ void main() {
       final row = await (db.select(
         db.syncQueue,
       )..where((t) => t.id.equals(id1))).getSingle();
-      // Payload is refreshed; the retry / error state is preserved so
-      // editing an entity does not silently re-arm a permanently
-      // failed row.
       expect(row.payloadJson, '{"x":2}');
       expect(row.retryCount, 1);
       expect(row.error, 'fail');
@@ -225,10 +222,6 @@ void main() {
       addTearDown(db.close);
       final repo = SyncQueueRepository(db);
 
-      // Without the transaction wrapping the read+write in
-      // addOrUpsert, both calls would observe "no row" and insert
-      // duplicates. With the wrap, the SQLite executor serializes
-      // them and the second call observes the first's insert.
       final results = await Future.wait([
         repo.addOrUpsert(
           entityType: 'video',
@@ -244,12 +237,9 @@ void main() {
         ),
       ]);
 
-      // Same row id is returned to both callers.
       expect(results[0], equals(results[1]));
       final rows = await db.select(db.syncQueue).get();
       expect(rows, hasLength(1));
-      // Last-writer-wins on payload (matches the single-threaded
-      // addOrUpsert contract).
       expect(rows.single.payloadJson, anyOf('{"v":1}', '{"v":2}'));
     });
 
@@ -298,8 +288,6 @@ void main() {
       () async {
         final db = AppDatabase(executor: NativeDatabase.memory());
         addTearDown(db.close);
-        // Distinctive non-default threshold: if any predicate or the DAO
-        // write re-hardcodes the default 5, this test flips red.
         final repo = SyncQueueRepository(
           db,
           retryPolicy: SyncRetryPolicy(maxRetries: 2),
@@ -314,8 +302,6 @@ void main() {
           db.syncQueue,
         )..where((t) => t.id.equals(id))).getSingle()).retryCount;
 
-        // Three rows: below the threshold (1 attempt), at the threshold
-        // (2 attempts), and armed by markPermanentlyFailed.
         final belowId = await row('below');
         await repo.markAttempted(belowId, error: 'once');
         final atThresholdId = await row('at-threshold');
@@ -324,19 +310,13 @@ void main() {
         final armedId = await row('armed');
         await repo.markPermanentlyFailed(armedId, error: 'fatal');
 
-        // markPermanentlyFailed writes exactly the injected threshold.
         expect(await retryCountOf(armedId), 2);
 
-        // Only rows below the threshold stay pending; both threshold rows
-        // count as permanently failed.
         expect((await repo.pendingItems()).map((r) => r.id), [belowId]);
         final snapshot = await repo.watchSnapshot().first;
         expect(snapshot.retryablePending, 1);
         expect(snapshot.permanentlyFailed, 2);
 
-        // resetFailed re-arms ONLY the rows at the injected threshold —
-        // the row below it keeps its retryCount, so the pin is on the
-        // threshold, not on the updated-row count.
         expect(await repo.resetFailed(), 2);
         expect(await retryCountOf(belowId), 1);
         expect(await retryCountOf(atThresholdId), 0);
@@ -379,7 +359,6 @@ void main() {
           payloadJson: '{"v":1}',
         );
 
-        // Concurrent refresh — addOrUpsert overwrites payload only.
         await repo.addOrUpsert(
           entityType: 'video',
           entityId: 'dQw4w9WgXcQ/en',
@@ -387,8 +366,6 @@ void main() {
           payloadJson: '{"v":2}',
         );
 
-        // The older payload no longer matches — conditional remove must
-        // leave the refreshed row in place so the next drain retries it.
         final removed = await repo.removeByIdIfPayload(id, '{"v":1}');
         expect(removed, isNull);
         final rows = await db.select(db.syncQueue).get();

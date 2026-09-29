@@ -1,5 +1,3 @@
-// Tests for `lib/features/craft/domain/craft_edit_source.dart` — immutable
-// snapshot DTO with `==` / `hashCode` covering every constructor field.
 import 'package:enjoy_player/features/craft/domain/craft_edit_source.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,7 +52,7 @@ void main() {
             mediaId: 'media-1',
             practiceText: 'hola mundo',
             sourceText: 'hello world',
-            language: 'fr', // differs
+            language: 'fr',
             voice: 'es-ES-ElviraNeural',
             sourceFlag: 'craft-express',
           ),
@@ -66,7 +64,7 @@ void main() {
       isNot(
         equals(
           const CraftEditSource(
-            mediaId: 'other', // differs
+            mediaId: 'other',
             practiceText: 'hola mundo',
             sourceText: 'hello world',
             language: 'es',
@@ -82,7 +80,7 @@ void main() {
         equals(
           const CraftEditSource(
             mediaId: 'media-1',
-            practiceText: 'adiós', // differs
+            practiceText: 'adiós',
             sourceText: 'hello world',
             language: 'es',
             voice: 'es-ES-ElviraNeural',
@@ -98,7 +96,7 @@ void main() {
           const CraftEditSource(
             mediaId: 'media-1',
             practiceText: 'hola mundo',
-            sourceText: 'goodbye', // differs
+            sourceText: 'goodbye',
             language: 'es',
             voice: 'es-ES-ElviraNeural',
             sourceFlag: 'craft-express',
@@ -115,7 +113,7 @@ void main() {
             practiceText: 'hola mundo',
             sourceText: 'hello world',
             language: 'es',
-            voice: 'es-ES-AriaNeural', // differs
+            voice: 'es-ES-AriaNeural',
             sourceFlag: 'craft-express',
           ),
         ),
@@ -131,7 +129,7 @@ void main() {
             sourceText: 'hello world',
             language: 'es',
             voice: 'es-ES-ElviraNeural',
-            sourceFlag: 'craft-direct', // differs
+            sourceFlag: 'craft-direct',
           ),
         ),
       ),

@@ -64,7 +64,6 @@ class TipProgressSnapshot {
       for (final entry in decoded.entries) {
         final key = entry.key?.toString();
         if (key == null || key.isEmpty) continue;
-        // Ignore unknown tip ids for forward compatibility.
         if (OnboardingTipId.tryParse(key) == null) continue;
         out[key] = TipStatus.parse(entry.value?.toString());
       }

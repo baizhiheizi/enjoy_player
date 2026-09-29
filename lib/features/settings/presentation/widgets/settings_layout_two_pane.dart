@@ -89,8 +89,6 @@ class SettingsLayoutTwoPane extends ConsumerWidget {
               t.pageGutter,
               t.space32,
             ),
-            // A self-surfaced body (About) supplies its own bordered card,
-            // so it skips the shared [SettingsSectionCard] wrapper.
             child: spec.wrapInCard
                 ? SettingsSectionCard(
                     title: spec.title(l10n),

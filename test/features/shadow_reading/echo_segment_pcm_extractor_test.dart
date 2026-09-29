@@ -123,8 +123,6 @@ void main() {
       'surfaces a ffmpegMissing error instead of a silent null when FFmpegKit '
       'is not registered (e.g. flutter test)',
       () async {
-        // Provide a real (but non-empty) input file so the guard clauses pass
-        // and execution reaches the FFmpeg/FFmpegKit invocation.
         final media = File('${tempRoot.path}/dummy.mp3')
           ..writeAsStringSync('not real media');
         await expectLater(
@@ -137,8 +135,6 @@ void main() {
             isA<EchoPcmExtractionException>().having(
               (e) => e.reason,
               'reason',
-              // On non-Windows hosts without the FFmpegKit platform impl
-              // (flutter test), the failure is surfaced as ffmpegMissing.
               anyOf(
                 EchoPcmFailureReason.ffmpegMissing,
                 EchoPcmFailureReason.ffmpegFailed,

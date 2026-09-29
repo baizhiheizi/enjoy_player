@@ -44,8 +44,6 @@ final class ByokAsrAzureCapability implements AsrCapability {
       );
     }
 
-    // Materialize under ASCII-safe staging — Azure FromWavFileInput is brittle
-    // with non-ASCII Windows profile paths (e.g. C:\Users\<中文>\...).
     final wavPath = await newAzureAssessmentStagingWavPath();
     await File(wavPath).writeAsBytes(request.audioBytes, flush: true);
 

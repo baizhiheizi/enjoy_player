@@ -190,9 +190,6 @@ class RecordingAssessmentController extends _$RecordingAssessmentController {
         SyncAction.update,
       );
 
-      // A graded take on a crafted item completes the craft practice journey
-      // (spec 046). Craft-ness is best-effort: a registry miss simply means
-      // "not crafted" and no event is sent.
       try {
         final media = await ref
             .read(mediaRegistryProvider)

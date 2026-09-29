@@ -162,8 +162,6 @@ void main() {
           if (request.url.path == '/api/v1/auth/refresh') {
             refreshCalls++;
           }
-          // Slight delay so concurrent callers race into the same completer
-          // before the first call's response is processed.
           await Future<void>.delayed(const Duration(milliseconds: 20));
           return http.Response(
             '{"accessToken":"a2","refreshToken":"r2","expiresIn":3600}',
@@ -180,10 +178,6 @@ void main() {
         ]);
 
         expect(results, [true, true, true]);
-        // Without single-flight, the backend would have rotated the refresh
-        // token on the first request and rejected the next two with 401,
-        // which `clearSession()` would then treat as a hard auth failure and
-        // sign the user out — see auth_repository.dart single-flight note.
         expect(refreshCalls, 1);
         expect(await tokenStore.readAccessToken(), 'a2');
         expect(await tokenStore.readRefreshToken(), 'r2');

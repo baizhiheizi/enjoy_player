@@ -1,6 +1,3 @@
-// Coverage for lib/core/theme/widgets/skeleton.dart — shimmer / reduced-motion
-// branches and the high-level placeholders (SkeletonMediaList, SkeletonMediaGrid,
-// SkeletonSettingsList, SkeletonTranscript, SkeletonProfile, SkeletonAppBootstrap).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -70,8 +67,6 @@ void main() {
       _wrap(const Skeleton(width: 80, height: 12), reduceMotion: true),
     );
     await tester.pump();
-    // Look only inside the Skeleton's subtree — the test wrapper has its own
-    // AnimatedBuilders for theme/listenable plumbing.
     final skeleton = find.byType(Skeleton);
     expect(skeleton, findsOneWidget);
     expect(
@@ -144,7 +139,6 @@ void main() {
     'didChangeDependencies does not re-animate when already animating',
     (tester) async {
       await tester.pumpWidget(_wrap(const Skeleton(width: 80, height: 12)));
-      // Trigger didChangeDependencies again
       await tester.pumpWidget(_wrap(const Skeleton(width: 80, height: 12)));
       await tester.pump();
       expect(find.byType(AnimatedBuilder), findsWidgets);

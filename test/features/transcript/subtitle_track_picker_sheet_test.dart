@@ -141,17 +141,10 @@ void main() {
     await tester.pumpWidget(
       _harness(overrides: _pickerOverrides(tracks: const [])),
     );
-    // The dialog loading skeleton's internal ListView is unbounded inside
-    // the sheet's SingleChildScrollView for one frame before the stream
-    // emits; that is a pre-existing quirk of the loading branch and is
-    // unrelated to this module split. Drain it, then settle on the data
-    // frame which is what the refactor touches.
     await tester.pump();
     tester.takeException();
     await tester.pumpAndSettle();
 
-    // With no tracks, the primary list shows the empty hint while the
-    // translation section is still rendered (it always offers "None").
     expect(find.byType(CollapsibleTrackSection), findsNWidgets(1));
     expect(find.text(l10n.noTranscriptHint), findsOneWidget);
   });
@@ -386,7 +379,6 @@ void main() {
     await tester.pumpWidget(_harness(overrides: overrides));
     await tester.pump();
 
-    // The skeleton should be visible (one of the Skeleton boxes).
     expect(find.byType(Skeleton), findsWidgets);
   });
 }

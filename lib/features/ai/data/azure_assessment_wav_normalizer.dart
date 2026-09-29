@@ -66,8 +66,6 @@ Future<bool> _runFfmpegKit({
     }
     return true;
   } on MissingPluginException catch (e, st) {
-    // `flutter test` and some desktop/embedder builds have no FFmpegKit
-    // platform implementation; treat like an unavailable encoder.
     _log.fine(
       'normalizeWav: FFmpegKit not registered in this environment',
       e,
@@ -114,8 +112,6 @@ Future<bool> normalizeWavForAzureAssessment({
     );
   }
 
-  // Filter graph: resample to 16 kHz with libswr (more reliable on Windows
-  // than `-ac/-ar` flags), then force the output PCM layout Azure accepts.
   const filter =
       'aresample=16000:resampler=swr,aformat=sample_fmts=s16:channel_layouts=mono';
 

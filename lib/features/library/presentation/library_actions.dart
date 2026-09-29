@@ -100,7 +100,6 @@ Future<void> _runBlockingImport(
 }) async {
   final l10n = AppLocalizations.of(context)!;
   _showImportProgressDialog(context, progressLabel);
-  // Let the modal route build and paint before starting import (Duration.zero is not enough).
   await WidgetsBinding.instance.endOfFrame;
 
   try {
@@ -190,8 +189,6 @@ Future<void> confirmAndDeleteMedia(
     final session = ref.read(playerControllerProvider);
     await ref.read(mediaLibraryRepositoryProvider).deleteMedia(media.id);
     if (!context.mounted) return;
-    // Drop the playback session so a same-id re-import cannot early-return
-    // from openMedia without reopening the new local file.
     if (session?.mediaId == media.id) {
       await ref.read(playerControllerProvider.notifier).clear();
     }

@@ -65,25 +65,19 @@ void main() {
       () async {
         final notifier = container.read(discoverRefreshStateProvider.notifier);
 
-        // Launch the first refresh — it will stall at the barrier.
         final firstFuture = notifier.refresh();
-        // Yield so the provider's async function enters refreshFeeds.
         await Future<void>.delayed(Duration.zero);
 
-        // While the first is still in-flight, launch a second.
         final secondFuture = notifier.refresh();
 
-        // Not yet complete: only one refreshFeeds call should have started.
         expect(
           repo.refreshCallCount,
           1,
           reason: 'only one refreshFeeds call should have been initiated',
         );
 
-        // Release the barrier so the first (and only) refreshFeeds completes.
         repo.barrier.complete();
 
-        // Both futures should resolve — they share the same underlying result.
         final firstResult = await firstFuture;
         final secondResult = await secondFuture;
 
@@ -103,12 +97,10 @@ void main() {
     test('subsequent refresh works after in-flight completes', () async {
       final notifier = container.read(discoverRefreshStateProvider.notifier);
 
-      // First call: release barrier immediately.
       repo.barrier.complete();
       await notifier.refresh();
       expect(repo.refreshCompleteCount, 1);
 
-      // Second call should proceed normally (no in-flight guard active).
       final secondBarrier = Completer<void>();
       repo.barrier = secondBarrier;
       final secondFuture = notifier.refresh();

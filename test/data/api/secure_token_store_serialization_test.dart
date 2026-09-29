@@ -50,7 +50,7 @@ class _LossyConcurrentTrackingStorage extends FlutterSecureStorage {
   }) => _track(() async {
     if (dropNextWrite) {
       dropNextWrite = false;
-      return; // silently "succeed" without persisting
+      return;
     }
     values[key] = value!;
   });
@@ -71,8 +71,6 @@ class _LossyConcurrentTrackingStorage extends FlutterSecureStorage {
 }
 
 void main() {
-  // The Linux write-verification path is gated on TargetPlatform.linux;
-  // flutter_test defaults to android, so pin it for these tests.
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
@@ -160,10 +158,7 @@ class _BrokenStorage extends FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async {
-    // Reports success but never persists — mirrors the corrupted gnome-keyring
-    // item observed in issue investigation (empty secret, garbled schema).
-  }
+  }) async {}
 
   @override
   Future<void> delete({

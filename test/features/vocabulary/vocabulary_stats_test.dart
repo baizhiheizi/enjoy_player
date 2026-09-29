@@ -75,7 +75,7 @@ void main() {
 
       final stats = computeVocabularyStats(items, now: now);
       expect(stats.total, 5);
-      expect(stats.due, 2); // due-new + due-reviewing
+      expect(stats.due, 2);
       expect(stats.newCount, 2);
       expect(stats.learningCount, 1);
       expect(stats.reviewingCount, 1);

@@ -1,8 +1,3 @@
-// Leave-player teardown is route-driven: [LeavePlayerRouteObserver] reports the
-// transition and `clearLivePlaybackSession` applies the policy. These tests pin
-// both the "fires exactly once per leave" contract and the wiring shape used in
-// `app_router.dart` (observer on the shell navigator + page named after its
-// matched location).
 import 'dart:async';
 
 import 'package:enjoy_player/features/player/application/leave_player_route_observer.dart';
@@ -81,8 +76,6 @@ GoRouter _router(LeavePlayerRouteObserver observer) {
             path: '/player/:mediaId',
             pageBuilder: (context, state) => CustomTransitionPage<void>(
               key: const ValueKey('player-page'),
-              // Mirrors `app_router.dart`: the page name is what
-              // [isPlayerRoute] matches on.
               name: state.matchedLocation,
               transitionsBuilder: (_, _, _, child) => child,
               child: const Scaffold(body: Text('player-page')),
@@ -159,7 +152,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('player-page'), findsOneWidget);
       expect(observer.isHostingPlayerRoute, isTrue);
-      // Entering the player is not a leave.
       expect(controller.clearCalls, 0);
 
       router.go('/library');
@@ -168,7 +160,6 @@ void main() {
       expect(controller.clearCalls, 1);
       expect(leftCount, 1);
 
-      // Still off the player route: no repeated teardown.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(controller.clearCalls, 1);

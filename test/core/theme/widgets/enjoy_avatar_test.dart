@@ -118,7 +118,6 @@ void main() {
 
     final decoration = _badgeContainer(tester).decoration as ShapeDecoration;
     expect(decoration.shape, shape);
-    // The aurora gradient still paints behind the custom shape.
     expect(decoration.gradient, _tokens(tester).aurora);
   });
 }

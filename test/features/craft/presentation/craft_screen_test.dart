@@ -26,8 +26,6 @@ import 'package:enjoy_player/features/craft/application/craft_library_repository
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -109,8 +107,6 @@ class _FakeLibraryRepository implements CraftLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-// === Harness ===
-
 Widget _harness({required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
@@ -182,11 +178,9 @@ void main() {
     await tester.pumpWidget(_harness(overrides: _baseOverrides()));
     await tester.pumpAndSettle();
 
-    // Both mode labels should be visible.
     expect(find.text('Express'), findsWidgets);
     expect(find.text('Advanced'), findsWidgets);
 
-    // Icons for each mode.
     expect(find.byIcon(EnjoyIcons.mic), findsWidgets);
     expect(find.byIcon(EnjoyIcons.edit), findsWidgets);
   });
@@ -216,7 +210,6 @@ void main() {
 
       expect(find.text('Discard this audio?'), findsOneWidget);
 
-      // Cancel keeps Express + the unsaved preview.
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 

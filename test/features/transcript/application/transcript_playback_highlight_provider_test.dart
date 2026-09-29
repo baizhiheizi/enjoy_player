@@ -74,8 +74,6 @@ void main() {
       }
     });
 
-    // Until the persisted setting resolves, the cue is known but the karaoke
-    // word stays gated off.
     expect(
       container.read(transcriptPlaybackHighlightProvider('m1')).wordIndex,
       isNull,

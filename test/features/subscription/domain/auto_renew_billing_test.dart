@@ -46,7 +46,7 @@ void main() {
       expect(b.cancelAtPeriodEnd, isTrue);
       expect(b.payUrl, isNull);
       expect(b.planId, isNull);
-      expect(b.tier, 'pro'); // default
+      expect(b.tier, 'pro');
       expect(b.interval, '');
       expect(b.amount, isNull);
     });

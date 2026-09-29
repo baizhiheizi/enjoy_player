@@ -129,7 +129,6 @@ void main() {
       jsonDecode(encoded) as Map<String, dynamic>,
     );
     expect(decoded, attached);
-    // Word clocks stay line-relative ms; phone clocks stay media seconds.
     expect(decoded.timeline![0].startMs, 100);
     expect(decoded.timeline![0].phones![2].endTime, closeTo(0.60, 1e-9));
   });

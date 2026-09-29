@@ -99,8 +99,6 @@ void main() {
         final kind = await registry.deleteById('shared');
         expect(kind, expected);
         expect(await db.videoDao.getById('shared'), isNull);
-        // Video-first: with a video match the audios table is never probed,
-        // so its row (if any) survives — pinned by the test below.
         if (expected != MediaKind.video) {
           expect(await db.audioDao.getById('shared'), isNull);
         }
@@ -111,7 +109,6 @@ void main() {
       await seed(Fixture.both);
       await registry.deleteById('shared');
       expect(await db.videoDao.getById('shared'), isNull);
-      // The audio row was never probed, let alone deleted.
       expect(await db.audioDao.getById('shared'), isNotNull);
     });
 
@@ -279,8 +276,6 @@ void main() {
         registry.patchDurationIfZero('shared', 88),
         registry.patchDurationIfZero('shared', 99),
       ]);
-      // The shared WHERE duration_seconds = 0 guard means exactly one
-      // write touches the row; the others must report null.
       expect(results.where((k) => k != null), hasLength(1));
       expect(results.where((k) => k == null), hasLength(2));
       final row = (await db.videoDao.getById('shared'))!;
@@ -290,10 +285,6 @@ void main() {
     test(
       'unrelated field changes between the read and the patch are preserved',
       () async {
-        // The pre-fix probe+copyWith could write a stale row back on top
-        // of a parallel change to another column. Seed an initial row,
-        // bump `title` (unrelated to duration), then patch — `title` must
-        // survive.
         await db.videoDao.insertRow(
           _videoRow().copyWith(title: 'Original Title'),
         );

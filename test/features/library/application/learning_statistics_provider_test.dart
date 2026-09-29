@@ -1,4 +1,3 @@
-// Coverage: lib/features/library/application/learning_statistics_provider.dart
 import 'dart:async';
 
 import 'package:enjoy_player/data/api/api_client.dart';

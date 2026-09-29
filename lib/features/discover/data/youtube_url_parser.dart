@@ -31,7 +31,6 @@ class YoutubeUrlParser {
       throw const FormatException('Input is empty');
     }
 
-    // Try raw channel ID
     final channelMatch = _channelIdRegex.firstMatch(trimmed);
     if (channelMatch != null) {
       final id = channelMatch.group(0)!;
@@ -42,7 +41,6 @@ class YoutubeUrlParser {
       );
     }
 
-    // Try raw playlist ID
     final playlistMatch = _playlistIdRegex.firstMatch(trimmed);
     if (playlistMatch != null) {
       final id = playlistMatch.group(0)!;
@@ -53,7 +51,6 @@ class YoutubeUrlParser {
       );
     }
 
-    // Try @handle
     if (trimmed.startsWith('@')) {
       final handleMatch = _handleRegex.firstMatch(trimmed);
       if (handleMatch != null) {
@@ -66,13 +63,11 @@ class YoutubeUrlParser {
       }
     }
 
-    // Try URL parsing
     final uri = Uri.tryParse(trimmed);
     if (uri == null || !uri.host.contains('youtube.com')) {
       throw const FormatException('Not a YouTube URL or identifier');
     }
 
-    // /channel/UC...
     if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'channel') {
       final id = uri.pathSegments[1];
       if (_channelIdRegex.hasMatch(id)) {
@@ -84,7 +79,6 @@ class YoutubeUrlParser {
       }
     }
 
-    // /@handle or /user/handle
     if (uri.pathSegments.isNotEmpty) {
       final first = uri.pathSegments[0];
       if (first.startsWith('@')) {
@@ -105,7 +99,6 @@ class YoutubeUrlParser {
       }
     }
 
-    // /playlist?list=PL...
     if (uri.queryParameters.containsKey('list')) {
       final list = uri.queryParameters['list']!;
       if (_playlistIdRegex.hasMatch(list)) {

@@ -5,7 +5,6 @@ import 'package:forced_alignment/forced_alignment.dart';
 
 void main() {
   test('decodes multi-byte IPA UTF-8 from eSpeak id.string bytes', () {
-    // ɡ æ ː (common IPA; UTF-8 C9 A1 / C3 A6 / CB 90)
     expect(decodeEspeakPhonemeIdBytes([0xC9, 0xA1]), 'ɡ');
     expect(decodeEspeakPhonemeIdBytes([0xC3, 0xA6]), 'æ');
     expect(decodeEspeakPhonemeIdBytes([0xCB, 0x90]), 'ː');

@@ -99,12 +99,8 @@ void main() {
 
         final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-        // Empty-state copy is still shown for the recents section.
         expect(find.text(l10n.homeEmptyTitle), findsOneWidget);
 
-        // Insight cards render alongside the empty state, as they do when
-        // recents are populated.
-        // Card titles render as uppercase overlines.
         expect(find.text(l10n.homeTodaysGoal.toUpperCase()), findsOneWidget);
         expect(find.text(l10n.communityActivity.toUpperCase()), findsOneWidget);
       },
@@ -165,9 +161,6 @@ void main() {
       await tester.pumpAndSettle();
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
-      // No dedicated Continue section: the last-practiced item is simply the
-      // first tile of the recents grid (desktop instead uses the sidebar
-      // card, see SidebarContinuePracticeCard).
       expect(find.text(l10n.homeContinuePracticing), findsNothing);
       expect(find.text(l10n.homeRecentMedia), findsOneWidget);
       expect(find.text('Practiced talk'), findsOneWidget);

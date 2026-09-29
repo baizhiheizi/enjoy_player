@@ -7,8 +7,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-// ── Public API ───────────────────────────────────────────────────────────────
-
 /// Accent color from the same RNG stream as [GenerativeMediaCover] (last draw).
 Color generativeAccentForSeed(String seed) => _computeSpec(seed).accent;
 
@@ -30,7 +28,6 @@ class GenerativeMediaCover extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         CustomPaint(painter: _GenerativeCoverPainter(spec)),
-        // Light noise (web uses SVG turbulence; this approximates texture).
         CustomPaint(painter: _NoisePainter(seed: seed, opacity: 0.06)),
         Center(
           child: _CenterGlassIcon(accent: spec.accent, isVideo: isVideo),
@@ -39,8 +36,6 @@ class GenerativeMediaCover extends StatelessWidget {
     );
   }
 }
-
-// ── Spec + painter ────────────────────────────────────────────────────────────
 
 class _CoverSpec {
   const _CoverSpec({
@@ -285,8 +280,6 @@ _CoverSpec _computeSpec(String seed) {
   final angle = (rng.next() * 360).floorToDouble();
   final c1 = palette[(rng.next() * palette.length).floor()];
   final c2 = palette[(rng.next() * palette.length).floor()];
-  // Aurora: opaque, deepened base so covers read as rich artwork in both
-  // themes (the seed still picks the same palette / pattern / angle as web).
   final gradientStart = _colorWithHexSuffix(
     Color.lerp(c1, const Color(0xFF0B0B14), 0.22)!,
     0xFF,
@@ -357,7 +350,6 @@ class _GenerativeCoverPainter extends CustomPainter {
     final paint = Paint()..shader = gradient.createShader(rect);
     canvas.drawRect(rect, paint);
     spec.onPaintForeground(canvas, size);
-    // Lit corner + soft vignette give the flat shapes depth.
     canvas.drawRect(
       rect,
       Paint()
@@ -401,7 +393,6 @@ class _NoisePainter extends CustomPainter {
     final paint = Paint()
       ..strokeWidth = 1
       ..style = PaintingStyle.fill;
-    // Sparse grain — cheap stand-in for SVG fractal noise.
     for (var i = 0; i < 180; i++) {
       final x = _rnd.nextDouble() * size.width;
       final y = _rnd.nextDouble() * size.height;

@@ -31,8 +31,6 @@ class ClientProfile {
     final rawName = json['name'] as String? ?? '';
     final hasLocalClientName = json['clientName'] is String;
     final clientName = json['clientName'] as String? ?? rawName;
-    // Local caches store a lowercase slug in `name` plus `clientName`.
-    // The worker publishes `name` as the InnerTube client name only.
     final name = hasLocalClientName ? rawName : rawName.toLowerCase();
     return ClientProfile(
       name: name,
@@ -185,10 +183,6 @@ const List<ClientProfile> kBuiltInClientProfiles = [
     context: {'platform': 'MOBILE', 'osName': 'iOS', 'osVersion': '17.5.1'},
   ),
   ClientProfile(
-    // Desktop WEB — last-resort caption fallback (often needs PoToken).
-    // Discover feed fetch no longer uses InnerTube browse (ADR-0051);
-    // ClientProfile rotation applies only to the caption `/player` ladder.
-    // Kept for rare cases where mobile clients are throttled.
     name: 'web',
     clientName: 'WEB',
     clientVersion: '2.20250709.00.00',

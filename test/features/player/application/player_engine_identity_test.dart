@@ -30,9 +30,6 @@ void main() {
     });
     testDouble = null;
     allocations = 0;
-    // The module owns the slot now — only the things it cannot own are
-    // injected: the live test-double provider read, the lazy-default
-    // allocator, the disposed check, and the rev-bump action.
     identity = PlayerEngineIdentity(
       bumpRev: () => container.read(playerEngineRevProvider.notifier).bump(),
       testDouble: () => testDouble,
@@ -74,9 +71,6 @@ void main() {
     final first = identity.resolve();
     expect(identical(identity.owned, first), isTrue);
     expect(allocations, 1);
-    // Microtask discipline (the old _ensureDefaultMediaKitEngine hack,
-    // relocated into the module): never notify synchronously from a path
-    // that can run inside another provider's build.
     expect(container.read(playerEngineRevProvider), 0);
     await pumpEventQueue();
     expect(container.read(playerEngineRevProvider), 1);
@@ -108,7 +102,7 @@ void main() {
     identity.setOwned(first);
     expect(container.read(playerEngineRevProvider), 1);
 
-    identity.setOwned(first); // identical instance — not a change
+    identity.setOwned(first);
     expect(container.read(playerEngineRevProvider), 1);
 
     identity.setOwned(second);

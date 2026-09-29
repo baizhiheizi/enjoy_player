@@ -28,10 +28,6 @@ import 'package:enjoy_player/features/sync/data/sync_upload_service.dart';
 import 'package:enjoy_player/features/sync/domain/sync_retry_policy.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const _profile = UserProfile(id: 'u1', email: 'a@b.com', name: 'Test');
 
 class _SignedInAuthCtrl extends AuthCtrl {
@@ -231,10 +227,6 @@ class _StaleSnapshotQueue extends SyncQueueRepository {
   Future<List<SyncQueueRow>> pendingItems({int limit = 500}) async => snapshot;
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -277,7 +269,6 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Insert a permanently failed row (retryCount == policy.maxRetries).
       final id = await queue.addOrUpsert(
         entityType: 'video',
         entityId: 'v-reset',
@@ -296,7 +287,6 @@ void main() {
       );
 
       expect(result.success, isTrue);
-      // The row should have been reset and then processed (deleted).
       expect(await queue.pendingItems(), isEmpty);
     });
   });
@@ -307,7 +297,6 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Manually insert a row with an unknown entity type.
       await db
           .into(db.syncQueue)
           .insert(
@@ -322,10 +311,8 @@ void main() {
       final engine = _buildEngine(db, _permissiveMock());
       final result = await engine.processQueue(const SyncOptions());
 
-      // Unknown types are filtered out by _drainOnce, so nothing is processed.
       expect(result.success, isTrue);
       expect(result.synced, 0);
-      // Row remains because it was filtered, not processed.
       expect(await queue.pendingItems(), hasLength(1));
     });
 
@@ -334,7 +321,6 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Insert a row with valid type but unknown action.
       await db
           .into(db.syncQueue)
           .insert(
@@ -349,7 +335,6 @@ void main() {
       final engine = _buildEngine(db, _permissiveMock());
       final result = await engine.processQueue(const SyncOptions());
 
-      // _processOne removes rows with null action.
       expect(result.success, isTrue);
       expect(result.synced, 1);
       expect(await queue.pendingItems(), isEmpty);
@@ -501,7 +486,6 @@ void main() {
 
       expect(result.success, isTrue);
       expect(result.synced, 1);
-      // No DELETE API call for youtube_subscription.
       expect(apiCalled, isFalse);
       expect(await queue.pendingItems(), isEmpty);
     });
@@ -696,10 +680,8 @@ void main() {
       final engine = _buildEngine(db, _permissiveMock());
       final result = await engine.processQueue(const SyncOptions());
 
-      // youtube_subscription create is a no-op; queue row is retained.
       expect(result.success, isTrue);
       expect(result.synced, 1);
-      // Row is removed after the no-op break (falls through to removeById).
       expect(await queue.pendingItems(), isEmpty);
     });
   });
@@ -736,8 +718,6 @@ void main() {
 
         expect(result.success, isTrue);
         expect(result.synced, 1);
-        // The upload was re-attempted with the payload's videoId/language/
-        // source/timeline — not resolved against a local video row.
         expect(api.uploads, hasLength(1));
         expect(api.uploads.single.videoId, 'dQw4w9WgXcQ');
         expect(api.uploads.single.language, 'en');
@@ -746,7 +726,6 @@ void main() {
           {'text': 'hello', 'start': 0, 'duration': 1000},
           {'text': 'world', 'start': 1000, 'duration': 1500},
         ]);
-        // No local video row exists — the old path would have dropped the row.
         expect(await db.videoDao.getById('dQw4w9WgXcQ/en'), isNull);
         expect(await queue.pendingItems(), isEmpty);
         expect(await db.select(db.syncQueue).get(), isEmpty);
@@ -784,7 +763,6 @@ void main() {
         expect(result.success, isFalse);
         expect(result.failed, 1);
         expect(api.uploads, hasLength(1));
-        // Row survives with the attempt recorded for the backoff machinery.
         final pending = await queue.pendingItems();
         expect(pending, hasLength(1));
         expect(pending.first.retryCount, 1);
@@ -800,8 +778,6 @@ void main() {
         final queue = SyncQueueRepository(db);
         final api = _FakeTranscriptsApi();
 
-        // Mirror the producer: SyncQueueRepository.addOrUpsert dedups on
-        // (entityType, entityId, action) and overwrites only the payload.
         for (final text in ['stale', 'fresh']) {
           await queue.addOrUpsert(
             entityType: 'video',
@@ -843,7 +819,6 @@ void main() {
           entityType: 'video',
           entityId: 'broken/en',
           action: 'update',
-          // kind matches but required fields are missing.
           payloadJson: jsonEncode({'kind': 'youtube_upload'}),
         );
 
@@ -867,8 +842,6 @@ void main() {
       final queue = SyncQueueRepository(db);
       final api = _FakeTranscriptsApi();
 
-      // Plain rows carry no `kind` — they must keep flowing through the
-      // entity-type resolution unchanged (missing locally → dropped).
       await queue.addOrUpsert(
         entityType: 'video',
         entityId: 'missing-video',
@@ -895,11 +868,6 @@ void main() {
       final queue = SyncQueueRepository(db);
       final api = _FakeTranscriptsApi();
 
-      // One valid entry followed by an int — the producer always emits
-      // `Map<String, dynamic>` shapes, so a non-object entry is
-      // corruption. The old `.whereType<Map>` filter silently dropped
-      // the int, leaving a one-line timeline and replacing the worker
-      // cache with incomplete data.
       await queue.addOrUpsert(
         entityType: 'video',
         entityId: 'dQw4w9WgXcQ/en',
@@ -935,11 +903,6 @@ void main() {
 
     test('drop path keeps a row refreshed between snapshot and remove '
         '(F3 guard applies to undecodable rows)', () async {
-      // Regression guard (post-merge review of #730): the decode-null drop
-      // path used to call unconditional `removeById`, so a youtube_upload
-      // row whose snapshot payload was malformed could delete a payload the
-      // producer refreshed in place after the snapshot. The drop must be
-      // conditional like the success path.
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
@@ -947,7 +910,6 @@ void main() {
 
       const videoId = 'dQw4w9WgXcQ';
       const language = 'en';
-      // kind matches but required fields are missing — decode refuses it.
       final stalePayload = jsonEncode({'kind': 'youtube_upload'});
       final freshPayload = _youtubeUploadPayload(
         videoId: videoId,
@@ -964,8 +926,6 @@ void main() {
         payloadJson: stalePayload,
       );
 
-      // Freeze the drain's view on the malformed snapshot, then refresh the
-      // row in place (producer race) before the drain runs.
       final staleSnapshot = await queue.pendingItems();
       await queue.addOrUpsert(
         entityType: 'video',
@@ -996,8 +956,6 @@ void main() {
 
       final result = await engine.processQueue(const SyncOptions());
 
-      // The stale snapshot decodes to null → drop path; the payload-equality
-      // guard sees the refreshed row and leaves it in place.
       expect(result.success, isTrue);
       expect(api.uploads, isEmpty);
       final afterDrop = await db.select(db.syncQueue).get();
@@ -1008,7 +966,6 @@ void main() {
         reason: 'refreshed payload must survive the undecodable snapshot',
       );
 
-      // A second drain with a live view uploads the fresh payload.
       final freshEngine = _buildEngine(
         db,
         _permissiveMock(),
@@ -1022,11 +979,6 @@ void main() {
 
     test('F3: successful upload does not delete a refreshed payload '
         '(refresh-during-upload race)', () async {
-      // Mirror the producer's race: enqueue with a stale payload, start
-      // the drain, while the upload is in-flight refresh with a fresher
-      // payload, then complete the upload. The unconditional
-      // `removeById` would delete the refreshed payload and lose the
-      // durable retry. Conditional remove must keep it.
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
@@ -1074,9 +1026,6 @@ void main() {
       final drainFuture = engine.processQueue(const SyncOptions());
       await uploadStarted.future;
 
-      // Producer refreshes the queue row with a newer payload while
-      // the upload is in flight. addOrUpsert refreshes in place — same
-      // id, new payload.
       await queue.addOrUpsert(
         entityType: 'video',
         entityId: '$videoId/$language',
@@ -1084,13 +1033,10 @@ void main() {
         payloadJson: freshPayload,
       );
 
-      // Sanity check: the stored row now carries the fresh payload.
       final beforeRelease = await db.select(db.syncQueue).get();
       expect(beforeRelease, hasLength(1));
       expect(beforeRelease.single.payloadJson, freshPayload);
 
-      // Complete the upload; conditional remove must observe the
-      // payload mismatch and leave the row in place.
       releaseUpload.complete();
       final result = await drainFuture;
 
@@ -1105,7 +1051,6 @@ void main() {
         reason: 'refreshed payload must survive the older upload success',
       );
 
-      // A second drain retries the fresh payload and clears the row.
       await engine.processQueue(const SyncOptions());
       expect(await db.select(db.syncQueue).get(), isEmpty);
       expect(api.uploads, hasLength(2));
@@ -1137,7 +1082,6 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Insert a local audio row so the engine tries to upload it.
       final now = DateTime.utc(2026, 1, 1);
       await db.audioDao.insertRow(
         AudioRow(
@@ -1175,7 +1119,6 @@ void main() {
 
       expect(result.success, isFalse);
       expect(result.failed, 1);
-      // Row should still be pending with incremented retryCount.
       final pending = await queue.pendingItems();
       expect(pending, hasLength(1));
       expect(pending.first.retryCount, 1);
@@ -1183,7 +1126,6 @@ void main() {
     });
 
     test('SyncDuplicateMissingError marks row permanently failed', () async {
-      // Simulate: POST returns 409 "already exists", then GET returns 404.
       final mock = MockClient((request) async {
         if (request.method == 'POST' &&
             request.url.path == '/api/v1/mine/audios') {
@@ -1252,9 +1194,8 @@ void main() {
 
       expect(result.success, isFalse);
       expect(result.failed, 1);
-      // Row should be permanently failed (retryCount == policy.maxRetries).
       final pending = await queue.pendingItems();
-      expect(pending, isEmpty); // failed rows are excluded from pendingItems
+      expect(pending, isEmpty);
       final allRows = await db.select(db.syncQueue).get();
       expect(allRows, hasLength(1));
       expect(allRows.first.retryCount, SyncRetryPolicy().maxRetries);
@@ -1308,7 +1249,6 @@ void main() {
         addTearDown(db.close);
         final queue = SyncQueueRepository(db);
 
-        // Enqueue two rows so both drain passes have work.
         await queue.addOrUpsert(
           entityType: 'video',
           entityId: 'v-coal-1',
@@ -1349,15 +1289,12 @@ void main() {
         final first = engine.processQueue(const SyncOptions());
         await started.future;
 
-        // Second call coalesces onto the first (sets _drainAgain).
         final second = engine.processQueue(const SyncOptions());
 
         release.complete();
         final results = await Future.wait([first, second]);
-        // Both callers get the same result object.
         expect(identical(results[0], results[1]), isTrue);
         expect(results[0].success, isTrue);
-        // Both rows processed.
         expect(await queue.pendingItems(), isEmpty);
         expect(deleteCount, 2);
       },
@@ -1438,7 +1375,6 @@ void main() {
       expect(result.success, isTrue);
       expect(result.synced, 1);
       expect(await queue.pendingItems(), isEmpty);
-      // Verify the audio row was updated with sync status.
       final updated = await db.audioDao.getById('aud-ok');
       expect(updated!.syncStatus, 'synced');
     });
@@ -1729,10 +1665,6 @@ void main() {
     });
   });
 
-  // ===========================================================================
-  // SyncCtrl (sync_controller.dart) tests
-  // ===========================================================================
-
   group('SyncCtrl.triggerSync', () {
     test('returns signed-out error when not authenticated', () async {
       final db = AppDatabase(executor: NativeDatabase.memory());
@@ -1746,9 +1678,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Initialize auth state.
       await container.read(authCtrlProvider.future);
-      // Initialize the sync controller.
       container.read(syncCtrlProvider);
 
       final result = await container
@@ -1783,7 +1713,6 @@ void main() {
           .triggerSync();
 
       expect(result.success, isTrue);
-      // Verify timestamp was persisted.
       final ts = await db.settingsDao.getValue(
         SettingsKeys.syncLastFullSyncAt.name,
       );
@@ -1795,7 +1724,6 @@ void main() {
       addTearDown(db.close);
       final queue = SyncQueueRepository(db);
 
-      // Insert a permanently failed row.
       final id = await queue.addOrUpsert(
         entityType: 'video',
         entityId: 'v-rf',
@@ -1821,14 +1749,12 @@ void main() {
           .triggerSync(resetFailed: true);
 
       expect(result.success, isTrue);
-      // The permanently failed row should have been reset and processed.
       expect(await queue.pendingItems(), isEmpty);
     });
 
     test('does not persist timestamp when sync fails', () async {
       final mock = MockClient((request) async {
         if (request.method == 'GET') {
-          // Make vocabulary download fail.
           return http.Response(
             '{"error": "fail"}',
             500,
@@ -1859,7 +1785,6 @@ void main() {
           .triggerSync();
 
       expect(result.success, isFalse);
-      // Timestamp should NOT be persisted on failure.
       final ts = await db.settingsDao.getValue(
         SettingsKeys.syncLastFullSyncAt.name,
       );
@@ -1883,9 +1808,7 @@ void main() {
       await container.read(authCtrlProvider.future);
       container.read(syncCtrlProvider);
 
-      // Should not throw.
       container.read(syncCtrlProvider.notifier).kickDrain();
-      // Give the async fire-and-forget a chance to run.
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
 
@@ -1914,7 +1837,6 @@ void main() {
 
       container.read(syncCtrlProvider.notifier).kickDrain();
 
-      // Wait for the fire-and-forget drain to complete.
       await Future<void>.delayed(const Duration(milliseconds: 100));
       expect(await queue.pendingItems(), isEmpty);
     });
@@ -1922,7 +1844,6 @@ void main() {
 
   group('SyncCtrl._persistLastFullSyncTimestamp', () {
     test('handles DB write failure gracefully', () async {
-      // Use a closed database to trigger a write failure.
       final db = AppDatabase(executor: NativeDatabase.memory());
       final engine = _buildEngine(db, _permissiveMock());
 
@@ -1938,20 +1859,11 @@ void main() {
       await container.read(authCtrlProvider.future);
       container.read(syncCtrlProvider);
 
-      // Close the DB to make the settings write fail.
       await db.close();
 
-      // triggerSync should not throw even though persist fails.
-      // The fullSync itself will also fail because the DB is closed,
-      // but the controller catches errors in _persistLastFullSyncTimestamp.
-      // We just verify no unhandled exception propagates.
       try {
         await container.read(syncCtrlProvider.notifier).triggerSync();
-      } catch (_) {
-        // The engine may throw because the DB is closed; that's fine.
-        // The key assertion is that _persistLastFullSyncTimestamp's catch
-        // block is exercised without crashing.
-      }
+      } catch (_) {}
     });
   });
 
@@ -1971,7 +1883,6 @@ void main() {
       final value = container.read(syncCtrlProvider);
       expect(value, 0);
 
-      // Dispose should not throw.
       container.dispose();
     });
   });

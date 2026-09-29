@@ -81,10 +81,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
   @override
   Widget build(BuildContext context) {
     final searchFocusNode = ref.watch(librarySearchFocusNodeProvider);
-    // The node provider is keepAlive and hands out one node per app run, so
-    // [didChangeDependencies] covers the normal lifetime. If a swap ever
-    // happens, re-attach here — a listener callback runs outside build, unlike
-    // the attach-in-build side effect this replaces.
     ref.listen(librarySearchFocusNodeProvider, (_, node) {
       _attachSearchFocusListener(node);
     });
@@ -138,7 +134,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
             children: [
               if (isDesktop && defaultTargetPlatform == TargetPlatform.macOS)
                 SizedBox(height: t.space8),
-              // Brand row
               SizedBox(
                 height: t.sidebarBrandHeight,
                 child: Padding(
@@ -164,7 +159,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 ),
               ),
 
-              // Search
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   t.space12 - 2,
@@ -246,7 +240,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 ),
               ),
 
-              // Nav items
               NavItemPill(
                 icon: EnjoyIcons.home,
                 iconWidget: const EnjoyChromeIcon(EnjoyChromeGlyph.home),
@@ -284,11 +277,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
 
               const Spacer(),
 
-              // Continue practicing — compact card; Home suppresses its
-              // 16:9 hero at this breakpoint so only one entry point shows.
               const SidebarContinuePracticeCard(),
 
-              // Account chip at bottom
               const SidebarAccountChip(),
             ],
           ),

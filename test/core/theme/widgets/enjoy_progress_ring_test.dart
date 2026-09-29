@@ -112,8 +112,6 @@ void main() {
       strokeWidth: _stroke,
       gradientColors: const [Colors.red, Colors.blue],
     );
-    // A fresh-but-equal list must not force a repaint (the goal card builds
-    // a new list literal every frame).
     expect(a.shouldRepaint(a), isFalse);
     expect(
       a.shouldRepaint(
@@ -144,10 +142,8 @@ void main() {
   ) async {
     await tester.runAsync(() async {
       final image = await _render(_solid(0.25));
-      // Quarter sweep: top → 3 o'clock is lit…
       expect(await _colorAtAngle(image, -math.pi / 4), _fill);
       expect(await _colorAtAngle(image, -math.pi / 2 + 0.2), _fill);
-      // …while the rest of the ring stays track.
       expect(await _colorAtAngle(image, math.pi / 2), _track);
       expect(await _colorAtAngle(image, 3 * math.pi / 4), _track);
     });
@@ -194,8 +190,6 @@ void main() {
       );
       final justAfterTop = await _colorAtAngle(image, -math.pi / 2 + 0.15);
       final pastBottom = await _colorAtAngle(image, 3 * math.pi / 4);
-      // The gradient starts at 12 o'clock and ends back there going clockwise,
-      // so the top of the ring reads red and the lower-left reads blue.
       expect(justAfterTop.r, greaterThan(justAfterTop.b));
       expect(pastBottom.b, greaterThan(pastBottom.r));
     });

@@ -1,9 +1,3 @@
-// Tests for `lib/features/share_poster/presentation/practice_poster_preview_sheet.dart`.
-//
-// Covers the preview sheet's three render paths: loading spinner, no-data error
-// message, and the full poster preview with export button. Heavy providers
-// (database, library repo, transcript repo, player engine) are stubbed so the
-// sheet can be exercised in isolation.
 import 'dart:async';
 import 'dart:convert';
 
@@ -234,7 +228,6 @@ void main() {
 
     await _showSheet(tester, container: container, mediaId: 'v-1');
 
-    // Allow async _load to complete and the RepaintBoundary to fire.
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pump(const Duration(milliseconds: 200));
@@ -246,7 +239,6 @@ void main() {
   testWidgets('shows no-poster state when media has no recordings', (
     tester,
   ) async {
-    // Only video is seeded - no recordings.
     await _seedVideo(db, 'v-2');
 
     await tester.binding.setSurfaceSize(const Size(400, 760));
@@ -254,11 +246,9 @@ void main() {
 
     await _showSheet(tester, container: container, mediaId: 'v-2');
 
-    // Allow async _load to complete.
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pump(const Duration(milliseconds: 200));
 
-    // No poster, error message is shown.
     expect(find.byType(PracticePosterWidget), findsNothing);
   });
 
@@ -281,7 +271,6 @@ void main() {
       await _seedRecording(db, 'r-1', 'v-3');
       await _seedTranscript(db, transcriptId: 't-1', targetId: 'v-3');
 
-      // Activate echo so capturePracticePosterEchoFrame takes the echo branch.
       container
           .read(echoModeProvider.notifier)
           .activate(
@@ -299,9 +288,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 200));
 
-      // Screenshot is invoked because echo is active for matching mediaId;
-      // player session is null in tests so capture returns null. The poster
-      // still renders normally because there's a recording.
       expect(find.byType(PracticePosterWidget), findsOneWidget);
     },
   );
@@ -313,7 +299,6 @@ void main() {
       await _seedRecording(db, 'r-1', 'v-4');
       await _seedTranscript(db, transcriptId: 't-1', targetId: 'v-4');
 
-      // Echo is active but mediaId differs - capture should short-circuit.
       container
           .read(echoModeProvider.notifier)
           .activate(
@@ -331,8 +316,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 200));
 
-      // Engine screenshot is NOT called because mediaId doesn't match session
-      // and playerControllerProvider is null.
       expect(fakeEngine.screenshotCalls, 0);
       expect(find.byType(PracticePosterWidget), findsNothing);
     },

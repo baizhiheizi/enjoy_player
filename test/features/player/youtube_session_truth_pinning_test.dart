@@ -34,21 +34,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('1. one-shot completer/waiter semantics', () {
-    // The mount waiters are push-from-the-event, not flag poll (issue
-    // #661). Their semantics are load-bearing: a stale waiter left
-    // dangling must not double-complete a fresh mount, and the
-    // unmounted detector must arm BEFORE the unmount signal so a
-    // microtask race between the controller and the host does not
-    // collapse to a synchronous no-op.
     test('dispose-then-verb sequences are silent no-ops', () async {
       final session = YoutubeSession();
       await session.closeStreams();
 
-      // Late verbs do not throw and do not emit on the closed streams.
-      // Scope note: not every latch is frozen after dispose —
-      // `markCompleted` / `beginUserPlay` still mutate internal flags —
-      // so the pinned contract here is exactly no-throw + no-emission +
-      // disposed/webViewMounted stability, not total latch immutability.
       var playingEvents = 0;
       var completedEvents = 0;
       final playingSub = session.playingStream.listen((_) => playingEvents++);
@@ -76,7 +65,6 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(playingEvents, 0);
       expect(completedEvents, 0);
-      // Private flags stay where closeStreams put them.
       expect(session.disposed, isTrue);
       expect(session.webViewMounted, isFalse);
     });
@@ -88,7 +76,6 @@ void main() {
           ..resetForOpen('abc12345678')
           ..noteWebViewMounted();
 
-        // Arm the waiter BEFORE the unmount signal — the controller path.
         final pendingBefore = session.awaitSurfaceDetached();
         var beforeResolved = false;
         unawaited(pendingBefore.then((_) => beforeResolved = true));
@@ -97,8 +84,6 @@ void main() {
         await pendingBefore;
         expect(beforeResolved, isTrue);
 
-        // Arm AGAIN after the unmount — must resolve immediately
-        // (nothing is mounted to detach).
         await session.awaitSurfaceDetached();
       },
     );
@@ -106,20 +91,17 @@ void main() {
     test('double-mount with a stale waiter does not double-complete', () async {
       final session = YoutubeSession();
 
-      // First mount cycle — arms a waiter, completes it, drops it.
       final firstWaiter = session.awaitWebViewMounted();
       var firstCompletions = 0;
       unawaited(firstWaiter.then((_) => firstCompletions++));
 
       session.noteWebViewMounted();
-      session.noteWebViewMounted(); // second note — must not re-fire.
+      session.noteWebViewMounted();
       await firstWaiter;
       expect(firstCompletions, 1);
 
       session.noteWebViewUnmounted();
 
-      // Second mount cycle — a fresh waiter must not have been
-      // poisoned by the first (already-completed) one.
       final secondWaiter = session.awaitWebViewMounted();
       var secondCompletions = 0;
       unawaited(secondWaiter.then((_) => secondCompletions++));
@@ -133,22 +115,17 @@ void main() {
   });
 
   group('2. document-generation invariants', () {
-    // The unmute-at-most-once-per-document rule is the play-then-pause
-    // bug's defence (issue #628). Redundant programmatic unMutes are
-    // pause triggers under Chromium's autoplay gesture lock, so the
-    // pin must hold across document reloads and open/clear cycles.
     test('two noteWatchDocumentLoaded without noteVolumeRestored keeps '
         'needsVolumeRestore true', () {
       final session = YoutubeSession()..resetForOpen('abc12345678');
-      // After open the very first document needs restore.
       expect(session.needsVolumeRestore, isTrue);
       final firstGen = session.documentGen;
 
-      session.noteWatchDocumentLoaded(); // ad-reload
+      session.noteWatchDocumentLoaded();
       expect(session.documentGen, firstGen + 1);
       expect(session.needsVolumeRestore, isTrue);
 
-      session.noteWatchDocumentLoaded(); // second reload
+      session.noteWatchDocumentLoaded();
       expect(session.documentGen, firstGen + 2);
       expect(
         session.needsVolumeRestore,
@@ -161,17 +138,12 @@ void main() {
     });
 
     test('progressConfirmTicks is 2 — the volume-restore progress gate', () {
-      // Pinned because [audible_policy_test] asserts against it; a
-      // change here must move the test, not silently diverge.
       expect(YoutubeSession.progressConfirmTicks, 2);
     });
 
     test(
       'noteProgressForVolumeRestore re-bases the baseline on each advance',
       () {
-        // A second confirmation only succeeds if BOTH samples are above
-        // the previous baseline — the re-baseline prevents an oscillating
-        // position from satisfying the gate by accident.
         final session = YoutubeSession()..resetForOpen('abc12345678');
         session.armVolumeRestorePending(baseline: Duration.zero);
 
@@ -198,11 +170,6 @@ void main() {
   });
 
   group('3. episode-keyed budget retirement', () {
-    // The D8 budget spans the WHOLE attempt: armed through the first
-    // playing, retired only after the expiry window keyed to THAT
-    // episode (issue #665). A page-UI resume the app never commanded
-    // must not refresh the clock — only an episode that RESOLVED the
-    // arming command starts the timer.
     test('budget armed through first playing, retires only after expiry '
         'keyed to THAT episode', () {
       final clock = FakeMonotonicClock();
@@ -215,8 +182,6 @@ void main() {
       addTearDown(session.closeStreams);
 
       session.beginUserPlay();
-      // Armed before playing — the page's post-playing correction
-      // is exactly what D8 exists for.
       expect(session.userPlayInFlight, isTrue);
 
       session.emitPlaying(true);
@@ -228,11 +193,9 @@ void main() {
             'to the resolving episode, not consumed by it',
       );
 
-      // Half-window — still inside the episode.
       clock.advance(const Duration(milliseconds: 250));
       expect(session.userPlayInFlight, isTrue);
 
-      // Past the window — armed but unfulfilled attempt retires.
       clock.advance(const Duration(milliseconds: 300));
       expect(
         session.userPlayInFlight,
@@ -244,9 +207,6 @@ void main() {
     });
 
     test('a later page-UI resume does not refresh the fulfilment clock', () {
-      // The episode that resolved the arming command owns the budget's
-      // lifetime. A later playing transition with no beginUserPlay in
-      // between is a page-UI resume — the budget must stay retired.
       final clock = FakeMonotonicClock();
       final session = YoutubeSession(
         playRetry: YouTubePlayRetryPolicy(
@@ -262,7 +222,6 @@ void main() {
       clock.advance(const Duration(milliseconds: 200));
       expect(session.userPlayInFlight, isFalse);
 
-      // Page-UI resume inside the immediate window — but no new arming.
       session.emitPlaying(false);
       session.emitPlaying(true);
       clock.advance(const Duration(milliseconds: 100));
@@ -277,11 +236,6 @@ void main() {
   });
 
   group('4. D9 direction latch', () {
-    // The transport toggle classifies from the DOM direction the
-    // atomic script returned, never from session `playing`. Session
-    // `playing` lags DOM pauses by ~750 ms (pause confirmation
-    // window), so classifying from it arms/consumes opposite to the
-    // command really issued in exactly the windows that matter (D9).
     test('play direction arms the retry budget', () {
       final decision = YouTubePlayRetryPolicy().classifyTransportToggle(
         domDirection: 'play',
@@ -320,16 +274,8 @@ void main() {
 
     test('mirror race: a stale session.playing opposite to the DOM '
         'direction does not leak into the classification', () {
-      // The engine classifies against session.playing in a comment
-      // (issue #665 / youtube_player_engine.dart:246-263); if the
-      // classifier ever reads that flag the latch flips opposite to
-      // the command and either spends the budget on a deliberate
-      // pause or arms one against a confirmed pause. The
-      // classification API takes only domDirection — there is no
-      // session.playing path.
       final policy = YouTubePlayRetryPolicy();
 
-      // session.playing=true, DOM paused → must arm nothing.
       expect(
         policy.classifyTransportToggle(domDirection: 'pause'),
         isA<ConsumeRetryBudget>(),

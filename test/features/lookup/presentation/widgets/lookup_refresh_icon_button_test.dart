@@ -31,7 +31,6 @@ void main() {
     await tester.pumpWidget(_harness(onPressed: () {}));
     await tester.pumpAndSettle();
     expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
-    // Tooltip should be present when not refreshing.
     final iconButton = tester.widget<IconButton>(find.byType(IconButton));
     expect(iconButton.tooltip, isNotNull);
     expect(iconButton.onPressed, isNotNull);
@@ -45,7 +44,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(IconButton));
     await tester.pump();
-    // First tap fires onPressed immediately and latches the busy state.
     expect(taps, 1);
     expect(find.byIcon(EnjoyIcons.refresh), findsNothing);
   });
@@ -57,7 +55,6 @@ void main() {
     await tester.pumpWidget(
       _harness(onPressed: () => taps++, isRefreshing: true),
     );
-    // LoadingIcon spins forever; do not pumpAndSettle.
     await tester.pump();
     final iconButton = tester.widget<IconButton>(find.byType(IconButton));
     expect(iconButton.onPressed, isNull);
@@ -78,19 +75,16 @@ void main() {
       await tester.tap(find.byType(IconButton));
       await tester.pump();
       expect(taps, 1);
-      // Parent reports busy → button disabled, no second tap fires.
       refreshing = true;
       await tester.pumpWidget(build());
       await tester.pump();
       final busy = tester.widget<IconButton>(find.byType(IconButton));
       expect(busy.onPressed, isNull);
-      // Parent reports idle again → button re-enabled.
       refreshing = false;
       await tester.pumpWidget(build());
       await tester.pump();
       final idle = tester.widget<IconButton>(find.byType(IconButton));
       expect(idle.onPressed, isNotNull);
-      // The icon returns too.
       expect(find.byIcon(EnjoyIcons.refresh), findsOneWidget);
     },
   );

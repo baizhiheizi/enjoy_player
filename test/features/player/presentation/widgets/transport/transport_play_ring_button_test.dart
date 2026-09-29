@@ -67,9 +67,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(findChromeIcon(EnjoyChromeGlyph.pause), findsOneWidget);
-    // Press feedback is the kit's with the play ring's historic 0.94 scale,
-    // and the built-in haptic stays off — hosts wrap onPressed in
-    // Haptics.wrapTap, so enabling both would double-fire.
     final pressable = tester.widget<EnjoyPressable>(
       find.byType(EnjoyPressable),
     );

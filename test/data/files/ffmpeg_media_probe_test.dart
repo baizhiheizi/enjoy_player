@@ -130,7 +130,6 @@ Stream #0:5(en): Subtitle: subrip
 
   group('FfmpegMediaProbe.mediaInputForFfmpeg', () {
     test('returns the file: URI path for file: URIs', () {
-      // Uri.toFilePath follows the host platform's path style.
       expect(
         FfmpegMediaProbe.mediaInputForFfmpeg('file:///tmp/movie.mp4'),
         Platform.isWindows ? r'\tmp\movie.mp4' : '/tmp/movie.mp4',
@@ -152,16 +151,12 @@ Stream #0:5(en): Subtitle: subrip
     });
 
     test('returns the URI unchanged for unparseable input', () {
-      // An obviously invalid scheme should still be returned as-is because
-      // Uri.tryParse fails; we still want determinism.
       expect(FfmpegMediaProbe.mediaInputForFfmpeg('a:b:c'), 'a:b:c');
     });
   });
 
   group('FfmpegMediaProbe.debugResetFfmpegExecutableCache', () {
     test('exists as a test seam and does not throw', () {
-      // No public way to read the cache, but the test seam must be callable
-      // (and should be a no-op the first time).
       expect(
         () => FfmpegMediaProbe.debugResetFfmpegExecutableCache(),
         returnsNormally,
@@ -171,7 +166,6 @@ Stream #0:5(en): Subtitle: subrip
     test('resetting twice is safe', () {
       FfmpegMediaProbe.debugResetFfmpegExecutableCache();
       FfmpegMediaProbe.debugResetFfmpegExecutableCache();
-      // We don't assert on internal state; just that the seam is callable.
     });
   });
 

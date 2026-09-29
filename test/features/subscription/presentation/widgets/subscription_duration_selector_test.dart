@@ -103,28 +103,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Switch to custom preset first.
       await tester.tap(find.text('Custom'));
       await tester.pumpAndSettle();
       received = 0;
 
-      // Type 99 → should clamp to 12.
       await tester.enterText(find.byType(TextField), '99');
       await tester.pumpAndSettle();
       expect(received, kSubscriptionMaxCustomMonths);
 
-      // Type 0 → should clamp to 1.
       received = 0;
       await tester.enterText(find.byType(TextField), '0');
       await tester.pumpAndSettle();
       expect(received, kSubscriptionMinCustomMonths);
 
-      // Empty text → falls back to current widget value clamped.
       received = 0;
       await tester.enterText(find.byType(TextField), '');
       await tester.pumpAndSettle();
-      // After typing empty, the field still holds '' and parsing fails,
-      // so the fallback clamps the current widget value (5).
       expect(received, 5);
     });
 
@@ -141,8 +135,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Parent updates widget.months = 3 → didUpdateWidget resyncs preset
-        // to oneSeason (custom field was never opened, so the guard fires).
         await tester.pumpWidget(
           _harness(
             months: 3,

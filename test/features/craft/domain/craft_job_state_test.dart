@@ -1,11 +1,3 @@
-// Tests for the Craft in-memory job state value object.
-//
-// CraftJobState is the single source of truth for both Craft tools
-// (Translate / Synthesize) on the same screen. The controller test exercises
-// state transitions indirectly; this file pins down the derived getters and
-// the copyWith `clear*` semantics directly so adding/removing a field, or
-// regressing a clear-vs-set precedence rule, surfaces as a focused failure
-// rather than a downstream controller flake.
 import 'dart:typed_data';
 
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
@@ -15,9 +7,6 @@ import 'package:enjoy_player/features/craft/domain/craft_synthesizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // ---------------------------------------------------------------------------
-  // Defaults
-  // ---------------------------------------------------------------------------
   group('CraftJobState defaults', () {
     test('every field defaults to the value documented in the constructor', () {
       const s = CraftJobState();
@@ -53,9 +42,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Derived getters
-  // ---------------------------------------------------------------------------
   group('isBusy', () {
     test('is false when no async flag is set', () {
       expect(const CraftJobState().isBusy, isFalse);
@@ -87,8 +73,6 @@ void main() {
     });
 
     test('is true when previewAudioBytes is set, even empty Uint8List', () {
-      // An empty payload still means "a preview slot was opened"; the
-      // synthesizer guards on byte length at a different layer.
       final s = const CraftJobState().copyWith(previewAudioBytes: Uint8List(0));
       expect(s.hasPreview, isTrue);
     });
@@ -191,18 +175,11 @@ void main() {
     });
 
     test('is true when only rewrittenFromTranscript is set', () {
-      // The contract is "rawTranscript differs from rewrittenFromTranscript";
-      // an empty rawTranscript normalized to '' still differs from any
-      // non-empty prior rewrite, so the flag stays true until the user
-      // explicitly re-matches the saved transcript.
       const s = CraftJobState(rewrittenFromTranscript: 'hola');
       expect(s.isRawTranscriptDirty, isTrue);
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // copyWith — basic field replacement
-  // ---------------------------------------------------------------------------
   group('copyWith basic', () {
     test('returns a new instance with the requested field set', () {
       const base = CraftJobState();
@@ -241,9 +218,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // copyWith — clear* flag semantics
-  // ---------------------------------------------------------------------------
   group('copyWith clear* flags', () {
     test('clearTranslatedText forces translatedText to null', () {
       const base = CraftJobState(translatedText: 'hola');
@@ -313,9 +287,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // copyWith — clear precedence over value
-  // ---------------------------------------------------------------------------
   group('copyWith clear precedence', () {
     test(
       'clearTranslatedText wins over a non-null translatedText argument',
@@ -369,9 +340,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // copyWith — generation
-  // ---------------------------------------------------------------------------
   group('copyWith generation', () {
     test('increments generation when explicitly set', () {
       const base = CraftJobState(generation: 4);
@@ -386,9 +354,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // copyWith — captureCancelTick
-  // ---------------------------------------------------------------------------
   group('captureCancelTick', () {
     test('controller bumps the tick to discard a live mic', () {
       const base = CraftJobState();

@@ -1,13 +1,3 @@
-// Widget-level coverage for
-// lib/features/vocabulary/presentation/vocabulary_review_session_screen.dart.
-//
-// The screen reads from `vocabularyReviewSessionProvider`, so we drive an
-// in-memory Drift database, seed a few words, and start a session so the
-// screen renders the active-session build path. We also exercise the
-// inactive-session fallback and the "completed" state.
-//
-// A real GoRouter is provided so the screen's `context.go('/vocabulary')`
-// fallback inside _exit() has something to attach to.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -102,12 +92,8 @@ void main() {
 
   testWidgets('renders the inactive-session branch (no crash)', (tester) async {
     await tester.pumpWidget(_wrap(container: container, router: router));
-    // Allow the post-frame callback to redirect to /vocabulary.
     await tester.pumpAndSettle();
 
-    // The widget either still shows the inactive-screen Scaffold, or it
-    // already redirected to /vocabulary — both are valid. We only care that
-    // the build path was executed without throwing.
     expect(
       find.byType(VocabularyReviewSessionScreen).evaluate().isNotEmpty ||
           find.text('vocabulary').evaluate().isNotEmpty,
@@ -131,7 +117,6 @@ void main() {
 
     expect(find.byType(VocabularyReviewSessionScreen), findsOneWidget);
 
-    // The header should be rendered with an icon button for closing.
     expect(find.byIcon(EnjoyIcons.close), findsOneWidget);
     expect(find.text("Don't Know"), findsNothing);
 
@@ -152,7 +137,6 @@ void main() {
           const ReviewSelectionOptions(mode: VocabularyReviewMode.all),
           now: DateTime.utc(2030, 1, 1),
         );
-    // Rate the only word to finish the session.
     final session = container.read(vocabularyReviewSessionProvider.notifier);
     session.flip();
     await session.rate(VocabularyRating.know);
@@ -160,7 +144,6 @@ void main() {
     await tester.pumpWidget(_wrap(container: container, router: router));
     await tester.pumpAndSettle();
 
-    // Completed branch shows the check icon and a done button.
     expect(find.byIcon(EnjoyIcons.checkCircle), findsOneWidget);
   });
 
@@ -176,8 +159,6 @@ void main() {
     await tester.pumpWidget(_wrap(container: container, router: router));
     await tester.pumpAndSettle();
 
-    // Tap the close icon; _exit() calls context.pop() if canPop else go('/vocabulary').
-    // The router is set up so this resolves to a valid /vocabulary route.
     await tester.tap(find.byIcon(EnjoyIcons.close));
     await tester.pumpAndSettle();
   });

@@ -22,6 +22,8 @@ The Discover tab shows a **merged video feed** only (responsive grid of recent u
 
 Desktop: header **Refresh** button. No inline subscription or recommended lists on the main scroll.
 
+Feed-tile meta rows ([`DiscoverFeedTile`](../../lib/features/discover/presentation/discover_feed_tile.dart)) render inside the shared `mediaCardTileMetaHeight` budget (58 px): 6 gap + 2-line title (14 px × 1.25 leading = 35) + 2 gap + published line (12 px × 1.2 ≈ 14.4) ≈ 57.4. Loosening any term drifts grid-row alignment or overflows the tile.
+
 ## Manage channels
 
 Opened from the filter strip (bottom sheet on narrow layouts, centered dialog at `breakpointRail` and wider):

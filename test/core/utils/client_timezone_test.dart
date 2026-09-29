@@ -25,7 +25,6 @@ void main() {
     test('returns a non-empty IANA id or UTC offset', () async {
       final id = await clientTimezoneId();
       expect(id, isNotEmpty);
-      // Either IANA (contains '/') or ±HH:MM offset fallback.
       final isIana = id.contains('/');
       final isOffset = RegExp(r'^[+-]\d{2}:\d{2}$').hasMatch(id);
       expect(isIana || isOffset, isTrue, reason: 'unexpected timezone: $id');

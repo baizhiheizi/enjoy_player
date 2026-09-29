@@ -77,8 +77,6 @@ class LanguageDescriptorRow {
 /// `language_labels.dart`).
 const List<LanguageDescriptorRow>
 kLanguageDescriptorRows = <LanguageDescriptorRow>[
-  // Lookup / focus / native / pronounce languages (picker order; the
-  // first row of each primary subtag is that primary's default).
   LanguageDescriptorRow(
     tag: 'en-US',
     lookupLabel: 'English',
@@ -153,10 +151,6 @@ kLanguageDescriptorRows = <LanguageDescriptorRow>[
     focus: true,
     pronounce: true,
   ),
-  // Azure pronunciation-assessment-only locales (Microsoft
-  // language-support table; no picker, worker, or lookup surface yet).
-  // Argless rows: no lookup label and no flags — `azureAssessment`
-  // defaults to `true`, which is what puts them in the Azure set.
   LanguageDescriptorRow(tag: 'ar-EG'),
   LanguageDescriptorRow(tag: 'ar-SA'),
   LanguageDescriptorRow(tag: 'ca-ES'),
@@ -176,15 +170,6 @@ kLanguageDescriptorRows = <LanguageDescriptorRow>[
   LanguageDescriptorRow(tag: 'th-TH'),
   LanguageDescriptorRow(tag: 'vi-VN'),
 ];
-
-// ── Tag parsing shared by every catalog module ──────────────────────────────
-//
-// One home for the hyphen-or-underscore character class and for the
-// alias-aware "same language" definition (review on #798):
-// `app_language_catalog.dart` re-imports these instead of restating them, so
-// the separator pattern and `primaryLanguageSubtag` each exist exactly once.
-// This direction also breaks the import cycle — the descriptor cannot import
-// the catalog, so shared tag parsing lives with the rows.
 
 /// Splits [tag] on `-` / `_` (BCP-47 hyphen or Java-style underscore).
 List<String> splitLanguageTag(String tag) => tag.split(_kLanguageTagSeparator);

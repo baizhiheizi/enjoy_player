@@ -21,8 +21,6 @@ import 'package:enjoy_player/features/craft/application/craft_library_repository
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-// === Fakes ===
-
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -76,8 +74,6 @@ class _FakeLibraryRepository implements CraftLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-// === Harness ===
-
 Widget _harness({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
@@ -107,13 +103,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Mic icon.
       expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
 
-      // Title.
       expect(find.text("Say what's on your mind"), findsOneWidget);
 
-      // Type instead link.
       expect(find.text('Type instead'), findsOneWidget);
     },
   );
@@ -124,8 +117,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Language pair seeds from app prefs at build time (native 'zh-CN',
-    // learning 'en-US') — the '—' placeholder never renders.
     expect(find.textContaining('EN'), findsWidgets);
     expect(find.text('—'), findsNothing);
   });
@@ -138,11 +129,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap "type instead".
     await tester.tap(find.text('Type instead'));
     await tester.pumpAndSettle();
 
-    // TextField should appear.
     expect(find.byType(TextField), findsOneWidget);
   });
 
@@ -157,7 +146,6 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(CaptureStage)),
       );
-      // Simulate reopen after ESC left isCapturing true without a live mic.
       container.read(craftControllerProvider.notifier).startCapture();
       await tester.pump();
 
@@ -184,7 +172,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsOneWidget);
 
-    // Back button (label is craftCaptureTitle) returns to idle.
     await tester.tap(find.text("Say what's on your mind"));
     await tester.pumpAndSettle();
 
@@ -233,7 +220,6 @@ void main() {
     await tester.tap(find.text('Type instead'));
     await tester.pumpAndSettle();
 
-    // Tap Generate audio without entering text.
     await tester.tap(find.text('Generate audio'));
     await tester.pumpAndSettle();
 
@@ -257,9 +243,7 @@ void main() {
         .copyWith(failure: const CraftTranslateFailure());
     await tester.pumpAndSettle();
 
-    // Failure card icon.
     expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
-    // The retry button label is "Retry" for CraftFailureAction.retry.
     expect(find.text('Retry'), findsOneWidget);
   });
 
@@ -301,7 +285,6 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      // Transcribing label.
       expect(find.text('Transcribing…'), findsOneWidget);
     },
   );

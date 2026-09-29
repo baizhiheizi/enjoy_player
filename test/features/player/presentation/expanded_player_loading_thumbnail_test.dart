@@ -1,6 +1,3 @@
-// Issue #663 (rebuild scope, item E): the local loading stage must not stat
-// the thumbnail on the UI thread per build, and must not decode the stored
-// full-resolution artwork into a 16:9 slot.
 import 'dart:convert';
 import 'dart:io';
 
@@ -82,9 +79,6 @@ void main() {
           appDatabaseProvider.overrideWithValue(db),
           deviceGlobalAppDatabaseProvider.overrideWithValue(db),
           authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
-          // Resolve synchronously: real `File.exists()` never completes under
-          // the test binding's fake async. The provider's own resolution and
-          // memoization are covered by the test below.
           localThumbnailFileProvider(
             thumb.path,
           ).overrideWith((ref) async => File(thumb.path)),
@@ -101,20 +95,16 @@ void main() {
           ),
         ),
       );
-      // Loading -> row data -> thumbnail file resolved.
       await tester.pump();
       await tester.pump();
       await tester.pump();
 
-      // `Image.file` folds `cacheWidth` into a [ResizeImage] around the file
-      // provider, so that is where the bound is observable.
       final provider = tester.widget<Image>(find.byType(Image)).image;
       final expected = thumbnailCacheWidthFor(
         tester.getSize(find.byType(PlayerLoadingStage)).width,
       );
       expect(provider, isA<ResizeImage>());
       expect((provider as ResizeImage).width, expected);
-      // Bounded: never the unbounded decode the old code performed.
       expect(expected, lessThanOrEqualTo(2048));
     },
   );
@@ -138,7 +128,6 @@ void main() {
       reason: 'One resolution per path — a rebuild must not re-stat',
     );
 
-    // A different path is a different key.
     final other = await container.read(localThumbnailFileProvider(null).future);
     expect(other, isNull);
   });

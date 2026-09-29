@@ -135,7 +135,6 @@ void main() {
         await tester.pump(const Duration(milliseconds: 200));
       }
 
-      // Verify subscription in DB
       final row = await db.youtubeChannelSubscriptionDao.getByChannelId(
         _channelId,
       );
@@ -144,7 +143,6 @@ void main() {
       expect(row.sourceType, YoutubeSourceType.channel);
       expect(row.feedUrl, isNotNull);
 
-      // Verify feed entries cached
       final entries = await db.youtubeFeedEntryDao.getForChannel(_channelId);
       expect(entries.length, 1);
       expect(entries.first.videoId, 'test1234567');
@@ -168,7 +166,6 @@ void main() {
         await tester.pump(const Duration(milliseconds: 200));
       }
 
-      // Should show error (no subscription created)
       final subs = await db.youtubeChannelSubscriptionDao.listAll();
       expect(subs, isEmpty);
     });

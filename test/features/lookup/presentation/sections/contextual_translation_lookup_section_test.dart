@@ -1,13 +1,3 @@
-// Widget tests for `lib/features/lookup/presentation/sections/contextual_translation_lookup_section.dart`.
-//
-// The section owns its own Future (not an autoDispose FutureProvider) and
-// drives a FutureBuilder over it, so we can exercise:
-//   * shimmer while loading
-//   * markdown body on success
-//   * empty-text fallback when translatedText is empty
-//   * error row on failure
-//   * refresh / force-refresh path
-
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
@@ -146,10 +136,8 @@ void main() {
       ),
     );
     await _expand(tester);
-    // Allow the post-frame fetch + result to settle.
     await tester.pumpAndSettle();
 
-    // The translation is rendered through MarkdownBody — check raw text.
     expect(find.textContaining('银行'), findsWidgets);
     expect(cap.calls, 1);
   });
@@ -233,10 +221,8 @@ void main() {
       await _expand(tester);
       await tester.pumpAndSettle();
 
-      // Numbered message, not the raw status string.
       expect(find.textContaining('750'), findsOneWidget);
       expect(find.text('HTTP 402'), findsNothing);
-      // Unified CTA label (spec 045).
       expect(
         find.text(
           lookupAppLocalizations(
@@ -270,13 +256,10 @@ void main() {
       await _expand(tester);
       await tester.pumpAndSettle();
 
-      // Credits error shows with its CTA; the retry control is present.
       expect(find.textContaining('300'), findsOneWidget);
       final retry = find.text('Retry');
       expect(retry, findsOneWidget);
 
-      // The "purchase" lands: the next attempt succeeds with the same
-      // unchanged request — no re-entry needed.
       cap.nextResult = Future.value(
         const ContextualTranslationResult(translatedText: 'recovered-ok'),
       );
@@ -310,7 +293,6 @@ void main() {
       ),
       findsOneWidget,
     );
-    // No Enjoy upsell CTA anywhere on this failure.
     expect(
       find.text(
         lookupAppLocalizations(
@@ -319,7 +301,6 @@ void main() {
       ),
       findsNothing,
     );
-    // Retry row still offered.
     expect(find.byType(LookupErrorRow), findsOneWidget);
   });
 
@@ -339,7 +320,6 @@ void main() {
 
     expect(cap.calls, 1);
 
-    // Tap the refresh icon button (top-right of the body).
     final refreshIcon = find.byIcon(EnjoyIcons.refresh);
     expect(refreshIcon, findsOneWidget);
     await tester.tap(refreshIcon);
@@ -364,21 +344,17 @@ void main() {
       await _expand(tester);
       await tester.pumpAndSettle();
 
-      // The retry button label is "Retry".
       final retry = find.text('Retry');
       expect(retry, findsOneWidget);
 
-      // Wire the next capability call to succeed so retry completes.
       cap.nextResult = Future.value(
         const ContextualTranslationResult(translatedText: 'retry-ok'),
       );
 
-      // Tap retry — capability is called again, this time succeeds.
       await tester.tap(retry);
       await tester.pumpAndSettle();
 
       expect(cap.calls, greaterThanOrEqualTo(2));
-      // The success body is rendered.
       expect(find.textContaining('retry-ok'), findsWidgets);
     },
   );

@@ -94,7 +94,6 @@ void main() {
     });
 
     test('skips entries with non-string keys', () async {
-      // JSON with a numeric key — jsonDecode produces int key
       await db.settingsDao.setValue(
         SettingsKeys.hotkeysCustomBindings.name,
         '{"123": "ctrl+k"}',
@@ -103,7 +102,6 @@ void main() {
       addTearDown(container.dispose);
 
       final result = await container.read(hotkeysCtrlProvider.future);
-      // "123" is a String in JSON, but not a known action id
       expect(result, isEmpty);
     });
 
@@ -208,7 +206,6 @@ void main() {
     test('returns default keys when state is loading', () {
       final container = makeContainer();
       addTearDown(container.dispose);
-      // Do NOT await the future — state is still AsyncLoading
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
       expect(ctrl.effectiveKeys('global.search'), 'ctrl+k');
     });
@@ -245,7 +242,6 @@ void main() {
     });
 
     test('returns false for empty string binding value', () async {
-      // Manually set an empty-string binding (edge case)
       await db.settingsDao.setValue(
         SettingsKeys.hotkeysCustomBindings.name,
         jsonEncode({'global.search': 'ctrl+j'}),
@@ -254,9 +250,7 @@ void main() {
       addTearDown(container.dispose);
       await container.read(hotkeysCtrlProvider.future);
 
-      // Overwrite state directly to simulate empty value edge case
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
-      // The decode filters empty strings, so this tests the isNotEmpty check
       expect(ctrl.hasCustomBinding('player.togglePlay'), isFalse);
     });
   });
@@ -307,7 +301,6 @@ void main() {
       await container.read(hotkeysCtrlProvider.future);
 
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
-      // modal.close is customizable: false
       final result = await ctrl.setBinding('modal.close', 'ctrl+j');
       expect(result, isFalse);
     });
@@ -328,7 +321,6 @@ void main() {
       await container.read(hotkeysCtrlProvider.future);
 
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
-      // 'space' is the default for player.togglePlay
       final result = await ctrl.setBinding('global.search', 'space');
       expect(result, isFalse);
     });
@@ -341,7 +333,6 @@ void main() {
         await container.read(hotkeysCtrlProvider.future);
 
         final ctrl = container.read(hotkeysCtrlProvider.notifier);
-        // Setting global.search to its own default should succeed
         final result = await ctrl.setBinding('global.search', 'ctrl+k');
         expect(result, isTrue);
       },
@@ -357,7 +348,6 @@ void main() {
       await container.read(hotkeysCtrlProvider.future);
 
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
-      // Re-setting to same value should not conflict with itself
       final result = await ctrl.setBinding('global.search', 'ctrl+j');
       expect(result, isTrue);
     });
@@ -422,7 +412,6 @@ void main() {
       await container.read(hotkeysCtrlProvider.future);
 
       final ctrl = container.read(hotkeysCtrlProvider.notifier);
-      // Should not throw
       await ctrl.resetBinding('modal.close');
 
       final state = container.read(hotkeysCtrlProvider);

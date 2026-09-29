@@ -69,7 +69,6 @@ class SettingsLayoutSingleColumn extends ConsumerWidget {
 
     Widget headed(SettingsSectionSpec spec) {
       final section = sectionFor(spec);
-      // Self-surfaced sections (About) carry their own heading.
       if (!spec.wrapInCard) return section;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,7 +87,6 @@ class SettingsLayoutSingleColumn extends ConsumerWidget {
       children: [
         for (final spec in sections) ...[
           headed(spec),
-          // Self-surfaced sections (About) own their outer spacing.
           if (spec.wrapInCard) SizedBox(height: t.space8),
         ],
         SizedBox(height: t.space32),

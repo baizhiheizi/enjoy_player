@@ -109,11 +109,6 @@ class _VideoPlayerLayoutState extends State<VideoPlayerLayout> {
     final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Aspect of the layout constraints (not width breakpoint): landscape
-        // (width > height) → side-by-side; portrait/square → stacked.
-        // Transport packing still uses breakpointTranscriptSideBySide
-        // elsewhere. Spec: specs/026-orientation-layout-polish
-        // contracts/player-content-layout.md.
         final useSideBySide = constraints.maxWidth > constraints.maxHeight;
 
         if (useSideBySide) {
@@ -255,7 +250,6 @@ class _VideoPausedTitleOverlay extends ConsumerWidget {
             child: SizedBox(
               height: kToolbarHeight,
               child: Padding(
-                // Leave room for the always-on back control.
                 padding: const EdgeInsets.fromLTRB(54, 0, 12, 0),
                 child: Align(
                   alignment: Alignment.centerLeft,
@@ -301,9 +295,6 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   void _rebuildOverlayBuilder() {
     final isYoutube = ref.read(playerEnginePlaysYoutubeProvider);
     _overlayBuilder = (ctx) => MouseRegion(
-      // opaque: false so empty regions pass hits through to the WebView
-      // below (YouTube needs a real WebView gesture; see
-      // docs/features/youtube.md).
       opaque: false,
       child: Stack(
         fit: StackFit.expand,
@@ -349,11 +340,6 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   @override
   void didUpdateWidget(covariant _VideoStageWithChrome oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Keyed on engine identity only (issue #720): a swap can change which
-    // capabilities are live (YouTube chrome, tap-to-toggle), so the builder
-    // must be re-created for the new engine. The capability values themselves
-    // come from [playerEnginePlaysYoutubeProvider], never from the engine's
-    // type tag.
     if (!identical(oldWidget.engine, widget.engine)) {
       _rebuildOverlayBuilder();
     }
@@ -362,9 +348,6 @@ class _VideoStageWithChromeState extends ConsumerState<_VideoStageWithChrome> {
   @override
   Widget build(BuildContext context) {
     final engine = widget.engine;
-    // Watch, not read off the engine: presentation must not depend on the
-    // engine's type tag (issue #720). The provider rebuilds when the active
-    // engine identity changes (it watches the rev-seeded engine provider).
     final isYoutube = ref.watch(playerEnginePlaysYoutubeProvider);
 
     return PlayerSurfaceTarget(

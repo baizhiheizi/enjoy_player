@@ -34,9 +34,6 @@ Future<void> showPracticePosterPreviewSheet(
   return showEnjoySheet<void>(
     context: context,
     isScrollControlled: true,
-    // The permanent player surface is hosted above the shell navigator.
-    // Present this sheet on the root navigator so its scrim and content remain
-    // above the video texture on Windows.
     useRootNavigator: true,
     builder: (ctx) => _PracticePosterPreviewSheet(mediaId: mediaId),
   );
@@ -78,8 +75,6 @@ class _PracticePosterPreviewSheetState
         _ => null,
       };
       final echoCoverBytes = await capturePracticePosterEchoFrame(
-        // Frame capture is a capability (issue #720): engines without it
-        // (YouTube) fall through to the cover thumbnail.
         capture: capture,
         echo: echo,
         session: session,

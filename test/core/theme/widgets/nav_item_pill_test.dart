@@ -74,7 +74,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Only one icon should be present and it should be the one we passed.
       expect(find.byIcon(EnjoyIcons.settings), findsOneWidget);
     });
 
@@ -143,8 +142,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(taps, 1);
-      // Haptics.selection runs through HapticFeedback.selectionClick on the
-      // current platform; just confirm no exception escapes the tap path.
       expect(tester.takeException(), isNull);
     });
 
@@ -166,7 +163,6 @@ void main() {
       BorderSide ringSide() =>
           pressableFocusRingSide(tester, find.byType(NavItemPill));
 
-      // No ring before focus.
       expect(ringSide(), BorderSide.none);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);

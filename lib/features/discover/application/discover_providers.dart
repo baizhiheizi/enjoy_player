@@ -187,8 +187,6 @@ class DiscoverRefreshState extends _$DiscoverRefreshState {
   bool build() => false;
 
   Future<DiscoverRefreshResult> refresh({bool force = false}) async {
-    // Single-flight: if a refresh is already in progress, return the existing
-    // future to avoid duplicate HTTP requests and redundant DB writes.
     if (_pendingRefresh != null) {
       _log.fine('discover refresh already in progress, reusing in-flight');
       return _pendingRefresh!;
@@ -220,10 +218,6 @@ class DiscoverFeedRefreshScheduler extends _$DiscoverFeedRefreshScheduler {
       _launchScheduled = false;
     });
 
-    // Only arm the timer when there is at least one subscription;
-    // otherwise the periodic refresh would be a no-op (the repo
-    // returns immediately when the subscription list is empty) but
-    // would still wake the app every 8 hours.
     final subList = ref.watch(discoverSubscriptionsProvider).valueOrNull;
     if (subList != null && subList.isNotEmpty) {
       _periodic ??= Timer.periodic(const Duration(hours: 8), (_) {
@@ -247,8 +241,6 @@ class DiscoverFeedRefreshScheduler extends _$DiscoverFeedRefreshScheduler {
     } else {
       _periodic?.cancel();
       _periodic = null;
-      // Allow the post-frame initial refresh to run again after the user
-      // re-subscribes following an empty subscription list.
       _launchScheduled = false;
     }
 

@@ -168,8 +168,6 @@ void main() {
       expect(merged.easeFactor, 3.2);
       expect(merged.interval, 20);
       expect(merged.reviewsCount, 8);
-      // server.updatedAt (Jan 15) predates local's SRS reference
-      // (lastReviewedAt Feb 1), so local word/metadata is kept too.
       expect(merged.word, 'Local Word');
       expect(merged.syncStatus, 'synced');
       expect(merged.serverUpdatedAt, localTime);

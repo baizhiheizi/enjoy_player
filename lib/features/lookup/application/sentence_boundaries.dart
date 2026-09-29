@@ -8,8 +8,6 @@ List<int> getSentenceBoundaries(String text, String primaryLanguage) {
 
   final isZh = primaryLanguage.toLowerCase().split('-').first == 'zh';
 
-  // Match terminal punctuation optionally followed by closing quotes/brackets,
-  // then whitespace or EOS. Chinese transcripts may use fullwidth punctuation.
   final re = RegExp(
     isZh
         ? r'[\.\!\?\。！？；]+(?:["\u201d\u2019\)\]\}」』])*(\s+|$)'

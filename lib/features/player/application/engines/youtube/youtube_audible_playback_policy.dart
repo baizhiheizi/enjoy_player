@@ -203,15 +203,6 @@ class YoutubeAudiblePlaybackPolicy {
         session.needsVolumeRestore) {
       return;
     }
-    // The poll loop's D8 retry can target the same pause when the budget
-    // outlived the first `playing`; a second playVideo tens of ms later
-    // breaks the "exactly once" accounting against a state machine this
-    // module exists to avoid poking redundantly. Defer to the retry. The
-    // window adds one poll tick so the retry's confirm-lag jitter can never
-    // land on the boundary. Recency is asked of the retry protocol's own
-    // monotonic clock — the retry policy owns that timestamp (issue #665),
-    // and reading it here as a wall clock let an NTP step unsuppress the
-    // heal.
     if (session.playRetry.recentAutoRetryWithin(
       postRestoreHealDelay + pollTick,
     )) {

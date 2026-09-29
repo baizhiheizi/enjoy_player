@@ -256,7 +256,6 @@ void main() {
       'F2: primary picker falls back to learning language when no video match',
       () async {
         const mediaId = 'v-pick-learn';
-        // Video language is intentionally one with no broad-match tracks.
         await db.videoDao.insertRow(_video(id: mediaId, language: 'ko-KR'));
         final api = _FakeTranscriptsApi();
         final fetcher = _StubYoutubeCaptionFetcher(
@@ -384,19 +383,12 @@ void main() {
         db,
         youtubeTranscripts: api,
         youtubeFetcher: fetcher,
-        // Persist half of the widened seam (issue #749), signed-out form:
-        // addJob's dedup contract without the signed-in drain kick (that
-        // tail is covered end-to-end in
-        // test/features/sync/sync_enqueue_seam_test.dart).
         enqueueJob: (job) => queue.addJob(job),
       );
 
       await repo.fetchCloudTranscripts(mediaId, force: true);
       await _drain();
 
-      // Wait on the fire-and-forget upload Completer instead of polling
-      // `DateTime.now()` (issue #774 flake-debt class — same pattern that
-      // bit the echo-overlap test that #773 fixed).
       await api.firstUpload.future.timeout(
         const Duration(seconds: 2),
         onTimeout: () => throw StateError(
@@ -407,10 +399,6 @@ void main() {
 
       final queued = await _waitForQueue(db);
       expect(queued, hasLength(1));
-      // Typed seam (issues #718/#749): the producer constructs a
-      // SyncYoutubeUploadRetry and hands it to the job-shaped seam entry;
-      // the encoded wire row must stay byte-identical to the pre-seam
-      // hand-rolled incantation.
       expect(queued.single.entityType, 'video');
       expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
       expect(queued.single.action, 'update');
@@ -451,8 +439,6 @@ void main() {
         expect(api.uploads, hasLength(2));
 
         final queued = await _waitForQueue(db);
-        // One row per (videoId, language) — the second failure refreshed
-        // the first row's payload instead of inserting a duplicate.
         expect(queued, hasLength(1));
         expect(queued.single.entityId, 'tIgO_Sjh3tQ/en');
         final payload = jsonDecode(queued.single.payloadJson!);
@@ -470,19 +456,12 @@ void main() {
       final fetcher = _StubYoutubeCaptionFetcher(
         result: AllCaptionsResult(results: [_track(language: 'en')]),
       );
-      // Truly unwired seam (no enqueueJob): every other path that reaches
-      // the retry injects the persist half above, so this throw is only
-      // ever hit by a real wiring bug — and a wiring bug must fail loudly
-      // instead of swallowing a durable retry into a warning log.
       final repo = TranscriptRepository(
         db,
         youtubeTranscripts: api,
         youtubeFetcher: fetcher,
       );
 
-      // The upload chain is fire-and-forget inside the repository, so the
-      // StateError surfaces as an uncaught error in the producer's zone;
-      // run the fetch in a guarded zone and pin it there.
       final uncaught = Completer<Object>();
       runZonedGuarded(
         () {

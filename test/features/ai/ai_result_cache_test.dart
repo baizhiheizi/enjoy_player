@@ -70,7 +70,6 @@ void main() {
     });
 
     test('L2 hit returns persisted and backfills L1', () async {
-      // Seed L2 directly.
       await db.aiCacheDao.upsert(
         'translation',
         'k1',
@@ -91,7 +90,6 @@ void main() {
       );
       expect(result, 'persisted');
       expect(loaderCalls, 0);
-      // L1 should now have it.
       expect(cache.peek(kind: AiKind.translation, key: 'k1'), 'persisted');
     });
 
@@ -103,7 +101,6 @@ void main() {
       }
 
       await cache.lookup(kind: AiKind.translation, key: 'k1', loader: loader);
-      // L1 has 'fresh-1', L2 has 'fresh-1'.
       final second = await cache.lookup(
         kind: AiKind.translation,
         key: 'k1',
@@ -128,7 +125,6 @@ void main() {
         ),
         throwsA(isA<StateError>()),
       );
-      // Nothing should be cached.
       expect(cache.peek(kind: AiKind.translation, key: 'k1'), isNull);
       final l2 = await db.aiCacheDao.read('translation', 'k1');
       expect(l2, isNull);
@@ -159,7 +155,6 @@ void main() {
     });
 
     test('kinds do not collide', () async {
-      // Same key for two kinds must produce independent entries.
       await cache.remember(
         kind: AiKind.translation,
         key: 'same',
@@ -224,7 +219,6 @@ void main() {
     });
 
     test('prune applies per-kind caps', () async {
-      // Bypass the cache and seed L2 directly so we can hit the cap.
       for (var i = 0; i < 50; i++) {
         await db.aiCacheDao.upsert(
           'translation',
@@ -236,9 +230,6 @@ void main() {
       final before = await db.aiCacheDao.countForKind('translation');
       expect(before, 50);
 
-      // Translation's default cap is 4096; that's higher than 50, so prune
-      // should be a no-op here. To exercise the eviction path, lower the
-      // cap by constructing a custom policies map.
       final tightCache = AiResultCache<String>(
         dao: db.aiCacheDao,
         l1: L1Store<String, String>(
@@ -261,7 +252,6 @@ void main() {
     });
 
     test('L2 I/O failure degrades gracefully on lookup', () async {
-      // Seed a row with invalid JSON in L2.
       await db.aiCacheDao.upsert(
         'translation',
         'k1',
@@ -280,7 +270,6 @@ void main() {
         key: 'k1',
         loader: loader,
       );
-      // Cache should treat invalid JSON as a miss and call the loader.
       expect(result, 'fallback');
       expect(loaderCalls, 1);
     });

@@ -92,8 +92,6 @@ class EchoPitchAnalysisService {
     final cached = _refCache[key];
     if (cached != null) return cached;
 
-    // Cancel any in-flight reference extraction (real cancellation — the FFmpeg
-    // process/session is killed, not merely ignored).
     _refToken?.cancel();
     final token = EchoPcmCancelToken();
     _refToken = token;

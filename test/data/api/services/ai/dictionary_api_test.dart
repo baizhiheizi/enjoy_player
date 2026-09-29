@@ -71,7 +71,6 @@ void main() {
       );
 
       final body = _decode(captured!.body);
-      // ?bool null-shorthand drops only null, not explicit false.
       expect(body['force_refresh'], isFalse);
     });
   });

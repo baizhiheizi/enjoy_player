@@ -39,9 +39,7 @@ class YoutubeWebViewSettings {
     loadWithOverviewMode: true,
     userAgent: kYoutubeMobileChromeUserAgent,
     thirdPartyCookiesEnabled: true,
-    // Required on Android/iOS/macOS/Windows for [shouldOverrideUrlLoading] (ADR-0025).
     useShouldOverrideUrlLoading: true,
-    // Android: allow listening for renderer crashes (reload watch page).
     useOnRenderProcessGone: defaultTargetPlatform == TargetPlatform.android
         ? true
         : null,
@@ -386,11 +384,6 @@ class YoutubeWebViewBridge {
       ''');
   }
 
-  // ---
-  // State poll (folded here from the deleted YoutubeStatePoller — issue #767;
-  // its decode is now directly executable by tests).
-  // ---
-
   /// Polls the HTML5 `<video>` element for position / duration / play state.
   ///
   /// Returns null while an ad is showing (`ad-showing` on the player
@@ -453,7 +446,6 @@ class YoutubeWebViewBridge {
     final jsEnded = state == kStateEnded;
 
     Duration? newDuration;
-    // `d` is lenient: a mistyped duration reads as zero, like a missing one.
     final rawDur = json['d'];
     final dur = rawDur is num ? rawDur.toDouble() : 0;
     if (dur > 0 && dur.isFinite) {
@@ -492,8 +484,6 @@ class YoutubeWebViewBridge {
         jsPaused: sample.paused,
         jsEnded: sample.ended,
       );
-    } on Object {
-      // WebView may be disposed — ignore.
-    }
+    } on Object {} // ignore: empty_catches
   }
 }

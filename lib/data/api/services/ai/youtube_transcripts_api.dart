@@ -98,50 +98,34 @@ class YoutubeTranscriptsApi extends RestApi
     required String source,
     required List<Map<String, dynamic>> timeline,
     Map<String, dynamic>? metadata,
-  }) => _swallow(
-    // Fire-and-forget from the caller's perspective, but do NOT silently
-    // disappear here: a failed upload means the next client on a
-    // different machine will re-fetch via InnerTube instead of using
-    // the worker cache (issue: Windows → no worker upload → Android
-    // cache miss). Operators need to see this in production logs.
-    'worker upload failed for $videoId/$language '
-    '(source=$source, ${timeline.length} lines)',
-    () async {
-      try {
-        await client.postJson(
-          _transcriptsPath,
-          body: {
-            'format': 'enjoy',
-            'videoId': videoId,
-            'language': language,
-            'captionFetch': source == 'official' ? 'official' : 'auto',
-            'source': source,
-            'timeline': timeline,
-            'metadata': ?metadata,
-            'generatedAt': DateTime.now().toUtc().toIso8601String(),
-          },
+  }) => _swallow('worker upload failed for $videoId/$language '
+      '(source=$source, ${timeline.length} lines)', () async {
+    try {
+      await client.postJson(
+        _transcriptsPath,
+        body: {
+          'format': 'enjoy',
+          'videoId': videoId,
+          'language': language,
+          'captionFetch': source == 'official' ? 'official' : 'auto',
+          'source': source,
+          'timeline': timeline,
+          'metadata': ?metadata,
+          'generatedAt': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+      return true;
+    } on ApiException catch (e) {
+      if (e.statusCode == 409) {
+        _log.info(
+          'worker upload replay accepted as 409 (idempotent) for '
+          '$videoId/$language (source=$source, ${timeline.length} lines)',
         );
         return true;
-      } on ApiException catch (e) {
-        // The worker treats a replayed upload as idempotent and replies 409
-        // when the transcript is already cached. Without this branch the
-        // generic exception swallow turns a successful replay into `false`,
-        // the durable retry stays queued, and once the sync retry threshold
-        // (`SyncRetryPolicy.maxRetries`) is reached the row is marked
-        // permanently failed even though the worker already has the
-        // transcript.
-        if (e.statusCode == 409) {
-          _log.info(
-            'worker upload replay accepted as 409 (idempotent) for '
-            '$videoId/$language (source=$source, ${timeline.length} lines)',
-          );
-          return true;
-        }
-        rethrow;
       }
-    },
-    fallback: false,
-  );
+      rethrow;
+    }
+  }, fallback: false);
 
   @override
   Future<List<Map<String, dynamic>>> fetchClientProfiles() =>

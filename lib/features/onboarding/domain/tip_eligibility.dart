@@ -84,7 +84,6 @@ abstract final class TipEligibility {
     final echoStatus = progress.statusOfGlobal(OnboardingTipId.playerEcho);
     if (!echoStatus.isResolved) {
       if (ctx.echoActive) {
-        // Caller should mark echo completed; then re-evaluate.
         return OnboardingTipId.playerEcho;
       }
       return OnboardingTipId.playerEcho;

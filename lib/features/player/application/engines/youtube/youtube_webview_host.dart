@@ -80,7 +80,6 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
 
   @override
   Widget build(BuildContext context) {
-    // Distinct name from the InAppWebViewController closure parameters.
     final lifecycle = widget.controller;
     final vid = widget.currentVideoId();
     final iosInlinePlayback = defaultTargetPlatform == TargetPlatform.iOS;
@@ -95,8 +94,6 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
         initialSettings: YoutubeWebViewSettings.forPlayer(),
         onWebViewCreated: (controller) {
           _controller = controller;
-          // [initialUrlRequest] already navigates on cold mount when [vid] is set;
-          // avoid a second [loadWatchPage] that interrupts the first playback start.
           lifecycle.onWebViewCreated(
             controller,
             initialWatchUrlRequested: vid.isNotEmpty,
@@ -116,9 +113,6 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
           await lifecycle.onPageFinished(controller, url?.toString());
         },
         onConsoleMessage: (controller, consoleMessage) {
-          // YouTube/Chromium console warnings (autoplay policy, player
-          // errors) are the only page-side narration of WHY a pause
-          // happened — surface them in diagnostic logs.
           final message = consoleMessage.message;
           if (message.trim().isEmpty) return;
           _logWeb.fine(

@@ -163,7 +163,6 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
-                // Legibility scrim for corner chips; deepens on hover.
                 IgnorePointer(
                   child: AnimatedOpacity(
                     opacity: hover ? 1 : 0.7,
@@ -185,11 +184,6 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
-                // Hover play affordance (hidden while an import is in flight —
-                // the adding scrim below carries the interaction instead).
-                // `adding` also drives the scale so the glyph parks at 0.85
-                // for the whole import and *grows in* when it settles
-                // mid-hover, instead of popping to full size.
                 IgnorePointer(
                   child: Center(
                     child: AnimatedOpacity(
@@ -204,9 +198,7 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
-                // Adding-to-library scrim (discover) — spinner over dimmed art.
                 if (widget.adding) const MediaCardAddingScrim(),
-                // Hairline edge.
                 IgnorePointer(
                   child: DecoratedBox(
                     decoration: ShapeDecoration(
@@ -301,10 +293,6 @@ class _MediaCardTileState extends State<MediaCardTile> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AspectRatio(aspectRatio: 16 / 9, child: artwork),
-          // Both meta variants render inside the fixed mediaCardTileMetaHeight
-          // budget — the height the grid aspect math assumes — so grid rows
-          // stay aligned whichever slot a caller uses. Content taller than the
-          // budget overflows it rather than resizing the tile.
           SizedBox(
             height: mediaCardTileMetaHeight,
             child:

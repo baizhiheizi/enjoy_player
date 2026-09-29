@@ -91,8 +91,6 @@ class _TierReconcileHostState extends ConsumerState<TierReconcileHost>
     );
     final confirmed = await notifier.reconcile(eager: true);
     if (!mounted) return;
-    // `null` means reconcile was skipped (already running / already handled) —
-    // do not surface a false verify-timeout notice.
     if (confirmed == null) return;
     if (packagePending) {
       if (confirmed) {

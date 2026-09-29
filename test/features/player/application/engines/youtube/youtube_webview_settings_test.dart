@@ -1,8 +1,3 @@
-// Tests for `lib/features/player/application/engines/youtube/youtube_webview_bridge.dart`.
-//
-// Focus: the URL helpers, the `YoutubeWebViewSettings.forPlayer()` /
-// `forLogin()` builders, and the JS script payloads — anything that does not
-// require a live `InAppWebViewController` mock.
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -43,7 +38,6 @@ void main() {
       if (defaultTargetPlatform == TargetPlatform.iOS) {
         expect(s.allowsPictureInPictureMediaPlayback, isFalse);
       } else {
-        // Android / desktop / etc.: opt-in via null (use default).
         expect(s.allowsPictureInPictureMediaPlayback, isNull);
       }
     });
@@ -76,8 +70,6 @@ void main() {
 
   group('YoutubeWebViewBridge JS scripts', () {
     test('pause() script uses __enjoyYtPlayAttempt counter', () {
-      // We don't execute JS in tests; assert presence of the counter so a
-      // typo in the snippet surfaces as a coverage break.
       expect(YoutubeWebViewBridge.playScript, contains('__enjoyYtPlayAttempt'));
     });
 
@@ -86,7 +78,6 @@ void main() {
     });
 
     test('forceInlinePlayback mentions playsinline', () {
-      // iOS WKWebView safety net — must re-apply both attributes.
       expect(YoutubeWebViewBridge.playScript, contains("'onVideoEvent'"));
     });
   });

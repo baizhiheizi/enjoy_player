@@ -168,8 +168,6 @@ class VocabularyRepository {
 
   Future<void> deleteItem(String id) async {
     await _db.transaction(() async {
-      // Local cascade first; review audits never sync, and the server is
-      // expected to cascade its own contexts on item delete (ADR-0054).
       await _db.vocabularyReviewDao.deleteByItemId(id);
       await _db.vocabularyContextDao.deleteByItemId(id);
       await _db.vocabularyItemDao.deleteById(id);
@@ -227,8 +225,6 @@ class VocabularyRepository {
         updatedAt: at,
       );
       await _db.vocabularyItemDao.updateRow(updated);
-      // Review audits (`vocabularyReviewDao`) are device-local undo history
-      // only and are never enqueued — only the resulting item update syncs.
       await enqueueSync?.call(
         SyncEntityType.vocabularyItem,
         itemId,

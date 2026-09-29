@@ -50,8 +50,6 @@ void main() {
           httpClient: mock,
           getBaseUrl: () async => 'https://api.example.com',
           getAccessToken: () async {
-            // First read returns the cached (empty) token; the second read
-            // (after refresh) returns the newly minted token.
             if (refreshCalls == 0) return '';
             return 'fresh-token';
           },

@@ -203,7 +203,6 @@ void main() {
     });
 
     test('malformed youtube_upload payloads are undecodable (null)', () {
-      // kind matches but required fields are missing.
       expect(
         SyncQueueJob.decode(
           _row(
@@ -215,7 +214,6 @@ void main() {
         ),
         isNull,
       );
-      // Empty timeline.
       expect(
         SyncQueueJob.decode(
           _row(
@@ -233,11 +231,6 @@ void main() {
         ),
         isNull,
       );
-      // One non-Map timeline entry taints the whole payload — the producer
-      // always emits `Map<String, dynamic>` shapes, so a non-object is
-      // corruption, not a partial list (issue #726 review F1: a tainted
-      // payload must never replace the worker cache with an incomplete
-      // timeline). Decode refuses it; the drain drops the row.
       expect(
         SyncQueueJob.decode(
           _row(
@@ -258,9 +251,6 @@ void main() {
         ),
         isNull,
       );
-      // Not JSON at all — the payload kind is unreadable, so the row keeps
-      // flowing through the plain video path (pre-seam behavior:
-      // isYoutubeUploadPayload returned false on a decode error).
       expect(
         SyncQueueJob.decode(
           _row(
@@ -277,8 +267,6 @@ void main() {
     test(
       'delete wins over a youtube_upload payload (payload only rides upserts)',
       () {
-        // The drain must run the cloud DELETE, not re-upload the payload —
-        // matching the pre-seam ordering (delete branch never inspected it).
         final job = SyncQueueJob.decode(
           _row(
             entityType: 'video',
@@ -370,9 +358,6 @@ void main() {
         expect(encoded.entityType, 'video');
         expect(encoded.entityId, 'dQw4w9WgXcQ/en');
         expect(encoded.action, 'update');
-        // Exact byte identity with the pre-seam hand-rolled map literal —
-        // the producer test (transcript_repository_youtube_fallback_test)
-        // asserts this row's decoded fields.
         expect(
           encoded.payloadJson,
           jsonEncode({
@@ -425,7 +410,6 @@ void main() {
       );
       final original = retry.encode().payloadJson;
 
-      // Same content built independently → identical bytes.
       final rebuilt = const SyncYoutubeUploadRetry(
         videoId: 'dQw4w9WgXcQ',
         language: 'en',
@@ -437,11 +421,6 @@ void main() {
       ).encode().payloadJson;
       expect(rebuilt, original);
 
-      // decode → encode reproduces the exact bytes the producer wrote —
-      // the race guard string-compares `job.encode().payloadJson`
-      // against the stored row, so an unstable round trip would make
-      // every success-path remove look like a producer race (leak) or,
-      // worse, clear a refreshed payload.
       final decoded = SyncQueueJob.decode(
         _row(
           entityType: 'video',

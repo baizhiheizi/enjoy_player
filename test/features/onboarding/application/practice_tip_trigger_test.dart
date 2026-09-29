@@ -124,7 +124,6 @@ void main() {
       await _pumpFrame(tester);
       tips.schedule(routePath: '/player/m1', mediaId: 'm1', echoActive: true);
       await _pumpFrame(tester);
-      // Back to the original state: the key is compared, not a boolean flag.
       tips.schedule(routePath: '/player/m1', mediaId: 'm1', echoActive: false);
       await _pumpFrame(tester);
 
@@ -199,7 +198,6 @@ void main() {
       final tips = container.read(practiceTipTriggerProvider).transportBar();
 
       tips.schedule(routePath: '/player/m1', mediaId: 'm1', echoActive: true);
-      // Nothing fires before the frame lands.
       expect(_ctrlOf(container).practiceChainCtxs, isEmpty);
       await _pumpFrame(tester);
 
@@ -208,7 +206,6 @@ void main() {
       expect(ctx.mediaId, 'm1');
       expect(ctx.hasTranscript, isTrue);
       expect(ctx.echoActive, isTrue);
-      // Record / assess targets only mount while echo mode is on.
       expect(ctx.recordUiReady, isTrue);
       expect(ctx.assessUiReady, isTrue);
     });

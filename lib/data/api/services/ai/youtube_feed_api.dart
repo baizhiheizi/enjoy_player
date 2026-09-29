@@ -94,7 +94,6 @@ class YoutubeFeedClient {
 
     final request = http.Request('GET', uri);
 
-    // Add bearer auth if token provider is available
     final tokenGetter = getToken;
     if (tokenGetter != null) {
       final token = await tokenGetter();

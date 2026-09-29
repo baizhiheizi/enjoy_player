@@ -7,9 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('fetchOpenAiCompatibleModels — parsing helpers', () {
     test('filters out empty/null ids and sorts the remainder', () {
-      // Pure-data test of the JSON parsing shape the function relies on:
-      // the function reads `decoded['data']` and pulls 'id' from each row,
-      // filtering to non-empty strings and sorting.
       final json = jsonEncode({
         'data': [
           {'id': 'b'},
@@ -40,11 +37,11 @@ void main() {
       final json = jsonEncode({
         'data': [
           {'id': 'keep'},
-          {'id': 42}, // not a string — filtered
+          {'id': 42},
           {
             'id': ['nested'],
-          }, // not a string — filtered
-          {'id': true}, // not a string — filtered
+          },
+          {'id': true},
         ],
       });
       final decoded = jsonDecode(json) as Map<String, dynamic>;
@@ -55,11 +52,7 @@ void main() {
               .where((id) => id.isNotEmpty)
               .toList()
             ..sort();
-      // 42.toString() = '42', true.toString() = 'true', ['nested'].toString()
-      // is a debug representation. They're all non-empty strings so the
-      // function does not actually filter them out — verify the behavior.
       expect(ids, contains('keep'));
-      // The "keep" entry is always present; other entries get stringified.
       expect(ids.length, greaterThanOrEqualTo(1));
     });
 

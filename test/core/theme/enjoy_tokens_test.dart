@@ -166,7 +166,6 @@ void main() {
         ),
       );
 
-      // Should still produce valid tokens via the fallback build path.
       expect(resolved.space4, 4);
       expect(resolved.ccBadge, scheme.primary);
     });
@@ -394,67 +393,56 @@ void main() {
     test('t=0.5 produces correct midpoint for doubles', () {
       final result = a.lerp(b, 0.5) as EnjoyThemeTokens;
 
-      expect(result.space4, 6); // lerp(4, 8, 0.5)
-      expect(result.space8, 12); // lerp(8, 16, 0.5)
-      expect(result.space12, 18); // lerp(12, 24, 0.5)
-      expect(result.space16, 24); // lerp(16, 32, 0.5)
-      expect(result.space20, 30); // lerp(20, 40, 0.5)
-      expect(result.space24, 36); // lerp(24, 48, 0.5)
-      expect(result.space32, 48); // lerp(32, 64, 0.5)
-      expect(result.space40, 60); // lerp(40, 80, 0.5)
+      expect(result.space4, 6);
+      expect(result.space8, 12);
+      expect(result.space12, 18);
+      expect(result.space16, 24);
+      expect(result.space20, 30);
+      expect(result.space24, 36);
+      expect(result.space32, 48);
+      expect(result.space40, 60);
 
-      expect(result.radiusSm, 12); // lerp(8, 16, 0.5)
-      expect(result.radiusMd, 18); // lerp(12, 24, 0.5)
-      expect(result.radiusLg, 24); // lerp(16, 32, 0.5)
-      expect(result.radiusXl, 31); // lerp(22, 40, 0.5)
-      expect(result.radiusFull, 1498.5); // lerp(999, 1998, 0.5)
+      expect(result.radiusSm, 12);
+      expect(result.radiusMd, 18);
+      expect(result.radiusLg, 24);
+      expect(result.radiusXl, 31);
+      expect(result.radiusFull, 1498.5);
 
-      expect(result.elevationNone, 0); // lerp(0, 0, 0.5)
-      expect(result.elevationCard, 2); // lerp(1, 3, 0.5)
-      expect(result.elevationSheet, 5); // lerp(3, 7, 0.5)
-      expect(result.elevationModal, 12); // lerp(8, 16, 0.5)
-      expect(result.elevationBar, 3); // lerp(2, 4, 0.5)
-      expect(result.elevationSurface, 2); // lerp(1, 3, 0.5)
+      expect(result.elevationNone, 0);
+      expect(result.elevationCard, 2);
+      expect(result.elevationSheet, 5);
+      expect(result.elevationModal, 12);
+      expect(result.elevationBar, 3);
+      expect(result.elevationSurface, 2);
 
-      expect(result.breakpointCompact, 900); // lerp(600, 1200, 0.5)
-      expect(result.breakpointRail, 1350); // lerp(900, 1800, 0.5)
-      expect(
-        result.breakpointTranscriptSideBySide,
-        1080,
-      ); // lerp(720, 1440, 0.5)
+      expect(result.breakpointCompact, 900);
+      expect(result.breakpointRail, 1350);
+      expect(result.breakpointTranscriptSideBySide, 1080);
 
-      expect(result.contentMaxWidth, 1080); // lerp(720, 1440, 0.5)
-      expect(result.formMaxWidth, 1020); // lerp(680, 1360, 0.5)
-      expect(result.hubMaxWidth, 1260); // lerp(840, 1680, 0.5)
-      expect(result.pageGutterCompact, 24); // lerp(16, 32, 0.5)
-      expect(result.pageGutter, 36); // lerp(24, 48, 0.5)
-      expect(result.miniBarBlurSigma, 32); // lerp(24, 40, 0.5)
-      expect(result.sidebarWidth, 366); // lerp(236, 496, 0.5)
-      expect(result.sidebarBrandHeight, 82); // lerp(52, 112, 0.5)
-      expect(result.transportHeight, 132); // lerp(88, 176, 0.5)
-      expect(
-        result.heroTitleLetterSpacing,
-        closeTo(-1.65, 1e-10),
-      ); // lerp(-0.9, -2.4, 0.5)
-      expect(result.bottomNavHeight, 100); // lerp(64, 136, 0.5)
-      expect(result.desktopGutter, 36); // lerp(24, 48, 0.5)
-      expect(result.modalMaxWidth, 600); // lerp(400, 800, 0.5)
-      expect(result.modalMaxWidthLarge, 840); // lerp(560, 1120, 0.5)
-      expect(result.focusRingWidth, 3); // lerp(2, 4, 0.5)
+      expect(result.contentMaxWidth, 1080);
+      expect(result.formMaxWidth, 1020);
+      expect(result.hubMaxWidth, 1260);
+      expect(result.pageGutterCompact, 24);
+      expect(result.pageGutter, 36);
+      expect(result.miniBarBlurSigma, 32);
+      expect(result.sidebarWidth, 366);
+      expect(result.sidebarBrandHeight, 82);
+      expect(result.transportHeight, 132);
+      expect(result.heroTitleLetterSpacing, closeTo(-1.65, 1e-10));
+      expect(result.bottomNavHeight, 100);
+      expect(result.desktopGutter, 36);
+      expect(result.modalMaxWidth, 600);
+      expect(result.modalMaxWidthLarge, 840);
+      expect(result.focusRingWidth, 3);
     });
 
     test('t=0.5 produces correct midpoint for durations', () {
       final result = a.lerp(b, 0.5) as EnjoyThemeTokens;
 
-      // lerp(160, 360, 0.5) = 260
       expect(result.motionFast, const Duration(milliseconds: 260));
-      // lerp(280, 520, 0.5) = 400
       expect(result.motionStandard, const Duration(milliseconds: 400));
-      // lerp(260, 480, 0.5) = 370
       expect(result.motionEnter, const Duration(milliseconds: 370));
-      // lerp(160, 320, 0.5) = 240
       expect(result.motionExit, const Duration(milliseconds: 240));
-      // lerp(220, 440, 0.5) = 330
       expect(result.motionMedium, const Duration(milliseconds: 330));
     });
 
@@ -501,10 +489,10 @@ void main() {
     test('t=0.25 produces correct quarter-point values', () {
       final result = a.lerp(b, 0.25) as EnjoyThemeTokens;
 
-      expect(result.space4, 5); // lerp(4, 8, 0.25) = 5
-      expect(result.space40, 50); // lerp(40, 80, 0.25) = 50
-      expect(result.radiusSm, 10); // lerp(8, 16, 0.25) = 10
-      expect(result.focusRingWidth, 2.5); // lerp(2, 4, 0.25) = 2.5
+      expect(result.space4, 5);
+      expect(result.space40, 50);
+      expect(result.radiusSm, 10);
+      expect(result.focusRingWidth, 2.5);
     });
   });
 }

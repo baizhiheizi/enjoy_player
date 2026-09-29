@@ -149,7 +149,7 @@ class SecurityScopedBookmarkChannel {
         'token': token,
       });
     } on MissingPluginException {
-      // No shim — nothing to release.
+      // ignore: empty_catches
     } on PlatformException catch (e, st) {
       _log.fine(
         'releaseBookmark($token) failed: ${e.code} ${e.message ?? ""}',

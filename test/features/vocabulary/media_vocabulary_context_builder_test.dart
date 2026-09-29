@@ -41,7 +41,7 @@ void main() {
       expect(ctx.sourceType, VocabularySourceType.video);
       expect(ctx.sourceId, 'media-1');
       expect(ctx.locator.start, 1000);
-      expect(ctx.locator.duration, 1000); // 1000 → 2000
+      expect(ctx.locator.duration, 1000);
     });
 
     test('inactive echo expands around active line', () {

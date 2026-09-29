@@ -136,12 +136,10 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
 
   void _closeDialog() {
     if (!mounted) return;
-    // Optional prompts are always poppable; pop immediately.
     if (!_mandatory) {
       Navigator.of(context).pop();
       return;
     }
-    // Mandatory PopScope blocks pops until we flip this flag and rebuild.
     if (_allowProgrammaticClose) {
       Navigator.of(context).pop();
       return;
@@ -163,7 +161,6 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
     }
     if (!mounted) return;
     if (_mandatory) {
-      // Stay on the blocking prompt so the user can retry.
       setState(() {
         _starting = false;
         _progress = null;
@@ -187,8 +184,6 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
     final cs = Theme.of(context).colorScheme;
 
     return PopScope(
-      // Optional prompts stay dismissible; mandatory stays blocked unless we
-      // intentionally open the system installer and close via [_closeDialog].
       canPop: !_mandatory || _allowProgrammaticClose,
       child: AlertDialog(
         title: Text(

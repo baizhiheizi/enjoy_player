@@ -90,10 +90,6 @@ class EchoEnforcer {
     EchoWindow? override,
     Duration waitTimeout = kEngineCommandTimeout,
   }) async {
-    // Captured before the first await: if [reset] lands while we wait on an
-    // in-flight enforcement, the requested target belongs to media that is
-    // gone, and re-entering the loop with a fresh epoch would seek the old
-    // target onto the new engine (unclamped, its echo being inactive).
     final epoch = _gate.generation;
     while (!_gate.isStale(epoch)) {
       final pending = _gate.pending;
@@ -105,8 +101,6 @@ class EchoEnforcer {
         await _gate.run(_seek(target, epoch));
         return target;
       }
-      // An enforcement is running; wait for it (bounded — a wedged engine seek
-      // must not hold the slot forever), then re-check.
       try {
         await pending.timeout(waitTimeout);
       } on TimeoutException {
@@ -115,8 +109,6 @@ class EchoEnforcer {
           '(engine seek wedged?); releasing the slot and skipping the clamp '
           'seek',
         );
-        // The wedged op's own finally is guarded by identity, so clearing here
-        // cannot race it out of a slot it still owns.
         _gate.release(pending);
         return requestedSeconds;
       }
@@ -129,8 +121,6 @@ class EchoEnforcer {
   /// engine or hold the slot forever (which would block all future enforcement).
   void reset() {
     _gate.cancel();
-    // The window is derived from the previous media's session; re-derive for
-    // the next one rather than serving a cached duration / transcript.
     _windowCacheKey = null;
     _windowCache = null;
   }
@@ -144,8 +134,6 @@ class EchoEnforcer {
         await getEngine().seek(durationFromSeconds(timeSeconds));
       case EchoPauseAndRewind(:final timeSeconds):
         await getEngine().pause();
-        // A reset may have landed between pause and seek; don't seek a stale
-        // engine onto the next media.
         if (_gate.isStale(epoch)) return;
         await getEngine().seek(durationFromSeconds(timeSeconds));
     }
@@ -173,9 +161,6 @@ class EchoEnforcer {
       );
     }
 
-    // EchoState compares by value, so this is a cheap no-allocation key. A
-    // transcript-only change (re-segmentation) is picked up on the next echo /
-    // duration change, or on [reset] at the next media switch.
     final key = (echo, durationSeconds);
     if (_windowCacheKey == key) return _windowCache;
     final window = _deriveWindow(echo, durationSeconds: durationSeconds);

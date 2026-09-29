@@ -36,8 +36,6 @@ String recordingAssessmentFailureMessage(
     RecordingAssessmentFailureKind.fileTooSmall => l10n.assessmentNoRecording,
     RecordingAssessmentFailureKind.unsupportedLanguage =>
       l10n.assessmentUnavailableLanguage,
-    // Numbered message when the 402 envelope was parsed (spec 045); the
-    // generic credits copy otherwise — never the raw status string.
     RecordingAssessmentFailureKind.credits =>
       creditsFailure != null
           ? creditsFailureMessage(creditsFailure, l10n)
@@ -122,8 +120,6 @@ Future<void> triggerRecordingAssessment({
       :final debugMessage,
       :final creditsFailure,
     ):
-      // Router captured while the context is alive: the persisted notice
-      // can outlive this route (see AppNotice).
       final router = GoRouter.of(context);
       AppNotice.error(
         context,
@@ -133,7 +129,6 @@ Future<void> triggerRecordingAssessment({
           debugMessage: debugMessage,
           creditsFailure: creditsFailure,
         ),
-        // One-tap recovery rides only on the credits kind (spec 045).
         action: kind == RecordingAssessmentFailureKind.credits
             ? (
                 label: creditsCtaLabel(l10n),

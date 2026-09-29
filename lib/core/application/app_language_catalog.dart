@@ -13,11 +13,6 @@ library;
 import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:flutter/material.dart';
 
-// Tag parsing (`splitLanguageTag`, `primaryLanguageSubtag`, alias policy)
-// lives in `language_descriptor.dart` next to the rows — re-exported here so
-// the catalog stays the one-stop import for its existing consumers (the
-// descriptor cannot import this file, so the shared helpers had to move the
-// other way; review on #798).
 export 'package:enjoy_player/core/application/language_descriptor.dart'
     show kLanguageTagAliases, normalizeLanguageAlias, primaryLanguageSubtag;
 
@@ -328,8 +323,6 @@ String localeToBcp47(Locale locale) => locale.toLanguageTag();
 Locale displayLocaleFromRawOrDefault(String? raw) {
   if (raw == null || raw.trim().isEmpty) return kAppDefaultDisplayLocale;
   final parts = splitLanguageTag(raw.trim());
-  // Normalize for case-insensitive match against [kAppDisplayLocales] (the
-  // catalog stores BCP-47 canonical form: lowercase language, uppercase region).
   final Locale candidate = parts.length >= 2
       ? Locale(parts[0].toLowerCase(), parts[1].toUpperCase())
       : Locale(parts[0].toLowerCase());

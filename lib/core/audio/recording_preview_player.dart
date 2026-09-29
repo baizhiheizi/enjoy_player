@@ -135,11 +135,9 @@ class RecordingPreviewPlayer implements RecordingPreviewPlayback {
       await _cancelClipWatcher();
       await _player.stop();
       _loadedPath = null;
-      // Prefer Media start/end over post-open seek (seek-before-ready is a no-op).
       await _player.open(mk.Media(uri, start: start, end: end));
       _loadedPath = abs;
       await _player.play();
-      // Safety net if the backend ignores Media.end on some platforms.
       _clipEndSub = armClipEndWatcher(
         position: _player.stream.position,
         end: end,

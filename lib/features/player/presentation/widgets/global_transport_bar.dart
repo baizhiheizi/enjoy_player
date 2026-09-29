@@ -103,21 +103,14 @@ NarrowTransportBudget resolveNarrowTransportBudget(
   required bool hasTranscriptLines,
   required bool showFullscreenTransport,
 }) {
-  // Always-on baseline: play ring + layout slack + echo + cc + speed.
-  // These never drop, so their cost is reserved first (always-on invariant).
+  const echoSlot = kNarrowIconSlotWidth;
+  const ccSlot = kNarrowIconSlotWidth;
+  const speedSlot = kNarrowIconSlotWidth + kNarrowSpeedSlotExtra;
   const alwaysOnCost =
-      kNarrowPlayRingWidth +
-      kNarrowLayoutSlack +
-      kNarrowIconSlotWidth + // echo
-      kNarrowIconSlotWidth + // cc
-      (kNarrowIconSlotWidth + kNarrowSpeedSlotExtra); // speed
+      kNarrowPlayRingWidth + kNarrowLayoutSlack + echoSlot + ccSlot + speedSlot;
 
   var remaining = maxWidth - alwaysOnCost;
 
-  // Pack droppables in strict priority order. Once one does not fit, stop — a
-  // lower-priority control must never be shown while a higher-priority one is
-  // dropped. Drop order (first dropped first) is the reverse of this packing
-  // order: previous, next, volume, fullscreen.
   var stopped = false;
   bool tryAdd(double cost) {
     if (stopped) return false;
@@ -302,12 +295,6 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
       isPlaying ? l10n.pause : l10n.play,
     );
 
-    // Practice-tip scheduling listens are registered unconditionally: a
-    // `ref.listen` below the `chrome == null` early return would re-register
-    // on every chrome swap, silently dropping hasLines / echo transitions
-    // during the session-swap window. The chrome fallback lives inside the
-    // callbacks instead. The route path is read once per build (any route
-    // change rebuilds the shell, so the captured path stays current).
     final routePath = GoRouterState.of(context).uri.path;
     ref.listen(transcriptHasLinesForMediaProvider(mediaId ?? ''), (prev, next) {
       final hasLines = next.asData?.value ?? false;
@@ -536,9 +523,6 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
                                 _narrowTransportSlot(child: fullscreenButton),
                             ];
 
-                            // Line navigation flanks the play ring; previous
-                            // and next are independent so the cluster collapses
-                            // cleanly (prev+play+next / play+next / play-alone).
                             final lineNavCluster = <Widget>[
                               if (budget.showPrevious) ...[
                                 _narrowTransportSlot(child: prevButton),

@@ -1,8 +1,3 @@
-// Tests for `lib/features/player/presentation/root_shell.dart`.
-//
-// Covers the shell's adaptive nav layout (mobile bottom-nav vs. rail sidebar)
-// and the routing-driven selection logic. Heavy providers (player engine,
-// database, sync) are stubbed so the shell can be exercised in isolation.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -162,10 +157,6 @@ List<Override> _shellOverrides(
   final overrides = <Override>[
     appDatabaseProvider.overrideWithValue(db),
     deviceGlobalAppDatabaseProvider.overrideWithValue(db),
-    // The sidebar's Continue card opens library + echo-session drift watches
-    // whose teardown timers trip the pending-timer guard. Shell layout tests
-    // never exercise resume logic, and the card is covered in
-    // app_sidebar_test — pin it off (sidebar renders shrink).
     continuePracticeResumeProvider.overrideWith((ref) => null),
     syncCtrlProvider.overrideWithValue(0),
     discoverFeedRefreshSchedulerProvider.overrideWithValue(0),
@@ -272,7 +263,6 @@ void main() {
       );
 
       expect(find.text('home-page'), findsOneWidget);
-      // Bottom nav icons for Home, Discover, Library, Profile.
       expect(findChromeIcon(EnjoyChromeGlyph.home), findsOneWidget);
       expect(findChromeIcon(EnjoyChromeGlyph.compass), findsOneWidget);
       expect(findChromeIcon(EnjoyChromeGlyph.library), findsOneWidget);
@@ -351,7 +341,6 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      // /settings also maps to the profile tab (settings > profile).
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsOneWidget);
     });
 
@@ -376,7 +365,6 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      // Player route hides the bottom nav.
       expect(find.byType(EnjoyBottomNav), findsNothing);
       expect(find.text('player-page'), findsOneWidget);
     });
@@ -390,7 +378,6 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      // `/youtube/login` parks the video stage but does not hide shell chrome.
       expect(find.byType(EnjoyBottomNav), findsOneWidget);
       expect(find.text('youtube-login-page'), findsOneWidget);
     });
@@ -408,7 +395,6 @@ void main() {
         surface: const Size(1100, 900),
       );
 
-      // AppSidebar brand row + nav pills are visible.
       expect(find.byIcon(EnjoyIcons.search), findsOneWidget);
       expect(find.byType(AppSidebar), findsOneWidget);
       expect(find.byType(EnjoyBottomNav), findsNothing);
@@ -426,7 +412,6 @@ void main() {
         surface: const Size(1100, 900),
       );
 
-      // No sidebar search field is rendered on the player route.
       expect(find.byIcon(EnjoyIcons.search), findsNothing);
       expect(find.text('player-page'), findsOneWidget);
     });
@@ -531,7 +516,6 @@ void main() {
         surface: const Size(400, 900),
       );
 
-      // Profile pill is present with the badge semantics label.
       expect(find.text('home-page'), findsOneWidget);
       expect(findChromeIcon(EnjoyChromeGlyph.user), findsWidgets);
     });
@@ -628,11 +612,6 @@ void main() {
     });
   });
 
-  // Chrome matrix: specs/033-immersive-flashcard-review
-  // - /vocabulary/review → hide sidebar, bottom nav, transport
-  // - /vocabulary (hub) → normal chrome; no mini transport
-  // - leave review → nav chrome restored (path-derived); still no mini bar
-  // - resize while on review → chrome stays hidden
   group('RootShell immersive vocabulary review', () {
     testWidgets('hides AppSidebar on /vocabulary/review (wide)', (
       tester,

@@ -104,10 +104,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // The "Search" destination is selected → its filled icon should appear.
       expect(find.byIcon(EnjoyIcons.compassFill), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.compass), findsNothing);
-      // Other destinations should still be unselected.
       expect(find.byIcon(EnjoyIcons.home), findsOneWidget);
       expect(find.byIcon(EnjoyIcons.person), findsOneWidget);
     });
@@ -138,8 +136,6 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // The Profile destination sets showBadge: true — it contributes a small
-      // dot container inside its Stack.
       final containers = tester
           .widgetList<Container>(
             find.descendant(
@@ -201,7 +197,6 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        // Resolve the Semantics widget and confirm its label is the override.
         final semantics = tester
             .widgetList<Semantics>(
               find.descendant(
@@ -228,7 +223,6 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        // No destination matches index 99 — none should be styled selected.
         expect(find.text('Home'), findsOneWidget);
         expect(find.text('Search'), findsOneWidget);
         expect(find.text('Profile'), findsOneWidget);
@@ -261,13 +255,6 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    // Regression: the nav's root Align used to expand to the
-    // bottomNavigationBar slot's loose maxHeight (the whole screen). Scaffold
-    // then reported a full-height bottom widget: contentBottom collapsed to 0,
-    // so every floating SnackBar on the shell tripped the "Floating SnackBar
-    // presented off screen" layout assert (which aborts frames in debug and
-    // froze the player-exit transition), and the body MediaQuery leaked
-    // padding.bottom = screen height into AppNotice margins.
     testWidgets(
       'in a bottomNavigationBar slot measures intrinsic height, not the screen',
       (tester) async {
@@ -315,10 +302,7 @@ void main() {
         final navBox = tester.renderObject<RenderBox>(
           find.byType(EnjoyBottomNav),
         );
-        // Capsule + SafeArea insets — far below the 850.9 logical screen.
         expect(navBox.size.height, lessThan(200));
-        // extendBody feeds max(padding.bottom, bottomWidgetHeight) into the
-        // body MediaQuery; with an intrinsic nav this stays sane too.
         expect(
           double.parse(
             tester

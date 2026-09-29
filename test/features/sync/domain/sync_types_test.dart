@@ -114,10 +114,6 @@ void main() {
     });
 
     test('merge of two null-errors results yields an empty list', () {
-      // `errors: [...?errors, ...?other.errors]` always allocates the list,
-      // so two null-error inputs produce `[]`, not `null`. Pin this so a
-      // refactor that returns null instead does not silently change the
-      // JSON shape.
       final a = const SyncResult(success: true, synced: 1, failed: 0);
       final b = const SyncResult(success: true, synced: 1, failed: 0);
 

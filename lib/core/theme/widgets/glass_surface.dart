@@ -53,10 +53,6 @@ class GlassSurface extends StatelessWidget {
         shape?.copyWith(side: side) ??
         RoundedSuperellipseBorder(borderRadius: radius, side: side);
 
-    // No Material wrapper: this adapter only paints decoration + blur.
-    // Callers own their Material needs — the back button subtree is a bare
-    // SizedBox + Icon (no ink, no inherited text), and the transport bar
-    // supplies its own transparent Material inside its child.
     Widget inner = child;
 
     if (padding != null) {

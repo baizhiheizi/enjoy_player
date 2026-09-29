@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 
 void main() {
-  // DiagnosticLogConfig exposes static state. Tests that mutate it must
-  // snapshot and restore the original value to avoid leaking across files.
   final originalVerbose = DiagnosticLogConfig.verboseEnabled;
   tearDown(() {
     DiagnosticLogConfig.setVerboseEnabled(originalVerbose);
@@ -52,7 +50,6 @@ void main() {
         DiagnosticLogConfig.isAllowlistedLogger('YouTubeWebViewPollLoop'),
         isTrue,
       );
-      // Not in the allowlist directly, but the prefix rule covers it.
       expect(
         DiagnosticLogConfig.isAllowlistedLogger('YouTubeSomethingCustom'),
         isTrue,
@@ -62,7 +59,6 @@ void main() {
     test('rejects non-allowlisted loggers', () {
       expect(DiagnosticLogConfig.isAllowlistedLogger('library'), isFalse);
       expect(DiagnosticLogConfig.isAllowlistedLogger('player'), isFalse);
-      // Case-sensitive: lowercase 'youtube' prefix is not allowlisted.
       expect(DiagnosticLogConfig.isAllowlistedLogger('youtubePlayer'), isFalse);
       expect(
         DiagnosticLogConfig.isAllowlistedLogger('YoutubeWebViewEvents'),
@@ -123,7 +119,6 @@ void main() {
     });
 
     test('drops FINE records from allowlisted loggers when verbose is off', () {
-      // Allowlisted logger + FINE + no error/stack -> only persisted if verbose.
       expect(
         DiagnosticLogConfig.shouldPersistRecord(
           recordAt(Level.FINE, name: 'sync'),
@@ -139,8 +134,6 @@ void main() {
     });
 
     test('persists FINE+ records from allowlisted loggers', () {
-      // FINE (500), CONFIG (700), INFO (800) all clear the FINE threshold.
-      // FINER (400) is below FINE and should NOT be persisted by this path.
       expect(
         DiagnosticLogConfig.shouldPersistRecord(
           recordAt(Level.FINE, name: 'sync'),
@@ -188,8 +181,6 @@ void main() {
           ),
           isFalse,
         );
-        // FINER is below the FINE threshold and not in the INFO band: dropped
-        // even for allowlisted loggers (verified by FINER+non-allowlist combo).
         expect(
           DiagnosticLogConfig.shouldPersistRecord(
             recordAt(Level.FINER, name: 'library'),

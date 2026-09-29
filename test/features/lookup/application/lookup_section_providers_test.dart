@@ -1,9 +1,3 @@
-// Tests for the Riverpod families in `lookup_section_providers.dart`.
-//
-// The providers wrap the typed `AiTranslationCache` / `AiDictionaryCache`
-// and the `TranslationService` / `DictionaryService` collaborators. We
-// exercise them end-to-end through `ProviderContainer.read` to confirm
-// the fingerprint, L1/L2 lookup path, and force-refresh behavior.
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
@@ -150,7 +144,6 @@ void main() {
       expect(translationCap.lastSource, 'en');
       expect(translationCap.lastTarget, 'zh');
 
-      // Second read: cached, no extra capability call.
       final again = await container.read(
         lookupSheetTranslationProvider(params).future,
       );
@@ -177,8 +170,6 @@ void main() {
       expect(first.translatedText, 'hello');
       expect(translationCap.calls, 1);
 
-      // forceRefresh creates a distinct provider instance because the
-      // generated family key includes the named `forceRefresh` arg.
       final refreshed = await container.read(
         lookupSheetTranslationProvider(params, forceRefresh: true).future,
       );
@@ -233,7 +224,6 @@ void main() {
       expect(first.word, 'hello');
       expect(dictionaryCap.calls, 1);
 
-      // See note in translation test: forceRefresh is part of the family key.
       final refreshed = await container.read(
         lookupSheetDictionaryProvider(params, forceRefresh: true).future,
       );

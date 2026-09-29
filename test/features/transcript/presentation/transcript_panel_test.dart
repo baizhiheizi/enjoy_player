@@ -97,7 +97,6 @@ void main() {
             child: const TranscriptPanel(mediaId: 'm1'),
           ),
         );
-        // We are still in loading state — render the skeleton.
         expect(find.byType(SkeletonTranscript), findsOneWidget);
       },
     );
@@ -226,8 +225,6 @@ void main() {
             child: const TranscriptPanel(mediaId: 'm1'),
           ),
         );
-        // CircularProgressIndicator has an infinite animation; pumpAndSettle
-        // will hang forever. Use a few manual pumps instead.
         for (var i = 0; i < 4; i++) {
           await tester.pump(const Duration(milliseconds: 50));
         }
@@ -278,7 +275,6 @@ void main() {
 
         expect(find.byType(TranscriptEmptyState), findsOneWidget);
 
-        // Local media shows the local-actions hint and not the remote hint.
         expect(
           find.text(
             'Add a subtitle file, extract embedded captions, or create an AI transcript.',
@@ -286,7 +282,6 @@ void main() {
           findsOneWidget,
         );
 
-        // Add subtitle / AI transcript buttons are visible.
         expect(find.text('Add subtitle'), findsOneWidget);
         expect(find.text('AI transcript'), findsOneWidget);
       },
@@ -333,11 +328,9 @@ void main() {
 
       expect(find.byType(TranscriptEmptyState), findsOneWidget);
 
-      // No local buttons for YouTube.
       expect(find.text('Add subtitle'), findsNothing);
       expect(find.text('AI transcript'), findsNothing);
 
-      // Remote hint is visible.
       expect(
         find.text(
           'Cloud captions load automatically when available. Open the CC menu to refresh.',

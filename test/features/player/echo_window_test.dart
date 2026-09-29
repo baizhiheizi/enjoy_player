@@ -27,7 +27,6 @@ void main() {
     });
 
     test('widens a sub-guard window to the minimum playable width', () {
-      // 20 ms < endGuard (40 ms): every position would fire pause-and-rewind.
       final w = normalizeEchoWindow((
         active: true,
         startTimeSeconds: 1.0,
@@ -45,8 +44,6 @@ void main() {
     });
 
     test('drops a minimum-width window that cannot fit the media', () {
-      // Remaining tail is shorter than endGuard + seekEpsilon — no way to
-      // build a window the enforcer can hold without looping.
       final w = normalizeEchoWindow((
         active: true,
         startTimeSeconds: 9.99,
@@ -69,9 +66,6 @@ void main() {
   });
 
   test('rewinding to a normalized sub-guard window start stays playable', () {
-    // The busy-loop: pause-and-rewind seeks to `start`, and if `start` is
-    // already past `end - endGuard` the next tick fires pause-and-rewind
-    // again. After widening, the rewind target must be playable.
     final w = normalizeEchoWindow((
       active: true,
       startTimeSeconds: 4.0,

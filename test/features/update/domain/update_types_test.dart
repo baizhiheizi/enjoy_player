@@ -1,5 +1,3 @@
-// Tests for `lib/features/update/domain/update_types.dart` — pure data
-// classes used by the update prompt / controller / strategy layer.
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -55,7 +53,6 @@ void main() {
         ),
       );
       expect(r.hasUpdate, isFalse);
-      // But the badge still shows — we want the user to know a build exists.
       expect(r.showsUpdateBadge, isTrue);
     });
 
@@ -139,7 +136,7 @@ void main() {
     });
 
     test('ReleaseManifest round-trips fields', () {
-      const m = _manifest; // const for compile-time check
+      const m = _manifest;
       expect(m.version, '1.2.0');
       expect(m.build, 100);
       expect(m.minSupportedVersion, '1.0.0');

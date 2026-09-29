@@ -84,7 +84,6 @@ Future<Uint8List> _render(WidgetTester tester, TranscriptLine line) async {
     ),
   );
 
-  // Guards against the comparison passing vacuously on two empty frames.
   expect(find.byType(TranscriptLineTile), findsOneWidget);
   expect(tester.getSize(find.byKey(_captureKey)).height, greaterThan(0));
 

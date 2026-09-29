@@ -34,8 +34,6 @@ import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/features/craft/domain/craft_edit_source.dart';
 import 'package:forced_alignment/forced_alignment.dart';
 
-// === Fakes ===
-
 class _SignedInAuthCtrl extends AuthCtrl {
   _SignedInAuthCtrl(this.profile);
   final UserProfile profile;
@@ -161,7 +159,6 @@ class _FakeLibraryRepository extends CraftLibraryRepository {
   String? lastImportSourceFlag;
   String? lastImportSignedInUserId;
 
-  // === Craft history edit fakes ===
   CraftEditSource? editSource;
   String updateResultId = 'media-updated';
   Object? updateError;
@@ -275,8 +272,6 @@ class _FakeTranscriber implements CraftTranscriber {
   }
 }
 
-// === Test harness ===
-
 const _profile = UserProfile(id: 'user-1', email: 'a@b.com', name: 'Tester');
 
 void main() {
@@ -336,8 +331,6 @@ void main() {
       addTearDown(c.dispose);
       final s = stateOf(c);
       expect(s.sourceText, '');
-      // Languages are seeded synchronously from app prefs. Prefs are still
-      // resolving at this instant in tests → the 'en-US' cold-start fallback.
       expect(s.sourceLanguage, 'en-US');
       expect(s.targetLanguage, 'en-US');
       expect(s.style, TranslationStyle.natural);
@@ -475,7 +468,6 @@ void main() {
       final c = container();
       addTearDown(c.dispose);
       final n = notifierOf(c);
-      // Build seeds sourceLanguage, so swapping exchanges both sides.
       n.setTargetLanguage('fr');
       n.swapLanguages();
       expect(stateOf(c).sourceLanguage, 'fr');
@@ -617,7 +609,6 @@ void main() {
       final failure = stateOf(c).failure;
       expect(failure, isA<CraftCreditsFailure>());
       expect(failure!.action, CraftFailureAction.retry);
-      // Source draft preserved so the learner can retry without re-entry.
       expect(stateOf(c).sourceText, 'long enough text');
       expect(stateOf(c).isTranslating, isFalse);
     });
@@ -1169,8 +1160,6 @@ void main() {
     });
   });
 
-  // === Express mode tests ===
-
   group('express capture', () {
     test('startCapture sets isCapturing and clears previous data', () {
       final c = container();
@@ -1232,7 +1221,6 @@ void main() {
         final audio = Uint8List.fromList(const [1, 2, 3]);
         await n.stopCapture(audio);
 
-        // Allow async pipeline to settle.
         await Future<void>.delayed(Duration.zero);
 
         final s = stateOf(c);
@@ -1306,7 +1294,6 @@ void main() {
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
 
-      // Simulate a completed Express flow.
       n.setSourceLanguage('en');
       n.setTargetLanguage('es');
       n.setStyle(TranslationStyle.casual);
@@ -1314,21 +1301,17 @@ void main() {
       await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
       await Future<void>.delayed(Duration.zero);
 
-      // Verify data exists.
       expect(stateOf(c).rawTranscript, isNotNull);
       expect(stateOf(c).translatedText, isNotNull);
 
-      // Reset.
       n.resetForNextCapture();
 
       final s = stateOf(c);
-      // Preserved.
       expect(s.screenMode, CraftScreenMode.express);
       expect(s.sourceLanguage, 'en');
       expect(s.targetLanguage, 'es');
       expect(s.style, TranslationStyle.casual);
       expect(s.selectedVoice, 'es-ES-ElviraNeural');
-      // Cleared.
       expect(s.stage, CraftStage.capture);
       expect(s.capturedAudioBytes, isNull);
       expect(s.rawTranscript, isNull);
@@ -1348,7 +1331,6 @@ void main() {
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
 
-      // Run Express flow to produce audio.
       n.setSourceLanguage('en');
       n.setTargetLanguage('es');
       await n.stopCapture(Uint8List.fromList(const [1, 2, 3]));
@@ -1518,7 +1500,7 @@ void main() {
       expect(s.rawTranscript, 'This is a test of text input mode.');
       expect(s.translatedText, ' rewritten result');
       expect(s.stage, CraftStage.rewrite);
-      expect(transcriber.callCount, 0); // No ASR call.
+      expect(transcriber.callCount, 0);
     });
   });
 
@@ -1552,8 +1534,6 @@ void main() {
       expect(stateOf(c).editingMediaId, isNull);
     });
   });
-
-  // === Craft history edit ===
 
   group('loadForEdit', () {
     test('returns false when the item no longer exists', () async {
@@ -1688,7 +1668,6 @@ void main() {
       expect(repo.importCalls, 0);
       expect(repo.findExistingCalls, 0);
       expect(stateOf(c).resultMediaId, 'media-direct');
-      // Editing state is preserved until an explicit reset.
       expect(stateOf(c).editingMediaId, 'media-direct');
     });
 
@@ -1715,8 +1694,6 @@ void main() {
     });
   });
 
-  // === Remembered preferences ===
-
   Future<String?> storedRaw() =>
       db.settingsDao.getValue(SettingsKeys.craftPreferencesV1.name);
 
@@ -1726,7 +1703,6 @@ void main() {
       () async {
         final c = container();
         addTearDown(c.dispose);
-        // Resolve prefs before the first read so build() sees real values.
         await c.read(appPreferencesCtrlProvider.future);
         c.invalidate(craftControllerProvider);
 
@@ -1753,8 +1729,8 @@ void main() {
         final c = container();
         addTearDown(c.dispose);
         await c.read(authCtrlProvider.future);
-        notifierOf(c); // attach + build, mirroring entry to the Craft screen
-        await pumpEventQueue(); // hydration lands
+        notifierOf(c);
+        await pumpEventQueue();
 
         final s = stateOf(c);
         expect(s.screenMode, CraftScreenMode.advanced);
@@ -1774,7 +1750,7 @@ void main() {
       final s = stateOf(c);
       expect(s.sourceLanguage, 'en-US');
       expect(s.targetLanguage, 'en-US');
-      expect(s.style, TranslationStyle.auto); // express default after hydrate
+      expect(s.style, TranslationStyle.auto);
       expect(s.screenMode, CraftScreenMode.express);
       expect(await storedRaw(), isNull);
     });
@@ -1812,12 +1788,11 @@ void main() {
       final c = container();
       addTearDown(c.dispose);
       await c.read(authCtrlProvider.future);
-      final n = notifierOf(c); // build() scheduled the hydration microtask
-      n.setStyle(TranslationStyle.casual); // synchronous, before H1 can run
+      final n = notifierOf(c);
+      n.setStyle(TranslationStyle.casual);
       await pumpEventQueue();
 
       expect(stateOf(c).style, TranslationStyle.casual);
-      // The user's choice is what got persisted.
       expect(
         CraftPreferences.fromJson(
           jsonDecode((await storedRaw())!) as Map<String, dynamic>,
@@ -1849,7 +1824,7 @@ void main() {
         final c = container();
         addTearDown(c.dispose);
         await c.read(authCtrlProvider.future);
-        await pumpEventQueue(); // hydration lands first
+        await pumpEventQueue();
 
         final ok = await notifierOf(c).loadForEdit('media-direct');
         await pumpEventQueue();
@@ -1857,8 +1832,8 @@ void main() {
         expect(ok, isTrue);
         final s = stateOf(c);
         expect(s.editingMediaId, 'media-direct');
-        expect(s.selectedVoice, 'en-US-JennyNeural'); // the item's own voice
-        expect(await storedRaw(), seededJson); // no write happened
+        expect(s.selectedVoice, 'en-US-JennyNeural');
+        expect(await storedRaw(), seededJson);
       },
     );
   });
@@ -1897,7 +1872,7 @@ void main() {
       addTearDown(c.dispose);
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
-      await pumpEventQueue(); // hydration lands before the user acts
+      await pumpEventQueue();
 
       n.setScreenMode(CraftScreenMode.advanced);
       expect(stateOf(c).style, TranslationStyle.formal);
@@ -1928,7 +1903,7 @@ void main() {
         await pumpEventQueue();
         final n = notifierOf(c);
 
-        n.setSynthLanguage('zh-CN'); // makes synthLanguage the wrong key
+        n.setSynthLanguage('zh-CN');
         n.setSelectedVoice('en-US-GuyNeural', forLanguage: 'en-US');
         await pumpEventQueue();
 
@@ -1952,7 +1927,6 @@ void main() {
 
       n.setTargetLanguage('ja-JP');
       expect(stateOf(c).selectedVoice, 'ja-JP-NanamiNeural');
-      // Let the first prefs load land so the remembered tier can consult it.
       await pumpEventQueue();
       n.setTargetLanguage('en-US');
       expect(stateOf(c).selectedVoice, 'en-US-GuyNeural');
@@ -1971,7 +1945,7 @@ void main() {
       addTearDown(c.dispose);
       await c.read(authCtrlProvider.future);
       final n = notifierOf(c);
-      await pumpEventQueue(); // hydration lands before the user acts
+      await pumpEventQueue();
 
       await n.useTextInput('This is a test of text input mode.');
       n.resetForNextCapture();

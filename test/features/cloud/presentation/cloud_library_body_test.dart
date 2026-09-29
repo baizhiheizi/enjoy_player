@@ -24,10 +24,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
 class _SignedInAuthCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async => const AuthSignedIn(
@@ -105,10 +101,6 @@ RemoteLibraryItem _videoItem({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Harness
-// ---------------------------------------------------------------------------
-
 Widget _wrap({required Widget child, required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
@@ -144,10 +136,6 @@ Widget _harness({
     ),
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 void main() {
   late AppDatabase db;
@@ -187,7 +175,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // AuthRequiredCallout should be visible.
       expect(find.byType(AuthRequiredCallout), findsOneWidget);
     });
 
@@ -204,14 +191,11 @@ void main() {
           ),
         ),
       );
-      // Let auth resolve and widget rebuild.
       await tester.pumpAndSettle();
 
-      // Trigger a refresh now that auth is resolved.
       stateKey.currentState!.refreshActiveTab();
       await tester.pumpAndSettle();
 
-      // Video items should be rendered.
       expect(find.text('Lecture 1'), findsOneWidget);
       expect(find.text('Lecture 2'), findsOneWidget);
     });
@@ -232,11 +216,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Trigger a refresh now that auth is resolved.
       stateKey.currentState!.refreshActiveTab();
       await tester.pumpAndSettle();
 
-      // Audio items should be rendered on the audio tab.
       expect(find.text('Podcast Episode 1'), findsOneWidget);
       expect(find.text('Podcast Episode 2'), findsOneWidget);
     });
@@ -251,11 +233,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Trigger a refresh so the empty batch marks the list as done.
       stateKey.currentState!.refreshActiveTab();
       await tester.pumpAndSettle();
 
-      // Empty state should show the video empty title.
       expect(find.text('No cloud video yet'), findsOneWidget);
     });
 
@@ -270,11 +250,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Trigger a refresh so the empty batch marks the list as done.
       stateKey.currentState!.refreshActiveTab();
       await tester.pumpAndSettle();
 
-      // Empty state should show the audio empty title.
       expect(find.text('No cloud audio yet'), findsOneWidget);
     });
   });

@@ -80,7 +80,7 @@ void main() {
 
     final state = container.read(vocabularyReviewSessionProvider);
     final primary = state.primaryContextFor(first.item.id)!;
-    expect(primary.id, first.context.id); // earliest createdAt
+    expect(primary.id, first.context.id);
     expect(
       decodeContextualExplanation(primary.explanation)?.translatedText,
       '译:First sentence.',

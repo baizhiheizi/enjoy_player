@@ -76,7 +76,7 @@ During download the user can **Cancel**:
 - **Optional**: cancels the transfer and closes the prompt.
 - **Mandatory**: cancels the transfer but returns to the still-blocking update prompt so the user can retry.
 
-Failures stay inline with a localized message and **Retry** (download, checksum, permission, already-running, installation, generic). There is no system notification / background download service — the modal is the progress surface.
+Failures stay inline with a localized message and **Retry** (download, checksum, permission, already-running, installation, generic). There is no system notification / background download service — the modal is the progress surface. Every install attempt constructs a fresh `ota_update` instance — the plugin caches the first event stream on the Dart object, so reusing one instance across retries would replay a closed/finished stream.
 
 Desktop direct updates still hand off to Sparkle / WinSparkle (native UI) after a short preparing state.
 

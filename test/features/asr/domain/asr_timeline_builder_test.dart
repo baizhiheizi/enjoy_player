@@ -69,7 +69,6 @@ void main() {
             text: 'Hello world',
             words: [
               AsrWord(word: 'Hello', start: 0.0, end: 0.5),
-              // 800 ms gap > 350 ms threshold
               AsrWord(word: 'world', start: 1.3, end: 1.8),
             ],
           ),
@@ -87,7 +86,6 @@ void main() {
     });
 
     test('breaks on maxLineDurationMs cap', () {
-      // 8 second total at default 6000 ms cap → 2 lines
       final result = AsrResult(
         text: 'a b c d e f g h',
         segments: [
@@ -153,7 +151,6 @@ void main() {
         mediaDurationMs: 5000,
       );
 
-      // "three." ends with terminator → first two merge, then break.
       expect(lines.length, lessThanOrEqualTo(2));
       expect(lines.last.text.endsWith('three.'), isTrue);
     });
@@ -191,11 +188,9 @@ void main() {
         'Second.',
         'Third.',
       ]);
-      // Evenly distributed.
       expect(lines[0].startMs, 0);
       expect(lines[1].startMs, 3000);
       expect(lines[2].startMs, 6000);
-      // Last line absorbs the remainder.
       expect(lines[2].startMs + lines[2].durationMs, 9000);
     });
   });

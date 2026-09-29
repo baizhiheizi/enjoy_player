@@ -5,6 +5,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+/// `fmt ` chunk format codes (see [WavFmtLayout.audioFormat]).
+const kWavFormatPcm = 0x0001;
+const kWavFormatIeeeFloat = 0x0003;
+
 /// Parsed `fmt ` chunk fields we need for scanning.
 final class WavFmtLayout {
   const WavFmtLayout({
@@ -130,7 +134,7 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
   final data = bytes.sublist(ds, end);
 
   switch (f.audioFormat) {
-    case 1: // PCM integer
+    case kWavFormatPcm:
       if (f.bitsPerSample == 16 && f.blockAlign == 2 * f.numChannels) {
         return _scanInt(
           data: data,
@@ -157,7 +161,7 @@ WavPeakScan? scanWavDataPeakFromBytes(Uint8List bytes) {
         );
       }
       return null;
-    case 3: // IEEE float
+    case kWavFormatIeeeFloat:
       if (f.bitsPerSample == 32 && f.blockAlign == 4 * f.numChannels) {
         final bd = ByteData.sublistView(data);
         return _scanInt(

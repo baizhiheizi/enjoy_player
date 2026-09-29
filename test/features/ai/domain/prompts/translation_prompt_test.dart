@@ -1,9 +1,3 @@
-// Coverage for lib/features/ai/domain/prompts/translation_prompt.dart.
-//
-// The translation prompt is a tiny pure-function module — the tests pin
-// language-base handling and the user-prompt passthrough. (The YouTube
-// state-poll coverage that used to live here moved to
-// youtube_js_protocol_channel_test.dart with the protocol seam, issue #767.)
 import 'package:enjoy_player/features/ai/domain/prompts/translation_prompt.dart';
 import 'package:flutter_test/flutter_test.dart';
 

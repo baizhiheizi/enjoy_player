@@ -145,8 +145,6 @@ void main() {
         channel: channel,
         onResult: cb.call,
       );
-      // 1e999 parses to double.infinity — `isFinite` gate drops it, but the
-      // sample itself still reports position.
       expect(cb.invocations, 1);
       expect(cb.newDuration, isNull);
     });
@@ -177,7 +175,6 @@ void main() {
       );
       expect(channel.evaluatedSources, hasLength(1));
       expect(channel.evaluatedSources.single, contains('.html5-video-player'));
-      // One spelling: the poll script embeds the bridge's locator verbatim.
       expect(
         channel.evaluatedSources.single,
         contains(YoutubeWebViewBridge.locateVideo),
@@ -206,21 +203,14 @@ void main() {
     });
 
     test('shape drift decodes to null, never to a default state', () {
-      // A missing/mistyped key must not read as "playing at t=0" — that is
-      // the false-positive the poll loop cannot distinguish from DOM truth
-      // (issue #767 review). Every drift below drops the tick instead.
       expect(YoutubeWebViewBridge.decodePollSample('{"d":2,"s":1}'), isNull);
       expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2}'), isNull);
-      // Missing `d` is NOT drift: the page sends 0 for "no duration yet",
-      // so absence decodes as (position, null duration) — the lenient key.
       expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"s":1}'), (
         position: const Duration(seconds: 1),
         duration: null,
         paused: false,
         ended: false,
       ));
-      // A mistyped `d` is lenient like a missing one: it reads as zero
-      // (null duration) instead of throwing — only `t` / `s` are strict.
       expect(YoutubeWebViewBridge.decodePollSample('{"t":1,"d":"2","s":1}'), (
         position: const Duration(seconds: 1),
         duration: null,
@@ -239,7 +229,6 @@ void main() {
         YoutubeWebViewBridge.decodePollSample('{"t":"1","d":2,"s":1}'),
         isNull,
       );
-      // Out-of-contract state code: the JS only emits 0/1/2.
       expect(
         YoutubeWebViewBridge.decodePollSample('{"t":1,"d":2,"s":9}'),
         isNull,
@@ -343,10 +332,6 @@ void main() {
     });
 
     test('every playback-mutating script carries the stale-attempt guard', () {
-      // The __enjoyYtPlayAttempt protocol: any newer transport command
-      // supersedes an in-flight play's rejection callback. A script that
-      // starts or stops playback without bumping the counter can surface a
-      // stale rejection after a pause already won.
       for (final script in [
         YoutubeWebViewBridge.playScript,
         YoutubeWebViewBridge.playOrPauseScript,

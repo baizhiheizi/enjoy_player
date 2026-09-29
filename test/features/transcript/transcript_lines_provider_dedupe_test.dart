@@ -172,12 +172,9 @@ void main() {
       }, fireImmediately: true);
       addTearDown(sub.close);
 
-      // Wait for the initial (post-setup) emission to land.
       await Future<void>.delayed(const Duration(milliseconds: 30));
-      // Drain the seeded-state emissions so the post-seed count is 0.
       final initial = emissions.length;
       emissions.clear();
-      // Sanity: at least one emission must have happened before draining.
       expect(initial, greaterThanOrEqualTo(1));
     }
 
@@ -205,7 +202,6 @@ void main() {
       'skips identical emissions when echo session bumps only counts',
       () async {
         await setupContainer();
-        // Bump recordingsCount — Drift re-emits the echo session row.
         await (db.update(
           db.echoSessions,
         )..where((s) => s.id.equals('echo-1'))).write(
@@ -229,8 +225,6 @@ void main() {
       'skips identical emissions when in-active transcript row changes',
       () async {
         await setupContainer();
-        // Touch the in-active transcript's updatedAt — Drift re-emits the
-        // watchAllForTarget stream.
         await (db.update(
           db.transcripts,
         )..where((t) => t.id.equals(_inactiveTranscriptId))).write(
@@ -249,7 +243,6 @@ void main() {
 
     test('re-emits when the active transcript row is replaced', () async {
       await setupContainer();
-      // Replace the active transcript's timeline — real change.
       await db.transcriptDao.upsert(
         _transcript(
           id: _activeTranscriptId,
@@ -268,7 +261,6 @@ void main() {
       're-emits when the active transcript id changes via echo session',
       () async {
         await setupContainer();
-        // Reassign the echo session to point at the in-active transcript id.
         await (db.update(
           db.echoSessions,
         )..where((s) => s.id.equals('echo-1'))).write(
@@ -285,11 +277,6 @@ void main() {
   });
 
   group('_computeLines uses getById (not listForTarget)', () {
-    // Pins the contract: _computeLines must look up the active row by id,
-    // not scan the full list and pick the first row by ordering. We seed
-    // the in-active transcript with a timestamp LATER than the active
-    // one — a listForTarget-with-wrong-pick would surface 'unused'
-    // instead of the active lines.
     test('lines come from getById(activeId), not listForTarget()', () async {
       final db = AppDatabase(executor: NativeDatabase.memory());
       addTearDown(db.close);
@@ -297,10 +284,6 @@ void main() {
       await db.transcriptDao.upsert(
         _transcript(id: _activeTranscriptId, lines: _activeLines()),
       );
-      // Insert the in-active row AFTER the active one — if _computeLines
-      // scanned with listForTarget and ordered by source/language/createdAt
-      // (createdAt ascending puts the in-active row first), picking the
-      // first row instead of the active one would surface 'unused'.
       await db.transcriptDao.upsert(
         _transcript(
           id: _inactiveTranscriptId,
@@ -333,7 +316,6 @@ void main() {
       }, fireImmediately: true);
       addTearDown(sub.close);
 
-      // Wait for at least one emission to land.
       final deadline = DateTime.now().add(const Duration(seconds: 2));
       while (emissions.isEmpty && DateTime.now().isBefore(deadline)) {
         await Future<void>.delayed(const Duration(milliseconds: 20));

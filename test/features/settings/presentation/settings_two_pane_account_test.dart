@@ -50,7 +50,6 @@ class _FakeRecordingInputDeviceCtrl extends RecordingInputDeviceCtrl {
       );
 }
 
-// (Untyped: Riverpod 3.x's `Override` type isn't part of its public API.)
 // ignore: strict_top_level_inference
 Widget _themedApp({required overrides, required Widget home}) {
   final scheme = ColorScheme.fromSeed(
@@ -145,8 +144,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutTwoPane), findsOneWidget);
-      // Cloud Sync is the default-selected rail item now that Account has
-      // been removed from Settings.
       expect(find.byType(CloudSyncSectionBody), findsOneWidget);
       expect(find.byType(SettingsSectionRailItem), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -169,7 +166,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SettingsLayoutSingleColumn), findsOneWidget);
-      // Cloud Sync should be the first visible section now.
       expect(find.byType(CloudSyncSectionBody), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

@@ -169,7 +169,6 @@ class MediaLibraryRepository {
         prefetchedTitle: prefetchedTitle,
         prefetchedThumbnailUrl: prefetchedThumbnailUrl,
       );
-      // Resurface on Home even when metadata was already complete (re-add).
       await _registry.touchUpdatedAt(dup.id);
       return dup.id;
     }
@@ -320,13 +319,6 @@ class MediaLibraryRepository {
   }
 
   Future<void> deleteMedia(String id) async {
-    // Atomic: enqueue the sync row inside the same transaction as the
-    // local delete. If the local delete fails, the sync enqueue is
-    // rolled back and the user can retry; previously, a sync row
-    // could be left pointing at a media id that no longer exists
-    // locally when the local delete threw between the two calls.
-    // Registry dispatch (video-first probe + which table to delete) runs
-    // inside the same zone, so it joins the transaction.
     String? localUri;
     await _db.transaction(() async {
       localUri = await _registry.localUriOf(id);
@@ -353,10 +345,6 @@ class MediaLibraryRepository {
   /// Updates content language on an existing audio or video row.
   Future<void> updateMediaLanguage(String id, String language) async {
     final canonical = canonicalMediaLanguageTag(language);
-    // Canonicalization, the same-tag short-circuit (skip the write, the
-    // fetch-state clear, and the sync enqueue), and the transcript
-    // fetch-state clear are repo-layer policy — the registry only owns the
-    // videos/audios write dispatch.
     final hit = await _registry.probeBoth(id);
     final current = hit.video?.language ?? hit.audio?.language;
     if (hit.video == null && hit.audio == null) {
@@ -395,11 +383,6 @@ class MediaLibraryRepository {
         previousUri: video?.localUri ?? audio?.localUri,
         kind: kind,
         picked: picked,
-        // Relocate persist (all four fields, nulls clearing stale trust
-        // metadata) lives on the registry — same write as before.
-        // Wrapped in an async block so the callback's declared
-        // `Future<void>` signature cleanly discards the
-        // `Future<MediaKind?>` returned by the registry write.
         persist: (result) async {
           await _registry.updateLocalFile(
             mediaId,

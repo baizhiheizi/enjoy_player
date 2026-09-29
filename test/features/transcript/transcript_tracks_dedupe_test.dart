@@ -247,7 +247,6 @@ void main() {
       () async {
         final initial = await wireAndDrain();
         expect(initial, hasLength(2));
-        // Source ordering by `_sourcePriority`: official=0 < auto=1.
         expect(initial[0].source, 'official');
         expect(initial[1].source, 'auto');
       },
@@ -255,8 +254,6 @@ void main() {
 
     test('skips identical emissions when an unrelated row updates', () async {
       await wireAndDrain();
-      // Bump the echo session's recordingsCount — Drift re-emits the
-      // echo session, but the resolved track list is unchanged.
       await (db.update(
         db.echoSessions,
       )..where((s) => s.id.equals('echo-tracks-dedupe'))).write(
@@ -315,9 +312,6 @@ void main() {
       'skips the echo-session-active-id flip when the track list is unchanged',
       () async {
         await wireAndDrain();
-        // Active-id flip alone does not change the visible track list.
-        // (Whether the consumer downstream cares about the active id is
-        // a separate question — handled by `activeTranscriptIdProvider`.)
         await (db.update(
           db.echoSessions,
         )..where((s) => s.id.equals('echo-tracks-dedupe'))).write(
@@ -349,9 +343,6 @@ void main() {
 
   group('stream_distinct integration', () {
     test('Stream.distinctBy reuses StreamDistinctExt behavior', () async {
-      // Sanity: the shared extension still produces a value-equal-then-skip
-      // stream — protects against accidentally swapping the import or the
-      // helper for an upstream version that breaks semantics.
       final values = <int>[1, 1, 2, 2, 3, 3, 1];
       final seen = <int>[];
       await for (final v in Stream.fromIterable(

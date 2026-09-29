@@ -140,7 +140,6 @@ void main() {
       final box =
           engine.surfaceKey.currentContext!.findRenderObject()! as RenderBox;
       final origin = box.localToGlobal(Offset.zero);
-      // Parked at Offset(-size.width - 64, 0) — must not sit on the target.
       expect(origin.dx, lessThan(0));
     },
   );
@@ -148,10 +147,6 @@ void main() {
   testWidgets(
     'parked YouTube surface keeps the live target size (no 320×180 shrink)',
     (tester) async {
-      // Field: every CC-sheet round-trip (toggling IPA) used to shrink the
-      // WebView from the on-screen stage (e.g. 400×225) to the 320×180 park
-      // fallback. m.youtube.com treats 320 px as a compact-player breakpoint,
-      // flushes ABR, and then pauses every programmatic play within ~0.5 s.
       final engine = _KeyedSurfaceEngine();
       addTearDown(engine.dispose);
       const targetSize = Size(400, 225);
@@ -230,8 +225,6 @@ void main() {
                     ),
                   ),
                 ),
-                // No `forcePark` here: the host watches the overlay coordinator
-                // itself (issue #663), which is what these assertions cover.
                 PlayerSurfaceHost(stageBuilder: _keyedStageBuilder()),
               ],
             ),
@@ -305,8 +298,6 @@ void main() {
                       ),
                     ),
                   ),
-                  // No `forcePark`: the host reads the coordinator itself
-                  // (issue #663), so the token below must park it.
                   PlayerSurfaceHost(stageBuilder: _keyedStageBuilder()),
                 ],
               ),
@@ -533,10 +524,6 @@ void main() {
     'transport, provider, and surface resolve the SAME engine when a test '
     'double and an owned engine are both set (issue #751)',
     (tester) async {
-      // AC2 coherence pin: both slots set is possible only via the
-      // `ownedEngine` test seam. Before #751 transport and the provider
-      // resolved the double while this host mounted the owned engine (its
-      // branch was owned-first) — everyone must resolve the double now.
       final doubleEngine = _KeyedSurfaceEngine();
       final ownedEngine = _KeyedSurfaceEngine();
       addTearDown(doubleEngine.dispose);

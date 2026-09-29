@@ -42,10 +42,6 @@ void main() {
         const Duration(milliseconds: 401),
         const Duration(milliseconds: 800),
       ]);
-      // bucketMs = 400 → bucket boundaries: 0, 400, 800.
-      // Values 50/100/380 all land in [0,400) → 0.
-      // Values 401 lands at 400.
-      // Value 800 lands at 800.
       final result = await quantizedPositionStream(
         source,
         bucketMs: 400,
@@ -86,7 +82,6 @@ void main() {
         source,
         bucketMs: 400,
       ).toList();
-      // 399 → bucket 0; 400 → bucket 400; 999 → bucket 800.
       expect(result, [
         const Duration(milliseconds: 0),
         const Duration(milliseconds: 400),
@@ -100,7 +95,6 @@ void main() {
         const Duration(milliseconds: 500),
         const Duration(milliseconds: 600),
       ]);
-      // All three land in bucket 400; only the first should be emitted.
       final result = await quantizedPositionStream(
         source,
         bucketMs: 400,

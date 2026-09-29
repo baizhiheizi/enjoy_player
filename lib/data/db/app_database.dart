@@ -180,8 +180,6 @@ class AppDatabase extends _$AppDatabase {
           'UPDATE youtube_channel_subscriptions '
           "SET source_type = 'channel' WHERE source_type IS NULL",
         );
-        // Backfill feed_url for existing subscriptions so the worker-based
-        // refresh pipeline can find them.
         await m.database.customStatement(
           'UPDATE youtube_channel_subscriptions SET feed_url = '
           "'https://worker.enjoy.bot/youtube/channel/' || channel_id || '?format=json' "
@@ -219,7 +217,6 @@ class AppDatabase extends _$AppDatabase {
           'ON vocabulary_reviews (vocabulary_item_id, at)',
         );
       } else if (next == 16) {
-        // Hot-read-path covering indexes (issue #467).
         await m.database.customStatement(
           'CREATE INDEX IF NOT EXISTS idx_transcripts_target '
           'ON transcripts (target_type, target_id)',
@@ -265,25 +262,9 @@ class AppDatabase extends _$AppDatabase {
           'ON sync_queue (retry_count, created_at)',
         );
       } else if (next == 17) {
-        // macOS security-scoped bookmarks (ADR-0080). The implicit
-        // `NSOpenPanel` security scope only lasts for the current process,
-        // so on the next open media_kit would hit EACCES while libmpv tries
-        // to read the linked file. We persist a `URL.bookmarkData(…
-        // .withSecurityScope)` blob captured at import and resolve it on
-        // every open via `lib/data/files/security_scoped_bookmark.dart`.
         await _addColumnIfMissing(m, videos, videos.bookmarkData);
         await _addColumnIfMissing(m, audios, audios.bookmarkData);
       } else if (next == 18) {
-        // Issue #717 review followup (F5): the pre-#726 sync queue
-        // producer inserted a fresh row on every failure, leaving
-        // installs with several rows for the same `(entity_type,
-        // entity_id, action)`. The post-fix `addOrUpsert` does
-        // `getSingleOrNull(...)` on that composite key, which throws
-        // when duplicates exist; the producer's catch then silently
-        // drops the latest retry payload. Keep the newest row per
-        // composite (highest `id` is the most recent insert since the
-        // column is auto-increment and SQLite never reuses ids) and
-        // delete the rest. No-op on a clean queue.
         await m.database.customStatement(
           'DELETE FROM sync_queue WHERE id NOT IN ('
           'SELECT MAX(id) FROM sync_queue '

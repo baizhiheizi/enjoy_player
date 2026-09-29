@@ -280,9 +280,7 @@ class _TranscriptScrollableListState
           curve: curve,
         ),
       );
-    } catch (_) {
-      // Target may detach during route pop while animation is in flight.
-    }
+    } catch (_) {}
   }
 
   void _performTranscriptScroll({required int generation}) {
@@ -545,8 +543,6 @@ class _TranscriptScrollableListState
                 final canRetranslateLine = resolved.canRetranslate;
                 final lineFailed = resolved.isFailed;
 
-                // Shared with the echo card so the two item builders cannot
-                // drift (issue #764 candidate 4).
                 final hasSecondary =
                     secondaryText != null && secondaryText.trim().isNotEmpty;
                 if (_requestableAutoTranslate(
@@ -558,8 +554,6 @@ class _TranscriptScrollableListState
                 )) {
                   scheduleAutoTranslateLineRequest(
                     isMounted: () => mounted,
-                    // Re-checked a frame later: the highlight moves, and this
-                    // is the whole point of the policy living in one place.
                     shouldRequest: () => _requestableAutoTranslate(
                       lineIndex: lineIndex,
                       anchor: ref

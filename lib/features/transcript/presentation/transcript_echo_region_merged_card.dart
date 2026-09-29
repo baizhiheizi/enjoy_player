@@ -73,7 +73,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
         autoTranslateMode.aiTranscriptId != null &&
         secondaryId == autoTranslateMode.aiTranscriptId;
 
-    // Neutral surface — no colored background; left rail carries the echo accent.
     final shell = scheme.surfaceContainerLow;
 
     final showShadow = echo.startTimeSeconds >= 0 && echo.endTimeSeconds >= 0;
@@ -118,9 +117,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
       final canRetranslate = resolved.canRetranslate;
       final lineFailed = resolved.isFailed;
 
-      // Echo block is itself the viewport; request every empty cue in range.
-      // Same policy module as the scrollable list (issue #764 candidate 4), so
-      // a fix to one builder cannot leave the other behind.
       if (shouldRequestAutoTranslateLine(
         lineIndex: i,
         anchorLineIndex: 0,
@@ -130,8 +126,6 @@ class EchoRegionMergedCard extends ConsumerWidget {
             secondaryText != null && secondaryText.trim().isNotEmpty,
         isLineFailed: lineFailed,
       )) {
-        // No staleness re-check: the rendered block is the viewport, so there
-        // is no scroll that could invalidate this request before the frame.
         scheduleAutoTranslateLineRequest(
           isMounted: () => ref.context.mounted,
           request: () => ref
@@ -189,19 +183,16 @@ class EchoRegionMergedCard extends ConsumerWidget {
           ),
         ),
         SizedBox(height: density.echoCardGap),
-        // Neutral card with 8px warm orange left rail
         ClipRRect(
           borderRadius: BorderRadius.circular(tok.radiusMd),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Orange rail
                 Container(
                   width: 8,
                   decoration: BoxDecoration(color: tok.echoActive),
                 ),
-                // Content
                 Expanded(
                   child: DecoratedBox(
                     decoration: BoxDecoration(

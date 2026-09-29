@@ -140,7 +140,6 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
             endSec: widget.endSec,
           );
       if (!mounted || gen != _referenceRequestGen) return;
-      // null => superseded/cancelled by a newer request: leave state as-is.
       if (r == null) return;
       setState(() {
         _reference = r;
@@ -180,7 +179,6 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
           .read(echoPitchAnalysisServiceProvider)
           .analyzeUser(mediaPath: path);
       if (!mounted || gen != _userRequestGen) return;
-      // null => superseded/cancelled: leave state as-is.
       if (u == null) return;
       setState(() {
         _user = u;

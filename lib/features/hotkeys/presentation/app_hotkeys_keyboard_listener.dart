@@ -49,10 +49,6 @@ class _AppHotkeysKeyboardListenerState
     return dispatchHotkey(
       event: event,
       ctrl: ref.read(hotkeysCtrlProvider.notifier),
-      // The listener's own context sits above `MaterialApp.router`'s
-      // Navigator (it is built in the router's `builder`), so commands
-      // navigate through the router keys on [HotkeyCtx], not this context —
-      // see [HotkeyCtx.listenerContext] for the one intentional exception.
       ctx: HotkeyCtx(read: ref.read, listenerContext: context),
     );
   }

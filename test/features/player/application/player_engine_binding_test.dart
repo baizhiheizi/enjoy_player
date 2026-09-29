@@ -128,11 +128,6 @@ void main() {
     final owned = wiring.getOwned();
     expect(owned, isA<MediaKitPlayerEngine>());
     expect(owned!.keepSurfaceWhenParked, isFalse);
-    // One identity change (null → MediaKit), bumped by PlayerEngineIdentity —
-    // issue #751. The old "install bump + prepareNativeBackend bump" (+2) is
-    // retired: Video mounts after prepare through the engine's
-    // nativeBackendAllowed listenable, not a second rev bump. Intent kept:
-    // consumers re-watch on identity change.
     expect(container.read(playerEngineRevProvider), revBefore + 1);
 
     await owned.dispose();
@@ -179,8 +174,6 @@ void main() {
       final owned = wiring.getOwned();
       expect(owned, isA<MediaKitPlayerEngine>());
       expect(owned, isNot(same(youtube)));
-      // One identity change (YouTube → MediaKit) — the old +2 collapsed to
-      // +1 once the stage-mount signal moved to the engine (issue #751).
       expect(container.read(playerEngineRevProvider), revBefore + 1);
 
       await owned?.dispose();
@@ -190,8 +183,6 @@ void main() {
   test(
     'YouTube to MediaKit swap does not finish until the prior surface detaches',
     () async {
-      // 2026-08-30: allocating mk.Player while InAppWebView is still
-      // destroying wedges the first local open. The swap must wait.
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final wiring = _wire(container);
@@ -228,8 +219,6 @@ void main() {
   test(
     'YouTube to MediaKit swap does not wait for a hanging prior dispose',
     () async {
-      // Field log 2026-08-30: awaiting YouTube dispose held the loading
-      // skeleton for the full 5 s command timeout on a 4 s local file.
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final wiring = _wire(container);
@@ -256,12 +245,6 @@ void main() {
   test(
     'opted-out Linux never swaps the live MediaKit engine for YouTube',
     () async {
-      // 2026-08-29 field report regression guard: the Linux YouTube open used
-      // to swap in YoutubePlayerEngine (disposing the live MediaKit/mpv
-      // player); the open then threw, and every later audio open rebuilt
-      // MediaKit against a wedged native layer — infinite loading. The open
-      // coordinator now gates before this call; the swap itself must stay
-      // a no-op for YouTube sources on opted-out platforms as well.
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
@@ -286,13 +269,6 @@ void main() {
 
   test('superseded swap restores the prior owned engine instead of leaving '
       'a disposed replacement in the slot (issue #774, item 1)', () async {
-    // Repro: a concurrent newer open (or clear) bumps the open generation
-    // while this swap is awaiting the prior surface detach. Before the
-    // fix, `next` was installed and disposed but never removed from the
-    // slot, so a subsequent open took the
-    // `owned != null && haveYt == wantYt → return false` fast path
-    // against a disposed engine. The fix restores `owned` on every
-    // superseded exit so the slot never holds a disposed engine.
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final wiring = _wire(container);
@@ -306,23 +282,14 @@ void main() {
     wiring.setOwned(prior);
     final revBefore = container.read(playerEngineRevProvider);
 
-    // Start the swap; it installs MediaKit, parks at `awaitPriorSurfaceSettled`
-    // because `gate` is not completed.
     final swapFuture = wiring.coordinator.ensureEngineForPlayableSource(
       playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
       openGeneration: 1,
     );
 
-    // Wait until the swap is parked (gate is being awaited). One zero-
-    // duration delay is enough — the surface detach `await gate.future` is
-    // the only suspend point at this stage.
     await Future<void>.delayed(Duration.zero);
     expect(wiring.getOwned(), isA<MediaKitPlayerEngine>());
 
-    // Bump the generation (simulating a newer open / clear). The parked
-    // step's post-await stale check will now see `isStale()` and throw
-    // [OpenSupersededException]; the swap coordinator's catch restores
-    // the prior owned engine.
     wiring.bumpGeneration();
     gate.complete();
 
@@ -333,13 +300,8 @@ void main() {
       same(prior),
       reason: 'slot must hold the prior engine, not the disposed `next`',
     );
-    // The swap installed MediaKit (slot changed) then restored YouTube
-    // (slot changed back) — rev moves by +2.
     expect(container.read(playerEngineRevProvider), revBefore + 2);
 
-    // A fresh open of the same kind must NOT take the disposed-engine
-    // fast path: the slot holds a live YouTube (not MediaKit, not null),
-    // so the swap installs MediaKit fresh and bumps rev by +1.
     final fresh = await wiring.coordinator.ensureEngineForPlayableSource(
       playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
       openGeneration: 2,
@@ -352,13 +314,6 @@ void main() {
 
   test('supersede at the FIRST guarded step (yield to surface host) runs '
       'the same unwind as the detach stage (issue #794 candidate 7)', () async {
-    // The #774 fix restated "dispose the replacement, restore the prior
-    // owned engine" inline at each supersede exit; its test pinned only the
-    // surface-detach exit. The unwind now lives in one place wrapping every
-    // guarded step, so this drives a supersede at the FIRST guarded step
-    // (the zero-duration yield to the surface host) and pins the same
-    // invariant: no disposed engine left in the slot, prior engine kept
-    // alive, exactly one install + one restore identity change.
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final wiring = _wire(container);
@@ -368,8 +323,6 @@ void main() {
     wiring.setOwned(prior);
     final revBefore = container.read(playerEngineRevProvider);
 
-    // Start the swap: the install is synchronous, so the slot already holds
-    // the replacement while the swap parks at the zero-duration yield step.
     final swapFuture = wiring.coordinator.ensureEngineForPlayableSource(
       playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
       openGeneration: 1,
@@ -377,18 +330,8 @@ void main() {
     expect(wiring.getOwned(), isA<MediaKitPlayerEngine>());
     expect(wiring.getOwned(), isNot(same(prior)));
 
-    // A newer open / clear bumps the generation. The swap body has already
-    // run synchronously to the first guarded step and is parked on its
-    // `Future.delayed(Duration.zero)` timer; timers cannot fire during
-    // synchronous test code, so the bump lands while the swap is parked
-    // there — the generation is stale BEFORE the yield's timer fires, which
-    // is what makes the FIRST step's post-await check the exit the test
-    // exercises.
     wiring.bumpGeneration();
 
-    // Release the event loop: the parked zero-timer (scheduled before this
-    // delay) now fires, the first step's post-await check sees the bump,
-    // and the swap unwinds from there.
     await Future<void>.delayed(Duration.zero);
 
     final result = await swapFuture;
@@ -405,11 +348,8 @@ void main() {
           'a swap superseded before the detach stage must not tear the '
           'prior engine down',
     );
-    // Exactly one identity change per slot write: install + single restore.
     expect(container.read(playerEngineRevProvider), revBefore + 2);
 
-    // The #774 regression shape: a fresh same-kind open must not take the
-    // disposed-engine fast path — it swaps in a new engine and succeeds.
     final fresh = await wiring.coordinator.ensureEngineForPlayableSource(
       playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
       openGeneration: 2,
@@ -423,15 +363,6 @@ void main() {
   test('supersede detected at the trailing post-discard check still '
       'restores the prior engine through the single unwind (issue #794 '
       'candidate 7)', () async {
-    // The third supersede exit fires when the generation moves after the
-    // guarded surface-detach step completed but before the swap finishes —
-    // scripted here by a prior engine whose unawaited dispose (fired by
-    // `discardWithoutAwaiting` at exactly that point) bumps the generation.
-    // Pinned behavior, preserved verbatim by the single-unwind refactor:
-    // the swap disposes the replacement and restores the prior engine to
-    // the slot even though its teardown was already started unawaited, and
-    // a fresh open of the other kind still swaps in a live engine instead
-    // of taking the fast path against a disposed one.
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final wiring = _wire(container);
@@ -459,11 +390,6 @@ void main() {
           'bump — the restore deliberately puts the prior engine back even '
           'though its unawaited teardown started',
     );
-    // The bump must fire from the swap body's `discardWithoutAwaiting(prior)`
-    // call. Anything else in the choreography disposing this engine first
-    // would fire the one-shot bump at the wrong instant and let this test
-    // pass for the wrong reason — so pin the origin; on failure the recorded
-    // stack below points at the actual dispose call site.
     expect(
       prior.bumpOrigin?.toString() ?? '',
       contains('discardWithoutAwaiting'),
@@ -472,12 +398,8 @@ void main() {
           '`discardWithoutAwaiting` dispose, not any other teardown. '
           'Recorded bump origin:\n${prior.bumpOrigin}',
     );
-    // Install + single restore — the one unwind path is the only writer
-    // after the initial install.
     expect(container.read(playerEngineRevProvider), revBefore + 2);
 
-    // Fresh open must not fast-path against a slot it cannot use: the prior
-    // engine is the wrong kind, so the swap installs a new live engine.
     final fresh = await wiring.coordinator.ensureEngineForPlayableSource(
       playable: const LocalFilePlayableSource('file:///tmp/a.mp4'),
       openGeneration: 2,

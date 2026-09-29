@@ -23,13 +23,6 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import '../../../support/fake_player_engine.dart';
 import '../../../support/test_path_provider.dart';
 
-// These tests drive [runPlayerOpen] against the REAL `PlayerController` as
-// the [PlayerOpenScope] — production wiring (deps channel, engine-swap
-// delegation, scheduler closures) with nothing hand-built or re-wired here
-// (issue #750). End-to-end coverage of the [PlayerController.openMedia]
-// entry (generation bump, open-in-flight latch, completion-loop arming)
-// lives in `test/features/player/player_controller_test.dart`.
-
 /// Echo-session DAO that records entries and can hold the read in flight —
 /// the barrier-controlled double from docs/perf-measurement.md (Pattern 3):
 /// count method entries instead of racing concurrent calls.
@@ -179,10 +172,8 @@ void main() {
       );
 
       expect(controller.session, isNull);
-      // The zombie open's continuation must be stale at its next check.
       expect(controller.openGeneration, greaterThan(genBefore));
 
-      // Releasing the wedged open later must not publish a session.
       hang.complete();
       await pumpEventQueue();
       expect(controller.session, isNull);
@@ -191,10 +182,6 @@ void main() {
     test(
       'a wedged first engine.open retries and still publishes the session',
       () async {
-        // Field report 2026-08-30: the hang is engine.open after a YouTube
-        // session (WebView teardown racing mk.Player), not post-open
-        // commands. Back + reopen recovered because the second open ran
-        // after the native side settled. Retry that automatically.
         var attempts = 0;
         fake.openDelay = () async {
           attempts++;
@@ -222,11 +209,6 @@ void main() {
     test(
       'a wedged post-open command degrades instead of hanging the open',
       () async {
-        // Field report 2026-08-30: local audio opened right after a YouTube
-        // session stuck on the loading skeleton (back + reopen recovered).
-        // engine.open is bounded, but the mpv-command steps after it were
-        // not — a wedged event pump held the open forever because the
-        // session (which dismisses the skeleton) publishes only after them.
         final now = DateTime.now();
         await db.echoSessionDao.upsert(
           EchoSessionRow(
@@ -298,8 +280,6 @@ void main() {
         ],
       );
 
-      // Unplayable row: the local file is gone, there is no remote fallback,
-      // and no md5 fingerprint — so the resolver returns null (no relocate).
       final now = DateTime.now();
       await db.audioDao.insertRow(
         AudioRow(
@@ -343,9 +323,6 @@ void main() {
     test(
       'an unknown media id fails with StateError instead of a silent success',
       () async {
-        // Falsifiability: a silent success would leave ExpandedPlayerScreen on
-        // the loading skeleton forever — open completes, session never
-        // publishes (the exact bug the StateError contract exists for).
         await expectLater(
           runPlayerOpen(
             container.read(playerControllerProvider.notifier),
@@ -451,7 +428,6 @@ void main() {
         );
       }
 
-      // Media B has a persisted echo window different from A's live one.
       await db.echoSessionDao.upsert(
         EchoSessionRow(
           id: 'es-b',
@@ -508,7 +484,6 @@ void main() {
         final controller = container.read(playerControllerProvider.notifier);
         final persister = container.read(playbackSessionPersisterProvider);
 
-        // Media A is playing with an active echo window + transcript blur.
         container
             .read(echoModeProvider.notifier)
             .activate(
@@ -519,7 +494,6 @@ void main() {
             );
         container.read(transcriptBlurModeProvider.notifier).activate();
 
-        // Position-tracker cadence: one debounced write pending for media A.
         persister.schedule(
           mediaId: 'media-a',
           dexieTargetType: 'Audio',
@@ -528,7 +502,6 @@ void main() {
 
         controller.publishSession(sessionA());
 
-        // Opening B restores B's echo/blur into the live providers.
         await runPlayerOpen(controller, 'media-b');
         final echo = container.read(echoModeProvider);
         expect(echo.active, isTrue);
@@ -539,12 +512,6 @@ void main() {
         );
         expect(container.read(transcriptBlurModeProvider), isFalse);
 
-        // Advance past the debounce. Falsifiability (docs/perf-measurement.md
-        // Pattern 3): reverting the flush at the head of the open
-        // (lib/features/player/application/player_open_coordinator.dart)
-        // turns this test red — B's restored providers then write line `7`
-        // (echoStartMs 30_000 + blurActive=false) into media-a's row instead
-        // of lines 2–4 above. Verified against pre-fix code.
         await Future<void>.delayed(
           const Duration(milliseconds: kPlaybackSessionDebounceMs + 200),
         );
@@ -667,9 +634,6 @@ void main() {
         Directory.systemTemp.createTempSync('enjoy_player_open_overlap').path,
       );
       db = _CountingEchoDb(executor: NativeDatabase.memory());
-      // The open also schedules a fire-and-forget transcript resolve that
-      // reads the echo session through the same DAO. Point it at its own DB
-      // so the counter below can only ever be the coordinator's read.
       bystanderDb = AppDatabase(executor: NativeDatabase.memory());
       fake = FakePlayerEngine();
       container = ProviderContainer(
@@ -731,10 +695,6 @@ void main() {
     test(
       'the echo-session read starts while engine.open is still in flight',
       () async {
-        // Holding engine.open means the only way the read can already be
-        // pending is if the coordinator issued it first — the structural
-        // proxy for "the DB read no longer sits on the open's critical path"
-        // (docs/perf-measurement.md Pattern 3).
         final openGate = Completer<void>();
         fake.openDelay = () => openGate.future;
         db.countingDao.entryGate = Completer<void>();
@@ -748,10 +708,6 @@ void main() {
         final controller = container.read(playerControllerProvider.notifier);
         final open = runPlayerOpen(controller, 'hang-1');
 
-        // Wait on an explicit entry signal instead of polling: the resolve
-        // path performs real file IO (`localUriTrusted`), so a bounded
-        // zero-duration-timer poll can starve before `engine.open` is
-        // entered on a loaded runner.
         await fake.openEntered.future.timeout(const Duration(seconds: 10));
         expect(fake.openUris, isNotEmpty, reason: 'engine.open was entered');
         expect(
@@ -761,8 +717,6 @@ void main() {
               'the echo-session read must start before engine.open resolves',
         );
 
-        // Releasing both proves the open still consumes the overlapped read
-        // instead of dropping it.
         db.countingDao.entryGate!.complete();
         openGate.complete();
         await expectLater(open, completes);
@@ -877,15 +831,10 @@ void main() {
         await insertHangRow(db1);
         await insertHangRow(db2);
 
-        // The first open binds `deps` — and, before the fix, the database
-        // instance with it.
         final controller = container.read(playerControllerProvider.notifier);
         await runPlayerOpen(controller, 'hang-1');
         expect(db1.countingDao.getLatestCalls, 1);
 
-        // Session switch: `appDatabaseProvider`'s onDispose closes the old
-        // per-user database on sign-out / sign-in as another user, while the
-        // keepAlive PlayerController survives.
         currentDb = db2;
         container.invalidate(appDatabaseProvider);
         await db1.close();
@@ -986,10 +935,6 @@ void main() {
         await runPlayerOpen(controller, 'media-b');
         expect(poster.requests.keys, unorderedEquals(['media-a', 'media-b']));
 
-        // Media A's poster capture resolves while media B's session is live.
-        // Falsifiability: dropping the `live.mediaId != mediaId` gate in
-        // `runPlayerOpen`'s `onSessionThumbnail` turns this red — A's path
-        // lands on B's live session.
         poster.requests['media-a']!('/stale-a.jpg');
         final sessionAfterStale = controller.session;
         expect(sessionAfterStale, isNotNull);
@@ -1000,7 +945,6 @@ void main() {
           reason: "media A's late capture must not stomp media B's session",
         );
 
-        // The live media's own capture still applies.
         poster.requests['media-b']!('/fresh-b.jpg');
         final sessionAfterFresh = controller.session;
         expect(sessionAfterFresh, isNotNull);

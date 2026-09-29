@@ -76,7 +76,6 @@ class _AssessmentResultBodyState extends ConsumerState<AssessmentResultBody> {
 
   @override
   void dispose() {
-    // Cancel subscriptions without awaiting (dispose must stay synchronous).
     unawaited(_positionSub?.cancel() ?? Future<void>.value());
     unawaited(_playingSub?.cancel() ?? Future<void>.value());
     _positionSub = null;
@@ -235,7 +234,6 @@ class _AssessmentResultBodyState extends ConsumerState<AssessmentResultBody> {
   }
 
   void _onToggleWord(AzureWordAssessment w) {
-    // Stop take/clip immediately (spec: chip select ends full-take karaoke).
     _stopPronounce();
     final preview = _preview;
     if (preview != null) {

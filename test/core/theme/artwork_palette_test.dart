@@ -1,8 +1,3 @@
-// Tests for the artwork-palette LRU cache. We verify the invalidation contract
-// — re-using the cache when `(path, size, mtime)` match, evicting the prior
-// entry when the file has been regenerated — without invoking the real
-// `palette_generator` decode path. Run via `flutter test`.
-
 import 'dart:io';
 
 import 'package:enjoy_player/core/theme/dynamic_color/artwork_palette.dart';
@@ -71,7 +66,6 @@ void main() {
       await File(path).writeAsBytes(List<int>.filled(64, 0x10));
       final statA = await File(path).stat();
 
-      // Re-write identical bytes but push mtime forward deliberately.
       await File(path).writeAsBytes(List<int>.filled(64, 0x10));
       File(path).setLastModifiedSync(
         DateTime.fromMillisecondsSinceEpoch(_mtime(statA) + 3000),
@@ -110,7 +104,6 @@ void main() {
         final stat = await File(path).stat();
         debugPutArtworkPalette(path, stat, _palette(_red));
 
-        // Re-thumbnailed file with a larger image body.
         await File(path).writeAsBytes(List<int>.filled(1024, 0xEE));
         File(path).setLastModifiedSync(
           DateTime.fromMillisecondsSinceEpoch(_mtime(stat) + 2000),
@@ -133,7 +126,6 @@ void main() {
       final stat = await File(path).stat();
       debugPutArtworkPalette(path, stat, _palette(_red));
 
-      // Same byte count but the file was rewritten later.
       await File(path).writeAsBytes(List<int>.filled(32, 0x77));
       File(path).setLastModifiedSync(
         DateTime.fromMillisecondsSinceEpoch(_mtime(stat) + 2000),
@@ -153,14 +145,9 @@ void main() {
       await File(pathA).writeAsBytes(List<int>.filled(64, 0x01));
       final statA = await File(pathA).stat();
 
-      // Seed cache for pathA.
       debugPutArtworkPalette(pathA, statA, _palette(_blue));
       expect(debugArtworkPaletteCacheContainsPath(pathA), isTrue);
 
-      // A lookup for pathB with the SAME (size, mtime) must not match —
-      // the path field is part of the key. Filesystem mtime resolution on
-      // some platforms rounds up rather than truncating, so we pin mtime
-      // explicitly first to give both files the same epoch.
       await File(pathB).writeAsBytes(List<int>.filled(64, 0x02));
       File(
         pathB,
@@ -169,17 +156,11 @@ void main() {
 
       final hitForB = debugLookupArtworkPalette(pathB, statB);
       expect(statB.size, statA.size, reason: 'sanity: aligned sizes');
-      // Whether the filesystem rounded statB's mtime up to statA's value or
-      // not, the lookup MUST miss purely because `pathB != pathA`.
       if (_mtime(statB) == _mtime(statA)) {
         expect(hitForB, isNull);
       } else {
-        // mtime granularity differed; the (size, mtime) tuple differs anyway,
-        // so the miss could be due to either mtime drift OR path. Force the
-        // tuple to match to isolate the path check by re-using statA.
         final hitForBExact = debugLookupArtworkPalette(pathB, statA);
         expect(hitForBExact, isNull);
-        // and statA's lookup still hits.
         expect(debugLookupArtworkPalette(pathA, statA), isNotNull);
       }
       expect(debugArtworkPaletteCacheContainsPath(pathA), isTrue);
@@ -215,9 +196,6 @@ void main() {
     });
 
     test('returns null and does not cache when palette decode fails', () async {
-      // Writing raw bytes that are not a valid image forces
-      // palette_generator to throw, and the implementation must surface null
-      // without polluting the cache.
       final path = '${tmp.path}/not-an-image.png';
       await File(path).writeAsBytes(List<int>.filled(64, 0x55));
       final result = await extractArtworkPalette(path);

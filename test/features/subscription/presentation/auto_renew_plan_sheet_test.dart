@@ -117,7 +117,6 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // Unified modal title includes tier + interval label.
       expect(
         find.text(
           l10n.subscriptionPurchaseModalUnifiedTitle(
@@ -128,7 +127,6 @@ void main() {
         findsOneWidget,
       );
 
-      // Both options are visible.
       expect(
         find.text(l10n.subscriptionPurchaseModalOptionAutoRenew),
         findsOneWidget,
@@ -166,14 +164,11 @@ void main() {
 
       final l10n = lookupAppLocalizations(const Locale('en'));
 
-      // The auto-renew CTA is rendered (default path).
       expect(
         find.text(l10n.subscriptionPurchaseModalSubscribeAutoRenewCta),
         findsOneWidget,
       );
 
-      // Pay-once controls are NOT rendered yet (duration / processor live in
-      // the prepaid panel which is collapsed by default).
       expect(find.text(l10n.subscriptionPurchaseDuration), findsNothing);
 
       expect(tester.takeException(), isNull);
@@ -204,13 +199,11 @@ void main() {
 
         final l10n = lookupAppLocalizations(const Locale('en'));
 
-        // Tap the prepaid card to switch paths.
         await tester.tap(
           find.text(l10n.subscriptionPurchaseModalOptionPrepaid),
         );
         await tester.pumpAndSettle();
 
-        // Prepaid panel content is now visible.
         expect(find.text(l10n.subscriptionPurchaseDuration), findsOneWidget);
         expect(
           find.text(l10n.subscriptionPurchasePaymentMethod),
@@ -257,13 +250,11 @@ void main() {
 
         final l10n = lookupAppLocalizations(const Locale('en'));
 
-        // Warning is shown.
         expect(
           find.text(l10n.subscriptionPurchaseModalAutoRenewActiveWarning),
           findsOneWidget,
         );
 
-        // Auto-renew CTA is rendered but disabled.
         final cta = find.text(
           l10n.subscriptionPurchaseModalSubscribeAutoRenewCta,
         );
@@ -303,7 +294,6 @@ void main() {
       await tester.tap(find.text('Open Sheet'));
       await tester.pump();
 
-      // Either the option-card skeleton or a CircularProgressIndicator shows.
       expect(find.byType(CircularProgressIndicator), findsWidgets);
 
       expect(tester.takeException(), isNull);
@@ -347,9 +337,6 @@ void main() {
     testWidgets(
       'auto-renew falls back to a skeleton when no matching plan is loaded',
       (tester) async {
-        // Only a yearly pro plan exists, so opening the sheet at the monthly
-        // interval forces the no-plan-for-this-interval path. The UI must
-        // show a skeleton, never a hardcoded fallback price.
         const yearlyOnly = [
           SubscriptionPlan(
             id: 'plan_yearly',
@@ -377,8 +364,6 @@ void main() {
         await tester.tap(find.text('Open Sheet'));
         await tester.pumpAndSettle();
 
-        // When the selected plan is missing, the auto-renew CTA is rendered
-        // but disabled (so the user cannot proceed with a stale price).
         final l10n = lookupAppLocalizations(const Locale('en'));
         final cta = find.text(
           l10n.subscriptionPurchaseModalSubscribeAutoRenewCta,
@@ -389,7 +374,6 @@ void main() {
         );
         expect(widget.onPressed, isNull);
 
-        // No hardcoded fallback price is rendered.
         expect(
           find.text(l10n.subscriptionAutoRenewPriceMonth('9.99')),
           findsNothing,

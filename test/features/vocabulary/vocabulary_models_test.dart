@@ -2,9 +2,6 @@ import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // --------------------------------------------------------------------------
-  // Enums
-  // --------------------------------------------------------------------------
   group('VocabularyStatus', () {
     test('has correct wire values', () {
       expect(VocabularyStatus.new_.wire, 'new');
@@ -88,9 +85,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // MediaLocator
-  // --------------------------------------------------------------------------
   group('MediaLocator', () {
     test('constructs with required fields', () {
       const locator = MediaLocator(start: 1000, duration: 5000);
@@ -168,9 +162,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // EbookLocatorLocations
-  // --------------------------------------------------------------------------
   group('EbookLocatorLocations', () {
     test('supports all-null fields', () {
       const loc = EbookLocatorLocations();
@@ -229,9 +220,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // EbookLocator
-  // --------------------------------------------------------------------------
   group('EbookLocator', () {
     test('constructs with required fields', () {
       const locator = EbookLocator(
@@ -329,9 +317,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // VocabularyItem
-  // --------------------------------------------------------------------------
   group('VocabularyItem', () {
     final fixedNow = DateTime.utc(2024, 6, 15);
 
@@ -389,7 +374,6 @@ void main() {
       expect(copy.contextsCount, 2);
       expect(copy.lastReviewedAt, later);
       expect(copy.syncStatus, 'synced');
-      // Unchanged fields preserved
       expect(copy.id, 'hello-en-zh');
       expect(copy.word, 'hello');
     });
@@ -409,9 +393,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // VocabularyContext
-  // --------------------------------------------------------------------------
   group('VocabularyContext', () {
     final fixedNow = DateTime.utc(2024, 6, 15);
 
@@ -454,7 +435,7 @@ void main() {
       expect(copy.sourceType, VocabularySourceType.audio);
       expect(copy.sourceId, 'aud-456');
       expect(copy.explanation, 'A greeting');
-      expect(copy.id, 'ctx-1'); // unchanged
+      expect(copy.id, 'ctx-1');
     });
 
     test('copyWith clearExplanation clears the field', () {
@@ -495,9 +476,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // VocabularyReview
-  // --------------------------------------------------------------------------
   group('VocabularyReview', () {
     test('constructor assigns all fields', () {
       final now = DateTime.utc(2024, 6, 15, 12, 30);
@@ -549,9 +527,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // AddVocabularyResult
-  // --------------------------------------------------------------------------
   group('AddVocabularyResult', () {
     test('constructor assigns fields', () {
       final now = DateTime.utc(2024, 6, 15);
@@ -623,9 +598,6 @@ void main() {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // ReviewUpdate
-  // --------------------------------------------------------------------------
   group('ReviewUpdate', () {
     test('constructor assigns all fields', () {
       final now = DateTime.utc(2024, 6, 16);

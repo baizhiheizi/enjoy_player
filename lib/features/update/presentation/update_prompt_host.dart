@@ -44,7 +44,6 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
   Widget build(BuildContext context) {
     ref.listen<UpdateCheckResult?>(updateCtrlProvider, (prev, next) {
       if (next == null || !next.hasUpdate || _showingPrompt) return;
-      // Still refresh the badge during playback; only delay the modal.
       if (ref.read(playerIsPlayingProvider).value ?? false) return;
       unawaited(_maybeShowPrompt(next));
     });

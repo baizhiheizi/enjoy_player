@@ -110,23 +110,17 @@ void main() {
       final sub = Logger('PlayerPositionTracker').onRecord.listen(records.add);
       addTearDown(sub.cancel);
 
-      // The backfill is a registry write-after-read, so the row must exist in
-      // the table (seeded past the throwing DAO override).
       await db.into(db.videos).insert(videoRow());
 
       final t = tracker();
       t.subscribe(openGeneration: 0, mediaId: 'v1', dexieTargetType: 'Video');
 
-      // An escaping Drift throw would surface as an unhandled async exception
-      // and fail the test — passing is part of the assertion.
       fake.emitDuration(const Duration(seconds: 91));
       await Future<void>.delayed(Duration.zero);
 
       expect(db.throwingVideoDao.insertCalls, 1);
-      // The session was already updated before the write threw.
       expect(session?.durationSeconds, 91);
 
-      // Later events still flow (and still try the write).
       fake.emitDuration(const Duration(seconds: 92));
       await Future<void>.delayed(Duration.zero);
 

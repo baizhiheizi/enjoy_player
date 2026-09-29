@@ -29,7 +29,6 @@ void main() {
           )
           .get();
       expect(rows, isNotEmpty);
-      // `notnull = 0` means the column accepts NULL.
       expect(rows.single.read<int>('notnull'), 0);
       expect(rows.single.read<String>('type'), contains('BLOB'));
     });
@@ -91,15 +90,11 @@ void main() {
 
         final seed = AppDatabase(executor: NativeDatabase(file));
         await seed.customStatement('PRAGMA user_version = 16');
-        // Seed has the columns from onCreate (memory-style fresh DB), so
-        // we don't need to insert any rows. Closing the seed triggers the
-        // version pragma persistence.
         await seed.close();
 
         final reopened = AppDatabase(executor: NativeDatabase(file));
         addTearDown(reopened.close);
 
-        // Trigger onUpgrade(from: 16, to: 17) by touching the database.
         await reopened.customSelect('SELECT 1').get();
 
         final vcols = await reopened
@@ -145,7 +140,6 @@ void main() {
       expect(row?.bookmarkData, isNull);
     });
 
-    // Sanity-check the column exists in the `_$AppDatabase` generated code.
     test('VideoRow exposes bookmarkData accessor', () async {
       final now = DateTime.now();
       const id = 'video-accessor';
@@ -168,8 +162,6 @@ void main() {
         updatedAt: now,
       );
       expect(row.bookmarkData, same(blob));
-      // Stored as the same instance — Drift wraps it but the byte content
-      // must round-trip.
       expect(row.bookmarkData?.toList(growable: false), [9, 9, 9]);
     });
   });

@@ -71,12 +71,10 @@ class _AudioStageState extends ConsumerState<AudioStage> {
       await _player!.pause();
       if (mounted) setState(() => _isPlaying = false);
     } else {
-      // Subscribe to streams on first play.
       if (_positionSub == null) {
         _positionSub = _player!.onPositionChanged.listen((pos) {
           if (!mounted) return;
           setState(() {
-            // Clamp: player callbacks can report position past duration.
             _position = _duration > Duration.zero && pos > _duration
                 ? _duration
                 : pos;
@@ -112,8 +110,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
         .read(craftControllerProvider.notifier)
         .saveAndCaptureNext();
     if (!mounted) return;
-    // If save failed, don't show success snackbar or tear down the player —
-    // the failure card will be shown by the build method instead.
     if (result == null) return;
 
     AppNotice.success(
@@ -124,7 +120,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
       context,
       savedSolidTimeline: result.wroteSolidTranscript,
     );
-    // Reset playback state for the next capture.
     _cancelStreams();
     unawaited(_player?.dispose());
     _player = null;
@@ -155,7 +150,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
     final theme = Theme.of(context);
     final t = EnjoyThemeTokens.of(context);
 
-    // Re-synth (voice change) replaces preview bytes — reset the local player.
     ref.listen<Uint8List?>(
       craftControllerProvider.select((s) => s.previewAudioBytes),
       (prev, next) {
@@ -187,7 +181,6 @@ class _AudioStageState extends ConsumerState<AudioStage> {
     }
 
     if (!state.hasPreview) {
-      // No audio — shouldn't normally happen, but show a fallback.
       return Center(
         child: Padding(
           padding: EdgeInsets.all(t.space24),
@@ -290,8 +283,6 @@ String? _voiceDisplayLabel(String? voiceId) {
   }
   return voiceId;
 }
-
-// === Sub-widgets ===
 
 class _UnsavedPreviewHint extends StatelessWidget {
   const _UnsavedPreviewHint({required this.message});
@@ -568,8 +559,6 @@ class _PreviewPlayer extends StatelessWidget {
     final clampedPosition = position > duration && duration > Duration.zero
         ? duration
         : position;
-    // Position can briefly overshoot duration from the player stream;
-    // Slider asserts if value > max.
     final maxMs = duration.inMilliseconds.toDouble().clamp(
       1.0,
       double.infinity,

@@ -16,11 +16,6 @@ void main() {
     test(
       'allowlist is set-identical to the lookup catalog (worker parity)',
       () {
-        // Today's policy: the worker /pronounce allowlist mirrors the lookup
-        // sheet's languages exactly. Nothing enforced this before issue #794;
-        // now both derive from the descriptor table and this pin makes the
-        // equality a visible, deliberate choice. Flip both together when the
-        // worker lags a lookup addition.
         expect(
           kPronounceSupportedLocales,
           kSupportedLookupLanguageTags.toSet(),
@@ -98,7 +93,6 @@ void main() {
     });
 
     test('keeps Nynorsk (nn) unsupported', () {
-      // `nn` is deliberately not aliased onto Bokmål — see ADR-0087.
       expect(resolvePronounceLocale('nn'), isNull);
       expect(resolvePronounceLocale('nn-NO'), isNull);
     });

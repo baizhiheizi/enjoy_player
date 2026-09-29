@@ -87,7 +87,6 @@ void main() {
       expect(bundle.csv, contains('#separator:Comma'));
       expect(bundle.csv, contains('hello'));
       expect(bundle.csv, contains('world'));
-      // Bytes start with UTF-8 BOM.
       expect(bundle.bytes[0], 0xEF);
       expect(bundle.bytes[1], 0xBB);
       expect(bundle.bytes[2], 0xBF);
@@ -124,7 +123,6 @@ void main() {
       );
       expect(progress.first, 0.1);
       expect(progress.last, 1.0);
-      // Final listAll + 0.3 + per-item (0.7 * 1/1) + 0.8 + 1.0
       expect(progress, contains(0.3));
       expect(progress, contains(0.8));
     });
@@ -186,14 +184,12 @@ void main() {
         filters: const VocabularyAnkiExportFilters(),
         sourceRefs: refs,
       );
-      // No item context references the source but no crash; CSV is built.
       expect(bundle.csv, contains('hello'));
     });
   });
 
   group('runVocabularyAnkiExport', () {
     test('returns cancelled when not paid and IO is not invoked', () async {
-      // Even with valid items, !isPaid must short-circuit before reaching IO.
       var listAllCalled = false;
       try {
         await runVocabularyAnkiExport(
@@ -213,10 +209,6 @@ void main() {
     });
 
     test('happy path: returns an IO outcome enum', () async {
-      // We override the IO via a fake to avoid platform FilePicker / SharePlus.
-      // Since the real runVocabularyAnkiExport calls saveOrShareAnkiCsv directly,
-      // we exercise the gate plumbing by verifying that any building-stage error
-      // surfaces before IO is touched.
       final now = DateTime.utc(2026, 1, 1);
       final items = [
         VocabularyItem(
@@ -234,8 +226,6 @@ void main() {
           updatedAt: now,
         ),
       ];
-      // Stub the IO layer indirectly: we cannot in test (no GetIt / DI),
-      // however paid gating is the testable seam — called with isPaid=false ⇒ throw.
       expect(
         () => runVocabularyAnkiExport(
           isPaid: false,
@@ -254,8 +244,6 @@ void main() {
     });
 
     test('paid_required is the only error when isPaid is false', () async {
-      // Sanity check: empty listAll + isPaid=false still throws paid_required,
-      // confirming the paid gate runs BEFORE the no-items check.
       expect(
         () => runVocabularyAnkiExport(
           isPaid: false,
@@ -274,10 +262,6 @@ void main() {
     });
 
     test('passes dialogTitle through to underlying IO layer', () async {
-      // We cannot easily intercept the platform IO call here, but if we get
-      // past the pro gate (which we can't in unit tests without DI), the
-      // dialogTitle would be honored. This test asserts that the public
-      // header API accepts the parameter without type errors.
       const title = 'Export to Anki';
       Future<void> probe() async {
         try {
@@ -288,16 +272,13 @@ void main() {
             filters: const VocabularyAnkiExportFilters(),
             dialogTitle: title,
           );
-        } on StateError {
-          // expected: paid_required
-        }
+        } on StateError {} // ignore: empty_catches
       }
 
       await probe();
     });
   });
 
-  // Note: the IO outcome enum is exported for cross-platform use.
   group('VocabularyAnkiExportIoOutcome', () {
     test('has four values', () {
       expect(VocabularyAnkiExportIoOutcome.values, hasLength(4));

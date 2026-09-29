@@ -29,8 +29,6 @@ Future<void> launchAsrGeneration(
   required String mediaId,
 }) async {
   final db = ref.read(appDatabaseProvider);
-  // One registry read replaces the kindOf + per-table language/duration
-  // lookups (getById maps language + durationSeconds -> durationMs).
   final media = await ref.read(mediaRegistryProvider).getById(mediaId);
   final source = await resolvePlayableSource(db, mediaId);
   if (media == null || source is! LocalFilePlayableSource) {
@@ -46,7 +44,6 @@ Future<void> launchAsrGeneration(
     return;
   }
 
-  // The ASR pipeline speaks its own MediaKind; map off the library kind.
   final kind = media.kind == library_media.MediaKind.video
       ? MediaKind.video
       : MediaKind.audio;
@@ -57,10 +54,6 @@ Future<void> launchAsrGeneration(
     initialLanguage: storedLanguage,
   );
   if (language == null) return;
-  // Re-read after the language dialog so a duration backfilled (or any
-  // other row change) while the user was picking a language is reflected
-  // in the long-media confirmation — and so a row that was deleted
-  // while the dialog was open does not silently proceed.
   if (!context.mounted) return;
   final refreshed = await ref.read(mediaRegistryProvider).getById(mediaId);
   if (refreshed == null) {
@@ -102,17 +95,12 @@ Future<void> launchAsrGeneration(
   } else if (job?.phase == AsrGenerationPhase.error) {
     final l10n = AppLocalizations.of(context)!;
     final failure = job!.creditsFailure;
-    // Router captured while the context is alive: the persisted notice
-    // can outlive this route (see AppNotice).
     final router = GoRouter.of(context);
     AppNotice.error(
       context,
-      // Numbered credits message when the 402 envelope was parsed (spec 045);
-      // the standard ARB-key message otherwise.
       failure != null && failure.requiredCredits != null
           ? creditsFailureMessage(failure, l10n)
           : asrMessageForKey(l10n, job.errorMessage),
-      // One-tap recovery rides only on credits failures (spec 045).
       action: failure == null
           ? null
           : (

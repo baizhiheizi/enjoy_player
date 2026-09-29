@@ -272,9 +272,8 @@ final class EspeakNgSynthesizer implements SpokenReferenceSynthesizer {
     if (data == null) {
       throw const SpokenReferenceException(message: 'eSpeak-NG data missing');
     }
-    // espeak_Initialize path is the directory that *contains* espeak-ng-data.
-    final parent = Directory(data).parent.path;
-    final dataPtr = parent.toNativeUtf8();
+    final espeakDataParentPath = Directory(data).parent.path;
+    final dataPtr = espeakDataParentPath.toNativeUtf8();
     try {
       final rate = bindings.initialize(
         audioOutputSynchronous,
@@ -439,8 +438,6 @@ final class EspeakNgSynthesizer implements SpokenReferenceSynthesizer {
   }) {
     final spans = tokenizeWordSpans(text);
     if (spans.isEmpty) return const [];
-    // eSpeak emits events in text order and time order in practice; sorting
-    // keeps the region math sane for callers that do not.
     final words = [...wordEvents]
       ..sort((a, b) => a.audioMs.compareTo(b.audioMs));
     final phones = [...phoneEvents]

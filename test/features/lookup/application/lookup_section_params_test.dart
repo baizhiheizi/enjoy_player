@@ -191,8 +191,6 @@ void main() {
           sourceLanguage: 'en',
           targetLanguage: 'zh',
         );
-        // b is LookupTextParams since LookupTranslationParams extends it,
-        // and LookupTextParams == only triggers for other is LookupTextParams.
         expect(a == b, isTrue);
       },
     );

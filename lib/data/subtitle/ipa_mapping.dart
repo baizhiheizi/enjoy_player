@@ -266,11 +266,9 @@ bool _matchesCatalog(String value, List<String> catalog) {
   final clean = value.replaceAll(RegExp('[ˈˌ]'), '');
   for (final entry in catalog) {
     if (clean == entry || clean.startsWith(entry)) {
-      // Prefer exact or prefix-with-optional-stress already stripped.
       if (clean == entry) return true;
     }
   }
-  // Longest-first prefix match for diphthongs / affricates.
   final sorted = List<String>.from(catalog)
     ..sort((a, b) => b.length.compareTo(a.length));
   for (final entry in sorted) {

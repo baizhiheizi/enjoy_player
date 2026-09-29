@@ -216,7 +216,6 @@ void main() {
         subscriptionStatusProvider.overrideWith((ref) async => _freeStatus),
         creditsSummaryProvider.overrideWith((ref) async {
           summaryCalls++;
-          // First poll already includes the grant relative to baseline 100.
           return _summary(permanent: summaryCalls >= 1 ? 300 : 100);
         }),
       ],
@@ -244,7 +243,6 @@ void main() {
           subscriptionStatusProvider.overrideWith((ref) async => _freeStatus),
           creditsSummaryProvider.overrideWith((ref) async {
             summaryCalls++;
-            // First sample is pre-grant; second includes the package.
             return _summary(permanent: summaryCalls >= 2 ? 300 : 100);
           }),
         ],
@@ -282,7 +280,6 @@ void main() {
       final notifier = container.read(tierReconcileCtrlProvider.notifier);
 
       final first = notifier.reconcile();
-      // Allow the first reconcile to take the lock and hit credits fetch.
       await Future<void>.delayed(const Duration(milliseconds: 20));
       expect(started, isNotEmpty);
 

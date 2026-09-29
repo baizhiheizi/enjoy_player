@@ -75,7 +75,6 @@ void main() {
   testWidgets(
     'Settings section cards share the hub gutter with Profile on mobile',
     (tester) async {
-      // Compact phone width — hub gutter is pageGutterCompact (16).
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -120,7 +119,6 @@ void main() {
         ),
       ];
 
-      // Measure Profile card left edge first.
       await tester.pumpWidget(
         ProviderScope(
           overrides: overrides,
@@ -147,7 +145,6 @@ void main() {
       ).horizontalInset;
       expect(profileCard.dx, closeTo(expectedInset, 0.5));
 
-      // Settings should match the same hub inset (no extra card pad).
       await tester.pumpWidget(
         ProviderScope(
           overrides: overrides,

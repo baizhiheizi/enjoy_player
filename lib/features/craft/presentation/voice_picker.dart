@@ -25,8 +25,6 @@ class VoicePicker extends StatelessWidget {
     final theme = Theme.of(context);
     final baseLang = language.split('-').first.toLowerCase();
     final voices = voicesForLanguage(baseLang);
-    // DropdownButton asserts if [value] is non-null and missing from [items]
-    // (e.g. session kept a zh voice while Express target is en).
     final effectiveVoice =
         selectedVoice != null && voices.any((v) => v.id == selectedVoice)
         ? selectedVoice

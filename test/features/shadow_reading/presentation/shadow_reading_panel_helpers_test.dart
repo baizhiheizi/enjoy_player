@@ -1,9 +1,3 @@
-// Tests for the `@visibleForTesting` helpers in
-// `lib/features/shadow_reading/presentation/shadow_reading_panel.dart`.
-//
-// These helpers are pure functions inside a heavily platform-dependent
-// ConsumerStatefulWidget, so the file exposes them via thin wrappers so we can
-// unit-test them in isolation without spinning up the full widget tree.
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/features/shadow_reading/presentation/shadow_reading_panel.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,7 +49,6 @@ void main() {
     test('truncates long strings to 177 chars + ellipsis', () {
       final s = 'x' * 500;
       final out = shortSaveErrorForTest(s);
-      // substring(0, 177) + '…' = 178 chars total
       expect(out.length, 178);
       expect(out, endsWith('…'));
     });
@@ -73,7 +66,6 @@ void main() {
       final raw = 'Error: bad\n  at foo()\n  at bar()';
       final out = shortSaveErrorForTest(raw);
       expect(out, contains('Error: bad'));
-      // Whitespace should be normalized to single spaces.
       expect(out.contains('\n'), isFalse);
     });
   });
@@ -103,7 +95,6 @@ void main() {
     });
 
     test('returns the first row when selectedId does not match', () {
-      // Unknown id — fall through to the default (first) per the spec.
       expect(resolvedSelectedRowForTest(rows, 'missing')?.id, 'a');
     });
 

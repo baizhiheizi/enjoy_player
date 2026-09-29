@@ -59,8 +59,6 @@ class AiCacheDao extends DatabaseAccessor<AppDatabase> with _$AiCacheDaoMixin {
               .getSingle();
       if (total <= keep) return 0;
       final toDelete = total - keep;
-      // Single-statement bulk DELETE (issue #478): avoids N round-trips
-      // and N fsyncs when evicting many keys.
       await customStatement(
         'DELETE FROM ai_cache WHERE kind = ? AND key IN '
         '(SELECT key FROM ai_cache WHERE kind = ? ORDER BY updated_at ASC LIMIT ?)',

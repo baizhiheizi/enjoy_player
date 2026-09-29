@@ -1,15 +1,3 @@
-// Widget tests for `lib/features/lookup/presentation/sections/dictionary_lookup_section.dart`.
-//
-// The section watches `lookupSheetDictionaryProvider` and renders one of:
-//   * a shimmer while loading
-//   * a `_DictionaryBody` for a successful result
-//   * an `AuthRequiredCallout` for AuthFailure
-//   * a `LookupErrorRow` (with optional "View plans" CTA) for CreditsFailure
-//   * a `LookupErrorRow` for other failures
-//
-// We override the dictionary capability provider so the lookup resolves to a
-// pre-canned `DictionaryResult`, plus override the auth controller to keep
-// the auth gate out of the way.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/cache/lru_store.dart';
@@ -32,8 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-
-// === Fakes ===
 
 class _AuthSignedInCtrl extends AuthCtrl {
   @override
@@ -98,8 +84,6 @@ Widget _harness({required List<Override> overrides, required Widget child}) {
 }
 
 Future<void> _expand(WidgetTester tester) async {
-  // The card starts collapsed — tap the "Definition" header to expand and
-  // surface the body.
   await tester.tap(find.text('Definition'));
   await tester.pumpAndSettle();
 }
@@ -155,16 +139,11 @@ void main() {
     );
     await _expand(tester);
 
-    // Headword shows the queried word.
     expect(find.text('run'), findsWidgets);
-    // Lemma + IPA render.
     expect(find.textContaining('/rʌn/'), findsOneWidget);
-    // Sense definition + translation.
     expect(find.textContaining('move at a pace'), findsOneWidget);
     expect(find.text('跑步'), findsOneWidget);
-    // Second sense without examples.
     expect(find.text('运行'), findsOneWidget);
-    // Example source + target.
     expect(find.text('I run every morning.'), findsOneWidget);
     expect(find.text('我每天早上跑步。'), findsOneWidget);
   });
@@ -192,7 +171,6 @@ void main() {
     await _expand(tester);
 
     expect(find.text('hello'), findsWidgets);
-    // Lemma segment should be skipped when lemmaTrim == word.trim().
     expect(find.textContaining('Lemma ·'), findsNothing);
   });
 
@@ -213,8 +191,6 @@ void main() {
     await _expand(tester);
 
     expect(find.byType(LookupErrorRow), findsNothing);
-    // When the user is signed out, `AuthRequiredCallout` shows a sign-in
-    // button so they can re-auth before retrying the lookup.
     expect(find.text('Sign in'), findsOneWidget);
   });
 
@@ -235,7 +211,6 @@ void main() {
 
     expect(find.byType(LookupErrorRow), findsOneWidget);
     expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
-    // The unified "View plans & packages" CTA (spec 045) for credits failures.
     expect(
       find.text(
         lookupAppLocalizations(
@@ -284,7 +259,6 @@ void main() {
     await _expand(tester);
 
     expect(find.byType(LookupErrorRow), findsOneWidget);
-    // No "View plans" CTA for non-credit errors.
     expect(find.text('View plans'), findsNothing);
   });
 }

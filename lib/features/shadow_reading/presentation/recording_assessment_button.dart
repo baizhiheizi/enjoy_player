@@ -63,8 +63,6 @@ class RecordingAssessmentButton extends ConsumerWidget {
         .watch(appPreferencesCtrlProvider)
         .valueOrNull
         ?.effectiveLearningLanguage;
-    // Unknown media language (`und`, common on YouTube) must not disable the
-    // button — fall back to the learner's focus language (see catalog helper).
     final assessmentSupported =
         isAzurePronunciationAssessmentSupportedForPractice(
           row.language,
@@ -106,9 +104,6 @@ class RecordingAssessmentButton extends ConsumerWidget {
       );
     }
 
-    // Use [MaterialType.transparency] when there is no score fill. A
-    // transparent [MaterialType.canvas] (the default) can drop taps on
-    // Android even though the same InkWell works on Windows / desktop.
     return OnboardingTarget(
       tipId: OnboardingTipId.playerAssess,
       onTargetAction: canInteract && !isAssessing ? runAssess : null,

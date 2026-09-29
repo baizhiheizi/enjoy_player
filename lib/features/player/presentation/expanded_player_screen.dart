@@ -50,7 +50,6 @@ class _ExpandedPlayerScreenState extends ConsumerState<ExpandedPlayerScreen> {
       if (err is MediaNeedsRelocateException) {
         return LocateMediaScreen(info: err);
       }
-      // ADR-0048: dedicated "coming soon" body — not the generic failure.
       if (err is YouTubePlaybackUnavailableException) {
         return ExpandedPlayerYoutubeUnavailableBody(colorScheme: cs);
       }

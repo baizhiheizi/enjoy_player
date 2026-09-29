@@ -36,8 +36,6 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
   @override
   CraftPreferences build() {
     _loadFuture = null;
-    // Watching auth (not selecting) matches AppPreferencesCtrl: a sign-in
-    // transition re-hydrates from that user's DB, sign-out drops to defaults.
     final auth = ref.watch(authCtrlProvider).valueOrNull;
     if (auth is AuthSignedIn) {
       unawaited(Future<void>.microtask(load));
@@ -50,15 +48,12 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
   Future<CraftPreferences> load() => _loadFuture ??= _loadFromDb();
 
   Future<CraftPreferences> _loadFromDb() async {
-    // Flush setters that already ran so the row we read includes them.
     await _persistQueue;
     final readGeneration = _mutation;
     CraftPreferences? loaded;
     try {
       final auth = ref.read(authCtrlProvider).valueOrNull;
       if (auth is AuthSignedIn) {
-        // Corrupt / non-object blobs throw in the codec and fall through to
-        // the defaults below.
         final decoded = await ref
             .read(appDatabaseProvider)
             .settingsDao
@@ -70,9 +65,7 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
     } catch (e, st) {
       logNamed('craft.prefs').warning('Hydrate failed; using defaults', e, st);
     }
-    // The provider went away mid-flight (screen left / container disposed).
     if (!ref.mounted) return loaded ?? CraftPreferences.defaults;
-    // A setter ran while we awaited the DB — keep the user's values.
     if (_mutation != readGeneration) return state;
     if (loaded != null) state = loaded;
     return state;
@@ -95,7 +88,6 @@ class CraftPreferencesCtrl extends _$CraftPreferencesCtrl {
           .writeSetting(SettingsKeys.craftPreferencesV1, state.toJson());
     });
 
-    // Keep the chain alive even if a write fails.
     _persistQueue = task.then((_) {}, onError: (_) {});
     return task;
   }

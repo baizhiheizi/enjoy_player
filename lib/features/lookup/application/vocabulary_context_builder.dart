@@ -108,7 +108,6 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
   }
 
   final activeIdx = transcriptActiveIndex(lines, currentTimeSeconds);
-  // Seed from one cue so ±radius cannot grow with a large echo span.
   final seedIdx = activeIdx >= 0
       ? activeIdx
       : (echoValid ? echo.startLineIndex : -1);
@@ -128,7 +127,6 @@ VocabularyContextSpan? resolveVocabularyContextSpan({
     primaryLanguage,
   );
 
-  // No terminators — keep the bounded ±radius window (not the full echo).
   if (sentenceBoundaries.isEmpty) {
     return _fallbackSpan(lines, expStart, expEnd);
   }

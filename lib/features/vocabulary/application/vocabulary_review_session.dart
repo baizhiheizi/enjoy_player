@@ -322,10 +322,7 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
       if (hasSession) {
         try {
           await player.activeEngine.pause();
-        } catch (_) {
-          // Best-effort pause when the engine is not ready.
-        }
-        // Drop the playback session so the mini-bar does not appear after dismiss.
+        } catch (_) {}
         try {
           await player.clear(keepVideoSurface: true);
         } catch (_) {}

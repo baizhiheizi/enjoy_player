@@ -123,7 +123,6 @@ void main() {
         child: const SharePracticePosterButton(mediaId: 'video-1'),
       ),
     );
-    // Allow the FutureProvider to settle.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pumpAndSettle();
@@ -251,7 +250,6 @@ void main() {
     tester,
   ) async {
     await seedVideo(db, 'video-7');
-    // No recordings yet.
     await tester.pumpWidget(
       await _wrap(
         container: container,
@@ -263,7 +261,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(IconButton), findsNothing);
 
-    // Add recordings after first render.
     await seedRecording(db, 'rec-6', 'Video', 'video-7');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));

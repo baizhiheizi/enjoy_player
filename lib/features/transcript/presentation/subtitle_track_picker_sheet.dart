@@ -281,8 +281,6 @@ class _SubtitleTrackPickerSheetState
       AutoTranslateBlockReason.noPrimary =>
         l10n.subtitlesAutoTranslateBlockedNoPrimary,
       AutoTranslateBlockReason.credits =>
-        // Numbered message when the 402 envelope was parsed (spec 045);
-        // static copy otherwise.
         state.creditsFailure != null
             ? creditsFailureMessage(state.creditsFailure!, l10n)
             : l10n.subtitlesAutoTranslateBlockedCredits,
@@ -473,7 +471,6 @@ class _SubtitleTrackPickerSheetState
                       sheetHorizontalPadding(t),
                       t.space8,
                     ),
-                    // One-tap recovery for the credits block (spec 045).
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: TextButton(

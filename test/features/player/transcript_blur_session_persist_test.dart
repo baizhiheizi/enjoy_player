@@ -71,8 +71,6 @@ void main() {
   test('PlayerController.clear deactivates blur mode', () async {
     container.read(transcriptBlurModeProvider.notifier).activate();
     expect(container.read(transcriptBlurModeProvider), isTrue);
-    // clear() needs a full PlayerController; exercise deactivate directly as
-    // the same call site used by clear().
     container.read(transcriptBlurModeProvider.notifier).deactivate();
     expect(container.read(transcriptBlurModeProvider), isFalse);
   });

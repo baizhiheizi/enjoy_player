@@ -45,14 +45,6 @@ void openTranscriptLookup({
     _ => 0.0,
   };
 
-  // Source resolution per spec (FR-005): the video's stored language is the
-  // authoritative source — set by the user at import time on VideoRow.language
-  // and propagated to PlaybackChrome.language. If the video has no language
-  // (`und` / empty), fall back to the active transcript track's language
-  // (which is what the user is reading in the panel). If still missing, fall
-  // back to the learning language. No sibling-track fallback — picking the
-  // "first" track leads to wrong-language lookups when the user has tracks
-  // in multiple languages.
   final sourceLang = resolveLookupSourceLanguage(
     chromeLanguage: chrome?.language,
     activeTrackLanguage: _resolveActiveTrackLanguage(ref, chrome?.mediaId),

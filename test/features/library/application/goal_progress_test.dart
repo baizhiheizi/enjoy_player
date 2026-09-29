@@ -58,10 +58,8 @@ void main() {
 
     test('rounds to nearest percent, half away from zero', () {
       expect(goalPercent(15 * 60 * 1000, 30), 50);
-      // 23.33 -> 23, 26.67 -> 27.
       expect(goalPercent(7 * 60 * 1000, 30), 23);
       expect(goalPercent(8 * 60 * 1000, 30), 27);
-      // 12.5 -> 13 (exact .5 rounds up).
       expect(goalPercent(60 * 1000, 8), 13);
     });
 
@@ -70,22 +68,16 @@ void main() {
     });
 
     test('floors raw milliseconds to minutes before converting', () {
-      // 59,999 ms against a 1-minute goal is 0% (not 100%): the ring, the
-      // percent figure, and the "0 / 1 min" line must move on whole-minute
-      // steps.
       expect(goalPercent(60 * 1000 - 1, 1), 0);
       expect(goalPercent(60 * 1000, 1), 100);
     });
 
     test('sub-minute remainder does not tip an in-progress percent', () {
-      // 29m59.999s of a 30-minute goal: 29/30 -> 97%, not 100%.
       expect(goalPercent(30 * 60 * 1000 - 1, 30), 97);
       expect(goalPercent(30 * 60 * 1000, 30), 100);
     });
 
     test('non-positive goal is a precondition violation', () {
-      // [goalPercent] trusts its contract: callers pass normalizeGoalMinutes
-      // output, so a non-positive goal is an assert, not a silent 0.
       expect(
         () => goalPercent(15 * 60 * 1000, 0),
         throwsA(isA<AssertionError>()),
@@ -203,7 +195,6 @@ void main() {
     });
 
     test('minute count and percent can disagree at rounding boundaries', () {
-      // 1 completed minute of a 24h goal renders "1 / 1440 min" but 0%.
       final progress = computeGoalProgress(
         recordingDurationMs: 60 * 1000,
         goalMinutes: 24 * 60,

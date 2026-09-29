@@ -11,8 +11,6 @@ void main() {
   testWidgets(
     'renders the coming-soon notice on Linux instead of the sign-in WebView',
     (tester) async {
-      // try/finally so the override is cleared *before* the testWidgets
-      // verification check runs (same pattern as media_card_test).
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       try {
         await tester.pumpWidget(
@@ -34,9 +32,6 @@ void main() {
           find.text('YouTube is not yet available on Linux — coming soon.'),
           findsOneWidget,
         );
-        // Ungated, the screen constructs InAppWebView, which asserts — no
-        // platform backend exists in the test environment (the same failure
-        // as production Linux).
         expect(tester.takeException(), isNull);
       } finally {
         debugDefaultTargetPlatformOverride = null;

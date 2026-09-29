@@ -106,8 +106,6 @@ void main() {
     });
 
     test('page canPop alone does not count as overlay', () {
-      // Pushed GoRouter pages make Navigator.canPop true; only PopupRoute
-      // should trigger popShellPopup / popRootPopup.
       expect(
         resolveEscapeDismissal(
           base.copyWith(path: '/settings', goRouterCanPop: true),
@@ -164,7 +162,6 @@ void main() {
       expect(navigatorHasTopPopupRoute(navKey.currentState), isTrue);
       expect(find.text('dlg'), findsOneWidget);
 
-      // Inspection must not dismiss the dialog.
       expect(find.text('dlg'), findsOneWidget);
     });
 

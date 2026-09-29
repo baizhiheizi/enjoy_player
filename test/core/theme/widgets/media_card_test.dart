@@ -1,10 +1,3 @@
-// Coverage for lib/core/theme/widgets/media_card.dart.
-//
-// We exercise the public MediaCardTile / MediaCardRow widgets and the grid
-// delegate helpers. The internal `isMobilePlatform` predicate branches the
-// inline delete button / long-press behaviour, so the tests cover both
-// desktop (default) and mobile (overridden) layouts. Network thumbnails are
-// stubbed so tests don't hit the network.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:io';
 
@@ -58,7 +51,6 @@ void main() {
     test(
       'mediaCardTileGridAspectRatioForWidth uses width/(9/16*w+meta+inset)',
       () {
-        // 280/(280*9/16 + 58 + 3) = 280/(157.5 + 61) = 280/218.5
         final ratio = mediaCardTileGridAspectRatioForWidth(280);
         expect(ratio, closeTo(280 / 218.5, 0.001));
       },
@@ -66,7 +58,6 @@ void main() {
 
     test('mediaCardTileGridAspectRatioForWidth handles small widths', () {
       final ratio = mediaCardTileGridAspectRatioForWidth(120);
-      // 120 / (120 * 9/16 + 58 + 3) = 120 / (67.5 + 61) = 120/128.5
       expect(ratio, closeTo(120 / 128.5, 0.001));
     });
 
@@ -85,7 +76,6 @@ void main() {
     });
 
     test('mediaCardTileGridDelegateForMinTileWidth clamps crossAxisCount', () {
-      // Tiny viewport: clamp(1, maxCount) ensures at least 1 column.
       final delegate = mediaCardTileGridDelegateForMinTileWidth(
         crossAxisExtent: 100,
       );
@@ -210,7 +200,6 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Badge text is present.
       expect(find.text('zh'), findsOneWidget);
       await tester.tap(find.text('zh'));
       await tester.pumpAndSettle();
@@ -253,12 +242,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        // Mobile: inline delete button is hidden.
         expect(find.byIcon(EnjoyIcons.delete), findsNothing);
-        // Trigger long-press → opens a sheet.
         await tester.longPress(find.text('T'));
         await tester.pumpAndSettle();
-        // The sheet uses the explicit deleteTooltip as the title.
         final listTile = find.widgetWithText(ListTile, 'Remove this item');
         expect(listTile, findsOneWidget);
         await tester.tap(listTile);
@@ -289,17 +275,13 @@ void main() {
     });
 
     testWidgets('renders thumbnailFile when provided', (tester) async {
-      // Create a temporary file (file content unused — widget just reads path).
       final tmp = File('/tmp/empty_thumb.png');
       await tester.pumpWidget(
         _wrap(
           child: MediaCardTile(title: 'T', thumbnailFile: tmp, onTap: () {}),
         ),
       );
-      // Use pump (not pumpAndSettle) — Image.file loads asynchronously and
-      // the missing file does not produce a finite settled state.
       await tester.pump();
-      // The Image.file widget is present.
       expect(find.byType(Image), findsWidgets);
     });
 
@@ -325,8 +307,6 @@ void main() {
           child: MediaCardTile(title: 'T', adding: true, onTap: () {}),
         ),
       );
-      // pump (not pumpAndSettle): the CircularProgressIndicator animates
-      // forever, so a settled state never arrives.
       await tester.pump();
       expect(find.byType(MediaCardAddingScrim), findsOneWidget);
       expect(find.byType(LoadingIcon), findsOneWidget);
@@ -371,12 +351,10 @@ void main() {
     });
 
     test('meta is mutually exclusive with the built-in meta block', () {
-      // Both slots at once trips the debug assert…
       expect(
         () => MediaCardTile(title: 'T', meta: const Text('C'), onTap: () {}),
         throwsA(isA<AssertionError>()),
       );
-      // …while either slot alone is fine (title defaults to '').
       expect(() => MediaCardTile(title: 'T', onTap: () {}), returnsNormally);
       expect(
         () => MediaCardTile(meta: const Text('C'), onTap: () {}),
@@ -396,8 +374,6 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // The custom slot renders inside the same fixed-height box the built-in
-      // block uses, so grid rows stay aligned whichever slot a caller picks.
       final budget = find.ancestor(
         of: find.text('custom meta'),
         matching: find.byWidgetPredicate(
@@ -405,7 +381,6 @@ void main() {
         ),
       );
       expect(budget, findsOneWidget);
-      // Total tile height: 16:9 artwork (280 × 9 / 16 = 157.5) + budget.
       expect(
         tester.getSize(find.byType(MediaCardTile)).height,
         closeTo(157.5 + mediaCardTileMetaHeight, 0.1),
@@ -415,9 +390,6 @@ void main() {
     testWidgets('hover play glyph is present but invisible while adding', (
       tester,
     ) async {
-      // EnjoyPressable's hover arrives via FocusableActionDetector, which only
-      // reports hover highlight in "traditional" mode. Tests boot in touch
-      // mode, so pin the strategy for this test.
       final previousStrategy = FocusManager.instance.highlightStrategy;
       FocusManager.instance.highlightStrategy =
           FocusHighlightStrategy.alwaysTraditional;
@@ -439,23 +411,18 @@ void main() {
       );
       await tester.pump();
 
-      // Hover the tile with a mouse pointer.
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer();
       await gesture.moveTo(tester.getCenter(find.byType(MediaCardTile)));
       await tester.pumpAndSettle();
 
       final glyph = find.byType(MediaCardPlayGlyph);
-      // Hover established: the glyph is in the tree and fully visible…
       final glyphOpacity = find.ancestor(
         of: glyph,
         matching: find.byType(AnimatedOpacity),
       );
       expect(tester.widget<AnimatedOpacity>(glyphOpacity).opacity, 1.0);
 
-      // An import starts mid-hover. (EnjoyPressable wraps the whole tile in
-      // its own AnimatedScale — the glyph's is the unique one below its
-      // AnimatedOpacity.)
       final glyphScale = find.descendant(
         of: glyphOpacity,
         matching: find.byType(AnimatedScale),
@@ -464,23 +431,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // The glyph is still mounted…
       expect(glyph, findsOneWidget);
 
-      // …but opacity-zero while the import is in flight.
       expect(tester.widget<AnimatedOpacity>(glyphOpacity).opacity, 0.0);
 
-      // The scale is driven by the same `adding` guard, so the glyph parks at
-      // its 0.85 rest scale for the whole import (no pop to 1 mid-hover).
       expect(tester.widget<AnimatedScale>(glyphScale).scale, 0.85);
 
-      // And it is not hit-testable at its own center.
       final hit = tester.hitTestOnBinding(tester.getCenter(glyph));
       final glyphBox = tester.renderObject<RenderBox>(glyph);
       expect(hit.path.any((entry) => entry.target == glyphBox), isFalse);
 
-      // Import settles mid-hover: the glyph fades back in and scales up from
-      // 0.85 instead of popping in at full size.
       setTileState(() => adding = false);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
@@ -588,7 +548,6 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        // Inline delete hidden on mobile.
         expect(find.byIcon(EnjoyIcons.delete), findsNothing);
         await tester.longPress(find.text('T'));
         await tester.pumpAndSettle();
@@ -615,7 +574,6 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        // Long-press sheet should not appear because trailing != null.
         await tester.longPress(find.text('T'));
         await tester.pumpAndSettle();
         expect(find.byType(ListTile), findsNothing);
@@ -672,7 +630,6 @@ void main() {
   });
 
   test('isMobilePlatform is read by delete-button helper', () {
-    // Sanity check that the predicate behaves as expected.
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     expect(isMobilePlatform, isTrue);
     debugDefaultTargetPlatformOverride = null;

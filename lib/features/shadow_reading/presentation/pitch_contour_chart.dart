@@ -138,7 +138,6 @@ class _PitchContourPainter extends CustomPainter {
 
     final chart = Rect.fromLTWH(0, 8, size.width, size.height - 16);
 
-    // 1) Reference amplitude (dim)
     if (visibility.showWaveform && visibility.showReference) {
       final ampPaint = Paint()
         ..color = referenceColor.withValues(alpha: 0.18)
@@ -153,7 +152,6 @@ class _PitchContourPainter extends CustomPainter {
       }
     }
 
-    // 2) Reference pitch area + stroke
     if (visibility.showReference) {
       final line = Path();
       var first = true;
@@ -190,7 +188,6 @@ class _PitchContourPainter extends CustomPainter {
       }
     }
 
-    // 3) User amplitude
     if (visibility.showWaveform && visibility.showUser) {
       final uAmp = Paint()
         ..color = userColor.withValues(alpha: 0.15)
@@ -206,7 +203,6 @@ class _PitchContourPainter extends CustomPainter {
       }
     }
 
-    // 4) User pitch stroke
     if (visibility.showUser) {
       final userLine = Path();
       var uFirst = true;
@@ -247,9 +243,6 @@ class _PitchContourPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PitchContourPainter oldDelegate) {
-    // Compare the points by content (length + element equality via
-    // [EchoRegionSeriesPoint.==]) rather than list identity, so a memoized
-    // series that is stable across playback ticks lets the painter skip work.
     return !listEquals(oldDelegate.points, points) ||
         oldDelegate.progress != progress ||
         oldDelegate.progressColor != progressColor ||

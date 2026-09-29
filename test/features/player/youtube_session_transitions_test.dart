@@ -7,12 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// (issue #627). No WebView, no poll loop — the verbs are the test surface.
 void main() {
   group('user-play in-flight invariant', () {
-    // The invariant the field's doc comment states: the latch spans the whole
-    // play attempt, so it survives the first `playing` (the page's
-    // post-playing correction is exactly what the D8 retry exists for) and is
-    // consumed only by the resolving failures, an explicit pause-intent
-    // command, or the session resets. Previously hand-enforced across five
-    // modules; now asserted once, here.
     test('every consuming transition clears the in-flight latch', () {
       final consumers = <String, void Function(YoutubeSession)>{
         'play rejected': (s) => s.noteUserPlayUnresolved(),
@@ -25,7 +19,7 @@ void main() {
       for (final entry in consumers.entries) {
         final session = YoutubeSession()..resetForOpen('abc12345678');
         session.beginUserPlay();
-        session.notePlayingConfirmed(); // survives — see test below
+        session.notePlayingConfirmed();
         expect(session.userPlayInFlight, isTrue, reason: 'seed: ${entry.key}');
         entry.value(session);
         expect(
@@ -54,7 +48,7 @@ void main() {
 
     test('beginUserPlay clears stale buffering while not playing', () {
       final session = YoutubeSession()..resetForOpen('abc12345678');
-      expect(session.buffering, isTrue); // resetForOpen arms buffering.
+      expect(session.buffering, isTrue);
       session.beginUserPlay();
       expect(session.userPlayInFlight, isTrue);
       expect(session.buffering, isFalse);
@@ -68,11 +62,6 @@ void main() {
     });
 
     test('budget expires once playback outlives the attempt window', () {
-      // The fulfillment condition from the field doc, made literal: without
-      // the expiry a budget armed minutes ago could be spent by a pause
-      // after a page-UI resume the app never commanded. The retry
-      // protocol's monotonic clock is injected, so expiry is deterministic
-      // instead of sleeping past the real 2 s window.
       final clock = FakeMonotonicClock();
       final session = YoutubeSession(
         playRetry: YouTubePlayRetryPolicy(
@@ -91,7 +80,6 @@ void main() {
 
     test('noteAutoPlayRetry stamps a recent retry, reset retires it', () {
       final session = YoutubeSession()..resetForOpen('abc12345678');
-      // Nothing issued for this attempt yet.
       expect(
         session.playRetry.recentAutoRetryWithin(const Duration(minutes: 1)),
         isFalse,
@@ -116,17 +104,15 @@ void main() {
       session.notePlayingConfirmed();
       expect(session.playRetry.lastPlayingFromAutoRetry, isFalse);
 
-      session.noteAutoPlayRetry(); // retry #1 issued → count + attribution
+      session.noteAutoPlayRetry();
       expect(session.playRetry.autoRetriesIssued, 1);
-      session.notePauseConfirmed(); // episode ends before the retry plays
-      session.notePlayingConfirmed(); // the retry's episode
+      session.notePauseConfirmed();
+      session.notePlayingConfirmed();
       expect(session.playRetry.lastPlayingFromAutoRetry, isTrue);
 
-      // A deliberate pause drops the attribution — no further escalation.
       session.noteUserPauseCommand();
       expect(session.playRetry.lastPlayingFromAutoRetry, isFalse);
 
-      // A fresh play command resets the chain entirely.
       session.beginUserPlay();
       expect(session.playRetry.autoRetriesIssued, 0);
       expect(session.playRetry.lastPlayingFromAutoRetry, isFalse);
@@ -135,20 +121,15 @@ void main() {
     test(
       'poll-tick re-confirmations do not erase the attribution (round-5 bug)',
       () {
-        // The poll loop calls notePlayingConfirmed on EVERY tick while
-        // playing; per-call attribution consumption let the first tick after
-        // the retry's playing event erase it, so the escalation arm never
-        // fired for the second wedge pause. Attribution must latch per
-        // episode (false→true transition) instead.
         final session = YoutubeSession()..resetForOpen('abc12345678');
         session.beginUserPlay();
-        session.notePlayingConfirmed(); // user episode
-        session.noteAutoPlayRetry(); // retry #1 issued
-        session.notePauseConfirmed(); // episode ends (playing → false)
+        session.notePlayingConfirmed();
+        session.noteAutoPlayRetry();
+        session.notePauseConfirmed();
 
-        session.notePlayingConfirmed(); // retry episode begins (transition)
-        session.notePlayingConfirmed(); // poll tick re-confirms (no-op path)
-        session.notePlayingConfirmed(); // …and again
+        session.notePlayingConfirmed();
+        session.notePlayingConfirmed();
+        session.notePlayingConfirmed();
         expect(
           session.playRetry.lastPlayingFromAutoRetry,
           isTrue,
@@ -197,7 +178,7 @@ void main() {
       addTearDown(sub.cancel);
 
       session.noteEnded();
-      session.noteEnded(); // idempotent
+      session.noteEnded();
       await Future<void>.delayed(Duration.zero);
 
       expect(completedEvents, hasLength(1));
@@ -342,7 +323,7 @@ void main() {
       expect(session.webViewMounted, isTrue);
       session.noteWebViewUnmounted();
       expect(session.webViewMounted, isFalse);
-      expect(session.shouldMountWebView, isTrue); // unmount ≠ clear request
+      expect(session.shouldMountWebView, isTrue);
     });
   });
 }

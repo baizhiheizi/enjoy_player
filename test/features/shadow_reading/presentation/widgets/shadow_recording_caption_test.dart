@@ -80,7 +80,6 @@ void main() {
       );
 
       expect(find.text('0.5 s / 1.2 s'), findsOneWidget);
-      // Over-target indicator should be absent.
       expect(find.byIcon(EnjoyIcons.dot), findsNothing);
     },
   );
@@ -105,7 +104,6 @@ void main() {
 
     expect(find.text('2.3 s / 2.0 s'), findsOneWidget);
     expect(find.text('+0.3s over target'), findsOneWidget);
-    // Red dot icon appears as the over-target indicator.
     expect(find.byIcon(EnjoyIcons.dot), findsOneWidget);
   });
 
@@ -179,7 +177,6 @@ void main() {
           .widgetList<Widget>(find.byType(Flexible))
           .toList();
       expect(flexible, isNotEmpty);
-      // Over-target text wraps in a Flexible child.
       expect(
         tester
             .widgetList<Text>(find.byType(Text))

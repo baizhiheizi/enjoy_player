@@ -20,8 +20,6 @@ void main() {
         debugDefaultTargetPlatformOverride = TargetPlatform.linux;
         final engine = YoutubePlayerEngine();
 
-        // Typed (not raw UnsupportedError) so ExpandedPlayerScreen can show
-        // the localized "coming soon" body instead of the generic failure.
         await expectLater(
           () => engine.open(const YoutubePlayableSource('dQw4w9WgXcQ')),
           throwsA(
@@ -64,14 +62,8 @@ void main() {
       'warmVideoSurface + the video stage never mount the WebView host on Linux',
       (tester) async {
         final engine = YoutubePlayerEngine();
-        // try/finally so the override is cleared *before* the testWidgets
-        // verification check runs (same pattern as media_card_test).
         debugDefaultTargetPlatformOverride = TargetPlatform.linux;
         try {
-          // Ungated, this arms the session mount latch; the stage below then
-          // constructs InAppWebView, which asserts — InAppWebViewPlatform
-          // .instance is null on every platform without a plugin backend
-          // (exactly the production Linux failure from the field log).
           engine.warmVideoSurface();
 
           await tester.pumpWidget(

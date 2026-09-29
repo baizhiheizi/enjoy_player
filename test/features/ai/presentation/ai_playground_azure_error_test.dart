@@ -1,8 +1,3 @@
-// Coverage for:
-//   * lib/features/ai/presentation/ai_playground_azure_error.dart
-//   * lib/features/player/application/engines/youtube/youtube_page_inject.dart
-//
-// Both files are tiny re-export shims / pure helpers.
 import 'package:azure_speech/azure_speech.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_azure_error.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_page_inject.dart';
@@ -27,8 +22,6 @@ void main() {
     });
 
     test('returns false for a plain string (no runtime type check)', () {
-      // The implementation checks `e is AzureSpeechException`; a bare string
-      // cannot be an AzureSpeechException.
       expect(isAzureSpeechException('boom'), isFalse);
     });
   });
@@ -70,8 +63,6 @@ void main() {
         details: {'field': 'audio'},
       );
       final formatted = formatAzureSpeechError(ex)!;
-      // Sanity: the formatted string should not embed a '{field: audio}'
-      // substring — the contract is "code: message" only.
       expect(formatted, isNot(contains('field')));
     });
   });
@@ -80,7 +71,6 @@ void main() {
     test('is a non-empty multi-line JavaScript string', () {
       expect(kYoutubeMobileWatchInjectScript, isNotEmpty);
       expect(kYoutubeMobileWatchInjectScript, contains('function'));
-      // The guard for repeat-injection is part of the contract — pin it.
       expect(kYoutubeMobileWatchInjectScript, contains('__enjoyYtMwc'));
     });
   });

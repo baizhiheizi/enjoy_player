@@ -1,8 +1,3 @@
-// Tests for the Discover feed ⨝ library join (issue #764 candidate 6).
-//
-// The behaviour that replaced per-tile membership probes: one stream, one
-// emission carrying the flag, and — the part the old code got wrong —
-// membership updates that arrive without the feed stream re-emitting.
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -91,8 +86,6 @@ void main() {
       expect(emissions.single.single.inLibrary, isTrue);
     });
 
-    // The case the per-tile probe handled with a manual `ref.invalidate`: a
-    // library write must reach the feed without the feed stream re-emitting.
     test(
       'a library write updates membership without a feed emission',
       () async {

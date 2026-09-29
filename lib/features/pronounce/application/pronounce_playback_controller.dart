@@ -132,7 +132,6 @@ class PronouncePlaybackController extends _$PronouncePlaybackController {
         target: target,
         errorMessage: e.message,
       );
-      // Return to idle so the control is tappable again.
       state = const PronouncePlaybackState.idle();
       rethrow;
     } on Object catch (e, st) {

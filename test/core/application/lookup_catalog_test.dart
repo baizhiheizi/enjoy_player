@@ -5,9 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('kSupportedLookupLanguageTags', () {
     test('is exactly the descriptor rows carrying a lookup label', () {
-      // Derivation check (issue #794): the lookup catalog and its label map
-      // share one source — a row joins the catalog by getting a label, so
-      // "every lookup tag has a label" holds by construction.
       final labeledTags = <String>[
         for (final row in kLanguageDescriptorRows)
           if (row.lookupLabel != null) row.tag,
@@ -41,9 +38,6 @@ void main() {
     );
 
     test('every lookup tag is an Azure assessment locale', () {
-      // Today's policy: the lookup sheet never offers a language Azure
-      // cannot assess (focus and native are lookup subsets, so they are
-      // covered transitively).
       expect(
         kAzurePronunciationAssessmentLocales.containsAll(
           kSupportedLookupLanguageTags,
@@ -53,7 +47,6 @@ void main() {
     });
 
     test('nb-NO is in every catalog and nn-NO is in none', () {
-      // ADR-0087 spot-asserts: Bokmål everywhere, Nynorsk deliberately absent.
       expect(kSupportedNativeLanguageTags, isNot(contains('nb-NO')));
       expect(kSupportedFocusLanguageTags, contains('nb-NO'));
       expect(kSupportedLookupLanguageTags, contains('nb-NO'));

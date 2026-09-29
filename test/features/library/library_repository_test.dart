@@ -633,10 +633,6 @@ void main() {
       expect(emissions, hasLength(1));
       expect(emissions.first, hasLength(1));
 
-      // No-op write: same row, same fields. Drift re-queries both tables and
-      // pushes the unchanged merged list back through watchAll. The
-      // registry's merge layer should suppress the duplicate so
-      // home/library providers don't re-sort.
       await db.audioDao.insertRow(
         AudioRow(
           id: id,
@@ -664,7 +660,6 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(emissions, hasLength(1));
 
-      // A real change must still emit.
       await db.audioDao.insertRow(
         AudioRow(
           id: id,
@@ -697,11 +692,6 @@ void main() {
     });
 
     test('watchAll emits once for an empty library', () async {
-      // Regression test: `lastEmitted` used to start as `const <Media>[]`,
-      // which compared equal to the first (empty) merged snapshot from both
-      // DAOs and silently swallowed it — so `watchAll()` never emitted for a
-      // brand-new/empty library and every provider built on it (home
-      // recents, filtered lists) stayed stuck in `AsyncLoading` forever.
       final emissions = <List<Media>>[];
       final sub = MediaRegistry(db).watchAll().listen(emissions.add);
       await Future<void>.delayed(const Duration(milliseconds: 50));

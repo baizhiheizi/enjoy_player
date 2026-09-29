@@ -135,7 +135,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Narrow panes collapse Import to an icon button (tooltip label).
         expect(find.byTooltip('Import'), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
       },

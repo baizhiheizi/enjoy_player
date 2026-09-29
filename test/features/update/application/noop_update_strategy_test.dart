@@ -1,14 +1,3 @@
-// Coverage for lib/features/update/application/noop_update_strategy.dart.
-//
-// NoOpUpdateStrategy is the "no update flow" implementation used for store-
-// channel builds (TestFlight / Play). The contract is small and easy to pin:
-//   * checkForUpdate always returns upToDate (no remote probing)
-//   * applyUpdate immediately yields UpdateInstallProgress.completed()
-//   * cancelUpdate is a no-op future
-//
-// We pin those contracts because future contributors sometimes reach for the
-// remote manifest even on store channels — this test fails fast if the
-// no-op strategy gains a network call.
 import 'package:enjoy_player/features/update/application/noop_update_strategy.dart';
 import 'package:enjoy_player/features/update/domain/update_types.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,8 +9,6 @@ void main() {
     test(
       'returns upToDate even when current version is older-looking',
       () async {
-        // The strategy must short-circuit before any network call, regardless
-        // of the supplied version / snooze fields.
         expect(
           await strategy.checkForUpdate(currentVersion: '0.0.1'),
           const UpdateCheckResult.upToDate(),
@@ -66,8 +53,6 @@ void main() {
     });
 
     test('does not consult the release or severity', () async {
-      // Sanity: even for mandatory severity, the no-op strategy completes
-      // immediately (the store handles the actual update).
       final mandatoryRelease = const AppRelease(
         manifest: ReleaseManifest(
           version: '9.9.9',
@@ -91,9 +76,7 @@ void main() {
   group('NoOpUpdateStrategy.cancelUpdate', () {
     test('returns a Future that completes without throwing', () async {
       const strategy = NoOpUpdateStrategy();
-      // The contract is "Future<void>" with no side effects.
       await strategy.cancelUpdate();
-      // A second cancel call must also be a no-op (no state to corrupt).
       await strategy.cancelUpdate();
     });
   });

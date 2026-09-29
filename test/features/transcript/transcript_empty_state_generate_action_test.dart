@@ -27,9 +27,7 @@ void main() {
   tearDown(() {
     try {
       ShowcaseView.get().unregister();
-    } on Object {
-      // Already unregistered.
-    }
+    } on Object {} // ignore: empty_catches
   });
 
   testWidgets('shows AI transcript CTA when enabled', (tester) async {
@@ -108,7 +106,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('AI transcript'));
-    await tester.pump(); // first rebuild → busy
+    await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     completer.complete();

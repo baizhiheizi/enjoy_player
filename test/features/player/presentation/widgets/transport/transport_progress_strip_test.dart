@@ -1,6 +1,3 @@
-// Regression coverage for issue #660: after the user releases the scrubber the
-// thumb must stay on the requested target instead of rubber-banding back to the
-// stale pre-seek stream position.
 import 'dart:async';
 
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
@@ -75,8 +72,6 @@ void main() {
     container = ProviderContainer(
       overrides: [
         transportSliderPositionProvider.overrideWith((ref) => positions.stream),
-        // Assigned here because the service now needs the provider's Ref
-        // (issue #668); the strip is pumped before [interactions] is read.
         playerInteractionsProvider.overrideWith(
           (ref) => interactions = _RecordingInteractions(ref),
         ),
@@ -86,8 +81,6 @@ void main() {
 
   tearDown(() {
     container.dispose();
-    // Not awaited: awaiting a controller close inside the test's fake-async
-    // zone never completes and hangs the test.
     unawaited(positions.close());
   });
 
@@ -99,20 +92,16 @@ void main() {
 
     await scrubTo(tester, 0.5);
 
-    // Straight after release the stream still reports 10s, but the thumb and
-    // the elapsed label already show the requested target.
     expect(_sliderFraction(tester), 0.5);
     expect(find.text('01:00'), findsOneWidget);
     expect(interactions.seekFractions, [0.5]);
 
-    // Stale ticks arriving later do not pull the thumb back.
     positions.add(const Duration(seconds: 11));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(_sliderFraction(tester), 0.5);
     expect(find.text('01:00'), findsOneWidget);
 
-    // The engine finally reports the target: hold releases, stream takes over.
     positions.add(const Duration(seconds: 60));
     await tester.pump();
     await tester.pump();
@@ -131,8 +120,6 @@ void main() {
     await scrubTo(tester, 0.25);
     expect(_sliderFraction(tester), 0.25);
 
-    // The stale position is already past the target; the hold must not read
-    // that as "caught up".
     positions.add(const Duration(seconds: 11));
     await tester.pump();
     await tester.pump();
@@ -156,11 +143,9 @@ void main() {
     await scrubTo(tester, 0.5);
     expect(_sliderFraction(tester), 0.5);
 
-    // Still holding inside the 1.5s window.
     await tester.pump(const Duration(seconds: 1));
     expect(_sliderFraction(tester), 0.5);
 
-    // Past the window the (stale) stream position takes over again.
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
     expect(_sliderFraction(tester), closeTo(10 / _durationSeconds, 1e-9));
@@ -175,21 +160,18 @@ void main() {
     await scrubTo(tester, 0.5);
     expect(_sliderFraction(tester), 0.5);
 
-    // Re-grab while the hold from the previous seek is still active.
     tester.widget<Slider>(find.byType(Slider)).onChangeStart!(0.5);
     await tester.pump();
     tester.widget<Slider>(find.byType(Slider)).onChanged!(0.25);
     await tester.pump();
     expect(_sliderFraction(tester), 0.25);
 
-    // A position tick mid-drag does not move the thumb.
     positions.add(const Duration(seconds: 60));
     await tester.pump();
     await tester.pump();
     expect(_sliderFraction(tester), 0.25);
     expect(find.text('00:30'), findsOneWidget);
 
-    // Releasing starts a fresh hold on the new target.
     tester.widget<Slider>(find.byType(Slider)).onChangeEnd!(0.75);
     await tester.pump();
     expect(_sliderFraction(tester), 0.75);

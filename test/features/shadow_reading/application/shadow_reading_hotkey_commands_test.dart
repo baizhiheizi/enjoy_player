@@ -1,8 +1,3 @@
-// Per-command unit tests for the shadow-reading hotkey bus commands
-// (issue #719) — R / G / P / V pulse the shared bus, gated by
-// `shadowReadingBusHotkeysEnabled` (player session or vocabulary echo
-// practice). Uses a plain [ProviderContainer] with the REAL bus so the
-// asserted ticks are the state consumers observe.
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/player/domain/playback_session.dart';

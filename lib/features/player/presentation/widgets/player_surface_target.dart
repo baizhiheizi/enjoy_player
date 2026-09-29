@@ -45,11 +45,9 @@ class _PlayerSurfaceTargetState extends ConsumerState<PlayerSurfaceTarget> {
   @override
   void initState() {
     super.initState();
-    // Capture notifier while mounted — [dispose] must not use [ref].
     _registry = ref.read(playerSurfaceRegistryProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _sync();
-      // First layout can be 0×0 (nested scaffold). Retry once size exists.
       WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
     });
   }
@@ -57,10 +55,6 @@ class _PlayerSurfaceTargetState extends ConsumerState<PlayerSurfaceTarget> {
   @override
   void didUpdateWidget(covariant PlayerSurfaceTarget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only identity / enablement / overlay changes matter; anything else is
-    // picked up by the post-frame `_sync`, which is gated on real geometry
-    // deltas. Never write to the registry synchronously here — a host
-    // notification mid-build marks it dirty while the framework is building.
     if (oldWidget.id != widget.id ||
         oldWidget.enabled != widget.enabled ||
         oldWidget.overlayBuilder != widget.overlayBuilder) {
@@ -69,9 +63,7 @@ class _PlayerSurfaceTargetState extends ConsumerState<PlayerSurfaceTarget> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           try {
             _registry.detach(oldId, _owner);
-          } on Object {
-            // The ProviderScope may have been disposed with the whole app.
-          }
+          } on Object {} // ignore: empty_catches
         });
       }
       WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
@@ -82,16 +74,10 @@ class _PlayerSurfaceTargetState extends ConsumerState<PlayerSurfaceTarget> {
   void dispose() {
     final id = widget.id;
     final owner = _owner;
-    // Provider notifications while Flutter is finalizing this subtree can
-    // make a keyed platform view get retaken from `_InactiveElements`.
-    // Detach after finalization; link identity prevents a stale callback from
-    // detaching a replacement target with the same id.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         _registry.detach(id, owner);
-      } on Object {
-        // The ProviderScope may have been disposed with the whole app.
-      }
+      } on Object {} // ignore: empty_catches
     });
     super.dispose();
   }
@@ -107,7 +93,6 @@ class _PlayerSurfaceTargetState extends ConsumerState<PlayerSurfaceTarget> {
     if (size.width <= 0 || size.height <= 0) return;
     final offset = box.localToGlobal(Offset.zero);
 
-    // Delta gate: skip registry write when geometry hasn't changed.
     if (_lastOffset == offset && _lastSize == size) return;
     _lastOffset = offset;
     _lastSize = size;

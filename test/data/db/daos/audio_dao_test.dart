@@ -85,8 +85,6 @@ void main() {
 
     test('updateLanguage is a no-op for missing id (still executes)', () async {
       await db.audioDao.updateLanguage(id: 'missing', language: 'en');
-      // No assertion needed — Drift `update().write()` does not throw on
-      // missing rows; this test just covers the execution path.
       expect(await db.audioDao.getById('missing'), isNull);
     });
 
@@ -196,11 +194,9 @@ void main() {
     });
 
     test('SettingsKeys.isKnown covers static and dynamic families', () {
-      // Static keys.
       expect(SettingsKeys.isKnown(SettingsKeys.apiBaseUrl.name), isTrue);
       expect(SettingsKeys.isKnown(SettingsKeys.prefsLocale.name), isTrue);
       expect(SettingsKeys.isKnown(SettingsKeys.updateLastCheckAt.name), isTrue);
-      // Dynamic families.
       expect(
         SettingsKeys.isKnown(
           SettingsKeys.syncCursorRecordingTarget('video', 'v-1'),
@@ -217,13 +213,9 @@ void main() {
         SettingsKeys.isKnown(SettingsKeys.asrLongFormAttempt('m-1')),
         isTrue,
       );
-      // Unknown keys.
       expect(SettingsKeys.isKnown('definitely.not.known'), isFalse);
       expect(SettingsKeys.isKnown(''), isFalse);
-      expect(
-        SettingsKeys.isKnown('sync.cursor.unknown'), // different family
-        isFalse,
-      );
+      expect(SettingsKeys.isKnown('sync.cursor.unknown'), isFalse);
     });
   });
 }

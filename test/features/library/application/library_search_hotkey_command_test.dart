@@ -1,7 +1,3 @@
-// Per-command tests for the library.search hotkey command (issue #719): the
-// route gate (`librarySearchHotkeyEnabledForPath`) and the focus pulse
-// (`requestLibrarySearchFocus` schedules a double frame callback, so these
-// are widget tests with a mounted router).
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/library/application/library_search_focus_provider.dart';
@@ -58,7 +54,6 @@ Future<void> _runCommand(
   const LibrarySearchHotkeyCommand().execute(
     HotkeyCtx(read: container.read, listenerContext: null),
   );
-  // requestLibrarySearchFocus defers the pulse behind two frame callbacks.
   await tester.pump();
   await tester.pump();
 }

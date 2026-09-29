@@ -33,9 +33,6 @@ class SettingsSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
 
-    // Horizontal inset comes from the Settings hub page metrics
-    // ([EnjoyPageKind.hub]) — matching Profile. Do not add a second gutter
-    // here or mobile cards sit farther inward than Profile.
     return EnjoyCard(
       padding: padding ?? EdgeInsets.all(t.space16),
       child: child,

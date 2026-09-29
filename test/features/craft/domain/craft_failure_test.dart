@@ -1,9 +1,3 @@
-// Tests for the Craft pipeline failure sealed hierarchy.
-//
-// Each subclass maps to (a) a typed `CraftFailureAction` and (b) a localized
-// user-visible message via `AppLocalizations`. We assert both here so that
-// adding/removing a subclass or renaming a l10n key surfaces as a test failure
-// rather than a regression in the calm-error UX spec FR-022.
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -15,7 +9,6 @@ void main() {
     test('CraftTranslateFailure uses retry and craftFailureTranslate', () {
       const f = CraftTranslateFailure();
       expect(f.action, CraftFailureAction.retry);
-      // Action has no data; detail is intentionally a side-channel.
       expect(f.detail, isNull);
     });
 
@@ -74,10 +67,6 @@ void main() {
   });
 
   group('CraftFailure.message()', () {
-    // We assert the strings come from `AppLocalizations` rather than free-text
-    // raw exception strings (FR-022 forbids raw exceptions in user-visible
-    // text). Use the generated `AppLocalizationsEn` so we exercise the real
-    // English message strings without spinning up a full app shell.
     late AppLocalizations l10n;
 
     setUpAll(() {
@@ -108,7 +97,6 @@ void main() {
       for (final f in failures) {
         final msg = f.message(l10n);
         expect(msg, isNotEmpty, reason: 'failure=$f must have a message');
-        // Raw exception text must not leak.
         expect(msg, isNot(contains('Exception')));
         expect(msg, isNot(contains('Error:')));
       }

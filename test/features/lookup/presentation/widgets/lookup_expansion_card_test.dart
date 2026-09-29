@@ -1,5 +1,3 @@
-// Coverage for lib/features/lookup/presentation/widgets/lookup_expansion_card.dart
-// — header/body toggle, leading icon, lazy body, AnimatedSize paths.
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/features/lookup/presentation/widgets/lookup_expansion_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -118,7 +116,6 @@ void main() {
     expect(expandIcon, findsOneWidget);
     await tester.tap(find.text('Section'));
     await tester.pumpAndSettle();
-    // Icon still rendered, just rotated.
     expect(find.byIcon(EnjoyIcons.chevronDown), findsOneWidget);
   });
 

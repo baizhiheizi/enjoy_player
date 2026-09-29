@@ -1,7 +1,3 @@
-// Tests for `lib/features/craft/data/craft_asr_service_transcriber.dart` and
-// `craft_tts_service_synthesizer.dart` — thin adapters that wrap the Riverpod
-// `AsrService` / `TtsService` to the Craft domain ports so the controller
-// stays testable without a live AI capability stack.
 import 'dart:typed_data';
 
 import 'package:enjoy_player/features/ai/application/ai_capability_providers.dart';

@@ -30,7 +30,6 @@ Future<Uint8List?> capturePracticePosterEchoFrame({
   if (session.mediaType != 'video') return null;
   if (capture == null || !capture.supportsVideoPosterCapture) return null;
 
-  // Let the video stage settle on the current frame before capture.
   await Future<void>.delayed(const Duration(milliseconds: 150));
 
   try {

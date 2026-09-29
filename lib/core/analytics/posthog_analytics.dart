@@ -71,7 +71,6 @@ final class PosthogAnalytics implements Analytics {
   /// this are dropped silently.
   Future<void> setup(PostHogConfig config) async {
     try {
-      // beforeSend is a list — append, never replace.
       config.beforeSend = [...config.beforeSend, _beforeSendGuard];
       await Posthog().setup(config);
       _ready = true;
@@ -122,12 +121,10 @@ final class PosthogAnalytics implements Analytics {
   @override
   void identify(String userId, {Map<String, Object>? userProperties}) {
     if (!_ready) return;
-    // Re-identifying with the same id churns vendor person merges — skip
-    // (data-model E2).
     if (_currentUserId == userId) return;
     _currentUserId = userId;
     _lastUserProperties = userProperties ?? const {};
-    if (!_gated) return; // identity remembered; replayed on re-enable
+    if (!_gated) return;
     _run(
       Posthog().identify(userId: userId, userProperties: userProperties),
       'identify',
@@ -146,14 +143,11 @@ final class PosthogAnalytics implements Analytics {
   void setEnabled(bool enabled) {
     _enabled = enabled;
     if (!_ready) return;
-    // The vendor call persists the opt-out in native storage.
     _run(
       enabled ? Posthog().enable() : Posthog().disable(),
       'setEnabled($enabled)',
     );
     if (enabled && _currentUserId != null) {
-      // An identify that arrived while disabled was remembered, not sent —
-      // replay it so this session's events attribute to the account (E2).
       final userId = _currentUserId!;
       final userProperties = _lastUserProperties;
       _run(

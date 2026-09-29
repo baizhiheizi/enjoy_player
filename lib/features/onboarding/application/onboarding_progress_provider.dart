@@ -23,10 +23,6 @@ class OnboardingProgress extends _$OnboardingProgress {
     );
     final global = TipProgressSnapshot.decodeGlobalJson(raw);
 
-    // Load per-media keys by scanning is expensive; we load lazily via
-    // mark/status APIs. Snapshot starts with empty media map; callers that
-    // need a media status call [statusOfEmptyTranscript] which hits the DB
-    // when missing from cache after [ensureEmptyTranscriptLoaded].
     return TipProgressSnapshot(global: global);
   }
 
@@ -61,8 +57,6 @@ class OnboardingProgress extends _$OnboardingProgress {
   Future<void> markGlobal(OnboardingTipId tip, TipStatus status) async {
     if (status == TipStatus.pending) return;
     final db = ref.read(appDatabaseProvider);
-    // Re-read from DB so concurrent tip updates (e.g. import + craft) cannot
-    // clobber each other with a stale in-memory snapshot.
     final raw = await db.settingsDao.readSetting(
       SettingsKeys.onboardingTipProgressV1,
     );

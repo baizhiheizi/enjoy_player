@@ -13,8 +13,6 @@ import '../../transcript/application/transcript_blur_mode_provider.dart';
 import '../domain/echo_window.dart';
 import '../domain/playback_session.dart';
 import 'echo_mode_provider.dart';
-// The debounce / max-age constants live in [position_buckets] next to the
-// emit bucket they must stay coherent with (issue #668).
 import 'position_buckets.dart';
 
 final _persisterLog = logNamed('PlaybackSessionPersister');

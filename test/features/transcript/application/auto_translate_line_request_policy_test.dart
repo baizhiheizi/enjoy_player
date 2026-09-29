@@ -1,7 +1,3 @@
-// Tests for the shared auto-translate line-request policy (issue #764
-// candidate 4). Before this module the two transcript item builders each owned
-// a copy of "should this cue be translated now"; these cases pin the one
-// definition so the copies cannot drift again.
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,8 +41,6 @@ void main() {
       );
     });
 
-    // The old inline check collapsed a "nothing is playing yet" highlight (-1)
-    // to line 0 rather than treating the distance as 101 cues.
     test('collapses a negative anchor to line 0', () {
       expect(viewport(lineIndex: 5, anchor: -1), isTrue);
       expect(
@@ -87,8 +81,6 @@ void main() {
       expect(viewport(hasSecondary: false), isTrue);
     });
 
-    // The echo card's block is its own viewport: every cue in it qualifies,
-    // which is why it passes scope `block` rather than widening the window.
     test('block scope ignores the anchor entirely', () {
       for (final lineIndex in [0, 50, 100000]) {
         expect(
@@ -106,9 +98,6 @@ void main() {
       }
     });
 
-    // Hot path: the scrollable list's builder calls this for every row, and
-    // resolving the alternate anchor means reading the ScrollController. An
-    // ineligible row must not pay for it.
     test('does not resolve the alternate anchor for an ineligible row', () {
       var resolved = 0;
       int resolve() {
@@ -145,8 +134,6 @@ void main() {
         return 25;
       }
 
-      // Line 30 is 30 cues from the primary anchor (window is 24, so it misses)
-      // but only 5 from the scroll focus, so the alternate qualifies.
       expect(
         shouldRequestAutoTranslateLine(
           lineIndex: 30,
@@ -161,7 +148,6 @@ void main() {
       );
       expect(callCount, 1);
 
-      // Same line with a distant scroll focus: neither anchor qualifies.
       expect(
         shouldRequestAutoTranslateLine(
           lineIndex: 30,
@@ -217,9 +203,6 @@ void main() {
     });
   });
 
-  // `AutomatedTestWidgetsFlutterBinding.pump` only draws a frame when something
-  // is dirty, so a bare `pump()` would leave the post-frame callback queued and
-  // make the "drops stale" cases below pass vacuously.
   group('scheduleAutoTranslateLineRequest', () {
     testWidgets('fires the request after the frame', (tester) async {
       var requested = 0;
@@ -235,9 +218,6 @@ void main() {
       expect(requested, 1);
     });
 
-    // The drift this module exists to prevent: the echo card used to fire with
-    // no re-check, so a cue that left the window during the frame still got a
-    // request.
     testWidgets('re-checks and drops a request that went stale', (
       tester,
     ) async {
@@ -255,8 +235,6 @@ void main() {
       expect(requested, 0);
     });
 
-    // A surface that is its own viewport (the echo block) has nothing to
-    // re-check, so it omits the parameter rather than passing a tautology.
     testWidgets('omitting shouldRequest always fires', (tester) async {
       var requested = 0;
       await tester.pumpWidget(const SizedBox());

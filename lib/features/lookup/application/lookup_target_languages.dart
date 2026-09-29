@@ -13,20 +13,16 @@ String resolveLookupSource(
   String? transcriptLanguage, {
   required String learningTag,
 }) {
-  // Narrow path: en/zh short-circuit preserves existing en-US / zh-CN behavior.
   final canonical = canonicalLookupTag(transcriptLanguage);
   if (canonical != null) return canonical;
 
-  // Lookup catalog: handle non-en/zh tracks (Korean, Japanese, German, etc.).
   if (transcriptLanguage != null) {
     final trimmed = transcriptLanguage.trim();
     if (trimmed.isNotEmpty && isValidLanguageTag(trimmed)) {
       final normalized = normalizeBcp47Tag(trimmed);
-      // Direct match (e.g. ko-KR → ko-KR).
       for (final supported in kSupportedLookupLanguageTags) {
         if (tagsEqual(normalized, supported)) return supported;
       }
-      // Primary-subtag match (e.g. ja → ja-JP, de → de-DE).
       final primary = primaryLanguageSubtag(normalized);
       for (final supported in kSupportedLookupLanguageTags) {
         if (primaryLanguageSubtag(supported) == primary) return supported;
@@ -49,11 +45,9 @@ String? resolveLookupSourceOverride(String? override) {
   if (trimmed.isEmpty) return null;
   if (!isValidLanguageTag(trimmed)) return null;
   final normalized = normalizeBcp47Tag(trimmed);
-  // Direct match (e.g. ko-KR → ko-KR, ja-JP → ja-JP).
   for (final supported in kSupportedLookupLanguageTags) {
     if (tagsEqual(normalized, supported)) return supported;
   }
-  // Primary-subtag match (e.g. ja → ja-JP, kor → ko-KR).
   final primary = primaryLanguageSubtag(normalized);
   for (final supported in kSupportedLookupLanguageTags) {
     if (primaryLanguageSubtag(supported) == primary) return supported;
@@ -82,22 +76,17 @@ String resolveLookupTarget(
       ? null
       : normalizeBcp47Tag(nativeLanguage);
 
-  // 1. Direct lookup catalog match.
   if (normalized != null &&
       supported.contains(normalized) &&
       !tagsEqual(normalized, learn)) {
     return normalized;
   }
 
-  // 2. Narrow path (preserves en-US / zh-CN canonical).
   final canonical = canonicalLookupTag(nativeLanguage);
   if (canonical != null && !tagsEqual(canonical, learn)) {
     return canonical;
   }
 
-  // 3. Primary-subtag fallback (e.g. de-AT → de-DE), skipping source / learning.
-  //    Only when native is not equal to learning — otherwise legacy behavior
-  //    wins so existing en-US / zh-CN users see no regression.
   if (normalized != null && !tagsEqual(normalized, learn)) {
     final wantedPrimary = primaryLanguageSubtag(normalized);
     for (final candidate in supported) {
@@ -107,7 +96,5 @@ String resolveLookupTarget(
     }
   }
 
-  // 4. Legacy fallback for null / empty / denylisted natives, or when the
-  //    user picked native == learning (preserves coerceNativeIfEqualsLearning).
   return coerceNativeIfEqualsLearning(nativeLanguage, learningTag);
 }

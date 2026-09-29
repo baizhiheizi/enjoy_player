@@ -22,8 +22,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('DistributionChannel enum', () {
     test('exposes store and direct values', () {
-      // The enum is the public API consumed by callers; pinning the values
-      // guards against accidental rename or removal of a variant.
       expect(DistributionChannel.values, hasLength(2));
       expect(DistributionChannel.values.toSet(), {
         DistributionChannel.store,
@@ -41,9 +39,6 @@ void main() {
   });
 
   group('resolveDistributionChannel (platform fallback)', () {
-    // The dart-define is not set in the test runner, so the function
-    // falls through to the platform check.
-
     tearDown(() {
       debugDefaultTargetPlatformOverride = null;
     });

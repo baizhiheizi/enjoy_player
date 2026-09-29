@@ -49,9 +49,6 @@ void main() {
   });
 
   group('policy.shouldRetry', () {
-    // Fixed wall clock: the decision reads the policy's injected now, so
-    // these cases no longer fabricate lastAttempt values around the real
-    // clock (issue #752).
     final fakeNow = DateTime.utc(2030, 6, 1);
     final policy = SyncRetryPolicy(now: () => fakeNow);
 
@@ -71,7 +68,6 @@ void main() {
     });
 
     test('applies exponential backoff from lastAttempt', () {
-      // retryCount 1 → delay 2000 ms.
       expect(
         policy.shouldRetry(_row(id: 1, retryCount: 1, lastAttempt: fakeNow)),
         isFalse,
@@ -89,7 +85,6 @@ void main() {
     });
 
     test('elapsed == delayMs exactly is eligible', () {
-      // retryCount 1 → delay 2000 ms; exactly 2000 ms elapsed passes.
       expect(
         policy.shouldRetry(
           _row(
@@ -113,7 +108,6 @@ void main() {
     });
 
     test('backoff doubles with each retryCount', () {
-      // retryCount 2 → delay 4000 ms.
       expect(
         policy.shouldRetry(
           _row(

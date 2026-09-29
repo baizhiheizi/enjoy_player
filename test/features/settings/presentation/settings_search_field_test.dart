@@ -112,17 +112,13 @@ void main() {
   ) async {
     final l10n = await pumpSettingsScreen(tester);
 
-    // Developer is always expanded (no collapse header).
     expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
-    // Before searching, other sections are also visible.
     expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'playground');
     await tester.pumpAndSettle();
 
-    // "AI playground" matches the query and stays visible.
     expect(find.text(l10n.settingsAiPlaygroundTileTitle), findsOneWidget);
-    // A section with no match is filtered out.
     expect(find.text(l10n.settingsAppearanceDisplayLanguage), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -154,10 +150,6 @@ void main() {
   testWidgets(
     'a query matching only a gated-off section shows the no-results state',
     (tester) async {
-      // The keyboard-shortcuts section is desktop-gated; forcing a
-      // non-desktop target hides it, so the query below matches nothing
-      // visible and the single-column layout must agree with the two-pane
-      // rail's no-results state instead of rendering a blank column.
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       try {
         final l10n = await pumpSettingsScreen(tester);

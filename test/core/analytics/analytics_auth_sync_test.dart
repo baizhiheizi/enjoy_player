@@ -1,5 +1,3 @@
-// Auth sync (spec 046 US2): events attribute to UserProfile.id (never the
-// email), re-identify is deduped, and sign-out resets attribution.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,7 +87,6 @@ void main() {
       await _settle();
 
       expect(recording.identifies, ['u-1']);
-      // The email must never be the identity key (spec FR-005).
       expect(recording.identifies, isNot(contains('ana@example.com')));
     },
   );
@@ -114,7 +111,6 @@ void main() {
     await _settle();
     expect(recording.resets, 1);
 
-    // A different user signs in on the shared device: attribution switches.
     auth.emitState(
       const AuthSignedIn(
         profile: UserProfile(

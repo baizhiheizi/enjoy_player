@@ -208,8 +208,6 @@ void main() {
     );
     final launch = gatedContainer.read(openMediaLaunchProvider(request).future);
 
-    // Hold the pipeline inside the readiness wait, then leave the player —
-    // clearLivePlaybackSessionIfNeeded clears the controller mid-launch.
     final deadline = DateTime.now().add(const Duration(seconds: 2));
     while (gated.awaitSurfaceReadyCalls == 0 &&
         DateTime.now().isBefore(deadline)) {

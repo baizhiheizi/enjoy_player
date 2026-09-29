@@ -53,11 +53,6 @@ class YoutubeWebViewPollLoop {
     YoutubePollFn? pollFn,
     YoutubeRetryPlayFn? retryPlay,
   }) : pollFn = pollFn ?? YoutubeWebViewBridge.poll,
-       // The default retry re-asserts the page's pinned focus first (focus
-       // loss was one field-confirmed pause trigger) and then plays only
-       // once the element actually has data — the wedge's dominant cause is
-       // buffer exhaustion (pause ctx pstate=3, decoder starved ~10× below
-       // realtime), and an immediate re-play just re-exhausts the buffer.
        retryPlay =
            retryPlay ??
            ((channel) async {
@@ -136,10 +131,6 @@ class YoutubeWebViewPollLoop {
   }
 
   void start() {
-    // A play intent (or any state transition) restores the fast cadence even
-    // while the loop is already running — a backed-off loop must not stretch
-    // the wait for the first read after a play command. Re-arming rather than
-    // early-returning keeps the old "start twice is one timer" property.
     _pauseConfirmed = false;
     _pauseQuiet = false;
     session.resetPauseStreak();
@@ -170,11 +161,8 @@ class YoutubeWebViewPollLoop {
   }
 
   Future<void> _tick() async {
-    // See [_pollInFlight]: one read at a time, never two overlapping ones.
     if (_pollInFlight) return;
     _pollInFlight = true;
-    // `finally`, not the happy path: a pollFn that throws must not leave the
-    // guard latched and silently starve the loop while `isRunning` stays true.
     try {
       await pollFn(
         disposed: session.disposed,
@@ -188,8 +176,6 @@ class YoutubeWebViewPollLoop {
             }) {
               if (session.disposed) return;
               session.emitPosition(position);
-              // "Quiet" is measured against the previous read, before any of
-              // the transitions below touch session state.
               final positionMoved = position != _lastReadPosition;
               _lastReadPosition = position;
               if (newDuration != null &&
@@ -210,23 +196,14 @@ class YoutubeWebViewPollLoop {
               );
               switch (transition) {
                 case MediaJustEnded():
-                  // Surface the transition only — the transport's CompletionLoop
-                  // is the single consumer of `completed` for repeat policy
-                  // (ADR-0044). Stop polling; the loop's replay re-arms it via
-                  // the explicit-play path.
                   session.noteEnded();
                   stop();
                 case PauseStreaking(:final confirmed, :final newStreak):
                   session.notePauseStreak(newStreak);
                   if (confirmed) {
-                    // Confirmed AND the frame has stopped moving → the only
-                    // state [pausedPollBackoff] may apply to.
                     _pauseConfirmed = true;
                     _pauseQuiet = !positionMoved;
                     final immediate = session.isImmediatePause();
-                    // The budget, its coverage arms, and the escalation cap
-                    // live in the retry policy (issue #665); this loop only
-                    // supplies the session facts that veto a retry.
                     final retry = session.playRetry.decideConfirmedPause(
                       immediate: immediate,
                       disposed: session.disposed,
@@ -247,14 +224,7 @@ class YoutubeWebViewPollLoop {
                     session.notePauseConfirmed();
                     switch (retry) {
                       case RetryPlayOnce():
-                        // Consume the command budget before re-playing; further
-                        // retries for this pause chain come from the capped
-                        // escalation arm (auto-retry attribution), so a
-                        // deliberate pause is never fought indefinitely.
                         session.clearUserPlayInFlight();
-                        // Timestamp the issue: the audible policy's
-                        // post-restore heal suppresses itself while a retry
-                        // is this recent (same pause, one play).
                         session.noteAutoPlayRetry();
                         _logPoll.info(
                           'youtube immediate pause retry vid='
@@ -265,9 +235,6 @@ class YoutubeWebViewPollLoop {
                             Object error,
                             StackTrace stackTrace,
                           ) {
-                            // The budget is already spent; surface the failed
-                            // retry instead of an unhandled zone error that
-                            // reads as a crash with no context.
                             _logPoll.warning(
                               'youtube immediate pause retry failed '
                               'vid=${session.videoId}',
@@ -281,9 +248,6 @@ class YoutubeWebViewPollLoop {
                           session.scheduleRecoveryHint();
                         }
                     }
-                    // Keep polling after pause so a subsequent play attempt can
-                    // detect DOM state even if `playing`/`playRejected` is missed.
-                    // Position updates while paused are cheap; stop only on ended.
                   }
                 case PollPlaying():
                   session.notePlayingConfirmed();
@@ -291,17 +255,10 @@ class YoutubeWebViewPollLoop {
                   if (session.buffering) {
                     session.emitBuffering(false);
                   }
-                  // Any sign of life returns the loop to the fast cadence.
                   _pauseConfirmed = false;
                   _pauseQuiet = false;
                 case PollIdleTick():
                   session.resetPauseStreak();
-                  // An idle tick is what a confirmed pause looks like from
-                  // here on (see [_pauseConfirmed]) — a seek-while-paused
-                  // briefly un-quiets it, and the next stable read re-arms
-                  // the backoff. Before any pause is confirmed this must
-                  // leave the cadence alone: a document that has never
-                  // played is still waiting for its first metadata.
                   if (_pauseConfirmed) {
                     _pauseQuiet = !positionMoved;
                   }

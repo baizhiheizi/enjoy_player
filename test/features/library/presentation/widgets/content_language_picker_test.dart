@@ -55,9 +55,6 @@ void main() {
           ),
         ],
       );
-      // We can't easily seed an async notifier's value without a custom
-      // builder; the picker tolerates a loading/empty AsyncValue (uses null
-      // for the fallback selectedValue).
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
@@ -85,9 +82,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      // Modal opened — title shows up.
       expect(find.text('pick me'), findsOneWidget);
-      // Dismiss by tapping outside (barrier).
       await tester.tapAt(const Offset(20, 20));
       await tester.pumpAndSettle();
     },
@@ -117,8 +112,6 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      // Modal opened — verify the sheet tree contains a Text widget for the
-      // title. We don't pin the exact wording.
       expect(find.byType(Text), findsWidgets);
       await tester.tapAt(const Offset(20, 20));
       await tester.pumpAndSettle();
@@ -176,7 +169,7 @@ void main() {
                 unawaited(
                   showFocusLanguagePicker(
                     context: context,
-                    selectedValue: 'es_mx', // mixed separator → canonical
+                    selectedValue: 'es_mx',
                   ),
                 );
               },
@@ -189,14 +182,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    // Sheet opened (no exception, with mixed-case tag).
     expect(find.byType(Text), findsWidgets);
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
   });
 
-  // Pure-function checks for the canonicalization the picker applies on
-  // dismissal.
   test('canonicalMediaLanguageTag mirrors picker normalization', () {
     expect(canonicalMediaLanguageTag('ja_JP'), 'ja-JP');
     expect(canonicalMediaLanguageTag('en-us'), 'en-US');

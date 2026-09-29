@@ -1,12 +1,3 @@
-// Coverage for lib/features/player/application/youtube_warm.dart
-// (warmYoutubeSurfaceIfNeeded) and
-// lib/core/audio/recording_preview_player_provider.dart
-// (recordingPreviewPlayerProvider).
-//
-// `youtube_warm` exposes a top-level helper that takes a `WidgetRef` and
-// reads `playerControllerProvider` to call `warmYoutubeSurface()`. We wire
-// it through a real `Consumer` widget under `tester.pumpWidget` so the
-// real call site is exercised end-to-end.
 import 'package:drift/native.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player.dart';
 import 'package:enjoy_player/core/audio/recording_preview_player_provider.dart';
@@ -57,7 +48,6 @@ Widget _scope({
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   try {
-    // RecordingPreviewPlayer instantiates a media_kit Player; required once.
     MediaKit.ensureInitialized();
   } on Object catch (e) {
     test('(skipped) media_kit native library not available', () {}, skip: '$e');
@@ -94,8 +84,6 @@ void main() {
         );
         await tester.pump();
 
-        // No engine mutation when the guard fires (read returns 0 in a fresh
-        // container).
         expect(observedRev, 0);
       },
     );
@@ -135,9 +123,6 @@ void main() {
         );
         await tester.pump();
 
-        // Guard allows it through, then controller short-circuits because
-        // the test-double provider is non-null in this setUp. Pin the no-op
-        // outcome — both helpers share this guard inside the controller.
         expect(observedRev, 0);
       },
     );
@@ -159,7 +144,6 @@ void main() {
         );
         await tester.pump();
 
-        // Same short-circuit when the test-double provider is non-null.
         expect(observedRev, 0);
       },
     );
@@ -175,10 +159,8 @@ void main() {
         final player = container.read(recordingPreviewPlayerProvider);
         expect(player, isA<RecordingPreviewPlayer>());
 
-        // Disposing the container disposes the player (no more side effects).
         container.dispose();
 
-        // Using the player after dispose must throw — pin the contract.
         expect(
           () => player.play('/non-existent.wav'),
           throwsA(isA<StateError>()),

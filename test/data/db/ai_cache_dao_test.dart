@@ -69,7 +69,6 @@ void main() {
 
     test('delete is a no-op for absent key', () async {
       await dao.deleteRow('translation', 'nope');
-      // Should not throw.
       expect(await dao.read('translation', 'nope'), isNull);
     });
 
@@ -85,7 +84,6 @@ void main() {
 
     test('evictOldestExcept keeps the most-recent rows', () async {
       final base = DateTime.fromMillisecondsSinceEpoch(1700000000000);
-      // Insert 5 rows with ascending updatedAt.
       for (var i = 0; i < 5; i++) {
         await dao.upsert(
           'translation',
@@ -97,7 +95,6 @@ void main() {
       final deleted = await dao.evictOldestExcept('translation', 2);
       expect(deleted, 3);
       expect(await dao.countForKind('translation'), 2);
-      // The two kept rows must be the most recent: k3 and k4.
       expect((await dao.read('translation', 'k3'))!.payloadJson, '{"v":3}');
       expect((await dao.read('translation', 'k4'))!.payloadJson, '{"v":4}');
       expect(await dao.read('translation', 'k0'), isNull);

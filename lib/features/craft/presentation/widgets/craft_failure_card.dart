@@ -61,8 +61,6 @@ class CraftFailureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Credits rejections get the one-tap recovery path alongside Retry
-    // (spec 045): the same label and destination as every other surface.
     final showCreditsCta = failure is CraftCreditsFailure;
     return Center(
       child: Padding(

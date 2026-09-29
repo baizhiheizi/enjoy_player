@@ -35,8 +35,6 @@ void main() {
     });
 
     test('rejects dot-prefixed names whose dot is not a separator', () {
-      // `.mp4` (just the extension, no basename) must not be classified as
-      // video — `path.extension` returns '.mp4' but the basename is empty.
       expect(isVideoFileName('.mp4'), isFalse);
     });
   });
@@ -95,9 +93,6 @@ void main() {
     });
 
     test('extension lists stay disjoint (no overlap between audio/video)', () {
-      // If anyone ever accidentally duplicates an extension across the two
-      // lists, the union still classifies it as one or the other — but we
-      // want to keep them clean so callers can render the right kind icon.
       final overlap = kFilePickerLocalVideoExtensions.toSet().intersection(
         kFilePickerLocalAudioExtensions.toSet(),
       );

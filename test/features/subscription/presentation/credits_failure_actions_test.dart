@@ -68,7 +68,6 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Numbered body — never the raw 'HTTP 402' internal string.
       expect(
         find.textContaining('750'),
         findsOneWidget,
@@ -77,8 +76,6 @@ void main() {
       expect(find.textContaining('200'), findsOneWidget);
       expect(find.text('HTTP 402'), findsNothing);
 
-      // The CTA rides in the notice body (AppNotice lays it out itself), so
-      // drive it through the rendered button rather than SnackBar.action.
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10n.subscriptionViewPlansAndPackages));
       await tester.pumpAndSettle();
@@ -113,8 +110,6 @@ void main() {
   ) async {
     await pumpHarness(tester, failure: const CreditsFailure('HTTP 402'));
 
-    // Two failures in a row (e.g. retry without purchasing): the second
-    // must replace the first, leaving exactly one snackbar visible.
     await tester.tap(find.text('trigger'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));

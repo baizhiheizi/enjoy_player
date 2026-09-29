@@ -58,9 +58,6 @@ void main() {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // sendOtp
-  // ---------------------------------------------------------------------------
   group('AuthRepository.sendOtp', () {
     test('returns OtpSendResponse on success', () async {
       final client = MockClient((request) async {
@@ -103,9 +100,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // signInGoogle (exercises _completeSignIn with user in response)
-  // ---------------------------------------------------------------------------
   group('AuthRepository.signInGoogle', () {
     test('persists tokens and returns user from response', () async {
       final client = MockClient((request) async {
@@ -129,7 +123,6 @@ void main() {
       expect(profile.email, 'g@x.com');
       expect(await tokenStore.readAccessToken(), 'at-1');
       expect(await tokenStore.readRefreshToken(), 'rt-1');
-      // Profile should be cached
       final cached = await repo.readCachedProfile();
       expect(cached?.id, 'u1');
     });
@@ -202,9 +195,6 @@ void main() {
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // signInApple
-  // ---------------------------------------------------------------------------
   group('AuthRepository.signInApple', () {
     test('persists tokens and returns user', () async {
       final client = MockClient((request) async {
@@ -233,9 +223,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // verifyOtp
-  // ---------------------------------------------------------------------------
   group('AuthRepository.verifyOtp', () {
     test('returns profile on success', () async {
       final client = MockClient((request) async {
@@ -279,9 +266,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // exchangePkceCode
-  // ---------------------------------------------------------------------------
   group('AuthRepository.exchangePkceCode', () {
     test('returns profile on success', () async {
       final client = MockClient((request) async {
@@ -330,9 +314,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // buildPkceAuthorizeUri
-  // ---------------------------------------------------------------------------
   group('AuthRepository.buildPkceAuthorizeUri', () {
     test('builds correct URI without trailing slash in base', () async {
       final client = MockClient((_) async => http.Response('{}', 200));
@@ -382,9 +363,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // fetchProfile
-  // ---------------------------------------------------------------------------
   group('AuthRepository.fetchProfile', () {
     test('returns profile and caches it on success', () async {
       final client = MockClient((request) async {
@@ -423,7 +401,6 @@ void main() {
         ),
       );
 
-      // Wait for the async clearSession to complete
       await Future<void>.delayed(Duration.zero);
       expect(await tokenStore.readAccessToken(), isNull);
       expect(await tokenStore.readRefreshToken(), isNull);
@@ -450,9 +427,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // updateProfile
-  // ---------------------------------------------------------------------------
   group('AuthRepository.updateProfile', () {
     test('PATCHes profile and caches result', () async {
       final client = MockClient((request) async {
@@ -516,9 +490,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // updateAvatar — additional edge cases
-  // ---------------------------------------------------------------------------
   group('AuthRepository.updateAvatar edge cases', () {
     test('rejects empty file', () async {
       final client = MockClient((_) async {
@@ -647,9 +618,6 @@ void main() {
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // readCachedProfile
-  // ---------------------------------------------------------------------------
   group('AuthRepository.readCachedProfile', () {
     test('returns null when no cached profile exists', () async {
       final client = MockClient((_) async => http.Response('{}', 200));
@@ -700,9 +668,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // hasAccessToken
-  // ---------------------------------------------------------------------------
   group('AuthRepository.hasAccessToken', () {
     test('returns false when no token stored', () async {
       final client = MockClient((_) async => http.Response('{}', 200));
@@ -728,9 +693,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // clearSession
-  // ---------------------------------------------------------------------------
   group('AuthRepository.clearSession', () {
     test('clears all auth secrets', () async {
       await tokenStore.writeAccessToken('a');
@@ -749,16 +711,12 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // loadInitialAuthState — additional branches
-  // ---------------------------------------------------------------------------
   group('AuthRepository.loadInitialAuthState (extended)', () {
     test(
       'refreshes expired token and returns signed in with cached profile',
       () async {
         await tokenStore.writeAccessToken('expired-token');
         await tokenStore.writeRefreshToken('refresh-1');
-        // Set expiry in the past
         await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
         await tokenStore.writeCachedProfileJson(
           jsonEncode({'id': 'u-exp', 'email': 'e@x.com', 'name': 'E'}),
@@ -803,7 +761,6 @@ void main() {
 
     test('fetches profile from network when no cached profile', () async {
       await tokenStore.writeAccessToken('valid-token');
-      // No expiry set — token is not expired
 
       final client = MockClient((request) async {
         if (request.url.path == '/api/v1/profile') {
@@ -837,7 +794,6 @@ void main() {
         final state = await repo.loadInitialAuthState();
 
         expect(state, isA<AuthSignedOut>());
-        // Session should be cleared by the AuthFailure path
         expect(await tokenStore.readAccessToken(), isNull);
       },
     );
@@ -856,7 +812,6 @@ void main() {
         final state = await repo.loadInitialAuthState();
 
         expect(state, isA<AuthSignedOut>());
-        // Tokens preserved — transient error
         expect(await tokenStore.readAccessToken(), 'valid-token');
       },
     );
@@ -929,9 +884,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // refreshSession — empty refresh token
-  // ---------------------------------------------------------------------------
   group('AuthRepository.refreshSession (extended)', () {
     test('returns false when refresh token is empty string', () async {
       await tokenStore.writeAccessToken('access-1');
@@ -947,9 +899,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // authFailureCodeForApiException — additional status codes
-  // ---------------------------------------------------------------------------
   group('authFailureCodeForApiException (extended)', () {
     test('status 418 (teapot) maps to unknown', () {
       const e = ApiException(message: 'teapot', statusCode: 418);

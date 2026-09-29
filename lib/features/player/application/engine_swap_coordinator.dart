@@ -142,9 +142,6 @@ class EngineSwapCoordinator {
     try {
       await replacement.dispose();
     } on Object catch (error, stackTrace) {
-      // The restore below must run even when the replacement's dispose
-      // throws (it can be half-torn-down already) — otherwise the slot is
-      // left holding the abandoned engine.
       _swapLog.warning(
         'superseded replacement dispose failed '
         '(${replacement.runtimeType}); restoring prior engine anyway',
@@ -230,13 +227,6 @@ class EngineSwapCoordinator {
     final owned = _getOwnedEngine();
     final haveYt = owned is YoutubePlaybackEngine;
 
-    // ADR-0048 defense in depth: no WebView backend exists on opted-out
-    // platforms, so a YouTube engine can never mount. Installing one would
-    // dispose the live MediaKit engine (and its native mpv player) for
-    // nothing — the 2026-08-29 field report traced every later audio open
-    // hanging on the loading skeleton back to exactly that swap. The open
-    // coordinator gates YouTube opens before this call; callers that open the
-    // source anyway fail with the typed unavailable exception.
     if (wantYt && youTubeEngineOptedOutHere) return false;
 
     if (owned != null && haveYt == wantYt) return false;
@@ -244,18 +234,11 @@ class EngineSwapCoordinator {
 
     final next = wantYt ? YoutubePlayerEngine() : MediaKitPlayerEngine();
     install(next);
-    // Every guarded step below runs inside [_runSupersededSwapSteps] — the
-    // one supersede-unwind path (issue #774, item 1): on staleness it
-    // disposes the abandoned `next` and restores `owned`.
     final landed = await _runSupersededSwapSteps(
       steps: steps,
       replacement: next,
       priorOwned: owned,
       body: () async {
-        // Let PlayerSurfaceHost drop the old ObjectKey stage before
-        // teardown. MediaKit must not allocate [Player] yet —
-        // [prepareNativeBackend] runs only after the prior surface has
-        // detached.
         await steps.run(
           'yield to surface host',
           () => Future<void>.delayed(Duration.zero),
@@ -270,10 +253,6 @@ class EngineSwapCoordinator {
     );
     if (!landed) return false;
     next.prepareNativeBackend();
-    // Arming the native backend flips the engine's nativeBackendAllowed
-    // listenable: an already-mounted MediaKit stage rebuilds and mounts
-    // Video right away (issue #751 — no second rev bump; the rev signals
-    // identity changes only).
     return true;
   }
 

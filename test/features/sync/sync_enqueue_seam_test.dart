@@ -143,9 +143,6 @@ SyncEngine _buildEngine(
 ) {
   final client = ApiClient(
     httpClient: MockClient((request) async {
-      // Never exercised: the queue only holds the youtube_upload retry row,
-      // which the engine dispatches to [youtubeTranscripts], not the
-      // /api/v1/mine upload services.
       return http.Response('unexpected ${request.method}', 500);
     }),
     getBaseUrl: () async => 'https://enjoy.example.com',
@@ -184,13 +181,7 @@ void main() {
     addTearDown(db.close);
     final queue = SyncQueueRepository(db);
 
-    // Producer-side client: the direct fire-and-forget upload fails, so
-    // the repository enqueues the durable SyncYoutubeUploadRetry.
     final producerApi = _FakeTranscriptsApi(uploadShouldFail: true);
-    // Drain-side client (SyncEngine's): the scheduled drain re-uploads
-    // the retry row successfully. A separate instance makes "the drain
-    // ran" observable independent of the producer's failure — the retry
-    // only reaches [drainApi] if processQueue decoded the wire row.
     final drainApi = _FakeTranscriptsApi();
     final engine = _buildEngine(db, queue, drainApi);
 
@@ -208,8 +199,6 @@ void main() {
     final fetcher = _StubYoutubeCaptionFetcher(
       result: AllCaptionsResult(results: [_track(language: 'en')]),
     );
-    // Production wiring: the repository holds the REAL job-shaped seam
-    // entry (syncEnqueueJobProvider), never a hand-built repository.
     final repo = TranscriptRepository(
       db,
       youtubeTranscripts: producerApi,
@@ -219,20 +208,12 @@ void main() {
 
     await repo.fetchCloudTranscripts(mediaId, force: true);
 
-    // No explicit drain call below — the enqueue's signed-in tail must
-    // schedule processQueue itself. Wait on a Completer gate instead of
-    // polling `DateTime.now()` (issue #774 flake-debt class — same pattern
-    // that bit the echo-overlap test that #773 fixed).
     await drainApi.firstUpload.future.timeout(
       const Duration(seconds: 3),
       onTimeout: () => throw StateError(
         'scheduled drain did not call drainApi.uploadTranscript within 3s',
       ),
     );
-    // The upload Future resolves before `processRetry` calls
-    // `_queue.removeByIdIfPayload`; pump microtasks until the row is gone
-    // (sub-millisecond on an in-memory Drift DB; bounded budget so a
-    // regression fails fast instead of stalling on wall-clock polling).
     for (var i = 0; i < 50; i++) {
       if ((await queue.pendingItems()).isEmpty) break;
       await Future<void>.delayed(Duration.zero);

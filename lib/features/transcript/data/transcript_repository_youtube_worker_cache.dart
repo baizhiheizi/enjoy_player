@@ -154,16 +154,12 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
   }) async {
     final enqueue = _enqueueSyncJob;
     if (enqueue == null) {
-      // A wiring bug must not swallow a durable retry into a log line that
-      // nobody reads (review nit, issue #749): fail loudly instead.
       throw StateError(
         'sync enqueue seam not wired: cannot enqueue YouTube upload '
         'retry for $videoId/$language',
       );
     }
     try {
-      // Wire row: kind youtube_upload, entityId=$videoId/$language —
-      // full contract on SyncYoutubeUploadRetry.encode (ADR-0049 §3).
       await enqueue(
         SyncYoutubeUploadRetry(
           videoId: videoId,

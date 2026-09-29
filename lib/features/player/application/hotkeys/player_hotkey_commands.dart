@@ -50,8 +50,6 @@ class ToggleExpandHotkeyCommand extends HotkeyCommand {
     if (session == null) return;
     if (ctx.path.startsWith('/player/')) {
       final navCtx = ctx.routerNavigatorContext ?? ctx.listenerContext;
-      // Unreachable while a player route is mounted (it owns the navigator);
-      // guards command unit tests that mount no tree.
       if (navCtx == null) return;
       unawaited(collapseExpandedPlayerWith(ctx.read, navCtx));
     } else {

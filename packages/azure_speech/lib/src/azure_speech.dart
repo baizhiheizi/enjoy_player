@@ -81,9 +81,6 @@ final class AzureSpeech {
       );
     }
 
-    // The native side returns a JSON object with audio (base64) and
-    // optionally wordBoundaries array. For backwards compatibility,
-    // a plain base64 string (no JSON) is treated as audio-only.
     if (raw.startsWith('{')) {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
       final audioB64 = decoded['audio'] as String? ?? '';
@@ -97,7 +94,6 @@ final class AzureSpeech {
       final wbList = decoded['wordBoundaries'] as List? ?? [];
       final wordBoundaries = wbList.map((w) {
         final m = w as Map<String, dynamic>;
-        // Native side sends ticks (100ns units); convert to ms.
         final audioOffsetTicks = (m['audioOffset'] as num?)?.toInt() ?? 0;
         final durationTicks = (m['duration'] as num?)?.toInt() ?? 0;
         return AzureWordBoundary(
@@ -112,7 +108,6 @@ final class AzureSpeech {
       );
     }
 
-    // Legacy: plain base64 string.
     final bytes = base64Decode(raw);
     return AzureSpeechSynthesisOutcome(audioBytes: Uint8List.fromList(bytes));
   });

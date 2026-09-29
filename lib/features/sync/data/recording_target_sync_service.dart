@@ -53,7 +53,6 @@ class RecordingTargetSyncService {
       '$targetType.$targetId',
     );
 
-    // Cooldown: short-circuit when we just pulled for this target.
     final clock = now ?? DateTime.now();
     final lastPull = await _db.settingsDao.readSetting(cooldownKey);
     if (lastPull != null && clock.toUtc().difference(lastPull) < _kCooldown) {
@@ -121,9 +120,6 @@ class RecordingTargetSyncService {
       );
     }
 
-    // Persist the cooldown timestamp even on partial success so a
-    // future open inside the cooldown window does not re-enter the
-    // pagination loop.
     await _db.settingsDao.writeSetting(cooldownKey, clock.toUtc());
 
     return SyncResult(

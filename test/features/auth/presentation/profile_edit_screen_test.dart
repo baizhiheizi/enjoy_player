@@ -70,7 +70,6 @@ void main() {
     expect(find.text(l10n.profileMixinNotLinked), findsOneWidget);
     expect(find.text(l10n.profileFieldName), findsOneWidget);
 
-    // Enjoy ID / email / Mixin are SelectableText, not TextFormFields.
     expect(find.byType(TextFormField), findsOneWidget);
   });
 

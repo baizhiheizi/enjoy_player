@@ -1,9 +1,3 @@
-// Widget-level coverage for
-// lib/features/shadow_reading/presentation/assessment_result_dialog.dart.
-//
-// The dialog needs an [AzurePronunciationAssessmentResult]; we build it from
-// JSON because the azure_speech classes don't expose a public constructor
-// in tests (and would otherwise require a live service).
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:convert';
 
@@ -159,12 +153,10 @@ void main() {
 
     expect(find.byType(AssessmentResultDialog), findsOneWidget);
     expect(find.text(l10n.assessmentTitle), findsOneWidget);
-    // Score bars present.
     expect(find.text(l10n.assessmentAccuracy), findsOneWidget);
     expect(find.text(l10n.assessmentCompleteness), findsOneWidget);
     expect(find.text(l10n.assessmentFluency), findsOneWidget);
     expect(find.text(l10n.assessmentProsody), findsOneWidget);
-    // Word tiles render.
     expect(find.text('hi'), findsWidgets);
     expect(find.text('there'), findsWidgets);
     expect(find.text('friend'), findsWidgets);
@@ -176,13 +168,9 @@ void main() {
       await tester.pumpWidget(_wrap(_dialog(_kBaseJson)));
       await tester.pumpAndSettle();
 
-      // Initially, no selected-word panel is shown. Only the chip "hi" is
-      // rendered (the word chip in the Wrap).
       final initialHiCount = find.text('hi').evaluate().length;
       expect(initialHiCount, greaterThanOrEqualTo(1));
 
-      // Tap the "hi" word chip — the word itself appears twice (chip +
-      // selected-word panel header).
       await tester.tap(find.text('hi').first);
       await tester.pumpAndSettle();
 
@@ -193,10 +181,8 @@ void main() {
         reason: 'tapping a word chip should reveal the selected-word panel',
       );
 
-      // The Accuracy score label should now be visible inside the panel.
       expect(find.text(l10n.assessmentAccuracyScore), findsOneWidget);
 
-      // Tap again to deselect.
       await tester.tap(find.text('hi').first);
       await tester.pumpAndSettle();
 
@@ -249,11 +235,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap the close icon.
       await tester.tap(find.byIcon(EnjoyIcons.close).first);
       await tester.pumpAndSettle();
 
-      // The dialog should be gone (Navigator popped).
       expect(find.byType(AssessmentResultDialog), findsNothing);
     },
   );
@@ -264,7 +248,6 @@ void main() {
     await tester.pumpWidget(_wrap(_dialog(_kNoWordsJson)));
     await tester.pumpAndSettle();
 
-    // Should still render the score bars and title.
     expect(find.text(l10n.assessmentTitle), findsOneWidget);
     expect(find.text(l10n.assessmentAccuracy), findsOneWidget);
   });

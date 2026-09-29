@@ -179,7 +179,7 @@ void main() {
 
         mediaId = 'm2';
         loop.bump();
-        fake.emitCompleted(); // stale: belongs to the pre-bump await
+        fake.emitCompleted();
         await settle();
         expect(fake.seekCalls, isEmpty);
 
@@ -229,8 +229,6 @@ void main() {
     test(
       'a throwing seek at replay logs instead of escaping the loop',
       () async {
-        // An escaping error would surface as an unhandled async exception in
-        // this zone and fail the test — passing is part of the assertion.
         fake = _FailingReplayEngine();
         loop = loopOn(fake);
         final records = captureLoopLogs();
@@ -275,8 +273,6 @@ void main() {
         await settle();
         expect(failing.playCallCount, 0);
 
-        // Engine recovered: a fresh [arm] must start a new loop, not stay wedged
-        // on the one that just failed.
         fake = _FailingReplayEngine(seekFailuresLeft: 0);
         loop = loopOn(fake);
         loop.arm();

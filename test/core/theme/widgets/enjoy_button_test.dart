@@ -27,7 +27,6 @@ void main() {
       expect(linear.colors[0], Color.lerp(base, Colors.white, 0.10));
       expect(linear.colors[1], base);
       expect(decoration.shape, shape);
-      // No shadow passed — the glow is suppressed.
       expect(decoration.shadows, isEmpty);
     });
 
@@ -107,8 +106,6 @@ void main() {
       final hoverFg = button.style?.foregroundColor?.resolve(hovered);
       expect(idleFg?.a, 1.0);
       expect(hoverFg, idleFg);
-      // The primary fill is painted by the lit background builder (which
-      // reacts to hover / press itself) instead of an overlay wash.
       expect(button.style?.backgroundBuilder, isNotNull);
     }
   });

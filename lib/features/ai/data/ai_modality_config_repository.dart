@@ -19,8 +19,6 @@ class AiModalityConfigRepository {
 
   Future<AiModalityConfigs> load() async {
     try {
-      // Corrupt / non-object blobs throw in the JSON codec and fall through
-      // to the defaults; a missing row resolves to the declared null default.
       final map = await _db.settingsDao.readSetting(
         SettingsKeys.aiModalityConfigsV1,
       );

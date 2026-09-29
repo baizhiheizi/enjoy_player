@@ -39,16 +39,12 @@ void main() {
     });
 
     test('every declared constant is recognized by isKnown', () {
-      // The known-key set derives from the same declarations, so this pins
-      // the derivation (a hand-rolled side list would drift).
       for (final key in SettingsKeys.declaredKeys) {
         expect(SettingsKeys.isKnown(key.name), isTrue, reason: '$key');
       }
     });
 
     test('near-miss mutations of declared keys are unknown', () {
-      // Exact-match knowledge: a declared name plus any suffix must not be
-      // accepted — except declared dynamic-family roots.
       const familyRoots = {'sync.cursor.recording'};
       for (final key in SettingsKeys.declaredKeys.where(
         (k) => !familyRoots.contains(k.name),
@@ -90,7 +86,6 @@ void main() {
       expect(a, isNot(b));
       expect(SettingsKeys.isKnown(a), isTrue);
       expect(SettingsKeys.isKnown(b), isTrue);
-      // Cursor and cooldown families never collide for the same target.
       expect(a, isNot(SettingsKeys.syncCursorRecordingTarget('Video', 'm-1')));
     });
 
@@ -149,8 +144,6 @@ void main() {
     });
 
     test('does NOT match sync.cursor.video with extra suffix', () {
-      // Only the recording prefix family is dynamic; video / audio cursors
-      // are static and don't open a sub-tree.
       expect(SettingsKeys.isKnown('sync.cursor.video.foo'), isFalse);
       expect(SettingsKeys.isKnown('sync.cursor.audio.foo'), isFalse);
     });

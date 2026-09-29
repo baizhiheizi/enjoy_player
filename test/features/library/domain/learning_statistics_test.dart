@@ -77,7 +77,6 @@ void main() {
         'week': 99,
         'month': null,
       });
-      // All three resolve to zero via castJsonObjectOrNull → null.
       expect(s.today, PeriodStats.zero());
       expect(s.week, PeriodStats.zero());
       expect(s.month, PeriodStats.zero());

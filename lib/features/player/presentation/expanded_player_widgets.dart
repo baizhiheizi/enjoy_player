@@ -43,8 +43,6 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
       data: (p) => p != null,
       orElse: () => false,
     );
-    // Video rows only — audio has no 16:9 stage to claim, and flashing a
-    // black video box before the audio layout reads as a broken player.
     final videoRow = ref.watch(videoRowForMediaProvider(mediaId));
     final isLocalVideo = videoRow.maybeWhen(
       data: (row) => row != null,
@@ -61,15 +59,11 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
               alignment: Alignment.topCenter,
               child: YoutubeLoadingVideoStage(
                 mediaId: mediaId,
-                // Painted by the surface host inside the already-inset 16:9
-                // stage, so this one carries no SafeArea of its own.
                 overlayBuilder: (_) =>
                     const PlayerCollapseControl.loadingChrome(),
               ),
             )
           else if (isLocalVideo)
-            // Claim the chrome viewport during open (ADR-0057) so Video is
-            // not unmounted for the whole resolve → open window.
             Align(
               alignment: Alignment.topCenter,
               child: _LocalLoadingVideoStage(
@@ -81,8 +75,6 @@ class ExpandedPlayerLoadingBody extends ConsumerWidget {
           if (!isYoutube)
             const Align(
               alignment: Alignment.topCenter,
-              // Placed directly in the body stack, so it must clear the
-              // status bar itself.
               child: PlayerCollapseControl.loadingChrome(useSafeArea: true),
             ),
         ],
@@ -102,16 +94,9 @@ class _LocalLoadingVideoStage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Resolved off the UI thread and memoized per path — the old
-    // `File.existsSync()` in build blocked the UI thread on every rebuild
-    // (issue #663). Until it lands (or when there is none) only the skeleton
-    // shows, which is exactly the no-thumbnail case.
     final thumbAsync = ref.watch(localThumbnailFileProvider(thumbnailUrl));
     final thumb = thumbAsync.value;
     return PlayerLoadingStage(
-      // Share the chrome viewport id so loading → player does not park
-      // (unmount) the media_kit Texture. A distinct id raced detach/attach
-      // and left ~1s of picture then a black stage until resize.
       surfaceId: PlayerSurfaceIds.expandedPlayer,
       overlayBuilder: (_) => const SizedBox.shrink(),
       child: LayoutBuilder(
@@ -126,8 +111,6 @@ class _LocalLoadingVideoStage extends ConsumerWidget {
                     thumb,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
-                    // Fixed 16:9 slot: never decode the stored full-resolution
-                    // artwork for it (issue #663).
                     cacheWidth: thumbnailCacheWidthFor(constraints.maxWidth),
                   ),
                 const Center(child: SkeletonAppBootstrap()),
@@ -188,8 +171,6 @@ class ExpandedPlayerYoutubeUnavailableBody extends StatelessWidget {
               ),
             ),
           ),
-          // The user is stranded without a way back otherwise — mirror the
-          // loading body's collapse-only chrome.
           const Align(
             alignment: Alignment.topCenter,
             child: PlayerCollapseControl.loadingChrome(useSafeArea: true),
@@ -216,9 +197,6 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isVideo = chrome.mediaType == 'video';
-    // Watch, not read: the engine is swapped for the same mediaId on re-open
-    // (playerEngineRevProvider bumps), and a stale read would keep driving the
-    // discarded engine's poster/capabilities into the layout.
     final engine = ref.watch(playerEngineProvider);
     final splitPx = ref.watch(
       playerPreferencesCtrlProvider.select(
@@ -238,16 +216,11 @@ class ExpandedPlayerChromeBody extends ConsumerWidget {
           )
         : AudioPlayerLayout(transcript: transcript);
 
-    // Lift ambient tint around the Scaffold so audio collapse chrome and
-    // transcript share one backdrop (transparent scaffold).
     return PlayerAmbientBackdrop(
       accentColor: accent,
       intensity: 0.08,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        // Video only: body draws under overlay chrome so the 16:9 stage does
-        // not jump on play/pause. Audio has no AppBar — collapse lives in
-        // [AudioPlayerLayout] as a floating frosted control (ADR-0085).
         extendBodyBehindAppBar: isVideo,
         appBar: null,
         body: mediaBody,

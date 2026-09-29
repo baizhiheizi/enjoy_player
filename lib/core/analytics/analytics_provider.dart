@@ -30,7 +30,7 @@ Analytics analytics(Ref ref) {
 
   void applyPref(AsyncValue<bool> pref) {
     final value = pref.valueOrNull;
-    if (value == null) return; // still loading — bootstrap applies on resolve
+    if (value == null) return;
     impl.setEnabled(value);
   }
 

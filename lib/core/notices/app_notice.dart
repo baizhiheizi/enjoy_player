@@ -103,9 +103,6 @@ abstract final class AppNotice {
       final theme = Theme.of(context);
       final tokens = EnjoyThemeTokens.of(context);
 
-      // Aurora toast: one dark, quiet surface in both themes (inverse on
-      // porcelain, lifted on midnight); the semantic color lives only in the
-      // leading glyph (ADR-0089).
       final backgroundColor = appNoticeBackground(theme.brightness);
       const foregroundColor = Color(0xFFF4F4F7);
       late final Color iconColor;
@@ -143,11 +140,6 @@ abstract final class AppNotice {
       final mq = MediaQuery.of(context);
       final shellExtra = RootShellBottomInset.clearanceOf(context);
       final horizontal = tokens.space16;
-      // padding.bottom can exceed the physical safe inset when an ancestor
-      // Scaffold reports an over-tall bottomNavigationBar (extendBody feeds
-      // max(padding, bottomWidgetsHeight) into the body MediaQuery). Clamp to
-      // viewPadding so a leaked inset can never push the notice off screen —
-      // a floating SnackBar taller than the screen aborts every layout.
       final safeBottom = math.min(mq.padding.bottom, mq.viewPadding.bottom);
       final bottomPad = safeBottom + shellExtra + tokens.space16;
       final maxW = mq.size.width;
@@ -166,7 +158,6 @@ abstract final class AppNotice {
         color: foregroundColor,
       );
 
-      // One-shot like [SnackBarAction]: fire once, then dismiss.
       var actionTriggered = false;
       final bodyAction = action == null
           ? null
@@ -180,8 +171,6 @@ abstract final class AppNotice {
               },
             );
 
-      // Park the permanent player surface while the snackbar is visible so
-      // WebView2 / media_kit platform views cannot cover the notice (ADR-0066).
       final overlayHold = _acquireOverlayHold(context);
 
       final controller = m.showSnackBar(
@@ -194,19 +183,8 @@ abstract final class AppNotice {
           ),
           backgroundColor: backgroundColor,
           duration: duration,
-          // SnackBar infers `persist` from `action != null`; the action now
-          // lives in the body, so actionable notices opt in explicitly and
-          // keep waiting for the user instead of timing out.
           persist: action != null,
           margin: EdgeInsets.fromLTRB(sideMargin, 0, sideMargin, bottomPad),
-          // The action and the dismiss button are laid out by
-          // [_AppNoticeBody] instead of SnackBar's own slots: once the
-          // built-in action is wider than `actionOverflowThreshold` (25% of
-          // the bar by default) Flutter moves it onto its own row and still
-          // reserves 40% of the width beside the message, which squeezed the
-          // credits-exhausted copy into a ~60% column on phones. Padding is
-          // owned here too, so the SDK's vertical padding wraps the message
-          // row only and never stacks around the trailing action row.
           padding: EdgeInsets.symmetric(horizontal: tokens.space16),
           content: _AppNoticeBody(
             icon: icon,
@@ -241,7 +219,6 @@ abstract final class AppNotice {
       final token = coordinator.acquire('notice');
       return (release: () => coordinator.release(token));
     } on Object {
-      // No ProviderScope (e.g. isolated widget tests) — snackbar still shows.
       return null;
     }
   }
@@ -287,9 +264,6 @@ class _AppNoticeBody extends StatelessWidget {
             Icon(icon, color: iconColor, size: 20),
             SizedBox(width: tokens.space12),
             Expanded(
-              // Vertical rhythm matches SnackBar's own single-line padding, so
-              // a dismiss-only notice is exactly as tall as the default
-              // layout it replaced.
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(message, style: textStyle),
@@ -304,8 +278,6 @@ class _AppNoticeBody extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Flexible + maxLines so a long localized label ellipsizes
-                // instead of wrapping the button or overflowing the bar.
                 Flexible(
                   child: TextButton(
                     style: TextButton.styleFrom(

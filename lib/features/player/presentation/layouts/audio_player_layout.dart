@@ -34,8 +34,6 @@ class AudioPlayerLayout extends ConsumerWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: t.contentMaxWidth),
               child: Padding(
-                // Desktop windows have no status-bar inset — add a roomier
-                // top inset so the column doesn't hug the window edge.
                 padding: isDesktop
                     ? EdgeInsets.fromLTRB(
                         t.space12,
@@ -53,8 +51,6 @@ class AudioPlayerLayout extends ConsumerWidget {
               ),
             ),
           ),
-          // Safe-area inset comes from the layout-level [SafeArea] above, so
-          // the control only carries its own on-stage edge inset.
           PlayerCollapseControl(
             inset: EdgeInsets.only(left: t.space8, top: t.space8),
           ),

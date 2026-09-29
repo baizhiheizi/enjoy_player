@@ -64,7 +64,6 @@ void main() {
 
       final api = PronounceApi(client);
       final json = await api.pronounce(text: 'こんにちは', locale: 'ja-JP');
-      // ApiClient converts response keys to camelCase.
       expect(json['audioUrl'], contains('/pronounce/files/'));
       expect(
         PronounceResult.fromJson(json).audioUrl,

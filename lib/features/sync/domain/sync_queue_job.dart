@@ -114,16 +114,6 @@ sealed class SyncQueueJob {
       action == SyncAction.create || action == SyncAction.update,
       'Upsert snapshots are create/update only; use deleteFor',
     );
-    // Audio/video arms cross the MediaRegistry seam (issue #753): a
-    // kind-known read for the snapshot, then the flip through the registry's
-    // typed upsert (`syncStatus → pending` is a one-field insert-or-replace,
-    // exactly what `upsertAudio` / `upsertVideo` dispatch). Chosen over a
-    // third documented bypass (the `SyncUploadService` rationale): that
-    // service stamps several server-acked fields per entity type, whereas
-    // these two arms are straight-through kind-known read + replace where the
-    // registry detour re-branches nothing. Non-media arms (recording,
-    // vocabulary, subscriptions) stay on their own DAOs — the registry spans
-    // only `videos` / `audios`.
     final registry = MediaRegistry(db);
     switch (type) {
       case SyncEntityType.audio:
@@ -151,8 +141,6 @@ sealed class SyncQueueJob {
         );
         return job;
       case SyncEntityType.youtubeSubscription:
-        // Subscription sync deferred — snapshot only, no status flip (the
-        // table has no syncStatus column to flip).
         final sub = await db.youtubeChannelSubscriptionDao.getByChannelId(id);
         if (sub == null) return null;
         return SyncYoutubeSubscriptionUpsert.snapshot(sub, action: action);
@@ -267,10 +255,6 @@ sealed class SyncQueueJob {
       for (final entry in rawTimeline) {
         final cast = castJsonObjectOrNull(entry);
         if (cast == null) {
-          // One non-object entry taints the whole payload — drop instead
-          // of silently sending a partial timeline to the worker. The
-          // producer always emits `Map<String, dynamic>` shapes, so a
-          // non-object is corruption, not a partial list.
           tainted = true;
           break;
         }
@@ -286,8 +270,6 @@ sealed class SyncQueueJob {
         source.isEmpty ||
         timeline == null ||
         timeline.isEmpty) {
-      // Malformed retry payload — unrecoverable, decode refuses it so the
-      // drain drops the row (same handling as the "missing locally" rows).
       return null;
     }
     return SyncYoutubeUploadRetry(

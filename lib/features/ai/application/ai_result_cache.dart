@@ -103,7 +103,6 @@ class AiResultCache<V extends Object> {
           _log.finest('ai_cache hit l2 kind=${kind.wire} key=$key');
           return decoded;
         } on Object catch (e, st) {
-          // Stale / corrupted payload — treat as miss and evict.
           _log.warning(
             'ai_cache l2 decode failed kind=${kind.wire} key=$key',
             e,
@@ -159,8 +158,6 @@ class AiResultCache<V extends Object> {
     required String sourceLanguage,
     required String targetLanguage,
   }) async {
-    // L2: single-statement bulk DELETE (issue #478) — replaces the previous
-    // SELECT-then-per-row-DELETE loop.
     final srcPattern = '%"sourceLanguage":"$sourceLanguage"%';
     final tgtPattern = '%"targetLanguage":"$targetLanguage"%';
     final deleted = await _dao.deleteByPayloadLike(srcPattern, tgtPattern);
@@ -203,10 +200,6 @@ class AiResultCache<V extends Object> {
     return _fromJson(map);
   }
 }
-
-// ---------------------------------------------------------------------------
-// Riverpod providers
-// ---------------------------------------------------------------------------
 
 /// Coalesces the startup prune pass for all AI cache kinds (issue #478).
 ///

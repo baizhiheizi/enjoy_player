@@ -40,8 +40,6 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    // ADR-0048: no inappwebview backend on Linux — the sign-in WebView cannot
-    // mount, so show the "coming soon" notice instead of asserting.
     if (youTubeEngineOptedOutHere) {
       return Scaffold(
         backgroundColor: colorScheme.surface,

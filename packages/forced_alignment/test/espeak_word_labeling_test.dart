@@ -34,8 +34,6 @@ void main() {
   });
 
   test('cue 2 keeps 77 as one display item with merged phones', () {
-    // eSpeak expands 77 -> "seventy seven" and emits two word events; the
-    // phones of both slots must land on the single displayed token.
     final phones = <EspeakPhoneEvent>[
       for (var ms = 2380; ms < 3200; ms += 100)
         EspeakPhoneEvent(phone: 's', audioMs: ms, textPosition: 46),
@@ -62,8 +60,6 @@ void main() {
 
   test('cue 3 relabels zero-length events to their own tokens', () {
     final words = _build(cueHyphens);
-    // Both len=0 events (positions 73 and 107) previously fell back to
-    // tokens[13] ('plain') and tokens[19] ('to').
     final table = words.firstWhere((w) => w.text == 'table');
     final legs = words.firstWhere((w) => w.text == 'legs');
     final three = words.firstWhere((w) => w.text == 'three');
@@ -139,8 +135,6 @@ void main() {
         expect(words[i].startTime, lessThanOrEqualTo(words[i + 1].startTime));
       }
     }
-    // The 500 ms phone lands in the window it belongs to, not on a later
-    // token, and no clamp throws on the inverted raw order.
     final withPhones = words.where((w) => w.phones.isNotEmpty).toList();
     expect(withPhones, hasLength(1));
     expect(withPhones.first.text, 'world');
@@ -206,8 +200,6 @@ void main() {
         80,
         90,
       ]);
-      // Both numeral expansion events (zero-based positions 45 and 46) own
-      // the token '77'.
       final token77 = spans.indexWhere((s) => s.text == '77');
       expect(owners[9], token77);
       expect(owners[10], token77);
@@ -220,7 +212,6 @@ void main() {
     });
 
     test('keeps one token across combining marks and curly apostrophes', () {
-      // NFD resumé: 'resume' followed by a combining acute (U+0301).
       expect(tokenizeWords('resume\u0301'), ['resume\u0301']);
       expect(tokenizeWords("don't don’t ‘tis"), ["don't", 'don’t', '‘tis']);
     });

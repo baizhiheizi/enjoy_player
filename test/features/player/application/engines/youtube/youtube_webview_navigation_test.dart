@@ -1,14 +1,4 @@
 // ignore_for_file: avoid_redundant_argument_values
-//
-// Coverage for `lib/features/player/application/engines/youtube/youtube_webview_navigation.dart`.
-//
-// The class is a thin wrapper around `YoutubeWebViewBridge` static helpers
-// (`loadWatchPage`, `play`, `forceInlinePlayback`) and `YoutubeSession`
-// state flags (`videoId`, `loggedFirstPlaying`, `disposed`, etc.).
-//
-// We drive every public method through a fake `PlatformInAppWebViewController`
-// (the same pattern used by `translation_prompt_test.dart`) and assert
-// against the recorded side effects, plus session-state transitions.
 import 'dart:async';
 
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
@@ -63,9 +53,6 @@ class _Stub {
   _RecordingPlatformController platform = _RecordingPlatformController();
   late final InAppWebViewController controller =
       InAppWebViewController.fromPlatform(platform: platform);
-  // One cached wrapper per attachment — the production controller caches its
-  // channel the same way so navigation's stale-WebView identity check keeps
-  // meaning "same WebView" (issue #767).
   late final YoutubeJsChannel channel = InAppWebViewJsChannel(controller);
   int verifyGen = 0;
   int navGen = 0;
@@ -76,9 +63,6 @@ class _Stub {
     if (attach) {
       session.resetForOpen('vid');
     }
-    // Detached stubs keep the fresh session as-is: videoId is already '' and
-    // skipping transitions avoids arming the recovery-hint timer in
-    // testWidgets (pending-timer assertion).
     nav = YoutubeWebViewNavigation(
       session: session,
       jsChannel: () => attach ? channel : null,
@@ -106,7 +90,6 @@ void main() {
       final nav = stub.build();
       nav.schedulePlaybackNudge();
       nav.cancelNudge();
-      // Calling again is still safe — no exceptions, no leaks.
       nav.cancelNudge();
     });
   });
@@ -124,7 +107,6 @@ void main() {
       final stub = _Stub();
       stub.build(attach: false);
       stub.session.resetForOpen('vid');
-      // Override the controller supplier to return null on this call.
       final nav = YoutubeWebViewNavigation(
         session: stub.session,
         jsChannel: () => null,
@@ -161,12 +143,6 @@ void main() {
       expect(stub.platform.loadUrlCalls, 1);
       expect(stub.staleCalls, 1);
     });
-
-    // Note: production logic compares two calls to webController() via
-    // `identical`. We cannot atomically swap the closure return value
-    // between those calls in pure-Dart test code, so the negative branch
-    // is exercised in production by the WebView lifecycle and trusted to
-    // manual / integration tests.
   });
 
   group('ensureWatchPageLoadedAfterDelay', () {
@@ -180,7 +156,6 @@ void main() {
         delay: delay,
         skipIfLoadStopReceived: skipIfLoadStopReceived,
       );
-      // Advance fake time so the Future.delayed inside the helper fires.
       await tester.pump(delay + const Duration(milliseconds: 50));
       await future;
     }
@@ -189,7 +164,6 @@ void main() {
       final stub = _Stub();
       final nav = stub.build();
       stub.verifyGen = 1;
-      // Capture, then advance the verifyGen before the delay elapses.
       final future = nav.ensureWatchPageLoadedAfterDelay(
         delay: const Duration(milliseconds: 10),
       );
@@ -280,7 +254,6 @@ void main() {
       final nav = stub.build();
       stub.session.scheduleNonWatchRecovery();
       nav.scheduleNonWatchRecovery();
-      // Flag stays true; second call does not reschedule.
       expect(stub.session.nonWatchRecoveryScheduled, isTrue);
     });
 
@@ -289,10 +262,6 @@ void main() {
       final nav = stub.build();
       nav.scheduleNonWatchRecovery();
       expect(stub.session.nonWatchRecoveryScheduled, isTrue);
-      // We do not pump the real timer here — `ensureWatchPageLoadedAfterDelay`
-      // uses Future.delayed, and the recovery branch is exercised by the
-      // dedicated tests below + manual runs. We just verify the schedule
-      // flag flips and the helper is wired.
     });
   });
 
@@ -301,10 +270,7 @@ void main() {
       final stub = _Stub();
       final nav = stub.build();
       nav.schedulePlaybackNudge();
-      // Mark session disposed before the nudge would fire.
       unawaited(stub.session.closeStreams());
-      // Cancel and reschedule so we can verify the disposed short-circuit
-      // without waiting on the real 6-second Timer.
       nav.cancelNudge();
       final nullNav = YoutubeWebViewNavigation(
         session: stub.session,
@@ -316,9 +282,6 @@ void main() {
       );
       nullNav.schedulePlaybackNudge();
       nullNav.cancelNudge();
-      // No way to reach the timer body deterministically without real
-      // time. We instead trust that the disposed early-return is exercised
-      // via the production lifecycle and pin the schedule + cancel API.
       expect(stub.platform.evaluateCalls, 0);
     });
 
@@ -381,9 +344,6 @@ void main() {
     ) async {
       final stub = _Stub();
       final nav = stub.build();
-      // Force buffering to false so emitBuffering(true) actually fires. The
-      // first-playing latch is set before the buffering transition so the
-      // hint scheduler stays idle in this test.
       stub.session
         ..markFirstPlayingLogged()
         ..emitBuffering(false)
@@ -483,7 +443,6 @@ void main() {
       final nav = stub.build();
       await nav.nudgePlaybackStart(stub.channel);
       expect(stub.platform.evaluateCalls, greaterThanOrEqualTo(1));
-      // The first evaluateJavascript call is the play script.
       expect(
         stub.platform.evaluateSources.first,
         YoutubeWebViewBridge.playScript,
@@ -524,7 +483,6 @@ void main() {
       expect(prepareCalls, 0);
       expect(cancelCalls, 1);
       expect(stub.platform.loadUrlCalls, 0);
-      // Nudge play instead of full reload.
       expect(stub.platform.evaluateCalls, greaterThanOrEqualTo(1));
     });
 
@@ -598,11 +556,9 @@ void main() {
         prepareWatchReload: () => prepareCalls++,
         cancelStallWatchdog: () => cancelCalls++,
       );
-      // Limited path: no prepare, no cancel, no loadUrl.
       expect(prepareCalls, 0);
       expect(cancelCalls, 0);
       expect(stub.platform.loadUrlCalls, 0);
-      // nudgePlaybackStart was fired: evaluateJavascript called.
       expect(stub.platform.evaluateCalls, greaterThanOrEqualTo(1));
     });
 
@@ -626,7 +582,6 @@ void main() {
       final bufferingEvents = <bool>[];
       final sub = stub.session.bufferingStream.listen(bufferingEvents.add);
       addTearDown(() async => sub.cancel());
-      // Buffering event was emitted.
       expect(stub.session.buffering, isTrue);
     });
   });

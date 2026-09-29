@@ -62,12 +62,6 @@ String focusLanguageLabel(AppLocalizations l10n, String tag) {
   final exact = _supportedFocusLabel(l10n, tag);
   if (exact != null) return exact;
 
-  // Primary-subtag fallback, run *after* alias normalization so `no`, `nb`,
-  // `nob`, and `nor` all resolve to the Bokmål label. Deliberately does NOT
-  // route through `canonicalFocusLanguageTag`, which coerces unknown primaries
-  // to `en-US` and would therefore mislabel e.g. a Nynorsk `nn` track as
-  // "English". Tags whose primary matches nothing supported keep showing the
-  // raw tag (previous behavior).
   final primary = primaryLanguageSubtag(tag);
   if (primary.isEmpty) return tag;
   for (final supported in kSupportedFocusLanguageTags) {

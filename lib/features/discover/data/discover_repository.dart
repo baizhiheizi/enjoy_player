@@ -65,10 +65,8 @@ class DiscoverRepository {
     RecommendedChannelsLoader? recommendedLoader,
     YoutubeFeedClient? feedClient,
     YoutubeUrlParser? urlParser,
-  }) : // Initializing formal would have to be named `_libraryRepository`, which
-       // is unusable from another library — providers and tests build this repo.
-       // ignore: prefer_initializing_formals
-       _libraryRepository = libraryRepository,
+    // ignore: prefer_initializing_formals
+  }) : _libraryRepository = libraryRepository,
        _recommendedLoader = recommendedLoader ?? RecommendedChannelsLoader(),
        _feedClient = feedClient ?? YoutubeFeedClient(httpClient: httpClient),
        _urlParser = urlParser ?? YoutubeUrlParser();
@@ -84,7 +82,6 @@ class DiscoverRepository {
   /// effectively never at app-runtime. Prevents unbounded growth on a
   /// user who subscribes / unsubscribes many channels.
   // ignore: prefer_const_constructors — L1Store is not const-constructible
-  // because its LinkedHashMap backing is a non-const default value.
   final L1Store<String, String> _avatarUrlCache = L1Store<String, String>(
     capacity: _kAvatarCacheCapacity,
     ttl: _avatarCacheTtl,
@@ -139,7 +136,6 @@ class DiscoverRepository {
   }
 
   Future<void> subscribeFromUserInput(String rawInput) async {
-    // 1. Parse URL to get source type and feed URL
     ParsedYoutubeUrl parsed;
     try {
       parsed = _urlParser.parse(rawInput);
@@ -147,29 +143,23 @@ class DiscoverRepository {
       rethrow;
     }
 
-    // 2. Fetch the feed to get display name, avatar, and entries
     final fetchResult = await _feedClient.fetchFeed(parsed.feedUrl);
     final feedResult = fetchResult.feedResult;
 
-    // 3. Handle-to-ID canonicalization: if subscribed via @handle,
-    //    use the canonical channel ID from the feed response.
     final canonicalId = fetchResult.canonicalChannelId ?? parsed.canonicalId;
     var sourceType = parsed.sourceType;
     var feedUrl = parsed.feedUrl;
     if (fetchResult.canonicalChannelId != null) {
-      // Switch from handle URL to channel feed URL
       sourceType = YoutubeSourceType.channel;
       feedUrl =
           '${_urlParser.workerBaseUrl}/youtube/channel/$canonicalId?format=json';
     }
 
-    // 4. Create or update the subscription
     final now = DateTime.now();
     final existing = await _db.youtubeChannelSubscriptionDao.getByChannelId(
       canonicalId,
     );
     if (existing != null) {
-      // Already subscribed — update metadata and re-fetch
       await _db.youtubeChannelSubscriptionDao.upsert(
         YoutubeChannelSubscriptionRow(
           channelId: canonicalId,
@@ -199,10 +189,6 @@ class DiscoverRepository {
       );
     }
 
-    // 5. Upsert feed entries in a single batched transaction. One SQLite
-    // COMMIT replaces N per-entry INSERTs; `watchTimeline` re-emits once
-    // instead of N times, and the underlying `feedResult.entries` is small
-    // enough to allocate in one go.
     await _upsertFeedEntries(canonicalId, feedResult.entries, now);
   }
 
@@ -330,7 +316,6 @@ class DiscoverRepository {
       );
     }
 
-    // Run up to [_kRefreshChannelConcurrency] channel refreshes in parallel.
     final results = <(String, bool)>[];
     for (var i = 0; i < work.length; i += _kRefreshChannelConcurrency) {
       final batch = work.sublist(
@@ -370,8 +355,6 @@ class DiscoverRepository {
     final id = sub.channelId;
     var feedUrl = sub.feedUrl;
     if (feedUrl == null || feedUrl.isEmpty) {
-      // Repair: generate feed URL from channel ID for legacy subscriptions
-      // that were created before the migration backfilled feed_url.
       feedUrl = '${_urlParser.workerBaseUrl}/youtube/channel/$id?format=json';
       _log.info('Repairing missing feed URL for subscription $id');
       await _db.youtubeChannelSubscriptionDao.updateFeedUrl(id, feedUrl);
@@ -382,7 +365,6 @@ class DiscoverRepository {
 
       await _upsertFeedEntries(id, result.feedResult.entries, fetchedAt);
 
-      // Update subscription metadata (display name, avatar may change)
       await _db.youtubeChannelSubscriptionDao.upsert(
         YoutubeChannelSubscriptionRow(
           channelId: id,

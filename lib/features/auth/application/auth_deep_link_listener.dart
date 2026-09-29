@@ -51,7 +51,6 @@ class _AuthDeepLinkListenerState extends ConsumerState<AuthDeepLinkListener> {
 
   Future<void> _onUri(Uri? uri) async {
     if (uri == null || !mounted) return;
-    // Never log the query string: it carries the OAuth `code`.
     _log.info(
       'auth deep link received (${uri.scheme}://${uri.host}${uri.path})',
     );

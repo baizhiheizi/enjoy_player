@@ -67,8 +67,6 @@ class MediaKitPlayerEngine
     if (Platform.isAndroid || Platform.isIOS) {
       return const VideoControllerConfiguration();
     }
-    // Desktop: software output. HW textures can stay black until a later
-    // Flutter layout (Windows D3D, macOS OpenGL, Linux EGL — ADR-0048).
     return const VideoControllerConfiguration(
       width: kVideoControllerWidth,
       height: kVideoControllerHeight,
@@ -174,8 +172,6 @@ class MediaKitPlayerEngine
         'MediaKitPlayerEngine cannot open YouTube',
       ),
     };
-    // Release any prior scope before we open the new source — libmpv will
-    // read from the URL immediately, so the grant must cover the new path.
     final previousToken = _scopeToken;
     if (previousToken != null) {
       _scopeToken = null;
@@ -218,13 +214,7 @@ class MediaKitPlayerEngine
       _player.screenshot(format: format);
 
   @override
-  void warmVideoSurface() {
-    // Do not construct [VideoController] here. media_kit binds the native
-    // texture one frame after [VideoController] is created; if that happens
-    // with no [Video] widget mounted, Windows/Android stay black until a later
-    // layout. The MediaKit video stage creates the controller on first
-    // build.
-  }
+  void warmVideoSurface() {}
 
   @override
   Future<void> dispose() async {
@@ -257,7 +247,6 @@ class _NativeBackendGate implements Listenable {
   void arm() => _notify();
 
   void _notify() {
-    // Snapshot first: a listener may unregister itself while notifying.
     for (final listener in _listeners.toList(growable: false)) {
       listener();
     }

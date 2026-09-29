@@ -1,8 +1,3 @@
-// Per-command tests for the global-navigation hotkey commands (issue #719):
-// settings / craft navigation through a mounted GoRouter, the stub search
-// notice, and global.help's unmounted-router gate. The cheatsheet open/close
-// arms (dialog + cheatsheet state) stay covered end-to-end in
-// `test/features/hotkeys/app_hotkeys_keyboard_listener_test.dart`.
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/app_router.dart';
 import 'package:enjoy_player/features/hotkeys/application/global_hotkey_commands.dart';
@@ -76,8 +71,6 @@ void main() {
     test('canExecute is false before the router navigator is mounted', () {
       final container = ProviderContainer(
         overrides: [
-          // A headless GoRouter: its navigator key has no context until a
-          // Router widget mounts, which is exactly the gate under test.
           appRouterProvider.overrideWithValue(
             GoRouter(
               routes: [
@@ -146,7 +139,6 @@ void main() {
         HotkeyCtx(read: h.container.read, listenerContext: null),
       );
       await tester.pumpAndSettle();
-      // AppNotice surfaces through the global scaffold messenger key.
       expect(appScaffoldMessengerKey.currentState, isNotNull);
       expect(tester.takeException(), isNull);
     });

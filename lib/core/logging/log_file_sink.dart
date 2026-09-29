@@ -92,7 +92,6 @@ class LogFileSink {
 
   Future<void> _enqueueWrite(String line) {
     final done = _writeChain.then((_) => _appendLine(line));
-    // Keep the chain alive even if a write fails.
     _writeChain = done.catchError((Object error, StackTrace stackTrace) {});
     return done;
   }
@@ -101,7 +100,7 @@ class LogFileSink {
     final file = _activeFile;
     if (file == null) return;
 
-    final bytes = line.codeUnits.length; // UTF-16 code units; close enough cap
+    final bytes = line.codeUnits.length;
     if (_activeSize + bytes > kLogFileMaxBytes) {
       await _rotate();
     }

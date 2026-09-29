@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('analyzePcmSamples (pure pipeline)', () {
     test('returns EchoRegionAnalysisResult with expected metadata', () {
-      // 1 second of zeros at 16 kHz: 16000 samples.
       final samples = Float32List(16000);
       final result = analyzePcmSamples(samples, 16000);
 
@@ -17,14 +16,12 @@ void main() {
     });
 
     test('produces a stable envelope point count for non-silent input', () {
-      // 1s of low-frequency sinusoid at 200 Hz, amplitude 0.5.
       final samples = Float32List(16000);
       const twoPi = 2 * math.pi;
       for (var i = 0; i < samples.length; i++) {
         samples[i] = 0.5 * math.sin(twoPi * 200 * i / 16000);
       }
       final result = analyzePcmSamples(samples, 16000);
-      // Internal envelope target is 520 points; implementation may overshoot.
       expect(result.points.length, greaterThanOrEqualTo(520));
       expect(result.points.length, lessThan(700));
     });
@@ -43,7 +40,6 @@ void main() {
           .toList();
       expect(detectedHz, isNotEmpty);
       final avg = detectedHz.reduce((a, b) => a + b) / detectedHz.length;
-      // YIN tracks pitch to within ~15 Hz on a clean signal.
       expect(avg, greaterThan(f0 - 15));
       expect(avg, lessThan(f0 + 15));
     });
@@ -55,7 +51,6 @@ void main() {
     });
 
     test('respects the provided sample rate in duration calculation', () {
-      // 48000 samples at 48000 Hz → 1 second
       final samples = Float32List(48000);
       final result = analyzePcmSamples(samples, 48000);
       expect(result.sampleRate, 48000);
@@ -73,16 +68,12 @@ void main() {
       }
       final loudRes = analyzePcmSamples(loud, 16000);
       final quietRes = analyzePcmSamples(quiet, 16000);
-      // The reference amplitude is normalized to [0, 1], so both signals
-      // saturate near 1.0. We verify the pipeline emits plausible amplitudes
-      // rather than strict ratio scaling.
       for (final p in loudRes.points.take(20)) {
         expect(p.ampRef, inInclusiveRange(0.0, 1.0));
       }
       for (final p in quietRes.points.take(20)) {
         expect(p.ampRef, inInclusiveRange(0.0, 1.0));
       }
-      // Loud signal has at least one near-saturated point.
       expect(loudRes.points.any((p) => p.ampRef > 0.5), isTrue);
     });
   });

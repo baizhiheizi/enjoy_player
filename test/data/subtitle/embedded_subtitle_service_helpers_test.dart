@@ -1,9 +1,3 @@
-// Pure-helper coverage for lib/data/subtitle/embedded_subtitle_service.dart.
-//
-// The service shell itself shells out to ffmpeg and ffmpeg_kit which we don't
-// run in unit tests, so we focus on the three `@visibleForTesting` static
-// helpers (`allocateLanguageCode`, `rowForExtracted`, `trackLabelFromParts`)
-// that carry the interesting branch logic.
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/subtitle/embedded_subtitle_service.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
@@ -105,7 +99,6 @@ void main() {
       expect(row.referenceId, 'embedded:2');
       expect(row.syncStatus, 'local');
       expect(row.serverUpdatedAt, isNull);
-      // The id is derived from (targetType, targetId, language, source).
       expect(
         row.id,
         enjoyTranscriptId(
@@ -115,7 +108,6 @@ void main() {
           source: 'user',
         ),
       );
-      // Timeline is JSON-encoded array of line JSON.
       expect(row.timelineJson, contains('"text":"hi"'));
     });
   });

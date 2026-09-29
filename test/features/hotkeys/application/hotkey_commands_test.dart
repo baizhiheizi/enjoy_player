@@ -1,7 +1,3 @@
-// Registry + dispatch-semantics tests for the hotkey command interface
-// (issue #719): registration order is dispatch priority, a matched binding
-// whose gate fails falls through to later commands (the old if-chain's
-// semantics), and every `HotkeyDefinition` owns exactly one command.
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkey_commands.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
@@ -48,8 +44,6 @@ KeyDownEvent _keyZ() => const KeyDownEvent(
 );
 
 void main() {
-  // hotkeyMatchesBinding reads HardwareKeyboard.instance's pressed-modifier
-  // state, so the services binding must exist even in these plain tests.
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('every HotkeyDefinition owns exactly one command', () {

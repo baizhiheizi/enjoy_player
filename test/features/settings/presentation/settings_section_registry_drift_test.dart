@@ -38,7 +38,6 @@ class _RecordingLocalizations implements AppLocalizations {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    // Spec accessors only read getters; record the key and answer `''`.
     if (invocation.isGetter) {
       accessed.add(_symbolName(invocation.memberName));
     }
@@ -96,9 +95,6 @@ void main() {
     });
 
     test('every SettingsSectionIds constant is a registered section', () {
-      // Hand-listed because Dart cannot reflect over static consts. A
-      // declared-but-unregistered id renders nowhere (dead code); adding a
-      // constant here without a kSettingsRegistry header entry fails.
       const declaredIds = <String>{
         SettingsSectionIds.cloudSync,
         SettingsSectionIds.appearanceLanguage,
@@ -156,9 +152,6 @@ void main() {
     test(
       'body() returns the same canonical const widget instance per call',
       () {
-        // `() => const XSectionBody()` closures return the canonical const
-        // instance; an `XSectionBody.new` tear-off would allocate a fresh
-        // widget per call (regression guard for the pre-spec `const` literals).
         for (final spec in kSettingsSectionSpecs) {
           expect(
             identical(spec.body(), spec.body()),
@@ -214,9 +207,6 @@ void main() {
     }
 
     test('every l10n key read by the specs exists in all three ARB files', () {
-      // Discover keys structurally: invoke every l10n-reading accessor
-      // (section title/hint/searchable text, row titles/searchable text)
-      // against a recording AppLocalizations and collect the getters read.
       final keys = <String>{};
       for (final spec in kSettingsSectionSpecs) {
         final rec = _RecordingLocalizations();
@@ -261,8 +251,6 @@ void main() {
     });
 
     test('row search tokens are bilingual and thread into zh search', () {
-      // Row searchableText is locale-resolved (a function of l10n): zh
-      // users must find rows via tokens their titles never contain.
       final zhLocales = <String, AppLocalizations>{
         'zh': AppLocalizationsZh(),
         'zh_CN': AppLocalizationsZhCn(),
@@ -295,9 +283,6 @@ void main() {
             reason: '${entry.key} searchableText for row "$rowId"',
           );
         }
-        // "邮件" appears in no zh title (the contact title is 联系开发者),
-        // so this only passes if row tokens thread through
-        // localizedSettingsRegistry into filterSettingsEntries.
         final matched = filterSettingsEntries(
           '邮件',
           localizedSettingsRegistry(l10n),

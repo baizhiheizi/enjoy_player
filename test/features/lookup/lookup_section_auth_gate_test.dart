@@ -33,7 +33,6 @@ class _AuthErrorCtrl extends AuthCtrl {
 class _AuthLoadingCtrl extends AuthCtrl {
   @override
   Future<AuthState> build() async {
-    // Never completes — keeps the provider in the loading state.
     return Completer<AuthState>().future;
   }
 }
@@ -97,7 +96,6 @@ void main() {
         ),
       ),
     );
-    // One frame only — the provider future never resolves.
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.byKey(childMarker), findsNothing);

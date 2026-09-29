@@ -77,7 +77,6 @@ void main() {
       );
       addTearDown(container.dispose);
       await container.read(authCtrlProvider.future);
-      // Status never completes (loading) → cached profile tier wins.
       expect(container.read(currentTierProvider), SubscriptionTier.pro);
     },
   );

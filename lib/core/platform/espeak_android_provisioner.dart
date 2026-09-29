@@ -69,8 +69,6 @@ Future<bool> ensureAndroidEspeakRuntime({
     }
     var libPath = '$nativeLibDir${Platform.pathSeparator}libespeak-ng.so';
     if (!File(libPath).existsSync()) {
-      // MIUI / uncompressed-in-APK installs often have no regular file
-      // under nativeLibraryDir even though dlopen(soname) works.
       var listing = 'unreadable';
       try {
         listing = Directory(nativeLibDir).existsSync()

@@ -16,7 +16,6 @@ import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 String repairUtf8Mojibake(String value) {
   final units = value.codeUnits;
   if (units.isEmpty || units.every((u) => u < 128)) return value;
-  // Real Unicode beyond Latin-1 is already correct (e.g. ɡ U+0261).
   if (units.any((u) => u > 255)) return value;
   try {
     return utf8.decode(units);

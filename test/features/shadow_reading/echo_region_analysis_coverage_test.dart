@@ -86,7 +86,6 @@ void main() {
     test('hashCode differs for different points', () {
       const a = EchoRegionSeriesPoint(t: 0, ampRef: 0.5, pitchRefHz: 100);
       const b = EchoRegionSeriesPoint(t: 1, ampRef: 0.5, pitchRefHz: 100);
-      // Not guaranteed, but extremely likely for distinct values.
       expect(a.hashCode, isNot(equals(b.hashCode)));
     });
   });
@@ -122,7 +121,6 @@ void main() {
         expect(result[0].pitchUserHz, isNull);
         expect(result[1].ampUser, 0);
         expect(result[1].pitchUserHz, isNull);
-        // Reference fields preserved.
         expect(result[0].ampRef, 0.5);
         expect(result[0].pitchRefHz, 100);
       },
@@ -146,8 +144,6 @@ void main() {
     );
 
     test('user point beyond tolerance is not merged', () {
-      // Reference points at t=0 and t=10; user point maps to t=5 which is
-      // far from both (nearestDiff = 5 > 0.1 tolerance).
       const ref = [
         EchoRegionSeriesPoint(t: 0, ampRef: 0.5, pitchRefHz: 100),
         EchoRegionSeriesPoint(t: 10, ampRef: 0.5, pitchRefHz: 110),
@@ -160,14 +156,11 @@ void main() {
         userDurationSec: 10,
       );
       expect(result.length, 2);
-      // Neither reference point should have user data merged.
       expect(result[0].pitchUserHz, isNull);
       expect(result[1].pitchUserHz, isNull);
     });
 
     test('scales user time when durations differ', () {
-      // Reference is 4s with points at t=0 and t=2.
-      // User is 2s with a point at t=1 → mapped to 1*(4/2)=2.0 → matches ref[1].
       const ref = [
         EchoRegionSeriesPoint(t: 0, ampRef: 0.5, pitchRefHz: 100),
         EchoRegionSeriesPoint(t: 2, ampRef: 0.6, pitchRefHz: 110),
@@ -180,10 +173,8 @@ void main() {
         userDurationSec: 2,
       );
       expect(result.length, 2);
-      // User point at t=1 maps to t=2.0, matching ref[1].
       expect(result[1].pitchUserHz, 95);
       expect(result[1].ampUser, 0.4);
-      // ref[0] untouched.
       expect(result[0].pitchUserHz, isNull);
     });
 
@@ -199,7 +190,6 @@ void main() {
         referenceDurationSec: 1,
         userDurationSec: 1,
       );
-      // Last writer wins.
       expect(result[0].pitchUserHz, 95);
       expect(result[0].ampUser, 0.4);
     });
@@ -305,7 +295,6 @@ void main() {
         referenceDurationSec: 2,
         userDurationSec: 0,
       );
-      // userDurationSec <= 0 means merge is skipped, ref.points returned.
       expect(identical(result, ref.points), isTrue);
     });
 
@@ -333,7 +322,6 @@ void main() {
         referenceDurationSec: 3,
         userDurationSec: 1,
       );
-      // Different duration → different key → recomputed.
       expect(identical(first, second), isFalse);
     });
 
@@ -362,9 +350,7 @@ void main() {
         referenceDurationSec: 2,
         userDurationSec: 1,
       );
-      // After invalidate, the merge is recomputed producing a new list.
       expect(identical(first, second), isFalse);
-      // But the content is equivalent.
       expect(second, equals(first));
     });
   });

@@ -28,9 +28,6 @@ class PeriodStats {
 class LearningStatistics {
   factory LearningStatistics.fromJson(Map<String, dynamic> json) {
     return LearningStatistics(
-      // Nested maps from decodeJsonToCamel may be Map<dynamic, dynamic>; see
-      // castJsonObjectOrNull doc for why a strict `is Map<String, dynamic>`
-      // check would silently read `today` / `week` / `month` as zero.
       today: PeriodStats.fromJson(castJsonObjectOrNull(json['today'])),
       week: PeriodStats.fromJson(castJsonObjectOrNull(json['week'])),
       month: PeriodStats.fromJson(castJsonObjectOrNull(json['month'])),

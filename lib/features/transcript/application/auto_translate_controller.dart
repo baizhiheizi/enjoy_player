@@ -55,8 +55,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       }
     });
 
-    // On seek / active-cue change, prefer the new viewport over a FIFO backlog
-    // of earlier lines that were requested while scrolled at the top.
     ref.listen(
       transcriptPlaybackHighlightProvider(mediaId).select((h) => h.cueIndex),
       (prev, next) {
@@ -178,8 +176,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
           .where((i) => i >= 0 && i < primaryLines.length)
           .toSet(),
     );
-    // Enabling auto-translate is the user-visible translation request; the
-    // per-line fetches are lazy internals, not user actions (spec 046).
     ref
         .read(analyticsProvider)
         .capture(
@@ -207,8 +203,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     }
     if (_waiting.contains(lineIndex)) return;
 
-    // Stream providers can lag behind setSecondaryTranscript; only bail when
-    // secondary has a concrete non-AI id.
     final secondaryId = ref.read(secondaryTranscriptIdProvider(mediaId)).value;
     if (secondaryId != null && secondaryId != state.aiTranscriptId) return;
 
@@ -341,7 +335,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         final primaryLine = primaryLines[lineIndex];
         final plain = plainTextFromSubtitleMarkup(primaryLine.text).trim();
         if (plain.isEmpty) {
-          // Nothing to translate — leave empty permanently.
           return;
         }
 
@@ -475,8 +468,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
         anchor ??
         ref.read(transcriptPlaybackHighlightProvider(mediaId)).cueIndex;
     final focus = raw < 0 ? 0 : raw;
-    // Drop backlog far from the cue so a mid-video seek does not keep
-    // draining early lines that were queued from the list cache extent.
     final nearby = _waiting
         .where((i) => (i - focus).abs() <= kAutoTranslateViewportWindow)
         .toList();
@@ -496,7 +487,6 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   void _clearInFlightTracking() {
     _waiting.clear();
     _forceRefreshLines.clear();
-    // In-flight futures finish and no-op via secondary/status checks.
     _inFlight.clear();
     if (ref.mounted) {
       state = state.copyWith(inFlightIndexes: const {});

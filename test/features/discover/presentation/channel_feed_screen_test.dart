@@ -138,7 +138,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Title shows the channel display name resolved from subscriptions.
       expect(find.text('TED'), findsWidgets);
     });
 
@@ -153,7 +152,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Falls back to raw channelId in the title.
         expect(find.text(_channelId), findsWidgets);
       },
     );
@@ -167,10 +165,8 @@ void main() {
           channelFeed: const Stream<List<FeedEntry>>.empty(),
         ),
       );
-      // First frame — the stream hasn't emitted yet → AsyncValue.loading.
       await tester.pump();
 
-      // Skeleton list placeholder visible.
       expect(find.byType(SkeletonMediaList), findsOneWidget);
     });
 
@@ -210,7 +206,6 @@ void main() {
     testWidgets(
       'renders a list of DiscoverFeedTile widgets when viewport is narrow',
       (tester) async {
-        // Use a small width to ensure we hit the crossAxisCount == 1 branch.
         tester.view.physicalSize = const Size(360, 800);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -223,7 +218,6 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Every entry's title is shown via DiscoverFeedTile.
         expect(find.text('First video'), findsOneWidget);
         expect(find.text('Second video'), findsOneWidget);
         expect(find.text('Third video'), findsOneWidget);
@@ -258,10 +252,6 @@ void main() {
               discoverSubscriptionsProvider.overrideWith(
                 (ref) => Stream.value(_subscriptions),
               ),
-              // The screen watches the membership-joined feed now, so this
-              // override has to shape the joined stream too (issue #764
-              // candidate 6) — otherwise the real provider subscribes to a
-              // never-closing drift stream and `pumpAndSettle` never settles.
               discoverChannelFeedItemsProvider.overrideWith(
                 (ref, channelId) => Stream.value(
                   projectDiscoverFeedItems(_entries, const <String>{}),
@@ -281,14 +271,11 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Navigate forward onto the channel feed so the stack has 2 entries
-        // (context.pop() below needs something above to pop back to).
         unawaited(router.push('/discover'));
         await tester.pumpAndSettle();
 
         final before = _repo.unsubscribeCalls;
 
-        // Find the IconButton with the bell-off icon and tap.
         final unsubscribe = find.byIcon(EnjoyIcons.bellOff);
         expect(unsubscribe, findsOneWidget);
 

@@ -259,9 +259,6 @@ void main() {
     expect(tester.takeException(), isNull);
   }
 
-  // The always-on four controls (play, echo, subtitle/cc, speed) must
-  // be visible at the narrowest width on both routes — never clipped.
-  // Blur/hide lives in the CC sheet on narrow layouts.
   const alwaysOnGlyphs = <EnjoyChromeGlyph>[
     EnjoyChromeGlyph.play,
     EnjoyChromeGlyph.mic,

@@ -76,10 +76,6 @@ class YoutubeSession {
     Duration? volumeRestoreFallback,
     Duration? postRestoreHealDelay,
   }) : playRetry = playRetry ?? YouTubePlayRetryPolicy() {
-    // Audible policy is session-owned (issue #721). Its WebView-bound
-    // callbacks resolve through [YoutubeSessionWebAttachment], set by
-    // [attachWebView]. Until then the callbacks are inert — audibility's
-    // own session.disposed / playing guards cover the rest.
     _audibility = YoutubeAudiblePlaybackPolicy(
       session: this,
       reapplyVolume: _reapplyVolumeViaAttachment,
@@ -177,10 +173,6 @@ class YoutubeSession {
   /// [attachWebView] once the WebView controller is ready; null before.
   YoutubeSessionWebAttachment? _webAttachment;
 
-  // ---------------------------------------------------------------------------
-  // Read surface — the latches are private; writers must use the verbs below.
-  // ---------------------------------------------------------------------------
-
   Stream<Duration> get position => positionCtrl.stream;
   Stream<Duration> get duration => durationCtrl.stream;
   Stream<bool> get playingStream => playingCtrl.stream;
@@ -243,10 +235,6 @@ class YoutubeSession {
     return loop;
   }
 
-  // ---------------------------------------------------------------------------
-  // Composition (issue #721).
-  // ---------------------------------------------------------------------------
-
   /// Wires the session's DOM poll loop to a WebView controller.
   ///
   /// The poll loop needs the controller getter and the first-playing ack;
@@ -278,10 +266,6 @@ class YoutubeSession {
     if (attachment == null) return;
     await attachment.healPlay();
   }
-
-  // ---------------------------------------------------------------------------
-  // Open / clear lifecycle.
-  // ---------------------------------------------------------------------------
 
   void setPosterUrl(String? url) => _posterUrl = url;
 
@@ -338,13 +322,6 @@ class YoutubeSession {
     emitPosition(Duration.zero);
     bumpMountTick();
   }
-
-  // ---------------------------------------------------------------------------
-  // Transport transitions.
-  //
-  // The DOM event channel, the poll channel, and the engine commands all
-  // funnel through these — the "clear X when Y" rules live here, once.
-  // ---------------------------------------------------------------------------
 
   /// An explicit play command is on the wire (engine [play]/[playOrPause]).
   /// Arms the D8 budget ([YouTubePlayRetryPolicy.beginUserPlay]); stale
@@ -450,10 +427,6 @@ class YoutubeSession {
   /// Poll bookkeeping: forget any half-confirmed pause.
   void resetPauseStreak() => _pausedPollStreak = 0;
 
-  // ---------------------------------------------------------------------------
-  // Watch-page expectations (webview controller / navigation).
-  // ---------------------------------------------------------------------------
-
   /// Clears the "expect a watch page load stop" latches before (re)loading.
   /// [firstPlaying] also forgets that playback ever started (full reload).
   void resetWatchPageExpectations({required bool firstPlaying}) {
@@ -491,17 +464,8 @@ class YoutubeSession {
   /// Starts (or restarts) open-time init instrumentation.
   void startInitTiming() => _initStopwatch = Stopwatch()..start();
 
-  // ---------------------------------------------------------------------------
-  // WebView mount state.
-  // ---------------------------------------------------------------------------
-
   void noteWebViewMounted() {
     _webViewMounted = true;
-    // Push, don't poll: whoever is waiting on [awaitWebViewMounted] resolves
-    // here instead of re-reading the flag on a timer (issue #661). Idempotent
-    // — a second mount note with no waiter outstanding has nothing to
-    // complete, and the waiter is dropped once completed so a later
-    // unmount/remount cycle arms a fresh one.
     final waiter = _webViewMountedWaiter;
     _webViewMountedWaiter = null;
     if (waiter != null && !waiter.isCompleted) {
@@ -539,9 +503,6 @@ class YoutubeSession {
 
   void requestMount() {
     if (_disposed) return;
-    // Idempotent: re-entrant calls (e.g. loading stage + open coordinator)
-    // must not notify [mountTick] again — that can hit ValueListenableBuilder
-    // listeners during an ancestor build (setState-during-build).
     if (_mountRequested) return;
     _mountRequested = true;
     bumpMountTick();
@@ -555,10 +516,6 @@ class YoutubeSession {
   void scheduleMountTickBump() {
     scheduleMicrotask(bumpMountTick);
   }
-
-  // ---------------------------------------------------------------------------
-  // Volume restore (autoplay-policy latch — see YoutubeWebViewEvents).
-  // ---------------------------------------------------------------------------
 
   void clearVolumeRestorePending() {
     _volumeRestorePending = false;
@@ -589,10 +546,6 @@ class YoutubeSession {
     }
     return _progressAdvanceTicks >= progressConfirmTicks;
   }
-
-  // ---------------------------------------------------------------------------
-  // Misc state.
-  // ---------------------------------------------------------------------------
 
   /// Stores the normalized volume and returns the clamped value applied to
   /// the page player.
@@ -630,9 +583,6 @@ class YoutubeSession {
     if (v == _playing) return;
     _playing = v;
     playingCtrl.add(v);
-    // The retry protocol keys its immediate-pause clock, the armed attempt's
-    // fulfilment clock, and the auto-retry attribution to the episode
-    // transition itself (see [YouTubePlayRetryPolicy.notePlayingTransition]).
     playRetry.notePlayingTransition(v);
     if (v) {
       _cancelHint();
@@ -665,9 +615,6 @@ class YoutubeSession {
 
   void _scheduleHint() {
     if (_disposed) return;
-    // Initial open: hint only before first successful playing.
-    // After an explicit play that failed / immediately paused, allow recovery
-    // hint even when [_loggedFirstPlaying] is already true.
     final allowRecovery = _explicitPlayAttempted && !_playing && !_buffering;
     if (_loggedFirstPlaying && !allowRecovery) return;
     _tapToPlayHintTimer?.cancel();

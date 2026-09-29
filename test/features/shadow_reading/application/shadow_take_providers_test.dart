@@ -1,6 +1,3 @@
-// Tests for the shadow-reading application seam (issue #764 candidate 8):
-// the panel no longer names a database handle, so the wiring is the contract.
-// In-memory Drift + overridden providers; no widget tree, no platform channels.
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -57,12 +54,12 @@ Uint8List buildPcm16Wav(List<int> samples, {int sampleRate = 16000}) {
   ascii(8, 'WAVE');
   ascii(12, 'fmt ');
   data.setUint32(16, 16, Endian.little);
-  data.setUint16(20, 1, Endian.little); // PCM
+  data.setUint16(20, 1, Endian.little);
   data.setUint16(22, numChannels, Endian.little);
   data.setUint32(24, sampleRate, Endian.little);
   data.setUint32(28, byteRate, Endian.little);
   data.setUint16(32, blockAlign, Endian.little);
-  data.setUint16(34, 16, Endian.little); // bits per sample
+  data.setUint16(34, 16, Endian.little);
   ascii(36, 'data');
   data.setUint32(40, dataSize, Endian.little);
   for (var i = 0; i < samples.length; i++) {
@@ -213,11 +210,6 @@ void main() {
       expect(rows.map((r) => r.id), contains('overlap'));
     });
 
-    // Regression: the provider caches one stream per query, and echo cards
-    // are list items, so a panel for the same window mounts again (reopening
-    // the media, the list rebuilding the echo item). Each mount's
-    // StreamBuilder listens anew and must not hit "Stream has already been
-    // listened to".
     test(
       'the cached stream can be listened to again (panel remount)',
       () async {
@@ -235,8 +227,6 @@ void main() {
     );
   });
 
-  // The family keys off `==`: without it every rebuild would open a fresh
-  // drift query and resubscribe.
   test('query equality compares all five fields', () {
     const base = EchoRegionRecordingsQuery(
       targetType: 'transcript',

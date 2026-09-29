@@ -31,10 +31,7 @@ void main() {
     });
 
     test('pads short buffers to frameSize and computes result', () {
-      // A short buffer (< frameSize) should be zero-padded and still
-      // produce a valid pitch series.
       final samples = Float32List(2048);
-      // Fill with a simple oscillation so it's not pure silence.
       for (var i = 0; i < samples.length; i++) {
         samples[i] = math.sin(2 * math.pi * 440 * i / 44100);
       }
@@ -46,7 +43,6 @@ void main() {
     test('estimates pitch for a pure sine wave close to nominal frequency', () {
       const sampleRate = 44100.0;
       const freq = 440.0;
-      // One second of a 440 Hz sine wave.
       final n = sampleRate.toInt();
       final samples = Float32List(n);
       for (var i = 0; i < n; i++) {
@@ -56,14 +52,11 @@ void main() {
       final result = estimatePitchYin(samples, sampleRate);
       expect(result.pitchHz.length, greaterThan(0));
 
-      // Find the first frame with a non-null pitch.
       final firstPitch = result.pitchHz.cast<double?>().firstWhere(
         (p) => p != null,
         orElse: () => null,
       );
       expect(firstPitch, isNotNull);
-      // Allow ±5% tolerance — border effects and interpolation can shift the
-      // estimate a few Hz from the nominal frequency.
       expect(firstPitch!, closeTo(freq, freq * 0.05));
     });
 
@@ -85,7 +78,6 @@ void main() {
       expect(result.frameSize, frameSize);
       expect(result.hopSize, hopSize);
 
-      // nHop = 1 + ((8192 - 2048) / 512).floor() = 1 + 12 = 13.
       expect(result.pitchHz.length, 13);
       expect(result.voicedProb.length, 13);
     });
@@ -97,8 +89,6 @@ void main() {
         samples[i] = math.sin(2 * math.pi * 440 * i / sampleRate);
       }
 
-      // threshold=0 means no frame's cumulative mean-normalised difference
-      // will ever dip below 0, so all frames should be null.
       final result = estimatePitchYin(samples, sampleRate, yinThreshold: 0.0);
       expect(result.pitchHz, everyElement(isNull));
       expect(result.voicedProb, everyElement(0.0));
@@ -140,39 +130,26 @@ void main() {
     });
 
     test('maps each envelope point to the nearest pitch frame', () {
-      // hopSec = 128 / 44100 ≈ 0.0029 s ≈ 2.9 ms per frame.
-      // Envelope points at t=0, t=0.003, t=0.006 → frames 0, 1, 2.
       const sr = 44100.0;
       const hop = 128;
       final yin = makeSeries(nFrames: 5, sampleRate: sr, hopSize: hop);
-      final hopSec = hop / sr; // ≈ 0.0029 s
+      final hopSec = hop / sr;
       final envelope = [
         const WaveformPoint(t: 0.0, amp: 0.5),
-        WaveformPoint(t: hopSec * 1.1, amp: 0.6), // slightly past frame 1 start
-        WaveformPoint(t: hopSec * 3.0, amp: 0.7), // frame 3 start
+        WaveformPoint(t: hopSec * 1.1, amp: 0.6),
+        WaveformPoint(t: hopSec * 3.0, amp: 0.7),
       ];
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
-      expect(result, [
-        200.0, // frame 0: pitch = 200
-        250.0, // frame 1: pitch = 200 + 50
-        350.0, // frame 3: pitch = 200 + 150
-      ]);
+      expect(result, [200.0, 250.0, 350.0]);
     });
 
     test('clamps index to valid frame range', () {
       const sr = 44100.0;
       const hop = 128;
-      // Single frame.
       final yin = makeSeries(nFrames: 1, sampleRate: sr, hopSize: hop);
       final envelope = [
-        const WaveformPoint(
-          t: -1.0,
-          amp: 0.5,
-        ), // before start → clamps to index 0
-        const WaveformPoint(
-          t: 100.0,
-          amp: 0.8,
-        ), // way past end → clamps to index 0
+        const WaveformPoint(t: -1.0, amp: 0.5),
+        const WaveformPoint(t: 100.0, amp: 0.8),
       ];
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
       expect(result, [200.0, 200.0]);
@@ -187,22 +164,12 @@ void main() {
         voicedProb: [0.9, 0.0, 0.1],
       );
       final envelope = [
-        const WaveformPoint(t: 0.0, amp: 0.5), // frame 0: voicedProb 0.9 ≥ 0.35
-        const WaveformPoint(
-          t: 128 / 44100,
-          amp: 0.6,
-        ), // frame 1: pitchHz null → null
-        const WaveformPoint(
-          t: 2 * 128 / 44100,
-          amp: 0.7,
-        ), // frame 2: voicedProb 0.1 < 0.35 → null
+        const WaveformPoint(t: 0.0, amp: 0.5),
+        const WaveformPoint(t: 128 / 44100, amp: 0.6),
+        const WaveformPoint(t: 2 * 128 / 44100, amp: 0.7),
       ];
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
-      expect(result, [
-        200.0, // frame 0: voiced and pitch > 0
-        null, // frame 1: pitch is null
-        null, // frame 2: prob too low
-      ]);
+      expect(result, [200.0, null, null]);
     });
 
     test('rejects non-positive or non-finite pitch values', () {
@@ -219,13 +186,7 @@ void main() {
         (i) => WaveformPoint(t: i * hopSec, amp: 0.5),
       );
       final result = pitchAtEnvelopeTimes(envelope: envelope, yin: yin);
-      expect(result, [
-        200.0, // valid
-        null, // negative
-        null, // non-finite (infinity)
-        null, // non-finite (NaN)
-        null, // zero
-      ]);
+      expect(result, [200.0, null, null, null, null]);
     });
   });
 }

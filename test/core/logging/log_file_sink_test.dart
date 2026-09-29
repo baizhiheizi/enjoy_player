@@ -73,8 +73,6 @@ void main() {
 
       final sink = (await LogFileSink.ensureInitialized())!;
       expect(sink, isNotNull);
-      // Writing another line should still append (not overwrite) — proves the
-      // existing size was picked up and used for the rotation threshold.
       await sink.writeRawLine('after-init');
       final content = await existing.readAsString();
       expect(content.contains('pre-existing log line'), isTrue);
@@ -145,17 +143,11 @@ void main() {
       final active = File(p.join(logsDir.path, kLogFileBaseName));
       final first = File(p.join(logsDir.path, '$kLogFileBaseName.1'));
 
-      // Seed the active file so rotation actually has bytes to move.
       await sink.writeRawLine('pre-rotation marker');
       expect(active.existsSync(), isTrue);
 
-      // Push enough records to overflow the 2 MiB cap; one record is fine if
-      // the payload exceeds the threshold.
       final huge = 'X' * (kLogFileMaxBytes + 1024);
       await sink.writeRawLine(huge);
-      // After rotation, the active file should hold the new huge payload and
-      // .1 should hold the pre-rotation marker (after redaction removes
-      // nothing important — the marker is plain text).
       expect(active.existsSync(), isTrue);
       expect(first.existsSync(), isTrue);
       final rotated = await first.readAsString();
@@ -165,14 +157,12 @@ void main() {
     test('rotates the oldest files out when retention is full', () async {
       final sink = (await LogFileSink.ensureInitialized())!;
       final logsDir = Directory(p.join(supportDir.path, 'logs'));
-      // Seed .${retentionCount - 1} so the next rotation must delete it.
       final lastKept = File(
         p.join(logsDir.path, '$kLogFileBaseName.${kLogFileRetentionCount - 1}'),
       );
       await lastKept.writeAsString('keep-trash-marker\n');
       final huge = 'X' * (kLogFileMaxBytes + 1024);
       await sink.writeRawLine(huge);
-      // Oldest should be deleted and replaced with previous contents shifted.
       expect(lastKept.existsSync(), isFalse);
     });
 
@@ -185,7 +175,6 @@ void main() {
         final content = await File(
           p.join(supportDir.path, 'logs', kLogFileBaseName),
         ).readAsString();
-        // Every line must appear exactly once, in original order.
         var cursor = 0;
         for (final l in lines) {
           final idx = content.indexOf('$l\n', cursor);

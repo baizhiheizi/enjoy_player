@@ -56,23 +56,10 @@ class PlayerSurfaceHost extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(playerEngineRevProvider);
-    // ADR-0066: native surfaces (WebView2, media_kit) can paint above Flutter
-    // overlays, so any held token parks the surface off-screen. Read here —
-    // not in the shell — so a notice/dialog round-trip costs one host rebuild.
     final parkForOverlay = ref.watch(playerSurfaceShouldParkForOverlayProvider);
-    // Always watch the registry so a parked YouTube surface can keep the
-    // live target size. [forcePark]/[parkForOverlay] only suppress on-screen
-    // placement — shrinking the WebView to [_parkWidth]×[_parkHeight] is the
-    // play-then-pause stimulus after every CC-sheet round-trip (YouTube
-    // treats 320 px as a mobile breakpoint and flushes ABR).
     final registry = ref.watch(playerSurfaceRegistryProvider);
     final attachment = (forcePark || parkForOverlay) ? null : registry;
 
-    // One precedence for everyone (issue #751): the identity module resolves
-    // test double · owned — this branch used to be owned-first, the inverted
-    // outlier against the controller. Truncated before the allocating lazy
-    // default: a widget build must not construct an engine. No engine yet →
-    // nothing to mount.
     final engine = ref
         .read(playerControllerProvider.notifier)
         .engineIdentity
@@ -132,7 +119,6 @@ class _EngineSurfaceState extends State<_EngineSurface> {
   void initState() {
     super.initState();
     _heldAttachment = widget.attachment;
-    // Convert global target bounds using this stack's size from the next frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
@@ -168,14 +154,9 @@ class _EngineSurfaceState extends State<_EngineSurface> {
         widget.attachment ??
         (engine.keepSurfaceWhenParked ? null : _heldAttachment);
     if (attachment == null && !engine.keepSurfaceWhenParked) {
-      // MediaKit: first layout of the Android Surface must be on-screen.
       return const SizedBox.shrink();
     }
 
-    // YouTube (keepSurfaceWhenParked): park by translation only. A shrink
-    // to the 320×180 fallback crosses m.youtube.com's compact-player
-    // breakpoint and the page player then pauses every programmatic play
-    // within ~300–700 ms — the CC-sheet IPA-toggle wedge.
     final size =
         attachment?.size ??
         widget.overlayParkSize ??
@@ -190,10 +171,6 @@ class _EngineSurfaceState extends State<_EngineSurface> {
       return widget.stageBuilder(engine, maxWidth: w, maxHeight: h);
     }
 
-    // The stage always occupies this exact element slot for the engine's
-    // lifetime. Target changes only update Positioned geometry; the keyed
-    // WebView is never moved between branches. Absolute layout also avoids
-    // WebView2 applying a follower transform at the wrong Windows DPI scale.
     return Stack(
       fit: StackFit.expand,
       clipBehavior: Clip.none,

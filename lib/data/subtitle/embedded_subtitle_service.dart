@@ -48,9 +48,6 @@ class EmbeddedSubtitleService {
   }) async {
     final mediaInput = FfmpegMediaProbe.mediaInputForFfmpeg(mediaSourceUri);
 
-    // `media_kit` can list subtitle pickers (or timing-only entries) even when the
-    // container has no muxed `0:s:N` streams. FFmpeg then fails with
-    // "Stream map '0:s:0' matches no streams". Treat FFprobe as source of truth.
     List<({String? language})>? nonWindowsSubtitleProbe;
     if (!Platform.isWindows) {
       nonWindowsSubtitleProbe = await _probeSubtitleStreams(mediaInput);
@@ -383,8 +380,6 @@ class EmbeddedSubtitleService {
     int streamIndex,
   ) async {
     final tmpDir = await getTemporaryDirectory();
-    // macOS sandbox: path_provider may return a bundle-specific subfolder that
-    // does not exist until created (ffmpeg then fails to open the output path).
     if (!await tmpDir.exists()) {
       await tmpDir.create(recursive: true);
     }

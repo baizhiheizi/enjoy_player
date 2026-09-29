@@ -1,10 +1,3 @@
-// Pure-function coverage for lib/features/hotkeys/presentation/hotkey_format.dart.
-//
-// `hotkeyDisplayTokens` and `formatHotkeyForDisplay` translate raw binding
-// strings (e.g. "ctrl+shift+a") into UI-readable chips ("Ctrl+Shift+A").
-// The function has many branches (modifier aliases, special characters,
-// uppercase fallback). We pin every branch so future refactors don't
-// silently change a UI label.
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -90,7 +83,6 @@ void main() {
     });
 
     test('slash → / (non-bind-token context)', () {
-      // Only "shift+slash" gets the special "?" mapping; bare "slash" → "/".
       expect(hotkeyDisplayTokens('slash'), ['/']);
     });
   });
@@ -122,8 +114,6 @@ void main() {
     });
 
     test('multi-binding: ctrl+shift+slash stays as [/] tokens', () {
-      // Input is split on "+"; "/" is one of the symbols that should NOT be
-      // uppercased because it's not a letter. So output is [Ctrl, Shift, /].
       expect(hotkeyDisplayTokens('ctrl+shift+slash'), ['Ctrl', 'Shift', '/']);
     });
   });
@@ -152,7 +142,6 @@ void main() {
 
   group('hotkeyDisplayTokens (multi-char non-mapped tokens)', () {
     test('multi-char non-alphabetic token (e.g. function keys)', () {
-      // "F1" is not in the switch and length is 2, so it passes through.
       expect(hotkeyDisplayTokens('F1'), ['f1']);
     });
   });
@@ -169,7 +158,6 @@ void main() {
     test(
       'empty binding returns the original string in a single-element list',
       () {
-        // After split + filter, parts is empty → returns [binding].
         expect(hotkeyDisplayTokens(''), ['']);
       },
     );

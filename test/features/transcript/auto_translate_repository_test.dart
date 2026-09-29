@@ -194,7 +194,6 @@ void main() {
         text: '世界',
       );
 
-      // Re-select / re-ensure must not wipe finished lines.
       final again = await repo.ensureAutoTranslateTrack(
         mediaId: mediaId,
         primaryTranscriptId: primaryId,

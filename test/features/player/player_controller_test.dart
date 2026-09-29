@@ -140,7 +140,6 @@ void main() {
         pathProviderRoot.deleteSync(recursive: true);
       }
 
-      // Let fire-and-forget openMedia side effects settle before closing Drift.
       await pumpEventQueue();
       container.dispose();
       await db.close();
@@ -184,7 +183,6 @@ void main() {
       final afterOpen = await db.audioDao.getById(id);
       expect(afterOpen!.updatedAt.isAfter(oldUpdated), isTrue);
 
-      // Same-id reopen must still bump (Home recent), without reloading URI.
       await db.audioDao.insertRow(afterOpen.copyWith(updatedAt: oldUpdated));
       await n.openMedia(id);
       await pumpEventQueue();
@@ -265,9 +263,6 @@ void main() {
     test(
       'echo pause-and-rewind fires on the boundary tick, not the next bucket',
       () async {
-        // P1: enforcement runs on every position event, so the segment-end pause
-        // must fire the instant the end guard is crossed (within ~40 ms of end),
-        // not be deferred ~360 ms to the next 400 ms session-emit bucket.
         final id = await insertMedia(id: 'echo-boundary');
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
@@ -281,8 +276,6 @@ void main() {
               endTimeSeconds: 5,
             );
 
-        // 4.95s is below the end guard (5.0 - defaultEchoEndGuardSeconds 0.04);
-        // 4.97s crosses it. Both land between 400 ms buckets.
         fake.emitPosition(const Duration(milliseconds: 4950));
         await Future<void>.delayed(const Duration(milliseconds: 20));
         expect(
@@ -301,11 +294,6 @@ void main() {
     test(
       'echo enforcement fires within the same 400ms bucket at the boundary',
       () async {
-        // P1 core regression: all three positions fall in the SAME 400 ms
-        // session-emit bucket (12). Under the old bucket-gated enforcement only
-        // the first would be evaluated (4.85s, below the end guard -> no pause),
-        // so the 4.96s boundary would be missed until the next bucket (~5.2s) —
-        // ~240 ms late. Per-tick enforcement must catch it on the 4.96s tick.
         final id = await insertMedia(id: 'echo-fine');
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
@@ -327,8 +315,6 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
         expect(fake.pauseCallCount, 0);
 
-        // 4.96s crosses the end guard (5.0 - 0.04); pause-and-rewind fires now,
-        // not deferred to the next 400 ms bucket.
         fake.emitPosition(const Duration(milliseconds: 4960));
         await Future<void>.delayed(const Duration(milliseconds: 20));
         expect(fake.pauseCallCount, greaterThanOrEqualTo(1));
@@ -339,8 +325,6 @@ void main() {
     test(
       'echo enforcement is single-flight: concurrent seeks do not interleave',
       () async {
-        // P6: a reactive tick (pause-and-rewind) and a proactive user seek must
-        // serialize through one gate so they can't interleave overlapping seeks.
         final id = await insertMedia(id: 'echo-serial');
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
@@ -354,19 +338,15 @@ void main() {
               endTimeSeconds: 5,
             );
 
-        // Hold the rewind seek in flight.
         final gate = Completer<void>();
         fake.seekGate = gate;
 
-        // Cross the end guard -> pause + rewind-seek starts and blocks on gate.
         fake.emitPosition(const Duration(milliseconds: 4970));
         await Future<void>.delayed(const Duration(milliseconds: 20));
         expect(fake.pauseCallCount, 1);
         expect(fake.seekCalls.last, const Duration(milliseconds: 2000));
         final seeksWhileRewinding = fake.seekCalls.length;
 
-        // While that op is in flight, more boundary ticks arrive and a user seek
-        // (clampAndSeek) is requested. None may start a second overlapping seek.
         fake.emitPosition(const Duration(milliseconds: 4980));
         fake.emitPosition(const Duration(milliseconds: 4990));
         final clampFuture = n.seekToSeconds(2.5);
@@ -383,7 +363,6 @@ void main() {
           reason: 'no overlapping seek while the rewind is in flight',
         );
 
-        // Release the in-flight rewind; the queued user clamp proceeds (serialized).
         gate.complete();
         await clampFuture;
         expect(fake.seekCalls.last, const Duration(milliseconds: 2500));
@@ -393,22 +372,16 @@ void main() {
     test(
       'position is durably written mid-playback (survives a simulated crash)',
       () async {
-        // P9: under continuous playback the 450 ms debounce is re-armed every
-        // 400 ms and would never fire; the max-age flush must write within ~2 s
-        // so a crash never loses more than that.
         final id = await insertMedia(id: 'echo-crash');
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
         fake.emitDuration(const Duration(seconds: 120));
 
-        // Emit on the 400 ms playback grid for clearly more than 2 s, re-arming
-        // the debounce each time so only the max-age path can land a write.
         for (var ms = 400; ms <= 2800; ms += 400) {
           fake.emitPosition(Duration(milliseconds: ms));
           await Future<void>.delayed(const Duration(milliseconds: 400));
         }
 
-        // Poll for the write (the max-age flush is async against Drift).
         int? persistedMs;
         final deadline = DateTime.now().add(const Duration(seconds: 2));
         while (DateTime.now().isBefore(deadline)) {
@@ -498,7 +471,6 @@ void main() {
           'enjoy_local_prefers_${DateTime.now().microsecondsSinceEpoch}.mp4',
         ),
       );
-      // insertMedia stores size: 1 — keep the file matching that trust check.
       await file.writeAsBytes(const [1]);
       addTearDown(() async {
         if (await file.exists()) await file.delete();
@@ -526,10 +498,6 @@ void main() {
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
 
-        // The capture pipeline schedules its own real-time delays (seek +
-        // settle) before writing the thumbnail, so poll for completion
-        // instead of racing it with a single fixed sleep, which flakes
-        // under CPU contention (e.g. full-suite runs).
         VideoRow? row = await db.videoDao.getById(id);
         final deadline = DateTime.now().add(const Duration(seconds: 5));
         while (row?.thumbnailUrl == null && DateTime.now().isBefore(deadline)) {
@@ -618,11 +586,6 @@ void main() {
       'Linux YouTube open throws typed unavailable, keeps engines untouched, '
       'and later audio still opens (ADR-0048 regression)',
       () async {
-        // 2026-08-29 field report: opening a YouTube item on Linux swapped the
-        // live MediaKit engine for a YouTube engine that can never mount and
-        // threw; every later audio open then rebuilt MediaKit against the
-        // wedged native mpv layer and stayed on the loading skeleton forever.
-        // The gate must fail the open BEFORE any engine swap.
         debugDefaultTargetPlatformOverride = TargetPlatform.linux;
         addTearDown(() => debugDefaultTargetPlatformOverride = null);
         final now = DateTime.now();
@@ -657,13 +620,10 @@ void main() {
           throwsA(isA<YouTubePlaybackUnavailableException>()),
         );
 
-        // No engine was installed or swapped for the failed YouTube open.
         expect(n.ownedEngine, isNull);
         expect(container.read(playerEngineRevProvider), revBefore);
         expect(fake.openUris, isEmpty);
 
-        // The follow-up local open must still succeed — the regression that
-        // stranded the learner on the loading skeleton.
         await n.openMedia(audioId);
         expect(container.read(playerControllerProvider)?.mediaId, audioId);
         expect(fake.openUris, isNotEmpty);
@@ -672,10 +632,6 @@ void main() {
 
     test('YouTube placeholder-row open refreshes metadata without self-dep '
         'Ref read (issue #676 regression)', () async {
-      // The lazy oEmbed side effect runs on the controller's own Ref. It
-      // must never `read(playerControllerProvider)` — Riverpod asserts "A
-      // provider cannot depend on itself" — so the coordinator now passes
-      // the engine + host freshness callbacks instead.
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
@@ -700,13 +656,10 @@ void main() {
       );
 
       final n = ytContainer.read(playerControllerProvider.notifier);
-      // Before the fix this threw the Riverpod self-dependency assertion
-      // once the unawaited refresh reached the controller read.
       await n.openMedia(id);
       await _settleYoutubeRefresh(fake);
 
       expect(repo.refreshCalls, contains(id));
-      // The patch landed through PlayerMetadataNotifier.patchIfCurrent.
       expect(
         ytContainer.read(playerControllerProvider)?.mediaTitle,
         'Refreshed title',
@@ -740,12 +693,9 @@ void main() {
 
       final n = ytContainer.read(playerControllerProvider.notifier);
       await n.openMedia(id);
-      // A bare throw inside the unawaited helper would be reported by the
-      // test zone as an unhandled async error and fail this test.
       await _settleYoutubeRefresh(fake);
 
       expect(repo.refreshCalls, contains(id));
-      // Session survives the failed refresh, unpatched.
       expect(ytContainer.read(playerControllerProvider)?.mediaId, id);
     });
 
@@ -816,8 +766,6 @@ void main() {
       },
     );
 
-    // ── Deterministic end-of-media completion loop (ADR-0044, issue #307) ────
-
     test(
       'RepeatMode.single loops on completion: seek-to-zero + play per fire',
       () async {
@@ -856,9 +804,6 @@ void main() {
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
 
-        // Fire two completions synchronously (same microtask). Only one should
-        // be processed per loop iteration — the second lands while no
-        // subscription is active (broadcast stream, no replay).
         fake.emitCompleted();
         fake.emitCompleted();
         await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -884,10 +829,8 @@ void main() {
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(idA);
 
-        // Bumping the gen via abandonPendingOpen cancels the active loop.
         n.abandonPendingOpen();
 
-        // A stale completion arriving after the gen bump should be a no-op.
         fake.emitCompleted();
         await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(
@@ -896,7 +839,6 @@ void main() {
           reason: 'stale completion must not cause a seek',
         );
 
-        // Opening B starts a fresh loop; B's playback should be unaffected.
         await n.openMedia(idB);
         expect(container.read(playerControllerProvider)?.mediaId, idB);
       },
@@ -919,7 +861,6 @@ void main() {
         reason: 'RepeatMode.none must not seek on completion',
       );
 
-      // A second completion should also be a no-op (loop has returned).
       fake.emitCompleted();
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(fake.seekCalls.length, seeksBefore);
@@ -945,7 +886,6 @@ void main() {
               endTimeSeconds: 8,
             );
 
-        // Simulate end-of-media (e.g. segment ending at the tail of the file).
         fake.emitCompleted();
         await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(
@@ -991,7 +931,6 @@ void main() {
         await n.clear();
         final seeksAfterClear = fake.seekCalls.length;
 
-        // A completion event arriving after clear must be a no-op.
         fake.emitCompleted();
         await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(
@@ -1012,26 +951,16 @@ void main() {
         final n = container.read(playerControllerProvider.notifier);
         await n.openMedia(id);
 
-        // Emit a completion while the loop is waiting, then immediately seek.
-        // The seek bumps the gen, invalidating the in-flight await. The stale
-        // completion must not cause a stray seek-to-zero.
         fake.emitCompleted();
         await n.seekToSeconds(5.0);
         await Future<void>.delayed(const Duration(milliseconds: 50));
 
-        // The seek call should be to 5s (the user seek), not Duration.zero
-        // (the stale completion's replay target).
         expect(fake.seekCalls, contains(const Duration(seconds: 5)));
-        // We expect at most one Duration.zero from the stale completion that
-        // may have raced with the gen bump. The key assertion is that the user
-        // seek is present and not overwritten.
       },
     );
   });
 
   group('PlayerController.warmYoutubeSurface Linux opt-out (ADR-0048)', () {
-    // No playerEngineTestDoubleProvider override here — the warm gate under
-    // test sits below the test-double short-circuit in the real controller.
     late AppDatabase db;
     late ProviderContainer container;
 
@@ -1079,10 +1008,6 @@ void main() {
   });
 
   group('PlayerController.warmYoutubeSurface idle gate (issue #657)', () {
-    // No playerEngineTestDoubleProvider override here either — the test double
-    // short-circuits above the gates under test. Local engines are stand-ins
-    // ([FakePlayerEngine] installed through the [PlayerOpenScope] seam) so a
-    // live session needs no real MediaKit/mpv to observe.
     late AppDatabase db;
     late ProviderContainer container;
 
@@ -1115,8 +1040,6 @@ void main() {
           provider: 'youtube',
           title: 'YouTube test',
           description: null,
-          // Non-null: a placeholder row schedules the lazy oEmbed refresh,
-          // which is out of scope here (and asserts in debug Riverpod).
           thumbnailUrl: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
           durationSeconds: 212,
           language: 'en',
@@ -1205,7 +1128,6 @@ void main() {
       final n = container.read(playerControllerProvider.notifier);
       final revBefore = container.read(playerEngineRevProvider);
 
-      // No await: the open owns the engine swap from here until it lands.
       final open = n.openMedia(id);
       n.warmYoutubeSurface();
 
@@ -1228,7 +1150,6 @@ void main() {
       expect(installed, isA<YoutubePlayerEngine>());
       expect(container.read(playerEngineRevProvider), 1);
 
-      // A second idle warm reuses the installed engine — no churn.
       n.warmYoutubeSurface();
       expect(identical(n.ownedEngine, installed), isTrue);
       expect(container.read(playerEngineRevProvider), 1);
@@ -1262,10 +1183,6 @@ void main() {
     );
   });
 }
-
-// ---------------------------------------------------------------------------
-// Issue #676 helpers
-// ---------------------------------------------------------------------------
 
 /// Emits `buffering=false` repeatedly for a short window so the unawaited
 /// metadata refresh catches it whenever it subscribes (its first DB read

@@ -34,6 +34,16 @@ Prefer `package:enjoy_player/...` for cross-layer imports in presentation code t
 - Use `package:logging` through project logging helpers; do not call `print()`.
 - Do not construct `media_kit` `Player()` outside `MediaKitPlayerEngine` / `PlayerController`.
 
+## Comments (zero-comment policy)
+
+The codebase carries **no explanatory `//` comments** — narration ("// 2. Recognize"), section banners ("// ── Motion ──"), TODOs, review breadcrumbs ("// review on #798"), and why-essays are all banned in `lib/`, `test/`, and authored `packages/` code. The only permitted `//` comments are analyzer directives (`// ignore:`, `// ignore_for_file:`, `// coverage:ignore`).
+
+- **Code explains itself.** If a line needs a what-comment, rename it (`errSecDuplicateItem` over `duplicateItemStatus = -25299`), extract it into a named constant/method, or tighten its types until it doesn't. Magic values get named constants, not trailing glosses.
+- **Why-knowledge lives in docs, not beside the code.** Platform quirks, concurrency invariants, and design rationale go in `docs/features/<feature>.md` or an ADR, where they are reviewed and linked; a comment anchored to one call-site rots the moment its neighbor changes. If the constraint is local and mechanical, encode it as an assertion, a named guard, or a test instead.
+- **`///` dartdoc is API documentation, not explanation.** A doc comment is acceptable only when it states a contract the declaration cannot — parameter/return behavior, value ranges, cross-references. Never restate the declaration name ("/// The media id."), and never narrate process or history.
+- **Never leave commented-out code** — delete it; git remembers.
+- Generated files (`lib/l10n/`, `*.g.dart`, `*.freezed.dart`) and vendored upstream forks (`packages/ffmpeg_kit_flutter_new`, `packages/flutter_secure_storage_linux`) keep their own commenting style and are exempt.
+
 ## Page layout
 
 - Every new shell / push screen picks an **`EnjoyPageKind`** (`browse` | `hub` | `form` | `auth` | `playerChrome`) and builds through **`EnjoyPage`** (or applies `EnjoyPageMetrics` / `pageGutterOf` consistently).

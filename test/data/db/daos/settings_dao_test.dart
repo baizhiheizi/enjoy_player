@@ -1,5 +1,3 @@
-// Tests for `lib/data/db/daos/settings_dao.dart` (and the SettingsKv table
-// generated accessors in `app_database.g.dart`).
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
@@ -73,7 +71,6 @@ void main() {
     });
 
     test('deleteValue on missing key is a no-op', () async {
-      // Should not throw.
       await db.settingsDao.deleteValue(SettingsKeys.apiBaseUrl.name);
       expect(
         await db.settingsDao.getValue(SettingsKeys.apiBaseUrl.name),

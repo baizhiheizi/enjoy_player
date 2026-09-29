@@ -36,16 +36,12 @@ class VocabularyPracticeClipBody extends ConsumerWidget {
     );
     final player = ref.watch(playerControllerProvider.notifier);
     final session = ref.watch(playerControllerProvider);
-    // Avoid watching transport streams when no session is open (test / opening).
     final playing = session == null
         ? false
         : (ref.watch(playerIsPlayingProvider).value ?? false);
     final mediaError = ref.watch(
       vocabularyReviewSessionProvider.select((s) => s.mediaError),
     );
-    // Resolve through the one identity module (issue #751) — test double ·
-    // owned, without the allocating lazy default (this is a widget build).
-    // Was a direct ownedEngine read, the fourth ad-hoc identity answer.
     final engine = player.engineIdentity.resolveOrNull();
     final claimSurface = phase == ReviewPracticePhase.clipReady;
     final opening = phase == ReviewPracticePhase.clipOpening;

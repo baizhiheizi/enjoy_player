@@ -10,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fake_player_engine.dart';
 
 void main() {
-  // Echo segment 0–5 s over two cues at 0–2 s and 2–5 s.
   List<TranscriptLine> lines() => const [
     TranscriptLine(text: 'a', startMs: 0, durationMs: 2000),
     TranscriptLine(text: 'b', startMs: 2000, durationMs: 3000),
@@ -23,7 +22,6 @@ void main() {
       addTearDown(h.dispose);
       h.activateEcho(startSeconds: 0, endSeconds: 5);
 
-      // Reactive pause-and-rewind, with its rewind seek held in flight.
       final gate = Completer<void>();
       h.engine.seekGate = gate;
       final tick = h.enforcer.enforceTick(4.97);
@@ -31,14 +29,10 @@ void main() {
       expect(h.engine.pauseCallCount, 1);
       expect(h.engine.seekCalls, [Duration.zero]);
 
-      // A user seek queues behind it, then the media is switched (reset) before
-      // the rewind settles.
       final clamp = h.enforcer.clampAndSeek(9.0);
       h.enforcer.reset();
       gate.complete();
 
-      // Nothing may be sought on the (new) engine: the stale request would land
-      // unclamped there, its echo being inactive.
       expect(
         await clamp,
         9.0,
@@ -56,7 +50,6 @@ void main() {
       addTearDown(h.dispose);
       h.activateEcho(startSeconds: 0, endSeconds: 5);
 
-      // The rewind seek never completes (wedged engine).
       h.engine.seekGate = Completer<void>();
       unawaited(h.enforcer.enforceTick(4.97));
       await Future<void>.delayed(Duration.zero);
@@ -74,7 +67,6 @@ void main() {
       );
       expect(h.engine.seekCalls, hasLength(1));
 
-      // The slot is released, so enforcement keeps working for the session.
       expect(
         await h.enforcer.clampAndSeek(
           3.0,
@@ -100,8 +92,6 @@ void main() {
       reason: 'the derivation must not run on every position event',
     );
 
-    // ...but an input that actually changed must re-derive, not serve stale
-    // boundaries.
     h.durationSeconds = 60;
     await h.enforcer.enforceTick(1.0);
     expect(h.lineProbeCalls, 2);
@@ -115,11 +105,9 @@ void main() {
     await h.enforcer.enforceTick(3.0);
     expect(h.lineProbeCalls, 1);
 
-    // A freshly tapped cue wins over the cached window...
     await h.enforcer.clampAndSeek(9.0, override: (start: 1, end: 2));
     expect(h.engine.seekCalls, [const Duration(milliseconds: 1980)]);
 
-    // ...without clobbering the cache for the reactive ticks.
     await h.enforcer.enforceTick(3.0);
     expect(h.lineProbeCalls, 1);
   });

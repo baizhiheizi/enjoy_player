@@ -79,7 +79,6 @@ ParsedHotkey parseHotkeyString(String binding) {
     throw FormatException('Invalid hotkey binding: $binding');
   }
 
-  // Web uses `{` / `}` as shift+[ and shift+]
   if (mainRaw == '{') {
     shift = true;
     mainRaw = '[';
@@ -105,7 +104,6 @@ String _normalizeMainToken(String raw) {
     if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a)) {
       return t.toLowerCase();
     }
-    // punctuation single-char
     return t;
   }
   return t.toLowerCase();

@@ -1,5 +1,3 @@
-// Capture preference persistence (spec 046 US4): device-global Drift key,
-// missing ≡ on, writes survive a fresh provider/container.
 library;
 
 import 'package:drift/native.dart';

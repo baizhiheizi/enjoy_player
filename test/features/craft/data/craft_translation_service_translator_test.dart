@@ -19,7 +19,6 @@ final class _PromptCapturingLlm implements LlmCapability {
     int? maxTokens,
     Map<String, dynamic>? responseFormat,
   }) async {
-    // The system prompt is always the first message in the list.
     return messages.first.content;
   }
 
@@ -92,7 +91,6 @@ void main() {
       );
 
       expect(autoPrompt, isNot(equals(naturalPrompt)));
-      // Natural uses "professional translator", auto uses "language partner".
       expect(naturalPrompt, contains('professional translator'));
       expect(autoPrompt, isNot(contains('professional translator')));
     });

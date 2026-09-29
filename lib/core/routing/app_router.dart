@@ -86,26 +86,16 @@ GoRouter appRouter(Ref ref) {
   final authTick = ref.watch(authRouterTickProvider);
   PlayerSurfaceOverlayCoordinator coordinator() =>
       ref.read(playerSurfaceOverlayCoordinatorProvider.notifier);
-  // One observer per navigator — Flutter binds each observer to a single
-  // Navigator (root vs shell).
   final rootOverlayObserver = PlayerSurfaceOverlayNavigatorObserver(
     coordinator: coordinator,
   );
   final shellOverlayObserver = PlayerSurfaceOverlayNavigatorObserver(
     coordinator: coordinator,
   );
-  // Leave-player teardown (spec 044). Player routes only mount on the shell
-  // navigator, so that is the only navigator carrying this observer. The
-  // callback fires while the navigator is applying the transition, and
-  // clear() publishes session state — defer it out of the build phase.
   final leavePlayerObserver = LeavePlayerRouteObserver(
     onLeftPlayerRoute: () =>
         scheduleMicrotask(() => unawaited(clearLivePlaybackSession(ref))),
   );
-  // Screen autocapture (spec 046, research D6): one observer per navigator —
-  // root- and shell-level navigators each report their own pushes. The
-  // instance resolves to the no-op wherever analytics is inert, and vendor
-  // setup/opt-out state is honored inside the facade.
   final rootScreenObserver = AnalyticsScreenObserver(
     ref.read(analyticsProvider),
   );
@@ -118,10 +108,6 @@ GoRouter appRouter(Ref ref) {
     observers: [rootOverlayObserver, rootScreenObserver],
     errorBuilder: (context, state) => NotFoundScreen(uri: state.uri),
     redirect: (context, state) {
-      // A stray `/callback` is go_router's view of an auto-forwarded
-      // enjoyplayer://auth/callback deep link (see isNativeAuthCallbackArtifact
-      // doc). Treat it like landing on home while AuthDeepLinkListener
-      // finishes the token exchange, rather than showing "Page not found".
       final loc = isNativeAuthCallbackArtifact(state.matchedLocation)
           ? '/'
           : state.matchedLocation;
@@ -208,14 +194,7 @@ GoRouter appRouter(Ref ref) {
                 mediaId: id,
               );
               return CustomTransitionPage<void>(
-                // Keep the player page identity stable across `/player/:id`
-                // changes. Windows WebView platform views are fragile when
-                // rapidly destroyed/recreated; reusing the page lets the
-                // YouTube engine navigate the existing WebView instead.
                 key: const ValueKey('player-page'),
-                // Carried on RouteSettings.name so the leave-player route
-                // observer can recognise the page; the key above already pins
-                // identity.
                 name: state.matchedLocation,
                 child: ExpandedPlayerScreen(launch: launch),
                 transitionsBuilder:
@@ -312,8 +291,6 @@ GoRouter appRouter(Ref ref) {
             name: 'vocabulary-review',
             path: '/vocabulary/review',
             onExit: (context, state) {
-              // Clear while the route context is still mounted — not in
-              // State.dispose (ref / watch notify is unsafe during unmount).
               final session = ProviderScope.containerOf(
                 context,
               ).read(vocabularyReviewSessionProvider.notifier);
@@ -329,11 +306,6 @@ GoRouter appRouter(Ref ref) {
     ],
   );
 
-  // Mid-launch safety net: YouTube readiness can block for seconds, so an
-  // open can resolve *after* the learner already left `/player/` (#654). No
-  // route transition follows, so [leavePlayerObserver] never sees it — the
-  // session appearing off-route is the event to watch here. clear() bumps the
-  // open generation, which makes every later step of the launch bail.
   ref.listen<bool>(
     playerControllerProvider.select((session) => session != null),
     (previous, sessionActive) {

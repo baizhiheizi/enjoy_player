@@ -1,4 +1,3 @@
-// Coverage: lib/features/community/application/active_users_provider.dart
 import 'dart:async';
 
 import 'package:enjoy_player/data/api/api_client.dart';
@@ -156,9 +155,6 @@ void main() {
     });
 
     test('returns null on TimeoutException', () async {
-      // The provider wraps the API call in a 8s `.timeout`. To exercise that
-      // catch path quickly, throw TimeoutException from the fake (the
-      // provider does not need to wait the full 8s).
       final api = _FakeUserApi(error: TimeoutException('slow'));
       final container = _container(
         api: api,

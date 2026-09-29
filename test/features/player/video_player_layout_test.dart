@@ -55,7 +55,6 @@ void main() {
         await fake.dispose();
       });
     }
-    // Ensure the test surface can host tall portrait fixtures (aspect layout).
     final view = tester.view;
     view.physicalSize = Size(width * 3, height * 3);
     view.devicePixelRatio = 3;
@@ -89,7 +88,6 @@ void main() {
                     ),
                   ),
                 ),
-                // Overlay chrome (tap-to-toggle) lives on the permanent host.
                 const PlayerSurfaceHost(),
               ],
             ),
@@ -248,7 +246,6 @@ void main() {
     );
 
     expect(fake.playOrPauseCallCount, 0);
-    // Tap chrome lives on [PlayerSurfaceHost] over the registered target.
     await tester.tapAt(tester.getCenter(find.byType(PlayerSurfaceTarget)));
     await tester.pump();
     expect(fake.playOrPauseCallCount, 1);

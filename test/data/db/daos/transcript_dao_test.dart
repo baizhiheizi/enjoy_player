@@ -128,7 +128,6 @@ void main() {
       final list = await db.transcriptDao
           .watchAllForTarget('video', 'v-1')
           .first;
-      // manual < yt, then en < zh within yt
       expect(list.map((r) => r.id), ['t-3', 't-1', 't-2']);
     });
 

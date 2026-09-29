@@ -59,8 +59,6 @@ class CreditsPackagesSection extends ConsumerWidget {
       AppNotice.info(context, l10n.subscriptionRedirectingToPayment);
     } on AppFailure catch (e) {
       if (!context.mounted) return;
-      // Credits rejections route through the shared friendly builder (045);
-      // other failures keep their server text when present.
       final msg = e is CreditsFailure
           ? creditsFailureMessage(e, l10n)
           : e.message.isNotEmpty

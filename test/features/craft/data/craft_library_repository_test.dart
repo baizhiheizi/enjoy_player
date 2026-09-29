@@ -60,7 +60,6 @@ void main() {
         signedInUserId: _testUserId,
       );
 
-      // Audio row exists with provider = craft.
       final audioRow = await db.audioDao.getById(id);
       expect(audioRow, isNotNull);
       expect(audioRow!.provider, 'craft');
@@ -71,7 +70,6 @@ void main() {
         'Hello, this is a test sentence for synthesis.',
       );
 
-      // Primary transcript exists.
       final transcripts = await db.transcriptDao.listForTarget('Audio', id);
       expect(transcripts, hasLength(1));
       expect(transcripts.first.source, 'ai');
@@ -95,15 +93,10 @@ void main() {
           signedInUserId: _testUserId,
         );
 
-        // Only one transcript: the learning-language (zh) target.
-        // The source-language text is stored on the audio row's sourceText
-        // column but is NOT written as a separate transcript (we don't have
-        // real word-level alignment between source and target).
         final transcripts = await db.transcriptDao.listForTarget('Audio', id);
         expect(transcripts, hasLength(1));
         expect(transcripts.first.language.startsWith('zh'), isTrue);
 
-        // The audio row still carries the source text for reference.
         final audioRow = await db.audioDao.getById(id);
         expect(audioRow!.sourceText, 'Hello world this is a test.');
       },
@@ -185,7 +178,6 @@ void main() {
       expect(audioRow!.localUri, isNotNull);
       expect(audioRow.localUri!.startsWith('file://'), isTrue);
 
-      // File exists on disk.
       final fileUri = Uri.parse(audioRow.localUri!);
       final file = File.fromUri(fileUri);
       expect(await file.exists(), isTrue);
@@ -207,7 +199,7 @@ void main() {
 
       final rows = await db.audioDao.watchAll().first;
       expect(rows, hasLength(1));
-      expect(rows.first.title.length, lessThanOrEqualTo(41)); // 40 + ellipsis
+      expect(rows.first.title.length, lessThanOrEqualTo(41));
       expect(rows.first.title.endsWith('…'), isTrue);
     });
 

@@ -12,16 +12,14 @@ Uint8List _pcm16MonoWav(int sampleRate, List<int> s16Samples) {
   w([0x52, 0x49, 0x46, 0x46]);
   w(_le32(riffSize));
   w([0x57, 0x41, 0x56, 0x45]);
-  // fmt
   w([0x66, 0x6d, 0x74, 0x20]);
   w(_le32(16));
-  w(_le16(1)); // PCM
-  w(_le16(1)); // mono
+  w(_le16(1));
+  w(_le16(1));
   w(_le32(sampleRate));
-  w(_le32(sampleRate * 2)); // byte rate
-  w(_le16(2)); // block align
-  w(_le16(16)); // bits
-  // data
+  w(_le32(sampleRate * 2));
+  w(_le16(2));
+  w(_le16(16));
   w([0x64, 0x61, 0x74, 0x61]);
   w(_le32(dataBytes));
   for (final s in s16Samples) {
@@ -47,16 +45,14 @@ Uint8List _pcm32MonoWav(int sampleRate, List<int> s32Samples) {
   w([0x52, 0x49, 0x46, 0x46]);
   w(_le32(riffSize));
   w([0x57, 0x41, 0x56, 0x45]);
-  // fmt
   w([0x66, 0x6d, 0x74, 0x20]);
   w(_le32(16));
-  w(_le16(1)); // PCM
-  w(_le16(1)); // mono
+  w(_le16(1));
+  w(_le16(1));
   w(_le32(sampleRate));
-  w(_le32(sampleRate * 4)); // byte rate
-  w(_le16(4)); // block align
-  w(_le16(32)); // bits
-  // data
+  w(_le32(sampleRate * 4));
+  w(_le16(4));
+  w(_le16(32));
   w([0x64, 0x61, 0x74, 0x61]);
   w(_le32(dataBytes));
   for (final s in s32Samples) {
@@ -74,16 +70,14 @@ Uint8List _float32MonoWav(int sampleRate, List<double> samples) {
   w([0x52, 0x49, 0x46, 0x46]);
   w(_le32(riffSize));
   w([0x57, 0x41, 0x56, 0x45]);
-  // fmt
   w([0x66, 0x6d, 0x74, 0x20]);
   w(_le32(16));
-  w(_le16(3)); // IEEE float
-  w(_le16(1)); // mono
+  w(_le16(3));
+  w(_le16(1));
   w(_le32(sampleRate));
-  w(_le32(sampleRate * 4)); // byte rate
-  w(_le16(4)); // block align
-  w(_le16(32)); // bits
-  // data
+  w(_le32(sampleRate * 4));
+  w(_le16(4));
+  w(_le16(32));
   w([0x64, 0x61, 0x74, 0x61]);
   w(_le32(dataBytes));
   final bd = ByteData(samples.length * 4);

@@ -28,10 +28,6 @@ class GoogleSignInService {
 
   static Future<void> _ensureInitialized() {
     return _initialization ??= _googleSignIn.initialize(
-      // Android only returns a non-null idToken when a serverClientId
-      // (a Web application type OAuth client) is supplied; the token's
-      // `aud` claim then equals this value. iOS/macOS derive their
-      // client ID from Info.plist's GIDClientID instead.
       serverClientId: defaultTargetPlatform == TargetPlatform.android
           ? kGoogleWebClientId
           : null,

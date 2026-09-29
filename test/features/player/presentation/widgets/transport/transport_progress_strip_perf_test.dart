@@ -1,16 +1,3 @@
-// Issue #663 (rebuild scope, item D): transport progress strip hot path.
-//
-// While playing, the scrubber position stream emits once per
-// [kPositionBucketScrubberMs] (50 ms ≈ 20 Hz). Two things are pinned here:
-//
-//  1. the strip rebuilds exactly once per bucket — no amplification (the
-//     strip-level rebuild is accepted; the elapsed label and thumb must still
-//     update every bucket), and
-//  2. the thumb glow no longer allocates a `Paint` + `MaskFilter` per paint,
-//     which used to be 20 native-object allocations per second of playback.
-//
-// Both are structural per docs/perf-measurement.md: widget-instance identity
-// and an allocation counter, no wall-clock timing.
 import 'dart:async' show StreamController, unawaited;
 
 import 'package:enjoy_player/features/player/application/player_interactions.dart';
@@ -153,8 +140,6 @@ void main() {
     var rebuilds = 0;
     for (var i = 1; i <= ticks; i++) {
       positions.add(Duration(seconds: 10 + i));
-      // Two frames per tick: the first lets the (async) stream delivery mark
-      // the strip dirty, the second builds the frame it belongs to.
       await tester.pump();
       await tester.pump();
       final current = elapsed();
@@ -169,7 +154,6 @@ void main() {
           'Every bucket must refresh the elapsed label exactly once — and not '
           'cost more than one rebuild (issue #663)',
     );
-    // And the label really moved with the position.
     expect(find.text('00:30'), findsOneWidget);
   });
 
@@ -196,7 +180,6 @@ void main() {
           'Paint + MaskFilter per paint is pure garbage (issue #663)',
     );
 
-    // A second thumb color is exactly one more cached Paint, not more.
     final other = _CountingThumbShape(enabledThumbRadius: 6);
     _paintOnce(
       other,

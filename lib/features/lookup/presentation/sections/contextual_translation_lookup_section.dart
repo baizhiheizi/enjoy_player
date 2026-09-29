@@ -309,8 +309,6 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
             );
           }
           if (e is CreditsFailure) {
-            // Same pattern as the sibling lookup sections (spec 045): friendly
-            // message + one-tap recovery to plans & packages.
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

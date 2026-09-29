@@ -76,9 +76,7 @@ void main() {
         ByokNotConfiguredFailure(modality),
         l10n,
       );
-      // The composite message always ends with the open-settings hint.
       expect(message, endsWith(l10n.byokNotConfiguredOpenSettings));
-      // The composite message must be non-empty for every modality.
       expect(
         message.length,
         greaterThan(l10n.byokNotConfiguredOpenSettings.length),
@@ -109,7 +107,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Every modality label must be non-empty.
     expect(l10n.settingsAiProvidersModalityLlm, isNotEmpty);
     expect(l10n.settingsAiProvidersModalityAsr, isNotEmpty);
     expect(l10n.settingsAiProvidersModalityTts, isNotEmpty);

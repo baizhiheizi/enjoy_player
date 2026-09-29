@@ -183,8 +183,6 @@ void main() {
       });
 
       test('restore wins over norestore when both are present', () {
-        // Both keys may appear in legacy URLs; the implementation applies
-        // them in order, so the later one (restore) wins.
         final request = PlayerLaunchRequest.fromUri(
           Uri.parse('/player/m1?norestore=1&restore=1'),
           mediaId: 'm1',
@@ -310,7 +308,6 @@ void main() {
       test('omits both restore flags when restoreSession is null', () {
         const request = PlayerLaunchRequest(mediaId: 'm1');
 
-        // The query should not contain norestore nor restore.
         expect(request.location, '/player/m1');
         expect(request.location.contains('norestore'), isFalse);
         expect(request.location.contains('restore'), isFalse);
@@ -323,8 +320,6 @@ void main() {
           endSec: 18,
         );
 
-        // Assert per-parameter rather than the literal query string so
-        // the test is robust to Dart's `Uri.toString()` key-order policy.
         final uri = Uri.parse(request.location);
         expect(uri.path, '/player/vocab-42');
         expect(uri.queryParameters, {
@@ -334,8 +329,6 @@ void main() {
           'clip': '1',
           'norestore': '1',
         });
-        // Every key present exactly once — guards against accidental
-        // double-emission of norestore + restore, or repeated start.
         expect(uri.queryParametersAll.values.expand((v) => v).length, 5);
         expect(uri.queryParametersAll.keys.toSet(), {
           'start',
@@ -353,9 +346,6 @@ void main() {
           endSec: 30,
         );
 
-        // 12.0 / 30.0 must collapse to "12" / "30" so URLs stay short.
-        // Assert per-parameter rather than the literal query string so
-        // the test is robust to Dart's `Uri.toString()` key-order policy.
         final uri = Uri.parse(request.location);
         expect(uri.path, '/player/m1');
         expect(uri.queryParameters, {'start': '12', 'end': '30'});
@@ -391,10 +381,6 @@ void main() {
         expect(parsed.endSec, original.endSec);
         expect(parsed.autoplay, original.autoplay);
         expect(parsed.activateClipWindow, original.activateClipWindow);
-        // vocabularyOpenSource explicitly sets restoreSession=false; the
-        // serialized form uses norestore=1, which fromUri decodes back to
-        // false, so the boolean round-trips even though the key names
-        // differ.
         expect(parsed.restoreSession, original.restoreSession);
       });
     });

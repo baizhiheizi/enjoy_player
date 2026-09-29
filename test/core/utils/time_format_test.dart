@@ -24,14 +24,10 @@ void main() {
     });
 
     test('minutes wrap past 60 by carrying into hours', () {
-      // Duration stores minutes up to 59; the implementation uses
-      // inMinutes.remainder(60) so 75 minutes becomes 01:15:00.
       expect(formatDurationHms(const Duration(minutes: 75)), '01:15:00');
     });
 
     test('exactly one hour renders as 01:00:00 (zero-padded)', () {
-      // Hours are zero-padded to width 2 by [formatDurationHms] — the
-      // function never emits single-digit hours.
       expect(formatDurationHms(const Duration(hours: 1)), '01:00:00');
     });
 
@@ -75,10 +71,8 @@ void main() {
     });
 
     test('rounds fractional seconds to the nearest millisecond', () {
-      // Sub-second values still format as 00:00 — Duration.inSeconds truncates.
       expect(formatDurationHmsSeconds(0.4), '00:00');
       expect(formatDurationHmsSeconds(0.6), '00:00');
-      // Near a whole second, ms rounding can tip into the next second.
       expect(formatDurationHmsSeconds(0.9996), '00:01');
       expect(formatDurationHmsSeconds(1.5), '00:01');
     });
@@ -113,8 +107,6 @@ void main() {
     });
 
     test('hours plus seconds drop the zero-second tail', () {
-      // 1 hour exactly: minutes=0 after mod → falls to the hours branch
-      // (which already excludes the trailing 0s), so the output is `1h 0m`.
       expect(formatPracticeDurationMs(60 * 60 * 1000), '1h 0m');
     });
   });

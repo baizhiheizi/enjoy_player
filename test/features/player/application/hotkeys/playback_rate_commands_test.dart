@@ -1,10 +1,3 @@
-// Per-command unit tests for the playback-rate hotkey commands (issue #719).
-//
-// The rate clamps themselves are pinned by the D10 reducer tests in
-// `test/features/player/transport_decisions_test.dart`; these tests cover the
-// command shell — the session gate and the wiring from the live preference
-// rate through `decidePlaybackRateStep` to `setPlaybackRate` — using a plain
-// [ProviderContainer] (no widget tree).
 import 'package:enjoy_player/features/hotkeys/application/hotkey_command.dart';
 import 'package:enjoy_player/features/player/application/hotkeys/playback_rate_commands.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';

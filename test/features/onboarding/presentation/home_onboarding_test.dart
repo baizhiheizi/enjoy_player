@@ -62,9 +62,7 @@ class _TestShowcaseHostState extends ConsumerState<_TestShowcaseHost> {
   void dispose() {
     try {
       ShowcaseView.get().unregister();
-    } on Object {
-      // Already unregistered.
-    }
+    } on Object {} // ignore: empty_catches
     super.dispose();
   }
 
@@ -154,7 +152,6 @@ Widget _harness({required AppDatabase db}) {
 }
 
 Future<void> _pumpTips(WidgetTester tester) async {
-  // Allow post-frame start + showcase target wait frames.
   for (var i = 0; i < 40; i++) {
     await tester.pump(const Duration(milliseconds: 16));
   }
@@ -183,7 +180,6 @@ void main() {
     expect(find.text(l10n.onboardingTipHomeImportTitle), findsOneWidget);
     expect(find.text(l10n.onboardingTipHomeCraftTitle), findsNothing);
 
-    // Learn-by-doing on Import advances to Craft in the same visit.
     await tester.tap(find.text('Import action'));
     await _pumpTips(tester);
 
@@ -215,7 +211,6 @@ void main() {
       TipStatus.skipped,
     );
 
-    // Restart attempt must not show overlays again.
     await container
         .read(onboardingControllerProvider.notifier)
         .tryStartHomeEntries(const TriggerContext(routePath: '/'));

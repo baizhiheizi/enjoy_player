@@ -60,7 +60,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
     final controller = ref.read(craftControllerProvider.notifier);
     final theme = Theme.of(context);
 
-    // Sync text controller with state (e.g. when "Use translated text" fires).
     if (_textCtrl.text != state.synthText) {
       _textCtrl.text = state.synthText;
     }
@@ -175,7 +174,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
                       color: theme.colorScheme.error,
                     ),
                   ),
-                  // One-tap recovery for credits rejections (spec 045).
                   if (state.failure is CraftCreditsFailure)
                     TextButton(
                       style: TextButton.styleFrom(
@@ -217,9 +215,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
   Future<void> _synthesizeWithOverlay(AppLocalizations l10n) async {
     final controller = ref.read(craftControllerProvider.notifier);
 
-    // Show a non-dismissible blocking dialog during synthesis — the native
-    // Azure Speech SDK call blocks the platform thread, so we need to show
-    // a spinner before the freeze kicks in.
     unawaited(
       showEnjoyDialog<void>(
         context: context,
@@ -242,12 +237,10 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
         },
       ),
     );
-    // Let the dialog paint before the platform thread blocks.
     await WidgetsBinding.instance.endOfFrame;
 
     await controller.synthesize();
 
-    // Dismiss the blocking dialog.
     if (mounted) {
       final nav = Navigator.of(context, rootNavigator: true);
       if (nav.canPop()) nav.pop();
@@ -283,7 +276,6 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
       savedSolidTimeline: result.wroteSolidTranscript,
     );
     controller.clearResult();
-    // Dedupe returns the existing id as [CraftSaveResult.mediaId].
     openPlayerRoute(context, result.mediaId);
   }
 }
@@ -336,7 +328,7 @@ class _PreviewPlayer extends StatelessWidget {
     required this.onPlayPause,
   });
 
-  final dynamic audioBytes; // Uint8List
+  final dynamic audioBytes;
   final bool isPlaying;
   final VoidCallback onPlayPause;
 

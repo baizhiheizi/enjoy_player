@@ -55,7 +55,6 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Header ────────────────────────────────────────────────────
           Semantics(
             expanded: _expanded,
             button: true,
@@ -104,7 +103,6 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
               ),
             ),
           ),
-          // ── Body ──────────────────────────────────────────────────────
           AnimatedSize(
             duration: t.motionStandard,
             curve: Curves.easeInOutCubic,

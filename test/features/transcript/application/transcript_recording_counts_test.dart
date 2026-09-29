@@ -26,38 +26,38 @@ RecordingRow _recording(int referenceStart, int referenceDuration) {
 void main() {
   group('recordingOverlapsLine', () {
     test('true when recording fully inside line', () {
-      final line = _line(1000, 5000); // [1000, 6000)
-      final rec = _recording(2000, 1000); // [2000, 3000)
+      final line = _line(1000, 5000);
+      final rec = _recording(2000, 1000);
       expect(recordingOverlapsLine(rec, line), isTrue);
     });
 
     test('true when recording partially overlaps line start', () {
-      final line = _line(1000, 2000); // [1000, 3000)
-      final rec = _recording(500, 1000); // [500, 1500)
+      final line = _line(1000, 2000);
+      final rec = _recording(500, 1000);
       expect(recordingOverlapsLine(rec, line), isTrue);
     });
 
     test('true when recording partially overlaps line end', () {
-      final line = _line(1000, 2000); // [1000, 3000)
-      final rec = _recording(2500, 1000); // [2500, 3500)
+      final line = _line(1000, 2000);
+      final rec = _recording(2500, 1000);
       expect(recordingOverlapsLine(rec, line), isTrue);
     });
 
     test('false when recording ends exactly at line start', () {
-      final line = _line(1000, 2000); // [1000, 3000)
-      final rec = _recording(0, 1000); // [0, 1000)
+      final line = _line(1000, 2000);
+      final rec = _recording(0, 1000);
       expect(recordingOverlapsLine(rec, line), isFalse);
     });
 
     test('false when recording starts exactly at line end', () {
-      final line = _line(1000, 2000); // [1000, 3000)
-      final rec = _recording(3000, 1000); // [3000, 4000)
+      final line = _line(1000, 2000);
+      final rec = _recording(3000, 1000);
       expect(recordingOverlapsLine(rec, line), isFalse);
     });
 
     test('false when completely disjoint', () {
-      final line = _line(5000, 1000); // [5000, 6000)
-      final rec = _recording(0, 2000); // [0, 2000)
+      final line = _line(5000, 1000);
+      final rec = _recording(0, 2000);
       expect(recordingOverlapsLine(rec, line), isFalse);
     });
   });
@@ -74,15 +74,15 @@ void main() {
     test('counts overlapping recordings per line', () {
       final lines = [_line(0, 2000), _line(2000, 2000), _line(4000, 2000)];
       final recordings = [
-        _recording(500, 1000), // overlaps line 0 only
-        _recording(1500, 1000), // overlaps line 0 and line 1
-        _recording(4500, 500), // overlaps line 2 only
+        _recording(500, 1000),
+        _recording(1500, 1000),
+        _recording(4500, 500),
       ];
       final counts = countRecordingsPerLineIndex(lines, recordings);
-      expect(counts[0], 2); // rec0 + rec1
-      expect(counts[1], 1); // rec1
+      expect(counts[0], 2);
+      expect(counts[1], 1);
       expect(counts.containsKey(2), isTrue);
-      expect(counts[2], 1); // rec2
+      expect(counts[2], 1);
     });
 
     test('omits lines with zero overlapping recordings', () {

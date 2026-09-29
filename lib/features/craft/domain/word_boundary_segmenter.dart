@@ -72,10 +72,6 @@ enum BreakPriority {
 }
 
 final _sentenceEnd = RegExp(r'[.。！？!?]\s*$');
-// Any token made solely of sentence-ending OR clause punctuation. Azure emits
-// both kinds as standalone tokens (contract: azure-speech-word-boundaries.md);
-// merging them onto the prior word keeps joined text clean ("word," not "word ,")
-// and satisfies FR-007 (no line begins with punctuation-only text).
 final _punctuationOnly = RegExp(r'^[.。！？!?,;:—、，；：]+$');
 final _clauseEnd = RegExp(r'[,;:—、，；：]\s*$');
 
@@ -97,7 +93,6 @@ List<CraftWordBoundary> mergePunctuationTokens(
 
     if (isPunctuationOnlyToken(trimmed)) {
       if (merged.isEmpty) {
-        // Leading punct with no prior word — skip so a line cannot start with it.
         continue;
       }
       final prev = merged.removeLast();
@@ -144,7 +139,6 @@ List<TranscriptSegment> segmentWordBoundaries(
 
   final cjk = language != null && isCjkLanguage(language);
 
-  // Partition into sentence groups at sentence-ending punctuation.
   final sentences = <List<CraftWordBoundary>>[];
   var current = <CraftWordBoundary>[];
   for (final word in words) {
@@ -156,9 +150,6 @@ List<TranscriptSegment> segmentWordBoundaries(
   }
   if (current.isNotEmpty) sentences.add(current);
 
-  // Shadow-split each sentence, then merge too-short fragments WITHIN that
-  // sentence only (never across sentence boundaries — a short complete
-  // sentence stays a standalone line).
   final lines = <List<CraftWordBoundary>>[];
   for (final sentence in sentences) {
     final sentenceLines = _shadowSplitSentence(
@@ -171,7 +162,6 @@ List<TranscriptSegment> segmentWordBoundaries(
   }
   if (lines.isEmpty) return [];
 
-  // Build segments from the surviving word groups.
   return [
     for (final group in lines)
       TranscriptSegment(
@@ -202,7 +192,6 @@ List<List<CraftWordBoundary>> _shadowSplitSentence(
   var start = 0;
 
   while (start < sentence.length) {
-    // Grow the line until it would exceed the soft max.
     var end = start;
     var lineEndMs = sentence[start].audioOffsetMs + sentence[start].durationMs;
     while (end + 1 < sentence.length) {
@@ -213,13 +202,11 @@ List<List<CraftWordBoundary>> _shadowSplitSentence(
       lineEndMs = lineEndMs > nextEnd ? lineEndMs : nextEnd;
     }
 
-    // If the remainder fits in one line, take it all.
     if (end == sentence.length - 1) {
       lines.add(sentence.sublist(start));
       break;
     }
 
-    // Try to break at a clause mark within [start, end].
     final clauseBreak = _lastClauseBreak(sentence, start, end);
     if (clauseBreak != -1) {
       lines.add(sentence.sublist(start, clauseBreak + 1));
@@ -227,7 +214,6 @@ List<List<CraftWordBoundary>> _shadowSplitSentence(
       continue;
     }
 
-    // Try the largest silence gap within [start, end+1].
     final gapBreak = _largestGapBreak(sentence, start, end + 1, budget);
     if (gapBreak != -1) {
       lines.add(sentence.sublist(start, gapBreak + 1));
@@ -235,7 +221,6 @@ List<List<CraftWordBoundary>> _shadowSplitSentence(
       continue;
     }
 
-    // Force a split at the soft-max boundary (hardCap fallback).
     lines.add(sentence.sublist(start, end + 1));
     start = end + 1;
   }
@@ -290,7 +275,6 @@ void _mergeShortFragments(
       i++;
       continue;
     }
-    // Try merging into the previous line if the combined span fits hardMax.
     if (i > 0) {
       final prev = lines[i - 1];
       final combinedEnd = line.last.audioOffsetMs + line.last.durationMs;
@@ -300,7 +284,6 @@ void _mergeShortFragments(
         continue;
       }
     }
-    // Try merging into the next line.
     if (i + 1 < lines.length) {
       final next = lines[i + 1];
       final nextEnd = next.last.audioOffsetMs + next.last.durationMs;

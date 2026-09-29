@@ -38,9 +38,6 @@ String redactLogLine(String line) {
 String _redactAbsolutePaths(String line) {
   String shorten(String path) {
     if (path.length <= 48) return path;
-    // `p.basename` splits on the host platform's separator, so on Linux/macOS
-    // it leaves Windows back-slash paths untouched. Normalize to `/` first so
-    // the basename is correct regardless of the host platform.
     final normalized = path.replaceAll(r'\', '/');
     return '.../${p.basename(normalized)}';
   }

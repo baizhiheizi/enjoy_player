@@ -1,14 +1,3 @@
-// Issue #663 (rebuild scope, item C): the expanded-player chrome must not
-// churn the surface registry.
-//
-// `_VideoStageWithChrome` used to allocate a fresh `overlayBuilder` closure on
-// every build. `PlayerSurfaceTarget` compares builders by identity, so every
-// ancestor rebuild handed the registry a "new" chrome and re-created the
-// attachment — including each splitter-drag pointer move, where the video
-// column resizes at pointer-move rate.
-//
-// Structural signals (docs/perf-measurement.md): registry write counts and
-// widget-instance identity, both deterministic — no wall-clock timing.
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/player/application/player_surface_registry.dart';
 import 'package:enjoy_player/features/player/presentation/layouts/video_player_layout.dart';
@@ -75,8 +64,6 @@ _pump(WidgetTester tester, {required FakePlayerEngine engine}) async {
   addTearDown(view.resetPhysicalSize);
   addTearDown(view.resetDevicePixelRatio);
 
-  // Bumping this re-creates [VideoPlayerLayout] — and therefore
-  // `_VideoStageWithChrome` — without changing any geometry.
   final rebuildLayout = ValueNotifier<int>(0);
   addTearDown(rebuildLayout.dispose);
 
@@ -109,8 +96,6 @@ _pump(WidgetTester tester, {required FakePlayerEngine engine}) async {
       ),
     ),
   );
-  // Two frames: first layout, then the post-frame `_sync` retry that attaches
-  // once the target has a real size.
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 100));
 
@@ -152,9 +137,6 @@ void main() {
       final attachment = container.read(playerSurfaceRegistryProvider);
       expect(attachment, isNotNull);
 
-      // Re-run the ancestor build five times without touching geometry. The
-      // chrome builder is identity-stable now, so `PlayerSurfaceTarget` has no
-      // reason to even schedule a sync.
       for (var i = 0; i < 5; i++) {
         rebuildLayout.value++;
         await tester.pump();
@@ -179,7 +161,6 @@ void main() {
         tester,
         engine: engine,
       );
-      // Unused here; the drag is what drives the rebuilds.
       expect(rebuildLayout.value, 0);
 
       final builderBefore = container
@@ -187,9 +168,6 @@ void main() {
           .overlayBuilder;
       expect(builderBefore, isNotNull);
 
-      // Six pointer moves: the video column resizes each frame, so the target
-      // geometry genuinely changes and the host must follow. What must NOT
-      // happen is the chrome being re-registered alongside it.
       var updatesDuringDrag = 0;
       for (var i = 0; i < 6; i++) {
         final before = registry.updateCalls;
@@ -209,7 +187,6 @@ void main() {
             'The chrome builder must survive a splitter drag; a fresh closure '
             'per build defeats the registry delta gate (issue #663)',
       );
-      // The drag did move the surface — following geometry is still required.
       expect(updatesDuringDrag, greaterThan(0));
     },
   );

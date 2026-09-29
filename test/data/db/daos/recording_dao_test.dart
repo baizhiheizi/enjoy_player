@@ -1,5 +1,3 @@
-// Tests for `lib/data/db/daos/recording_dao.dart` (and the Recordings
-// table generated accessors in `app_database.g.dart`).
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,19 +57,18 @@ void main() {
     });
 
     test('listByEchoRegion returns overlapping recordings', () async {
-      // Echo window: 1000ms-3000ms.
       await db.recordingDao.insertRow(
         _recording(id: 'a', referenceStart: 500, referenceDuration: 1000),
-      ); // [500,1500] overlaps
+      );
       await db.recordingDao.insertRow(
         _recording(id: 'b', referenceStart: 2500, referenceDuration: 1000),
-      ); // [2500,3500] overlaps
+      );
       await db.recordingDao.insertRow(
         _recording(id: 'c', referenceStart: 4000, referenceDuration: 1000),
-      ); // [4000,5000] no overlap
+      );
       await db.recordingDao.insertRow(
         _recording(id: 'd', referenceStart: 0, referenceDuration: 500),
-      ); // [0,500] no overlap
+      );
 
       final list = await db.recordingDao.listByEchoRegion(
         targetType: 'Video',

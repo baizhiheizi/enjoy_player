@@ -38,7 +38,7 @@ void main() {
 
     test('identical instance is equal', () {
       const a = CraftSaveResult(mediaId: 'x', wroteSolidTranscript: false);
-      expect(a == a, isTrue); // identical check
+      expect(a == a, isTrue);
     });
 
     test('not equal to non-CraftSaveResult', () {

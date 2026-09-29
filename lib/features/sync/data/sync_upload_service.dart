@@ -73,11 +73,6 @@ class SyncUploadService {
   final CraftAudioCloudUploader? _craftAudioCloudUploader;
 
   Future<void> uploadAudio(AudioRow row) async {
-    // For crafted audios, upload the binary first so the server can attach
-    // the blob via the `signedId` field on the JSON payload. The web app
-    // does the same via `attachMediaBlobToPayload`. Imported user files
-    // (`provider = 'user'`) and YouTube (`provider = 'youtube'`) skip this
-    // step — they either have no binary or already have a `mediaUrl`.
     String? signedId;
     if (row.provider == 'craft' && _craftAudioCloudUploader != null) {
       signedId = await _craftAudioCloudUploader.uploadIfNeeded(row);
@@ -103,14 +98,6 @@ class SyncUploadService {
       }
     }
 
-    // When we sent a `signedId` for a crafted row, the server MUST attach the
-    // blob and return a populated `mediaUrl`. If it doesn't, we cannot trust
-    // the response (the row would falsely appear "Synced to cloud" while the
-    // blob is unattached, or worse — the server-side dedupe path returns the
-    // OLD mediaUrl from a previous version of the audio, orphaning the newly
-    // uploaded blob). Throw so the sync queue retries; we never stamp
-    // `syncStatus: 'synced'` for a crafted row whose blob attach is
-    // unconfirmed.
     final serverMediaUrl = inner['mediaUrl'] as String? ?? row.mediaUrl;
     if (row.provider == 'craft' &&
         signedId != null &&
@@ -151,7 +138,6 @@ class SyncUploadService {
       return unwrapEntity(response, 'video');
     } on ApiException catch (e) {
       if (!e.isDuplicateEntity) rethrow;
-      // Mine create is membership upsert; on rare unique races, re-fetch mine.
       _log.fine('video ${row.id} already on server; fetching mine row');
       try {
         final response = await _videoApi.video(row.id);

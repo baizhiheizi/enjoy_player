@@ -97,10 +97,6 @@ void main() {
     });
     PathProviderPlatform.instance = TestPathProvider(root.path);
 
-    // The lifecycle hook calls [closeAndClearAllAppDatabases]; pin its
-    // invocation via the test-only debug hook so we don't need to plumb
-    // the private singleton maps through a public API. The observable
-    // side effect of the hook IS this call.
     var shutdownCalls = 0;
     debugOnShutdownDatabaseClose = () => shutdownCalls++;
     addTearDown(() => debugOnShutdownDatabaseClose = null);
@@ -132,18 +128,11 @@ void main() {
       await tester.pump();
     }
 
-    // Sanity: the widget is mounted, the lifecycle observer is registered,
-    // and no premature close has been triggered.
     expect(find.byType(EnjoyApp), findsOneWidget);
     expect(shutdownCalls, 0);
 
-    // Dispatch the macOS-quit lifecycle event the same way Flutter's
-    // macOS embedder does after `-[NSApplication terminate:]`.
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
 
-    // closeAndClearAllAppDatabases is fire-and-forget (`unawaited` in the
-    // lifecycle hook), so pump the event loop until the close future
-    // resolves and the debug hook has fired.
     for (var i = 0; i < 20 && shutdownCalls == 0; i++) {
       await tester.pump(const Duration(milliseconds: 10));
     }
@@ -154,8 +143,6 @@ void main() {
       reason: 'detached lifecycle must trigger closeAndClearAllAppDatabases',
     );
 
-    // Cleanup — pumpWidget(SizedBox) so the observer is removed before the
-    // tearDown's explicit close() runs, matching production semantics.
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
@@ -209,8 +196,6 @@ void main() {
         await tester.pump();
       }
 
-      // Cycle through every other lifecycle state to guard against a future
-      // change accidentally widening the hook to fire on paused/inactive.
       for (final state in AppLifecycleState.values) {
         if (state == AppLifecycleState.detached) continue;
         tester.binding.handleAppLifecycleStateChanged(state);

@@ -44,7 +44,6 @@ void main() {
         apiSpec: LlmApiSpec.openAiCompatible,
         baseUrl: 'https://example.com/v1',
         model: 'gpt-4-mini',
-        // no presetId
       ),
     );
     final label = formatPlaygroundProviderLabel(l10n, config);

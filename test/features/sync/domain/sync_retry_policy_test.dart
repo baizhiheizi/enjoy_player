@@ -17,9 +17,6 @@ SyncQueueRow _row({required int retryCount, DateTime? lastAttempt}) {
 }
 
 void main() {
-  // Far beyond the real wall clock (tests run in 2026): if any decision read
-  // a bare DateTime.now() instead of the injected clock, elapsed would be
-  // hugely negative and every expectation below would flip to false.
   final fakeNow = DateTime.utc(2030, 6, 1);
 
   group('SyncRetryPolicy threshold', () {
@@ -72,7 +69,6 @@ void main() {
         expect(() => policy.backoffDelayMs(-1), throwsRangeError);
         expect(() => policy.backoffDelayMs(31), throwsRangeError);
         expect(() => policy.backoffDelayMs(1 << 10), throwsRangeError);
-        // In-range values still yield the pinned schedule.
         expect(policy.backoffDelayMs(0), 1000);
         expect(policy.backoffDelayMs(1), 2000);
         expect(policy.backoffDelayMs(2), 4000);
@@ -84,7 +80,6 @@ void main() {
 
     test('elapsed == delayMs exactly is eligible (deterministic boundary)', () {
       final policy = SyncRetryPolicy(now: () => fakeNow);
-      // retryCount 1 → delay 2000 ms.
       final delay = policy.backoffDelayMs(1);
       expect(
         policy.shouldRetry(
@@ -109,12 +104,10 @@ void main() {
     test('backoff window shortens relatively as retryCount grows', () {
       final policy = SyncRetryPolicy(now: () => fakeNow);
       final attemptAt = fakeNow.subtract(const Duration(milliseconds: 3000));
-      // 3000 ms elapsed clears the 2000 ms window (retryCount 1)…
       expect(
         policy.shouldRetry(_row(retryCount: 1, lastAttempt: attemptAt)),
         isTrue,
       );
-      // …but not the 4000 ms window (retryCount 2).
       expect(
         policy.shouldRetry(_row(retryCount: 2, lastAttempt: attemptAt)),
         isFalse,
@@ -140,16 +133,13 @@ void main() {
 
   group('SyncRetryPolicy injected clock', () {
     test('decision reads the injected clock, not DateTime.now', () {
-      // lastAttempt sits between the fake clock's delay and where the real
-      // clock would put it: only the injected clock yields "eligible".
       final policy = SyncRetryPolicy(now: () => fakeNow);
       final row = _row(
-        retryCount: 4, // delay 16000 ms
+        retryCount: 4,
         lastAttempt: fakeNow.subtract(const Duration(milliseconds: 16000)),
       );
       expect(policy.shouldRetry(row), isTrue);
 
-      // Same row against a clock that has not caught up yet → blocked.
       final lagging = SyncRetryPolicy(
         now: () => fakeNow.subtract(const Duration(milliseconds: 1)),
       );

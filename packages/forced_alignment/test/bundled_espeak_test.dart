@@ -74,9 +74,6 @@ void main() {
     final tmp = Directory.systemTemp.createTempSync('espeak-bundle-script-');
     addTearDown(() => tmp.deleteSync(recursive: true));
 
-    // Xcode's "Embed Frameworks" phase owns the native library; the script
-    // only handles the data tree copy. Pre-stage the library the way Xcode
-    // would (naked dylib on macOS, eSpeakNG.framework on iOS).
     final macApp = Directory('${tmp.path}/Enjoy Player.app')
       ..createSync(recursive: true);
     Directory('${macApp.path}/Contents/MacOS').createSync(recursive: true);
@@ -113,7 +110,6 @@ void main() {
     addTearDown(() => tmp.deleteSync(recursive: true));
     final app = Directory('${tmp.path}/Enjoy Player.app');
     Directory('${app.path}/Contents/MacOS').createSync(recursive: true);
-    // Xcode's "Embed Frameworks" phase copies the dylib; pre-stage it.
     final macFrameworks = Directory('${app.path}/Contents/Frameworks')
       ..createSync();
     File(repoNative!).copySync('${macFrameworks.path}/libespeak-ng.dylib');
