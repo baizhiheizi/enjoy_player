@@ -67,7 +67,7 @@ sequenceDiagram
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 17`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 18`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
 
 | Step | Change |
 |------|--------|
@@ -82,6 +82,7 @@ sequenceDiagram
 | v14 → v15 | Create `vocabulary_items` + `vocabulary_contexts` + `vocabulary_reviews` with 6 indexes; `vocabulary_reviews` (local audit) is never synced ([ADR-0052](decisions/0052-vocabulary-local-first-schema.md)) |
 | v15 → v16 | Hot-read-path covering indexes (issue #467): 11 indexes across transcripts, recordings, echo_sessions, videos (provider,vid / local_uri), audios (local_uri / md5), dictations, youtube_feed_entries (channel+published / published), sync_queue (retry_count, created_at) |
 | v16 → v17 | Add videos.bookmark_data + audios.bookmark_data — macOS security-scoped bookmarks persisted at import and resolved on open ([ADR-0080](decisions/0080-macos-security-scoped-bookmarks.md)) |
+| v17 → v18 | Dedupe `sync_queue` rows sharing `(entity_type, entity_id, action)` — keep the newest `id` only, so the post-#726 `addOrUpsert` cannot hit duplicate rows left by the pre-fix producer (issue #717 follow-up F5; no-op on a clean queue) |
 
 ### Sync metadata mixins
 
