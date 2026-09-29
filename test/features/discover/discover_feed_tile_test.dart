@@ -4,6 +4,8 @@ import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
+import 'package:enjoy_player/core/theme/widgets/media_card.dart'
+    show mediaCardTileMetaHeight;
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
@@ -174,6 +176,69 @@ void main() {
 
       expect(find.text('player-open'), findsNothing);
       expect(router.state.uri.path, '/');
+    },
+  );
+
+  testWidgets(
+    'long-title feed tile fits the shared meta budget in a narrow column',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final now = DateTime.now();
+      final entry = FeedEntry(
+        videoId: 'longtitle',
+        channelId: 'UCAuUUnT6oDeKwE6v1NGQxug',
+        title:
+            'A discover feed entry title long enough to wrap onto two lines '
+            'inside a narrow grid column',
+        publishedAt: now,
+        durationSeconds: 1234,
+      );
+
+      final repo = DiscoverRepository(
+        db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            discoverRepositoryProvider.overrideWithValue(repo),
+            discoverSubscriptionsProvider.overrideWith(
+              (ref) => Stream.value(const <DiscoverChannel>[]),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 280,
+                  child: DiscoverFeedTile(entry: entry, inLibrary: false),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // A RenderFlex overflow anywhere in the meta row would have thrown
+      // during layout above. Pin the shared tile budget too: 16:9 artwork
+      // (280 × 9 / 16 = 157.5) + mediaCardTileMetaHeight.
+      expect(
+        tester.getSize(find.byType(DiscoverFeedTile)).height,
+        closeTo(157.5 + mediaCardTileMetaHeight, 0.1),
+      );
+      expect(find.text('In library'), findsNothing);
     },
   );
 }

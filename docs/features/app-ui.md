@@ -118,7 +118,7 @@ Focus ring: 2px iris ink
 | `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |
 | `SheetDragHandle` / `PaddedSheetDragHandle` | `core/theme/widgets/sheet_drag_handle.dart` | 36×5 grabber |
-| `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) / list row |
+| `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) with optional discover affordances (adding scrim, in-library chip, custom `meta` slot) / list row |
 | `GlassSurface` | `core/theme/widgets/glass_surface.dart` | Frosted floating chrome (transport) |
 | `SettingsRow` / `SettingsRowDivider` / `SettingsValuePill` | `features/settings/presentation/widgets/settings_row.dart` | Grouped-list row with icon tile, value, chevron |
 | `AppNotice` | `core/notices/app_notice.dart` | Dark toast with semantic glyph |
