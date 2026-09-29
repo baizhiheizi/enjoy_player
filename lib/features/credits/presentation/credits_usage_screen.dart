@@ -79,231 +79,36 @@ class _CreditsUsageBody extends ConsumerWidget {
         ref.invalidate(creditsUsagePageProvider);
         await ref.read(creditsUsagePageProvider.future);
       },
-      child: ListView(
-        padding: metrics.padding(top: t.space16, bottom: t.space32),
-        children: [
-          Text(
-            l10n.creditsUsageDescription,
-            maxLines: 2,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          SizedBox(height: t.space16),
-          EnjoyCard(
-            padding: EdgeInsets.all(t.space16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _FilterDateField(
-                        label: l10n.creditsUsageStartDate,
-                        value: filters.startDate,
-                        onPick: () => pickCreditsUsageDate(
-                          context,
-                          initial: filters.startDate,
-                          onYmd: ctrl.setStartDate,
-                        ),
-                        onClear: filters.startDate != null
-                            ? () => ctrl.setStartDate(null)
-                            : null,
-                      ),
-                    ),
-                    SizedBox(width: t.space12),
-                    Expanded(
-                      child: _FilterDateField(
-                        label: l10n.creditsUsageEndDate,
-                        value: filters.endDate,
-                        onPick: () => pickCreditsUsageDate(
-                          context,
-                          initial: filters.endDate,
-                          onYmd: ctrl.setEndDate,
-                        ),
-                        onClear: filters.endDate != null
-                            ? () => ctrl.setEndDate(null)
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: t.space12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey<String>(
-                    'credits-svc-${filters.serviceType ?? ''}',
-                  ),
-                  initialValue: filters.serviceType ?? '',
-                  decoration: InputDecoration(
-                    labelText: l10n.creditsUsageServiceType,
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: '',
-                      child: Text(l10n.creditsServiceTypeAll),
-                    ),
-                    for (final v in kCreditsUsageServiceTypeValues)
-                      DropdownMenuItem(
-                        value: v,
-                        child: Text(serviceTypeLabel(l10n, v)),
-                      ),
-                  ],
-                  onChanged: (v) {
-                    ctrl.setServiceType(v == null || v.isEmpty ? null : v);
-                  },
-                ),
-                if (_hasActiveFilters(filters)) ...[
-                  SizedBox(height: t.space12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: ctrl.clearFilters,
-                      icon: const Icon(EnjoyIcons.clearAll),
-                      label: Text(l10n.creditsUsageClearFilters),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          SizedBox(height: t.space16),
-          pageAsync.when(
-            data: (CreditsUsagePage page) {
-              if (page.logs.isEmpty) {
-                return _EmptyState(hasFilters: _hasActiveFilters(filters));
-              }
-              final currentPage = (filters.offset ~/ filters.limit) + 1;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 720;
-                      if (wide) {
-                        return SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minWidth: constraints.maxWidth,
-                            ),
-                            child: _UsageTable(
-                              logs: page.logs,
-                              localeName: Localizations.localeOf(
-                                context,
-                              ).toString(),
-                            ),
-                          ),
-                        );
-                      }
-                      return Column(
-                        children: [
-                          for (final log in page.logs)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: t.space8),
-                              child: _UsageLogCard(
-                                log: log,
-                                localeName: Localizations.localeOf(
-                                  context,
-                                ).toString(),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  SizedBox(height: t.space12),
-                  LayoutBuilder(
-                    builder: (context, pagerConstraints) {
-                      final pageInfo =
-                          '${l10n.creditsUsagePageInfo(currentPage)}'
-                          '${!page.hasMore && page.logs.isNotEmpty ? ' · ${l10n.creditsUsageTotalRecords(filters.offset + page.logs.length)}' : ''}';
-                      final pageInfoStyle = Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          );
-                      Widget pagerButton(
-                        String label,
-                        VoidCallback? onPressed,
-                      ) => EnjoyButton.secondary(
-                        onPressed: onPressed,
-                        child: Text(label),
-                      );
-
-                      final prev = pagerButton(
-                        l10n.creditsUsagePrevious,
-                        filters.offset == 0 ? null : ctrl.goToPreviousPage,
-                      );
-                      final next = pagerButton(
-                        l10n.creditsUsageNext,
-                        !page.hasMore ? null : ctrl.goToNextPage,
-                      );
-                      final narrow = pagerConstraints.maxWidth < 720;
-                      if (narrow) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(pageInfo, style: pageInfoStyle),
-                            SizedBox(height: t.space8),
-                            Row(
-                              children: [
-                                Expanded(child: prev),
-                                SizedBox(width: t.space8),
-                                Expanded(child: next),
-                              ],
-                            ),
-                          ],
-                        );
-                      }
-                      return Row(
-                        children: [
-                          Expanded(child: Text(pageInfo, style: pageInfoStyle)),
-                          prev,
-                          SizedBox(width: t.space8),
-                          next,
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-            loading: () => const _CreditsUsageLoadingList(),
-            error: (Object e, StackTrace s) => Padding(
-              padding: EdgeInsets.symmetric(vertical: t.space24),
-              child: Column(
-                children: [
-                  Icon(
-                    EnjoyIcons.error,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  SizedBox(height: t.space12),
-                  Text(
-                    l10n.creditsUsageError,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: t.space8),
-                  Text(
-                    l10n.creditsUsageErrorDescription,
-                    textAlign: TextAlign.center,
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: metrics.padding(top: t.space16, bottom: t.space32),
+            sliver: SliverMainAxisGroup(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Text(
+                    l10n.creditsUsageDescription,
+                    maxLines: 2,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: t.space16),
-                  EnjoyButton.primary(
-                    onPressed: () {
-                      ref.invalidate(creditsUsagePageProvider);
-                    },
-                    child: Text(l10n.creditsUsageRetry),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+                SliverToBoxAdapter(
+                  child: _FilterCard(filters: filters, ctrl: ctrl),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+                pageAsync.when(
+                  data: (CreditsUsagePage page) =>
+                      _logsSliverGroup(context, l10n, t, filters, ctrl, page),
+                  loading: () => const SliverToBoxAdapter(
+                    child: _CreditsUsageLoadingList(),
                   ),
-                ],
-              ),
+                  error: (Object e, StackTrace s) =>
+                      const SliverToBoxAdapter(child: _PageErrorBody()),
+                ),
+              ],
             ),
           ),
         ],
@@ -315,6 +120,231 @@ class _CreditsUsageBody extends ConsumerWidget {
     return (f.startDate != null && f.startDate!.isNotEmpty) ||
         (f.endDate != null && f.endDate!.isNotEmpty) ||
         (f.serviceType != null && f.serviceType!.isNotEmpty);
+  }
+}
+
+class _FilterCard extends StatelessWidget {
+  const _FilterCard({required this.filters, required this.ctrl});
+
+  final CreditsUsageFilters filters;
+  final CreditsUsageFiltersCtrl ctrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+
+    return EnjoyCard(
+      padding: EdgeInsets.all(t.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _FilterDateField(
+                  label: l10n.creditsUsageStartDate,
+                  value: filters.startDate,
+                  onPick: () => pickCreditsUsageDate(
+                    context,
+                    initial: filters.startDate,
+                    onYmd: ctrl.setStartDate,
+                  ),
+                  onClear: filters.startDate != null
+                      ? () => ctrl.setStartDate(null)
+                      : null,
+                ),
+              ),
+              SizedBox(width: t.space12),
+              Expanded(
+                child: _FilterDateField(
+                  label: l10n.creditsUsageEndDate,
+                  value: filters.endDate,
+                  onPick: () => pickCreditsUsageDate(
+                    context,
+                    initial: filters.endDate,
+                    onYmd: ctrl.setEndDate,
+                  ),
+                  onClear: filters.endDate != null
+                      ? () => ctrl.setEndDate(null)
+                      : null,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: t.space12),
+          DropdownButtonFormField<String>(
+            key: ValueKey<String>('credits-svc-${filters.serviceType ?? ''}'),
+            initialValue: filters.serviceType ?? '',
+            decoration: InputDecoration(
+              labelText: l10n.creditsUsageServiceType,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: '',
+                child: Text(l10n.creditsServiceTypeAll),
+              ),
+              for (final v in kCreditsUsageServiceTypeValues)
+                DropdownMenuItem(
+                  value: v,
+                  child: Text(serviceTypeLabel(l10n, v)),
+                ),
+            ],
+            onChanged: (v) {
+              ctrl.setServiceType(v == null || v.isEmpty ? null : v);
+            },
+          ),
+          if (_CreditsUsageBody._hasActiveFilters(filters)) ...[
+            SizedBox(height: t.space12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: ctrl.clearFilters,
+                icon: const Icon(EnjoyIcons.clearAll),
+                label: Text(l10n.creditsUsageClearFilters),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+Widget _logsSliverGroup(
+  BuildContext context,
+  AppLocalizations l10n,
+  EnjoyThemeTokens t,
+  CreditsUsageFilters filters,
+  CreditsUsageFiltersCtrl ctrl,
+  CreditsUsagePage page,
+) {
+  if (page.logs.isEmpty) {
+    return SliverToBoxAdapter(
+      child: _EmptyState(
+        hasFilters: _CreditsUsageBody._hasActiveFilters(filters),
+      ),
+    );
+  }
+  final localeName = Localizations.localeOf(context).toString();
+  return SliverMainAxisGroup(
+    slivers: [
+      SliverLayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.crossAxisExtent >= 720) {
+            return SliverToBoxAdapter(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: constraints.crossAxisExtent,
+                  ),
+                  child: _UsageTable(logs: page.logs, localeName: localeName),
+                ),
+              ),
+            );
+          }
+          return SliverList.separated(
+            itemCount: page.logs.length,
+            separatorBuilder: (_, _) => SizedBox(height: t.space8),
+            itemBuilder: (context, index) =>
+                _UsageLogCard(log: page.logs[index], localeName: localeName),
+          );
+        },
+      ),
+      SliverToBoxAdapter(child: SizedBox(height: t.space12)),
+      SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final currentPage = (filters.offset ~/ filters.limit) + 1;
+          final pageInfo =
+              '${l10n.creditsUsagePageInfo(currentPage)}'
+              '${!page.hasMore && page.logs.isNotEmpty ? ' · ${l10n.creditsUsageTotalRecords(filters.offset + page.logs.length)}' : ''}';
+          final pageInfoStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          );
+          final prev = EnjoyButton.secondary(
+            onPressed: filters.offset == 0 ? null : ctrl.goToPreviousPage,
+            child: Text(l10n.creditsUsagePrevious),
+          );
+          final next = EnjoyButton.secondary(
+            onPressed: !page.hasMore ? null : ctrl.goToNextPage,
+            child: Text(l10n.creditsUsageNext),
+          );
+          final narrow = constraints.crossAxisExtent < 720;
+          if (narrow) {
+            return SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(pageInfo, style: pageInfoStyle),
+                  SizedBox(height: t.space8),
+                  Row(
+                    children: [
+                      Expanded(child: prev),
+                      SizedBox(width: t.space8),
+                      Expanded(child: next),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+          return SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Expanded(child: Text(pageInfo, style: pageInfoStyle)),
+                prev,
+                SizedBox(width: t.space8),
+                next,
+              ],
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
+
+class _PageErrorBody extends ConsumerWidget {
+  const _PageErrorBody();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: t.space24),
+      child: Column(
+        children: [
+          Icon(
+            EnjoyIcons.error,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          SizedBox(height: t.space12),
+          Text(
+            l10n.creditsUsageError,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: t.space8),
+          Text(
+            l10n.creditsUsageErrorDescription,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: t.space16),
+          EnjoyButton.primary(
+            onPressed: () {
+              ref.invalidate(creditsUsagePageProvider);
+            },
+            child: Text(l10n.creditsUsageRetry),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -415,14 +445,16 @@ class _CreditsUsageLoadingList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return Column(
-      children: [
-        for (var i = 0; i < _skeletonCount; i++)
-          Padding(
-            padding: EdgeInsets.only(bottom: t.space8),
-            child: const _UsageLogCardSkeleton(),
-          ),
-      ],
+    return SkeletonTickerHost(
+      child: Column(
+        children: [
+          for (var i = 0; i < _skeletonCount; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: t.space8),
+              child: const _UsageLogCardSkeleton(),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -11,13 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
-import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class CloudSyncSectionBody extends ConsumerWidget {
@@ -30,31 +30,22 @@ class CloudSyncSectionBody extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final auth = ref.watch(authCtrlProvider);
-    final snapAsync = ref.watch(syncQueueSnapshotProvider);
+    final queueCounts = ref.watch(
+      syncQueueSnapshotProvider.select(
+        (async) => (
+          isLoading: async.isLoading,
+          hasError: async.hasError,
+          retryablePending: async.valueOrNull?.retryablePending ?? 0,
+          permanentlyFailed: async.valueOrNull?.permanentlyFailed ?? 0,
+        ),
+      ),
+    );
 
     return auth.when(
       data: (state) {
         if (state is AuthSignedIn) {
-          return snapAsync.when(
-            data: (snap) => SettingsRow(
-              leadingIcon: EnjoyIcons.cloudSync,
-              title: l10n.syncSettingsTileTitle,
-              subtitle: l10n.settingsSectionSyncHint,
-              valueBadge: _SyncQueueStatusPill(snapshot: snap, l10n: l10n),
-              onTap: () => context.push('/settings/sync'),
-            ),
-            loading: () => SettingsRow(
-              leadingIcon: EnjoyIcons.cloudSync,
-              title: l10n.syncSettingsTileTitle,
-              subtitle: l10n.loading,
-              valueBadge: Skeleton.line(
-                width: 100,
-                height: 26,
-                borderRadius: BorderRadius.circular(t.radiusFull),
-              ),
-              onTap: () => context.push('/settings/sync'),
-            ),
-            error: (Object e, StackTrace s) => SettingsRow(
+          if (queueCounts.hasError) {
+            return SettingsRow(
               leadingIcon: EnjoyIcons.cloudSync,
               leadingIconTint: cs.error,
               title: l10n.syncSettingsTileTitle,
@@ -65,7 +56,31 @@ class CloudSyncSectionBody extends ConsumerWidget {
                 foregroundColor: cs.error,
               ),
               onTap: () => context.push('/settings/sync'),
+            );
+          }
+          if (queueCounts.isLoading) {
+            return SettingsRow(
+              leadingIcon: EnjoyIcons.cloudSync,
+              title: l10n.syncSettingsTileTitle,
+              subtitle: l10n.loading,
+              valueBadge: Skeleton.line(
+                width: 100,
+                height: 26,
+                borderRadius: BorderRadius.circular(t.radiusFull),
+              ),
+              onTap: () => context.push('/settings/sync'),
+            );
+          }
+          return SettingsRow(
+            leadingIcon: EnjoyIcons.cloudSync,
+            title: l10n.syncSettingsTileTitle,
+            subtitle: l10n.settingsSectionSyncHint,
+            valueBadge: _SyncQueueStatusPill(
+              retryablePending: queueCounts.retryablePending,
+              permanentlyFailed: queueCounts.permanentlyFailed,
+              l10n: l10n,
             ),
+            onTap: () => context.push('/settings/sync'),
           );
         }
         return SettingsRow(
@@ -114,27 +129,32 @@ class CloudSyncSectionBody extends ConsumerWidget {
 }
 
 class _SyncQueueStatusPill extends StatelessWidget {
-  const _SyncQueueStatusPill({required this.snapshot, required this.l10n});
+  const _SyncQueueStatusPill({
+    required this.retryablePending,
+    required this.permanentlyFailed,
+    required this.l10n,
+  });
 
-  final SyncQueueSnapshot snapshot;
+  final int retryablePending;
+  final int permanentlyFailed;
   final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    if (snapshot.isFullyCaughtUp) {
+    if (retryablePending == 0 && permanentlyFailed == 0) {
       return SettingsValuePill(
         icon: EnjoyIcons.checkCircle,
         label: l10n.syncSettingsTileSubtitleUpToDate,
         foregroundColor: cs.primary,
       );
     }
-    final hasFailed = snapshot.permanentlyFailed > 0;
+    final hasFailed = permanentlyFailed > 0;
     return SettingsValuePill(
       icon: hasFailed ? EnjoyIcons.warning : EnjoyIcons.hourglass,
       label: l10n.syncSettingsTileSubtitleCounts(
-        snapshot.retryablePending,
-        snapshot.permanentlyFailed,
+        retryablePending,
+        permanentlyFailed,
       ),
       foregroundColor: hasFailed ? cs.error : cs.onSurface,
     );
