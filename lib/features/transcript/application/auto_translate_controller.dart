@@ -30,7 +30,7 @@ part 'auto_translate_controller.g.dart';
 
 final Logger _log = logNamed('auto_translate');
 
-@Riverpod(keepAlive: true)
+@riverpod
 class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   final _inFlight = <int>{};
   final _waiting = ListQueue<int>();
