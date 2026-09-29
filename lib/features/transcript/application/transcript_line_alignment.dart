@@ -9,9 +9,9 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 /// against the same [secondary] list (e.g. virtualized transcript rows).
 ///
 /// [secondary] is copied and sorted by [TranscriptLine.startSeconds] once.
-/// Each [match] resolves its candidate window with two binary searches
-/// instead of scanning from index 0, so materializing a row no longer costs
-/// O(len) comparisons on long bilingual transcripts (issue #810 G).
+/// Each [match] bounds its candidate window with one shared lower-bound
+/// search instead of scanning from index 0, so materializing a row no longer
+/// costs O(len) comparisons on long bilingual transcripts (issue #810 G).
 class TranscriptSecondaryMatcher {
   factory TranscriptSecondaryMatcher.from(List<TranscriptLine> secondary) {
     if (secondary.isEmpty) {
@@ -36,24 +36,14 @@ class TranscriptSecondaryMatcher {
   /// start, which is what makes the lower-bound search sound.
   final double _halfMaxSeconds;
 
-  /// Last index with [TranscriptLine.startSeconds] strictly below [threshold].
-  int _lastIndexWithStartBefore(double threshold) {
-    var lo = 0;
-    var hi = _sec.length - 1;
-    var ans = -1;
-    while (lo <= hi) {
-      final mid = (lo + hi) ~/ 2;
-      if (_sec[mid].startSeconds < threshold) {
-        ans = mid;
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    return ans;
-  }
+  /// Last index with [TranscriptLine.startSeconds] strictly below
+  /// [threshold] — the index immediately before
+  /// [_firstIndexWithStartAtOrAfter]; `-1` when none.
+  int _lastIndexWithStartBefore(double threshold) =>
+      _firstIndexWithStartAtOrAfter(threshold) - 1;
 
-  /// First index with [TranscriptLine.startSeconds] at or after [threshold].
+  /// First index with [TranscriptLine.startSeconds] at or after [threshold];
+  /// [List.length] when every cue starts below it.
   int _firstIndexWithStartAtOrAfter(double threshold) {
     var lo = 0;
     var hi = _sec.length;
