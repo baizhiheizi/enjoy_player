@@ -45,7 +45,7 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
                 (_) => _computeActiveLines(tt, mediaId, primary: primary),
               ),
           _db.transcriptDao
-              .watchAllForTarget(tt, mediaId)
+              .watchSummariesForTarget(tt, mediaId)
               .asyncMap(
                 (_) => _computeActiveLines(tt, mediaId, primary: primary),
               ),
@@ -83,11 +83,11 @@ extension _TranscriptRepositoryLines on TranscriptRepository {
           return Stream.value(<TranscriptTrack>[]);
         }
         return _db.transcriptDao
-            .watchAllForTarget(tt, mediaId)
-            .map((rows) {
-              final sorted = [...rows];
-              _sortTranscriptRows(sorted);
-              return sorted.map(_trackFromRow).toList();
+            .watchSummariesForTarget(tt, mediaId)
+            .map((summaries) {
+              final sorted = [...summaries];
+              _sortTranscriptSummaries(sorted);
+              return sorted.map(_trackFromSummary).toList();
             })
             .distinctBy(listEquals);
       });

@@ -1,19 +1,19 @@
 part of 'transcript_repository.dart';
 
 /// Module-private helpers shared by the [TranscriptRepository] part files:
-/// track-row mapping, source normalization / ordering, and robust server
+/// track-summary mapping, source normalization / ordering, and robust server
 /// date parsing. (Timeline decoding, cache keying, and the preload threshold
 /// live in `transcript_timeline_codec.dart` — issue #766.)
 
-TranscriptTrack _trackFromRow(TranscriptRow row) {
+TranscriptTrack _trackFromSummary(TranscriptTrackSummary summary) {
   return TranscriptTrack(
-    id: row.id,
-    targetType: row.targetType,
-    targetId: row.targetId,
-    language: row.language,
-    source: row.source,
-    label: row.label,
-    trackIndex: row.trackIndex,
+    id: summary.id,
+    targetType: summary.targetType,
+    targetId: summary.targetId,
+    language: summary.language,
+    source: summary.source,
+    label: summary.label,
+    trackIndex: summary.trackIndex,
   );
 }
 
@@ -34,6 +34,15 @@ int _sourcePriority(String source) {
 
 void _sortTranscriptRows(List<TranscriptRow> rows) {
   rows.sort((a, b) {
+    final pa = _sourcePriority(a.source);
+    final pb = _sourcePriority(b.source);
+    if (pa != pb) return pa.compareTo(pb);
+    return a.createdAt.compareTo(b.createdAt);
+  });
+}
+
+void _sortTranscriptSummaries(List<TranscriptTrackSummary> summaries) {
+  summaries.sort((a, b) {
     final pa = _sourcePriority(a.source);
     final pb = _sourcePriority(b.source);
     if (pa != pb) return pa.compareTo(pb);
