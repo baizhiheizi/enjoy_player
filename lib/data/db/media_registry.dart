@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:enjoy_player/core/utils/stream_distinct.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -249,61 +250,27 @@ class MediaRegistry {
   /// did the latter once per tile, per scroll). Videos only, so an audio-only
   /// library write does not rebuild the feed.
   ///
-  /// **Broadcast**, unlike [watchAll]: the discover feed joins this from both
-  /// the merged timeline and a single-channel view, and those two can be
-  /// subscribed at the same time (the timeline provider is keep-alive, so
-  /// opening a channel does not tear it down). A single-subscription stream
-  /// would throw on the second listener.
-  ///
-  /// Each listener gets its **own** drift subscription *and its own dedupe
-  /// state* — the cache lives inside the `Stream.multi` callback, deliberately.
-  /// Hoisting it out would make the second listener of the same returned stream
-  /// silently receive nothing: the first listener's emit would populate the
-  /// shared `lastEmitted`, and the second would dedupe against it. Each
-  /// listener also holds a coalescing flag for the same reason.
-  ///
-  /// Coalesces the same way as [watchAll] — one emit per event-loop turn — and
-  /// drops no-op re-queries before allocating.
+  /// The Drift `watch()` source is broadcast, so the returned stream is too:
+  /// the discover feed joins this from both the merged timeline and a
+  /// single-channel view, and those two can be subscribed at the same time
+  /// (the timeline provider is keep-alive, so opening a channel does not
+  /// tear it down). The plumbing — per-listener dedupe state, multi-listener
+  /// support, error forwarding, upstream cancellation — lives on
+  /// [StreamDistinctExt.distinctBy] so the registry stays aligned with the
+  /// rest of the codebase (architecture review #794 candidate 6). The
+  /// comparator is custom because `Set<String>` lacks value `==`.
   Stream<Set<String>> watchYoutubeVideoIds() {
-    return Stream<Set<String>>.multi((controller) {
-      late StreamSubscription<List<VideoRow>> sub;
-      var current = <VideoRow>[];
-      Set<String>? lastEmitted;
-      var emitScheduled = false;
-      var closed = false;
-
-      void emit() {
-        // A coalesced microtask can outlive the last listener.
-        if (closed) return;
-        // `vid` is non-null on the row but empty for locally-added files,
-        // which carry no provider id.
-        final ids = <String>{
-          for (final row in current)
-            if (row.vid.isNotEmpty) row.vid,
-        };
-        if (lastEmitted != null &&
-            lastEmitted!.length == ids.length &&
-            lastEmitted!.containsAll(ids)) {
-          return;
-        }
-        lastEmitted = ids;
-        controller.add(ids);
-      }
-
-      sub = _db.videoDao.watchAll().listen((rows) {
-        current = rows;
-        if (emitScheduled) return;
-        emitScheduled = true;
-        scheduleMicrotask(() {
-          emitScheduled = false;
-          emit();
-        });
-      }, onError: controller.addError);
-      controller.onCancel = () {
-        closed = true;
-        unawaited(sub.cancel());
-      };
-    }, isBroadcast: true);
+    return _db.videoDao
+        .watchAll()
+        .map<Set<String>>(
+          (rows) => <String>{
+            // `vid` is non-null on the row but empty for locally-added
+            // files, which carry no provider id.
+            for (final row in rows)
+              if (row.vid.isNotEmpty) row.vid,
+          },
+        )
+        .distinctBy(_setEquals);
   }
 
   Stream<List<Media>> watchAll() {
@@ -551,6 +518,19 @@ bool _listEquals<T>(List<T> a, List<T> b) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {
     if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+/// Set equality with `==` semantics, mirroring `flutter/foundation`'s
+/// `setEquals`. Same Flutter-free rationale as [_listEquals] — `Set<String>`
+/// falls back to identity `==`, which would re-emit on every fresh
+/// allocation even when the contents match.
+bool _setEquals(Set<String> a, Set<String> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final value in a) {
+    if (!b.contains(value)) return false;
   }
   return true;
 }
