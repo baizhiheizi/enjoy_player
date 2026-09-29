@@ -1,6 +1,8 @@
 /// Full-width bottom transport: progress, times, play controls, artwork/meta, tools.
 library;
 
+import 'dart:async';
+
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,9 +17,8 @@ import 'package:enjoy_player/core/theme/widgets/glass_surface.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
-import 'package:enjoy_player/features/onboarding/application/onboarding_controller.dart';
+import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
-import 'package:enjoy_player/features/onboarding/domain/tip_eligibility.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
@@ -164,36 +165,15 @@ class GlobalTransportBar extends ConsumerStatefulWidget {
 }
 
 class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
-  /// Avoids scheduling practice tips on every rebuild for the same UI state.
-  String? _practiceScheduleKey;
+  /// Mount-scoped practice-tip scheduler (`mediaId|echo=` dedupe); the WHEN
+  /// policy lives in [PracticeTipTrigger], this channel only re-arms on
+  /// remount like the previous per-State memo field did.
+  late final TransportPracticeTips _practiceTips;
 
-  void _schedulePracticeTips({
-    required String mediaId,
-    required bool hasTranscript,
-    required bool echoActive,
-  }) {
-    if (!hasTranscript || mediaId.isEmpty) return;
-    final key = '$mediaId|echo=$echoActive';
-    if (_practiceScheduleKey == key) return;
-    _practiceScheduleKey = key;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final path = GoRouterState.of(context).uri.path;
-      unawaited(
-        ref
-            .read(onboardingControllerProvider.notifier)
-            .tryStartPracticeChain(
-              TriggerContext(
-                routePath: path,
-                mediaId: mediaId,
-                hasTranscript: true,
-                echoActive: echoActive,
-                recordUiReady: echoActive,
-                assessUiReady: echoActive,
-              ),
-            ),
-      );
-    });
+  @override
+  void initState() {
+    super.initState();
+    _practiceTips = ref.read(practiceTipTriggerProvider).transportBar();
   }
 
   void _openPlaybackRateSheet() {
@@ -326,23 +306,25 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     // `ref.listen` below the `chrome == null` early return would re-register
     // on every chrome swap, silently dropping hasLines / echo transitions
     // during the session-swap window. The chrome fallback lives inside the
-    // callbacks instead.
+    // callbacks instead. The route path is read once per build (any route
+    // change rebuilds the shell, so the captured path stays current).
+    final routePath = GoRouterState.of(context).uri.path;
     ref.listen(transcriptHasLinesForMediaProvider(mediaId ?? ''), (prev, next) {
       final hasLines = next.asData?.value ?? false;
       final id = mediaId ?? chrome?.mediaId;
       if (!hasLines || id == null || id.isEmpty) return;
-      _schedulePracticeTips(
+      _practiceTips.schedule(
+        routePath: routePath,
         mediaId: id,
-        hasTranscript: true,
         echoActive: ref.read(echoModeProvider).active,
       );
     });
     ref.listen(echoModeProvider, (prev, next) {
       final id = mediaId ?? chrome?.mediaId;
       if (id == null || id.isEmpty || !hasTranscriptLines) return;
-      _schedulePracticeTips(
+      _practiceTips.schedule(
+        routePath: routePath,
         mediaId: id,
-        hasTranscript: true,
         echoActive: next.active,
       );
     });
@@ -403,9 +385,9 @@ class _GlobalTransportBarState extends ConsumerState<GlobalTransportBar> {
     );
 
     if (hasTranscriptLines && chrome.mediaId.isNotEmpty) {
-      _schedulePracticeTips(
+      _practiceTips.schedule(
+        routePath: routePath,
         mediaId: chrome.mediaId,
-        hasTranscript: true,
         echoActive: echo.active,
       );
     }

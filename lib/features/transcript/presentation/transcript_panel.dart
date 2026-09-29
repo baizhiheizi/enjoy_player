@@ -3,7 +3,6 @@ library;
 
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
-import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,8 +16,7 @@ import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-import 'package:enjoy_player/features/onboarding/application/onboarding_controller.dart';
-import 'package:enjoy_player/features/onboarding/domain/tip_eligibility.dart';
+import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
 import 'package:enjoy_player/features/settings/application/ipa_overlay_settings.dart';
 import 'package:enjoy_player/features/settings/application/karaoke_highlight_settings.dart';
@@ -50,42 +48,19 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
   void initState() {
     super.initState();
     // Safe when provider is already cached empty; no-ops while still loading.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTips());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startTipsIfSettled());
   }
 
-  void _maybeStartTips() {
+  /// One settled trigger attempt — the query-resolution / fetch-status gates
+  /// and the practice context live in [PracticeTipTrigger].
+  void _startTipsIfSettled() {
     if (!mounted) return;
-    final lines = ref
-        .read(transcriptLinesForMediaProvider(mediaId))
-        .asData
-        ?.value;
-    // Wait until transcript query resolves — starting while loading races the
-    // empty-state Showcase mount and silently completes the tip.
-    if (lines == null) return;
-    final videoRow = ref.read(videoRowForMediaProvider(mediaId)).asData?.value;
-    final isYoutube = videoRow?.provider == 'youtube';
-    final path = GoRouterState.of(context).uri.path;
-    final ctrl = ref.read(onboardingControllerProvider.notifier);
-    if (lines.isNotEmpty) {
-      unawaited(ctrl.onTranscriptAvailable(mediaId));
-      return;
-    }
-    final fetchState = ref.read(transcriptFetchStatusProvider(mediaId));
-    // Loading/error empty UIs do not mount tip targets.
-    if (fetchState.status == TranscriptFetchStatus.loading ||
-        fetchState.status == TranscriptFetchStatus.error) {
-      return;
-    }
-    unawaited(
-      ctrl.tryStartEmptyTranscript(
-        TriggerContext(
-          routePath: path,
+    ref
+        .read(practiceTipTriggerProvider)
+        .startEmptyTranscriptIfSettled(
           mediaId: mediaId,
-          isYoutube: isYoutube,
-          hasTranscript: false,
-        ),
-      ),
-    );
+          routePath: GoRouterState.of(context).uri.path,
+        );
   }
 
   Future<void> _import(BuildContext context, WidgetRef ref) async {
@@ -145,13 +120,13 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
     ref.listen(transcriptLinesForMediaProvider(mediaId), (prev, next) {
       final lines = next.asData?.value;
       if (lines != null && lines.isNotEmpty) {
-        unawaited(
-          ref
-              .read(onboardingControllerProvider.notifier)
-              .onTranscriptAvailable(mediaId),
-        );
+        ref
+            .read(practiceTipTriggerProvider)
+            .markTranscriptAvailable(mediaId: mediaId);
       } else if (lines != null && lines.isEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTips());
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _startTipsIfSettled(),
+        );
       }
     });
 
