@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:enjoy_player/core/errors/app_failure.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/api_exception.dart';
@@ -37,6 +37,25 @@ void main() {
       directUploadsApi: DirectUploadsApi(sharedClient),
       tokenStore: tokenStore,
       getBaseUrl: () async => 'https://enjoy.bot',
+    );
+  }
+
+  AuthRepository buildRepoWithSessionLost(
+    http.Client client,
+    void Function() onSessionLost,
+  ) {
+    final sharedClient = ApiClient(
+      httpClient: client,
+      getBaseUrl: () async => 'https://enjoy.bot',
+      getAccessToken: tokenStore.readAccessToken,
+    );
+    final api = AuthApi(authClient: sharedClient, userClient: sharedClient);
+    return AuthRepository(
+      authApi: api,
+      directUploadsApi: DirectUploadsApi(sharedClient),
+      tokenStore: tokenStore,
+      getBaseUrl: () async => 'https://enjoy.bot',
+      onSessionLost: onSessionLost,
     );
   }
 
@@ -712,37 +731,108 @@ void main() {
   });
 
   group('AuthRepository.loadInitialAuthState (extended)', () {
+    test('returns signed in from cached profile immediately and refreshes the '
+        'expired token in the background', () async {
+      await tokenStore.writeAccessToken('expired-token');
+      await tokenStore.writeRefreshToken('refresh-1');
+      await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
+      await tokenStore.writeCachedProfileJson(
+        jsonEncode({'id': 'u-exp', 'email': 'e@x.com', 'name': 'E'}),
+      );
+
+      final client = MockClient((request) async {
+        if (request.url.path == '/api/v1/auth/refresh') {
+          return http.Response(
+            jsonEncode({
+              'accessToken': 'new-at',
+              'refreshToken': 'new-rt',
+              'expiresIn': 3600,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        fail('Unexpected ${request.url.path}');
+      });
+      final repo = buildRepo(client);
+
+      final state = await repo.loadInitialAuthState();
+
+      expect(state, isA<AuthSignedIn>());
+      expect((state as AuthSignedIn).profile.id, 'u-exp');
+
+      await repo.sessionRevalidation;
+
+      expect(await tokenStore.readAccessToken(), 'new-at');
+    });
+
     test(
-      'refreshes expired token and returns signed in with cached profile',
+      'does not wait for the refresh round trip before resolving the state',
       () async {
         await tokenStore.writeAccessToken('expired-token');
         await tokenStore.writeRefreshToken('refresh-1');
         await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
         await tokenStore.writeCachedProfileJson(
-          jsonEncode({'id': 'u-exp', 'email': 'e@x.com', 'name': 'E'}),
+          jsonEncode({'id': 'u-slow', 'email': 's@x.com', 'name': 'S'}),
         );
 
-        final client = MockClient((request) async {
-          if (request.url.path == '/api/v1/auth/refresh') {
-            return http.Response(
-              jsonEncode({
-                'accessToken': 'new-at',
-                'refreshToken': 'new-rt',
-                'expiresIn': 3600,
-              }),
-              200,
-              headers: {'content-type': 'application/json'},
-            );
-          }
-          fail('Unexpected ${request.url.path}');
-        });
+        final neverResponds = Completer<http.Response>();
+        final client = MockClient((_) => neverResponds.future);
         final repo = buildRepo(client);
 
         final state = await repo.loadInitialAuthState();
 
         expect(state, isA<AuthSignedIn>());
-        expect((state as AuthSignedIn).profile.id, 'u-exp');
-        expect(await tokenStore.readAccessToken(), 'new-at');
+        expect((state as AuthSignedIn).profile.id, 'u-slow');
+        expect(repo.sessionRevalidation, isNotNull);
+      },
+    );
+
+    test(
+      'notifies session lost when background refresh revokes the session',
+      () async {
+        await tokenStore.writeAccessToken('expired-token');
+        await tokenStore.writeRefreshToken('bad-refresh');
+        await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
+        await tokenStore.writeCachedProfileJson(
+          jsonEncode({'id': 'u-revoked', 'email': 'r@x.com', 'name': 'R'}),
+        );
+
+        var sessionLostCalls = 0;
+        final client = MockClient((_) async => http.Response('denied', 401));
+        final repo = buildRepoWithSessionLost(client, () => sessionLostCalls++);
+
+        final state = await repo.loadInitialAuthState();
+        expect(state, isA<AuthSignedIn>());
+
+        await repo.sessionRevalidation;
+
+        expect(sessionLostCalls, 1);
+      },
+    );
+
+    test(
+      'keeps the session when background refresh fails transiently',
+      () async {
+        await tokenStore.writeAccessToken('expired-token');
+        await tokenStore.writeRefreshToken('refresh-1');
+        await tokenStore.writeTokenExpiresAt('2020-01-01T00:00:00.000Z');
+        await tokenStore.writeCachedProfileJson(
+          jsonEncode({'id': 'u-offline', 'email': 'o@x.com', 'name': 'O'}),
+        );
+
+        var sessionLostCalls = 0;
+        final client = MockClient(
+          (_) async => throw const SocketException('offline'),
+        );
+        final repo = buildRepoWithSessionLost(client, () => sessionLostCalls++);
+
+        final state = await repo.loadInitialAuthState();
+        await repo.sessionRevalidation;
+
+        expect(state, isA<AuthSignedIn>());
+        expect(sessionLostCalls, 0);
+        expect(await tokenStore.readAccessToken(), 'expired-token');
       },
     );
 
