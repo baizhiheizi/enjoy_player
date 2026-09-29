@@ -11566,6 +11566,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_videos_local_uri',
     'CREATE INDEX idx_videos_local_uri ON videos (local_uri)',
   );
+  late final Index idxVideosUpdatedAt = Index(
+    'idx_videos_updated_at',
+    'CREATE INDEX idx_videos_updated_at ON videos (updated_at)',
+  );
   late final Index idxAudiosLocalUri = Index(
     'idx_audios_local_uri',
     'CREATE INDEX idx_audios_local_uri ON audios (local_uri)',
@@ -11573,6 +11577,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxAudiosMd5 = Index(
     'idx_audios_md5',
     'CREATE INDEX idx_audios_md5 ON audios (md5)',
+  );
+  late final Index idxAudiosUpdatedAt = Index(
+    'idx_audios_updated_at',
+    'CREATE INDEX idx_audios_updated_at ON audios (updated_at)',
   );
   late final Index idxTranscriptsTarget = Index(
     'idx_transcripts_target',
@@ -11679,8 +11687,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vocabularyReviews,
     idxVideosProviderVid,
     idxVideosLocalUri,
+    idxVideosUpdatedAt,
     idxAudiosLocalUri,
     idxAudiosMd5,
+    idxAudiosUpdatedAt,
     idxTranscriptsTarget,
     idxTranscriptFetchStatesTarget,
     idxEchoSessionsTargetActive,
