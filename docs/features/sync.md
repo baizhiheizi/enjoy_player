@@ -44,7 +44,7 @@ When signed out, the sync screen explains that sign-in is required and links to 
 ## Triggers
 
 - Signing in schedules [`SyncEngine.fullSync`](../../lib/features/sync/application/sync_engine.dart) via [`SyncCtrl`](../../lib/features/sync/application/sync_controller.dart) on the **first frame after** auth transitions to signed-in (`addPostFrameCallback`).
-- While signed in, queue drain repeats on a **5-minute** timer — and every enqueue through the [typed seam](#typed-enqueue-seam-issues-718--749) also schedules an **immediate** drain (the signed-in `scheduleSyncQueueDrain` tail), so freshly enqueued work starts without waiting for the timer (issue #749).
+- While signed in, queue drain repeats on a **5-minute** timer — gated on the app being in the foreground (issue #810 G, same `WidgetsBinding.lifecycleState` check as the Discover refresh scheduler: ticks while paused/inactive are skipped instead of burning battery in the background) — and every enqueue through the [typed seam](#typed-enqueue-seam-issues-718--749) also schedules an **immediate** drain (the signed-in `scheduleSyncQueueDrain` tail), so freshly enqueued work starts without waiting for the timer (issue #749).
 - Library import/delete and shadow-reading recording save/delete call [`syncEnqueueProvider`](../../lib/features/sync/application/sync_providers.dart); the transcript repository's durable YouTube worker-upload retry calls [`syncEnqueueJobProvider`](../../lib/features/sync/application/sync_providers.dart) (see below).
 
 ## Retry policy (issue #752)
