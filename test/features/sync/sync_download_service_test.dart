@@ -314,6 +314,101 @@ void main() {
       expect(result.success, isTrue);
       expect(result.synced, 0);
     });
+
+    test(
+      'page upsert keeps a newer local row untouched (last-write-wins)',
+      () async {
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: 'a1',
+            aid: 'aid_a1',
+            provider: 'local',
+            title: 'Local edit',
+            durationSeconds: 120,
+            language: 'en',
+            localUri: 'file:///local/a1.wav',
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 6, 1),
+          ),
+        );
+
+        final service = buildService(
+          audioApi: _FakeAudioApi([
+            [_audioJson('a1', updatedAt: '2026-01-01T00:00:00.000Z')],
+          ]),
+        );
+
+        final result = await service.downloadAudios();
+
+        expect(result.success, isTrue);
+        final row = await db.audioDao.getById('a1');
+        expect(row!.title, 'Local edit');
+        expect(row.localUri, 'file:///local/a1.wav');
+      },
+    );
+
+    test(
+      'page upsert takes the newer server row but preserves local-only fields',
+      () async {
+        await db.audioDao.insertRow(
+          AudioRow(
+            id: 'a1',
+            aid: 'aid_a1',
+            provider: 'local',
+            title: 'Stale local',
+            durationSeconds: 60,
+            language: 'en',
+            localUri: 'file:///local/a1.wav',
+            createdAt: DateTime.utc(2025, 12, 1),
+            updatedAt: DateTime.utc(2025, 12, 1),
+          ),
+        );
+
+        final service = buildService(
+          audioApi: _FakeAudioApi([
+            [_audioJson('a1', updatedAt: '2026-01-01T00:00:00.000Z')],
+          ]),
+        );
+
+        final result = await service.downloadAudios();
+
+        expect(result.success, isTrue);
+        final row = await db.audioDao.getById('a1');
+        expect(row!.title, 'Audio a1');
+        expect(row.localUri, 'file:///local/a1.wav');
+      },
+    );
+
+    test('mixed page processes tombstones and upserts together', () async {
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: 'v-dead',
+          vid: 'vid_v-dead',
+          provider: 'youtube',
+          title: 'Doomed',
+          durationSeconds: 100,
+          language: 'en',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+
+      final service = buildService(
+        videoApi: _FakeVideoApi([
+          [
+            _videoJson('v-dead', deletedAt: '2026-02-01T00:00:00.000Z'),
+            _videoJson('v-alive'),
+          ],
+        ]),
+      );
+
+      final result = await service.downloadVideos();
+
+      expect(result.success, isTrue);
+      expect(result.synced, 2);
+      expect(await db.videoDao.getById('v-dead'), isNull);
+      expect(await db.videoDao.getById('v-alive'), isNotNull);
+    });
   });
 
   group('SyncDownloadService.downloadVideos', () {
