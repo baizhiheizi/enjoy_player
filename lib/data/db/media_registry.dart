@@ -281,6 +281,20 @@ class MediaRegistry {
   /// [watchYoutubeVideoIds]: this state used to live in one shared
   /// closure, so a second concurrent listener hit the single-subscription
   /// `Stream.multi` throw.
+  ///
+  /// The per-listener merge is a deliberate tradeoff, not an oversight
+  /// (review on #801): N concurrent listeners hold N×2 DAO subscriptions.
+  /// Hoisting the merge into ONE shared broadcast would need a replay
+  /// cache to keep every listener's immediate first emission (a plain
+  /// shared broadcast delivers nothing to a late listener until the next
+  /// write) plus refcounted start/stop of the shared DAO subscriptions —
+  /// hand-rolled broadcast machinery, i.e. exactly what #794 candidate 6
+  /// retired onto `distinctBy`. Instead each listener pays one `videos` +
+  /// one `audios` drift table watch — cheap in-memory subscriptions whose
+  /// one query pair is the same work that listener's own fresh first
+  /// emission requires anyway — and dedupe state, coalescing, and the
+  /// `closed` cancellation guard below stay strictly per listener with no
+  /// cross-talk.
   Stream<List<Media>> watchAll() {
     Stream<List<Media>> mergeTables() {
       return Stream<List<Media>>.multi((controller) {
@@ -295,8 +309,17 @@ class MediaRegistry {
         List<VideoRow>? lastVideos;
         List<AudioRow>? lastAudios;
         var emitScheduled = false;
+        // Cancellation guard (review on #801): `onCancel` below closes
+        // this listener's controller and cancels the DAO subscriptions,
+        // but a coalescing microtask scheduled before the cancel can
+        // still run `emit()` after it — bail instead of `add`-ing on a
+        // closed broadcast controller. Unreachable with the old
+        // single-listener shape; real once a second listener can cancel
+        // while this one's microtask is pending.
+        var closed = false;
 
         void emit() {
+          if (closed) return;
           // Input pre-check (PR #756): neither table's snapshot changed
           // content-wise since the last processed event (the common
           // re-query after a no-op write) — the merged+sorted output
@@ -317,6 +340,14 @@ class MediaRegistry {
           );
         }
 
+        // Same closed-controller window as `emit`: an upstream error
+        // delivered during the pending-cancel gap must not be forwarded
+        // to the already-closed controller either.
+        void forwardError(Object error, StackTrace stackTrace) {
+          if (closed) return;
+          controller.addError(error, stackTrace);
+        }
+
         // Buffer-and-schedule: at most one emit is pending per event-loop
         // turn; the first DAO delivery of a turn schedules it, any second
         // delivery that lands before the microtask runs just refreshes its
@@ -333,12 +364,13 @@ class MediaRegistry {
         subV = _db.videoDao.watchAll().listen((rows) {
           videos = rows;
           scheduleEmit();
-        }, onError: controller.addError);
+        }, onError: forwardError);
         subA = _db.audioDao.watchAll().listen((rows) {
           audios = rows;
           scheduleEmit();
-        }, onError: controller.addError);
+        }, onError: forwardError);
         controller.onCancel = () {
+          closed = true;
           unawaited(subV.cancel());
           unawaited(subA.cancel());
         };

@@ -68,6 +68,10 @@ AudioRow _audio({
   );
 }
 
+/// `Media.id` projection the `watchAll` tests assert on.
+List<String> _mediaIds(List<Media> library) =>
+    library.map((media) => media.id).toList();
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase db;
@@ -547,51 +551,53 @@ void main() {
     // one shared closure above the `Stream.multi` wrapper, so a second
     // concurrent listener on the same stream threw (single-subscription
     // wrapper) instead of receiving.
+    //
+    // The multi-subscriber tests below wait deterministically (review on
+    // #801): `take(1).toList()` / `first` complete on the emission itself,
+    // and `pumpEventQueue()` settles the drift delivery chains — no
+    // wall-clock sleeps.
     test('two listeners on the same stream both receive', () async {
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
       );
 
-      // ONE stream object, two listeners — the shape the ids-watch tests
-      // above use for the same hazard.
+      // ONE stream object, two concurrent listeners — the shape the
+      // ids-watch tests above use for the same hazard. Each `take(1)`
+      // future completes on that listener's own first emission (and
+      // unsubscribes), so both waits are exact.
       final stream = registry.watchAll();
-      final first = <List<Media>>[];
-      final second = <List<Media>>[];
-      final subA = stream.listen(first.add);
-      final subB = stream.listen(second.add);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final first = stream.map(_mediaIds).take(1).toList();
+      final second = stream.map(_mediaIds).take(1).toList();
+      final received = await Future.wait([first, second]);
 
-      expect(first, hasLength(1));
-      expect(first.single.map((m) => m.id), ['a']);
+      expect(received[0].single, ['a']);
       expect(
-        second,
-        hasLength(1),
+        received[1].single,
+        ['a'],
         reason:
             'a second listener must not throw or dedupe against the '
             'first one',
       );
-      expect(second.single.map((m) => m.id), ['a']);
-
-      await subA.cancel();
-      await subB.cancel();
     });
 
     test('cancelling one subscriber leaves the other listening', () async {
-      final first = <List<Media>>[];
-      final second = <List<Media>>[];
-      final subA = registry.watchAll().listen(first.add);
-      final subB = registry.watchAll().listen(second.add);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final first = <List<String>>[];
+      final second = <List<String>>[];
+      final subA = registry.watchAll().map(_mediaIds).listen(first.add);
+      final subB = registry.watchAll().map(_mediaIds).listen(second.add);
+      await pumpEventQueue();
 
       await subA.cancel();
       await db.videoDao.insertRow(
         _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await pumpEventQueue();
 
-      expect(first, hasLength(1), reason: 'cancelled subscriber stopped');
-      expect(second.last.map((m) => m.id), ['a']);
-
+      expect(first, [isEmpty], reason: 'cancelled subscriber stopped');
+      expect(second, [
+        isEmpty,
+        ['a'],
+      ]);
       await subB.cancel();
     });
 
@@ -602,22 +608,83 @@ void main() {
           _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
         );
 
-        final first = <List<Media>>[];
-        final subA = registry.watchAll().listen(first.add);
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        await subA.cancel();
+        // `first` both waits for the emission and cancels, so the earlier
+        // listener is gone before the fresh one subscribes.
+        expect(await registry.watchAll().map(_mediaIds).first, ['a']);
 
         // Per-listener dedupe state: the new listener's `distinctBy` gate
         // starts unset, so it receives the current library even though an
         // earlier listener on an earlier stream already saw it.
-        final second = <List<Media>>[];
-        final subB = registry.watchAll().listen(second.add);
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(await registry.watchAll().map(_mediaIds).first, ['a']);
+      },
+    );
 
-        expect(second, hasLength(1));
-        expect(second.single.map((m) => m.id), ['a']);
+    // Review on #801: a cancel landing between a DAO delivery and its
+    // coalescing microtask strands that microtask on the listener's
+    // already-cancelled controller — `emit()` must bail on the `closed`
+    // guard instead of adding to the dead controller. (The ids-watch
+    // carried this exact guard — "a coalesced microtask can outlive the
+    // last listener" — until the #795 branch's rewrite retired its
+    // hand-rolled emit; this `watchAll` rewrite must not lose it.)
+    //
+    // The window opens deterministically, without timing: on a write, the
+    // keyed drift query stream re-delivers to its subscribers in
+    // subscription order within one turn — the merge's DAO listener
+    // (subscribed first) buffers the snapshot and queues its emit
+    // microtask, and this test's canceller watcher (subscribed last)
+    // then cancels while that microtask is still pending.
+    //
+    // Dart 3.12 silently drops `add`s on a cancelled `Stream.multi`
+    // controller rather than throwing, so the pinned contract is the
+    // observable one: the stranded microtask produces no unhandled error
+    // and no post-cancel delivery, while the surviving listener proves
+    // the write + delivery pipeline actually ran through that window.
+    test(
+      'an emit scheduled before a cancel does not reach the closed controller',
+      () async {
+        await db.videoDao.insertRow(
+          _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+        );
+        final stream = registry.watchAll();
 
-        await subB.cancel();
+        final zoneErrors = <Object>[];
+        final cancelled = <List<String>>[];
+        final kept = <List<String>>[];
+        var cancellerFired = false;
+        await runZonedGuarded(() async {
+          final subCancelled = stream.map(_mediaIds).listen(cancelled.add);
+          final subKept = stream.map(_mediaIds).listen(kept.add);
+          await pumpEventQueue(); // initial emission for both listeners
+
+          var armed = false;
+          final canceller = db.videoDao.watchAll().listen((_) {
+            cancellerFired = true;
+            if (armed) unawaited(subCancelled.cancel());
+          });
+          await pumpEventQueue(); // canceller's inert initial delivery
+
+          armed = true;
+          await db.videoDao.insertRow(
+            _video(id: 'b', vid: 'vid-b', provider: 'youtube'),
+          );
+          await pumpEventQueue(); // run the stranded microtask
+          await canceller.cancel();
+          await subKept.cancel();
+        }, (error, _) => zoneErrors.add(error));
+
+        expect(cancellerFired, isTrue, reason: 'the cancel window opened');
+        // The surviving listener proves the write was delivered through
+        // the same window the stranded microtask sat in.
+        expect(kept, [
+          ['a'],
+          ['a', 'b'],
+        ]);
+        // The cancelled listener received nothing after its cancel, and
+        // the stranded emit microtask raised no unhandled error.
+        expect(cancelled, [
+          ['a'],
+        ]);
+        expect(zoneErrors, isEmpty);
       },
     );
   });
