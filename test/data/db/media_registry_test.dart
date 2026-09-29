@@ -542,5 +542,83 @@ void main() {
         ]);
       },
     );
+
+    // Architecture review #794 candidate 6: the merge state used to live in
+    // one shared closure above the `Stream.multi` wrapper, so a second
+    // concurrent listener on the same stream threw (single-subscription
+    // wrapper) instead of receiving.
+    test('two listeners on the same stream both receive', () async {
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+
+      // ONE stream object, two listeners — the shape the ids-watch tests
+      // above use for the same hazard.
+      final stream = registry.watchAll();
+      final first = <List<Media>>[];
+      final second = <List<Media>>[];
+      final subA = stream.listen(first.add);
+      final subB = stream.listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first, hasLength(1));
+      expect(first.single.map((m) => m.id), ['a']);
+      expect(
+        second,
+        hasLength(1),
+        reason:
+            'a second listener must not throw or dedupe against the '
+            'first one',
+      );
+      expect(second.single.map((m) => m.id), ['a']);
+
+      await subA.cancel();
+      await subB.cancel();
+    });
+
+    test('cancelling one subscriber leaves the other listening', () async {
+      final first = <List<Media>>[];
+      final second = <List<Media>>[];
+      final subA = registry.watchAll().listen(first.add);
+      final subB = registry.watchAll().listen(second.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await subA.cancel();
+      await db.videoDao.insertRow(
+        _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(first, hasLength(1), reason: 'cancelled subscriber stopped');
+      expect(second.last.map((m) => m.id), ['a']);
+
+      await subB.cancel();
+    });
+
+    test(
+      'a fresh listener after a cancel receives the current library',
+      () async {
+        await db.videoDao.insertRow(
+          _video(id: 'a', vid: 'vid-a', provider: 'youtube'),
+        );
+
+        final first = <List<Media>>[];
+        final subA = registry.watchAll().listen(first.add);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await subA.cancel();
+
+        // Per-listener dedupe state: the new listener's `distinctBy` gate
+        // starts unset, so it receives the current library even though an
+        // earlier listener on an earlier stream already saw it.
+        final second = <List<Media>>[];
+        final subB = registry.watchAll().listen(second.add);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(second, hasLength(1));
+        expect(second.single.map((m) => m.id), ['a']);
+
+        await subB.cancel();
+      },
+    );
   });
 }

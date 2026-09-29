@@ -217,14 +217,16 @@ class MediaRegistry {
   ///   re-emit the entire library — forcing
   ///   `libraryHomeRecentsProvider` to re-sort and
   ///   `libraryFilteredListsProvider` to re-filter + re-sort both lists.
-  /// * **Empty first emission.** `lastEmitted` is nullable (rather than
-  ///   starting as `const <Media>[]`) so an empty library still produces its
-  ///   first emission: when both DAOs' initial snapshots are empty,
-  ///   `merged` is `[]`, which used to compare equal to the empty starting
-  ///   value and get swallowed by the dedupe check — leaving `watchAll()`
-  ///   never emitting and every `StreamProvider` built on it stuck in
-  ///   `AsyncLoading` forever whenever the local library has zero rows
-  ///   (fixed in `a12634c3`, pinned by `library_repository_test.dart`).
+  ///   The output-level gate lives on [StreamDistinctExt.distinctBy] —
+  ///   the one implementation of the multi-subscription contract the rest
+  ///   of the codebase already uses (#791, architecture review #794
+  ///   candidate 6) — so each listener keeps its own "last seen" list.
+  /// * **Empty first emission.** `distinctBy` forwards a listener's first
+  ///   value unconditionally (its `hasLast` starts unset), so an empty
+  ///   library still produces its first emission — the historical
+  ///   `a12634c3` bug (both DAO snapshots empty, the merged `[]`
+  ///   comparing equal to an empty starting value) stays fixed and pinned
+  ///   by `library_repository_test.dart`.
   /// * **Same-turn coalescing** (PR #756). The two DAO listeners below
   ///   only buffer their snapshot and schedule ONE `emit` on a microtask,
   ///   so a both-tables change that re-delivers on both streams within
@@ -273,70 +275,77 @@ class MediaRegistry {
         .distinctBy(_setEquals);
   }
 
+  /// **Multi-subscription.** The merge is built per listener — each
+  /// listener gets its own DAO subscriptions, buffers, and coalescing
+  /// flag — and the returned stream is broadcast, matching
+  /// [watchYoutubeVideoIds]: this state used to live in one shared
+  /// closure, so a second concurrent listener hit the single-subscription
+  /// `Stream.multi` throw.
   Stream<List<Media>> watchAll() {
-    late StreamSubscription<List<VideoRow>> subV;
-    late StreamSubscription<List<AudioRow>> subA;
-    var videos = <VideoRow>[];
-    var audios = <AudioRow>[];
-    List<Media>? lastEmitted;
-    // Previous merge inputs (PR #756): content-compared before any
-    // allocation so an unchanged-input re-query skips merge+sort outright.
-    List<VideoRow>? lastVideos;
-    List<AudioRow>? lastAudios;
-    var emitScheduled = false;
+    Stream<List<Media>> mergeTables() {
+      return Stream<List<Media>>.multi((controller) {
+        late StreamSubscription<List<VideoRow>> subV;
+        late StreamSubscription<List<AudioRow>> subA;
+        var videos = <VideoRow>[];
+        var audios = <AudioRow>[];
+        // Previous merge inputs (PR #756): content-compared before any
+        // allocation so an unchanged-input re-query skips merge+sort
+        // outright; the `distinctBy` gate below stays as the final
+        // backstop for changed inputs that map to an equal `Media` list.
+        List<VideoRow>? lastVideos;
+        List<AudioRow>? lastAudios;
+        var emitScheduled = false;
 
-    void emit(StreamController<List<Media>> c) {
-      // Input pre-check (PR #756): neither table's snapshot changed
-      // content-wise since the last processed event (the common re-query
-      // after a no-op write) — the merged+sorted output would be
-      // identical, so skip the allocation and O(n log n) sort before they
-      // even happen; the output-level dedupe below stays as the final
-      // gate for changed inputs that map to an equal `Media` list.
-      if (lastVideos != null &&
-          _listEquals(lastVideos!, videos) &&
-          _listEquals(lastAudios!, audios)) {
-        return;
-      }
-      lastVideos = videos;
-      lastAudios = audios;
-      final merged = <Media>[
-        ...videos.map(mediaFromVideo),
-        ...audios.map(mediaFromAudio),
-      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      if (lastEmitted != null && _listEquals(lastEmitted!, merged)) {
-        return;
-      }
-      lastEmitted = merged;
-      c.add(merged);
+        void emit() {
+          // Input pre-check (PR #756): neither table's snapshot changed
+          // content-wise since the last processed event (the common
+          // re-query after a no-op write) — the merged+sorted output
+          // would be identical, so skip the allocation and O(n log n)
+          // sort before they even happen.
+          if (lastVideos != null &&
+              _listEquals(lastVideos!, videos) &&
+              _listEquals(lastAudios!, audios)) {
+            return;
+          }
+          lastVideos = videos;
+          lastAudios = audios;
+          controller.add(
+            <Media>[
+              ...videos.map(mediaFromVideo),
+              ...audios.map(mediaFromAudio),
+            ]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+          );
+        }
+
+        // Buffer-and-schedule: at most one emit is pending per event-loop
+        // turn; the first DAO delivery of a turn schedules it, any second
+        // delivery that lands before the microtask runs just refreshes its
+        // input buffer (see the same-turn coalescing note above).
+        void scheduleEmit() {
+          if (emitScheduled) return;
+          emitScheduled = true;
+          scheduleMicrotask(() {
+            emitScheduled = false;
+            emit();
+          });
+        }
+
+        subV = _db.videoDao.watchAll().listen((rows) {
+          videos = rows;
+          scheduleEmit();
+        }, onError: controller.addError);
+        subA = _db.audioDao.watchAll().listen((rows) {
+          audios = rows;
+          scheduleEmit();
+        }, onError: controller.addError);
+        controller.onCancel = () {
+          unawaited(subV.cancel());
+          unawaited(subA.cancel());
+        };
+      }, isBroadcast: true);
     }
 
-    // Buffer-and-schedule: at most one emit is pending per event-loop
-    // turn; the first DAO delivery of a turn schedules it, any second
-    // delivery that lands before the microtask runs just refreshes its
-    // input buffer (see the same-turn coalescing note above).
-    void scheduleEmit(StreamController<List<Media>> c) {
-      if (emitScheduled) return;
-      emitScheduled = true;
-      scheduleMicrotask(() {
-        emitScheduled = false;
-        emit(c);
-      });
-    }
-
-    return Stream<List<Media>>.multi((controller) {
-      subV = _db.videoDao.watchAll().listen((rows) {
-        videos = rows;
-        scheduleEmit(controller);
-      }, onError: controller.addError);
-      subA = _db.audioDao.watchAll().listen((rows) {
-        audios = rows;
-        scheduleEmit(controller);
-      }, onError: controller.addError);
-      controller.onCancel = () {
-        unawaited(subV.cancel());
-        unawaited(subA.cancel());
-      };
-    });
+    return mergeTables().distinctBy(_listEquals);
   }
 
   /// Insert-or-replace write choke points. Row construction stays with the
