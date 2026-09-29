@@ -1,5 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
+import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 VideoRow _video({
@@ -103,6 +105,80 @@ void main() {
       final list = await db.videoDao.watchAll().first;
       expect(list.first.id, 'new');
       expect(list.last.id, 'old');
+    });
+
+    test('watchAll projects every field Media needs', () async {
+      final when = DateTime.utc(2026, 7, 1);
+      await db.videoDao.insertRow(
+        _video(
+          id: 'v-full',
+          vid: 'vid-full',
+          provider: 'youtube',
+          title: 'Full row',
+          thumbnailUrl: '/tmp/thumb.jpg',
+          durationSeconds: 91,
+          language: 'ja',
+          source: 'Some channel',
+          localUri: 'file:///tmp/v.mp4',
+          size: 42,
+          mediaUrl: 'https://example.com/v',
+          createdAt: when,
+          updatedAt: when,
+        ),
+      );
+
+      final rows = await db.videoDao.watchAll().first;
+      final media = mediaFromLibraryProjection(
+        rows.single,
+        kind: MediaKind.video,
+      );
+
+      expect(media.id, 'v-full');
+      expect(media.kind, MediaKind.video);
+      expect(media.title, 'Full row');
+      expect(media.sourceUri, 'file:///tmp/v.mp4');
+      expect(media.thumbnailPath, '/tmp/thumb.jpg');
+      expect(media.durationMs, 91000);
+      expect(media.language, 'ja');
+      expect(media.contentHash, 'vid-full');
+      expect(media.fileSize, 42);
+      expect(media.mediaUrl, 'https://example.com/v');
+      expect(media.source, 'Some channel');
+      expect(media.provider, 'youtube');
+      expect(media.syncStatus, isNull);
+      expect(media.createdAt.toUtc(), when);
+      expect(media.updatedAt.toUtc(), when);
+    });
+
+    test('watchRecentByUpdatedAt returns top rows by updatedAt desc', () async {
+      final base = DateTime.utc(2026, 7, 1);
+      await db.videoDao.insertRow(
+        _video(
+          id: 'stale',
+          createdAt: base,
+          updatedAt: base.add(const Duration(days: 1)),
+        ),
+      );
+      await db.videoDao.insertRow(
+        _video(
+          id: 'freshest',
+          createdAt: base,
+          updatedAt: base.add(const Duration(days: 3)),
+        ),
+      );
+      await db.videoDao.insertRow(
+        _video(
+          id: 'middling',
+          createdAt: base,
+          updatedAt: base.add(const Duration(days: 2)),
+        ),
+      );
+
+      final top2 = await db.videoDao.watchRecentByUpdatedAt(2).first;
+      expect(top2.map((r) => r.id).toList(), ['freshest', 'middling']);
+
+      final all = await db.videoDao.watchRecentByUpdatedAt(10).first;
+      expect(all.map((r) => r.id).toList(), ['freshest', 'middling', 'stale']);
     });
 
     test('insertRow with insertOrReplace overwrites by primary key', () async {

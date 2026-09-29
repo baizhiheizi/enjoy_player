@@ -17,6 +17,7 @@ import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
 import 'app_database.dart';
+import 'media_library_row.dart';
 
 /// Maps a [VideoRow] to the UI-facing domain [Media].
 Media mediaFromVideo(VideoRow row) => mediaFromLibraryRow(
@@ -89,6 +90,31 @@ Media mediaFromLibraryRow({
     syncStatus: syncStatus,
     createdAt: createdAt,
     updatedAt: updatedAt,
+  );
+}
+
+/// Maps a [MediaLibraryRow] projection of either table onto [Media]
+/// (issue #810 D6: DAO reads project only these columns).
+Media mediaFromLibraryProjection(
+  MediaLibraryRow row, {
+  required MediaKind kind,
+}) {
+  return mediaFromLibraryRow(
+    id: row.id,
+    kind: kind,
+    title: row.title,
+    localUri: row.localUri,
+    mediaUrl: row.mediaUrl,
+    thumbnailUrl: row.thumbnailUrl,
+    durationSeconds: row.durationSeconds,
+    language: row.language,
+    contentHash: row.contentHash,
+    size: row.size,
+    source: row.source,
+    provider: row.provider,
+    syncStatus: row.syncStatus,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   );
 }
 
@@ -202,47 +228,6 @@ class MediaRegistry {
     return hits[0] || hits[1];
   }
 
-  /// The merged `videos` + `audios` library as one stream of [Media],
-  /// `createdAt`-descending (issue #753).
-  ///
-  /// The single data-layer owner of the glue that used to live in
-  /// `MediaLibraryRepository.watchAll`: it subscribes both DAOs' `watchAll`
-  /// streams, merges, sorts, and re-emits only when the merged list actually
-  /// changes. The comments below pin the behaviors the merge layer must
-  /// keep, plus the same-turn coalescing added for the PR #756 review:
-  ///
-  /// * **Dedupe.** A re-query that pushes unchanged rows back (a
-  ///   `playbackSessionPersister` write bumping `updatedAt`, a duration
-  ///   probe flipping one row, a no-op `insertOrReplace`) must not
-  ///   re-emit the entire library — forcing
-  ///   `libraryHomeRecentsProvider` to re-sort and
-  ///   `libraryFilteredListsProvider` to re-filter + re-sort both lists.
-  ///   The output-level gate lives on [StreamDistinctExt.distinctBy] —
-  ///   the one implementation of the multi-subscription contract the rest
-  ///   of the codebase already uses (#791, architecture review #794
-  ///   candidate 6) — so each listener keeps its own "last seen" list.
-  /// * **Empty first emission.** `distinctBy` forwards a listener's first
-  ///   value unconditionally (its `hasLast` starts unset), so an empty
-  ///   library still produces its first emission — the historical
-  ///   `a12634c3` bug (both DAO snapshots empty, the merged `[]`
-  ///   comparing equal to an empty starting value) stays fixed and pinned
-  ///   by `library_repository_test.dart`.
-  /// * **Same-turn coalescing** (PR #756). The two DAO listeners below
-  ///   only buffer their snapshot and schedule ONE `emit` on a microtask,
-  ///   so a both-tables change that re-delivers on both streams within
-  ///   the same event-loop turn is merged into a single emission instead
-  ///   of a partial-then-full pair (characterized in
-  ///   `media_registry_test.dart`'s "characterizes Drift delivery" test:
-  ///   Drift's watch streams are per-table — a single-table write
-  ///   re-delivers only on that table's stream, and both-tables writes
-  ///   re-deliver in one turn). A microtask always runs before its turn
-  ///   ends, so single-table writes still emit immediately; waiting for
-  ///   the sibling stream "to have produced since the last emit" (the
-  ///   reviewer's literal suggestion) would deadlock single-table
-  ///   updates, whose sibling stream legitimately never re-emits. When
-  ///   deliveries do straddle microtask hops the old partial-then-full
-  ///   fallback stands — a redundant rebuild, which is strictly better
-  ///   than a stalled one.
   /// The set of YouTube video ids (`videos.vid`) present in the library,
   /// re-emitted whenever the `videos` table changes.
   ///
@@ -267,92 +252,174 @@ class MediaRegistry {
         .map<Set<String>>(
           (rows) => <String>{
             for (final row in rows)
-              if (row.vid.isNotEmpty) row.vid,
+              if (row.contentHash.isNotEmpty) row.contentHash,
           },
         )
         .distinctBy(_setEquals);
   }
 
-  /// **Multi-subscription.** The merge is built per listener — each
-  /// listener gets its own DAO subscriptions, buffers, and coalescing
-  /// flag — and the returned stream is broadcast, matching
-  /// [watchYoutubeVideoIds]: this state used to live in one shared
-  /// closure, so a second concurrent listener hit the single-subscription
-  /// `Stream.multi` throw.
+  /// The merged `videos` + `audios` library as one stream of [Media],
+  /// `createdAt`-descending (issue #753).
   ///
-  /// The per-listener merge is a deliberate tradeoff, not an oversight
-  /// (review on #801): N concurrent listeners hold N×2 DAO subscriptions.
-  /// Hoisting the merge into ONE shared broadcast would need a replay
-  /// cache to keep every listener's immediate first emission (a plain
-  /// shared broadcast delivers nothing to a late listener until the next
-  /// write) plus refcounted start/stop of the shared DAO subscriptions —
-  /// hand-rolled broadcast machinery, i.e. exactly what #794 candidate 6
-  /// retired onto `distinctBy`. Instead each listener pays one `videos` +
-  /// one `audios` drift table watch — cheap in-memory subscriptions whose
-  /// one query pair is the same work that listener's own fresh first
-  /// emission requires anyway — and dedupe state, coalescing, and the
-  /// `closed` cancellation guard below stay strictly per listener with no
-  /// cross-talk.
+  /// The DAO halves are `selectOnly` projections of the columns [Media]
+  /// needs — `description` and `bookmarkData` blobs never cross the DAO
+  /// boundary (issue #810 D6). Merge mechanics, dedupe, and per-listener
+  /// semantics live on [_mergeLibraryRows].
   Stream<List<Media>> watchAll() {
-    Stream<List<Media>> mergeTables() {
-      return Stream<List<Media>>.multi((controller) {
-        late StreamSubscription<List<VideoRow>> subV;
-        late StreamSubscription<List<AudioRow>> subA;
-        var videos = <VideoRow>[];
-        var audios = <AudioRow>[];
-        List<VideoRow>? lastVideos;
-        List<AudioRow>? lastAudios;
-        var emitScheduled = false;
-        var closed = false;
+    return _mergeLibraryRows(
+      videosStream: _db.videoDao.watchAll(),
+      audiosStream: _db.audioDao.watchAll(),
+      merge: _mergeRowsByCreatedAtDesc,
+    );
+  }
 
-        void emit() {
-          if (closed) return;
-          if (lastVideos != null &&
-              _listEquals(lastVideos!, videos) &&
-              _listEquals(lastAudios!, audios)) {
-            return;
-          }
-          lastVideos = videos;
-          lastAudios = audios;
-          controller.add(
-            <Media>[
-              ...videos.map(mediaFromVideo),
-              ...audios.map(mediaFromAudio),
-            ]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
-          );
+  /// The [limit] most recently updated items across both tables as one
+  /// stream of [Media], `updatedAt`-descending (issue #810 D6 — Home
+  /// recents no longer sorts the full merged library in Dart).
+  ///
+  /// Each DAO pre-limits its half to [limit] rows (`updated_at DESC,
+  /// created_at DESC` with the `idx_*_updated_at` indexes, migration 19);
+  /// merging two top-N halves yields the global top-N because any row
+  /// outside a table's own top-N is outside the global top-N too.
+  Stream<List<Media>> watchRecentByUpdatedAt(int limit) {
+    return _mergeLibraryRows(
+      videosStream: _db.videoDao.watchRecentByUpdatedAt(limit),
+      audiosStream: _db.audioDao.watchRecentByUpdatedAt(limit),
+      merge: (videos, audios) =>
+          _mergeRowsByUpdatedAtDesc(videos, audios).take(limit).toList(),
+    );
+  }
+
+  List<Media> _mergeRowsByCreatedAtDesc(
+    List<MediaLibraryRow> videos,
+    List<MediaLibraryRow> audios,
+  ) {
+    return _mappedRows(videos, audios)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  List<Media> _mergeRowsByUpdatedAtDesc(
+    List<MediaLibraryRow> videos,
+    List<MediaLibraryRow> audios,
+  ) {
+    return _mappedRows(videos, audios)
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  }
+
+  List<Media> _mappedRows(
+    List<MediaLibraryRow> videos,
+    List<MediaLibraryRow> audios,
+  ) {
+    return <Media>[
+      ...videos.map(
+        (row) => mediaFromLibraryProjection(row, kind: MediaKind.video),
+      ),
+      ...audios.map(
+        (row) => mediaFromLibraryProjection(row, kind: MediaKind.audio),
+      ),
+    ];
+  }
+
+  /// Merge machinery shared by [watchAll] and [watchRecentByUpdatedAt].
+  ///
+  /// The behaviors the merge layer must keep (pinned by
+  /// `media_registry_test.dart`):
+  ///
+  /// * **Dedupe.** A re-query that pushes unchanged rows back (a
+  ///   `playbackSessionPersister` write bumping `updatedAt`, a duration
+  ///   probe flipping one row, a no-op `insertOrReplace`) must not
+  ///   re-emit — neither the raw-snapshot gate inside [emit] nor the
+  ///   output-level gate on [StreamDistinctExt.distinctBy] (the one
+  ///   implementation of the multi-subscription contract the rest of the
+  ///   codebase already uses, #791 / architecture review #794 candidate 6),
+  ///   so each listener keeps its own "last seen" list.
+  /// * **Empty first emission.** `distinctBy` forwards a listener's first
+  ///   value unconditionally, so an empty library still produces its first
+  ///   emission — the historical `a12634c3` bug stays fixed and pinned by
+  ///   `library_repository_test.dart`.
+  /// * **Same-turn coalescing** (PR #756). The two DAO listeners only
+  ///   buffer their snapshot and schedule ONE `emit` on a microtask, so a
+  ///   both-tables change that re-delivers on both streams within the same
+  ///   event-loop turn is merged into a single emission instead of a
+  ///   partial-then-full pair. A microtask always runs before its turn
+  ///   ends, so single-table writes still emit immediately; waiting for the
+  ///   sibling stream "to have produced since the last emit" would deadlock
+  ///   single-table updates, whose sibling stream legitimately never
+  ///   re-emits. When deliveries do straddle microtask hops the old
+  ///   partial-then-full fallback stands — a redundant rebuild, strictly
+  ///   better than a stalled one.
+  /// * **Multi-subscription.** The merge is built per listener — each
+  ///   listener gets its own DAO subscriptions, buffers, and coalescing
+  ///   flag — and the returned stream is broadcast. This state used to live
+  ///   in one shared closure, so a second concurrent listener hit the
+  ///   single-subscription `Stream.multi` throw. The per-listener merge is
+  ///   a deliberate tradeoff, not an oversight (review on #801): N
+  ///   concurrent listeners hold N×2 DAO subscriptions; hoisting the merge
+  ///   into ONE shared broadcast would need a replay cache plus refcounted
+  ///   start/stop of the shared DAO subscriptions — hand-rolled broadcast
+  ///   machinery, i.e. exactly what #794 candidate 6 retired onto
+  ///   `distinctBy`. Each listener pays one cheap in-memory subscription
+  ///   pair, and dedupe state, coalescing, and the `closed` cancellation
+  ///   guard stay strictly per listener with no cross-talk.
+  Stream<List<Media>> _mergeLibraryRows({
+    required Stream<List<MediaLibraryRow>> videosStream,
+    required Stream<List<MediaLibraryRow>> audiosStream,
+    required List<Media> Function(
+      List<MediaLibraryRow> videos,
+      List<MediaLibraryRow> audios,
+    )
+    merge,
+  }) {
+    return Stream<List<Media>>.multi((controller) {
+      late StreamSubscription<List<MediaLibraryRow>> subV;
+      late StreamSubscription<List<MediaLibraryRow>> subA;
+      var videos = <MediaLibraryRow>[];
+      var audios = <MediaLibraryRow>[];
+      List<MediaLibraryRow>? lastVideos;
+      List<MediaLibraryRow>? lastAudios;
+      var emitScheduled = false;
+      var closed = false;
+
+      void emit() {
+        if (closed) return;
+        if (lastVideos != null &&
+            _listEquals(lastVideos!, videos) &&
+            _listEquals(lastAudios!, audios)) {
+          return;
         }
+        lastVideos = videos;
+        lastAudios = audios;
+        controller.add(merge(videos, audios));
+      }
 
-        void forwardError(Object error, StackTrace stackTrace) {
-          if (closed) return;
-          controller.addError(error, stackTrace);
-        }
+      void forwardError(Object error, StackTrace stackTrace) {
+        if (closed) return;
+        controller.addError(error, stackTrace);
+      }
 
-        void scheduleEmit() {
-          if (emitScheduled) return;
-          emitScheduled = true;
-          scheduleMicrotask(() {
-            emitScheduled = false;
-            emit();
-          });
-        }
+      void scheduleEmit() {
+        if (emitScheduled) return;
+        emitScheduled = true;
+        scheduleMicrotask(() {
+          emitScheduled = false;
+          emit();
+        });
+      }
 
-        subV = _db.videoDao.watchAll().listen((rows) {
-          videos = rows;
-          scheduleEmit();
-        }, onError: forwardError);
-        subA = _db.audioDao.watchAll().listen((rows) {
-          audios = rows;
-          scheduleEmit();
-        }, onError: forwardError);
-        controller.onCancel = () {
-          closed = true;
-          unawaited(subV.cancel());
-          unawaited(subA.cancel());
-        };
-      }, isBroadcast: true);
-    }
-
-    return mergeTables().distinctBy(_listEquals);
+      subV = videosStream.listen((rows) {
+        videos = rows;
+        scheduleEmit();
+      }, onError: forwardError);
+      subA = audiosStream.listen((rows) {
+        audios = rows;
+        scheduleEmit();
+      }, onError: forwardError);
+      controller.onCancel = () {
+        closed = true;
+        unawaited(subV.cancel());
+        unawaited(subA.cancel());
+      };
+    }, isBroadcast: true).distinctBy(_listEquals);
   }
 
   /// Insert-or-replace write choke points. Row construction stays with the

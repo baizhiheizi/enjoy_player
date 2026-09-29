@@ -4,9 +4,65 @@ part of '../app_database.dart';
 class VideoDao extends DatabaseAccessor<AppDatabase> with _$VideoDaoMixin {
   VideoDao(super.db);
 
-  Stream<List<VideoRow>> watchAll() => (select(
-    videos,
-  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+  List<GeneratedColumn<Object>> get _libraryColumns => [
+    videos.id,
+    videos.title,
+    videos.localUri,
+    videos.mediaUrl,
+    videos.thumbnailUrl,
+    videos.durationSeconds,
+    videos.language,
+    videos.vid,
+    videos.size,
+    videos.source,
+    videos.provider,
+    videos.syncStatus,
+    videos.createdAt,
+    videos.updatedAt,
+  ];
+
+  MediaLibraryRow _libraryRow(TypedResult r) => MediaLibraryRow(
+    id: r.read(videos.id)!,
+    title: r.read(videos.title)!,
+    localUri: r.read(videos.localUri),
+    mediaUrl: r.read(videos.mediaUrl),
+    thumbnailUrl: r.read(videos.thumbnailUrl),
+    durationSeconds: r.read(videos.durationSeconds)!,
+    language: r.read(videos.language)!,
+    contentHash: r.read(videos.vid)!,
+    size: r.read(videos.size),
+    source: r.read(videos.source),
+    provider: r.read(videos.provider)!,
+    syncStatus: r.read(videos.syncStatus),
+    createdAt: r.read(videos.createdAt)!,
+    updatedAt: r.read(videos.updatedAt)!,
+  );
+
+  /// Library-wide watch projecting only the columns `Media` needs
+  /// (`createdAt`-descending; issue #810 D6 — skips `description` and
+  /// `bookmarkData` blobs).
+  Stream<List<MediaLibraryRow>> watchAll() {
+    return (selectOnly(videos)
+          ..addColumns(_libraryColumns)
+          ..orderBy([OrderingTerm.desc(videos.createdAt)]))
+        .map(_libraryRow)
+        .watch();
+  }
+
+  /// Up to [limit] rows with the newest [Videos.updatedAt] first
+  /// (`updated_at DESC, created_at DESC` tiebreak), for the Home recents
+  /// query (issue #810 D6).
+  Stream<List<MediaLibraryRow>> watchRecentByUpdatedAt(int limit) {
+    return (selectOnly(videos)
+          ..addColumns(_libraryColumns)
+          ..orderBy([
+            OrderingTerm.desc(videos.updatedAt),
+            OrderingTerm.desc(videos.createdAt),
+          ])
+          ..limit(limit))
+        .map(_libraryRow)
+        .watch();
+  }
 
   Future<VideoRow?> getById(String id) =>
       (select(videos)..where((t) => t.id.equals(id))).getSingleOrNull();

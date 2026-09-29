@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
+import 'package:enjoy_player/data/db/media_registry.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/library/domain/media.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 AudioRow _audioRow({
@@ -130,6 +133,70 @@ void main() {
       );
       final list = await db.audioDao.watchAll().first;
       expect(list.map((r) => r.id), ['new', 'old']);
+    });
+
+    test('watchAll projects every field Media needs', () async {
+      final when = DateTime.utc(2026, 5, 1);
+      await db.audioDao.insertRow(
+        _audioRow(
+          id: 'a-full',
+          aid: 'aid-full',
+          provider: 'craft',
+          title: 'Crafted clip',
+          durationSeconds: 33,
+          language: 'en',
+        ).copyWith(
+          thumbnailUrl: const Value('file:///tmp/a.jpg'),
+          source: const Value('Craft'),
+          localUri: const Value('file:///tmp/a.wav'),
+          size: const Value(7),
+          mediaUrl: const Value('https://example.com/a'),
+          syncStatus: const Value('synced'),
+          createdAt: when,
+          updatedAt: when,
+        ),
+      );
+
+      final rows = await db.audioDao.watchAll().first;
+      final media = mediaFromLibraryProjection(
+        rows.single,
+        kind: MediaKind.audio,
+      );
+
+      expect(media.id, 'a-full');
+      expect(media.kind, MediaKind.audio);
+      expect(media.title, 'Crafted clip');
+      expect(media.sourceUri, 'file:///tmp/a.wav');
+      expect(media.thumbnailPath, 'file:///tmp/a.jpg');
+      expect(media.durationMs, 33000);
+      expect(media.language, 'en');
+      expect(media.contentHash, 'aid-full');
+      expect(media.fileSize, 7);
+      expect(media.mediaUrl, 'https://example.com/a');
+      expect(media.source, 'Craft');
+      expect(media.provider, 'craft');
+      expect(media.syncStatus, 'synced');
+      expect(media.createdAt.toUtc(), when);
+      expect(media.updatedAt.toUtc(), when);
+    });
+
+    test('watchRecentByUpdatedAt returns top rows by updatedAt desc', () async {
+      final base = DateTime.utc(2026, 4, 1);
+      await db.audioDao.insertRow(
+        _audioRow(id: 'a-stale').copyWith(
+          createdAt: base,
+          updatedAt: base.add(const Duration(days: 1)),
+        ),
+      );
+      await db.audioDao.insertRow(
+        _audioRow(id: 'a-fresh').copyWith(
+          createdAt: base,
+          updatedAt: base.add(const Duration(days: 2)),
+        ),
+      );
+
+      final top1 = await db.audioDao.watchRecentByUpdatedAt(1).first;
+      expect(top1.map((r) => r.id).toList(), ['a-fresh']);
     });
   });
 
