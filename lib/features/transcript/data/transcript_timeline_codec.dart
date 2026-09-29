@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/cache/lru_store.dart';
 import '../../../data/subtitle/transcript_line.dart';
 
 /// Timelines larger than this are decoded in a background isolate before
@@ -84,6 +85,10 @@ List<TranscriptLine>? tryDecodeTimelineJson(String timelineJson) {
 String timelineJsonHash(String timelineJson) =>
     sha1.convert(utf8.encode(timelineJson)).toString();
 
+/// Maximum number of decoded timelines kept memoized; the least-recently
+/// used decode is dropped on overflow (issue #810, item C1).
+const int kTranscriptTimelineMemoCapacity = 8;
+
 class _CachedLines {
   const _CachedLines(this.hash, this.lines);
   final String hash;
@@ -102,13 +107,16 @@ class _CachedLines {
 /// Eviction: entries are removed on the row's mutation points —
 /// `_deleteTranscript`, `_replaceTimeline`, and the auto-translate rewrite
 /// paths call [remove] (see `transcript_repository_tracks.dart` /
-/// `transcript_repository_auto_translate.dart`). Between mutations the
-/// population is bounded by the number of DISTINCT transcript rows decoded
-/// this session (one entry per row id — re-decodes overwrite, never add),
-/// so growth tracks the user's transcript library, not playback time; no
-/// LRU on top.
+/// `transcript_repository_auto_translate.dart`) — and the memo set is
+/// bounded by an [L1Store] LRU of [kTranscriptTimelineMemoCapacity] rows
+/// with no TTL (issue #810, item C1): age never invalidates a memo entry,
+/// and the least-recently-used decode is dropped on overflow and
+/// re-decoded on demand, so decoding many distinct transcripts in one
+/// session no longer keeps every decode resident.
 class TranscriptTimelineCache {
-  final Map<String, _CachedLines> _entries = {};
+  final L1Store<String, _CachedLines> _entries = L1Store<String, _CachedLines>(
+    capacity: kTranscriptTimelineMemoCapacity,
+  );
 
   /// Decoded lines for `(rowId, timelineJson)`, memoized.
   List<TranscriptLine> linesFor({
@@ -116,16 +124,20 @@ class TranscriptTimelineCache {
     required String timelineJson,
   }) {
     final hash = timelineJsonHash(timelineJson);
-    final hit = _entries[rowId];
+    final hit = _entries.peek(rowId);
     if (hit != null && hit.hash == hash) return hit.lines;
     final decoded = decodeTimelineJson(timelineJson);
-    _entries[rowId] = _CachedLines(hash, decoded);
+    _entries.put(rowId, _CachedLines(hash, decoded));
     return decoded;
   }
 
   /// Whether `(rowId, timelineJson)` already holds a decode.
+  ///
+  /// A pure probe: unlike [linesFor] it does not touch the entry's LRU
+  /// position, so a background pre-decode gate cannot keep a row resident
+  /// or reorder the eviction queue.
   bool isCached({required String rowId, required String timelineJson}) {
-    final hit = _entries[rowId];
+    final hit = _entries.peekNoTouch(rowId);
     return hit != null && hit.hash == timelineJsonHash(timelineJson);
   }
 
@@ -135,12 +147,12 @@ class TranscriptTimelineCache {
     required String timelineJson,
     required List<TranscriptLine> lines,
   }) {
-    _entries[rowId] = _CachedLines(timelineJsonHash(timelineJson), lines);
+    _entries.put(rowId, _CachedLines(timelineJsonHash(timelineJson), lines));
   }
 
   /// Evicts a row's decode (row deleted or its timeline rewritten without
   /// going through [linesFor]).
-  void remove(String rowId) => _entries.remove(rowId);
+  void remove(String rowId) => _entries.invalidate(rowId);
 }
 
 /// Active cue index for [t] in seconds — the **UI highlight policy**:

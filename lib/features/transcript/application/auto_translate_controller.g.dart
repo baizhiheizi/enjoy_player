@@ -20,7 +20,7 @@ final class AutoTranslateCtrlProvider
   }) : super(
          retry: null,
          name: r'autoTranslateCtrlProvider',
-         isAutoDispose: false,
+         isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -58,7 +58,7 @@ final class AutoTranslateCtrlProvider
   }
 }
 
-String _$autoTranslateCtrlHash() => r'bcbbe702acbf9d49ecaebcd0049ec6aed8528844';
+String _$autoTranslateCtrlHash() => r'495a988ade38a73d143e9777fb5b37f8da831d2a';
 
 final class AutoTranslateCtrlFamily extends $Family
     with
@@ -75,7 +75,7 @@ final class AutoTranslateCtrlFamily extends $Family
         name: r'autoTranslateCtrlProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: false,
+        isAutoDispose: true,
       );
 
   AutoTranslateCtrlProvider call(String mediaId) =>
