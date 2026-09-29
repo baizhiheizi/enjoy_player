@@ -1429,6 +1429,127 @@ void main() {
     });
   });
 
+  group('AutoTranslateCtrl disposal flushes pending writes (#810 D1)', () {
+    late AppDatabase db;
+    late TranscriptRepository repo;
+    late _FakeTranslation fake;
+    late ProviderContainer container;
+    const mediaId = 'media-dispose-flush';
+
+    setUp(() async {
+      db = AppDatabase(executor: NativeDatabase.memory());
+      repo = TranscriptRepository(db);
+      fake = _FakeTranslation();
+
+      final now = DateTime.now();
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: mediaId,
+          vid: 'vid12345678',
+          provider: 'user',
+          title: 'Test',
+          description: null,
+          thumbnailUrl: null,
+          durationSeconds: 60,
+          language: 'en',
+          source: 'local',
+          localUri: '/tmp/test.mp4',
+          md5: null,
+          size: null,
+          mediaUrl: null,
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final primaryId = enjoyTranscriptId(
+        targetType: 'Video',
+        targetId: mediaId,
+        language: 'en',
+        source: 'user',
+      );
+      const lines = [
+        TranscriptLine(text: 'Hello', startMs: 0, durationMs: 1000),
+        TranscriptLine(text: 'World', startMs: 1000, durationMs: 500),
+      ];
+      await db.transcriptDao.upsert(
+        TranscriptRow(
+          id: primaryId,
+          targetType: 'Video',
+          targetId: mediaId,
+          language: 'en',
+          source: 'user',
+          timelineJson: jsonEncode(lines.map((e) => e.toJson()).toList()),
+          referenceId: null,
+          label: 'English',
+          trackIndex: null,
+          syncStatus: 'local',
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await db.echoSessionDao.updatePrimaryTranscriptForTarget(
+        'Video',
+        mediaId,
+        primaryId,
+      );
+
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          deviceGlobalAppDatabaseProvider.overrideWithValue(db),
+          transcriptRepositoryProvider.overrideWithValue(repo),
+          translationCapabilityProvider.overrideWithValue(fake),
+          authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
+          appPreferencesCtrlProvider.overrideWith(_ZhNativePrefsCtrl.new),
+        ],
+      );
+      await container.read(authCtrlProvider.future);
+      await container.read(appPreferencesCtrlProvider.future);
+      container.listen(autoTranslateCtrlProvider(mediaId), (_, _) {});
+
+      final ctrl = container.read(autoTranslateCtrlProvider(mediaId).notifier);
+      await ctrl.selectAutoTranslate();
+    });
+
+    tearDown(() async {
+      await db.close();
+    });
+
+    test(
+      'disposing the controller persists buffered translated lines',
+      () async {
+        final state = container.read(autoTranslateCtrlProvider(mediaId));
+        final aiId = state.aiTranscriptId!;
+
+        final ctrl = container.read(
+          autoTranslateCtrlProvider(mediaId).notifier,
+        );
+        ctrl.requestTranslateLine(0);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        final midRow = await db.transcriptDao.getById(aiId);
+        expect(repo.linesForRow(midRow!)[0].text, 'ZH:Hello');
+        expect(
+          ((jsonDecode(midRow.timelineJson) as List).first as Map)['text'],
+          '',
+        );
+
+        container.dispose();
+        for (var i = 0; i < 16; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+
+        final flushedRow = await db.transcriptDao.getById(aiId);
+        expect(flushedRow, isNotNull);
+        final raw = jsonDecode(flushedRow!.timelineJson) as List<dynamic>;
+        expect((raw.first as Map)['text'], 'ZH:Hello');
+      },
+    );
+  });
+
   group('isAutoTranslateSecondary provider', () {
     late AppDatabase db;
     late TranscriptRepository repo;

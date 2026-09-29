@@ -91,6 +91,7 @@ extension _TranscriptRepositoryTracks on TranscriptRepository {
       targetId,
     );
 
+    _pendingAutoTranslateLines.remove(transcriptId);
     _linesCache.remove(transcriptId);
     await _db.transcriptDao.deleteId(transcriptId);
 

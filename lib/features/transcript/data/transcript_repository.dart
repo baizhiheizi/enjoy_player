@@ -13,7 +13,6 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:cross_file/cross_file.dart';
@@ -83,10 +82,16 @@ class TranscriptRepository {
 
   final TranscriptTimelineCache _linesCache = TranscriptTimelineCache();
 
+  Map<String, Map<int, _PendingAutoTranslateLine>> _pendingAutoTranslateLines =
+      {};
+  Timer? _autoTranslateFlushTimer;
+  Future<void>? _autoTranslateFlushChain;
+
   /// Decodes [row.timelineJson] with memoization on `(id, revision)` via the
   /// timeline codec's cache (issue #766; revision key: issue #810 D5) — the
   /// one decode home shared with Craft enrichment and the player's line
-  /// controls.
+  /// controls. Buffered auto-translate line writes are overlaid on top, so
+  /// every reader sees the logical state, not just the flushed row.
   List<TranscriptLine> linesForRow(TranscriptRow row) => _linesForRow(row);
 
   /// Reactive lines for the active primary (shadow-reading) transcript.
@@ -249,7 +254,12 @@ class TranscriptRepository {
     primaryLines: primaryLines,
   );
 
-  /// Writes one translated line into the AI track timeline.
+  /// Buffers one translated line for the AI track timeline.
+  ///
+  /// The buffer is flushed by [flushAutoTranslateWrites] after
+  /// [kAutoTranslateFlushInterval], so a burst of translated lines rewrites
+  /// the row once instead of per line (issue #810 D1). Reads via
+  /// [linesForRow] see the buffered line immediately.
   Future<void> updateAutoTranslateLineText({
     required String aiTranscriptId,
     required int lineIndex,
@@ -261,6 +271,10 @@ class TranscriptRepository {
     text: text,
     sourceKey: sourceKey,
   );
+
+  /// Persists every buffered auto-translate line now (screen exit, track
+  /// close, or an explicit drain point).
+  Future<void> flushAutoTranslateWrites() => _flushAutoTranslateWrites();
 
   /// Whether the AI track is out of sync with the current primary transcript.
   bool isAutoTranslateTrackStale({

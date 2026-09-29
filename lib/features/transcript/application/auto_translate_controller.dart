@@ -35,6 +35,27 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   final _inFlight = <int>{};
   final _waiting = ListQueue<int>();
   final _forceRefreshLines = <int>{};
+  TranscriptRepository? _flushHookRepo;
+
+  /// Repository access for this controller; the first successful read also
+  /// hooks the pending-write flush onto this provider's disposal (issue
+  /// #810 D1). Kept out of [build] on purpose: the repository depends on the
+  /// auth-scoped database, which is unavailable while signed out, and the
+  /// transcript chrome builds this controller regardless of auth.
+  TranscriptRepository _repo() {
+    final repo = ref.read(transcriptRepositoryProvider);
+    if (_flushHookRepo == null) {
+      _flushHookRepo = repo;
+      ref.onDispose(() {
+        unawaited(
+          repo.flushAutoTranslateWrites().catchError((Object e, StackTrace st) {
+            _log.warning('auto-translate dispose flush failed', e, st);
+          }),
+        );
+      });
+    }
+    return repo;
+  }
 
   @override
   AutoTranslateUiState build(String mediaId) {
@@ -77,7 +98,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     final secondaryId = ref.read(secondaryTranscriptIdProvider(mediaId)).value;
     if (secondaryId == null) return;
 
-    final repo = ref.read(transcriptRepositoryProvider);
+    final repo = _repo();
     final row = await repo.transcriptRowById(secondaryId);
     if (row == null || row.source != 'ai') return;
 
@@ -123,7 +144,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
       return;
     }
 
-    final repo = ref.read(transcriptRepositoryProvider);
+    final repo = _repo();
     final primaryRow = await repo.primaryTranscriptRowForMedia(mediaId);
     if (primaryRow == null) {
       state = state.copyWith(
@@ -227,7 +248,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     if (lineIndex < 0) return;
     if (state.status != AutoTranslateStatus.active) return;
 
-    final repo = ref.read(transcriptRepositoryProvider);
+    final repo = _repo();
     final primaryRow = await repo.transcriptRowById(primaryId);
     if (primaryRow == null) return;
     final primaryLines = repo.linesForRow(primaryRow);
@@ -259,7 +280,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
     final native = state.targetLanguage;
     if (aiId == null || native == null) return;
 
-    final repo = ref.read(transcriptRepositoryProvider);
+    final repo = _repo();
     final primaryRow = await repo.primaryTranscriptRowForMedia(mediaId);
     if (primaryRow == null) {
       if (!ref.mounted) return;
@@ -315,7 +336,7 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
             .value;
         if (secondaryNow != null && secondaryNow != aiId) return;
 
-        final repo = ref.read(transcriptRepositoryProvider);
+        final repo = _repo();
         final primaryRow = await repo.transcriptRowById(primaryId);
         final aiRow = await repo.transcriptRowById(aiId);
         if (primaryRow == null || aiRow == null) return;

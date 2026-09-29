@@ -139,7 +139,9 @@ void main() {
     });
 
     test('estimatedTimelineJsonBytes grows with nested spans', () {
-      const plain = [TranscriptLine(text: 'hello', startMs: 0, durationMs: 100)];
+      const plain = [
+        TranscriptLine(text: 'hello', startMs: 0, durationMs: 100),
+      ];
       const enriched = [
         TranscriptLine(
           text: 'hello',

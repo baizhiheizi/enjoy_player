@@ -5,11 +5,15 @@ part of 'transcript_repository.dart';
 /// pre-decode for large payloads), Drift watch glue for the active primary /
 /// secondary lines, and the sorted track list stream.
 extension _TranscriptRepositoryLines on TranscriptRepository {
-  List<TranscriptLine> _linesForRow(TranscriptRow row) => _linesCache.linesFor(
-    rowId: row.id,
-    revision: _revisionOf(row),
-    timelineJson: row.timelineJson,
-  );
+  List<TranscriptLine> _linesForRow(TranscriptRow row) =>
+      _overlayPendingAutoTranslateLines(
+        row.id,
+        _linesCache.linesFor(
+          rowId: row.id,
+          revision: _revisionOf(row),
+          timelineJson: row.timelineJson,
+        ),
+      );
 
   /// Pre-decodes [row.timelineJson] in a background isolate and caches the
   /// result when the payload is large enough
