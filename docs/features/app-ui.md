@@ -22,6 +22,8 @@
 - CJK UI falls back to installed platform faces (`kCjkSansFallbacks` / `kCjkSerifFallbacks`) — no extra downloads.
 - Scale: `11.5 / 12.5 / 13.5 / 14 / 15 / 15.5 / 17 / 18 / 21 / 30 / 38 / 44 / 56`.
 
+**Font delivery** (issue #810): every non-CJK variant the app requests — Geist 400/500, Geist Mono 500, Instrument Serif 400, Source Serif 4 400/500/600, Playfair Display 700 + 600-italic (share poster), Noto Sans 400 (IPA layer) — ships in `assets/fonts/google_fonts/` in the google_fonts asset layout (filenames use the package's camelCase family ids, e.g. `GeistMono-Medium.ttf`), so the first theme build loads them from the bundle instead of fetching fonts.gstatic.com: no first-run FOUT / full-app relayout, correct fonts offline. `OFL-*.txt` files carry each family's license. The large CJK Noto SC/Kr/Jp variant fallbacks (~40 MB) stay on-demand runtime fetches — platform CJK faces cover offline rendering — so `GoogleFonts.config.allowRuntimeFetching` stays enabled. When adding a weight or family to `typography.dart`, bundle the matching file and extend `test/core/theme/bundled_google_fonts_test.dart`.
+
 ### Icons
 
 One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `PhosphorFill` / `PhosphorBold` fonts in `assets/fonts/phosphor/`, exposed as semantic `const IconData` on **`EnjoyIcons`** (`lib/core/theme/enjoy_icons.dart`). Outline at rest, `…Fill` for selected / active. Do not use Material `Icons` in `lib/`. `EnjoyChromeIcon(glyph, filled:)` renders the same family for shell / transport glyphs.
