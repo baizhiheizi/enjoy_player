@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 
@@ -339,6 +340,45 @@ class MediaCardPlayGlyph extends StatelessWidget {
           color: const Color(0xFF16161D),
         ),
       ),
+    );
+  }
+}
+
+/// Scrim + spinner painted over artwork while a discover feed import is
+/// running. Sits above the play glyph and below the hairline edge.
+class MediaCardAddingScrim extends StatelessWidget {
+  const MediaCardAddingScrim({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Color(0x73000000),
+      child: Center(
+        child: LoadingIcon(size: 26, strokeWidth: 2.5, color: Colors.white),
+      ),
+    );
+  }
+}
+
+/// In-library membership chip (artwork top-right) for discover feed tiles.
+///
+/// Purely presentational: the caller resolves membership and passes the flag
+/// (ADR-0088) — the tile never probes the library itself.
+class MediaCardInLibraryChip extends StatelessWidget {
+  const MediaCardInLibraryChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: ShapeDecoration(
+        color: const Color(0x99000000),
+        shape: CircleBorder(
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        ),
+      ),
+      child: const Icon(EnjoyIcons.check, size: 13, color: Colors.white),
     );
   }
 }

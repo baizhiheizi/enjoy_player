@@ -9,7 +9,7 @@
 **Color** (`AppColors` in `lib/core/theme/colors.dart`, role tokens on `EnjoyThemeTokens`):
 - **Neutrals** — cool, with a faint iris cast. **Porcelain** light: page `#F7F7F9`, canvas `#ECECF1`, cards / popovers white. **Midnight** dark: page `#111115`, canvas `#09090B`, cards `#17171C`, popovers `#1E1E24`. Address surfaces by role: `t.canvas`, `cs.surface` (page), `t.card`, `t.popover`, `t.fill` (control fills), `t.hairline`, `t.textFaint`.
 - **Iris accent** — fills `#5B4BE8` (light) / `#6D5DFC` (dark), white labels ≥ 4.5:1; inks `#4F3FD6` / `#A99BFF` (`t.accentInk`) for small text. `t.accentSoft` for selected washes.
-- **Aurora** — the logo's blue `#4797F5` → violet `#A855F7` (`t.aurora`). Signature moments only: the page glow (`AuroraGlow`), goal ring, Pro badge (`EnjoyTierBadge`), credits meter, profile avatar ring, sign-in stage.
+- **Aurora** — the logo's blue `#4797F5` → violet `#A855F7` (`t.aurora`). Signature moments only: the page glow (`AuroraGlow`), goal ring, Pro badge (`EnjoyTierBadge`), credits meter, profile avatar ring, sign-in stage. The signature treatments live in one **aurora signature kit** in `core/theme/widgets/`: the lit fill (`enjoyLitFillBuilder` / `enjoyLitFillDecoration` / `enjoyLitShadow` / `enjoyLitHighlightSide`), the gradient pill (`EnjoyTierBadge`), and the ring (`EnjoyProgressRingPainter`). It is the single home of the ADR-0089 §2/§6 decisions — consume the kit instead of hand-rolling `t.aurora` gradients, lit fills, or progress rings.
 - **Semantic inks** — echo coral (`t.echoActive` / `t.echoInk`), intelligence blue (`t.intelligenceInk`), listening-focus teal (`t.blurActive`), scores (`t.scoreGood` / `scoreWarn` / `scoreBad`).
 - **Dynamic accent** — artwork palette (ADR-0007) still tints the play button and the player's ambient backdrop **on top of** these neutrals.
 
@@ -103,10 +103,11 @@ Focus ring: 2px iris ink
 | `EnjoyChromeIcon` | `core/theme/widgets/enjoy_chrome_icon.dart` | Shell / transport glyph enum → `EnjoyIcons` (`filled:` for active) |
 | `EnjoyPressable` | `core/interaction/enjoy_pressable.dart` | Press-scale + hover wash + focus ring + keyboard activation + haptics (no ripple); wash/ring default to a superellipse from `borderRadius`, `shape` overrides it (e.g. `CircleBorder` for circular chrome) |
 | `EnjoyTappableSurface` / `EnjoyTappableIcon` | `core/interaction/enjoy_tappable.dart` | Legacy API over `EnjoyPressable` / `IconButton` |
-| `EnjoyButton` (`primary` / `secondary` / `tonal` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons; primary is "lit" (`enjoyLitFillBuilder`) |
+| `EnjoyButton` (`primary` / `secondary` / `tonal` / `ghost` / `destructive`, `small` / `medium` / `large`, `expand`) | `core/theme/widgets/enjoy_button.dart` | Action buttons; primary is "lit" (`enjoyLitFillBuilder`). Decoration-level exports — `enjoyLitFillDecoration` / `enjoyLitShadow` / `enjoyLitHighlightSide` — serve circular signature controls (record FAB, transport play ring) |
 | `EnjoyIconButton` | same | Square icon-only action in the same variants |
 | `EnjoyCard` / `enjoyCardDecoration` | `core/theme/widgets/enjoy_card.dart` | Hairline card with ambient depth |
-| `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar, aurora tier pill, shortcut keycap |
+| `EnjoyAvatar` / `EnjoyTierBadge` / `EnjoyKeycap` | `core/theme/widgets/enjoy_avatar.dart` | Gradient-initial avatar, aurora tier pill (`leading` icon, `padding` scale, `shape`, solid `color` override — also the sidebar Upgrade pill and the tier-catalog badges), shortcut keycap |
+| `EnjoyProgressRingPainter` | `core/theme/widgets/enjoy_progress_ring.dart` | Track circle + progress arc (solid color or aurora sweep gradient) — Today's Goal ring, record FAB countdown |
 | `EnjoyIconTile` / `EnjoyTint` / `enjoyTintForIcon` | `core/theme/widgets/enjoy_icon_tile.dart` | Colored icon tiles for grouped lists |
 | `EnjoySegmentedControl` / `EnjoySegment` | `core/theme/widgets/enjoy_segmented_control.dart` | Sliding-thumb segmented control (+ `enjoySegmentTrackColor` / `enjoySegmentThumbDecoration` for segmented `TabBar`s) |
 | `AppBackground` / `AuroraGlow` / `PlayerAmbientBackdrop` | `core/theme/widgets/app_background.dart` | Page color + aurora glow; player artwork tint |
@@ -118,7 +119,7 @@ Focus ring: 2px iris ink
 | `NavItemPill` | `core/theme/widgets/nav_item_pill.dart` | Sidebar / settings-rail row (ADR-0018) |
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |
 | `SheetDragHandle` / `PaddedSheetDragHandle` | `core/theme/widgets/sheet_drag_handle.dart` | 36×5 grabber |
-| `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) / list row |
+| `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) with optional discover affordances (adding scrim, in-library chip, custom `meta` slot) / list row |
 | `GlassSurface` | `core/theme/widgets/glass_surface.dart` | Frosted floating chrome (transport capsule, circular player collapse control); optional `shape` override for non-rectangular outlines |
 | `SettingsRow` / `SettingsRowDivider` / `SettingsValuePill` | `features/settings/presentation/widgets/settings_row.dart` | Grouped-list row with icon tile, value, chevron |
 | `AppNotice` | `core/notices/app_notice.dart` | Dark toast with semantic glyph |

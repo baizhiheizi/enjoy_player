@@ -12,6 +12,64 @@ Widget _host({required Brightness brightness, required Widget child}) {
 }
 
 void main() {
+  group('lit fill decorations (aurora signature kit)', () {
+    const base = Color(0xFF5B4BE8);
+
+    test('enjoyLitFillDecoration paints the canonical sheen and shape', () {
+      const shape = CircleBorder();
+      final decoration = enjoyLitFillDecoration(base: base, shape: shape);
+
+      final gradient = decoration.gradient;
+      expect(gradient, isA<LinearGradient>());
+      final linear = gradient as LinearGradient;
+      expect(linear.begin, Alignment.topCenter);
+      expect(linear.end, Alignment.bottomCenter);
+      expect(linear.colors[0], Color.lerp(base, Colors.white, 0.10));
+      expect(linear.colors[1], base);
+      expect(decoration.shape, shape);
+      // No shadow passed — the glow is suppressed.
+      expect(decoration.shadows, isEmpty);
+    });
+
+    test('enjoyLitFillDecoration carries the fill override and one shadow', () {
+      final shadow = enjoyLitShadow(base, alpha: 0.38, blurRadius: 16);
+      final fill = Color.lerp(base, Colors.white, 0.08)!;
+      final decoration = enjoyLitFillDecoration(
+        base: base,
+        shape: const StadiumBorder(),
+        fill: fill,
+        sheen: 0.14,
+        shadow: shadow,
+      );
+
+      final linear = decoration.gradient as LinearGradient;
+      expect(linear.colors[0], Color.lerp(fill, Colors.white, 0.14));
+      expect(linear.colors[1], fill);
+      expect(decoration.shadows, [shadow]);
+    });
+
+    test('enjoyLitShadow defaults to the button glow', () {
+      final shadow = enjoyLitShadow(base);
+      expect(shadow.color, base.withValues(alpha: 0.32));
+      expect(shadow.blurRadius, 14);
+      expect(shadow.spreadRadius, -5);
+      expect(shadow.offset, const Offset(0, 5));
+    });
+
+    test(
+      'enjoyLitHighlightSide is a 1px white ring at the canonical alpha',
+      () {
+        final side = enjoyLitHighlightSide();
+        expect(side.width, 1);
+        expect(side.color, Colors.white.withValues(alpha: 0.14));
+        expect(
+          enjoyLitHighlightSide(alpha: 0.16).color,
+          Colors.white.withValues(alpha: 0.16),
+        );
+      },
+    );
+  });
+
   testWidgets('primary button keeps an opaque label in light and dark', (
     tester,
   ) async {

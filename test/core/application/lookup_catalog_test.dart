@@ -1,47 +1,77 @@
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('kSupportedLookupLanguageTags', () {
-    test('contains the first-wave 15 entries in a stable order', () {
-      expect(kSupportedLookupLanguageTags, <String>[
-        'en-US',
-        'en-GB',
-        'zh-CN',
-        'ja-JP',
-        'ko-KR',
-        'es-ES',
-        'es-MX',
-        'fr-FR',
-        'fr-CA',
-        'de-DE',
-        'it-IT',
-        'pt-BR',
-        'pt-PT',
-        'ru-RU',
-        'nb-NO',
-      ]);
+    test('is exactly the descriptor rows carrying a lookup label', () {
+      // Derivation check (issue #794): the lookup catalog and its label map
+      // share one source — a row joins the catalog by getting a label, so
+      // "every lookup tag has a label" holds by construction.
+      final labeledTags = <String>[
+        for (final row in kLanguageDescriptorRows)
+          if (row.lookupLabel != null) row.tag,
+      ];
+      expect(kSupportedLookupLanguageTags, labeledTags);
+      expect(kLookupLanguageLabels.keys.toSet(), labeledTags.toSet());
+      for (final row in kLanguageDescriptorRows) {
+        final label = row.lookupLabel;
+        if (label == null) continue;
+        expect(label.trim(), isNotEmpty, reason: 'empty label for ${row.tag}');
+      }
     });
 
-    test('every tag has a label in kLookupLanguageLabels', () {
-      for (final tag in kSupportedLookupLanguageTags) {
-        expect(
-          kLookupLanguageLabels.containsKey(tag),
-          isTrue,
-          reason: 'missing label for $tag',
-        );
-        expect(
-          (kLookupLanguageLabels[tag] ?? '').trim(),
-          isNotEmpty,
-          reason: 'empty label for $tag',
-        );
-      }
+    test(
+      'keeps the shipped policy counts (2 native / 9 focus / 15 lookup)',
+      () {
+        expect(kSupportedNativeLanguageTags, hasLength(2));
+        expect(kSupportedFocusLanguageTags, hasLength(9));
+        expect(kSupportedLookupLanguageTags, hasLength(15));
+        expect(kAzurePronunciationAssessmentLocales, hasLength(33));
+      },
+    );
+
+    test(
+      'focus and native tags are lookup tags (narrower pickers never widen)',
+      () {
+        final lookup = kSupportedLookupLanguageTags.toSet();
+        expect(lookup.containsAll(kSupportedFocusLanguageTags), isTrue);
+        expect(lookup.containsAll(kSupportedNativeLanguageTags), isTrue);
+      },
+    );
+
+    test('every lookup tag is an Azure assessment locale', () {
+      // Today's policy: the lookup sheet never offers a language Azure
+      // cannot assess (focus and native are lookup subsets, so they are
+      // covered transitively).
+      expect(
+        kAzurePronunciationAssessmentLocales.containsAll(
+          kSupportedLookupLanguageTags,
+        ),
+        isTrue,
+      );
+    });
+
+    test('nb-NO is in every catalog and nn-NO is in none', () {
+      // ADR-0087 spot-asserts: Bokmål everywhere, Nynorsk deliberately absent.
+      expect(kSupportedNativeLanguageTags, isNot(contains('nb-NO')));
+      expect(kSupportedFocusLanguageTags, contains('nb-NO'));
+      expect(kSupportedLookupLanguageTags, contains('nb-NO'));
+      expect(kLookupLanguageLabels['nb-NO'], 'Norsk (bokmål)');
+      expect(kAzurePronunciationAssessmentLocales, contains('nb-NO'));
+      expect(
+        kLanguageDescriptorRows.map((row) => row.tag),
+        isNot(contains('nn-NO')),
+      );
     });
 
     test('no tag is in kInvalidLanguageTags', () {
       for (final tag in kSupportedLookupLanguageTags) {
         expect(kInvalidLanguageTags.contains(tag), isFalse);
-        expect(kInvalidLanguageTags.contains(_primary(tag)), isFalse);
+        expect(
+          kInvalidLanguageTags.contains(primaryLanguageSubtag(tag)),
+          isFalse,
+        );
       }
     });
 
@@ -89,6 +119,3 @@ void main() {
     });
   });
 }
-
-String _primary(String tag) =>
-    normalizeLanguageAlias(tag).split(RegExp(r'[-_]')).first.toLowerCase();

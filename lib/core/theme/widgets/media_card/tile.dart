@@ -21,7 +21,7 @@ import 'media_card_sync_badge.dart';
 class MediaCardTile extends StatefulWidget {
   const MediaCardTile({
     super.key,
-    required this.title,
+    this.title = '',
     required this.onTap,
     this.thumbnailFile,
     this.thumbnailNetworkUrl,
@@ -37,8 +37,19 @@ class MediaCardTile extends StatefulWidget {
     this.badge,
     this.onBadgeTap,
     this.heroArtworkMediaId,
-  });
+    this.adding = false,
+    this.inLibrary = false,
+    this.meta,
+  }) : assert(
+         title == '' || meta == null,
+         'MediaCardTile: pass either the built-in meta block '
+         '(title/subtitle/badge) or a custom meta widget, not both — '
+         'meta replaces the built-in block.',
+       );
 
+  /// Title in the built-in meta block. Mutually exclusive with [meta]: the
+  /// built-in block only renders when [meta] is null, and passing a non-empty
+  /// [title] together with a [meta] widget trips the constructor assert.
   final String title;
   final VoidCallback onTap;
   final File? thumbnailFile;
@@ -75,6 +86,27 @@ class MediaCardTile extends StatefulWidget {
   /// Optional language or metadata label in the meta line.
   final String? badge;
   final VoidCallback? onBadgeTap;
+
+  /// Discover feed: while an "add to library" import is in flight, dim the
+  /// artwork behind a spinner ([MediaCardAddingScrim]) and hide the hover
+  /// play glyph. Off for home / library / cloud consumers.
+  final bool adding;
+
+  /// Discover feed: paint the in-library membership chip
+  /// ([MediaCardInLibraryChip]) on the artwork's top-right corner — the same
+  /// corner [cloudSyncBadge] would occupy, but the two are never combined.
+  /// The tile never resolves membership itself (ADR-0088); callers pass the
+  /// already-joined flag.
+  final bool inLibrary;
+
+  /// When non-null, replaces the built-in title/subtitle meta block under the
+  /// artwork (Discover passes its channel-avatar row). The slot is clamped to
+  /// the shared [mediaCardTileMetaHeight] box — the same vertical budget the
+  /// built-in block renders in and the grid aspect math assumes — so grid
+  /// rows stay aligned whichever slot a caller uses. The widget must lay out
+  /// within that height; taller content overflows the budget rather than
+  /// resizing the tile. Mutually exclusive with [title] (constructor assert).
+  final Widget? meta;
 
   @override
   State<MediaCardTile> createState() => _MediaCardTileState();
@@ -153,14 +185,18 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
-                // Hover play affordance.
+                // Hover play affordance (hidden while an import is in flight —
+                // the adding scrim below carries the interaction instead).
+                // `adding` also drives the scale so the glyph parks at 0.85
+                // for the whole import and *grows in* when it settles
+                // mid-hover, instead of popping to full size.
                 IgnorePointer(
                   child: Center(
                     child: AnimatedOpacity(
-                      opacity: hover ? 1 : 0,
+                      opacity: hover && !widget.adding ? 1 : 0,
                       duration: t.motionFast,
                       child: AnimatedScale(
-                        scale: hover ? 1 : 0.85,
+                        scale: hover && !widget.adding ? 1 : 0.85,
                         duration: t.motionStandard,
                         curve: EnjoyThemeTokens.ease,
                         child: const MediaCardPlayGlyph(),
@@ -168,6 +204,8 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
+                // Adding-to-library scrim (discover) — spinner over dimmed art.
+                if (widget.adding) const MediaCardAddingScrim(),
                 // Hairline edge.
                 IgnorePointer(
                   child: DecoratedBox(
@@ -183,6 +221,12 @@ class _MediaCardTileState extends State<MediaCardTile> {
                     ),
                   ),
                 ),
+                if (widget.inLibrary)
+                  Positioned(
+                    top: t.space8,
+                    right: t.space8,
+                    child: const MediaCardInLibraryChip(),
+                  ),
                 if (widget.providerBadge != null &&
                     widget.providerBadge!.isNotEmpty)
                   Positioned(
@@ -257,64 +301,69 @@ class _MediaCardTileState extends State<MediaCardTile> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AspectRatio(aspectRatio: 16 / 9, child: artwork),
-          // Meta — fixed vertical budget so grid rows stay aligned.
+          // Both meta variants render inside the fixed mediaCardTileMetaHeight
+          // budget — the height the grid aspect math assumes — so grid rows
+          // stay aligned whichever slot a caller uses. Content taller than the
+          // budget overflows it rather than resizing the tile.
           SizedBox(
             height: mediaCardTileMetaHeight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 20,
-                    child: Text(
-                      widget.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.titleSmall?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                        height: 1.35,
+            child:
+                widget.meta ??
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Text(
+                          widget.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tt.titleSmall?.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
+                            height: 1.35,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  SizedBox(
-                    height: 20,
-                    child: Row(
-                      children: [
-                        if (widget.badge != null) ...[
-                          Flexible(
-                            child: MediaCardMetaLanguage(
-                              label: widget.badge!,
-                              onTap: widget.onBadgeTap,
-                            ),
-                          ),
-                          if (kindLabel != null)
-                            MediaCardMetaDot(color: t.textFaint),
-                        ],
-                        if (kindLabel != null)
-                          Flexible(
-                            child: Text(
-                              kindLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tt.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                                height: 1.3,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
+                      const SizedBox(height: 2),
+                      SizedBox(
+                        height: 20,
+                        child: Row(
+                          children: [
+                            if (widget.badge != null) ...[
+                              Flexible(
+                                child: MediaCardMetaLanguage(
+                                  label: widget.badge!,
+                                  onTap: widget.onBadgeTap,
+                                ),
                               ),
-                            ),
-                          ),
-                      ],
-                    ),
+                              if (kindLabel != null)
+                                MediaCardMetaDot(color: t.textFaint),
+                            ],
+                            if (kindLabel != null)
+                              Flexible(
+                                child: Text(
+                                  kindLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: tt.bodySmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    height: 1.3,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
           ),
         ],
       ),

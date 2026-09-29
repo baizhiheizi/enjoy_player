@@ -221,19 +221,9 @@ class _SidebarUpgradeButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(t.radiusFull),
       showHoverWash: false,
       hoverScale: 1.03,
-      child: Container(
+      child: EnjoyTierBadge(
+        label: label,
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-        decoration: ShapeDecoration(
-          gradient: t.aurora,
-          shape: const StadiumBorder(),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ),
     );
   }

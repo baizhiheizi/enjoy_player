@@ -3,10 +3,18 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/colors.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_chrome_icon.dart';
 
-class TransportPlayRingButton extends StatefulWidget {
+/// Rides the aurora signature kit exactly like its sibling, the shadow-
+/// reading record FAB: the lit fill via [enjoyLitFillDecoration], the press
+/// interaction (wash, press-scale, keyboard activation, focus ring) via
+/// [EnjoyPressable]. The kit's built-in tap haptic stays off because callers
+/// wrap [onPressed] in `Haptics.wrapTap` — enabling both would double-fire.
+class TransportPlayRingButton extends StatelessWidget {
   const TransportPlayRingButton({
     super.key,
     required this.playing,
@@ -23,92 +31,61 @@ class TransportPlayRingButton extends StatefulWidget {
   final Color? accentColor;
 
   @override
-  State<TransportPlayRingButton> createState() =>
-      _TransportPlayRingButtonState();
-}
-
-class _TransportPlayRingButtonState extends State<TransportPlayRingButton> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final ringColor = widget.accentColor ?? cs.primary;
+    final t = EnjoyThemeTokens.of(context);
+    final ringColor = accentColor ?? cs.primary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Tooltip(
-        message: widget.tooltip,
-        child: Listener(
-          onPointerDown: widget.onPressed == null
-              ? null
-              : (_) => setState(() => _pressed = true),
-          onPointerUp: (_) => setState(() => _pressed = false),
-          onPointerCancel: (_) => setState(() => _pressed = false),
-          child: Material(
-            color: Colors.transparent,
-            clipBehavior: Clip.antiAlias,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: widget.onPressed,
-              child: AnimatedScale(
-                scale: _pressed ? 0.94 : 1,
-                duration: const Duration(milliseconds: 90),
-                curve: Curves.easeOutCubic,
-                child: Ink(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color.lerp(ringColor, Colors.white, 0.14)!,
-                        ringColor,
-                      ],
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.16),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ringColor.withValues(alpha: 0.38),
-                        blurRadius: 16,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: widget.buffering
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.onAccent,
-                            ),
-                          )
-                        : AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 180),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder: (child, anim) =>
-                                FadeTransition(opacity: anim, child: child),
-                            child: EnjoyChromeIcon(
-                              widget.playing
-                                  ? EnjoyChromeGlyph.pause
-                                  : EnjoyChromeGlyph.play,
-                              key: ValueKey<bool>(widget.playing),
-                              color: AppColors.onAccent,
-                              size: 20,
-                            ),
-                          ),
-                  ),
-                ),
+        message: tooltip,
+        child: EnjoyPressable(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(46 / 2),
+          pressedScale: 0.94,
+          haptic: false,
+          child: AnimatedContainer(
+            duration: t.motionFast,
+            width: 46,
+            height: 46,
+            decoration: enjoyLitFillDecoration(
+              base: ringColor,
+              shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
+              sheen: 0.14,
+              shadow: enjoyLitShadow(
+                ringColor,
+                alpha: 0.38,
+                blurRadius: 16,
+                spreadRadius: -4,
+                offset: const Offset(0, 6),
               ),
+            ),
+            child: Center(
+              child: buffering
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.onAccent,
+                      ),
+                    )
+                  : AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, anim) =>
+                          FadeTransition(opacity: anim, child: child),
+                      child: EnjoyChromeIcon(
+                        playing
+                            ? EnjoyChromeGlyph.pause
+                            : EnjoyChromeGlyph.play,
+                        key: ValueKey<bool>(playing),
+                        color: AppColors.onAccent,
+                        size: 20,
+                      ),
+                    ),
             ),
           ),
         ),

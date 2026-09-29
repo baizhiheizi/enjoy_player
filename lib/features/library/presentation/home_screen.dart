@@ -30,8 +30,8 @@ import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/community/presentation/community_activity_card.dart';
 import 'package:enjoy_player/features/library/presentation/todays_goal_card.dart';
 import 'package:enjoy_player/features/onboarding/application/onboarding_controller.dart';
+import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
-import 'package:enjoy_player/features/onboarding/domain/tip_eligibility.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -53,14 +53,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final path = GoRouterState.of(context).uri.path;
-      unawaited(
-        ref
-            .read(onboardingControllerProvider.notifier)
-            .tryStartHomeEntries(
-              TriggerContext(routePath: path.isEmpty ? '/' : path),
-            ),
-      );
+      ref
+          .read(practiceTipTriggerProvider)
+          .startHomeEntries(routePath: GoRouterState.of(context).uri.path);
     });
   }
 

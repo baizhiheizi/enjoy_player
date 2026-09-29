@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:enjoy_player/features/ai/data/azure_language_mapper.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,6 +62,77 @@ void main() {
       expect(canonicalMediaLanguageTag('ja'), 'ja-JP');
       expect(canonicalMediaLanguageTag('kor'), 'ko-KR');
     });
+  });
+
+  group('descriptor derivations', () {
+    test('media tags are Unknown followed by the focus tags', () {
+      expect(kSupportedMediaLanguageTags, <String>[
+        kUnknownMediaLanguageTag,
+        ...kSupportedFocusLanguageTags,
+      ]);
+    });
+
+    test(
+      'azure default-by-primary keys are exactly the focus + native primaries',
+      () {
+        final expectedPrimaries = <String>{
+          for (final tag in kSupportedFocusLanguageTags)
+            primaryLanguageSubtag(tag),
+          for (final tag in kSupportedNativeLanguageTags)
+            primaryLanguageSubtag(tag),
+        };
+        expect(kAzureDefaultLocaleByPrimary.keys.toSet(), expectedPrimaries);
+      },
+    );
+
+    test(
+      'azure broad-tag defaults stay inside their primary and the Azure set',
+      () {
+        for (final entry in kAzureDefaultLocaleByPrimary.entries) {
+          expect(
+            primaryLanguageSubtag(entry.value),
+            entry.key,
+            reason: 'default for ${entry.key} crosses primaries',
+          );
+          expect(
+            kAzurePronunciationAssessmentLocales.contains(entry.value),
+            isTrue,
+            reason: 'default ${entry.value} is not an assessment locale',
+          );
+        }
+      },
+    );
+
+    test('azure assessment locales are exactly the azureAssessment rows', () {
+      final azureRows = <String>{
+        for (final row in kLanguageDescriptorRows)
+          if (row.azureAssessment) row.tag,
+      };
+      expect(kAzurePronunciationAssessmentLocales, azureRows);
+    });
+
+    test(
+      'assessment-only rows (argless, no lookup label) stay in the Azure set',
+      () {
+        // `azureAssessment` defaults to `true` (review on #798): the rows
+        // that carry nothing but a tag must still widen the assessment
+        // allowlist, and stay distinguishable via lookupLabel == null.
+        final assessmentOnly = <String>{
+          for (final row in kLanguageDescriptorRows)
+            if (row.lookupLabel == null) row.tag,
+        };
+        expect(assessmentOnly, isNotEmpty);
+        expect(
+          kAzurePronunciationAssessmentLocales.containsAll(assessmentOnly),
+          isTrue,
+          reason: 'an argless row lost its assessment membership',
+        );
+        expect(
+          kSupportedLookupLanguageTags.toSet().containsAll(assessmentOnly),
+          isFalse,
+        );
+      },
+    );
   });
 
   group('matchesLanguageBroad', () {
