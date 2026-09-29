@@ -1,4 +1,5 @@
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:enjoy_player/core/presentation/language_labels.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +13,36 @@ void main() {
   });
 
   group('focusLanguageLabel', () {
+    test(
+      'localized getters cover exactly the focus + native descriptor rows',
+      () {
+        // The .arb seam of the descriptor table (issue #798): the map keys
+        // are DERIVED from the rows (focus ∪ native, table order), so this
+        // pins the filter — and building the map throws when a covered row
+        // lacks a case in the tag → getter dispatch.
+        final expectedKeys = <String>[
+          for (final row in kLanguageDescriptorRows)
+            if (row.focus || row.native) row.tag,
+        ];
+        expect(localizedLanguageLabelGetters.keys, expectedKeys);
+        expect(localizedLanguageLabelGetters.keys.toSet(), <String>{
+          ...kSupportedFocusLanguageTags,
+          ...kSupportedNativeLanguageTags,
+        });
+      },
+    );
+
     test('labels every supported focus tag with its own string', () {
       for (final tag in kSupportedFocusLanguageTags) {
         final label = focusLanguageLabel(l10n, tag);
+        expect(label, isNot(tag), reason: '$tag fell through to the raw tag');
+        expect(label.trim(), isNotEmpty, reason: 'empty label for $tag');
+      }
+    });
+
+    test('labels every supported native tag with its own string', () {
+      for (final tag in kSupportedNativeLanguageTags) {
+        final label = localizedLanguageLabelGetters[tag]!(l10n);
         expect(label, isNot(tag), reason: '$tag fell through to the raw tag');
         expect(label.trim(), isNotEmpty, reason: 'empty label for $tag');
       }

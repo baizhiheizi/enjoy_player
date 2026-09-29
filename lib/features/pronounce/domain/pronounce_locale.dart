@@ -2,47 +2,30 @@
 library;
 
 import 'package:enjoy_player/core/application/app_language_catalog.dart';
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 
-/// Worker allowlist (learning + lookup catalogs).
+/// Worker allowlist — descriptor rows with `pronounce: true`.
 ///
 /// Mirrors Enjoy worker's `/pronounce` `DEFAULT_VOICES` / `ALLOWED_VOICES`
 /// (baizhiheizi/enjoy#1313 added `nb-NO`). The **worker must ship first** —
-/// a player release ahead of it would send `nb-NO` and get a 400.
-const Set<String> kPronounceSupportedLocales = <String>{
-  'en-US',
-  'en-GB',
-  'zh-CN',
-  'ja-JP',
-  'ko-KR',
-  'es-ES',
-  'es-MX',
-  'fr-FR',
-  'fr-CA',
-  'de-DE',
-  'it-IT',
-  'pt-BR',
-  'pt-PT',
-  'ru-RU',
-  'nb-NO',
+/// a player release ahead of it would send `nb-NO` and get a 400. Today the
+/// set is set-identical to [kSupportedLookupLanguageTags] (worker parity
+/// policy, pinned by the derivation tests); a deliberate divergence while
+/// the worker catches up means flipping a row's `pronounce` flag and that
+/// pin together.
+final Set<String> kPronounceSupportedLocales = <String>{
+  for (final row in kLanguageDescriptorRows)
+    if (row.pronounce) row.tag,
 };
 
 /// Bare / unknown-region primary → default regional Worker locale.
 ///
 /// Vocabulary items and recordings often store ISO 639-1 primaries (`ja`,
-/// `zh`). Never cross into a different primary language.
-const Map<String, String> kPronounceDefaultLocaleByPrimary = <String, String>{
-  'en': 'en-US',
-  'zh': 'zh-CN',
-  'ja': 'ja-JP',
-  'ko': 'ko-KR',
-  'es': 'es-ES',
-  'fr': 'fr-FR',
-  'de': 'de-DE',
-  'it': 'it-IT',
-  'pt': 'pt-BR',
-  'ru': 'ru-RU',
-  'nb': 'nb-NO',
-};
+/// `zh`). Never cross into a different primary language. Derived: the first
+/// pronounce descriptor row of each primary ([firstTagPerPrimary]).
+final Map<String, String> kPronounceDefaultLocaleByPrimary = firstTagPerPrimary(
+  kLanguageDescriptorRows.where((row) => row.pronounce),
+);
 
 const int kPronounceMaxChars = 200;
 

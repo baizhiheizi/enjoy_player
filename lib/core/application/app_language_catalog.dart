@@ -1,15 +1,25 @@
 /// Supported display / learning / native / media language tags.
+///
+/// Every per-language collection below derives from the ONE descriptor table
+/// in [`language_descriptor.dart`](language_descriptor.dart) (issue #794,
+/// ADR-0090) — the public names, shapes, order, and contents are unchanged;
+/// only their definitions went from hand-maintained parallel literals to
+/// derivations. Shared tag parsing and the `kLanguageTagAliases` policy map
+/// (ADR-0087 macrolanguage policy) live next to the rows in
+/// [`language_descriptor.dart`](language_descriptor.dart) and are re-exported
+/// below, so this file adds no per-language literals of its own.
 library;
 
+import 'package:enjoy_player/core/application/language_descriptor.dart';
 import 'package:flutter/material.dart';
 
-// Shared separator for BCP-47 / language-tag splits. The hyphen-or-underscore
-// pattern was repeated in five call sites; routing it through [_splitLanguageTag]
-// keeps the character class in one place. File-private so the post-commit lint
-// pass cannot revert a public symbol.
-final RegExp _kLanguageTagSeparator = RegExp(r'[-_]');
-
-List<String> _splitLanguageTag(String tag) => tag.split(_kLanguageTagSeparator);
+// Tag parsing (`splitLanguageTag`, `primaryLanguageSubtag`, alias policy)
+// lives in `language_descriptor.dart` next to the rows — re-exported here so
+// the catalog stays the one-stop import for its existing consumers (the
+// descriptor cannot import this file, so the shared helpers had to move the
+// other way; review on #798).
+export 'package:enjoy_player/core/application/language_descriptor.dart'
+    show kLanguageTagAliases, normalizeLanguageAlias, primaryLanguageSubtag;
 
 /// Default UI locale when none is stored and not overridden by profile.
 const Locale kAppDefaultDisplayLocale = Locale('zh', 'CN');
@@ -26,95 +36,36 @@ const String kDefaultNativeLanguageTag = 'zh-CN';
 
 const String kUnknownMediaLanguageTag = 'und';
 
-const List<String> kSupportedNativeLanguageTags = <String>['en-US', 'zh-CN'];
+/// Profile "native" choices — descriptor rows with `native: true` (table order).
+final List<String> kSupportedNativeLanguageTags = _tagsWhere(
+  (row) => row.native,
+);
 
-/// Focus learning languages selectable in settings/profile (first wave).
-const List<String> kSupportedFocusLanguageTags = <String>[
-  'en-US',
-  'en-GB',
-  'ja-JP',
-  'ko-KR',
-  'es-ES',
-  'es-MX',
-  'fr-FR',
-  'fr-CA',
-  'nb-NO',
-];
+/// Focus learning languages selectable in settings/profile (first wave) —
+/// descriptor rows with `focus: true` (table order).
+final List<String> kSupportedFocusLanguageTags = _tagsWhere((row) => row.focus);
 
 /// Media content language choices (includes Unknown).
-const List<String> kSupportedMediaLanguageTags = <String>[
+final List<String> kSupportedMediaLanguageTags = <String>[
   kUnknownMediaLanguageTag,
   ...kSupportedFocusLanguageTags,
 ];
 
-/// Azure Speech pronunciation assessment locales (Microsoft language-support table).
-const Set<String> kAzurePronunciationAssessmentLocales = <String>{
-  'ar-EG',
-  'ar-SA',
-  'ca-ES',
-  'zh-HK',
-  'zh-CN',
-  'zh-TW',
-  'da-DK',
-  'nl-NL',
-  'en-AU',
-  'en-CA',
-  'en-IN',
-  'en-GB',
-  'en-US',
-  'fi-FI',
-  'fr-CA',
-  'fr-FR',
-  'de-DE',
-  'hi-IN',
-  'it-IT',
-  'ja-JP',
-  'ko-KR',
-  'ms-MY',
-  'nb-NO',
-  'pl-PL',
-  'pt-BR',
-  'pt-PT',
-  'ru-RU',
-  'es-MX',
-  'es-ES',
-  'sv-SE',
-  'ta-IN',
-  'th-TH',
-  'vi-VN',
+/// Azure Speech pronunciation assessment locales (Microsoft
+/// language-support table) — descriptor rows with `azureAssessment: true`.
+final Set<String> kAzurePronunciationAssessmentLocales = <String>{
+  for (final row in kLanguageDescriptorRows)
+    if (row.azureAssessment) row.tag,
 };
 
-/// Preferred Azure locale when a broad tag has multiple regional options.
-const Map<String, String> kAzureDefaultLocaleByPrimary = <String, String>{
-  'en': 'en-US',
-  'ja': 'ja-JP',
-  'ko': 'ko-KR',
-  'es': 'es-ES',
-  'fr': 'fr-FR',
-  'zh': 'zh-CN',
-  'nb': 'nb-NO',
-};
-
-/// ISO 639-2 / legacy aliases → ISO 639-1 primary subtag.
-///
-/// The Norwegian entries encode a deliberate **policy**, not a neutral
-/// equivalence: `no` is a macrolanguage tag, and essentially all Norwegian
-/// content in the wild is Bokmål, so `no` / `nob` / `nor` collapse onto
-/// Bokmål. Genuine Nynorsk (`nn`) is deliberately **not** aliased and stays
-/// unsupported. See ADR-0087.
-const Map<String, String> kLanguageTagAliases = <String, String>{
-  'eng': 'en',
-  'jpn': 'ja',
-  'kor': 'ko',
-  'spa': 'es',
-  'fre': 'fr',
-  'fra': 'fr',
-  'zho': 'zh',
-  'chi': 'zh',
-  'no': 'nb',
-  'nob': 'nb',
-  'nor': 'nb',
-};
+/// Preferred Azure locale when a broad tag has multiple regional options:
+/// the first focus-or-native descriptor row of each primary subtag
+/// ([firstTagPerPrimary]). The app resolves broad tags only for primaries it
+/// already teaches or uses as a native language; other Azure-only primaries
+/// (de, it, pt, ru, …) deliberately resolve `null` until they join a catalog.
+final Map<String, String> kAzureDefaultLocaleByPrimary = firstTagPerPrimary(
+  kLanguageDescriptorRows.where((row) => row.focus || row.native),
+);
 
 /// ISO 639 / BCP-47 language subtags that must not be used for lookup or worker calls.
 const Set<String> kInvalidLanguageTags = <String>{
@@ -125,23 +76,11 @@ const Set<String> kInvalidLanguageTags = <String>{
   'zxx',
 };
 
-/// Short UI labels for [kSupportedLookupLanguageTags] (lookup sheet pills / picker).
-const Map<String, String> kLookupLanguageLabels = <String, String>{
-  'en-US': 'English',
-  'en-GB': 'English (UK)',
-  'zh-CN': '中文',
-  'ja-JP': '日本語',
-  'ko-KR': '한국어',
-  'es-ES': 'Español (España)',
-  'es-MX': 'Español (México)',
-  'fr-FR': 'Français (France)',
-  'fr-CA': 'Français (Canada)',
-  'de-DE': 'Deutsch',
-  'it-IT': 'Italiano',
-  'pt-BR': 'Português (Brasil)',
-  'pt-PT': 'Português (Portugal)',
-  'ru-RU': 'Русский',
-  'nb-NO': 'Norsk (bokmål)',
+/// Short UI labels for [kSupportedLookupLanguageTags] (lookup sheet pills /
+/// picker) — each lookup descriptor row's endonym [LanguageDescriptorRow.lookupLabel].
+final Map<String, String> kLookupLanguageLabels = <String, String>{
+  for (final row in kLanguageDescriptorRows)
+    if (row.lookupLabel case final label?) row.tag: label,
 };
 
 /// Lookup-sheet source / target catalog (separate from profile / focus / media
@@ -149,24 +88,18 @@ const Map<String, String> kLookupLanguageLabels = <String, String>{
 ///
 /// First-wave tags cover the top languages requested by Enjoy Player users as
 /// of 2026-07-08 and overlap with the Azure pronunciation-assessment locale
-/// table where relevant.
-const List<String> kSupportedLookupLanguageTags = <String>[
-  'en-US',
-  'en-GB',
-  'zh-CN',
-  'ja-JP',
-  'ko-KR',
-  'es-ES',
-  'es-MX',
-  'fr-FR',
-  'fr-CA',
-  'de-DE',
-  'it-IT',
-  'pt-BR',
-  'pt-PT',
-  'ru-RU',
-  'nb-NO',
-];
+/// table where relevant. Derived: the descriptor rows carrying a lookup label,
+/// in table order — "every lookup tag has a label" holds by construction.
+final List<String> kSupportedLookupLanguageTags = _tagsWhere(
+  (row) => row.isLookupRow,
+);
+
+/// Descriptor rows (in table order) whose [test] passes, as their tags.
+List<String> _tagsWhere(bool Function(LanguageDescriptorRow row) test) =>
+    <String>[
+      for (final row in kLanguageDescriptorRows)
+        if (test(row)) row.tag,
+    ];
 
 /// Sorts [tags] with the user's learning language first (primary-subtag
 /// match), then alphabetical by primary subtag, then by region subtag.
@@ -208,35 +141,6 @@ bool isValidLanguageTag(String? tag) {
   final primary = primaryLanguageSubtag(trimmed);
   if (primary.isEmpty) return false;
   return !kInvalidLanguageTags.contains(primary);
-}
-
-/// Resolves legacy aliases such as `kor` → `ko`.
-String normalizeLanguageAlias(String tag) {
-  final trimmed = tag.trim();
-  if (trimmed.isEmpty) return trimmed;
-  final lower = trimmed.toLowerCase();
-  final alias = kLanguageTagAliases[lower];
-  if (alias != null) return alias;
-  if (lower.contains('-') || lower.contains('_')) {
-    final parts = _splitLanguageTag(lower);
-    final primary = parts.first;
-    final aliased = kLanguageTagAliases[primary];
-    if (aliased != null && parts.length >= 2) {
-      return '$aliased-${parts[1].toUpperCase()}';
-    }
-  }
-  return trimmed;
-}
-
-/// Primary language subtag of [tag], lowercased (`en-US` → `en`, `kor` → `ko`).
-///
-/// Normalizes legacy aliases first (e.g. `kor` → `ko`) via [normalizeLanguageAlias],
-/// then splits on `-` / `_` and returns the first subtag lowercased. Shared by the
-/// catalog resolvers and the lookup language resolvers so both use one definition
-/// of "same language" (see [matchesLanguageBroad], [resolveLookupSource], etc.).
-String primaryLanguageSubtag(String tag) {
-  final normalized = normalizeLanguageAlias(tag);
-  return _splitLanguageTag(normalized).first.toLowerCase();
 }
 
 /// Maps a tag to a supported native tag (`en-US` / `zh-CN`), or `null` if unknown/invalid.
@@ -372,13 +276,13 @@ bool isAzurePronunciationAssessmentSupportedForPractice(
 String workerLanguageBase(String tag) {
   final t = normalizeLanguageAlias(tag.trim());
   if (t.isEmpty) return 'en';
-  return _splitLanguageTag(t).first.toLowerCase();
+  return splitLanguageTag(t).first.toLowerCase();
 }
 
 String normalizeBcp47Tag(String tag) {
   final t = normalizeLanguageAlias(tag.trim());
   if (t.isEmpty) return t;
-  final parts = _splitLanguageTag(t);
+  final parts = splitLanguageTag(t);
   if (parts.length >= 2) {
     return '${parts[0].toLowerCase()}-${parts[1].toUpperCase()}';
   }
@@ -423,7 +327,7 @@ String localeToBcp47(Locale locale) => locale.toLanguageTag();
 /// Maps [locale] to a supported display locale, or [kAppDefaultDisplayLocale].
 Locale displayLocaleFromRawOrDefault(String? raw) {
   if (raw == null || raw.trim().isEmpty) return kAppDefaultDisplayLocale;
-  final parts = _splitLanguageTag(raw.trim());
+  final parts = splitLanguageTag(raw.trim());
   // Normalize for case-insensitive match against [kAppDisplayLocales] (the
   // catalog stores BCP-47 canonical form: lowercase language, uppercase region).
   final Locale candidate = parts.length >= 2
