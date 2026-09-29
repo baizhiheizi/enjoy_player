@@ -93,15 +93,19 @@ bool _looksSilent(WavPeakScan scan) {
 /// Returns `true` when [outputWavPath] exists, has at least 100 bytes, and
 /// passes a non-silent peak/RMS check (guards against empty FFmpeg decode).
 ///
-/// On Windows the ffmpeg invocation runs in a worker isolate (via
-/// [Isolate.run]) so a long re-encode does not block the UI thread.
+/// The peak scans and the Windows ffmpeg invocation run in worker isolates
+/// (via [Isolate.run]) so the multi-MB reads and the re-encode never block
+/// the UI thread.
 Future<bool> normalizeWavForAzureAssessment({
   required String inputPath,
   required String outputWavPath,
 }) async {
   if (inputPath.trim().isEmpty) return false;
 
-  final inScan = await scanWavDataPeakFromFile(inputPath);
+  final inScan = await Isolate.run(
+    () => scanWavDataPeakFromFile(inputPath),
+    debugName: 'azure-wav-peak-scan',
+  );
   if (inScan != null) {
     _log.fine(
       'normalizeWav: input fmt=${inScan.fmt.audioFormat} ch=${inScan.fmt.numChannels} '
@@ -166,7 +170,10 @@ Future<bool> normalizeWavForAzureAssessment({
     return false;
   }
 
-  final outScan = await scanWavDataPeakFromFile(outputWavPath);
+  final outScan = await Isolate.run(
+    () => scanWavDataPeakFromFile(outputWavPath),
+    debugName: 'azure-wav-peak-scan',
+  );
   if (outScan == null) {
     _log.fine('normalizeWav: could not parse output WAV for peak check');
     return true;
