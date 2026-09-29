@@ -110,7 +110,7 @@ Source, releases and changelog: **[github.com/baizhiheizi/enjoy_player](https://
 
 ## Open source & built with care
 
-- **Player** — [media_kit](https://pub.dev/packages/media_kit) on a single shared engine ([ADR-0003](docs/decisions/0003-player-engine.md))
+- **Player** — [media_kit](https://pub.dev/packages/media_kit) on a single shared engine ([ADR-0003](docs/decisions/0003-player-core-media-kit.md))
 - **State** — [Riverpod 3](https://pub.dev/packages/flutter_riverpod) + `riverpod_annotation`
 - **Storage** — [Drift](https://pub.dev/packages/drift) (SQLite) for every persisted byte
 - **Speech** — Azure pronunciation assessment + native FFmpeg pitch analysis
@@ -126,7 +126,7 @@ dart run build_runner build   # after Drift / Riverpod annotation changes
 flutter run
 ```
 
-Platform toolchain notes: macOS needs Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`; Windows needs the NuGet CLI on `PATH` for `flutter_inappwebview`; Linux needs `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`. Full prerequisites and CI gates: [AGENTS.md](AGENTS.md).
+Platform toolchain notes: macOS needs Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`; Windows needs the NuGet CLI on `PATH` for `flutter_inappwebview`; Linux needs `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`. Full release prerequisites: [docs/packaging.md](docs/packaging.md). CI gates and agent rules: [AGENTS.md](AGENTS.md).
 
 ---
 

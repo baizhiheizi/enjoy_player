@@ -32,6 +32,7 @@ Maintainers and agents should keep these files **accurate** when behavior or arc
 | [features/cloud.md](features/cloud.md) | Product + dev | Remote media index (add-to-library) behavior changes |
 | [features/youtube.md](features/youtube.md) | Product + dev | YouTube import, WebView playback, login, transcripts behavior changes |
 | [features/diagnostics.md](features/diagnostics.md) | Product + dev | Local diagnostic logging, export, and privacy behavior changes |
+| [features/analytics.md](features/analytics.md) | Product + dev | PostHog product analytics (opt-out, capture matrix, `Analytics` facade) behavior changes |
 | [features/discover.md](features/discover.md) | Product + dev | YouTube Discover feeds, subscriptions, add-to-library behavior changes |
 | [features/dictionary-lookup.md](features/dictionary-lookup.md) | Product + dev | Transcript selection lookup (translation / contextual / dictionary) behavior changes |
 | [features/vocabulary.md](features/vocabulary.md) | Product + dev | Vocabulary book, SRS review, add-from-lookup, Anki export, or vocab sync behavior changes |

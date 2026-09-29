@@ -29,9 +29,9 @@ When a failing test blocks the tree, the smallest reproducer is one focused test
 flutter test test/path/to/specific_test.dart -n testName
 ```
 
-Runtime logs (redacted; INFO+ by default, FINE+ when **Settings → About → Diagnostic logging** is on) land at `{applicationSupport}/logs/enjoy-player.log` (rotated: `enjoy-player.log`, `.1`, `.2`, ~2 MB each). Per platform: Windows `%APPDATA%\Enjoy\Enjoy Player\logs\`, macOS `~/Library/Application Support/Enjoy/logs/`, Linux `~/.local/share/enjoy/logs/`, iOS / Android inside the app sandbox (export via **Settings → About → Export diagnostic report**).
+Runtime logs (redacted; INFO+ by default, FINE+ when **Settings → About → Diagnostic logging** is on) land at `{applicationSupport}/logs/enjoy-player.log` (rotated: `enjoy-player.log`, `.1`, `.2`, ~2 MB each). Per platform: Windows `%APPDATA%\Enjoy\Enjoy Player\logs\`, macOS `~/Library/Application Support/ai.enjoy.player/logs/`, Linux `~/.local/share/ai.enjoy.player.enjoy_player/logs/`, iOS / Android inside the app sandbox (export via **Settings → About → Export diagnostic report**).
 
-The first line of a fresh log is a **session banner** — `app=<version>+<buildNumber> platform=<os> mode=<debug|profile|release> channel=<distributionChannel> locale=<localeTag> diagnosticVerbose=<bool>` — that ties every subsequent line to one cold start; treat that banner as the correlation identity when triaging a user report. New code uses [`logNamed`](lib/core/logging/log.dart) (never `print()`) — see [conventions.md § Logging](docs/conventions.md#logging) and [diagnostics.md](docs/features/diagnostics.md).
+The first line of a fresh log is a **session banner** — `app=<version>+<buildNumber> platform=<os> mode=<debug|profile|release> channel=<distributionChannel> locale=<localeTag> diagnosticVerbose=<bool> exe=<path>` — that ties every subsequent line to one cold start; treat that banner as the correlation identity when triaging a user report. New code uses [`logNamed`](lib/core/logging/log.dart) (never `print()`) — see [conventions.md § Logging](docs/conventions.md#logging) and [diagnostics.md](docs/features/diagnostics.md).
 
 ## Lookup language catalog
 

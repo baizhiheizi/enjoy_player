@@ -110,7 +110,7 @@
 
 ## 开源 & 用心打造
 
-- **播放器** —— [media_kit](https://pub.dev/packages/media_kit)，全应用唯一引擎（[ADR-0003](docs/decisions/0003-player-engine.md)）
+- **播放器** —— [media_kit](https://pub.dev/packages/media_kit)，全应用唯一引擎（[ADR-0003](docs/decisions/0003-player-core-media-kit.md)）
 - **状态管理** —— [Riverpod 3](https://pub.dev/packages/flutter_riverpod) + `riverpod_annotation`
 - **存储** —— [Drift](https://pub.dev/packages/drift)（SQLite），所有持久化数据
 - **语音** —— Azure 发音评估 + 原生 FFmpeg 音高分析
@@ -126,7 +126,7 @@ dart run build_runner build   # 修改 Drift / Riverpod 注解后需要执行
 flutter run
 ```
 
-平台工具链要点：macOS 需要 Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`；Windows 需要把 NuGet 加入 `PATH`（`flutter_inappwebview` 依赖）；Linux 需要 `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`。完整前置条件与 CI 校验：[AGENTS.md](AGENTS.md)。
+平台工具链要点：macOS 需要 Xcode + CocoaPods + `brew bundle install --file=macos/Brewfile`；Windows 需要把 NuGet 加入 `PATH`（`flutter_inappwebview` 依赖）；Linux 需要 `clang cmake ninja-build libgtk-3-dev libsqlite3-dev ffmpeg`。完整发布前置条件见 [docs/packaging.md](docs/packaging.md)；CI 校验与代理规则见 [AGENTS.md](AGENTS.md)。
 
 ---
 
