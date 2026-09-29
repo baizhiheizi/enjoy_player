@@ -15,6 +15,7 @@ class GlassSurface extends StatelessWidget {
     this.sigma,
     this.padding,
     this.borderRadius = 0,
+    this.shape,
     super.key,
   });
 
@@ -26,12 +27,23 @@ class GlassSurface extends StatelessWidget {
   /// callers; the floating transport passes [EnjoyThemeTokens.radiusXl].
   final double borderRadius;
 
+  /// Optional outline override for non-rectangular chrome — the circular
+  /// player collapse control passes [CircleBorder]. When null (the default)
+  /// the surface clips to a [RoundedSuperellipseBorder] built from
+  /// [borderRadius]. The tint fill, hairline, and blur sigma always come from
+  /// [EnjoyThemeTokens].
+  final OutlinedBorder? shape;
+
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final blurRaw = sigma ?? t.miniBarBlurSigma;
     final blur = _effectiveTransportBlur(blurRaw);
     final radius = BorderRadius.circular(borderRadius);
+    final side = BorderSide(color: t.glassBorder);
+    final outline =
+        shape?.copyWith(side: side) ??
+        RoundedSuperellipseBorder(borderRadius: radius, side: side);
 
     Widget inner = Material(color: Colors.transparent, child: child);
 
@@ -43,31 +55,27 @@ class GlassSurface extends StatelessWidget {
       return DecoratedBox(
         decoration: ShapeDecoration(
           color: t.popover.withValues(alpha: 0.96),
-          shape: RoundedSuperellipseBorder(
-            borderRadius: radius,
-            side: BorderSide(color: t.glassBorder),
-          ),
+          shape: outline,
         ),
         child: inner,
       );
     }
 
-    return ClipRSuperellipse(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            color: t.glassTint,
-            shape: RoundedSuperellipseBorder(
-              borderRadius: radius,
-              side: BorderSide(color: t.glassBorder),
-            ),
-          ),
-          child: inner,
-        ),
+    final Widget blurred = BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(color: t.glassTint, shape: outline),
+        child: inner,
       ),
     );
+
+    if (shape != null) {
+      return ClipPath(
+        clipper: ShapeBorderClipper(shape: outline),
+        child: blurred,
+      );
+    }
+    return ClipRSuperellipse(borderRadius: radius, child: blurred);
   }
 }
 

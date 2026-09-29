@@ -119,7 +119,7 @@ Focus ring: 2px iris ink
 | `showEnjoySheet` / `showEnjoyAdaptiveSheet` / `showEnjoyAlertDialog` / `showEnjoyDialog` | `core/theme/widgets/enjoy_modal.dart` | Popover-surface sheets / dialogs, shared scrim + `enjoyDialogAnimationStyle` |
 | `SheetDragHandle` / `PaddedSheetDragHandle` | `core/theme/widgets/sheet_drag_handle.dart` | 36×5 grabber |
 | `MediaCardTile` / `MediaCardRow` | `core/theme/widgets/media_card.dart` (→ `media_card/`) | Poster tile (artwork is the card) / list row |
-| `GlassSurface` | `core/theme/widgets/glass_surface.dart` | Frosted floating chrome (transport) |
+| `GlassSurface` | `core/theme/widgets/glass_surface.dart` | Frosted floating chrome (transport capsule, circular player collapse control); optional `shape` override for non-rectangular outlines |
 | `SettingsRow` / `SettingsRowDivider` / `SettingsValuePill` | `features/settings/presentation/widgets/settings_row.dart` | Grouped-list row with icon tile, value, chevron |
 | `AppNotice` | `core/notices/app_notice.dart` | Dark toast with semantic glyph |
 | `Skeleton` (+ helpers) | `core/theme/widgets/skeleton.dart` | Shimmer placeholders; see [skeleton-loading.md](skeleton-loading.md) |
