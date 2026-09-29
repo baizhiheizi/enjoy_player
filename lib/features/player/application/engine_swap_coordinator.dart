@@ -121,6 +121,41 @@ class EngineSwapCoordinator {
     return previous;
   }
 
+  /// Runs [body]'s guarded swap steps; if any of them goes stale
+  /// ([OpenSupersededException], or staleness observed after [body]
+  /// returns), disposes [replacement] and restores [priorOwned]. Returns
+  /// `true` when every step landed with the generation still current.
+  Future<bool> _runSupersededSwapSteps({
+    required OpenSteps steps,
+    required PlayerEngine replacement,
+    required PlayerEngine? priorOwned,
+    required Future<void> Function() body,
+  }) async {
+    var superseded = false;
+    try {
+      await body();
+      superseded = steps.isStale();
+    } on OpenSupersededException {
+      superseded = true;
+    }
+    if (!superseded) return true;
+    try {
+      await replacement.dispose();
+    } on Object catch (error, stackTrace) {
+      // The restore below must run even when the replacement's dispose
+      // throws (it can be half-torn-down already) — otherwise the slot is
+      // left holding the abandoned engine.
+      _swapLog.warning(
+        'superseded replacement dispose failed '
+        '(${replacement.runtimeType}); restoring prior engine anyway',
+        error,
+        stackTrace,
+      );
+    }
+    _setOwnedEngine(priorOwned);
+    return false;
+  }
+
   /// Waits for [previous]'s platform view to drop (bounded by
   /// [kEngineSurfaceDetachTimeout]) and lets the surface settle
   /// ([kEngineSurfaceSettleDelay]) so MediaKit never allocates [Player] while
@@ -175,10 +210,11 @@ class EngineSwapCoordinator {
   /// stays black on Windows/Android until a later layout.
   ///
   /// After-await staleness delegates to the choreography's shared
-  /// [OpenSteps] mechanism (issue #750): each guarded step disposes the
-  /// not-yet-live replacement through `onSuperseded` and unwinds with
-  /// [OpenSupersededException], which this method translates back into the
-  /// `false` = "no swap landed" contract.
+  /// [OpenSteps] mechanism (issue #750): the guarded steps run inside
+  /// [_runSupersededSwapSteps], whose single unwind path disposes the
+  /// not-yet-live replacement and restores the prior owned engine whenever
+  /// [OpenSupersededException] unwinds (issue #774, item 1), which this
+  /// method translates back into the `false` = "no swap landed" contract.
   Future<bool> ensureEngineForPlayableSource({
     required PlayableSource playable,
     required int openGeneration,
@@ -208,46 +244,31 @@ class EngineSwapCoordinator {
 
     final next = wantYt ? YoutubePlayerEngine() : MediaKitPlayerEngine();
     install(next);
-    // Let PlayerSurfaceHost drop the old ObjectKey stage before teardown.
-    // MediaKit must not allocate [Player] yet — [prepareNativeBackend] runs
-    // only after the prior surface has detached.
-    try {
-      await steps.run(
-        'yield to surface host',
-        () => Future<void>.delayed(Duration.zero),
-        onSuperseded: () => next.dispose(),
-      );
-    } on OpenSupersededException {
-      // Restore the prior owned engine to the slot before returning so the
-      // abandoned `next` (already disposed by [OpenSteps]'s
-      // `onSuperseded` hook) does not leave the identity slot holding a
-      // disposed engine (issue #774, item 1).
-      _setOwnedEngine(owned);
-      return false;
-    }
-    if (owned != null) {
-      try {
+    // Every guarded step below runs inside [_runSupersededSwapSteps] — the
+    // one supersede-unwind path (issue #774, item 1): on staleness it
+    // disposes the abandoned `next` and restores `owned`.
+    final landed = await _runSupersededSwapSteps(
+      steps: steps,
+      replacement: next,
+      priorOwned: owned,
+      body: () async {
+        // Let PlayerSurfaceHost drop the old ObjectKey stage before
+        // teardown. MediaKit must not allocate [Player] yet —
+        // [prepareNativeBackend] runs only after the prior surface has
+        // detached.
+        await steps.run(
+          'yield to surface host',
+          () => Future<void>.delayed(Duration.zero),
+        );
+        if (owned == null) return;
         await steps.run(
           'await prior surface detach',
           () => awaitPriorSurfaceSettled(owned),
-          onSuperseded: () => next.dispose(),
         );
-      } on OpenSupersededException {
-        // Same restoration as above — the prior surface is still live (we
-        // never reached [discardWithoutAwaiting]) so `owned` is a valid
-        // engine to keep in the slot.
-        _setOwnedEngine(owned);
-        return false;
-      }
-      discardWithoutAwaiting(owned);
-    }
-    if (steps.isStale()) {
-      await next.dispose();
-      // A fresh open moved the generation while we were awaiting — restore
-      // the prior owned engine so the slot never holds a disposed engine.
-      _setOwnedEngine(owned);
-      return false;
-    }
+        discardWithoutAwaiting(owned);
+      },
+    );
+    if (!landed) return false;
     next.prepareNativeBackend();
     // Arming the native backend flips the engine's nativeBackendAllowed
     // listenable: an already-mounted MediaKit stage rebuilds and mounts
