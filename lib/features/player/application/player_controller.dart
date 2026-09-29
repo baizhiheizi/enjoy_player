@@ -4,8 +4,10 @@ library;
 import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/features/library/application/library_repository_provider.dart';
@@ -15,7 +17,7 @@ import 'package:enjoy_player/features/player/application/engine_swap_coordinator
 import 'package:enjoy_player/features/player/application/engines/media_kit/media_kit_player_engine.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_engine.dart';
-import 'package:enjoy_player/features/player/application/player_engine_capabilities.dart';
+import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/player_engine_identity.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
@@ -36,6 +38,8 @@ import 'player_open_side_effects.dart';
 import 'video_poster_capture_service.dart';
 
 part 'player_controller.g.dart';
+
+final _log = logNamed('PlayerController');
 
 /// Deterministic end-of-media completion loop (ADR-0044).
 ///
@@ -115,6 +119,18 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   );
 
   bool _disposed = false;
+
+  /// Test seam for the warmed-engine idle window — production always uses
+  /// [kWarmedYoutubeSurfaceEvictionDelay].
+  @visibleForTesting
+  static Duration warmedYoutubeEvictionDelay =
+      kWarmedYoutubeSurfaceEvictionDelay;
+
+  /// Idle eviction for the speculatively warmed YouTube engine (issue #810 G):
+  /// re-armed by every [warmYoutubeSurface], cancelled by any open and by
+  /// teardown. Eviction detaches the owned slot first so [PlayerSurfaceHost]
+  /// drops the stage, then disposes the engine after its WebView unmounts.
+  Timer? _warmedYoutubeEviction;
 
   /// Native (mpv) teardown future, captured so an explicit caller (tests, a
   /// future logout flow) can await disposal. Riverpod's `ref.onDispose` is
@@ -234,6 +250,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
   Future<void> _disposeResources(PlaybackSessionPersister persister) async {
     if (_disposed) return;
     _disposed = true;
+    _warmedYoutubeEviction?.cancel();
+    _warmedYoutubeEviction = null;
     _completionLoop.bump();
     persister.cancel();
     await _positionTracker.cancel();
@@ -267,6 +285,8 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
 
     final gen = _openGate.bump();
     _engineSwap.markOpenInFlight();
+    _warmedYoutubeEviction?.cancel();
+    _warmedYoutubeEviction = null;
     _completionLoop.bump();
 
     try {
@@ -364,15 +384,51 @@ class PlayerController extends _$PlayerController implements PlayerOpenScope {
     if (_disposed || state != null || _engineSwap.isOpenInFlight) return;
 
     final owned = ownedEngine;
-    if (owned != null && owned is YoutubePlaybackEngine) {
+    if (owned != null && owned is YoutubePlayerEngine) {
       owned.warmVideoSurface();
+      _scheduleWarmedYoutubeEviction(owned);
       return;
     }
     if (owned != null) {
       return;
     }
-    _engineSwap.install(YoutubePlayerEngine());
-    ownedEngine!.warmVideoSurface();
+    final engine = YoutubePlayerEngine();
+    _engineSwap.install(engine);
+    engine.warmVideoSurface();
+    _scheduleWarmedYoutubeEviction(engine);
+  }
+
+  void _scheduleWarmedYoutubeEviction(YoutubePlayerEngine engine) {
+    _warmedYoutubeEviction?.cancel();
+    _warmedYoutubeEviction = Timer(warmedYoutubeEvictionDelay, () {
+      _warmedYoutubeEviction = null;
+      unawaited(_evictWarmedYoutubeEngine(engine));
+    });
+  }
+
+  /// Tears down the warmed engine once the idle window elapsed without an
+  /// open. Guards: an open landed since (session live or open in flight), the
+  /// engine was swapped out, or the controller died — then the timer stays
+  /// cancelled and the engine's lifecycle belongs to that path instead.
+  Future<void> _evictWarmedYoutubeEngine(YoutubePlayerEngine engine) async {
+    if (_disposed || !identical(ownedEngine, engine)) return;
+    if (state != null || _engineSwap.isOpenInFlight) return;
+
+    engineIdentity.setOwned(null);
+    try {
+      await engine.awaitSurfaceDetached().timeout(kEngineSurfaceDetachTimeout);
+    } on TimeoutException {
+      _log.warning(
+        'warmed YouTube engine surface detach timed out after '
+        '$kEngineSurfaceDetachTimeout; evicting anyway',
+      );
+    }
+    await Future<void>.delayed(kEngineSurfaceSettleDelay);
+    await engine.dispose();
+    _log.info(
+      'evicted warmed YouTube engine after $warmedYoutubeEvictionDelay '
+      'idle without an open',
+    );
   }
 
   void abandonPendingOpen() {

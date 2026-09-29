@@ -47,3 +47,9 @@ const Duration kEngineSurfaceDetachTimeout = Duration(seconds: 2);
 /// Pause after the YouTube WebView reports unmounted so the native view
 /// can finish destroying before [mk.Player] is constructed.
 const Duration kEngineSurfaceSettleDelay = Duration(milliseconds: 150);
+
+/// Idle window after a speculative YouTube warm install (Discover scroll)
+/// before the engine and its off-screen WebView are evicted when no open
+/// landed (issue #810 G): without it the WebView memory floor persists for
+/// the whole session after merely browsing.
+const Duration kWarmedYoutubeSurfaceEvictionDelay = Duration(minutes: 3);

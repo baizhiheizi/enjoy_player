@@ -654,6 +654,66 @@ void main() {
         return driver.calls - start;
       }
 
+      testWidgets(
+        'a long-quiet confirmed pause escalates to the deep backoff (issue '
+        '#810 G); a play intent restores the fast cadence',
+        (tester) async {
+          final driver = _FakePollDriver();
+          final quietClock = FakeMonotonicClock();
+          const escalationAfter = Duration(minutes: 2);
+          const deepBackoff = Duration(seconds: 30);
+          final loop = YoutubeWebViewPollLoop(
+            session: session,
+            jsChannel: () => null,
+            onFirstPlaying: session.markFirstPlayingLogged,
+            pollFn: driver.poll,
+            quietEscalationAfter: escalationAfter,
+            quietPollBackoff: deepBackoff,
+            clock: quietClock,
+          );
+          session.emitPlaying(true);
+
+          loop.start();
+          for (var i = 1; i <= 4; i++) {
+            await tester.pump(loop.pollTick);
+            await tester.idle();
+            driver.emit(
+              position: Duration(milliseconds: 250 * i),
+              jsPaused: false,
+            );
+          }
+          for (var i = 0; i < YoutubeSession.pauseConfirmPollTicks; i++) {
+            await tester.pump(loop.pollTick);
+            await tester.idle();
+            driver.emit(position: const Duration(seconds: 30), jsPaused: true);
+          }
+          await tester.pump(loop.pollTick);
+          await tester.idle();
+          driver.emit(position: const Duration(seconds: 30), jsPaused: true);
+          expect(
+            await readsOver(tester, driver, const Duration(seconds: 2)),
+            2,
+            reason: 'pre-escalation: still the ~1/s backoff',
+          );
+
+          quietClock.advance(escalationAfter);
+          expect(
+            await readsOver(tester, driver, deepBackoff),
+            1,
+            reason: 'past the quiet window the loop samples ~once per 30 s',
+          );
+
+          loop.start();
+          expect(
+            await readsOver(tester, driver, const Duration(seconds: 1)),
+            4,
+            reason: 'a play intent re-arms the fast cadence immediately',
+          );
+
+          loop.stop();
+        },
+      );
+
       testWidgets('playing is sampled every pollTick', (tester) async {
         final driver = _FakePollDriver();
         final loop = buildLoop(driver);
