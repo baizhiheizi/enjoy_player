@@ -84,11 +84,13 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     try {
       final list = await api.transcripts(targetId: mediaId, targetType: tt);
       final now = DateTime.now();
-      final rowsToUpsert = <TranscriptRow>[];
-      for (final item in list) {
-        final row = await _transcriptRowFromServerMap(item, fallbackNow: now);
-        if (row != null) rowsToUpsert.add(row);
-      }
+      final mapped = await Future.wait(
+        list.map((item) => _transcriptRowFromServerMap(item, fallbackNow: now)),
+      );
+      final rowsToUpsert = <TranscriptRow>[
+        for (final row in mapped)
+          if (row != null) row,
+      ];
       if (rowsToUpsert.isNotEmpty) {
         await _db.transcriptDao.upsertAll(rowsToUpsert);
       }

@@ -36,26 +36,34 @@ class AutoTranslateCtrl extends _$AutoTranslateCtrl {
   final _waiting = ListQueue<int>();
   final _forceRefreshLines = <int>{};
   var _hydrateRunId = 0;
-  TranscriptRepository? _flushHookRepo;
+  final _flushHookRepos = <TranscriptRepository>[];
 
-  /// Repository access for this controller; the first successful read also
-  /// hooks the pending-write flush onto this provider's disposal (issue
-  /// #810 D1). Kept out of [build] on purpose: the repository depends on the
+  /// Repository access for this controller. Every distinct instance read
+  /// here is registered for the disposal flush of its pending writes (issue
+  /// #810 D1): the write buffer lives per repository, and the auth-scoped
+  /// database can swap the provider's instance under a live controller.
+  /// Kept out of [build] on purpose: the repository depends on the
   /// auth-scoped database, which is unavailable while signed out, and the
   /// transcript chrome builds this controller regardless of auth.
   TranscriptRepository _repo() {
     final repo = ref.read(transcriptRepositoryProvider);
-    if (_flushHookRepo == null) {
-      _flushHookRepo = repo;
-      ref.onDispose(() {
-        unawaited(
-          repo.flushAutoTranslateWrites().catchError((Object e, StackTrace st) {
-            _log.warning('auto-translate dispose flush failed', e, st);
-          }),
-        );
-      });
+    if (_flushHookRepos.isEmpty) {
+      ref.onDispose(_flushRegisteredRepos);
+    }
+    if (!_flushHookRepos.contains(repo)) {
+      _flushHookRepos.add(repo);
     }
     return repo;
+  }
+
+  void _flushRegisteredRepos() {
+    for (final repo in _flushHookRepos) {
+      unawaited(
+        repo.flushAutoTranslateWrites().catchError((Object e, StackTrace st) {
+          _log.warning('auto-translate dispose flush failed', e, st);
+        }),
+      );
+    }
   }
 
   @override

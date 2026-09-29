@@ -181,6 +181,31 @@ void main() {
       expect(identical(first, second), isTrue);
     });
 
+    test('a cache hit does not require timelineJson', () {
+      final cache = TranscriptTimelineCache();
+      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final revision = revisionFor(json, DateTime.utc(2026));
+
+      final first = cache.linesFor(
+        rowId: 'r1',
+        revision: revision,
+        timelineJson: json,
+      );
+      final hit = cache.linesFor(rowId: 'r1', revision: revision);
+      expect(identical(hit, first), isTrue);
+    });
+
+    test('a miss without timelineJson throws StateError', () {
+      final cache = TranscriptTimelineCache();
+      final json = timelineJson([lineJson(startMs: 0, durationMs: 100)]);
+      final revision = revisionFor(json, DateTime.utc(2026));
+
+      expect(
+        () => cache.linesFor(rowId: 'r1', revision: revision),
+        throwsStateError,
+      );
+    });
+
     test('issue #659: a revision change under the same row id re-decodes', () {
       final cache = TranscriptTimelineCache();
       final before = timelineJson([

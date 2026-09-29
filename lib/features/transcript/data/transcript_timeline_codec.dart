@@ -164,15 +164,22 @@ class TranscriptTimelineCache {
     capacity: kTranscriptTimelineMemoCapacity,
   );
 
-  /// Decoded lines for `(rowId, revision)`, memoized; [timelineJson] is
-  /// only decoded on a miss.
+  /// Decoded lines for `(rowId, revision)`, memoized. [timelineJson] is
+  /// decoded only on a miss, so callers holding a guaranteed cache hit may
+  /// omit it; a miss without it throws [StateError].
   List<TranscriptLine> linesFor({
     required String rowId,
     required TranscriptTimelineRevision revision,
-    required String timelineJson,
+    String? timelineJson,
   }) {
     final hit = _entries.peek(rowId);
     if (hit != null && hit.revision == revision) return hit.lines;
+    if (timelineJson == null) {
+      throw StateError(
+        'TranscriptTimelineCache.linesFor miss for row $rowId at revision '
+        '$revision requires timelineJson',
+      );
+    }
     final decoded = decodeTimelineJson(timelineJson);
     _entries.put(rowId, _CachedLines(revision, decoded));
     return decoded;
