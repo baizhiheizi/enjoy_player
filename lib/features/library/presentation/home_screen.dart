@@ -13,7 +13,6 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/presentation/language_labels.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
@@ -408,12 +407,10 @@ class _HomeInsightCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isSignedIn = ref.watch(
-      authCtrlProvider.select((a) => a.valueOrNull is AuthSignedIn),
-    );
-    final t = EnjoyThemeTokens.of(context);
+    final isSignedIn = ref.watch(authIsSignedInProvider);
 
     if (!isSignedIn) return const SizedBox.shrink();
+    final t = EnjoyThemeTokens.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {

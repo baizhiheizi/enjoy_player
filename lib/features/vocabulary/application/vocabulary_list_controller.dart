@@ -5,8 +5,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
-import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 
 const Duration kVocabularySearchDebounce = Duration(milliseconds: 150);
@@ -115,23 +113,3 @@ List<VocabularyItem> filterVocabularyItems(
   }
   return result.toList();
 }
-
-/// Distinct, sorted languages across all items — derived in a provider so
-/// the word list's every rebuild no longer re-walks the whole list (issue
-/// #827 C2). Recomputes only when the item list actually changes.
-final vocabularyListLanguagesProvider = Provider<List<String>>((ref) {
-  final items =
-      ref.watch(vocabularyItemsProvider).valueOrNull ??
-      const <VocabularyItem>[];
-  return items.map((i) => i.language).toSet().toList()..sort();
-});
-
-/// [filterVocabularyItems] keyed on `(items, filters)` — the word list
-/// watches this instead of re-filtering inside `build` on every rebuild
-/// (issue #827 C2).
-final vocabularyVisibleItemsProvider = Provider<List<VocabularyItem>>((ref) {
-  final items =
-      ref.watch(vocabularyItemsProvider).valueOrNull ??
-      const <VocabularyItem>[];
-  return filterVocabularyItems(items, ref.watch(vocabularyListFiltersProvider));
-});

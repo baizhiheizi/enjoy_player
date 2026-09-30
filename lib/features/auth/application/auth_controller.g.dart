@@ -52,3 +52,57 @@ abstract class _$AuthCtrl extends $AsyncNotifier<AuthState> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// Whether the session is signed in, leaf-scoped off [AuthCtrl] so
+/// profile refreshes (credits, avatar, name) do not rebuild consumers —
+/// one definition of the projection instead of a `select` per call site
+/// (issue #827 C1).
+
+@ProviderFor(authIsSignedIn)
+final authIsSignedInProvider = AuthIsSignedInProvider._();
+
+/// Whether the session is signed in, leaf-scoped off [AuthCtrl] so
+/// profile refreshes (credits, avatar, name) do not rebuild consumers —
+/// one definition of the projection instead of a `select` per call site
+/// (issue #827 C1).
+
+final class AuthIsSignedInProvider extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether the session is signed in, leaf-scoped off [AuthCtrl] so
+  /// profile refreshes (credits, avatar, name) do not rebuild consumers —
+  /// one definition of the projection instead of a `select` per call site
+  /// (issue #827 C1).
+  AuthIsSignedInProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authIsSignedInProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authIsSignedInHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return authIsSignedIn(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$authIsSignedInHash() => r'92c39b4b6007b1ac44c75c2536b811c850b256b1';

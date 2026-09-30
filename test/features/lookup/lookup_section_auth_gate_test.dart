@@ -37,6 +37,28 @@ class _AuthLoadingCtrl extends AuthCtrl {
   }
 }
 
+/// First build emits a signed-in state; a later rebuild (invalidate /
+/// refresh) fails, leaving an error state whose previous value is still
+/// the signed-in one.
+class _AuthRefreshFailCtrl extends AuthCtrl {
+  bool _threw = false;
+
+  @override
+  Future<AuthState> build() async {
+    if (_threw) {
+      throw StateError('refresh blew up');
+    }
+    _threw = true;
+    return const AuthSignedIn(
+      profile: UserProfile(
+        id: 'test-user',
+        email: 't@example.com',
+        name: 'Test',
+      ),
+    );
+  }
+}
+
 Widget _app({required List<Override> overrides, required Widget child}) {
   return ProviderScope(
     overrides: overrides,
@@ -118,6 +140,38 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(childMarker), findsNothing);
+    expect(find.byType(AuthRequiredCallout), findsOneWidget);
+  });
+
+  testWidgets('a failed refresh that still carries a signed-in previous value '
+      'renders the callout, not the child (issue #827 C1 review)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        overrides: [authCtrlProvider.overrideWith(_AuthRefreshFailCtrl.new)],
+        child: const LookupSectionAuthGate(
+          surface: AuthRequiredSurface.lookupTranslation,
+          child: SizedBox(key: childMarker),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(childMarker), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(LookupSectionAuthGate)),
+    );
+    container.invalidate(authCtrlProvider);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(childMarker),
+      findsNothing,
+      reason:
+          'terminal error must gate the child even when the '
+          'previous value was signed in',
+    );
     expect(find.byType(AuthRequiredCallout), findsOneWidget);
   });
 }
