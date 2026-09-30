@@ -4,6 +4,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -23,6 +24,7 @@ class VoicePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final t = EnjoyThemeTokens.of(context);
     final baseLang = language.split('-').first.toLowerCase();
     final voices = voicesForLanguage(baseLang);
     final effectiveVoice =
@@ -32,8 +34,8 @@ class VoicePicker extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(EnjoyIcons.speak, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
+        Icon(EnjoyIcons.speak, size: 18, color: t.accentInk),
+        SizedBox(width: t.space8),
         Text(
           l10n.craftVoiceLabel,
           style: theme.textTheme.labelLarge?.copyWith(
@@ -41,7 +43,7 @@ class VoicePicker extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: t.space12),
         Expanded(
           child: voices.isEmpty
               ? Text(
@@ -59,7 +61,7 @@ class VoicePicker extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     isExpanded: true,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(t.radiusMd),
                     items: voices.map((v) {
                       return DropdownMenuItem(
                         value: v.id,

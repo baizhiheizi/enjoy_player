@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -183,6 +185,31 @@ void main() {
 
     expect(find.byIcon(EnjoyIcons.mic), findsWidgets);
     expect(find.byIcon(EnjoyIcons.edit), findsWidgets);
+  });
+
+  testWidgets('CraftScreen mode switcher is the Aurora segmented control', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(overrides: _baseOverrides()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EnjoySegmentedControl<CraftScreenMode>), findsOneWidget);
+    expect(find.byType(SegmentedButton<CraftScreenMode>), findsNothing);
+  });
+
+  testWidgets('CraftScreen history action is an EnjoyIconButton', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(overrides: _baseOverrides()));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.ancestor(
+        of: find.byIcon(EnjoyIcons.history),
+        matching: find.byType(EnjoyIconButton),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(

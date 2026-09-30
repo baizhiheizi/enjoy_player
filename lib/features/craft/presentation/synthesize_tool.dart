@@ -10,14 +10,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_lang_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
@@ -75,12 +79,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.craftSynthesizeTool,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          EnjoySectionHeader(title: l10n.craftSynthesizeTool),
           SizedBox(height: tokens.space16),
           _SynthLangTile(
             label: l10n.craftTargetLanguageLabel,
@@ -101,10 +100,14 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             decoration: InputDecoration(
               labelText: l10n.craftSynthText,
               hintText: l10n.craftTextInputHint,
-              border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(EnjoyIcons.paste, size: 18),
+              border: craftFieldBorder(tokens),
+              enabledBorder: craftFieldBorder(tokens),
+              focusedBorder: craftFieldBorder(tokens, focused: true),
+              suffixIcon: EnjoyIconButton(
+                icon: EnjoyIcons.paste,
                 tooltip: l10n.craftPasteFromClipboard,
+                variant: EnjoyButtonVariant.ghost,
+                size: 32,
                 onPressed: () => _paste(controller),
               ),
             ),
@@ -133,13 +136,7 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
           ),
           if (state.hasPreview) ...[
             SizedBox(height: tokens.space20),
-            Text(
-              l10n.craftPreviewLabel,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            EnjoySectionHeader(title: l10n.craftPreviewLabel),
             SizedBox(height: tokens.space8),
             _PreviewPlayer(
               audioBytes: state.previewAudioBytes!,
@@ -171,18 +168,19 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
                   Text(
                     state.failure!.message(l10n),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
+                      color: tokens.scoreBad,
+                      height: 1.4,
                     ),
                   ),
                   if (state.failure is CraftCreditsFailure)
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: EnjoyButton.ghost(
+                        size: EnjoyButtonSize.small,
+                        onPressed: () =>
+                            unawaited(context.push('/subscription')),
+                        child: Text(creditsCtaLabel(l10n)),
                       ),
-                      onPressed: () => unawaited(context.push('/subscription')),
-                      child: Text(creditsCtaLabel(l10n)),
                     ),
                 ],
               ),
@@ -227,8 +225,8 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
+                  const LoadingIcon(size: 28, strokeWidth: 2.5),
+                  SizedBox(height: EnjoyThemeTokens.of(context).space16),
                   Text(l10n.craftCraftingProgress),
                 ],
               ),
@@ -294,10 +292,11 @@ class _SynthLangTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     return CraftLangTile(
       onTap: onTap,
-      verticalPadding: EnjoyThemeTokens.of(context).space12,
+      verticalPadding: t.space12,
       child: Row(
         children: [
           Expanded(
@@ -310,12 +309,15 @@ class _SynthLangTile extends StatelessWidget {
           ),
           Text(
             value,
-            style: Theme.of(
+            style: enjoyMonoStyle(
               context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              size: 14,
+              weight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
           ),
-          SizedBox(width: EnjoyThemeTokens.of(context).space4),
-          Icon(EnjoyIcons.chevronRight, size: 20, color: cs.onSurfaceVariant),
+          SizedBox(width: t.space4),
+          Icon(EnjoyIcons.chevronRight, size: 18, color: t.textFaint),
         ],
       ),
     );
@@ -336,30 +338,36 @@ class _PreviewPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.45)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(isPlaying ? EnjoyIcons.pause : EnjoyIcons.play),
-              onPressed: onPlayPause,
-            ),
-            SizedBox(width: t.space8),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context)!.craftPreviewLabel,
-                style: Theme.of(context).textTheme.bodyMedium,
+    return EnjoyCard(
+      elevated: false,
+      radius: t.radiusMd,
+      padding: EdgeInsets.symmetric(horizontal: t.space8, vertical: t.space4),
+      child: Row(
+        children: [
+          EnjoyPressable(
+            onTap: onPlayPause,
+            shape: const CircleBorder(),
+            pressedScale: 0.95,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: Icon(
+                  isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
+                  size: 22,
+                  color: t.accentInk,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(width: t.space8),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context)!.craftPreviewLabel,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
       ),
     );
   }

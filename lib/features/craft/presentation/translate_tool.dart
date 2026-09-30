@@ -12,10 +12,13 @@ import 'package:go_router/go_router.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_lang_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
@@ -72,12 +75,7 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.craftTranslateTool,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          EnjoySectionHeader(title: l10n.craftTranslateTool),
           SizedBox(height: tokens.space16),
           _LanguageRow(
             sourceLabel: l10n.craftSourceLanguageLabel,
@@ -97,7 +95,18 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             TextField(
               decoration: InputDecoration(
                 hintText: l10n.craftCustomPromptHint,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(tokens.radiusMd),
+                  borderSide: BorderSide(color: tokens.hairline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(tokens.radiusMd),
+                  borderSide: BorderSide(color: tokens.hairline),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(tokens.radiusMd),
+                  borderSide: BorderSide(color: tokens.accentInk, width: 1.5),
+                ),
                 isDense: true,
               ),
               maxLines: 2,
@@ -112,10 +121,14 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
             decoration: InputDecoration(
               labelText: l10n.craftSourceText,
               hintText: l10n.craftTextInputHint,
-              border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(EnjoyIcons.paste, size: 18),
+              border: craftFieldBorder(tokens),
+              enabledBorder: craftFieldBorder(tokens),
+              focusedBorder: craftFieldBorder(tokens, focused: true),
+              suffixIcon: EnjoyIconButton(
+                icon: EnjoyIcons.paste,
                 tooltip: l10n.craftPasteFromClipboard,
+                variant: EnjoyButtonVariant.ghost,
+                size: 32,
                 onPressed: () => _paste(_sourceCtrl, controller.setSourceText),
               ),
             ),
@@ -142,19 +155,13 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
           ),
           if (state.translatedText != null) ...[
             SizedBox(height: tokens.space20),
-            Text(
-              l10n.craftTranslatedText,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            EnjoySectionHeader(title: l10n.craftTranslatedText),
             SizedBox(height: tokens.space8),
             TextField(
               controller: _resultCtrl,
               maxLines: 6,
               minLines: 3,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
+              decoration: InputDecoration(border: craftFieldBorder(tokens)),
               onChanged: controller.setTranslatedText,
             ),
             SizedBox(height: tokens.space12),
@@ -187,18 +194,19 @@ class _TranslateToolState extends ConsumerState<TranslateTool> {
                   Text(
                     state.failure!.message(l10n),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
+                      color: tokens.scoreBad,
+                      height: 1.4,
                     ),
                   ),
                   if (state.failure is CraftCreditsFailure)
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: EnjoyButton.ghost(
+                        size: EnjoyButtonSize.small,
+                        onPressed: () =>
+                            unawaited(context.push('/subscription')),
+                        child: Text(creditsCtaLabel(l10n)),
                       ),
-                      onPressed: () => unawaited(context.push('/subscription')),
-                      child: Text(creditsCtaLabel(l10n)),
                     ),
                 ],
               ),
@@ -276,9 +284,10 @@ class _LanguageRow extends StatelessWidget {
             onTap: onPickSource,
           ),
         ),
-        IconButton(
-          icon: const Icon(EnjoyIcons.swap),
+        EnjoyIconButton(
+          icon: EnjoyIcons.swap,
           tooltip: AppLocalizations.of(context)!.craftSwapLanguages,
+          variant: EnjoyButtonVariant.ghost,
           onPressed: onSwap,
         ),
         Expanded(
@@ -306,6 +315,7 @@ class _LangTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return CraftLangTile(
       onTap: onTap,
       child: Column(
@@ -313,16 +323,19 @@ class _LangTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: Theme.of(
+            style: enjoyMonoStyle(
               context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              size: 14,
+              weight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ],
       ),

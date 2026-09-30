@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/craft/presentation/widgets/craft_failure_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -54,8 +55,26 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('CraftFailureCard renders a destructive Aurora action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        CraftFailureCard(
+          failure: const CraftTranslateFailure(),
+          l10n: AppLocalizationsEn(),
+          onRetry: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final action = tester.widget<EnjoyButton>(find.byType(EnjoyButton));
+    expect(action.variant, EnjoyButtonVariant.destructive);
   });
 
   testWidgets('CraftFailureCard invokes onRetry when action is retry', (
@@ -73,7 +92,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Retry'));
+    await tester.tap(find.widgetWithText(EnjoyButton, 'Retry'));
     await tester.pump();
 
     expect(retried, 1);
@@ -110,7 +129,7 @@ void main() {
 
       expect(find.text('Open AI settings'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Open AI settings'));
+      await tester.tap(find.widgetWithText(EnjoyButton, 'Open AI settings'));
       await tester.pumpAndSettle();
 
       expect(find.text('ai-providers destination'), findsOneWidget);
@@ -143,7 +162,7 @@ void main() {
     await tester.pumpWidget(wrap(const SizedBox.shrink(), router: router));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Sign in to use Craft'));
+    await tester.tap(find.widgetWithText(EnjoyButton, 'Sign in to use Craft'));
     await tester.pumpAndSettle();
 
     expect(find.text('sign-in destination'), findsOneWidget);
@@ -164,7 +183,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Retry'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Retry'));
+    await tester.tap(find.widgetWithText(EnjoyButton, 'Retry'));
     await tester.pump();
     expect(retried, 1);
   });
@@ -196,7 +215,7 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
     expect(find.text(l10n.subscriptionViewPlansAndPackages), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Retry'));
+    await tester.tap(find.widgetWithText(EnjoyButton, 'Retry'));
     await tester.pump();
     expect(retried, 1);
   });

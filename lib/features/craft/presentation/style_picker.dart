@@ -4,6 +4,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/craft/domain/translation_style.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -17,14 +18,11 @@ class StylePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final t = EnjoyThemeTokens.of(context);
     return Row(
       children: [
-        Icon(
-          EnjoyIcons.sparkleFill,
-          size: 18,
-          color: theme.colorScheme.primary,
-        ),
-        const SizedBox(width: 8),
+        Icon(EnjoyIcons.sparkleFill, size: 18, color: t.accentInk),
+        SizedBox(width: t.space8),
         Text(
           l10n.craftStyleLabel,
           style: theme.textTheme.labelLarge?.copyWith(
@@ -32,13 +30,13 @@ class StylePicker extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: t.space12),
         Expanded(
           child: DropdownButtonHideUnderline(
             child: DropdownButton<TranslationStyle>(
               value: value,
               isExpanded: true,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(t.radiusMd),
               items: TranslationStyle.values.map((style) {
                 return DropdownMenuItem(
                   value: style,

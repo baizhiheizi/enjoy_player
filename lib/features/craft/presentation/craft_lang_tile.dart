@@ -3,9 +3,11 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 
-/// Inkable tile surface: tonal container, medium radius, standard padding.
+/// Pressable tile surface: inset card, continuous corners, standard padding.
 /// The content ([child]) decides the layout axis (column vs row).
 class CraftLangTile extends StatelessWidget {
   const CraftLangTile({
@@ -25,13 +27,14 @@ class CraftLangTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      child: InkWell(
+    return EnjoyCard(
+      elevated: false,
+      radius: t.radiusMd,
+      padding: EdgeInsets.zero,
+      child: EnjoyPressable(
         onTap: onTap,
         borderRadius: BorderRadius.circular(t.radiusMd),
+        pressedScale: 0.995,
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: t.space12,

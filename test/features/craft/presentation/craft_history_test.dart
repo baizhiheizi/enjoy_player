@@ -4,9 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/features/craft/application/craft_history_provider.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_history_screen.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 Media _craftMedia({
@@ -87,6 +91,37 @@ void main() {
     expect(find.text('Newer craft line'), findsOneWidget);
     expect(find.text('Older craft line'), findsOneWidget);
   });
+
+  testWidgets(
+    'CraftHistoryScreen groups rows in one inset card under a header',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          items: [
+            _craftMedia(
+              id: 'a',
+              title: 'First craft',
+              updatedAt: DateTime.utc(2026, 7, 23, 12),
+            ),
+            _craftMedia(
+              id: 'b',
+              title: 'Second craft',
+              updatedAt: DateTime.utc(2026, 7, 22, 12),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      expect(find.byType(EnjoySectionHeader), findsOneWidget);
+      expect(find.text(l10n.craftHistoryTitle), findsWidgets);
+      expect(find.byType(EnjoyCard), findsOneWidget);
+      expect(find.byType(SettingsRow), findsNWidgets(2));
+      expect(find.byType(SettingsRowDivider), findsOneWidget);
+      expect(find.byType(EnjoyIconTile), findsNWidgets(2));
+    },
+  );
 
   testWidgets('CraftHistoryScreen remove control opens confirm dialog', (
     tester,

@@ -11,7 +11,27 @@ Craft ships two modes (see [ADR-0060](../decisions/0060-craft-voice-express-dual
 | **Express** (default) | Speak a thought | Voice-first linear flow: speak → ASR → AI rewrite → TTS → save/loop | You want to capture spontaneous thoughts fast |
 | **Advanced** | Paste / type text | Two-tool layout: Translate panel + Synthesize panel | You already have prepared text |
 
-The mode is selected with a `SegmentedButton<CraftScreenMode>` in the app bar (`craftModeExpress` / `craftModeAdvanced` labels).
+The mode is selected with an `EnjoySegmentedControl<CraftScreenMode>` (the Aurora sliding-thumb primitive from [ADR-0089](../decisions/0089-aurora-design-language.md)) centred under the app bar, with `craftModeExpress` / `craftModeAdvanced` labels and mic / edit icons. Switching modes still routes through `_changeMode`, so unsaved in-memory TTS previews are confirmed before being discarded.
+
+## Visual language
+
+Craft's presentation layer follows [ADR-0089](../decisions/0089-aurora-design-language.md) — same primitives as the already-migrated player, home, and settings surfaces:
+
+| Concern | Primitive |
+|---------|-----------|
+| Mode switcher | `EnjoySegmentedControl` (sliding thumb, no Material `SegmentedButton`) |
+| App-bar action | `EnjoyIconButton` (history) |
+| Surfaces | `EnjoyCard`; hand-rolled surfaces use `ShapeDecoration` + `RoundedSuperellipseBorder` / `ClipRSuperellipse` |
+| Buttons | `EnjoyButton.primary` / `.secondary` / `.ghost` / `.destructive`, `EnjoyIconButton` |
+| Tappables | `EnjoyPressable` — no `InkWell` / `Material` ink islands (ADR-0089 §6) |
+| Section titles | `EnjoySectionHeader` inside tool panels |
+| Grouped list | `EnjoyCard` + `SettingsRow` / `SettingsRowDivider` / `EnjoyIconTile` (history screen) |
+| Empty state | `EmptyState` / `EnjoyIconOrb` |
+| Progress | `LoadingIcon` instead of bare `CircularProgressIndicator` |
+| Numerals | `enjoyMonoStyle` (Geist Mono) for language codes and durations — never `fontFamily: 'monospace'` |
+| Color | `EnjoyThemeTokens.of(context)` role tokens only (`fill`, `hairline`, `accentInk`, `textFaint`, `scoreBad`, …) — no `Color(0x…)` literals |
+
+Dialog action rows keep the repo-wide `TextButton` idiom inside `showEnjoyAlertDialog`, matching already-migrated dialogs.
 
 ## Navigation
 
@@ -42,7 +62,7 @@ Sign-in semantics mirror `AppPreferencesCtrl`: the blob lives in the per-user DB
 
 ### Craft history (`/craft/history`)
 
-An in-app-bar history `IconButton` (tooltip `craftHistoryTooltip`) on the Craft screen opens `CraftHistoryScreen`, which lists every media item where `Audios.provider == 'craft'`, newest-updated first (`craftHistoryProvider` — a thin `StreamProvider` over `mediaRegistryProvider.watchAll()`, no new query or schema). Empty state uses `craftHistoryEmptyTitle` / `craftHistoryEmptyHint` / `craftHistoryEmptyAction`.
+An `EnjoyIconButton` history action (tooltip `craftHistoryTooltip`) in the Craft app bar opens `CraftHistoryScreen`, which lists every media item where `Audios.provider == 'craft'`, newest-updated first (`craftHistoryProvider` — a thin `StreamProvider` over `mediaRegistryProvider.watchAll()`, no new query or schema). Rows render as a **grouped inset list**: one `EnjoyCard` with a `SettingsRow` per item (`EnjoyIconTile` sparkle leading icon, title, localized date subtitle, destructive `EnjoyIconButton` remove affordance) under a single `EnjoySectionHeader` titled `craftHistoryTitle` with the item count as its caption, matching the Settings / Profile rhythm. Empty state uses `craftHistoryEmptyTitle` / `craftHistoryEmptyHint` / `craftHistoryEmptyAction` in an `EmptyState`.
 
 Each row can **Remove Craft record** (`CraftLibraryRepository.removeCraftHistoryRecord`): clears Craft provenance by setting `Audios.provider` from `'craft'` to `'user'`. The same media id, audio file, and transcript stay in the library for practice (no Craft badge). This is not a library delete and not a soft-hide list. If the removed item is the active edit session (`editingMediaId`), the controller resets via `resetForNextCapture`.
 
@@ -60,20 +80,21 @@ A linear three-stage pipeline (`CraftStage` enum: `capture` → `rewrite` → `a
 
 ### Capture stage (`CaptureStage`)
 
-- Large mic button (72px phone / 88px tablet+); tap to start, tap red stop button to finish
-- Live waveform animation + recording timer while recording
+- Large mic button (72px phone / 88px tablet+); tap to start, tap red stop button to finish. Both are `EnjoyPressable` over the `shadow_record_fab` lit-fill idiom (`enjoyLitFillDecoration` + `enjoyLitShadow`), with a soft radial halo — no ink ripple
+- The `source → target` language pair reads as a mono pill above the title (`enjoyMonoStyle`, `fill` + `hairline` surface)
+- Live waveform animation (`accentInk` bars) + a mono recording timer in `scoreBad`-equivalent error red while recording
 - **Cancel** — discards the take without ASR (`CraftController.cancelCapture()`); also wired to Escape (cancel in place, same priority as shadow-reading cancel) and route leave / back (clears `isCapturing` so reopen cannot stick on a dead Stop UI)
-- **Text fallback** — "type instead" link replaces the mic with a `TextField` (skips ASR)
+- **Text fallback** — a ghost "type instead" button replaces the mic with a `TextField` (skips ASR), plus an `EnjoyButton.primary` submit
 - `AudioRecorder` is owned by the widget (not the controller), recreated after each stop — mirrors the `ShadowReadingPanel` pattern (16kHz mono WAV)
 - On stop, `CraftController.stopCapture(bytes)` stores the bytes and `transcribeAndRewrite()` runs ASR (`CraftTranscriber`) → guarded empty-transcript check → LLM rewrite (`CraftTranslator`) → advances to the rewrite stage
 
 ### Rewrite stage (`RewriteStage`)
 
-- **Editable native transcript card** (labelled "Your words") — STT / typed source is a `TextField` so learners can correct recognition errors; edits write to `rawTranscript` (+ synced `sourceText`). When the native text differs from the last successful rewrite input (`isRawTranscriptDirty`), a **Re-translate** action appears on the card (`craftReTranslateButton`)
-- **Editable target text card** (labelled "In [target]…") — `TextEditingController` synced to `state.translatedText` only when the field is not focused, so user edits are preserved across regenerations; field is height-capped (`maxLines: 10`) to avoid layout overflow
-- **Options panel** — always-visible `StylePicker` + Azure Neural `VoicePicker` before Generate; style starts from the remembered Express style (**Auto** on first run); voice from the remembered per-language pick, falling back via `defaultVoiceForLanguage` when unset
+- **Editable native transcript card** (labelled "Your words") — an `EnjoyCard` with a quote glyph header, a hairline Re-translate action, and a recessed `TextField` so learners can correct recognition errors; edits write to `rawTranscript` (+ synced `sourceText`). When the native text differs from the last successful rewrite input (`isRawTranscriptDirty`), a **Re-translate** action appears on the card (`craftReTranslateButton`)
+- **Editable target text card** (labelled "In [target]…") — a mono `accentInk`/`accentSoft` language badge plus `TextEditingController` synced to `state.translatedText` only when the field is not focused, so user edits are preserved across regenerations; field is height-capped (`maxLines: 10`) to avoid layout overflow
+- **Options panel** — an `EnjoyCard` holding the always-visible `StylePicker` + Azure Neural `VoicePicker`, split by a hairline divider; style starts from the remembered Express style (**Auto** on first run); voice from the remembered per-language pick, falling back via `defaultVoiceForLanguage` when unset
 - Re-translate / Regenerate keep the form visible with inline progress when a target already exists (full-screen "Crafting…" spinner only for the first rewrite)
-- Three action buttons:
+- Three action buttons (all `EnjoyButton`):
   - **Regenerate** → `controller.regenerate()` — re-runs the LLM rewrite on the current native transcript with the current style (same path as Re-translate; no-op if below `craftMinTextLength`)
   - **Re-record** → `controller.resetForNextCapture()` — back to the capture stage
   - **Generate audio** → `controller.generateAudio()` — synthesizes with `selectedVoice` and advances to the audio stage
@@ -86,13 +107,13 @@ A new `TranslationStyle.auto` is the **default** for Express mode. Instead of a 
 
 ### Audio stage (`AudioStage`)
 
-- **Script block** — language pair + full learning-language text (selectable) with a left-border accent, so the learner can follow along while previewing. Long scripts scroll inside a capped viewport (~240px) so the player and actions stay reachable; text is never ellipsis-truncated.
-- **Inline preview player** — play/pause circle with a single-row progress control (time · slider · duration), driven by `audioplayers` `AudioPlayer` reading `state.previewAudioBytes` from memory via `BytesSource`
-- **Voice** control (shows current voice label; expandable to full `VoicePicker` — changing voice re-synthesizes)
+- **Script block** — a `fill` + `hairline` superellipse card with a mono `accentInk` language pair and an `accentInk` left rail, wrapping the full learning-language text (selectable) so the learner can follow along while previewing. Long scripts scroll inside a capped viewport (~240px) so the player and actions stay reachable; text is never ellipsis-truncated.
+- **Inline preview player** — an `EnjoyCard` with a lit-fill play/pause circle and a single-row progress control (mono time · slider · mono duration), driven by `audioplayers` `AudioPlayer` reading `state.previewAudioBytes` from memory via `BytesSource`
+- **Voice** control (an `EnjoyCard` with an `EnjoyPressable` disclosure row showing the current voice label; expandable to full `VoicePicker` — changing voice re-synthesizes)
 - **Unsaved hint** — when `hasUnsavedPreview` is true, an inline callout (`craftAudioUnsavedHint`) reminds the learner that TTS bytes are in memory only until a save CTA runs
 - Two save CTAs (labels make persistence explicit):
-  - **Save & practice** (`saveAndPractice`) — primary `EnjoyButton`; saves and navigates to the player route with the new media ID
-  - **Save & say another** (`saveAndCaptureNext`) — outlined secondary; saves to library, shows a snackbar confirmation ("Saved to library"), then resets to the capture stage while preserving the language pair, style, and voice (remembered across sessions — see [Remembered preferences](#remembered-preferences)). This is the **rapid-capture loop** for building a personal library in quick succession.
+  - **Save & practice** (`saveAndPractice`) — full-width `EnjoyButton.primary`; saves and navigates to the player route with the new media ID
+  - **Save & say another** (`saveAndCaptureNext`) — full-width `EnjoyButton.secondary`; saves to library, shows a snackbar confirmation ("Saved to library"), then resets to the capture stage while preserving the language pair, style, and voice (remembered across sessions — see [Remembered preferences](#remembered-preferences)). This is the **rapid-capture loop** for building a personal library in quick succession.
 - **Leave / mode-switch guard** — `CraftScreen` blocks system back and the mode segmented control while `hasUnsavedPreview` (or while capturing). Confirming discard (`confirmDiscardUnsavedCraftPreview`) drops the in-memory preview; cancel keeps the learner on the audio stage. Preview is never written to SQLite until `saveToLibrary` succeeds.
 
 ### Failure handling in Express stages
@@ -106,24 +127,27 @@ Every Express stage watches `state.failure` and renders a calm error card using 
 
 Existing failures (`CraftTranslateFailure`, `CraftTtsFailure`, `CraftSaveFailure`, etc.) surface in the same way.
 
+**Failure surface treatment**: `CraftFailureCard` is a *persistent, blocking* stage state — it owns the whole stage body and carries the action the learner must take — so it stays an in-flow card rather than becoming an `AppNotice` toast (toasts auto-dismiss in ~5s and would strand the learner with no retry affordance). It is reskinned as an Aurora error surface: a `ShapeDecoration` + `RoundedSuperellipseBorder` panel tinted with the `scoreBadContainer` / `scoreBad` role tokens, an `EnjoyIcons.errorFill` orb in a hairline circle, a destructive `EnjoyButton.destructive` for the primary action, and a ghost credits CTA for `CraftCreditsFailure`. It borrows the toast's semantic-glyph-plus-error-token grammar (ADR-0089 §9) without adopting its transient lifetime. Inline, non-blocking failures in the two Advanced tool panels (translate / synthesize) stay lightweight: a `scoreBad`-tinted caption plus a ghost credits CTA.
+
 ## Advanced mode
 
-Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (same width family as AI settings) with **stacked** `EnjoyCard` panels — Translate above Synthesize — instead of a cramped dual column.
+Retained for users who already have prepared text. Uses `EnjoyPageKind.hub` (same width family as AI settings) with **stacked** `EnjoyCard` panels — Translate above Synthesize — instead of a cramped dual column. Each panel is internally grouped: an `EnjoySectionHeader` for the tool name, a hairline-bordered `CraftLangTile` / `StylePicker` / `VoicePicker` control block, then an `EnjoyButton.primary` submit.
 
 ### Translate tool (`TranslateTool`)
 
 - **Source language** picker (from the lookup language catalog)
-- **Target language** pre-filled from the learner's focus language
+- **Target language** pre-filled from the learner's focus language; a ghost `EnjoyIconButton` swaps the pair
 - **Style preset** selector (formal, casual, etc.) with an optional custom prompt
 - **Edit / copy / re-translate** actions on the translated output
 - **Same-language guard**: selecting the same source and target language surfaces a localized hint to switch to Speak directly
+- Inline non-blocking failures render as a `scoreBad` caption plus a ghost credits CTA (see [Failure handling in Express stages](#failure-handling-in-express-stages))
 
 ### Synthesize tool (`SynthesizeTool`)
 
-- **Text** input (either the translated result or pasted learning-language text)
-- **Target language** (pre-filled)
+- **Text** input (either the translated result or pasted learning-language text), with a ghost `EnjoyIconButton` paste affordance
+- **Target language** (pre-filled) shown as a mono code in a `CraftLangTile` with a chevron affordance
 - **Voice picker** (Azure Neural voices per language)
-- **Preview** button to hear a sample before saving
+- **Preview** button to hear a sample before saving — an `EnjoyCard` with an `EnjoyPressable` play/pause circle
 - **Save** generates the audio file and inserts the media row
 
 ### Voice picker (v1)

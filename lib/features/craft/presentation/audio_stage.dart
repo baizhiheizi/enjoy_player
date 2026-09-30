@@ -14,11 +14,15 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/presentation/craft_solid_transcript_stt_hint.dart';
@@ -260,7 +264,7 @@ class _AudioStageState extends ConsumerState<AudioStage> {
                 SizedBox(height: t.space16),
               ],
               if (state.isSaving)
-                const Center(child: CircularProgressIndicator())
+                const Center(child: LoadingIcon(size: 28, strokeWidth: 2.5))
               else
                 _AudioActions(
                   practiceLabel: l10n.craftAudioPracticeNow,
@@ -296,11 +300,11 @@ class _UnsavedPreviewHint extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.tertiaryContainer.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.55),
+      decoration: ShapeDecoration(
+        color: t.fill,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(color: t.hairline),
         ),
       ),
       child: Padding(
@@ -311,13 +315,13 @@ class _UnsavedPreviewHint extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(EnjoyIcons.info, size: 18, color: scheme.onTertiaryContainer),
+            Icon(EnjoyIcons.info, size: 18, color: t.accentInk),
             SizedBox(width: t.space8),
             Expanded(
               child: Text(
                 message,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onTertiaryContainer,
+                  color: scheme.onSurfaceVariant,
                   height: 1.4,
                 ),
               ),
@@ -352,13 +356,15 @@ class _AudioActions extends StatelessWidget {
         EnjoyButton.primary(
           onPressed: onPractice,
           icon: EnjoyIcons.libraryAdded,
+          expand: true,
           child: Text(practiceLabel),
         ),
         SizedBox(height: t.space8),
-        OutlinedButton.icon(
+        EnjoyButton.secondary(
           onPressed: onSayAnother,
-          icon: const Icon(EnjoyIcons.mic, size: 18),
-          label: Text(sayAnotherLabel),
+          icon: EnjoyIcons.mic,
+          expand: true,
+          child: Text(sayAnotherLabel),
         ),
       ],
     );
@@ -377,6 +383,7 @@ class _ScriptBlock extends StatefulWidget {
 
   /// Soft cap so very long scripts don't push actions off-screen.
   static const double maxScriptHeight = 240;
+  static const double accentBarWidth = 3;
 
   final String sourceLang;
   final String targetLang;
@@ -398,6 +405,7 @@ class _ScriptBlockState extends State<_ScriptBlock> {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final theme = widget.theme;
     final scheme = theme.colorScheme;
     final scriptStyle = theme.textTheme.bodyLarge?.copyWith(
@@ -405,41 +413,66 @@ class _ScriptBlockState extends State<_ScriptBlock> {
       height: 1.55,
     );
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: scheme.primary, width: 3)),
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(12),
-          bottomRight: Radius.circular(12),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: t.fill,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          side: BorderSide(color: t.hairline),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${widget.sourceLang}  →  ${widget.targetLang}',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxHeight: _ScriptBlock.maxScriptHeight,
-            ),
-            child: Scrollbar(
-              controller: _scrollController,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                primary: false,
-                child: SelectableText(widget.text, style: scriptStyle),
+      child: ClipRSuperellipse(
+        borderRadius: BorderRadius.circular(t.radiusLg),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: ColoredBox(
+                color: t.accentInk,
+                child: const SizedBox(width: _ScriptBlock.accentBarWidth),
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                t.space16 + _ScriptBlock.accentBarWidth,
+                t.space12,
+                t.space16,
+                t.space12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${widget.sourceLang}  →  ${widget.targetLang}',
+                    style: enjoyMonoStyle(
+                      context,
+                      size: 12.5,
+                      weight: FontWeight.w600,
+                      color: t.accentInk,
+                    ),
+                  ),
+                  SizedBox(height: t.space8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxHeight: _ScriptBlock.maxScriptHeight,
+                    ),
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        primary: false,
+                        child: SelectableText(widget.text, style: scriptStyle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -467,26 +500,27 @@ class _VoiceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
-      ),
+    return EnjoyCard(
+      elevated: false,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          InkWell(
+          EnjoyPressable(
             onTap: onToggle,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(t.radiusMd),
+            pressedScale: 0.995,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+              padding: EdgeInsets.symmetric(
+                vertical: t.space8,
+                horizontal: t.space12,
+              ),
               child: Row(
                 children: [
-                  Icon(EnjoyIcons.speak, size: 18, color: scheme.primary),
-                  const SizedBox(width: 8),
+                  Icon(EnjoyIcons.speak, size: 18, color: t.accentInk),
+                  SizedBox(width: t.space8),
                   Text(
                     l10n.craftVoiceLabel,
                     style: theme.textTheme.labelLarge?.copyWith(
@@ -494,7 +528,7 @@ class _VoiceChip extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: t.space8),
                   Expanded(
                     child: Text(
                       voiceLabel ?? l10n.craftVoiceLabel,
@@ -506,22 +540,24 @@ class _VoiceChip extends StatelessWidget {
                       textAlign: TextAlign.end,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: t.space4),
                   Icon(
                     expanded ? EnjoyIcons.chevronUp : EnjoyIcons.chevronDown,
-                    size: 20,
-                    color: scheme.onSurfaceVariant,
+                    size: 18,
+                    color: t.textFaint,
                   ),
                 ],
               ),
             ),
           ),
           if (expanded) ...[
-            const SizedBox(height: 8),
-            VoicePicker(
-              language: synthLanguage,
-              selectedVoice: selectedVoice,
-              onChanged: onVoiceChanged,
+            Padding(
+              padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
+              child: VoicePicker(
+                language: synthLanguage,
+                selectedVoice: selectedVoice,
+                onChanged: onVoiceChanged,
+              ),
             ),
           ],
         ],
@@ -551,10 +587,11 @@ class _PreviewPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = theme.colorScheme;
-    final timeStyle = theme.textTheme.labelSmall?.copyWith(
-      color: scheme.onSurfaceVariant,
-      fontFeatures: const [FontFeature.tabularFigures()],
+    final t = EnjoyThemeTokens.of(context);
+    final timeStyle = enjoyMonoStyle(
+      context,
+      size: 12,
+      color: theme.colorScheme.onSurfaceVariant,
     );
     final clampedPosition = position > duration && duration > Duration.zero
         ? duration
@@ -565,43 +602,38 @@ class _PreviewPlayer extends StatelessWidget {
     );
     final valueMs = clampedPosition.inMilliseconds.toDouble().clamp(0.0, maxMs);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
+    return EnjoyCard(
+      elevated: false,
+      padding: EdgeInsets.symmetric(horizontal: t.space12, vertical: t.space12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onToggle,
-              customBorder: const CircleBorder(),
-              child: Ink(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: scheme.primary,
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                    ),
-                  ],
+          EnjoyPressable(
+            onTap: onToggle,
+            shape: const CircleBorder(),
+            pressedScale: 0.95,
+            child: AnimatedContainer(
+              duration: t.motionFast,
+              width: 56,
+              height: 56,
+              decoration: enjoyLitFillDecoration(
+                base: theme.colorScheme.primary,
+                shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
+                shadow: enjoyLitShadow(
+                  theme.colorScheme.primary,
+                  alpha: 0.32,
+                  blurRadius: 12,
+                  spreadRadius: -4,
                 ),
-                child: Icon(
-                  isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
-                  size: 32,
-                  color: scheme.onPrimary,
-                ),
+              ),
+              child: Icon(
+                isPlaying ? EnjoyIcons.pause : EnjoyIcons.play,
+                size: 26,
+                color: theme.colorScheme.onPrimary,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: t.space12),
           Text(fmt(clampedPosition), style: timeStyle),
           Expanded(
             child: SliderTheme(

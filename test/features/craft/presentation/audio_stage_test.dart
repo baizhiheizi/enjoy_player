@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -189,6 +190,56 @@ void main() {
     expect(selectable.data, longScript);
   });
 
+  testWidgets('AudioStage script accent bar spans the script without '
+      'IntrinsicHeight', (tester) async {
+    const longScript =
+        'So my plan was to read one video a day, but I did not do it '
+        'yesterday, the day before, or the day before that either. '
+        'I still want to keep going tomorrow morning after coffee.';
+
+    await tester.pumpWidget(
+      _harness(
+        overrides: [
+          authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+          appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
+          craftTranslatorProvider.overrideWithValue(
+            _FixedTranslator(longScript),
+          ),
+          craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
+          craftTranscriberProvider.overrideWithValue(_FakeTranscriber()),
+          craftLibraryRepositoryProvider.overrideWithValue(
+            _FakeLibraryRepository(),
+          ),
+        ],
+        child: const AudioStage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AudioStage)),
+    );
+    await container.read(authCtrlProvider.future);
+    await container.read(appPreferencesCtrlProvider.future);
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('source text for a longer rewrite');
+    await tester.pumpAndSettle();
+    await container.read(craftControllerProvider.notifier).generateAudio();
+    await tester.pumpAndSettle();
+
+    final accentBar = find.byWidgetPredicate(
+      (w) =>
+          w is ColoredBox &&
+          w.child is SizedBox &&
+          (w.child! as SizedBox).width == 3,
+    );
+    expect(accentBar, findsOneWidget);
+    final barHeight = tester.getSize(accentBar).height;
+    final scriptHeight = tester.getSize(find.byType(SelectableText)).height;
+    expect(barHeight, greaterThan(scriptHeight));
+  });
+
   testWidgets('AudioStage shows loading indicator while synthesizing', (
     tester,
   ) async {
@@ -232,7 +283,7 @@ void main() {
         .copyWith(failure: const CraftTranslateFailure());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
 
@@ -247,9 +298,7 @@ void main() {
     expect(find.text('Generate audio'), findsOneWidget);
   });
 
-  testWidgets('AudioStage shows CircularProgressIndicator while isSaving', (
-    tester,
-  ) async {
+  testWidgets('AudioStage shows LoadingIcon while isSaving', (tester) async {
     await tester.pumpWidget(
       _harness(overrides: _baseOverrides(), child: const AudioStage()),
     );
@@ -272,7 +321,7 @@ void main() {
         .copyWith(isSaving: true);
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(LoadingIcon), findsOneWidget);
     expect(find.text('Practice now'), findsNothing);
   });
 

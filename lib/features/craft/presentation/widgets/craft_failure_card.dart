@@ -15,6 +15,8 @@
 library;
 
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -51,8 +53,10 @@ class CraftFailureCard extends StatelessWidget {
     switch (failure.action) {
       case CraftFailureAction.openAiSettings:
         unawaited(context.push('/settings/ai-providers'));
+        return;
       case CraftFailureAction.signIn:
         unawaited(context.push('/sign-in'));
+        return;
       default:
         onRetry();
     }
@@ -60,34 +64,86 @@ class CraftFailureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final theme = Theme.of(context);
     final showCreditsCta = failure is CraftCreditsFailure;
+    final light = theme.brightness == Brightness.light;
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(EnjoyIcons.error, size: 48, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
-            Text(
-              failure.message(l10n),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => _handleAction(context),
-              child: Text(_actionLabel()),
-            ),
-            if (showCreditsCta) ...[
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => unawaited(context.push('/subscription')),
-                child: Text(creditsCtaLabel(l10n)),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(t.space24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DecoratedBox(
+                decoration: ShapeDecoration(
+                  color: t.scoreBadContainer,
+                  shape: RoundedSuperellipseBorder(
+                    borderRadius: BorderRadius.circular(t.radius2xl),
+                    side: BorderSide(
+                      color: t.scoreBad.withValues(alpha: light ? 0.24 : 0.32),
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: t.space32,
+                    vertical: t.space32,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: ShapeDecoration(
+                          color: t.scoreBad.withValues(
+                            alpha: light ? 0.12 : 0.2,
+                          ),
+                          shape: CircleBorder(
+                            side: BorderSide(
+                              color: t.scoreBad.withValues(
+                                alpha: light ? 0.24 : 0.34,
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Icon(
+                          EnjoyIcons.errorFill,
+                          size: 28,
+                          color: t.scoreBad,
+                        ),
+                      ),
+                      SizedBox(height: t.space16),
+                      Text(
+                        failure.message(l10n),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          height: 1.5,
+                        ),
+                      ),
+                      SizedBox(height: t.space24),
+                      EnjoyButton.destructive(
+                        onPressed: () => _handleAction(context),
+                        child: Text(_actionLabel()),
+                      ),
+                      if (showCreditsCta) ...[
+                        SizedBox(height: t.space8),
+                        EnjoyButton.ghost(
+                          onPressed: () =>
+                              unawaited(context.push('/subscription')),
+                          child: Text(creditsCtaLabel(l10n)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
