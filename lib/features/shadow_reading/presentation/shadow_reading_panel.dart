@@ -14,9 +14,9 @@ import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
-import 'package:enjoy_player/data/db/media_registry_provider.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_tooltip_label.dart';
 import 'package:enjoy_player/features/player/application/display_position_provider.dart';
+import 'package:enjoy_player/features/player/application/local_media_path_provider.dart';
 import 'package:enjoy_player/features/shadow_reading/application/recording_input_device_controller.dart';
 import 'package:enjoy_player/core/analytics/analytics_events.dart';
 import 'package:enjoy_player/core/analytics/analytics_provider.dart';
@@ -122,28 +122,22 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
   ShadowTakeStore get _takeStore =>
       _takeStoreInstance ??= ref.read(shadowTakeStoreFactoryProvider)();
 
+  /// Captured on first write so [dispose] can reset the shared bus without
+  /// touching `ref` mid-teardown (flutter_riverpod 3.x throws on provider
+  /// access from a disposing `ConsumerState`). The reset itself is deferred
+  /// onto the event loop because riverpod also forbids mutating a provider
+  /// from a widget lifecycle — its documented remedy for exactly this shape.
+  ShadowReadingHotkeyBus? _hotkeyBusInstance;
+
   bool _recording = false;
   bool _recordingPending = false;
   String? _selectedRecordingId;
-  String? _mediaPath;
-  Future<String?>? _mediaPathFuture;
 
   bool _pitchExpanded = false;
-
-  Future<String?> _mediaPathFutureOnce() {
-    return _mediaPathFuture ??= () async {
-      _mediaPath ??= await _resolveMediaPath();
-      return _mediaPath;
-    }();
-  }
 
   @override
   void didUpdateWidget(covariant ShadowReadingPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.mediaId != widget.mediaId) {
-      _mediaPath = null;
-      _mediaPathFuture = null;
-    }
     if (oldWidget.mediaId != widget.mediaId ||
         oldWidget.startSec != widget.startSec ||
         oldWidget.endSec != widget.endSec ||
@@ -153,10 +147,13 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
     }
   }
 
+  ShadowReadingHotkeyBus get _hotkeyBus {
+    _hotkeyBusInstance ??= ref.read(shadowReadingHotkeyBusProvider.notifier);
+    return _hotkeyBusInstance!;
+  }
+
   void _setRecordingActiveOnBus(bool active) {
-    ref
-        .read(shadowReadingHotkeyBusProvider.notifier)
-        .setRecordingActive(active);
+    _hotkeyBus.setRecordingActive(active);
   }
 
   /// Discard in-progress capture (Escape); does not persist to the library.
@@ -177,30 +174,17 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
 
   @override
   void dispose() {
-    final wasRecording = _recording;
-    final wasPending = _recordingPending;
-    if (wasRecording || wasPending) {
+    final bus = _hotkeyBusInstance;
+    if ((_recording || _recordingPending) && bus != null) {
       _recording = false;
       _recordingPending = false;
-      _setRecordingActiveOnBus(false);
+      unawaited(Future(() => bus.setRecordingActive(false)));
     }
     final store = _takeStoreInstance;
     if (store != null) {
       unawaited(store.dispose());
     }
     super.dispose();
-  }
-
-  Future<String?> _resolveMediaPath() async {
-    final uri = await ref
-        .read(mediaRegistryProvider)
-        .localUriOf(widget.mediaId);
-    if (uri == null || uri.isEmpty) return null;
-    try {
-      return Uri.parse(uri).toFilePath();
-    } catch (_) {
-      return uri;
-    }
   }
 
   Future<void> _toggleRecord(AppLocalizations l10n) async {
@@ -240,7 +224,7 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       return;
     }
 
-    await _mediaPathFutureOnce();
+    await ref.read(localMediaPathProvider(widget.mediaId).future);
 
     _setRecordingActiveOnBus(true);
     _recordingPending = true;
@@ -421,123 +405,115 @@ class _ShadowReadingPanelState extends ConsumerState<ShadowReadingPanel> {
       double.infinity,
     );
 
-    return FutureBuilder<String?>(
-      future: _mediaPathFutureOnce(),
-      builder: (context, snap) {
-        final mediaPath = snap.data;
-        final recordings = ref.watch(
-          echoRegionRecordingsProvider(_regionQuery),
-        );
+    final mediaPath = ref
+        .watch(localMediaPathProvider(widget.mediaId))
+        .valueOrNull;
+    final recordings = ref.watch(echoRegionRecordingsProvider(_regionQuery));
 
-        return StreamBuilder(
-          stream: recordings,
-          builder: (context, recSnap) {
-            final list = recSnap.data ?? [];
-            final sel = _resolvedSelectedRow(list, _selectedRecordingId);
+    return StreamBuilder(
+      stream: recordings,
+      builder: (context, recSnap) {
+        final list = recSnap.data ?? [];
+        final sel = _resolvedSelectedRow(list, _selectedRecordingId);
 
-            if (_recording) {
-              return ShadowRecordingLive(
-                targetSec: targetSec,
-                echoActive: widget.echoActive,
-                stopTooltip: ttToggleRecording,
-                onStop: () => _toggleRecord(l10n),
-                l10n: l10n,
-                tt: tt,
-                scheme: scheme,
-                tok: tok,
-              );
-            }
+        if (_recording) {
+          return ShadowRecordingLive(
+            targetSec: targetSec,
+            echoActive: widget.echoActive,
+            stopTooltip: ttToggleRecording,
+            onStop: () => _toggleRecord(l10n),
+            l10n: l10n,
+            tt: tt,
+            scheme: scheme,
+            tok: tok,
+          );
+        }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ShadowReadingToolbarRow(
-                  tok: tok,
-                  scheme: scheme,
-                  pitchExpanded: _pitchExpanded,
-                  pitchTooltip: pitchContourTooltip,
-                  hasMediaPath: mediaPath != null && mediaPath.isNotEmpty,
-                  onPitchTap: () =>
-                      setState(() => _pitchExpanded = !_pitchExpanded),
-                  leadingShare: SharePracticePosterButton(
-                    mediaId: widget.mediaId,
-                    iconColor: scheme.onSurface,
-                  ),
-                  takesActions: list.isNotEmpty && sel != null
-                      ? ShadowTakesToolbarActions(
-                          row: sel,
-                          list: list,
-                          echoActive: widget.echoActive,
-                          scheme: scheme,
-                          tok: tok,
-                          l10n: l10n,
-                          onPlayOrPause: () {
-                            final path = sel.localPath;
-                            if (path != null && path.isNotEmpty) {
-                              unawaited(_playOrPauseTake(path));
-                            }
-                          },
-                          onDeleteCurrent: () =>
-                              unawaited(_deleteRecording(sel)),
-                          onChooseTake: (id) async {
-                            await ref
-                                .read(recordingPreviewPlayerProvider)
-                                .stop();
-                            if (mounted) {
-                              setState(() => _selectedRecordingId = id);
-                            }
-                          },
-                        )
-                      : null,
-                  recordFab: Tooltip(
-                    message: recordFabTooltip,
-                    child: ShadowRecordFab(
-                      recording: false,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ShadowReadingToolbarRow(
+              tok: tok,
+              scheme: scheme,
+              pitchExpanded: _pitchExpanded,
+              pitchTooltip: pitchContourTooltip,
+              hasMediaPath: mediaPath != null && mediaPath.isNotEmpty,
+              onPitchTap: () =>
+                  setState(() => _pitchExpanded = !_pitchExpanded),
+              leadingShare: SharePracticePosterButton(
+                mediaId: widget.mediaId,
+                iconColor: scheme.onSurface,
+              ),
+              takesActions: list.isNotEmpty && sel != null
+                  ? ShadowTakesToolbarActions(
+                      row: sel,
+                      list: list,
                       echoActive: widget.echoActive,
-                      ringProgress: 0,
-                      overTarget: false,
-                      overPulseHigh: false,
-                      showProgressArc: false,
-                      onTap: () => _toggleRecord(l10n),
                       scheme: scheme,
                       tok: tok,
-                    ),
-                  ),
+                      l10n: l10n,
+                      onPlayOrPause: () {
+                        final path = sel.localPath;
+                        if (path != null && path.isNotEmpty) {
+                          unawaited(_playOrPauseTake(path));
+                        }
+                      },
+                      onDeleteCurrent: () => unawaited(_deleteRecording(sel)),
+                      onChooseTake: (id) async {
+                        await ref.read(recordingPreviewPlayerProvider).stop();
+                        if (mounted) {
+                          setState(() => _selectedRecordingId = id);
+                        }
+                      },
+                    )
+                  : null,
+              recordFab: Tooltip(
+                message: recordFabTooltip,
+                child: ShadowRecordFab(
+                  recording: false,
+                  echoActive: widget.echoActive,
+                  ringProgress: 0,
+                  overTarget: false,
+                  overPulseHigh: false,
+                  showProgressArc: false,
+                  onTap: () => _toggleRecord(l10n),
+                  scheme: scheme,
+                  tok: tok,
                 ),
-                if (mediaPath != null && mediaPath.isNotEmpty) ...[
-                  if (_pitchExpanded) SizedBox(height: tok.space8),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      double? relativeSec;
-                      if (widget.showLiveProgress && _pitchExpanded) {
-                        final posSec =
-                            (ref.watch(displayPositionProvider).valueOrNull ??
-                                    Duration.zero)
-                                .inMilliseconds /
-                            1000.0;
-                        relativeSec = (posSec - widget.startSec).clamp(
-                          0.0,
-                          widget.endSec - widget.startSec,
-                        );
-                      }
-                      return PitchContourSection(
-                        mediaPath: mediaPath,
-                        startSec: widget.startSec,
-                        endSec: widget.endSec,
-                        currentTimeRelativeSec: relativeSec,
-                        selectedRecordingPath: sel?.localPath,
-                        selectedRecordingDurationMs: sel?.duration,
-                        expanded: _pitchExpanded,
-                        onToggleExpanded: () =>
-                            setState(() => _pitchExpanded = !_pitchExpanded),
-                        showHeader: false,
-                      );
-                    },
-                  ),
-                ],
-              ],
-            );
-          },
+              ),
+            ),
+            if (mediaPath != null && mediaPath.isNotEmpty) ...[
+              if (_pitchExpanded) SizedBox(height: tok.space8),
+              Consumer(
+                builder: (context, ref, _) {
+                  double? relativeSec;
+                  if (widget.showLiveProgress && _pitchExpanded) {
+                    final posSec =
+                        (ref.watch(displayPositionProvider).valueOrNull ??
+                                Duration.zero)
+                            .inMilliseconds /
+                        1000.0;
+                    relativeSec = (posSec - widget.startSec).clamp(
+                      0.0,
+                      widget.endSec - widget.startSec,
+                    );
+                  }
+                  return PitchContourSection(
+                    mediaPath: mediaPath,
+                    startSec: widget.startSec,
+                    endSec: widget.endSec,
+                    currentTimeRelativeSec: relativeSec,
+                    selectedRecordingPath: sel?.localPath,
+                    selectedRecordingDurationMs: sel?.duration,
+                    expanded: _pitchExpanded,
+                    onToggleExpanded: () =>
+                        setState(() => _pitchExpanded = !_pitchExpanded),
+                    showHeader: false,
+                  );
+                },
+              ),
+            ],
+          ],
         );
       },
     );

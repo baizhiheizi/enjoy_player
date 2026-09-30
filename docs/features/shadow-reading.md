@@ -11,6 +11,7 @@ The panel is mounted when **echo mode is active** in the expanded player (with a
 The recording bus is the single source of truth for "is the user recording right now":
 
 - `ShadowReadingHotkeyBus` (a singleton bus, generated from `shadow_reading_hotkey_bus.dart`) emits typed events (`ShadowRecordingHotkeyEvent`) when the user presses the global shortcut, toggling the panel's idle toolbar state. The bus decouples the hotkey layer (which knows nothing about the panel) from the UI.
+- The bus's `isRecordingActive` flag gates Escape dismissal priority. The panel sets it around capture and resets it on stop, cancel, and on panel teardown mid-recording — the teardown reset uses a notifier handle captured while the panel was live and is deferred onto the event loop, because riverpod forbids both provider access from a disposing `ConsumerState` and provider mutation from a widget lifecycle (review on #815). Pinned by `shadow_reading_panel_teardown_test.dart`.
 - Mic selection is persisted in `SettingsKeys.prefsRecordingInputDeviceId` and re-read on every take via `recordingInputDeviceCtrlProvider`. Unknown / virtual devices are skipped by `pickPreferredInputDeviceId` (GlideX Shared Audio, VoiceMeeter, VB-Audio CABLE, NVIDIA Broadcast, etc.) so Windows defaults don't silently capture only zeros.
 
 ## Take capture & persistence (ShadowTakeStore)
@@ -37,7 +38,7 @@ Craft's `CaptureStage` still owns its own capture loop (it needs the amplitude s
 ## Idle toolbar (centered FAB)
 
 - The panel shows an **idle toolbar** with the **pitch icon**, a centered **FAB** (start recording), **play**, and **pronunciation assess**. Delete moves into a **more** menu gated by a confirmation dialog.
-- When recording is in flight, the panel swaps to **recording-only focus**: FAB + countdown vs the active echo segment, with the pitch chart and takes list hidden until the take is committed. The countdown ring is driven by an `AnimationController` as its painter's `repaint` listenable inside a `RepaintBoundary` (issue #810 E2), so each vsync **repaints the ring without rebuilding any element**; the elapsed caption text re-renders on a ~10 Hz timer (`ShadowRecordingLive`), matching its seconds-resolution display. Over-target state (error ring + pulse) still rebuilds discretely on the flip and at the 600 ms pulse cadence.
+- When recording is in flight, the panel swaps to **recording-only focus**: FAB + countdown vs the active echo segment, with the pitch chart and takes list hidden until the take is committed. The countdown ring has a **single timing source** (review on #815): one `Ticker` sets the elapsed seconds on an `AnimationController` that exists purely as the painter's `repaint` listenable inside a `RepaintBoundary` (issue #810 E2), so each vsync **repaints the ring without rebuilding any element**, and the same tick re-evaluates the over-target pulse phase. The elapsed caption text re-renders on a ~10 Hz timer (`ShadowRecordingLive`), matching its seconds-resolution display. Over-target state (error ring + pulse) still rebuilds discretely on the flip and at the 600 ms pulse cadence.
 - All idle toolbar controls use **≥44×44** hit targets where possible; the assessment badge control is **44×44** with explicit `Semantics(label, button)` so VoiceOver / TalkBack see it as a control, not only a tooltip.
 
 ## Pitch contour
