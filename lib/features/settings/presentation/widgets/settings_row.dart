@@ -197,7 +197,7 @@ class SettingsRow extends StatelessWidget {
     return EnjoyPressable(
       onTap: onTap,
       borderRadius: BorderRadius.circular(t.radiusMd),
-      pressedScale: 0.995,
+      pressedScale: kSettingsRowPressedScale,
       child: body,
     );
   }
@@ -211,6 +211,10 @@ const double kSettingsRowHorizontalPadding = 16;
 
 /// Gap between the leading tile and the text column.
 const double kSettingsRowLeadingGap = 12;
+
+/// Press scale for the grouped settings-row rhythm ([SettingsRow] and rows
+/// styled after it).
+const double kSettingsRowPressedScale = 0.995;
 
 /// Thin horizontal divider between two [SettingsRow]s inside the same card.
 class SettingsRowDivider extends StatelessWidget {

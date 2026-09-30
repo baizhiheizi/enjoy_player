@@ -20,12 +20,12 @@ Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings
 
 `/settings/keyboard` follows the Settings/Profile **grouped inset list** rhythm rather than a flat column:
 
-- Each hotkey **scope** (`global`, `player`, `library`, `modal`) is one group: an `EnjoyIconTile` (colored, glyph + tint per scope, mapped once in `hotkeys_settings_section.dart`) beside an `EnjoySectionHeader` carrying the scope label and a count, followed by an `EnjoyCard` holding that scope's rows. Only scopes that still have **customizable** definitions after filtering are rendered.
+- Each hotkey **scope** (`global`, `player`, `library`, `modal`) is one group: an `EnjoyIconTile` (colored, glyph + tint per scope, defined once in `hotkeys_settings_section.dart`) beside an `EnjoySectionHeader` carrying the scope label and a count, followed by an `EnjoyCard` holding that scope's rows. Only scopes that still have **customizable** definitions after filtering are rendered.
 - Rows are separated by `SettingsRowDivider(insetForLeading: false)` and are **not** individually inset, so the card reads as one unit. A group is omitted entirely when no row matches the filter.
 - Each row is an `EnjoyPressable` (press-scale, quiet hover wash, focus ring) — **no ink ripple**. The two trailing actions are `EnjoyIconButton`s; reset stays in place but disabled when the binding is still the default, so the edit/reset column keeps its alignment.
 - The chord is rendered by `KbdChordRow`, which composes the shared **`EnjoyKeycap`** primitive — the app has exactly **one** keycap style. The pre-Aurora `KbdChip` (and its `fontFamily: 'monospace'`, which resolved to an arbitrary system face) was removed. `KbdChordRow`'s public API is unchanged, so the cheatsheet dialog and the Settings **Keyboard shortcuts** row share this renderer.
 - A customized binding is marked with a muted **`EnjoyTierBadge`** reading “Custom” (not a Material `Chip`); default bindings show no badge and a disabled reset.
-- The filter field matches the established `SettingsSearchField` treatment (muted leading glyph, soft fill, `radiusLg`, clear suffix) and gains a clear action once a query is typed. Reset-all is an `EnjoyButton.ghost` in the app bar. The page keeps `EnjoyPageKind.hub`.
+- The filter field **is** the shared `SettingsSearchInput` (the raw field behind the Settings hub's `SettingsSearchField` — muted leading glyph, soft fill, `radiusLg`, clear suffix) wired to a section-local controller, and gains a clear action once a query is typed. Reset-all is an `EnjoyButton.ghost` in the app bar. The page keeps `EnjoyPageKind.hub`.
 
 ## Implementation entry points
 

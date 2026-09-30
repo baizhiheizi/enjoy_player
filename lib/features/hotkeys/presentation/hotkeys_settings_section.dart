@@ -22,15 +22,17 @@ import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.d
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_search_field.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Per-scope tile glyph and tint for the grouped sections.
-const Map<HotkeyScope, ({IconData icon, Color tint})> _kScopeVisuals = {
-  HotkeyScope.global: (icon: EnjoyIcons.compass, tint: EnjoyTint.indigo),
-  HotkeyScope.player: (icon: EnjoyIcons.playCircle, tint: EnjoyTint.iris),
-  HotkeyScope.library: (icon: EnjoyIcons.book, tint: EnjoyTint.orange),
-  HotkeyScope.modal: (icon: EnjoyIcons.keyboard, tint: EnjoyTint.slate),
-};
+/// Tile glyph and tint for a scope's group header.
+({IconData icon, Color tint}) _scopeVisuals(HotkeyScope scope) =>
+    switch (scope) {
+      HotkeyScope.global => (icon: EnjoyIcons.compass, tint: EnjoyTint.indigo),
+      HotkeyScope.player => (icon: EnjoyIcons.playCircle, tint: EnjoyTint.iris),
+      HotkeyScope.library => (icon: EnjoyIcons.book, tint: EnjoyTint.orange),
+      HotkeyScope.modal => (icon: EnjoyIcons.keyboard, tint: EnjoyTint.slate),
+    };
 
 class HotkeysSettingsSection extends ConsumerStatefulWidget {
   const HotkeysSettingsSection({super.key});
@@ -83,7 +85,7 @@ class _HotkeysSettingsSectionState
     }
 
     final children = <Widget>[
-      _FilterField(
+      SettingsSearchInput(
         controller: _filter,
         hint: l10n.hotkeysFilterHint,
         clearTooltip: l10n.settingsSearchClear,
@@ -98,7 +100,7 @@ class _HotkeysSettingsSectionState
     for (final scope in HotkeyScope.values) {
       final defs = _definitionsFor(scope).where(matches).toList();
       if (defs.isEmpty) continue;
-      final visuals = _kScopeVisuals[scope]!;
+      final visuals = _scopeVisuals(scope);
 
       if (groupCount > 0) children.add(SizedBox(height: t.space24));
       groupCount++;
@@ -170,61 +172,8 @@ class _HotkeysSettingsSectionState
   }
 }
 
-class _FilterField extends StatelessWidget {
-  const _FilterField({
-    required this.controller,
-    required this.hint,
-    required this.clearTooltip,
-    required this.hasQuery,
-    required this.onChanged,
-    required this.onClear,
-  });
-
-  final TextEditingController controller;
-  final String hint;
-  final String clearTooltip;
-  final bool hasQuery;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = EnjoyThemeTokens.of(context);
-    final cs = Theme.of(context).colorScheme;
-
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      style: Theme.of(context).textTheme.bodyMedium,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(
-          EnjoyIcons.search,
-          color: cs.onSurfaceVariant,
-          size: 20,
-        ),
-        suffixIcon: hasQuery
-            ? IconButton(
-                tooltip: clearTooltip,
-                icon: const Icon(EnjoyIcons.close, size: 18),
-                onPressed: onClear,
-              )
-            : null,
-        filled: true,
-        fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: t.space16,
-          vertical: t.space12,
-        ),
-      ),
-    );
-  }
-}
+/// Edge of the trailing edit / reset action buttons in a hotkey row.
+const double kHotkeyRowActionSize = 30;
 
 class _HotkeyEditRow extends StatelessWidget {
   const _HotkeyEditRow({
@@ -255,10 +204,10 @@ class _HotkeyEditRow extends StatelessWidget {
     return EnjoyPressable(
       onTap: onEdit,
       borderRadius: BorderRadius.circular(t.radiusMd),
-      pressedScale: 0.995,
+      pressedScale: kSettingsRowPressedScale,
       child: Padding(
         padding: EdgeInsets.symmetric(
-          vertical: t.space8 - 1,
+          vertical: t.space8,
           horizontal: t.space12,
         ),
         child: Row(
@@ -283,14 +232,14 @@ class _HotkeyEditRow extends StatelessWidget {
               icon: EnjoyIcons.tune,
               onPressed: onEdit,
               tooltip: editTooltip,
-              size: 30,
+              size: kHotkeyRowActionSize,
             ),
             SizedBox(width: t.space8),
             EnjoyIconButton(
               icon: EnjoyIcons.refresh,
               onPressed: onReset,
               tooltip: resetTooltip,
-              size: 30,
+              size: kHotkeyRowActionSize,
             ),
           ],
         ),
