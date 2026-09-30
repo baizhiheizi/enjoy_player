@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkey_format.dart';
@@ -35,7 +35,8 @@ class HotkeysSettingsScreen extends ConsumerWidget {
       title: l10n.hotkeysSectionKeyboard,
       showBack: true,
       actions: [
-        TextButton(
+        EnjoyButton.ghost(
+          size: EnjoyButtonSize.small,
           onPressed: () async {
             if (!await confirmHotkeysResetAll(context)) return;
             if (!context.mounted) return;
@@ -51,7 +52,7 @@ class HotkeysSettingsScreen extends ConsumerWidget {
             padding: EdgeInsets.only(
               left: t.space4,
               right: t.space4,
-              bottom: t.space12,
+              bottom: t.space16,
             ),
             child: Text(
               l10n.hotkeysSettingsSubtitle(helpKeyLabel),
@@ -61,15 +62,7 @@ class HotkeysSettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          EnjoyCard(
-            padding: EdgeInsets.fromLTRB(
-              t.space16,
-              t.space16,
-              t.space12,
-              t.space16,
-            ),
-            child: const HotkeysSettingsSection(),
-          ),
+          const HotkeysSettingsSection(),
         ],
       ),
     );
