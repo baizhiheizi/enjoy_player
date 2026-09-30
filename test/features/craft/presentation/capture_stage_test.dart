@@ -103,7 +103,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.micFill), findsOneWidget);
 
       expect(find.text("Say what's on your mind"), findsOneWidget);
 
@@ -156,7 +156,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(craftControllerProvider).isCapturing, isFalse);
-      expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
+      expect(find.byIcon(EnjoyIcons.micFill), findsOneWidget);
     },
   );
 
@@ -176,7 +176,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsNothing);
-    expect(find.byIcon(EnjoyIcons.mic), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.micFill), findsOneWidget);
   });
 
   testWidgets(
@@ -243,7 +243,7 @@ void main() {
         .copyWith(failure: const CraftTranslateFailure());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
 

@@ -1,8 +1,8 @@
 /// Shared loading-state view used by every Craft stage (audio, capture,
 /// rewrite).
 ///
-/// Renders a centered `CircularProgressIndicator` with the supplied
-/// [message] underneath in the muted `onSurfaceVariant` body style.
+/// Renders a centered progress ring with the supplied [message] underneath
+/// in the muted `onSurfaceVariant` body style.
 /// Each stage passes its own localized string — e.g.
 ///
 /// ```dart
@@ -15,6 +15,9 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+
 class CraftLoadingView extends StatelessWidget {
   const CraftLoadingView({required this.message, super.key});
 
@@ -22,13 +25,14 @@ class CraftLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
+          const LoadingIcon(size: 28, strokeWidth: 2.5),
+          SizedBox(height: t.space16),
           Text(
             message,
             style: theme.textTheme.bodyMedium?.copyWith(

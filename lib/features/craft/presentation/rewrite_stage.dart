@@ -11,7 +11,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/domain/azure_voice.dart';
 import 'package:enjoy_player/features/craft/domain/craft_job_state.dart';
@@ -98,7 +102,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(craftControllerProvider);
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final t = EnjoyThemeTokens.of(context);
 
     _ensureControllers(state);
 
@@ -140,7 +144,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
         hasRaw && state.isRawTranscriptDirty && !isRetranslating;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 28),
+      padding: EdgeInsets.fromLTRB(t.space4, t.space4, t.space4, t.space32),
       children: [
         if (hasRaw) ...[
           _NativeTextCard(
@@ -159,7 +163,7 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
                 ? () => unawaited(_regenerate())
                 : null,
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: t.space16),
         ],
         _TargetTextCard(
           controller: _targetCtrl,
@@ -173,49 +177,44 @@ class _RewriteStageState extends ConsumerState<RewriteStage> {
             ref.read(craftControllerProvider.notifier).setTranslatedText(v);
           },
         ),
-        const SizedBox(height: 14),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.45),
-            ),
+        SizedBox(height: t.space16),
+        EnjoyCard(
+          elevated: false,
+          padding: EdgeInsets.symmetric(
+            horizontal: t.space16,
+            vertical: t.space12,
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                StylePicker(
-                  value: state.style,
-                  onChanged: (s) {
-                    if (state.isBusy) return;
-                    ref.read(craftControllerProvider.notifier).setStyle(s);
-                  },
-                ),
-                Divider(
-                  height: 20,
-                  color: scheme.outlineVariant.withValues(alpha: 0.5),
-                ),
-                VoicePicker(
-                  language: state.targetLanguage,
-                  selectedVoice: state.selectedVoice,
-                  onChanged: (voice) {
-                    if (state.isBusy) return;
-                    ref
-                        .read(craftControllerProvider.notifier)
-                        .setSelectedVoice(
-                          voice,
-                          forLanguage: state.targetLanguage,
-                        );
-                  },
-                ),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              StylePicker(
+                value: state.style,
+                onChanged: (s) {
+                  if (state.isBusy) return;
+                  ref.read(craftControllerProvider.notifier).setStyle(s);
+                },
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: t.space8),
+                child: Divider(height: 1, thickness: 1, color: t.hairline),
+              ),
+              VoicePicker(
+                language: state.targetLanguage,
+                selectedVoice: state.selectedVoice,
+                onChanged: (voice) {
+                  if (state.isBusy) return;
+                  ref
+                      .read(craftControllerProvider.notifier)
+                      .setSelectedVoice(
+                        voice,
+                        forLanguage: state.targetLanguage,
+                      );
+                },
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 22),
+        SizedBox(height: t.space24),
         _ActionButtons(
           state: state,
           l10n: l10n,
@@ -265,16 +264,10 @@ class _NativeTextCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final scheme = theme.colorScheme;
-    final fieldRadius = BorderRadius.circular(t.radiusMd);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.45),
-        ),
-      ),
+    return EnjoyCard(
+      elevated: false,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -287,35 +280,24 @@ class _NativeTextCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  EnjoyIcons.quote,
-                  size: 16,
-                  color: scheme.onSurfaceVariant,
-                ),
+                Icon(EnjoyIcons.quote, size: 16, color: t.textFaint),
                 SizedBox(width: t.space8),
                 Expanded(
                   child: Text(
                     l10n.craftRewriteYourWords,
-                    style: theme.textTheme.labelMedium?.copyWith(
+                    style: theme.textTheme.labelLarge?.copyWith(
                       color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.1,
                     ),
                   ),
                 ),
                 if (isRetranslating)
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                  const LoadingIcon(size: 18, strokeWidth: 2)
                 else if (showReTranslate)
-                  TextButton(
+                  EnjoyButton.ghost(
                     onPressed: onReTranslate,
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.symmetric(horizontal: t.space8),
-                    ),
+                    size: EnjoyButtonSize.small,
                     child: Text(l10n.craftReTranslateButton),
                   ),
               ],
@@ -323,46 +305,73 @@ class _NativeTextCard extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
-            child: TextField(
+            child: _CraftTextField(
               controller: controller,
               focusNode: focusNode,
               enabled: enabled,
               minLines: 3,
-              maxLines: 10,
-              textInputAction: TextInputAction.newline,
-              style: theme.textTheme.bodyLarge?.copyWith(height: 1.55),
               onChanged: onChanged,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: scheme.surface.withValues(alpha: 0.55),
-                isDense: false,
-                contentPadding: EdgeInsets.all(t.space16),
-                border: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.65),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.65),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(color: scheme.primary, width: 1.5),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.4),
-                  ),
-                ),
-              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shared transcript field: recessed fill, hairline outline, continuous
+/// corners, and the Aurora focus treatment.
+class _CraftTextField extends StatelessWidget {
+  const _CraftTextField({
+    required this.controller,
+    required this.focusNode,
+    required this.enabled,
+    required this.minLines,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool enabled;
+  final int minLines;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final theme = Theme.of(context);
+    final fieldRadius = BorderRadius.circular(t.radiusMd);
+    final side = BorderSide(
+      color: enabled ? t.hairline : t.hairline.withValues(alpha: 0.5),
+    );
+
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      minLines: minLines,
+      maxLines: 10,
+      textInputAction: TextInputAction.newline,
+      style: theme.textTheme.bodyLarge?.copyWith(height: 1.55),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: t.fill,
+        isDense: false,
+        contentPadding: EdgeInsets.all(t.space16),
+        border: OutlineInputBorder(borderRadius: fieldRadius, borderSide: side),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: fieldRadius,
+          borderSide: side,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: fieldRadius,
+          borderSide: BorderSide(color: t.accentInk, width: 1.5),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: fieldRadius,
+          borderSide: side,
+        ),
       ),
     );
   }
@@ -391,16 +400,10 @@ class _TargetTextCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final scheme = theme.colorScheme;
-    final fieldRadius = BorderRadius.circular(t.radiusMd);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(t.radiusLg),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
+    return EnjoyCard(
+      elevated: false,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -418,15 +421,19 @@ class _TargetTextCard extends StatelessWidget {
                     horizontal: t.space8,
                     vertical: 4,
                   ),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(t.radiusSm),
+                  decoration: ShapeDecoration(
+                    color: t.accentSoft,
+                    shape: RoundedSuperellipseBorder(
+                      borderRadius: BorderRadius.circular(t.radiusSm),
+                    ),
                   ),
                   child: Text(
                     targetBase,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w700,
+                    style: enjoyMonoStyle(
+                      context,
+                      size: 12.5,
+                      weight: FontWeight.w600,
+                      color: t.accentInk,
                     ),
                   ),
                 ),
@@ -434,8 +441,9 @@ class _TargetTextCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     targetLabel,
-                    style: theme.textTheme.labelMedium?.copyWith(
+                    style: theme.textTheme.labelLarge?.copyWith(
                       color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -445,43 +453,12 @@ class _TargetTextCard extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(t.space12, 0, t.space12, t.space12),
-            child: TextField(
+            child: _CraftTextField(
               controller: controller,
               focusNode: focusNode,
               enabled: enabled,
               minLines: 4,
-              maxLines: 10,
-              textInputAction: TextInputAction.newline,
-              style: theme.textTheme.bodyLarge?.copyWith(height: 1.55),
               onChanged: onChanged,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: scheme.surface.withValues(alpha: 0.55),
-                isDense: false,
-                contentPadding: EdgeInsets.all(t.space16),
-                border: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.65),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.65),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(color: scheme.primary, width: 1.5),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: fieldRadius,
-                  borderSide: BorderSide(
-                    color: scheme.outlineVariant.withValues(alpha: 0.4),
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -509,54 +486,34 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.icon(
+        EnjoyButton.primary(
           onPressed: onGenerateAudio,
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          icon: const Icon(EnjoyIcons.waveform),
-          label: Text(l10n.craftRewriteGenerateAudio),
+          icon: EnjoyIcons.waveform,
+          expand: true,
+          child: Text(l10n.craftRewriteGenerateAudio),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: t.space8),
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: EnjoyButton.secondary(
                 onPressed: onReRecord,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(EnjoyIcons.mic, size: 18),
-                label: Text(l10n.craftRewriteReRecord),
+                icon: EnjoyIcons.mic,
+                expand: true,
+                child: Text(l10n.craftRewriteReRecord),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: t.space8),
             Expanded(
-              child: OutlinedButton.icon(
+              child: EnjoyButton.secondary(
                 onPressed: onRegenerate,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: isRetranslating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(EnjoyIcons.refresh, size: 18),
-                label: Text(l10n.craftRewriteRegenerate),
+                icon: isRetranslating ? null : EnjoyIcons.refresh,
+                expand: true,
+                child: Text(l10n.craftRewriteRegenerate),
               ),
             ),
           ],

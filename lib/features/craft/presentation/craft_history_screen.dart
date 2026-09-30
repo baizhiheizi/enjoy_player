@@ -10,7 +10,10 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
@@ -18,6 +21,7 @@ import 'package:enjoy_player/features/craft/application/craft_controller.dart';
 import 'package:enjoy_player/features/craft/application/craft_history_provider.dart';
 import 'package:enjoy_player/features/craft/application/craft_library_repository_provider.dart';
 import 'package:enjoy_player/features/library/domain/media.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// Full-screen route listing Craft history (`provider = 'craft'`).
@@ -30,6 +34,7 @@ class CraftHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final historyAsync = ref.watch(craftHistoryProvider);
 
     return EnjoyPage(
@@ -47,19 +52,32 @@ class CraftHistoryScreen extends ConsumerWidget {
               actionLabel: l10n.craftHistoryEmptyAction,
             );
           }
-          return ListView.separated(
-            padding: metrics.padding(),
-            itemCount: items.length,
-            separatorBuilder: (context, index) =>
-                SizedBox(height: EnjoyThemeTokens.of(context).space8),
-            itemBuilder: (context, index) {
-              final media = items[index];
-              return _CraftHistoryTile(
-                media: media,
-                onTap: () => _openForEdit(context, ref, media),
-                onRemove: () => _removeRecord(context, ref, media),
-              );
-            },
+          return ListView(
+            padding: metrics.padding(top: t.space16, bottom: t.space32),
+            children: [
+              EnjoySectionHeader(
+                title: l10n.craftHistoryTitle,
+                caption: '${items.length}',
+                padding: EdgeInsets.only(bottom: t.space12),
+              ),
+              EnjoyCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < items.length; i++) ...[
+                      if (i > 0)
+                        const SettingsRowDivider(insetForLeading: false),
+                      _CraftHistoryTile(
+                        media: items[i],
+                        onTap: () => _openForEdit(context, ref, items[i]),
+                        onRemove: () => _removeRecord(context, ref, items[i]),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           );
         },
         loading: () => const SkeletonSettingsList(rowCount: 6),
@@ -142,28 +160,19 @@ class _CraftHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final cs = Theme.of(context).colorScheme;
     final dateFmt = DateFormat.yMMMd().add_jm();
 
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        leading: Icon(EnjoyIcons.sparkle, color: cs.primary),
-        title: Text(media.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(dateFmt.format(media.updatedAt.toLocal())),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: l10n.craftHistoryRemoveTooltip,
-              icon: const Icon(EnjoyIcons.delete),
-              onPressed: onRemove,
-            ),
-            const Icon(EnjoyIcons.chevronRight),
-          ],
-        ),
-        onTap: onTap,
+    return SettingsRow(
+      leadingIcon: EnjoyIcons.sparkle,
+      title: media.title,
+      subtitle: dateFmt.format(media.updatedAt.toLocal()),
+      onTap: onTap,
+      trailing: EnjoyIconButton(
+        icon: EnjoyIcons.delete,
+        tooltip: l10n.craftHistoryRemoveTooltip,
+        variant: EnjoyButtonVariant.destructive,
+        size: 30,
+        onPressed: onRemove,
       ),
     );
   }

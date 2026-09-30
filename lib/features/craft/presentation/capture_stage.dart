@@ -15,7 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/logging/log.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -330,7 +335,7 @@ class _CaptureStageState extends ConsumerState<CaptureStage> {
     }
 
     if (_recordingPending) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: LoadingIcon(size: 28, strokeWidth: 2.5));
     }
 
     return _IdleView(
@@ -363,10 +368,11 @@ class _IdleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final scheme = theme.colorScheme;
     final buttonSize = isTablet ? 88.0 : 72.0;
     final sourceLang = state.sourceLanguage?.toUpperCase() ?? '—';
     final targetLang = state.targetLanguage.toUpperCase();
-    final scheme = theme.colorScheme;
 
     return Center(
       child: Column(
@@ -374,31 +380,33 @@ class _IdleView extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.5),
+            decoration: ShapeDecoration(
+              color: t.fill,
+              shape: RoundedSuperellipseBorder(
+                borderRadius: BorderRadius.circular(t.radiusFull),
+                side: BorderSide(color: t.hairline),
               ),
             ),
             child: Text(
               '$sourceLang  →  $targetLang',
-              style: theme.textTheme.labelLarge?.copyWith(
+              style: enjoyMonoStyle(
+                context,
+                size: 13,
+                weight: FontWeight.w600,
                 color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
               ),
             ),
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: t.space24),
           Text(
             l10n.craftCaptureTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: t.space8),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),
             child: Text(
@@ -410,56 +418,59 @@ class _IdleView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 44),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onMicTap,
-              customBorder: const CircleBorder(),
-              child: Ink(
-                width: buttonSize * 2.2,
-                height: buttonSize * 2.2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+          SizedBox(height: t.space48),
+          SizedBox(
+            width: buttonSize * 2.2,
+            height: buttonSize * 2.2,
+            child: Center(
+              child: DecoratedBox(
+                decoration: ShapeDecoration(
+                  shape: const CircleBorder(),
                   gradient: RadialGradient(
                     colors: [
                       scheme.primary.withValues(alpha: 0.28),
-                      scheme.primaryContainer.withValues(alpha: 0.12),
+                      scheme.primary.withValues(alpha: 0.12),
                       Colors.transparent,
                     ],
                     stops: const [0.35, 0.7, 1],
                   ),
                 ),
-                child: Center(
-                  child: Container(
+                child: EnjoyPressable(
+                  onTap: onMicTap,
+                  borderRadius: BorderRadius.circular(buttonSize / 2),
+                  pressedScale: 0.95,
+                  semanticsLabel: l10n.craftCaptureTitle,
+                  child: AnimatedContainer(
+                    duration: t.motionFast,
                     width: buttonSize,
                     height: buttonSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: scheme.primary,
-                      boxShadow: [
-                        BoxShadow(
-                          color: scheme.primary.withValues(alpha: 0.35),
-                          blurRadius: 24,
-                          spreadRadius: 2,
-                        ),
-                      ],
+                    decoration: enjoyLitFillDecoration(
+                      base: scheme.primary,
+                      shape: CircleBorder(
+                        side: enjoyLitHighlightSide(alpha: 0.16),
+                      ),
+                      shadow: enjoyLitShadow(
+                        scheme.primary,
+                        alpha: 0.36,
+                        blurRadius: 24,
+                        spreadRadius: 1,
+                      ),
                     ),
                     child: Icon(
-                      EnjoyIcons.mic,
-                      size: buttonSize * 0.48,
+                      EnjoyIcons.micFill,
                       color: scheme.onPrimary,
+                      size: buttonSize * 0.46,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 28),
-          TextButton.icon(
+          SizedBox(height: t.space24),
+          EnjoyButton.ghost(
             onPressed: onTypeInstead,
-            icon: const Icon(EnjoyIcons.keyboard, size: 18),
-            label: Text(l10n.craftCaptureTypeInstead),
+            icon: EnjoyIcons.keyboard,
+            child: Text(l10n.craftCaptureTypeInstead),
           ),
         ],
       ),
@@ -514,6 +525,7 @@ class _RecordingViewState extends State<_RecordingView>
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final theme = widget.theme;
     final scheme = theme.colorScheme;
     final count = widget.amplitudeCount;
@@ -524,13 +536,15 @@ class _RecordingViewState extends State<_RecordingView>
         children: [
           Text(
             formatDurationHms(widget.elapsed),
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontFeatures: const [FontFeature.tabularFigures()],
-              fontWeight: FontWeight.w600,
+            style: enjoyMonoStyle(
+              context,
+              size: 34,
+              weight: FontWeight.w600,
               color: scheme.error,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: t.space24),
           Center(
             child: SizedBox(
               width: _AmplitudeBarsPainter.trackWidthFor(
@@ -542,52 +556,54 @@ class _RecordingViewState extends State<_RecordingView>
                   buffer: widget.amplitudeBuffer,
                   count: count,
                   writeIndex: widget.amplitudeWriteIndex,
-                  color: scheme.primary,
+                  color: t.accentInk,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 36),
+          SizedBox(height: t.space40),
           AnimatedBuilder(
             animation: _pulse,
             builder: (context, child) {
-              final t = _pulse.value;
-              return Container(
-                width: 96 + t * 8,
-                height: 96 + t * 8,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: scheme.error.withValues(alpha: 0.12 + t * 0.08),
+              final v = _pulse.value;
+              return SizedBox(
+                width: 96 + v * 8,
+                height: 96 + v * 8,
+                child: Center(
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      shape: const CircleBorder(),
+                      color: scheme.error.withValues(alpha: 0.12 + v * 0.08),
+                    ),
+                    child: child,
+                  ),
                 ),
-                child: child,
               );
             },
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: widget.onStop,
-                customBorder: const CircleBorder(),
-                child: Ink(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.error,
-                    boxShadow: [
-                      BoxShadow(
-                        color: scheme.error.withValues(alpha: 0.35),
-                        blurRadius: 18,
-                        spreadRadius: 1,
-                      ),
-                    ],
+            child: EnjoyPressable(
+              onTap: widget.onStop,
+              borderRadius: BorderRadius.circular(40),
+              pressedScale: 0.95,
+              semanticsLabel: widget.l10n.craftCaptureStop,
+              child: AnimatedContainer(
+                duration: t.motionFast,
+                width: 80,
+                height: 80,
+                decoration: enjoyLitFillDecoration(
+                  base: scheme.error,
+                  shape: CircleBorder(side: enjoyLitHighlightSide(alpha: 0.16)),
+                  shadow: enjoyLitShadow(
+                    scheme.error,
+                    alpha: 0.38,
+                    blurRadius: 18,
+                    spreadRadius: 0,
                   ),
-                  child: Icon(EnjoyIcons.stop, size: 40, color: scheme.onError),
                 ),
+                child: Icon(EnjoyIcons.stop, size: 40, color: scheme.onError),
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: t.space12),
           Text(
             widget.l10n.craftCaptureStop,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -595,8 +611,8 @@ class _RecordingViewState extends State<_RecordingView>
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          TextButton(
+          SizedBox(height: t.space8),
+          EnjoyButton.ghost(
             onPressed: widget.onCancel,
             child: Text(widget.l10n.craftCaptureCancel),
           ),
@@ -696,19 +712,19 @@ class _TextFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            TextButton.icon(
-              onPressed: onBack,
-              icon: const Icon(EnjoyIcons.mic, size: 18),
-              label: Text(l10n.craftCaptureTitle),
-            ),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: EnjoyButton.ghost(
+            onPressed: onBack,
+            icon: EnjoyIcons.mic,
+            child: Text(l10n.craftCaptureTitle),
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: t.space16),
         TextField(
           controller: controller,
           focusNode: focusNode,
@@ -718,14 +734,17 @@ class _TextFallback extends StatelessWidget {
           onSubmitted: (_) => onSubmit(),
           decoration: InputDecoration(
             hintText: l10n.craftTextInputHint,
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(t.radiusLg),
+            ),
           ),
         ),
-        const SizedBox(height: 16),
-        FilledButton.icon(
+        SizedBox(height: t.space16),
+        EnjoyButton.primary(
           onPressed: onSubmit,
-          icon: const Icon(EnjoyIcons.arrowRight),
-          label: Text(l10n.craftRewriteGenerateAudio),
+          icon: EnjoyIcons.arrowRight,
+          expand: true,
+          child: Text(l10n.craftRewriteGenerateAudio),
         ),
       ],
     );

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/domain/user_profile.dart';
@@ -232,7 +233,7 @@ void main() {
         .copyWith(failure: const CraftTranslateFailure());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byIcon(EnjoyIcons.errorFill), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
 
@@ -247,9 +248,7 @@ void main() {
     expect(find.text('Generate audio'), findsOneWidget);
   });
 
-  testWidgets('AudioStage shows CircularProgressIndicator while isSaving', (
-    tester,
-  ) async {
+  testWidgets('AudioStage shows LoadingIcon while isSaving', (tester) async {
     await tester.pumpWidget(
       _harness(overrides: _baseOverrides(), child: const AudioStage()),
     );
@@ -272,7 +271,7 @@ void main() {
         .copyWith(isSaving: true);
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(LoadingIcon), findsOneWidget);
     expect(find.text('Practice now'), findsNothing);
   });
 

@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_segmented_control.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
@@ -74,8 +75,8 @@ class CraftScreen extends ConsumerWidget {
         showBack: true,
         title: l10n.craftScreenTitle,
         actions: [
-          IconButton(
-            icon: const Icon(EnjoyIcons.history),
+          EnjoyIconButton(
+            icon: EnjoyIcons.history,
             tooltip: l10n.craftHistoryTooltip,
             onPressed: () => context.push('/craft/history'),
           ),
@@ -88,24 +89,22 @@ class CraftScreen extends ConsumerWidget {
               Padding(
                 padding: metrics.padding(top: t.space8, bottom: t.space12),
                 child: Center(
-                  child: SegmentedButton<CraftScreenMode>(
-                    style: enjoySegmentedButtonStyle(context),
+                  child: EnjoySegmentedControl<CraftScreenMode>(
                     segments: [
-                      ButtonSegment(
+                      EnjoySegment(
                         value: CraftScreenMode.express,
-                        icon: const Icon(EnjoyIcons.mic, size: 18),
-                        label: Text(l10n.craftModeExpress),
+                        icon: EnjoyIcons.mic,
+                        label: l10n.craftModeExpress,
                       ),
-                      ButtonSegment(
+                      EnjoySegment(
                         value: CraftScreenMode.advanced,
-                        icon: const Icon(EnjoyIcons.edit, size: 18),
-                        label: Text(l10n.craftModeAdvanced),
+                        icon: EnjoyIcons.edit,
+                        label: l10n.craftModeAdvanced,
                       ),
                     ],
-                    selected: {state.screenMode},
-                    onSelectionChanged: (selection) {
-                      unawaited(_changeMode(context, ref, selection.first));
-                    },
+                    value: state.screenMode,
+                    onChanged: (next) =>
+                        unawaited(_changeMode(context, ref, next)),
                   ),
                 ),
               ),
