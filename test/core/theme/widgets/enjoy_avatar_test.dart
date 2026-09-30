@@ -135,9 +135,10 @@ void main() {
       size: 10.5,
       weight: FontWeight.w600,
       color: tokens.textFaint,
+      height: 1.35,
     );
     expect(text.style?.fontFamily, mono.fontFamily);
-    expect(text.style?.height, 1.35);
+    expect(text.style, mono);
     expect(text.maxLines, 1);
   });
 

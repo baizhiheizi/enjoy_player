@@ -397,6 +397,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
               )
             : textBody;
 
+        final lineRadius = BorderRadius.circular(tok.radiusMd);
         if (widget.selectable) {
           return Semantics(
             container: true,
@@ -411,11 +412,11 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
                       decoration: ShapeDecoration(
                         color: bg ?? Colors.transparent,
                         shape: RoundedSuperellipseBorder(
-                          borderRadius: BorderRadius.circular(tok.radiusMd),
+                          borderRadius: lineRadius,
                         ),
                       ),
                       child: ClipRSuperellipse(
-                        borderRadius: BorderRadius.circular(tok.radiusMd),
+                        borderRadius: lineRadius,
                         child: content,
                       ),
                     ),
@@ -430,7 +431,7 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             button: true,
             child: EnjoyPressable(
               onTap: () => _handleTap(context),
-              borderRadius: BorderRadius.circular(tok.radiusMd),
+              borderRadius: lineRadius,
               child: ColoredBox(
                 color: bg ?? Colors.transparent,
                 child: content,
@@ -447,19 +448,15 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
             onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
             child: EnjoyPressable(
-              shape: RoundedSuperellipseBorder(
-                borderRadius: BorderRadius.circular(tok.radiusMd),
-              ),
+              shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
               onTap: () => _handleTap(context),
               child: DecoratedBox(
                 decoration: ShapeDecoration(
                   color: bg ?? Colors.transparent,
-                  shape: RoundedSuperellipseBorder(
-                    borderRadius: BorderRadius.circular(tok.radiusMd),
-                  ),
+                  shape: RoundedSuperellipseBorder(borderRadius: lineRadius),
                 ),
                 child: ClipRSuperellipse(
-                  borderRadius: BorderRadius.circular(tok.radiusMd),
+                  borderRadius: lineRadius,
                   child: content,
                 ),
               ),

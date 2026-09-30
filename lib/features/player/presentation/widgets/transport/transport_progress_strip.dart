@@ -60,10 +60,17 @@ class TransportThumbShape extends RoundSliderThumbShape {
     required Size sizeWithOverflow,
   }) {
     final canvas = context.canvas;
-    final color = sliderTheme.thumbColor;
-    if (color != null) {
-      canvas.drawCircle(center, enabledThumbRadius + 4, _glowPaintFor(color));
-    }
+    final thumbColor = sliderTheme.thumbColor;
+    assert(
+      thumbColor != null,
+      'TransportProgressStrip._sliderThemeFor always sets thumbColor — the '
+      'hover glow must never silently disappear.',
+    );
+    canvas.drawCircle(
+      center,
+      enabledThumbRadius + 4,
+      _glowPaintFor(thumbColor!),
+    );
     super.paint(
       context,
       center,

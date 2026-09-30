@@ -135,6 +135,7 @@ TextStyle enjoyMonoStyle(
   FontWeight weight = FontWeight.w500,
   Color? color,
   double letterSpacing = 0,
+  double? height,
 }) {
   final base =
       Theme.of(context).extension<TranscriptTypographyTokens>()?.monoStyle ??
@@ -144,6 +145,7 @@ TextStyle enjoyMonoStyle(
     fontWeight: weight,
     color: color,
     letterSpacing: letterSpacing,
+    height: height,
     fontFeatures: const [FontFeature.tabularFigures()],
   );
 }

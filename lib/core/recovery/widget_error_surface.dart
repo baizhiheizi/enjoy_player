@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
+import 'package:enjoy_player/core/recovery/recovery_text_style.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
-import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -70,12 +70,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
                       children: [
                         Text(
                           message,
-                          style: enjoyMonoStyle(
-                            context,
-                            size: 12,
-                            weight: FontWeight.w400,
-                            color: cs.onSurfaceVariant,
-                          ),
+                          style: recoveryMonoText(context, cs),
                           maxLines: 8,
                           overflow: TextOverflow.ellipsis,
                         ),

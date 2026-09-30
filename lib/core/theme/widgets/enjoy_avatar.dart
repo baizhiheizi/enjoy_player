@@ -232,7 +232,8 @@ class EnjoyKeycap extends StatelessWidget {
           size: 10.5,
           weight: FontWeight.w600,
           color: t.textFaint,
-        ).copyWith(height: 1.35),
+          height: 1.35,
+        ),
       ),
     );
   }
