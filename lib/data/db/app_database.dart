@@ -1,6 +1,8 @@
 /// Root Drift database for Enjoy Player (native SQLite via drift_flutter).
 library;
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -118,7 +120,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -315,6 +317,18 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS idx_audios_updated_at '
           'ON audios (updated_at DESC)',
         );
+      } else if (next == 20) {
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_sync_queue_created_at '
+          'ON sync_queue (created_at)',
+        );
+        await _addColumnIfMissing(m, aiCache, aiCache.sourceLanguage);
+        await _addColumnIfMissing(m, aiCache, aiCache.targetLanguage);
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_ai_cache_lang_pair '
+          'ON ai_cache (source_language, target_language)',
+        );
+        await _backfillAiCacheLanguagePairs(m.database);
       }
       current = next;
     }
@@ -345,6 +359,55 @@ class AppDatabase extends _$AppDatabase {
         .get();
     if (rows.isNotEmpty) return;
     await m.addColumn(table, column);
+  }
+
+  /// Migration 20 (issue #827 C4): projects the language pair out of each
+  /// cached AI payload into the new `source_language` / `target_language`
+  /// columns so pair eviction can match indexed columns instead of
+  /// scanning `payload_json` with a leading-wildcard `LIKE`. Rows whose
+  /// payload lacks either field (or fails to decode) keep NULL — they are
+  /// never pair-evicted, matching the old LIKE's both-patterns rule.
+  /// Bounded by the per-kind L2 row caps (~18 k rows worst case).
+  static Future<void> _backfillAiCacheLanguagePairs(
+    GeneratedDatabase db,
+  ) async {
+    final rows = await db
+        .customSelect(
+          'SELECT kind, key, payload_json FROM ai_cache '
+          'WHERE source_language IS NULL OR target_language IS NULL',
+        )
+        .get();
+    for (final row in rows) {
+      final kind = row.read<String>('kind');
+      final key = row.read<String>('key');
+      final payloadJson = row.read<String>('payload_json');
+      String? sourceLanguage;
+      String? targetLanguage;
+      try {
+        final payload = jsonDecode(payloadJson);
+        if (payload is Map<String, dynamic>) {
+          final src = payload['sourceLanguage'];
+          final tgt = payload['targetLanguage'];
+          if (src is String && tgt is String) {
+            sourceLanguage = src;
+            targetLanguage = tgt;
+          }
+        }
+      } on Object {
+        sourceLanguage = null;
+      }
+      if (sourceLanguage == null || targetLanguage == null) continue;
+      await db.customUpdate(
+        'UPDATE ai_cache SET source_language = ?, target_language = ? '
+        'WHERE kind = ? AND key = ?',
+        variables: [
+          Variable.withString(sourceLanguage),
+          Variable.withString(targetLanguage),
+          Variable.withString(kind),
+          Variable.withString(key),
+        ],
+      );
+    }
   }
 
   Future<void> _dropLegacyTables(Migrator m) async {

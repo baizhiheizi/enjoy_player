@@ -187,6 +187,8 @@ class _ContextualFetchBodyState extends ConsumerState<_ContextualFetchBody> {
         final r = await cache.lookup(
           kind: AiKind.contextualTranslation,
           key: key,
+          sourceLanguage: p.sourceLanguage,
+          targetLanguage: p.targetLanguage,
           loader: () async {
             final svc = ref.read(contextualTranslationServiceProvider);
             return svc

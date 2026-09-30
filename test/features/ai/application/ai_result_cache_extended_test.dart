@@ -375,6 +375,8 @@ void main() {
         'a',
         '{"v":"x","sourceLanguage":"en","targetLanguage":"es"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'es',
       );
 
       await cache.evictForPair(sourceLanguage: 'fr', targetLanguage: 'de');
@@ -388,24 +390,32 @@ void main() {
         't1',
         '{"v":"t","sourceLanguage":"en","targetLanguage":"ja"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'ja',
       );
       await db.aiCacheDao.upsert(
         'dictionary',
         'd1',
         '{"v":"d","sourceLanguage":"en","targetLanguage":"ja"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'ja',
       );
       await db.aiCacheDao.upsert(
         'contextual_translation',
         'c1',
         '{"v":"c","sourceLanguage":"en","targetLanguage":"ja"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'ja',
       );
       await db.aiCacheDao.upsert(
         'translation',
         't2',
         '{"v":"other","sourceLanguage":"en","targetLanguage":"ko"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'ko',
       );
 
       await cache.evictForPair(sourceLanguage: 'en', targetLanguage: 'ja');

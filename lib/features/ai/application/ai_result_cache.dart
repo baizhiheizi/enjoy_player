@@ -76,12 +76,18 @@ class AiResultCache<V extends Object> {
   /// L1 → L2 → loader chain. [forceRefresh] busts L1 + L2 for the key
   /// before invoking the loader.
   ///
+  /// [sourceLanguage] / [targetLanguage], when the cached payload is
+  /// pair-scoped, are persisted in the L2 row's indexed pair columns so
+  /// [evictForPair] can match without scanning the payload.
+  ///
   /// Loader exceptions propagate. L2 I/O failures degrade to "miss".
   Future<V> lookup({
     required AiKind kind,
     required String key,
     required Future<V> Function() loader,
     bool forceRefresh = false,
+    String? sourceLanguage,
+    String? targetLanguage,
   }) async {
     final cacheKey = _cacheKey(kind, key);
 
@@ -115,7 +121,13 @@ class AiResultCache<V extends Object> {
 
     _log.info('ai_cache miss kind=${kind.wire} key=$key (calling loader)');
     final result = await loader();
-    await remember(kind: kind, key: key, value: result);
+    await remember(
+      kind: kind,
+      key: key,
+      value: result,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+    );
     return result;
   }
 
@@ -124,12 +136,21 @@ class AiResultCache<V extends Object> {
     required AiKind kind,
     required String key,
     required V value,
+    String? sourceLanguage,
+    String? targetLanguage,
   }) async {
     final cacheKey = _cacheKey(kind, key);
     _l1.put(cacheKey, value);
     try {
       final json = jsonEncode(_toJson(value));
-      await _dao.upsert(kind.wire, key, json, DateTime.now());
+      await _dao.upsert(
+        kind.wire,
+        key,
+        json,
+        DateTime.now(),
+        sourceLanguage: sourceLanguage,
+        targetLanguage: targetLanguage,
+      );
     } on Object catch (e, st) {
       _log.warning(
         'ai_cache remember l2 failed kind=${kind.wire} key=$key',
@@ -146,21 +167,19 @@ class AiResultCache<V extends Object> {
     _log.info('ai_cache invalidate kind=${kind.wire} key=$key');
   }
 
-  /// Removes every entry whose decoded JSON payload contains
-  /// `sourceLanguage == X && targetLanguage == Y`. Scans L2 via SQL
-  /// `LIKE` on `payload_json`.
+  /// Removes every L2 row stored for the `(sourceLanguage, targetLanguage)`
+  /// pair (any kind), matching the indexed pair columns instead of scanning
+  /// `payload_json` with a leading-wildcard `LIKE` (issue #827 C4).
   ///
   /// Note: because the cache key already includes `(src, tgt)`, L1 entries
   /// for a different pair cannot shadow a lookup for `(X, Y)` — they are
-  /// already isolated by key. The L1 sweep below is purely opportunistic
-  /// memory cleanup; the L2 sweep is the correctness guarantee.
+  /// already isolated by key, so no L1 sweep is needed; the L2 sweep is the
+  /// correctness guarantee.
   Future<void> evictForPair({
     required String sourceLanguage,
     required String targetLanguage,
   }) async {
-    final srcPattern = '%"sourceLanguage":"$sourceLanguage"%';
-    final tgtPattern = '%"targetLanguage":"$targetLanguage"%';
-    final deleted = await _dao.deleteByPayloadLike(srcPattern, tgtPattern);
+    final deleted = await _dao.deleteForPair(sourceLanguage, targetLanguage);
     _log.info(
       'ai_cache evict_for_pair src=$sourceLanguage tgt=$targetLanguage '
       'l2=$deleted',

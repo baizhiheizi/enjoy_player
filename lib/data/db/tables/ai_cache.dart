@@ -9,6 +9,10 @@ library;
 import 'package:drift/drift.dart';
 
 @TableIndex(name: 'idx_ai_cache_kind_updated_at', columns: {#kind, #updatedAt})
+@TableIndex(
+  name: 'idx_ai_cache_lang_pair',
+  columns: {#sourceLanguage, #targetLanguage},
+)
 @DataClassName('AiCacheRow')
 class AiCache extends Table {
   @override
@@ -26,6 +30,14 @@ class AiCache extends Table {
   /// JSON-encoded result payload. Decoded back to the concrete Dart type
   /// by the cache layer.
   TextColumn get payloadJson => text()();
+
+  /// Language pair the payload was produced for, projected out of the
+  /// payload at write time so `evictForPair` matches on indexed columns
+  /// instead of scanning `payload_json` with a leading-wildcard `LIKE`
+  /// (issue #827 C4). Rows without a pair in their payload stay null and
+  /// are never pair-evicted — same matching semantics as the old LIKE.
+  TextColumn get sourceLanguage => text().nullable()();
+  TextColumn get targetLanguage => text().nullable()();
 
   /// Last-write timestamp (milliseconds since epoch). Used by
   /// `evictOldestExcept` and `pruneOlderThan`.

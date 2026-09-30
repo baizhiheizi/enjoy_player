@@ -21,14 +21,18 @@ class AiCacheDao extends DatabaseAccessor<AppDatabase> with _$AiCacheDaoMixin {
     String kind,
     String key,
     String payloadJson,
-    DateTime updatedAt,
-  ) async {
+    DateTime updatedAt, {
+    String? sourceLanguage,
+    String? targetLanguage,
+  }) async {
     try {
       await into(aiCache).insert(
         AiCacheRow(
           kind: kind,
           key: key,
           payloadJson: payloadJson,
+          sourceLanguage: sourceLanguage,
+          targetLanguage: targetLanguage,
           updatedAt: updatedAt.millisecondsSinceEpoch,
         ),
         mode: InsertMode.insertOrReplace,
@@ -105,27 +109,31 @@ class AiCacheDao extends DatabaseAccessor<AppDatabase> with _$AiCacheDaoMixin {
     }
   }
 
-  /// Bulk-deletes every row whose `payload_json` matches both LIKE patterns
-  /// in a single SQL statement (issue #478). Returns the number of deleted
-  /// rows.
-  Future<int> deleteByPayloadLike(String pattern1, String pattern2) async {
+  /// Bulk-deletes every row stored for the given language pair (any kind)
+  /// in a single indexed SQL statement (issue #827 C4 — replaces the
+  /// leading-wildcard `payload_json LIKE` full scan). Rows written without
+  /// a pair never match. Returns the number of deleted rows.
+  Future<int> deleteForPair(
+    String sourceLanguage,
+    String targetLanguage,
+  ) async {
     try {
       final count =
           await (selectOnly(aiCache)
                 ..addColumns([aiCache.key.count()])
                 ..where(
-                  aiCache.payloadJson.like(pattern1) &
-                      aiCache.payloadJson.like(pattern2),
+                  aiCache.sourceLanguage.equals(sourceLanguage) &
+                      aiCache.targetLanguage.equals(targetLanguage),
                 ))
               .map((row) => row.read<int>(aiCache.key.count()) ?? 0)
               .getSingle();
       await customStatement(
-        'DELETE FROM ai_cache WHERE payload_json LIKE ? AND payload_json LIKE ?',
-        [pattern1, pattern2],
+        'DELETE FROM ai_cache WHERE source_language = ? AND target_language = ?',
+        [sourceLanguage, targetLanguage],
       );
       return count;
     } on Object catch (e, st) {
-      _log.warning('ai_cache deleteByPayloadLike failed', e, st);
+      _log.warning('ai_cache deleteForPair failed', e, st);
       return -1;
     }
   }

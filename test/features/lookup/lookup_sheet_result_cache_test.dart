@@ -67,36 +67,48 @@ void main() {
           'a',
           '{"v":"a","sourceLanguage":"ko-KR","targetLanguage":"ja-JP"}',
           DateTime.now(),
+          sourceLanguage: 'ko-KR',
+          targetLanguage: 'ja-JP',
         );
         await db.aiCacheDao.upsert(
           'translation',
           'b',
           '{"v":"b","sourceLanguage":"ko-KR","targetLanguage":"es-ES"}',
           DateTime.now(),
+          sourceLanguage: 'ko-KR',
+          targetLanguage: 'es-ES',
         );
         await db.aiCacheDao.upsert(
           'translation',
           'c',
           '{"v":"c","sourceLanguage":"ja-JP","targetLanguage":"ko-KR"}',
           DateTime.now(),
+          sourceLanguage: 'ja-JP',
+          targetLanguage: 'ko-KR',
         );
         await db.aiCacheDao.upsert(
           'dictionary',
           'a',
           '{"v":"a","sourceLanguage":"ko-KR","targetLanguage":"ja-JP"}',
           DateTime.now(),
+          sourceLanguage: 'ko-KR',
+          targetLanguage: 'ja-JP',
         );
         await db.aiCacheDao.upsert(
           'dictionary',
           'b',
           '{"v":"b","sourceLanguage":"ko-KR","targetLanguage":"es-ES"}',
           DateTime.now(),
+          sourceLanguage: 'ko-KR',
+          targetLanguage: 'es-ES',
         );
         await db.aiCacheDao.upsert(
           'dictionary',
           'c',
           '{"v":"c","sourceLanguage":"ja-JP","targetLanguage":"ko-KR"}',
           DateTime.now(),
+          sourceLanguage: 'ja-JP',
+          targetLanguage: 'ko-KR',
         );
 
         await translationCache.evictForPair(
