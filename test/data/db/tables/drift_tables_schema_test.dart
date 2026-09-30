@@ -249,9 +249,9 @@ void main() {
       'kind',
       'key',
       'payload_json',
+      'updated_at',
       'source_language',
       'target_language',
-      'updated_at',
     ]);
   });
 

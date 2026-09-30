@@ -1,8 +1,6 @@
 /// Root Drift database for Enjoy Player (native SQLite via drift_flutter).
 library;
 
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -364,51 +362,22 @@ class AppDatabase extends _$AppDatabase {
   /// Migration 20 (issue #827 C4): projects the language pair out of each
   /// cached AI payload into the new `source_language` / `target_language`
   /// columns so pair eviction can match indexed columns instead of
-  /// scanning `payload_json` with a leading-wildcard `LIKE`. Rows whose
-  /// payload lacks either field (or fails to decode) keep NULL — they are
-  /// never pair-evicted, matching the old LIKE's both-patterns rule.
-  /// Bounded by the per-kind L2 row caps (~18 k rows worst case).
-  static Future<void> _backfillAiCacheLanguagePairs(
-    GeneratedDatabase db,
-  ) async {
-    final rows = await db
-        .customSelect(
-          'SELECT kind, key, payload_json FROM ai_cache '
-          'WHERE source_language IS NULL OR target_language IS NULL',
-        )
-        .get();
-    for (final row in rows) {
-      final kind = row.read<String>('kind');
-      final key = row.read<String>('key');
-      final payloadJson = row.read<String>('payload_json');
-      String? sourceLanguage;
-      String? targetLanguage;
-      try {
-        final payload = jsonDecode(payloadJson);
-        if (payload is Map<String, dynamic>) {
-          final src = payload['sourceLanguage'];
-          final tgt = payload['targetLanguage'];
-          if (src is String && tgt is String) {
-            sourceLanguage = src;
-            targetLanguage = tgt;
-          }
-        }
-      } on Object {
-        sourceLanguage = null;
-      }
-      if (sourceLanguage == null || targetLanguage == null) continue;
-      await db.customUpdate(
-        'UPDATE ai_cache SET source_language = ?, target_language = ? '
-        'WHERE kind = ? AND key = ?',
-        variables: [
-          Variable.withString(sourceLanguage),
-          Variable.withString(targetLanguage),
-          Variable.withString(kind),
-          Variable.withString(key),
-        ],
+  /// scanning `payload_json` with a leading-wildcard `LIKE`. One set-based
+  /// `UPDATE ... json_extract` statement (the bundled SQLite ships JSON
+  /// built in); payloads without both fields — or that fail `json_valid` —
+  /// yield NULL and are never pair-evicted, matching the old LIKE's
+  /// both-patterns rule. The `AND` predicate only touches rows neither
+  /// migration step nor a partial write has populated yet.
+  Future<void> _backfillAiCacheLanguagePairs(GeneratedDatabase db) =>
+      db.customUpdate(
+        'UPDATE ai_cache SET '
+        'source_language = CASE WHEN json_valid(payload_json) '
+        "THEN json_extract(payload_json, '\$.sourceLanguage') ELSE NULL END, "
+        'target_language = CASE WHEN json_valid(payload_json) '
+        "THEN json_extract(payload_json, '\$.targetLanguage') ELSE NULL END "
+        'WHERE source_language IS NULL AND target_language IS NULL',
+        updates: {aiCache},
       );
-    }
-  }
 
   Future<void> _dropLegacyTables(Migrator m) async {
     const tables = <String>[

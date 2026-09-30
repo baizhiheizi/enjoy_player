@@ -31,17 +31,19 @@ class AiCache extends Table {
   /// by the cache layer.
   TextColumn get payloadJson => text()();
 
+  /// Last-write timestamp (milliseconds since epoch). Used by
+  /// `evictOldestExcept` and `pruneOlderThan`.
+  IntColumn get updatedAt => integer()();
+
   /// Language pair the payload was produced for, projected out of the
   /// payload at write time so `evictForPair` matches on indexed columns
   /// instead of scanning `payload_json` with a leading-wildcard `LIKE`
   /// (issue #827 C4). Rows without a pair in their payload stay null and
   /// are never pair-evicted — same matching semantics as the old LIKE.
+  /// Declared last so fresh installs match the v19 → v20 `ALTER TABLE`
+  /// append order.
   TextColumn get sourceLanguage => text().nullable()();
   TextColumn get targetLanguage => text().nullable()();
-
-  /// Last-write timestamp (milliseconds since epoch). Used by
-  /// `evictOldestExcept` and `pruneOlderThan`.
-  IntColumn get updatedAt => integer()();
 
   @override
   Set<Column<Object>> get primaryKey => {kind, key};

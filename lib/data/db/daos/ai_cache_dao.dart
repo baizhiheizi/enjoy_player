@@ -118,20 +118,15 @@ class AiCacheDao extends DatabaseAccessor<AppDatabase> with _$AiCacheDaoMixin {
     String targetLanguage,
   ) async {
     try {
-      final count =
-          await (selectOnly(aiCache)
-                ..addColumns([aiCache.key.count()])
-                ..where(
-                  aiCache.sourceLanguage.equals(sourceLanguage) &
-                      aiCache.targetLanguage.equals(targetLanguage),
-                ))
-              .map((row) => row.read<int>(aiCache.key.count()) ?? 0)
-              .getSingle();
-      await customStatement(
-        'DELETE FROM ai_cache WHERE source_language = ? AND target_language = ?',
-        [sourceLanguage, targetLanguage],
+      return await customUpdate(
+        'DELETE FROM ai_cache '
+        'WHERE source_language = ? AND target_language = ?',
+        variables: [
+          Variable.withString(sourceLanguage),
+          Variable.withString(targetLanguage),
+        ],
+        updates: {aiCache},
       );
-      return count;
     } on Object catch (e, st) {
       _log.warning('ai_cache deleteForPair failed', e, st);
       return -1;

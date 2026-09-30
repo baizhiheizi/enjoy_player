@@ -100,6 +100,7 @@ void main() {
           "('translation', 'paired', "
           "'{\"v\":\"x\",\"sourceLanguage\":\"en\",\"targetLanguage\":\"es\"}', 1), "
           "('translation', 'pairless', '{\"v\":\"y\"}', 2), "
+          "('translation', 'malformed', 'not-json{', 4), "
           "('translation', 'other', "
           "'{\"v\":\"z\",\"sourceLanguage\":\"en\",\"targetLanguage\":\"ja\"}', 3)",
         );
@@ -125,6 +126,7 @@ void main() {
         expect(byKey['paired'], (src: 'en', tgt: 'es'));
         expect(byKey['other'], (src: 'en', tgt: 'ja'));
         expect(byKey['pairless'], (src: null, tgt: null));
+        expect(byKey['malformed'], (src: null, tgt: null));
 
         final deleted = await reopened.aiCacheDao.deleteForPair('en', 'es');
         expect(deleted, 1);
@@ -136,6 +138,11 @@ void main() {
         expect(
           await reopened.aiCacheDao.read('translation', 'other'),
           isNotNull,
+        );
+        expect(
+          await reopened.aiCacheDao.read('translation', 'malformed'),
+          isNotNull,
+          reason: 'json_valid guard must keep undecodable payloads intact',
         );
 
         final pairIndex = await reopened

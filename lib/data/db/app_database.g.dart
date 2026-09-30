@@ -8807,6 +8807,17 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _sourceLanguageMeta = const VerificationMeta(
     'sourceLanguage',
   );
@@ -8829,25 +8840,14 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
     kind,
     key,
     payloadJson,
+    updatedAt,
     sourceLanguage,
     targetLanguage,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8888,6 +8888,14 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
     } else if (isInserting) {
       context.missing(_payloadJsonMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     if (data.containsKey('source_language')) {
       context.handle(
         _sourceLanguageMeta,
@@ -8905,14 +8913,6 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
           _targetLanguageMeta,
         ),
       );
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -8935,6 +8935,10 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
         DriftSqlType.string,
         data['${effectivePrefix}payload_json'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
       sourceLanguage: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}source_language'],
@@ -8943,10 +8947,6 @@ class $AiCacheTable extends AiCache with TableInfo<$AiCacheTable, AiCacheRow> {
         DriftSqlType.string,
         data['${effectivePrefix}target_language'],
       ),
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
@@ -8970,24 +8970,26 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
   /// by the cache layer.
   final String payloadJson;
 
+  /// Last-write timestamp (milliseconds since epoch). Used by
+  /// `evictOldestExcept` and `pruneOlderThan`.
+  final int updatedAt;
+
   /// Language pair the payload was produced for, projected out of the
   /// payload at write time so `evictForPair` matches on indexed columns
   /// instead of scanning `payload_json` with a leading-wildcard `LIKE`
   /// (issue #827 C4). Rows without a pair in their payload stay null and
   /// are never pair-evicted — same matching semantics as the old LIKE.
+  /// Declared last so fresh installs match the v19 → v20 `ALTER TABLE`
+  /// append order.
   final String? sourceLanguage;
   final String? targetLanguage;
-
-  /// Last-write timestamp (milliseconds since epoch). Used by
-  /// `evictOldestExcept` and `pruneOlderThan`.
-  final int updatedAt;
   const AiCacheRow({
     required this.kind,
     required this.key,
     required this.payloadJson,
+    required this.updatedAt,
     this.sourceLanguage,
     this.targetLanguage,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8995,13 +8997,13 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
     map['kind'] = Variable<String>(kind);
     map['key'] = Variable<String>(key);
     map['payload_json'] = Variable<String>(payloadJson);
+    map['updated_at'] = Variable<int>(updatedAt);
     if (!nullToAbsent || sourceLanguage != null) {
       map['source_language'] = Variable<String>(sourceLanguage);
     }
     if (!nullToAbsent || targetLanguage != null) {
       map['target_language'] = Variable<String>(targetLanguage);
     }
-    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -9010,13 +9012,13 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
       kind: Value(kind),
       key: Value(key),
       payloadJson: Value(payloadJson),
+      updatedAt: Value(updatedAt),
       sourceLanguage: sourceLanguage == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceLanguage),
       targetLanguage: targetLanguage == null && nullToAbsent
           ? const Value.absent()
           : Value(targetLanguage),
-      updatedAt: Value(updatedAt),
     );
   }
 
@@ -9029,9 +9031,9 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
       kind: serializer.fromJson<String>(json['kind']),
       key: serializer.fromJson<String>(json['key']),
       payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
       sourceLanguage: serializer.fromJson<String?>(json['sourceLanguage']),
       targetLanguage: serializer.fromJson<String?>(json['targetLanguage']),
-      updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
   }
   @override
@@ -9041,9 +9043,9 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
       'kind': serializer.toJson<String>(kind),
       'key': serializer.toJson<String>(key),
       'payloadJson': serializer.toJson<String>(payloadJson),
+      'updatedAt': serializer.toJson<int>(updatedAt),
       'sourceLanguage': serializer.toJson<String?>(sourceLanguage),
       'targetLanguage': serializer.toJson<String?>(targetLanguage),
-      'updatedAt': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -9051,20 +9053,20 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
     String? kind,
     String? key,
     String? payloadJson,
+    int? updatedAt,
     Value<String?> sourceLanguage = const Value.absent(),
     Value<String?> targetLanguage = const Value.absent(),
-    int? updatedAt,
   }) => AiCacheRow(
     kind: kind ?? this.kind,
     key: key ?? this.key,
     payloadJson: payloadJson ?? this.payloadJson,
+    updatedAt: updatedAt ?? this.updatedAt,
     sourceLanguage: sourceLanguage.present
         ? sourceLanguage.value
         : this.sourceLanguage,
     targetLanguage: targetLanguage.present
         ? targetLanguage.value
         : this.targetLanguage,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
   AiCacheRow copyWithCompanion(AiCacheCompanion data) {
     return AiCacheRow(
@@ -9073,13 +9075,13 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
       payloadJson: data.payloadJson.present
           ? data.payloadJson.value
           : this.payloadJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       sourceLanguage: data.sourceLanguage.present
           ? data.sourceLanguage.value
           : this.sourceLanguage,
       targetLanguage: data.targetLanguage.present
           ? data.targetLanguage.value
           : this.targetLanguage,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -9089,9 +9091,9 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
           ..write('kind: $kind, ')
           ..write('key: $key, ')
           ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('sourceLanguage: $sourceLanguage, ')
-          ..write('targetLanguage: $targetLanguage, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('targetLanguage: $targetLanguage')
           ..write(')'))
         .toString();
   }
@@ -9101,9 +9103,9 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
     kind,
     key,
     payloadJson,
+    updatedAt,
     sourceLanguage,
     targetLanguage,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -9112,35 +9114,35 @@ class AiCacheRow extends DataClass implements Insertable<AiCacheRow> {
           other.kind == this.kind &&
           other.key == this.key &&
           other.payloadJson == this.payloadJson &&
+          other.updatedAt == this.updatedAt &&
           other.sourceLanguage == this.sourceLanguage &&
-          other.targetLanguage == this.targetLanguage &&
-          other.updatedAt == this.updatedAt);
+          other.targetLanguage == this.targetLanguage);
 }
 
 class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
   final Value<String> kind;
   final Value<String> key;
   final Value<String> payloadJson;
+  final Value<int> updatedAt;
   final Value<String?> sourceLanguage;
   final Value<String?> targetLanguage;
-  final Value<int> updatedAt;
   final Value<int> rowid;
   const AiCacheCompanion({
     this.kind = const Value.absent(),
     this.key = const Value.absent(),
     this.payloadJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.sourceLanguage = const Value.absent(),
     this.targetLanguage = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AiCacheCompanion.insert({
     required String kind,
     required String key,
     required String payloadJson,
+    required int updatedAt,
     this.sourceLanguage = const Value.absent(),
     this.targetLanguage = const Value.absent(),
-    required int updatedAt,
     this.rowid = const Value.absent(),
   }) : kind = Value(kind),
        key = Value(key),
@@ -9150,18 +9152,18 @@ class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
     Expression<String>? kind,
     Expression<String>? key,
     Expression<String>? payloadJson,
+    Expression<int>? updatedAt,
     Expression<String>? sourceLanguage,
     Expression<String>? targetLanguage,
-    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (kind != null) 'kind': kind,
       if (key != null) 'key': key,
       if (payloadJson != null) 'payload_json': payloadJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (sourceLanguage != null) 'source_language': sourceLanguage,
       if (targetLanguage != null) 'target_language': targetLanguage,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -9170,18 +9172,18 @@ class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
     Value<String>? kind,
     Value<String>? key,
     Value<String>? payloadJson,
+    Value<int>? updatedAt,
     Value<String?>? sourceLanguage,
     Value<String?>? targetLanguage,
-    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return AiCacheCompanion(
       kind: kind ?? this.kind,
       key: key ?? this.key,
       payloadJson: payloadJson ?? this.payloadJson,
+      updatedAt: updatedAt ?? this.updatedAt,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -9198,14 +9200,14 @@ class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
     if (payloadJson.present) {
       map['payload_json'] = Variable<String>(payloadJson.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
     if (sourceLanguage.present) {
       map['source_language'] = Variable<String>(sourceLanguage.value);
     }
     if (targetLanguage.present) {
       map['target_language'] = Variable<String>(targetLanguage.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -9219,9 +9221,9 @@ class AiCacheCompanion extends UpdateCompanion<AiCacheRow> {
           ..write('kind: $kind, ')
           ..write('key: $key, ')
           ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('sourceLanguage: $sourceLanguage, ')
           ..write('targetLanguage: $targetLanguage, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -15944,9 +15946,9 @@ typedef $$AiCacheTableCreateCompanionBuilder =
       required String kind,
       required String key,
       required String payloadJson,
+      required int updatedAt,
       Value<String?> sourceLanguage,
       Value<String?> targetLanguage,
-      required int updatedAt,
       Value<int> rowid,
     });
 typedef $$AiCacheTableUpdateCompanionBuilder =
@@ -15954,9 +15956,9 @@ typedef $$AiCacheTableUpdateCompanionBuilder =
       Value<String> kind,
       Value<String> key,
       Value<String> payloadJson,
+      Value<int> updatedAt,
       Value<String?> sourceLanguage,
       Value<String?> targetLanguage,
-      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -15984,6 +15986,11 @@ class $$AiCacheTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get sourceLanguage => $composableBuilder(
     column: $table.sourceLanguage,
     builder: (column) => ColumnFilters(column),
@@ -15991,11 +15998,6 @@ class $$AiCacheTableFilterComposer
 
   ColumnFilters<String> get targetLanguage => $composableBuilder(
     column: $table.targetLanguage,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -16024,6 +16026,11 @@ class $$AiCacheTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sourceLanguage => $composableBuilder(
     column: $table.sourceLanguage,
     builder: (column) => ColumnOrderings(column),
@@ -16031,11 +16038,6 @@ class $$AiCacheTableOrderingComposer
 
   ColumnOrderings<String> get targetLanguage => $composableBuilder(
     column: $table.targetLanguage,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -16060,6 +16062,9 @@ class $$AiCacheTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get sourceLanguage => $composableBuilder(
     column: $table.sourceLanguage,
     builder: (column) => column,
@@ -16069,9 +16074,6 @@ class $$AiCacheTableAnnotationComposer
     column: $table.targetLanguage,
     builder: (column) => column,
   );
-
-  GeneratedColumn<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$AiCacheTableTableManager
@@ -16108,17 +16110,17 @@ class $$AiCacheTableTableManager
                 Value<String> kind = const Value.absent(),
                 Value<String> key = const Value.absent(),
                 Value<String> payloadJson = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<String?> sourceLanguage = const Value.absent(),
                 Value<String?> targetLanguage = const Value.absent(),
-                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AiCacheCompanion(
                 kind: kind,
                 key: key,
                 payloadJson: payloadJson,
+                updatedAt: updatedAt,
                 sourceLanguage: sourceLanguage,
                 targetLanguage: targetLanguage,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -16126,17 +16128,17 @@ class $$AiCacheTableTableManager
                 required String kind,
                 required String key,
                 required String payloadJson,
+                required int updatedAt,
                 Value<String?> sourceLanguage = const Value.absent(),
                 Value<String?> targetLanguage = const Value.absent(),
-                required int updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => AiCacheCompanion.insert(
                 kind: kind,
                 key: key,
                 payloadJson: payloadJson,
+                updatedAt: updatedAt,
                 sourceLanguage: sourceLanguage,
                 targetLanguage: targetLanguage,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
