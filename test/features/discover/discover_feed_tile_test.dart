@@ -8,7 +8,6 @@ import 'package:enjoy_player/core/theme/widgets/media_card.dart'
     show mediaCardTileMetaHeight;
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
-import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/discover/presentation/discover_feed_tile.dart';
 import 'package:enjoy_player/features/library/data/library_repository.dart';
@@ -73,9 +72,6 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(db),
           discoverRepositoryProvider.overrideWithValue(repo),
-          discoverSubscriptionsProvider.overrideWith(
-            (ref) => Stream.value(const <DiscoverChannel>[]),
-          ),
         ],
         child: MaterialApp(
           localizationsDelegates: const [
@@ -84,7 +80,14 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: DiscoverFeedTile(entry: entry, inLibrary: true)),
+          home: Scaffold(
+            body: DiscoverFeedTile(
+              entry: entry,
+              inLibrary: true,
+              channelName: 'TED',
+              channelAvatarUrl: null,
+            ),
+          ),
         ),
       ),
     );
@@ -135,7 +138,12 @@ void main() {
           GoRoute(
             path: '/',
             builder: (context, state) => Scaffold(
-              body: DiscoverFeedTile(entry: entry, inLibrary: false),
+              body: DiscoverFeedTile(
+                entry: entry,
+                inLibrary: false,
+                channelName: 'TED',
+                channelAvatarUrl: null,
+              ),
             ),
           ),
           GoRoute(
@@ -151,9 +159,6 @@ void main() {
           overrides: [
             appDatabaseProvider.overrideWithValue(db),
             discoverRepositoryProvider.overrideWithValue(repo),
-            discoverSubscriptionsProvider.overrideWith(
-              (ref) => Stream.value(const <DiscoverChannel>[]),
-            ),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -206,9 +211,6 @@ void main() {
           overrides: [
             appDatabaseProvider.overrideWithValue(db),
             discoverRepositoryProvider.overrideWithValue(repo),
-            discoverSubscriptionsProvider.overrideWith(
-              (ref) => Stream.value(const <DiscoverChannel>[]),
-            ),
           ],
           child: MaterialApp(
             localizationsDelegates: const [
@@ -221,7 +223,12 @@ void main() {
               body: Center(
                 child: SizedBox(
                   width: 280,
-                  child: DiscoverFeedTile(entry: entry, inLibrary: false),
+                  child: DiscoverFeedTile(
+                    entry: entry,
+                    inLibrary: false,
+                    channelName: 'TED',
+                    channelAvatarUrl: null,
+                  ),
                 ),
               ),
             ),

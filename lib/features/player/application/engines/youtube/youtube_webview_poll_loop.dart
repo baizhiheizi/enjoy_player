@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_audible_playback_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_js_channel.dart';
+import 'package:enjoy_player/features/player/application/engines/youtube/youtube_monotonic_clock.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_play_retry_policy.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_session.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_video_event.dart';
@@ -41,7 +42,9 @@ final _logPoll = logNamed('YouTubeWebViewPollLoop');
 /// made per tick. While anything is live — playing, an unconfirmed pause
 /// streak, a paused position that is still moving — it is [pollTick]; once a
 /// pause is CONFIRMED and quiet it backs off to [pausedPollBackoff] (issue
-/// #662), and [start] puts it back on every play intent or state transition.
+/// #662), escalates to [quietPollBackoff] after [quietEscalationAfter] of
+/// uninterrupted quiet (issue #810 G), and [start] puts it back on every play
+/// intent or state transition.
 class YoutubeWebViewPollLoop {
   YoutubeWebViewPollLoop({
     required this.session,
@@ -50,9 +53,13 @@ class YoutubeWebViewPollLoop {
     this.onPlaybackProgress,
     this.pollTick = YoutubeAudiblePlaybackPolicy.pollTick,
     this.pausedPollBackoff = defaultPausedPollBackoff,
+    this.quietPollBackoff = defaultQuietPollBackoff,
+    this.quietEscalationAfter = defaultQuietEscalationAfter,
+    MonotonicClock? clock,
     YoutubePollFn? pollFn,
     YoutubeRetryPlayFn? retryPlay,
-  }) : pollFn = pollFn ?? YoutubeWebViewBridge.poll,
+  }) : clock = clock ?? StopwatchClock(),
+       pollFn = pollFn ?? YoutubeWebViewBridge.poll,
        retryPlay =
            retryPlay ??
            ((channel) async {
@@ -69,6 +76,17 @@ class YoutubeWebViewPollLoop {
   /// resolution, and an idle-but-never-played document still needs fast
   /// sampling to catch its first metadata.
   static const Duration defaultPausedPollBackoff = Duration(seconds: 1);
+
+  /// Cadence once a confirmed pause has stayed quiet for
+  /// [quietEscalationAfter] (issue #810 G): a tab left paused for the rest of
+  /// the session must not keep a JS eval + timer wakeup per second alive.
+  /// Any play intent, state transition, or position movement re-arms the
+  /// fast cadences through [start] / the quiet-reset.
+  static const Duration defaultQuietPollBackoff = Duration(seconds: 30);
+
+  /// Uninterrupted quiet a confirmed pause must accumulate before the loop
+  /// escalates from [pausedPollBackoff] to [quietPollBackoff].
+  static const Duration defaultQuietEscalationAfter = Duration(minutes: 2);
 
   final YoutubeSession session;
   final YoutubeJsChannel? Function() jsChannel;
@@ -89,6 +107,16 @@ class YoutubeWebViewPollLoop {
   /// Cadence while a confirmed pause sits quiet; see
   /// [defaultPausedPollBackoff].
   final Duration pausedPollBackoff;
+
+  /// Deep cadence once the quiet has outlived [quietEscalationAfter]; see
+  /// [defaultQuietPollBackoff].
+  final Duration quietPollBackoff;
+
+  /// Quiet window that promotes [pausedPollBackoff] to [quietPollBackoff].
+  final Duration quietEscalationAfter;
+
+  /// Measures the quiet window on a monotonic source (issue #665).
+  final MonotonicClock clock;
 
   Timer? _pollTimer;
   Timer? _pollKickTimer;
@@ -117,6 +145,10 @@ class YoutubeWebViewPollLoop {
   /// stopped moving since the previous read.
   bool _pauseQuiet = false;
 
+  /// When the current quiet stretch began (`null` while not quiet) — the
+  /// [quietEscalationAfter] window is measured from here on [clock].
+  Duration? _quietSince;
+
   /// Position from the previous read; the "quiet" half of the backoff test.
   Duration _lastReadPosition = Duration.zero;
 
@@ -133,6 +165,7 @@ class YoutubeWebViewPollLoop {
   void start() {
     _pauseConfirmed = false;
     _pauseQuiet = false;
+    _quietSince = null;
     session.resetPauseStreak();
     _pollTimer?.cancel();
     _scheduleNext();
@@ -145,11 +178,27 @@ class YoutubeWebViewPollLoop {
     _pollKickTimer = null;
   }
 
+  Duration _nextDelay() {
+    if (!_pauseConfirmed || !_pauseQuiet) return pollTick;
+    final quietSince = _quietSince;
+    if (quietSince == null) return pausedPollBackoff;
+    final quietFor = clock.now() - quietSince;
+    return quietFor >= quietEscalationAfter
+        ? quietPollBackoff
+        : pausedPollBackoff;
+  }
+
+  void _notePauseQuiet({required bool positionMoved}) {
+    _pauseQuiet = !positionMoved;
+    if (_pauseQuiet) {
+      _quietSince ??= clock.now();
+    } else {
+      _quietSince = null;
+    }
+  }
+
   void _scheduleNext() {
-    _pollTimer = Timer(
-      _pauseConfirmed && _pauseQuiet ? pausedPollBackoff : pollTick,
-      _onTick,
-    );
+    _pollTimer = Timer(_nextDelay(), _onTick);
   }
 
   /// One-shot chain link. Re-arms BEFORE the read so the cadence stays
@@ -202,7 +251,7 @@ class YoutubeWebViewPollLoop {
                   session.notePauseStreak(newStreak);
                   if (confirmed) {
                     _pauseConfirmed = true;
-                    _pauseQuiet = !positionMoved;
+                    _notePauseQuiet(positionMoved: positionMoved);
                     final immediate = session.isImmediatePause();
                     final retry = session.playRetry.decideConfirmedPause(
                       immediate: immediate,
@@ -257,10 +306,11 @@ class YoutubeWebViewPollLoop {
                   }
                   _pauseConfirmed = false;
                   _pauseQuiet = false;
+                  _quietSince = null;
                 case PollIdleTick():
                   session.resetPauseStreak();
                   if (_pauseConfirmed) {
-                    _pauseQuiet = !positionMoved;
+                    _notePauseQuiet(positionMoved: positionMoved);
                   }
               }
             },

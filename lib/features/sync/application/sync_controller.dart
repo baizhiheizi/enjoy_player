@@ -69,11 +69,22 @@ class SyncCtrl extends _$SyncCtrl {
 
   Future<void> _periodicDrain() async {
     if (ref.read(authCtrlProvider).valueOrNull is! AuthSignedIn) return;
+    if (!_isAppResumed) {
+      _log.fine('periodic sync drain skipped: app is not in foreground');
+      return;
+    }
     try {
       await ref.read(syncEngineProvider).processQueue(const SyncOptions());
     } catch (e, st) {
       _log.warning('periodic sync drain failed', e, st);
     }
+  }
+
+  /// Whether the app is currently in the foreground. `null` is treated as
+  /// "resumed" so platforms that do not publish a lifecycle state still drain.
+  bool get _isAppResumed {
+    final state = WidgetsBinding.instance.lifecycleState;
+    return state == null || state == AppLifecycleState.resumed;
   }
 
   /// Non-blocking queue drain when already signed in.

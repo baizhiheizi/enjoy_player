@@ -100,7 +100,11 @@ Widget _wrap({
       discoverSubscriptionsProvider.overrideWith((ref) => subscriptions),
       discoverChannelFeedItemsProvider.overrideWith(
         (ref, channelId) => channelFeed.map(
-          (entries) => projectDiscoverFeedItems(entries, const <String>{}),
+          (entries) => projectDiscoverFeedItems(
+            entries,
+            const <String>{},
+            const <DiscoverChannel>[],
+          ),
         ),
       ),
       ...extraOverrides,
@@ -254,7 +258,11 @@ void main() {
               ),
               discoverChannelFeedItemsProvider.overrideWith(
                 (ref, channelId) => Stream.value(
-                  projectDiscoverFeedItems(_entries, const <String>{}),
+                  projectDiscoverFeedItems(
+                    _entries,
+                    const <String>{},
+                    const <DiscoverChannel>[],
+                  ),
                 ),
               ),
             ],

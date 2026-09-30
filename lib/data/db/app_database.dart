@@ -112,6 +112,10 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+      await m.database.customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_ai_cache_kind_updated_at '
+        'ON ai_cache (kind, updated_at DESC)',
+      );
     },
     onUpgrade: (m, from, to) async {
       await _runMigrations(m, from, to);

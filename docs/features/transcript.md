@@ -169,6 +169,11 @@ mode is deliberately hearing-focused:
 - The only ways to see a cue's text in blur practice mode are
   pointer hover (macOS, Windows) or a tap that starts a hold
   (every platform).
+- While blur practice is on, the transcript list's off-screen pre-build
+  window shrinks from 1400 px to 200 px (issue #810 G): every cached blurred
+  cue is a GPU `ImageFiltered` saveLayer, and pre-building a screenful of
+  unreadable blurred cues buys nothing. The blur/reveal visual behavior is
+  unchanged — revealed cues still drop their filter individually.
 
 ### Toggle, hover, and tap-reveal
 

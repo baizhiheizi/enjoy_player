@@ -88,6 +88,8 @@ class ChannelFeedScreen extends ConsumerWidget {
                 child: DiscoverFeedTile(
                   entry: entries[index].entry,
                   inLibrary: entries[index].inLibrary,
+                  channelName: entries[index].channelName,
+                  channelAvatarUrl: entries[index].channelAvatarUrl,
                 ),
               ),
             );
@@ -110,6 +112,8 @@ class ChannelFeedScreen extends ConsumerWidget {
               child: DiscoverFeedTile(
                 entry: entries[index].entry,
                 inLibrary: entries[index].inLibrary,
+                channelName: entries[index].channelName,
+                channelAvatarUrl: entries[index].channelAvatarUrl,
               ),
             ),
             findChildIndexCallback: (key) => findSliverIndexByPrefixedId(

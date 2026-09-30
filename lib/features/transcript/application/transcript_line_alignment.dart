@@ -9,36 +9,53 @@ import 'package:enjoy_player/features/player/application/echo_mode_provider.dart
 /// against the same [secondary] list (e.g. virtualized transcript rows).
 ///
 /// [secondary] is copied and sorted by [TranscriptLine.startSeconds] once.
+/// Each [match] bounds its candidate window with one shared lower-bound
+/// search instead of scanning from index 0, so materializing a row no longer
+/// costs O(len) comparisons on long bilingual transcripts (issue #810 G).
 class TranscriptSecondaryMatcher {
   factory TranscriptSecondaryMatcher.from(List<TranscriptLine> secondary) {
     if (secondary.isEmpty) {
-      return TranscriptSecondaryMatcher._(const []);
+      return TranscriptSecondaryMatcher._(const [], 0);
     }
     final copy = List<TranscriptLine>.from(secondary)
       ..sort((a, b) => a.startSeconds.compareTo(b.startSeconds));
-    return TranscriptSecondaryMatcher._(copy);
+    var halfMaxSeconds = 0.0;
+    for (final s in copy) {
+      final half = (s.endSeconds - s.startSeconds) / 2;
+      if (half > halfMaxSeconds) halfMaxSeconds = half;
+    }
+    return TranscriptSecondaryMatcher._(copy, halfMaxSeconds);
   }
-  TranscriptSecondaryMatcher._(this._sec);
+  TranscriptSecondaryMatcher._(this._sec, this._halfMaxSeconds);
 
   /// Sorted by [TranscriptLine.startSeconds] ascending.
   final List<TranscriptLine> _sec;
 
-  /// Last secondary cue with [TranscriptLine.startSeconds] strictly less than [pEnd].
-  TranscriptLine? _lastWithStartBefore(double pEnd) {
-    if (_sec.isEmpty) return null;
+  /// Half the longest secondary cue duration. A cue whose start precedes a
+  /// primary's start by more than this cannot have its midpoint reach that
+  /// start, which is what makes the lower-bound search sound.
+  final double _halfMaxSeconds;
+
+  /// Last index with [TranscriptLine.startSeconds] strictly below
+  /// [threshold] — the index immediately before
+  /// [_firstIndexWithStartAtOrAfter]; `-1` when none.
+  int _lastIndexWithStartBefore(double threshold) =>
+      _firstIndexWithStartAtOrAfter(threshold) - 1;
+
+  /// First index with [TranscriptLine.startSeconds] at or after [threshold];
+  /// [List.length] when every cue starts below it.
+  int _firstIndexWithStartAtOrAfter(double threshold) {
     var lo = 0;
-    var hi = _sec.length - 1;
-    var ans = -1;
-    while (lo <= hi) {
+    var hi = _sec.length;
+    while (lo < hi) {
       final mid = (lo + hi) ~/ 2;
-      if (_sec[mid].startSeconds < pEnd) {
-        ans = mid;
+      if (_sec[mid].startSeconds < threshold) {
         lo = mid + 1;
       } else {
-        hi = mid - 1;
+        hi = mid;
       }
     }
-    return ans < 0 ? null : _sec[ans];
+    return lo;
   }
 
   /// Same semantics as [transcriptMatchSecondary] for a single primary line.
@@ -47,13 +64,19 @@ class TranscriptSecondaryMatcher {
     final pStart = primary.startSeconds;
     final pEnd = primary.endSeconds;
 
-    for (final s in _sec) {
-      if (s.startSeconds >= pEnd) break;
+    final upper = _lastIndexWithStartBefore(pEnd);
+    if (upper < 0) return null;
+    for (
+      var i = _firstIndexWithStartAtOrAfter(pStart - _halfMaxSeconds);
+      i <= upper;
+      i++
+    ) {
+      final s = _sec[i];
       final mid = s.startSeconds + (s.endSeconds - s.startSeconds) / 2;
       if (mid >= pStart && mid < pEnd) return s;
     }
 
-    return _lastWithStartBefore(pEnd);
+    return _sec[upper];
   }
 }
 

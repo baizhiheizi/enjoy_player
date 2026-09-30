@@ -47,7 +47,13 @@ final _entries = [
 /// watch. The empty vid set means every tile renders "not in library", which is
 /// what these tests already assumed from the old per-tile probe.
 Stream<List<DiscoverFeedItem>> _feedItems(Stream<List<FeedEntry>> feed) =>
-    feed.map((entries) => projectDiscoverFeedItems(entries, const <String>{}));
+    feed.map(
+      (entries) => projectDiscoverFeedItems(
+        entries,
+        const <String>{},
+        const <DiscoverChannel>[],
+      ),
+    );
 
 class _FakeDiscoverRepository extends DiscoverRepository {
   _FakeDiscoverRepository(super.db, {required super.libraryRepository});

@@ -7,7 +7,60 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 
-class Skeleton extends StatefulWidget {
+/// Hosts the single shared shimmer ticker for every [Skeleton] below it
+/// (issue #810 G): a loading surface with dozens of boxes drives one
+/// animation clock instead of one full-rate ticker per box. A [Skeleton]
+/// without a host above it falls back to hosting its own ticker.
+class SkeletonTickerHost extends StatefulWidget {
+  const SkeletonTickerHost({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<SkeletonTickerHost> createState() => _SkeletonTickerHostState();
+}
+
+class _SkeletonTickerHostState extends State<SkeletonTickerHost>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    if (reduce) {
+      _ctrl.stop();
+    } else if (!_ctrl.isAnimating) {
+      unawaited(_ctrl.repeat());
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonTickerScope(animation: _ctrl, child: widget.child);
+  }
+}
+
+class _SkeletonTickerScope extends InheritedWidget {
+  const _SkeletonTickerScope({required this.animation, required super.child});
+
+  final Animation<double> animation;
+
+  @override
+  bool updateShouldNotify(_SkeletonTickerScope oldWidget) =>
+      !identical(animation, oldWidget.animation);
+}
+
+class Skeleton extends StatelessWidget {
   const Skeleton({
     super.key,
     required this.width,
@@ -51,78 +104,55 @@ class Skeleton extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   @override
-  State<Skeleton> createState() => _SkeletonState();
-}
-
-class _SkeletonState extends State<Skeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final reduce = MediaQuery.disableAnimationsOf(context);
-      if (!reduce) {
-        unawaited(_ctrl.repeat());
-      }
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduce = MediaQuery.disableAnimationsOf(context);
-    if (reduce) {
-      _ctrl.stop();
-    } else if (!_ctrl.isAnimating) {
-      unawaited(_ctrl.repeat());
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final tokens = EnjoyThemeTokens.of(context);
     final light = Theme.of(context).brightness == Brightness.light;
     final base = tokens.fill;
     final hi = Color.lerp(base, Colors.white, light ? 0.55 : 0.07)!;
     final br =
-        widget.borderRadius ??
-        (widget.width == widget.height
-            ? BorderRadius.circular(widget.width / 2)
+        borderRadius ??
+        (width == height
+            ? BorderRadius.circular(width / 2)
             : BorderRadius.circular(8));
 
     final reduce = MediaQuery.disableAnimationsOf(context);
     if (reduce) {
       return ClipRRect(
         borderRadius: br,
-        child: Container(
-          width: widget.width,
-          height: widget.height,
-          color: base,
-        ),
+        child: Container(width: width, height: height, color: base),
       );
     }
 
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<_SkeletonTickerScope>();
+    if (scope != null) {
+      return _shimmer(scope.animation, br, base, hi);
+    }
+    return SkeletonTickerHost(
+      child: Builder(
+        builder: (scopedContext) {
+          final scoped = scopedContext
+              .dependOnInheritedWidgetOfExactType<_SkeletonTickerScope>()!;
+          return _shimmer(scoped.animation, br, base, hi);
+        },
+      ),
+    );
+  }
+
+  Widget _shimmer(
+    Animation<double> animation,
+    BorderRadius br,
+    Color base,
+    Color hi,
+  ) {
     return AnimatedBuilder(
-      animation: _ctrl,
+      animation: animation,
       builder: (context, _) {
-        final t = _ctrl.value;
+        final t = animation.value;
         return ClipRRect(
           borderRadius: br,
           child: CustomPaint(
-            size: Size(widget.width, widget.height),
+            size: Size(width, height),
             painter: _ShimmerPainter(
               progress: t,
               baseColor: base,
@@ -172,18 +202,20 @@ class SkeletonAppBootstrap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(t.space32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Skeleton.circle(diameter: 56),
-            SizedBox(height: t.space24),
-            Skeleton.line(width: 200, height: 18),
-            SizedBox(height: t.space12),
-            Skeleton.line(width: 160, height: 14),
-          ],
+    return SkeletonTickerHost(
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(t.space32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Skeleton.circle(diameter: 56),
+              SizedBox(height: t.space24),
+              Skeleton.line(width: 200, height: 18),
+              SizedBox(height: t.space12),
+              Skeleton.line(width: 160, height: 14),
+            ],
+          ),
         ),
       ),
     );
@@ -223,35 +255,37 @@ class SkeletonMediaList extends StatelessWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final padding = EdgeInsets.symmetric(
-          horizontal: t.space16,
-          vertical: t.space8,
-        );
-
-        if (constraints.maxHeight.isFinite) {
-          return ListView.separated(
-            padding: padding,
-            itemCount: itemCount,
-            separatorBuilder: (context, _) => SizedBox(height: t.space8),
-            itemBuilder: (context, i) => rowAt(i),
+    return SkeletonTickerHost(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final padding = EdgeInsets.symmetric(
+            horizontal: t.space16,
+            vertical: t.space8,
           );
-        }
 
-        return Padding(
-          padding: padding,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < itemCount; i++) ...[
-                if (i > 0) SizedBox(height: t.space8),
-                rowAt(i),
+          if (constraints.maxHeight.isFinite) {
+            return ListView.separated(
+              padding: padding,
+              itemCount: itemCount,
+              separatorBuilder: (context, _) => SizedBox(height: t.space8),
+              itemBuilder: (context, i) => rowAt(i),
+            );
+          }
+
+          return Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < itemCount; i++) ...[
+                  if (i > 0) SizedBox(height: t.space8),
+                  rowAt(i),
+                ],
               ],
-            ],
-          ),
-        );
-      },
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -263,39 +297,41 @@ class SkeletonMediaGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.all(t.space16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.72,
-      ),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, c) {
-                  return Skeleton.box(
-                    width: c.maxWidth,
-                    height: c.maxHeight,
-                    borderRadius: BorderRadius.circular(t.radiusXl),
-                  );
-                },
+    return SkeletonTickerHost(
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.all(t.space16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    return Skeleton.box(
+                      width: c.maxWidth,
+                      height: c.maxHeight,
+                      borderRadius: BorderRadius.circular(t.radiusXl),
+                    );
+                  },
+                ),
               ),
-            ),
-            SizedBox(height: t.space8),
-            Skeleton.line(width: double.infinity, height: 14),
-            SizedBox(height: t.space4),
-            Skeleton.line(width: 120, height: 12),
-          ],
-        );
-      },
+              SizedBox(height: t.space8),
+              Skeleton.line(width: double.infinity, height: 14),
+              SizedBox(height: t.space4),
+              Skeleton.line(width: 120, height: 12),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -309,38 +345,40 @@ class SkeletonSettingsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return Padding(
-      padding: EdgeInsets.all(t.space16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < rowCount; i++) ...[
-            if (i > 0) SizedBox(height: t.space12),
-            Row(
-              children: [
-                Skeleton.box(
-                  width: 36,
-                  height: 36,
-                  borderRadius: BorderRadius.circular(t.radiusSm),
-                ),
-                SizedBox(width: t.space12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Skeleton.line(
-                        width: i % 3 == 0 ? 220.0 : 160.0,
-                        height: 15,
-                      ),
-                      SizedBox(height: t.space8),
-                      Skeleton.line(width: 280, height: 12),
-                    ],
+    return SkeletonTickerHost(
+      child: Padding(
+        padding: EdgeInsets.all(t.space16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < rowCount; i++) ...[
+              if (i > 0) SizedBox(height: t.space12),
+              Row(
+                children: [
+                  Skeleton.box(
+                    width: 36,
+                    height: 36,
+                    borderRadius: BorderRadius.circular(t.radiusSm),
                   ),
-                ),
-              ],
-            ),
+                  SizedBox(width: t.space12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Skeleton.line(
+                          width: i % 3 == 0 ? 220.0 : 160.0,
+                          height: 15,
+                        ),
+                        SizedBox(height: t.space8),
+                        Skeleton.line(width: 280, height: 12),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -362,38 +400,43 @@ class SkeletonTranscript extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return ListView.separated(
-      controller: controller,
-      physics: physics,
-      padding: EdgeInsets.symmetric(horizontal: t.space16, vertical: t.space8),
-      itemCount: lineCount,
-      separatorBuilder: (context, index) => SizedBox(height: t.space12),
-      itemBuilder: (context, i) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Skeleton.box(
-              width: 44,
-              height: 14,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            SizedBox(width: t.space12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Skeleton.line(width: double.infinity, height: 14),
-                  SizedBox(height: t.space8),
-                  Skeleton.line(
-                    width: i % 2 == 0 ? double.infinity : 200.0,
-                    height: 14,
-                  ),
-                ],
+    return SkeletonTickerHost(
+      child: ListView.separated(
+        controller: controller,
+        physics: physics,
+        padding: EdgeInsets.symmetric(
+          horizontal: t.space16,
+          vertical: t.space8,
+        ),
+        itemCount: lineCount,
+        separatorBuilder: (context, index) => SizedBox(height: t.space12),
+        itemBuilder: (context, i) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Skeleton.box(
+                width: 44,
+                height: 14,
+                borderRadius: BorderRadius.circular(4),
               ),
-            ),
-          ],
-        );
-      },
+              SizedBox(width: t.space12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Skeleton.line(width: double.infinity, height: 14),
+                    SizedBox(height: t.space8),
+                    Skeleton.line(
+                      width: i % 2 == 0 ? double.infinity : 200.0,
+                      height: 14,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -405,59 +448,61 @@ class SkeletonProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(t.space24),
-      child: Column(
-        children: [
-          Skeleton.circle(diameter: 88),
-          SizedBox(height: t.space16),
-          Skeleton.line(width: 200, height: 22),
-          SizedBox(height: t.space8),
-          Skeleton.line(width: 140, height: 14),
-          SizedBox(height: t.space32),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 72,
-                  child: LayoutBuilder(
-                    builder: (context, c) => Skeleton.box(
-                      width: c.maxWidth,
-                      height: 72,
-                      borderRadius: BorderRadius.circular(t.radiusLg),
+    return SkeletonTickerHost(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(t.space24),
+        child: Column(
+          children: [
+            Skeleton.circle(diameter: 88),
+            SizedBox(height: t.space16),
+            Skeleton.line(width: 200, height: 22),
+            SizedBox(height: t.space8),
+            Skeleton.line(width: 140, height: 14),
+            SizedBox(height: t.space32),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 72,
+                    child: LayoutBuilder(
+                      builder: (context, c) => Skeleton.box(
+                        width: c.maxWidth,
+                        height: 72,
+                        borderRadius: BorderRadius.circular(t.radiusLg),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: SizedBox(
-                  height: 72,
-                  child: LayoutBuilder(
-                    builder: (context, c) => Skeleton.box(
-                      width: c.maxWidth,
-                      height: 72,
-                      borderRadius: BorderRadius.circular(t.radiusLg),
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: SizedBox(
+                    height: 72,
+                    child: LayoutBuilder(
+                      builder: (context, c) => Skeleton.box(
+                        width: c.maxWidth,
+                        height: 72,
+                        borderRadius: BorderRadius.circular(t.radiusLg),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: SizedBox(
-                  height: 72,
-                  child: LayoutBuilder(
-                    builder: (context, c) => Skeleton.box(
-                      width: c.maxWidth,
-                      height: 72,
-                      borderRadius: BorderRadius.circular(t.radiusLg),
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: SizedBox(
+                    height: 72,
+                    child: LayoutBuilder(
+                      builder: (context, c) => Skeleton.box(
+                        width: c.maxWidth,
+                        height: 72,
+                        borderRadius: BorderRadius.circular(t.radiusLg),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

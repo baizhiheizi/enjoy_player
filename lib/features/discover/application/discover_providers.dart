@@ -94,16 +94,18 @@ Stream<List<FeedEntry>> discoverTimeline(Ref ref) {
   return ref.watch(discoverRepositoryProvider).watchTimeline();
 }
 
-/// The Discover feed with library membership already resolved.
+/// The Discover feed with library membership and channel display fields
+/// already resolved.
 ///
 /// Tiles render this instead of probing per item; after "add to library" the
 /// membership arrives through the registry stream, so the manual
 /// `ref.invalidate` the tile used to carry is gone (issue #764 candidate 6).
 @Riverpod(keepAlive: true)
 Stream<List<DiscoverFeedItem>> discoverFeedItems(Ref ref) {
-  return joinLatest(
+  return joinLatest3(
     ref.watch(discoverRepositoryProvider).watchTimeline(),
     ref.watch(mediaRegistryProvider).watchYoutubeVideoIds(),
+    ref.watch(discoverRepositoryProvider).watchSubscriptions(),
     projectDiscoverFeedItems,
   ).distinctBy(listEquals);
 }
@@ -113,17 +115,19 @@ Stream<List<FeedEntry>> discoverChannelFeed(Ref ref, String channelId) {
   return ref.watch(discoverRepositoryProvider).watchChannelFeed(channelId);
 }
 
-/// Channel feed with library membership already resolved — the same join as
-/// [discoverFeedItemsProvider], so a single-channel view gets membership
-/// without falling back to per-tile probes.
+/// Channel feed with library membership and channel display fields already
+/// resolved — the same join as [discoverFeedItemsProvider], so a
+/// single-channel view gets membership without falling back to per-tile
+/// probes.
 @Riverpod(keepAlive: true)
 Stream<List<DiscoverFeedItem>> discoverChannelFeedItems(
   Ref ref,
   String channelId,
 ) {
-  return joinLatest(
+  return joinLatest3(
     ref.watch(discoverRepositoryProvider).watchChannelFeed(channelId),
     ref.watch(mediaRegistryProvider).watchYoutubeVideoIds(),
+    ref.watch(discoverRepositoryProvider).watchSubscriptions(),
     projectDiscoverFeedItems,
   ).distinctBy(listEquals);
 }

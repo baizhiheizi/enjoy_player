@@ -11614,6 +11614,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_youtube_feed_entries_published',
     'CREATE INDEX idx_youtube_feed_entries_published ON youtube_feed_entries (published_at)',
   );
+  late final Index idxAiCacheKindUpdatedAt = Index(
+    'idx_ai_cache_kind_updated_at',
+    'CREATE INDEX idx_ai_cache_kind_updated_at ON ai_cache (kind, updated_at)',
+  );
   late final Index idxVocabularyItemsWordLanguage = Index(
     'idx_vocabulary_items_word_language',
     'CREATE INDEX idx_vocabulary_items_word_language ON vocabulary_items (word, language)',
@@ -11699,6 +11703,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxSyncQueueRetryCreated,
     idxYoutubeFeedEntriesChannelPublished,
     idxYoutubeFeedEntriesPublished,
+    idxAiCacheKindUpdatedAt,
     idxVocabularyItemsWordLanguage,
     idxVocabularyItemsNextReviewAt,
     idxVocabularyItemsStatus,

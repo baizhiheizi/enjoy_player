@@ -96,6 +96,34 @@ void main() {
       expect(list.map((r) => r.videoId), ['new', 'old']);
     });
 
+    test(
+      'watchTimeline serves the newest window only (issue #810 G)',
+      () async {
+        final base = DateTime.utc(2026, 1, 1);
+        final total = YoutubeFeedEntryDao.timelineWatchLimit + 5;
+        await db.youtubeFeedEntryDao.upsertEntries([
+          for (var i = 0; i < total; i++)
+            _feedEntry(
+              videoId: 'v$i',
+              publishedAt: base.add(Duration(minutes: i)),
+            ),
+        ]);
+
+        final watched = await db.youtubeFeedEntryDao.watchTimeline().first;
+        expect(watched, hasLength(YoutubeFeedEntryDao.timelineWatchLimit));
+        expect(
+          watched.first.videoId,
+          'v${total - 1}',
+          reason: 'newest entry first',
+        );
+        expect(
+          watched.last.videoId,
+          'v${total - YoutubeFeedEntryDao.timelineWatchLimit}',
+          reason: 'the oldest entries fall outside the window',
+        );
+      },
+    );
+
     test('getForChannel returns only matching channelId', () async {
       await db.youtubeFeedEntryDao.upsertEntry(
         _feedEntry(videoId: 'v1', channelId: 'a'),

@@ -10,14 +10,12 @@ import 'package:intl/intl.dart';
 import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
-import 'package:enjoy_player/features/discover/domain/discover_channel.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -55,13 +53,17 @@ _DiscoverFeedTileDateFormats _discoverFeedTileDateFormats(String locale) {
 /// this feature's own meta row (channel avatar, two-line title, channel ·
 /// published) and add-to-library affordances.
 ///
-/// The tile never probes the library: membership arrives as [inLibrary] via
-/// `discoverFeedItemsProvider` (ADR-0088), and the transient "adding" state
-/// lives here because only discover imports from its own grid.
+/// The tile never probes the library or the subscription list: membership and
+/// channel display fields arrive as [inLibrary], [channelName] and
+/// [channelAvatarUrl] via `discoverFeedItemsProvider` (ADR-0088), and the
+/// transient "adding" state lives here because only discover imports from its
+/// own grid.
 class DiscoverFeedTile extends ConsumerStatefulWidget {
   const DiscoverFeedTile({
     required this.entry,
     required this.inLibrary,
+    required this.channelName,
+    required this.channelAvatarUrl,
     super.key,
   });
 
@@ -70,6 +72,13 @@ class DiscoverFeedTile extends ConsumerStatefulWidget {
   /// Already resolved by `discoverFeedItemsProvider` (issue #764 candidate 6).
   /// The tile used to probe this per instance and cache it in widget state.
   final bool inLibrary;
+
+  /// Channel display name joined by `discoverFeedItemsProvider` (issue #810 G)
+  /// — the tile used to watch and linear-scan the subscription list per build.
+  final String channelName;
+
+  /// Channel avatar URL joined by `discoverFeedItemsProvider` (issue #810 G).
+  final String? channelAvatarUrl;
 
   @override
   ConsumerState<DiscoverFeedTile> createState() => _DiscoverFeedTileState();
@@ -116,13 +125,6 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     openPlayerRoute(context, mediaId);
   }
 
-  DiscoverChannel? _subscriptionForEntry(List<DiscoverChannel> subs) {
-    for (final sub in subs) {
-      if (sub.channelId == widget.entry.channelId) return sub;
-    }
-    return null;
-  }
-
   String? _durationLabel(FeedEntry entry) {
     final seconds = entry.durationSeconds;
     if (seconds == null || seconds <= 0) return null;
@@ -136,11 +138,8 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
     final tt = Theme.of(context).textTheme;
     final entry = widget.entry;
     final thumb = remoteThumbnailForCard(entry.thumbnailUrl);
-    final subs =
-        ref.watch(discoverSubscriptionsProvider).valueOrNull ?? const [];
-    final sub = _subscriptionForEntry(subs);
-    final channelName = sub?.displayName ?? 'YouTube';
-    final channelAvatar = remoteThumbnailForCard(sub?.thumbnailUrl);
+    final channelName = widget.channelName;
+    final channelAvatar = widget.channelAvatarUrl;
     final inLibrary = widget.inLibrary;
     final publishedLabel = _formatPublishedLabel(context, entry.publishedAt);
     final durationLabel = _durationLabel(entry);

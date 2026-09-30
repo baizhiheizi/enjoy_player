@@ -19,6 +19,7 @@ import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_ca
 import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/features/sync/application/sync_controller.dart';
 import 'package:enjoy_player/features/sync/application/sync_providers.dart';
+import 'package:enjoy_player/features/sync/data/sync_queue_repository.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 class SyncStatusScreen extends ConsumerStatefulWidget {
@@ -108,7 +109,7 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
   }
 }
 
-class _SignedInBody extends ConsumerWidget {
+class _SignedInBody extends ConsumerStatefulWidget {
   const _SignedInBody({
     required this.metrics,
     required this.busySync,
@@ -124,7 +125,14 @@ class _SignedInBody extends ConsumerWidget {
   final VoidCallback onRetryFailed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SignedInBody> createState() => _SignedInBodyState();
+}
+
+class _SignedInBodyState extends ConsumerState<_SignedInBody> {
+  bool _detailsEverExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
@@ -141,155 +149,192 @@ class _SignedInBody extends ConsumerWidget {
       return dateFmt.format(parsed.toLocal());
     }
 
-    return ListView(
-      padding: metrics.padding(top: t.space16, bottom: t.space32),
-      children: [
-        EnjoyCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SettingsRow(
-                leadingIcon: EnjoyIcons.history,
-                title: l10n.syncScreenLastSyncLabel,
-                showChevron: false,
-                valueBadge: lastSyncAsync.when(
-                  data: (iso) =>
-                      SettingsValuePill(label: lastSyncLine(l10n, iso)),
-                  loading: () => const LoadingIcon(size: 18),
-                  error: (e, _) => SettingsValuePill(
-                    icon: EnjoyIcons.error,
-                    label: l10n.error,
-                    foregroundColor: cs.error,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: t.space16),
-        snapshotAsync.when(
-          data: (snap) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                EnjoyCard(
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: widget.metrics.padding(top: t.space16, bottom: t.space32),
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child: EnjoyCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SettingsRow(
-                        leadingIcon: EnjoyIcons.hourglass,
-                        leadingIconTint: snap.retryablePending > 0
-                            ? cs.primary
-                            : null,
-                        title: l10n.syncScreenStatRetryable,
+                        leadingIcon: EnjoyIcons.history,
+                        title: l10n.syncScreenLastSyncLabel,
                         showChevron: false,
-                        valueBadge: SettingsValuePill(
-                          label: '${snap.retryablePending}',
-                          foregroundColor: snap.retryablePending > 0
-                              ? cs.primary
-                              : null,
-                        ),
-                      ),
-                      const SettingsRowDivider(insetForLeading: false),
-                      SettingsRow(
-                        leadingIcon: EnjoyIcons.error,
-                        leadingIconTint: snap.permanentlyFailed > 0
-                            ? cs.error
-                            : null,
-                        title: l10n.syncScreenStatFailed,
-                        showChevron: false,
-                        valueBadge: SettingsValuePill(
-                          label: '${snap.permanentlyFailed}',
-                          foregroundColor: snap.permanentlyFailed > 0
-                              ? cs.error
-                              : null,
+                        valueBadge: lastSyncAsync.when(
+                          data: (iso) =>
+                              SettingsValuePill(label: lastSyncLine(l10n, iso)),
+                          loading: () => const LoadingIcon(size: 18),
+                          error: (e, _) => SettingsValuePill(
+                            icon: EnjoyIcons.error,
+                            label: l10n.error,
+                            foregroundColor: cs.error,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: t.space16),
-                FilledButton.icon(
-                  onPressed: busySync ? null : onSyncNow,
-                  icon: busySync
-                      ? const LoadingIcon(size: 18)
-                      : const Icon(EnjoyIcons.sync),
-                  label: Text(l10n.syncScreenSyncNow),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+              snapshotAsync.when(
+                data: (snap) =>
+                    _snapshotSlivers(context, l10n, t, cs, tt, snap),
+                loading: () => const SliverToBoxAdapter(
+                  child: SkeletonSettingsList(rowCount: 5),
                 ),
-                SizedBox(height: t.space12),
-                OutlinedButton.icon(
-                  onPressed: (busyRetry || snap.permanentlyFailed == 0)
-                      ? null
-                      : onRetryFailed,
-                  icon: busyRetry
-                      ? const LoadingIcon(size: 18)
-                      : const Icon(EnjoyIcons.refresh),
-                  label: Text(l10n.syncScreenRetryFailed),
+                error: (e, _) => SliverToBoxAdapter(
+                  child: Text(l10n.errorGenericLoadFailed),
                 ),
-                SizedBox(height: t.space16),
-                EnjoyCard(
-                  padding: EdgeInsets.zero,
-                  child: Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      title: Text(l10n.syncQueueDetails),
-                      initiallyExpanded: false,
-                      children: snap.detailRows.isEmpty
-                          ? [
-                              Padding(
-                                padding: EdgeInsets.all(t.space16),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    l10n.syncQueueEmpty,
-                                    style: tt.bodyMedium?.copyWith(
-                                      color: cs.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ]
-                          : snap.detailRows
-                                .map(
-                                  (row) => ListTile(
-                                    dense: true,
-                                    title: Text(
-                                      '${row.entityType} · ${row.entityId}',
-                                      style: tt.bodyMedium,
-                                    ),
-                                    subtitle: Text(
-                                      [
-                                        row.action,
-                                        'retries ${row.retryCount}',
-                                        if (row.error != null &&
-                                            row.error!.isNotEmpty)
-                                          _truncate(row.error!, 120),
-                                      ].join('\n'),
-                                      style: tt.bodySmall?.copyWith(
-                                        color: cs.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    isThreeLine:
-                                        row.error != null &&
-                                        row.error!.length > 40,
-                                  ),
-                                )
-                                .toList(),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-          loading: () => const SkeletonSettingsList(rowCount: 5),
-          error: (e, _) => Text(l10n.errorGenericLoadFailed),
+              ),
+            ],
+          ),
         ),
       ],
     );
+  }
+
+  Widget _snapshotSlivers(
+    BuildContext context,
+    AppLocalizations l10n,
+    EnjoyThemeTokens t,
+    ColorScheme cs,
+    TextTheme tt,
+    SyncQueueSnapshot snap,
+  ) {
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EnjoyCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SettingsRow(
+                  leadingIcon: EnjoyIcons.hourglass,
+                  leadingIconTint: snap.retryablePending > 0
+                      ? cs.primary
+                      : null,
+                  title: l10n.syncScreenStatRetryable,
+                  showChevron: false,
+                  valueBadge: SettingsValuePill(
+                    label: '${snap.retryablePending}',
+                    foregroundColor: snap.retryablePending > 0
+                        ? cs.primary
+                        : null,
+                  ),
+                ),
+                const SettingsRowDivider(insetForLeading: false),
+                SettingsRow(
+                  leadingIcon: EnjoyIcons.error,
+                  leadingIconTint: snap.permanentlyFailed > 0 ? cs.error : null,
+                  title: l10n.syncScreenStatFailed,
+                  showChevron: false,
+                  valueBadge: SettingsValuePill(
+                    label: '${snap.permanentlyFailed}',
+                    foregroundColor: snap.permanentlyFailed > 0
+                        ? cs.error
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+        SliverToBoxAdapter(
+          child: FilledButton.icon(
+            onPressed: widget.busySync ? null : widget.onSyncNow,
+            icon: widget.busySync
+                ? const LoadingIcon(size: 18)
+                : const Icon(EnjoyIcons.sync),
+            label: Text(l10n.syncScreenSyncNow),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: t.space12)),
+        SliverToBoxAdapter(
+          child: OutlinedButton.icon(
+            onPressed: (widget.busyRetry || snap.permanentlyFailed == 0)
+                ? null
+                : widget.onRetryFailed,
+            icon: widget.busyRetry
+                ? const LoadingIcon(size: 18)
+                : const Icon(EnjoyIcons.refresh),
+            label: Text(l10n.syncScreenRetryFailed),
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: t.space16)),
+        SliverToBoxAdapter(
+          child: EnjoyCard(
+            padding: EdgeInsets.zero,
+            child: Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                title: Text(l10n.syncQueueDetails),
+                initiallyExpanded: false,
+                onExpansionChanged: (expanded) {
+                  if (expanded && !_detailsEverExpanded) {
+                    setState(() => _detailsEverExpanded = true);
+                  }
+                },
+                children: _detailsEverExpanded
+                    ? _detailTileChildren(l10n, t, cs, tt, snap)
+                    : const [],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _detailTileChildren(
+    AppLocalizations l10n,
+    EnjoyThemeTokens t,
+    ColorScheme cs,
+    TextTheme tt,
+    SyncQueueSnapshot snap,
+  ) {
+    if (snap.detailRows.isEmpty) {
+      return [
+        Padding(
+          padding: EdgeInsets.all(t.space16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.syncQueueEmpty,
+              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      for (final row in snap.detailRows)
+        ListTile(
+          dense: true,
+          title: Text(
+            '${row.entityType} · ${row.entityId}',
+            style: tt.bodyMedium,
+          ),
+          subtitle: Text(
+            [
+              row.action,
+              'retries ${row.retryCount}',
+              if (row.error != null && row.error!.isNotEmpty)
+                _truncate(row.error!, 120),
+            ].join('\n'),
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          ),
+          isThreeLine: row.error != null && row.error!.length > 40,
+        ),
+    ];
   }
 }
 

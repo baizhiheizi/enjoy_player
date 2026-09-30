@@ -37,7 +37,8 @@ tile. Consequences:
 
 1. **The join is owned by the discover application layer.**
    `discoverFeedItemsProvider` / `discoverChannelFeedItemsProvider` join the feed
-   stream with `MediaRegistry.watchYoutubeVideoIds()` through `joinLatest` in
+   stream with `MediaRegistry.watchYoutubeVideoIds()` through the
+   `joinLatest*` helpers in
    [`discover_feed_join.dart`](../../lib/features/discover/application/discover_feed_join.dart).
    Each emission is a `DiscoverFeedItem` carrying `entry` + `inLibrary`.
 2. **Tiles render; they do not probe.** `DiscoverFeedTile` takes `inLibrary` as

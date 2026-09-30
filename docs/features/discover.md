@@ -164,15 +164,15 @@ The merged feed grid and the channel feed grid both use stable `ValueKey<String>
 
 ## Library membership in the feed
 
-The feed carries library membership as data, not as a widget concern (issue #764). [`discoverFeedItemsProvider`](../../lib/features/discover/application/discover_providers.dart) joins the feed stream with [`MediaRegistry.watchYoutubeVideoIds`](../../lib/data/db/media_registry.dart) in [`discover_feed_join.dart`](../../lib/features/discover/application/discover_feed_join.dart), and each tile takes `inLibrary` as a constructor argument.
+The feed carries library membership as data, not as a widget concern (issue #764). [`discoverFeedItemsProvider`](../../lib/features/discover/application/discover_providers.dart) joins the feed stream with [`MediaRegistry.watchYoutubeVideoIds`](../../lib/data/db/media_registry.dart) in [`discover_feed_join.dart`](../../lib/features/discover/application/discover_feed_join.dart), and each tile takes `inLibrary` as a constructor argument. The same join (issue #810 G) also resolves each entry's channel display name and avatar from the subscription stream, so tiles take `channelName` / `channelAvatarUrl` as constructor arguments too instead of watching and linear-scanning the subscription list per build.
 
 Three consequences:
 
 - **No per-tile probes.** The feed previously ran one indexed `SELECT` per visible tile (`DiscoverFeedTile` probed in `initState` and cached the answer in widget state), which is roughly 15–25 queries per scroll burst. One subscription now serves the whole grid.
 - **Membership survives "add to library".** The import lands in `videos`, the registry stream re-emits, and the join re-projects. The tile no longer calls `ref.invalidate(libraryMediaProvider)` to patch itself.
-- **The join waits for both first values**, so the grid does not paint every tile as "not in library" and then flip them all on the library's first delivery.
+- **The join waits for all first values**, so the grid does not paint every tile as "not in library" and then flip them all on the library's first delivery.
 
-The join sits strictly above the append-only feed cache, so ADR-0046 is untouched: no insert, prune, or `deleteForChannel` path changed. The merged emission now also fires on library writes — `.distinctBy` keeps the tile list from rebuilding when the projection is unchanged.
+The join sits strictly above the append-only feed cache, so ADR-0046 is untouched: no insert, prune, or `deleteForChannel` path changed. The merged emission now also fires on library and subscription writes — `.distinctBy` keeps the tile list from rebuilding when the projection is unchanged.
 
 ## Add to library
 

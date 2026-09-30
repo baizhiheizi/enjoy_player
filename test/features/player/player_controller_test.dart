@@ -11,6 +11,7 @@ import 'package:enjoy_player/features/library/data/library_repository.dart';
 import 'package:enjoy_player/features/player/application/echo_mode_provider.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_player_engine.dart';
 import 'package:enjoy_player/features/player/application/player_controller.dart';
+import 'package:enjoy_player/features/player/application/player_engine_constants.dart';
 import 'package:enjoy_player/features/player/application/player_engine_rev.dart';
 import 'package:enjoy_player/features/player/application/player_engine_test_double_provider.dart';
 import 'package:enjoy_player/features/player/application/player_preferences_provider.dart';
@@ -1182,6 +1183,152 @@ void main() {
       },
     );
   });
+
+  group('PlayerController.warmYoutubeSurface idle eviction (issue #810 G)', () {
+    late AppDatabase db;
+    late ProviderContainer container;
+
+    setUp(() {
+      db = AppDatabase(executor: NativeDatabase.memory());
+      container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          transcriptRepositoryProvider.overrideWithValue(
+            TranscriptRepository(db),
+          ),
+        ],
+      );
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      PlayerController.warmedYoutubeEvictionDelay = const Duration(
+        milliseconds: 50,
+      );
+    });
+
+    tearDown(() async {
+      debugDefaultTargetPlatformOverride = null;
+      PlayerController.warmedYoutubeEvictionDelay =
+          kWarmedYoutubeSurfaceEvictionDelay;
+      await pumpEventQueue();
+      container.dispose();
+      await db.close();
+    });
+
+    Future<String> insertYoutube({required String id}) async {
+      final now = DateTime.now();
+      await db.videoDao.insertRow(
+        VideoRow(
+          id: id,
+          vid: 'dQw4w9WgXcQ',
+          provider: 'youtube',
+          title: 'YouTube test',
+          description: null,
+          thumbnailUrl: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+          durationSeconds: 212,
+          language: 'en',
+          source: 'youtube',
+          localUri: null,
+          md5: null,
+          size: null,
+          mediaUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          syncStatus: null,
+          serverUpdatedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      return id;
+    }
+
+    test('evicts the warmed engine after the idle window', () async {
+      final n = container.read(playerControllerProvider.notifier);
+      n.warmYoutubeSurface();
+      expect(n.ownedEngine, isA<YoutubePlayerEngine>());
+      expect(container.read(playerEngineRevProvider), 1);
+
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await pumpEventQueue();
+
+      expect(
+        n.ownedEngine,
+        isNull,
+        reason: 'the warmed engine and its WebView must not persist forever',
+      );
+      expect(container.read(playerEngineRevProvider), 2);
+    });
+
+    test('an open cancels the eviction timer', () async {
+      final id = await insertYoutube(id: 'yt-evict-open');
+      final n = container.read(playerControllerProvider.notifier);
+      n.warmYoutubeSurface();
+      final warmed = n.ownedEngine;
+
+      await n.openMedia(id);
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await pumpEventQueue();
+
+      expect(
+        identical(n.ownedEngine, warmed),
+        isTrue,
+        reason: 'an opened engine must never be evicted out from playback',
+      );
+      expect(container.read(playerControllerProvider)?.mediaId, id);
+    });
+
+    test('re-warming re-arms the idle window', () async {
+      final n = container.read(playerControllerProvider.notifier);
+      n.warmYoutubeSurface();
+      final warmed = n.ownedEngine;
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      n.warmYoutubeSurface();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(
+        identical(n.ownedEngine, warmed),
+        isTrue,
+        reason: 'still inside the re-armed window',
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await pumpEventQueue();
+      expect(n.ownedEngine, isNull);
+    });
+
+    test(
+      'a failing surface detach still completes the engine dispose',
+      () async {
+        final n = container.read(playerControllerProvider.notifier);
+        final engine = _EvictionSeamEngine(detachError: StateError('detach'));
+        n.ownedEngine = engine;
+        n.warmYoutubeSurface();
+
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        await pumpEventQueue();
+
+        expect(
+          n.ownedEngine,
+          isNull,
+          reason: 'the identity slot must stay empty after a failed detach',
+        );
+        expect(
+          engine.disposeCalled,
+          isTrue,
+          reason: 'dispose must land even when the detach wait throws',
+        );
+      },
+    );
+
+    test('a failing engine dispose after eviction stays contained', () async {
+      final n = container.read(playerControllerProvider.notifier);
+      final engine = _EvictionSeamEngine(disposeError: StateError('dispose'));
+      n.ownedEngine = engine;
+      n.warmYoutubeSurface();
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await pumpEventQueue();
+
+      expect(n.ownedEngine, isNull);
+      expect(engine.disposeCalled, isTrue);
+    });
+  });
 }
 
 /// Emits `buffering=false` repeatedly for a short window so the unawaited
@@ -1257,5 +1404,28 @@ class _ThrowingYoutubeRefreshRepository extends MediaLibraryRepository {
   ) async {
     refreshCalls.add(mediaId);
     throw StateError('oembed_boom');
+  }
+}
+
+/// Warms like a stock engine but lets a test fail the detach wait or the
+/// dispose, installed through the plain `ownedEngine` field seam.
+class _EvictionSeamEngine extends YoutubePlayerEngine {
+  _EvictionSeamEngine({this.detachError, this.disposeError});
+
+  final Object? detachError;
+  final Object? disposeError;
+  bool disposeCalled = false;
+
+  @override
+  Future<void> awaitSurfaceDetached() async {
+    final error = detachError;
+    if (error != null) throw error;
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposeCalled = true;
+    final error = disposeError;
+    if (error != null) throw error;
   }
 }

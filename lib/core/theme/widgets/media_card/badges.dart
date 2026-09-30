@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 
 import '../../enjoy_tokens.dart';
@@ -34,18 +35,20 @@ class MediaCardThumbnail extends StatelessWidget {
 
   static const _coverFit = BoxFit.cover;
 
-  Widget _networkImage(String url) {
+  static const _unconstrainedDecodeWidth = 600;
+
+  Widget _networkImage(String url, int decodeWidth) {
     return CachedNetworkImage(
       imageUrl: url,
       fit: _coverFit,
       width: double.infinity,
       height: double.infinity,
-      memCacheWidth: 600,
+      memCacheWidth: decodeWidth,
       placeholder: (context, _) => _loading(),
       errorWidget: (context, attemptedUrl, _) {
         final mqFallback = youtubeMqFallbackForCardUrl(attemptedUrl);
         if (mqFallback != null && mqFallback != attemptedUrl) {
-          return _networkImage(mqFallback);
+          return _networkImage(mqFallback, decodeWidth);
         }
         return _fallback();
       },
@@ -73,26 +76,33 @@ class MediaCardThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (file != null) {
-      return Image.file(
-        file!,
-        fit: _coverFit,
-        width: double.infinity,
-        height: double.infinity,
-        cacheWidth: 600,
-        gaplessPlayback: true,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded || frame != null) return child;
-          return _loading();
-        },
-        errorBuilder: (_, _, _) => _fallback(),
-      );
-    }
-    final url = networkUrl;
-    if (url != null && url.isNotEmpty) {
-      return _networkImage(url);
-    }
-    return _fallback();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final decodeWidth = constraints.hasBoundedWidth
+            ? thumbnailCacheWidthFor(constraints.maxWidth)
+            : _unconstrainedDecodeWidth;
+        if (file != null) {
+          return Image.file(
+            file!,
+            fit: _coverFit,
+            width: double.infinity,
+            height: double.infinity,
+            cacheWidth: decodeWidth,
+            gaplessPlayback: true,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) return child;
+              return _loading();
+            },
+            errorBuilder: (_, _, _) => _fallback(),
+          );
+        }
+        final url = networkUrl;
+        if (url != null && url.isNotEmpty) {
+          return _networkImage(url, decodeWidth);
+        }
+        return _fallback();
+      },
+    );
   }
 
   Widget _fallback() {

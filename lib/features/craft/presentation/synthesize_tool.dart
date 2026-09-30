@@ -198,13 +198,13 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
       ref: ref,
       selectedValue: current,
     );
-    if (picked != null) {
-      controller.setSynthLanguage(picked);
-    }
+    if (!mounted || picked == null) return;
+    controller.setSynthLanguage(picked);
   }
 
   Future<void> _paste(CraftController controller) async {
     final clip = await Clipboard.getData('text/plain');
+    if (!mounted) return;
     final t = clip?.text;
     if (t != null && t.isNotEmpty) {
       _textCtrl.text = t;
@@ -241,10 +241,9 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
 
     await controller.synthesize();
 
-    if (mounted) {
-      final nav = Navigator.of(context, rootNavigator: true);
-      if (nav.canPop()) nav.pop();
-    }
+    if (!mounted) return;
+    final nav = Navigator.of(context, rootNavigator: true);
+    if (nav.canPop()) nav.pop();
   }
 
   Future<void> _togglePlay() async {
@@ -255,9 +254,11 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
 
     if (_isPlaying) {
       await _audioPlayer!.pause();
+      if (!mounted) return;
       setState(() => _isPlaying = false);
     } else {
       await _audioPlayer!.play(BytesSource(bytes));
+      if (!mounted) return;
       setState(() => _isPlaying = true);
       unawaited(_completeSub?.cancel());
       _completeSub = _audioPlayer!.onPlayerComplete.listen((_) {

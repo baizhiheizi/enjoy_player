@@ -8,6 +8,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+@TableIndex(name: 'idx_ai_cache_kind_updated_at', columns: {#kind, #updatedAt})
 @DataClassName('AiCacheRow')
 class AiCache extends Table {
   @override

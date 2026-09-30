@@ -218,6 +218,8 @@ class _DiscoverFeedSliver extends StatelessWidget {
                     child: DiscoverFeedTile(
                       entry: entries[index].entry,
                       inLibrary: entries[index].inLibrary,
+                      channelName: entries[index].channelName,
+                      channelAvatarUrl: entries[index].channelAvatarUrl,
                     ),
                   ),
                 );
@@ -239,6 +241,8 @@ class _DiscoverFeedSliver extends StatelessWidget {
                     child: DiscoverFeedTile(
                       entry: entries[index].entry,
                       inLibrary: entries[index].inLibrary,
+                      channelName: entries[index].channelName,
+                      channelAvatarUrl: entries[index].channelAvatarUrl,
                     ),
                   ),
                   childCount: entries.length,

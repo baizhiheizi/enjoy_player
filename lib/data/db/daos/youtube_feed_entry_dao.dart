@@ -5,9 +5,18 @@ class YoutubeFeedEntryDao extends DatabaseAccessor<AppDatabase>
     with _$YoutubeFeedEntryDaoMixin {
   YoutubeFeedEntryDao(super.db);
 
-  Stream<List<YoutubeFeedEntryRow>> watchTimeline() => (select(
-    youtubeFeedEntries,
-  )..orderBy([(t) => OrderingTerm.desc(t.publishedAt)])).watch();
+  /// Newest-first window served to the merged Discover feed watch (issue
+  /// #810 G): the table is append-only (ADR-0046, worst case ~10k rows) and
+  /// every write re-runs this query, re-maps every row and re-dedupes the
+  /// emission. 300 covers one refresh cycle of every subscription at the
+  /// spec budget (20 × 15 RSS entries). One-shot queries stay unbounded.
+  static const int timelineWatchLimit = 300;
+
+  Stream<List<YoutubeFeedEntryRow>> watchTimeline() =>
+      (select(youtubeFeedEntries)
+            ..orderBy([(t) => OrderingTerm.desc(t.publishedAt)])
+            ..limit(timelineWatchLimit))
+          .watch();
 
   Stream<List<YoutubeFeedEntryRow>> watchForChannel(String channelId) =>
       (select(youtubeFeedEntries)

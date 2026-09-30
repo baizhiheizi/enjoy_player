@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/utils/local_thumbnail.dart';
 import 'package:enjoy_player/core/utils/text_normalization.dart';
 import 'package:enjoy_player/features/community/domain/active_user.dart';
 
@@ -67,6 +68,7 @@ class UserAvatar extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
+        memCacheWidth: thumbnailCacheWidthFor(size),
         errorWidget: (context, url, error) => fallback(),
       ),
     );
