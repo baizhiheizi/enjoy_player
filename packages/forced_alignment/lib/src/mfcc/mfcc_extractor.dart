@@ -17,7 +17,9 @@ int _nextPowerOfTwo(int n) {
 /// [windowLength] comes from [windowSeconds]. [fftSize] is the next power of
 /// two so `mcfcc_nsn` / FFT can run; frames are zero-padded to that length.
 final class MfccPreset {
-  const MfccPreset({required this.windowSeconds, required this.hopSeconds});
+  const MfccPreset({required this.windowSeconds, required this.hopSeconds})
+    : assert(windowSeconds > 0, 'windowSeconds must be positive'),
+      assert(hopSeconds > 0, 'hopSeconds must be positive');
 
   final double windowSeconds;
   final double hopSeconds;
@@ -49,13 +51,22 @@ final class MfccFrames {
   });
 
   /// Flattens boxed `mcfcc_nsn` output (one `List<double>` per frame) into
-  /// contiguous rows. Every frame must share the first frame's length.
+  /// contiguous rows. Every frame must share the first frame's length —
+  /// a shorter tail frame would otherwise write garbage into its
+  /// neighbor's row, so it throws [ArgumentError] instead.
   factory MfccFrames.fromBoxed(List<List<double>> frames) {
     final count = frames.length;
     final stride = count == 0 ? 0 : frames.first.length;
     final flat = Float64List(count * stride);
     var offset = 0;
     for (final frame in frames) {
+      if (frame.length != stride) {
+        throw ArgumentError.value(
+          frame.length,
+          'frame $offset',
+          'expected $stride coefficients per frame',
+        );
+      }
       flat.setRange(offset, offset + frame.length, frame);
       offset += frame.length;
     }

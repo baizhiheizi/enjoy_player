@@ -61,4 +61,21 @@ void main() {
     expect(() => mapReferenceFramesToSource(empty, one), throwsArgumentError);
     expect(() => mapReferenceFramesToSource(one, empty), throwsArgumentError);
   });
+
+  test('MfccFrames.fromBoxed rejects ragged frame lengths', () {
+    expect(
+      () => MfccFrames.fromBoxed([
+        [1, 2, 3],
+        [4, 5],
+      ]),
+      throwsArgumentError,
+    );
+  });
+
+  test('MfccPreset rejects non-positive hops', () {
+    expect(
+      () => MfccPreset(windowSeconds: 0.025, hopSeconds: 0),
+      throwsA(isA<AssertionError>()),
+    );
+  });
 }

@@ -1,8 +1,15 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../constants.dart';
 import '../mfcc/mfcc_extractor.dart';
 import 'cost.dart';
+
+/// Direction codes stored per band cell for the backtrace.
+const _kDirNone = 0;
+const _kDirUp = 1;
+const _kDirLeft = 2;
+const _kDirDiag = 3;
 
 /// Sakoe-Chiba windowed DTW over flattened [MfccFrames].
 ///
@@ -18,7 +25,7 @@ List<int> mapReferenceFramesToSource(
   MfccFrames reference,
   MfccFrames source, {
   double windowPct = 0.20,
-  int maxDriftFrames = 1 << 40,
+  int maxDriftFrames = kUnboundedBandFrames,
 }) {
   final n = reference.frameCount;
   final m = source.frameCount;
@@ -66,35 +73,35 @@ List<int> mapReferenceFramesToSource(
         continue;
       }
       var best = inf;
-      var bestDir = 0;
+      var bestDir = _kDirNone;
       if (i > 0 && j >= aboveJStart && j <= aboveJEnd) {
         final c = rowAbove[j - aboveJStart];
         if (c < best) {
           best = c;
-          bestDir = 1;
+          bestDir = _kDirUp;
         }
       }
       if (j > 0 && j - 1 >= jStart) {
         final c = rowBelow[j - 1 - jStart];
         if (c < best) {
           best = c;
-          bestDir = 2;
+          bestDir = _kDirLeft;
         }
       }
       if (i > 0 && j > 0 && j - 1 >= aboveJStart && j - 1 <= aboveJEnd) {
         final c = rowAbove[j - 1 - aboveJStart];
         if (c < best) {
           best = c;
-          bestDir = 3;
+          bestDir = _kDirDiag;
         }
       }
       rowBelow[col] = d + (best >= inf / 2 ? 0 : best);
       directions[rowBase + col] = bestDir;
     }
 
-    final spent = rowAbove;
+    final tmp = rowAbove;
     rowAbove = rowBelow;
-    rowBelow = spent;
+    rowBelow = tmp;
   }
 
   final jMin = Int32List(n)..fillRange(0, n, -1);
@@ -119,10 +126,10 @@ List<int> mapReferenceFramesToSource(
     }
     final jStart = math.max(0, jCenterAt(i) - radius);
     final dir = directions[i * width + (j - jStart)];
-    if (dir == 0) break;
-    if (dir == 1) {
+    if (dir == _kDirNone) break;
+    if (dir == _kDirUp) {
       i--;
-    } else if (dir == 2) {
+    } else if (dir == _kDirLeft) {
       j--;
     } else {
       i--;

@@ -26,3 +26,8 @@ const double kSakoeChibaWindowPct = 0.20;
 /// 20% band (0.2 × 50 s = 10 s); only longer, whole-clip inputs are
 /// clamped.
 const double kSakoeChibaMaxDriftSeconds = 10.0;
+
+/// Default [mapReferenceFramesToSource] band: no absolute drift cap, only
+/// the percentage band. ~1.1e12 frames — far beyond any real sequence —
+/// so the `min(pctRadius, cap)` never binds.
+const int kUnboundedBandFrames = 1 << 40;
