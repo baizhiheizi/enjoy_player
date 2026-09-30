@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/utils/stream_distinct.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'bulk_pk_rows_mixin.dart';
+import 'drift_isolate_setup.dart';
 import 'media_library_projection.dart';
 import 'migration_backup.dart';
 import 'settings_keys.dart';
@@ -45,6 +46,8 @@ part 'daos/vocabulary_item_dao.dart';
 part 'daos/vocabulary_review_dao.dart';
 part 'daos/youtube_channel_subscription_dao.dart';
 part 'daos/youtube_feed_entry_dao.dart';
+
+final _log = logNamed('db.app_database');
 
 @DriftDatabase(
   tables: [
@@ -83,9 +86,18 @@ part 'daos/youtube_feed_entry_dao.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase({QueryExecutor? executor, String name = deviceGlobalDatabaseName})
-    : _dbName = name,
-      super(executor ?? driftDatabase(name: name));
+  AppDatabase({
+    QueryExecutor? executor,
+    String name = deviceGlobalDatabaseName,
+    DriftNativeOptions? native,
+  }) : _dbName = name,
+       super(
+         executor ??
+             driftDatabase(
+               name: name,
+               native: native ?? defaultDriftNativeOptions(),
+             ),
+       );
 
   /// Drift file name for device-global settings (`enjoy_player.sqlite`).
   ///
@@ -129,7 +141,25 @@ class AppDatabase extends _$AppDatabase {
     var current = from;
     while (current < to) {
       if (current < 6 && to >= 7) {
-        await backupToJson(m.database, from: current, to: to);
+        final backupPath = await backupToJson(
+          m.database,
+          from: current,
+          to: to,
+        );
+        if (backupPath == null) {
+          throw StateError(
+            'Aborting the pre-v6 → $to upgrade: the JSON backup under '
+            '{applicationSupport}/migrations did not land, so dropping the '
+            'legacy tables would destroy the library with no recoverable '
+            'snapshot. Free disk space or fix write permissions on the '
+            'application-support directory, then relaunch — the legacy tables '
+            'are untouched and the upgrade retries from version $current.',
+          );
+        }
+        _log.warning(
+          'pre-v6 JSON backup written to $backupPath before destructive '
+          'migration ($current → $to)',
+        );
         await _dropLegacyTables(m);
         await m.createAll();
         return;

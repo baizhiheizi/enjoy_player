@@ -618,8 +618,12 @@ played to the learner and does not replace Craft/library audio.
   verification.
   Android ships the per-ABI `.so` through jniLibs and `espeak-ng-data`
   as Flutter assets extracted at startup
-  (`lib/core/platform/espeak_android_provisioner.dart`). Flutter does **not**
-  recurse directory assets — `pubspec.yaml` must list `espeak-ng-data/` **and**
+  (`lib/core/platform/espeak_android_provisioner.dart`). The provisioning
+  itself runs **off the startup critical path** (`unawaited`, issue #810 B1)
+  and the 31-file synchronous extraction runs under `Isolate.run` (issue
+  #818), so first install and every `kEspeakDataRevision` bump can no longer
+  jank the UI isolate. Flutter does **not** recurse directory assets —
+  `pubspec.yaml` must list `espeak-ng-data/` **and**
   `espeak-ng-data/lang/` or `espeak_SetVoiceByName(en-us)` fails on device
   while Windows (source-tree files) still works. Windows/Linux desktop app
   bundles remain a follow-up.

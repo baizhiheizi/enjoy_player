@@ -34,25 +34,50 @@ const List<String> kCjkSerifFallbacks = [
   'STSong',
 ];
 
-/// CJK fallbacks so Windows does not substitute low-quality system fonts.
-List<String> _transcriptCjkSerifFallbacks() => [
-  GoogleFonts.notoSerifKr().fontFamily,
-  GoogleFonts.notoSerifSc().fontFamily,
-  GoogleFonts.notoSerifJp().fontFamily,
-].whereType<String>().toList();
+/// CJK Noto faces addressed by name, for `fontFamilyFallback` only.
+///
+/// These are the family ids `google_fonts` reports for the CJK variants. They
+/// are listed as plain names rather than built through `GoogleFonts.noto…()`
+/// because a `fontFamilyFallback` entry is resolved by the platform font
+/// matcher, not by loading an asset: instantiating the `TextStyle` only to
+/// read `.fontFamily` used to trigger a multi-megabyte runtime fetch plus a
+/// font registration — per transcript line, since [_withCjkFallbacks] runs in
+/// the text build path. A name the device does not have is skipped at no cost,
+/// after which the installed-platform lists take over (issue #818).
+const List<String> kCjkNotoSerifFallbacks = [
+  'NotoSerifKR',
+  'NotoSerifSC',
+  'NotoSerifJP',
+];
 
-List<String> _transcriptCjkSansFallbacks() => [
-  GoogleFonts.notoSansKr().fontFamily,
-  GoogleFonts.notoSansSc().fontFamily,
-  GoogleFonts.notoSansJp().fontFamily,
-  GoogleFonts.geist().fontFamily,
-].whereType<String>().toList();
+const List<String> kCjkNotoSansFallbacks = [
+  'NotoSansKR',
+  'NotoSansSC',
+  'NotoSansJP',
+];
+
+/// CJK fallbacks so Windows does not substitute low-quality system fonts.
+///
+/// Every entry is a literal family name for the same reason as
+/// [kCjkNotoSansFallbacks]; `'Geist'` is the id `GoogleFonts.geist()` reports
+/// and is bundled, so naming it costs nothing and keeps the CJK path from ever
+/// constructing a `TextStyle` to read a name.
+const List<String> _kTranscriptCjkSerifFallbacks = [
+  ...kCjkNotoSerifFallbacks,
+  ...kCjkSerifFallbacks,
+];
+
+const List<String> _kTranscriptCjkSansFallbacks = [
+  ...kCjkNotoSansFallbacks,
+  'Geist',
+  ...kCjkSansFallbacks,
+];
 
 TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
   return style.copyWith(
     fontFamilyFallback: serif
-        ? _transcriptCjkSerifFallbacks()
-        : _transcriptCjkSansFallbacks(),
+        ? _kTranscriptCjkSerifFallbacks
+        : _kTranscriptCjkSansFallbacks,
   );
 }
 
@@ -309,7 +334,7 @@ class TranscriptTypographyTokens
           serif: true,
         ),
         secondaryStyle: _withCjkFallbacks(
-          GoogleFonts.notoSansSc(
+          GoogleFonts.notoSans(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             height: 1.55,
@@ -360,7 +385,7 @@ class TranscriptTypographyTokens
         serif: false,
       ),
       secondaryStyle: _withCjkFallbacks(
-        GoogleFonts.notoSansSc(
+        GoogleFonts.notoSans(
           fontSize: 13.5,
           fontWeight: FontWeight.w400,
           height: 1.55,

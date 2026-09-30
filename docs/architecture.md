@@ -67,7 +67,11 @@ sequenceDiagram
 
 ### Schema upgrades (release note)
 
-[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 18`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+[`AppDatabase`](../lib/data/db/app_database.dart) is at **`schemaVersion: 19`**. Upgrades from versions **below 6** are **destructive** (JSON backup, drop legacy tables, `createAll`). From **v6 upward**, migrations are **incremental** — no library wipe:
+
+The pre-v6 JSON backup resolves `{applicationSupport}/migrations/` through `path_provider`, but `onUpgrade` runs on the Drift **background isolate**, which had no `BinaryMessenger` — so the path lookup threw, the failure was swallowed, and the backup was silently skipped immediately before the legacy tables were dropped. `AppDatabase` now passes `DriftNativeOptions(isolateSetup: …)` from [`drift_isolate_setup.dart`](../lib/data/db/drift_isolate_setup.dart), installing a `BackgroundIsolateBinaryMessenger` before the database opens; `defaultDriftNativeOptions()` **throws** rather than returning a channel-less default, so the messenger can never be silently skipped again.
+
+The messenger fixes the *cause*; the guard fixes the *consequence*. If the backup still fails (full disk, unwritable support directory), `_runMigrations` **aborts the upgrade with a `StateError`** instead of dropping the legacy tables. The transaction rolls back, `user_version` stays put, the legacy rows survive, and the next launch retries — a loud failure with intact data beats a quiet wipe (issue #818). Do not add further platform-channel calls to a migration without checking that seam.
 
 | Step | Change |
 |------|--------|

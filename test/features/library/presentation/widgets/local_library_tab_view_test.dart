@@ -286,14 +286,14 @@ void main() {
     testWidgets(
       'count-preserving library changes do not rebuild the tab bodies',
       (tester) async {
-        final media = StreamController<List<Media>>();
+        final counts = StreamController<({int audio, int video})>();
         final tabController = TabController(length: 2, vsync: tester);
         addTearDown(() async {
           tabController.dispose();
-          await media.close();
+          await counts.close();
         });
 
-        Media videoWith({String? syncStatus}) => Media(
+        Media videoWith() => Media(
           id: 'video-1',
           kind: MediaKind.video,
           title: 'Clip',
@@ -302,15 +302,17 @@ void main() {
           language: 'ja',
           contentHash: 'h',
           fileSize: 2048,
-          syncStatus: syncStatus,
           createdAt: _ts,
           updatedAt: _ts,
         );
 
+        var videoCount = 1;
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              libraryMediaProvider.overrideWith((ref) => media.stream),
+              libraryKindCountsProvider.overrideWith((ref) {
+                return counts.stream.map((_) => (audio: 0, video: videoCount));
+              }),
               libraryFilteredListsProvider.overrideWith(
                 (ref) => Stream.value((audio: <Media>[], video: [videoWith()])),
               ),
@@ -329,14 +331,14 @@ void main() {
             ),
           ),
         );
-        media.add([videoWith()]);
+        counts.add((audio: 0, video: videoCount));
         await tester.pumpAndSettle();
 
         final before = tester.widget<LocalVideoLibraryBody>(
           find.byType(LocalVideoLibraryBody),
         );
 
-        media.add([videoWith(syncStatus: 'pending')]);
+        counts.add((audio: 0, video: videoCount));
         await tester.pumpAndSettle();
 
         final after = tester.widget<LocalVideoLibraryBody>(
@@ -350,7 +352,8 @@ void main() {
               'not rebuild',
         );
 
-        media.add([videoWith(), videoWith().rebuildWithId('video-2')]);
+        videoCount = 2;
+        counts.add((audio: 0, video: videoCount));
         await tester.pumpAndSettle();
 
         final grown = tester.widget<LocalVideoLibraryBody>(
@@ -361,24 +364,4 @@ void main() {
       },
     );
   });
-}
-
-extension on Media {
-  Media rebuildWithId(String id) => Media(
-    id: id,
-    kind: kind,
-    title: title,
-    sourceUri: sourceUri,
-    thumbnailPath: thumbnailPath,
-    durationMs: durationMs,
-    language: language,
-    contentHash: contentHash,
-    fileSize: fileSize,
-    mediaUrl: mediaUrl,
-    source: source,
-    provider: provider,
-    syncStatus: syncStatus,
-    createdAt: createdAt,
-    updatedAt: updatedAt,
-  );
 }
