@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:enjoy_player/core/theme/app_theme.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
 
 Widget _host(Widget child) => MaterialApp(
@@ -119,5 +120,50 @@ void main() {
     final decoration = _badgeContainer(tester).decoration as ShapeDecoration;
     expect(decoration.shape, shape);
     expect(decoration.gradient, _tokens(tester).aurora);
+  });
+
+  testWidgets('EnjoyKeycap renders mono on one tight line', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_host(const EnjoyKeycap(label: 'Ctrl K')));
+
+    final text = tester.widget<Text>(find.text('Ctrl K'));
+    final ctx = tester.element(find.byType(EnjoyKeycap));
+    final tokens = EnjoyThemeTokens.of(ctx);
+    final mono = enjoyMonoStyle(
+      ctx,
+      size: 10.5,
+      weight: FontWeight.w600,
+      color: tokens.textFaint,
+    );
+    expect(text.style?.fontFamily, mono.fontFamily);
+    expect(text.style?.height, 1.35);
+    expect(text.maxLines, 1);
+  });
+
+  testWidgets('EnjoyKeycap fits the 34px slot the sidebar search gives it', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(Brightness.light),
+        home: const Scaffold(
+          body: Center(
+            child: SizedBox(
+              height: 34,
+              width: 120,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: EnjoyKeycap(label: 'Ctrl K'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.byType(EnjoyKeycap)).height, lessThan(34));
   });
 }

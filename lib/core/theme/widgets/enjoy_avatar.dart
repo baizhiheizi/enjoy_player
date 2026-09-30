@@ -226,12 +226,13 @@ class EnjoyKeycap extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
         style: enjoyMonoStyle(
           context,
           size: 10.5,
           weight: FontWeight.w600,
           color: t.textFaint,
-        ),
+        ).copyWith(height: 1.35),
       ),
     );
   }
