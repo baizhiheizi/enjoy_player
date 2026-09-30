@@ -2,81 +2,24 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [Videos])
 class VideoDao extends DatabaseAccessor<AppDatabase>
-    with _$VideoDaoMixin, BulkPkRowsMixin<AppDatabase, VideoRow> {
+    with
+        _$VideoDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VideoRow>,
+        MediaLibraryProjection<AppDatabase> {
   VideoDao(super.db);
 
   @override
   TableInfo<Table, VideoRow> get bulkPkTable => videos;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => videos.id;
-
-  @override
   String Function(VideoRow row) get bulkPkRowId =>
       (row) => row.id;
 
   @override
-  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
+  TableInfo<Table, dynamic> get mediaLibraryTable => videos;
 
-  List<GeneratedColumn<Object>> get _libraryColumns => [
-    videos.id,
-    videos.title,
-    videos.localUri,
-    videos.mediaUrl,
-    videos.thumbnailUrl,
-    videos.durationSeconds,
-    videos.language,
-    videos.vid,
-    videos.size,
-    videos.source,
-    videos.provider,
-    videos.syncStatus,
-    videos.createdAt,
-    videos.updatedAt,
-  ];
-
-  MediaLibraryRow _libraryRow(TypedResult r) => MediaLibraryRow(
-    id: r.read(videos.id)!,
-    title: r.read(videos.title)!,
-    localUri: r.read(videos.localUri),
-    mediaUrl: r.read(videos.mediaUrl),
-    thumbnailUrl: r.read(videos.thumbnailUrl),
-    durationSeconds: r.read(videos.durationSeconds)!,
-    language: r.read(videos.language)!,
-    contentHash: r.read(videos.vid)!,
-    size: r.read(videos.size),
-    source: r.read(videos.source),
-    provider: r.read(videos.provider)!,
-    syncStatus: r.read(videos.syncStatus),
-    createdAt: r.read(videos.createdAt)!,
-    updatedAt: r.read(videos.updatedAt)!,
-  );
-
-  /// Library-wide watch projecting only the columns `Media` needs
-  /// (`createdAt`-descending; issue #810 D6 — skips `description` and
-  /// `bookmarkData` blobs).
-  Stream<List<MediaLibraryRow>> watchAll() {
-    return (selectOnly(videos)
-          ..addColumns(_libraryColumns)
-          ..orderBy([OrderingTerm.desc(videos.createdAt)]))
-        .map(_libraryRow)
-        .watch();
-  }
-
-  /// Up to [limit] rows with the newest [Videos.updatedAt] first
-  /// (`updated_at DESC, created_at DESC` tiebreak), for the Home recents
-  /// query (issue #810 D6).
-  Stream<List<MediaLibraryRow>> watchRecentByUpdatedAt(int limit) {
-    return (selectOnly(videos)
-          ..addColumns(_libraryColumns)
-          ..orderBy([
-            OrderingTerm.desc(videos.updatedAt),
-            OrderingTerm.desc(videos.createdAt),
-          ])
-          ..limit(limit))
-        .map(_libraryRow)
-        .watch();
-  }
+  @override
+  GeneratedColumn<String> get mediaLibraryContentHash => videos.vid;
 
   Future<VideoRow?> getById(String id) =>
       (select(videos)..where((t) => t.id.equals(id))).getSingleOrNull();

@@ -9,19 +9,27 @@ import 'package:drift/drift.dart';
 /// Provides [getManyByIds] / [upsertRows] for tables whose primary key is a
 /// single `TEXT` column, collapsing the per-entity copies behind one
 /// implementation.
+///
+/// Implementations supply the table and the typed row-id accessor only: the
+/// primary-key column is derived from the table's `$primaryKey` (a
+/// non-singleton key or a non-`TEXT` column fails the cast loudly), and the
+/// conflict mode defaults to [InsertMode.insertOrReplace] — drift documents
+/// `InsertMode.replace` as identical, so the vocabulary DAOs' former
+/// `replace` override is gone.
 mixin BulkPkRowsMixin<DB extends GeneratedDatabase, R extends Insertable<R>>
     on DatabaseAccessor<DB> {
   /// Table read by [getManyByIds] and written by [upsertRows].
   TableInfo<Table, R> get bulkPkTable;
 
-  /// Primary-key column driving the `WHERE id IN (…)` filter.
-  GeneratedColumn<String> get bulkPkColumn;
-
   /// Primary key of a row, used to key the [getManyByIds] result map.
   String Function(R row) get bulkPkRowId;
 
   /// Conflict mode [upsertRows] applies, matching the DAO's single-row write.
-  InsertMode get bulkPkInsertMode;
+  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
+
+  /// Primary-key column driving the `WHERE id IN (…)` filter.
+  late final GeneratedColumn<String> bulkPkColumn =
+      bulkPkTable.$primaryKey.single as GeneratedColumn<String>;
 
   /// Bulk-fetches rows by primary key in one `WHERE id IN (…)` query.
   /// Ids with no row are absent from the map; empty input is a no-op.

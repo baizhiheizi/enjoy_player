@@ -2,81 +2,24 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [Audios])
 class AudioDao extends DatabaseAccessor<AppDatabase>
-    with _$AudioDaoMixin, BulkPkRowsMixin<AppDatabase, AudioRow> {
+    with
+        _$AudioDaoMixin,
+        BulkPkRowsMixin<AppDatabase, AudioRow>,
+        MediaLibraryProjection<AppDatabase> {
   AudioDao(super.db);
 
   @override
   TableInfo<Table, AudioRow> get bulkPkTable => audios;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => audios.id;
-
-  @override
   String Function(AudioRow row) get bulkPkRowId =>
       (row) => row.id;
 
   @override
-  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
+  TableInfo<Table, dynamic> get mediaLibraryTable => audios;
 
-  List<GeneratedColumn<Object>> get _libraryColumns => [
-    audios.id,
-    audios.title,
-    audios.localUri,
-    audios.mediaUrl,
-    audios.thumbnailUrl,
-    audios.durationSeconds,
-    audios.language,
-    audios.aid,
-    audios.size,
-    audios.source,
-    audios.provider,
-    audios.syncStatus,
-    audios.createdAt,
-    audios.updatedAt,
-  ];
-
-  MediaLibraryRow _libraryRow(TypedResult r) => MediaLibraryRow(
-    id: r.read(audios.id)!,
-    title: r.read(audios.title)!,
-    localUri: r.read(audios.localUri),
-    mediaUrl: r.read(audios.mediaUrl),
-    thumbnailUrl: r.read(audios.thumbnailUrl),
-    durationSeconds: r.read(audios.durationSeconds)!,
-    language: r.read(audios.language)!,
-    contentHash: r.read(audios.aid)!,
-    size: r.read(audios.size),
-    source: r.read(audios.source),
-    provider: r.read(audios.provider)!,
-    syncStatus: r.read(audios.syncStatus),
-    createdAt: r.read(audios.createdAt)!,
-    updatedAt: r.read(audios.updatedAt)!,
-  );
-
-  /// Library-wide watch projecting only the columns `Media` needs
-  /// (`createdAt`-descending; issue #810 D6 — skips `description`, TTS
-  /// metadata, and `bookmarkData` blobs).
-  Stream<List<MediaLibraryRow>> watchAll() {
-    return (selectOnly(audios)
-          ..addColumns(_libraryColumns)
-          ..orderBy([OrderingTerm.desc(audios.createdAt)]))
-        .map(_libraryRow)
-        .watch();
-  }
-
-  /// Up to [limit] rows with the newest [Audios.updatedAt] first
-  /// (`updated_at DESC, created_at DESC` tiebreak), for the Home recents
-  /// query (issue #810 D6).
-  Stream<List<MediaLibraryRow>> watchRecentByUpdatedAt(int limit) {
-    return (selectOnly(audios)
-          ..addColumns(_libraryColumns)
-          ..orderBy([
-            OrderingTerm.desc(audios.updatedAt),
-            OrderingTerm.desc(audios.createdAt),
-          ])
-          ..limit(limit))
-        .map(_libraryRow)
-        .watch();
-  }
+  @override
+  GeneratedColumn<String> get mediaLibraryContentHash => audios.aid;
 
   Future<AudioRow?> getById(String id) =>
       (select(audios)..where((t) => t.id.equals(id))).getSingleOrNull();
