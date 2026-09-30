@@ -94,6 +94,15 @@ Missing BYOK credentials are surfaced **before** the capability runs, by the `By
 
 **Settings → Developer → AI playground** shows the active provider label per modality and exercises ASR, chat, translation, dictionary, and assessment.
 
+The screen follows the Aurora design language ([ADR-0089](../../docs/decisions/0089-aurora-design-language.md)) on an `EnjoyPageKind.hub` page:
+
+- **Active providers** — one grouped `EnjoyCard` with an `EnjoyIconTile` per modality (`robot` / `mic` / `speak` / `insights`, tinted by `enjoyTintForIcon`), hairline dividers, the provider label as the trailing value, and an `EnjoyPressable` row that pushes `/settings/ai-providers`.
+- **Modality groups** — an `EnjoySectionHeader` per group (ASR, Chat, Translation, Dictionary, TTS / Assessment) with the resolved provider as the muted inline caption, above an `EnjoyCard` holding that group's fields and its run action.
+- **Actions by hierarchy** — `EnjoyButton.primary` for the run action of each group, `EnjoyButton.secondary` for the supporting "pick audio file" input step, `EnjoyButton.ghost` for "clear output". No raw Material buttons or `Card`; no ink ripples.
+- **Fields** — themed `TextField` / `InputDecoration`, matching the BYOK forms in `presentation/settings/`.
+- **Output console** — a mono panel (`enjoyMonoStyle`) listing each response as its own entry, newest first, with error entries tinted from `colorScheme.error`. Empty until the first request, when it shows an `EnjoyIconOrb`. Raw error text is kept verbatim for diagnostics (the documented exception in the credits-failure seam above); a missing BYOK key additionally raises the usual `AppNotice` with a shortcut to the providers screen.
+- **Loading** — the run action of the group in flight is disabled and swaps its label for a spinner, so a slow provider call has visible feedback.
+
 ## Not wired yet
 
 - **Enjoy TTS** still throws `UnimplementedError` ([`EnjoyTtsCapability`](../../lib/features/ai/data/enjoy/enjoy_tts_capability.dart)).
@@ -109,6 +118,7 @@ Missing BYOK credentials are surfaced **before** the capability runs, by the `By
   - Screen: `ai_providers_screen.dart` (privacy callout + stacked modality cards)
   - Shared modality card: `widgets/modality_provider_card.dart` (segmented provider, modality pill, inset BYOK panel, calmer footer)
   - Per-modality forms: `widgets/llm_byok_form.dart`, `widgets/speech_byok_form.dart`, `widgets/byok_api_key_field.dart`
+- Playground UI: `lib/features/ai/presentation/ai_playground_screen.dart` (hub page, grouped provider card, per-modality sections, mono output console)
 - HTTP clients (Enjoy paths only): `lib/data/api/services/ai/`
 
 ## Consumers
@@ -117,4 +127,4 @@ Feature screens should depend on `*ServiceProvider` types in `application/`, not
 
 ## Verification
 
-Automated: `flutter test test/features/ai/` and `packages/azure_speech/test/`. `test/features/ai/chat_service_test.dart` pins the `guardAiCall` translation by overriding `llmCapabilityProvider` with a stub that throws `ApiException 503` and asserting the future completes-with-error as an `AppFailure`. Manual BYOK scenarios: [`specs/003-byok-ai/quickstart.md`](../../specs/003-byok-ai/quickstart.md).
+Automated: `flutter test test/features/ai/` and `packages/azure_speech/test/`. `test/features/ai/chat_service_test.dart` pins the `guardAiCall` translation by overriding `llmCapabilityProvider` with a stub that throws `ApiException 503` and asserting the future completes-with-error as an `AppFailure`. `test/features/ai/presentation/ai_playground_screen_test.dart` pins the playground's Aurora structure (hub page kind, `EnjoyCard` / `EnjoySectionHeader` / `EnjoyIconTile` / `EnjoyButton` counts, no Material `Card`) and the console empty → filled → cleared flow. Manual BYOK scenarios: [`specs/003-byok-ai/quickstart.md`](../../specs/003-byok-ai/quickstart.md).

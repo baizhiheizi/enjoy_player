@@ -1,5 +1,13 @@
 import 'dart:typed_data';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/features/ai/application/ai_capability_providers.dart';
 import 'package:enjoy_player/features/ai/application/ai_modality_config_controller.dart';
 import 'package:enjoy_player/features/ai/application/ai_modality_configs.dart';
@@ -184,6 +192,17 @@ void main() {
       container.dispose();
     });
 
+    Future<AppLocalizations> settle(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(wrap());
+      await tester.pumpAndSettle();
+      return AppLocalizations.of(
+        tester.element(find.byType(AiPlaygroundScreen)),
+      )!;
+    }
+
     testWidgets('renders the screen with AppBar', (tester) async {
       await tester.pumpWidget(wrap());
       await tester.pumpAndSettle();
@@ -191,10 +210,152 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('renders the five section titles', (tester) async {
-      await tester.pumpWidget(wrap());
+    testWidgets('lays the page out on the hub page kind', (tester) async {
+      final l10n = await settle(tester);
+      expect(find.byType(EnjoyPage), findsOneWidget);
+      expect(
+        tester.widget<EnjoyPage>(find.byType(EnjoyPage)).kind,
+        EnjoyPageKind.hub,
+      );
+      expect(find.text(l10n.aiPlaygroundTitle), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundIntro), findsOneWidget);
+    });
+
+    testWidgets('uses Aurora surfaces instead of raw Material widgets', (
+      tester,
+    ) async {
+      await settle(tester);
+      expect(find.byType(EnjoyCard), findsNWidgets(7));
+      expect(find.byType(EnjoySectionHeader), findsNWidgets(7));
+      expect(find.byType(EnjoyIconTile), findsNWidgets(5));
+      expect(find.byType(EnjoyButton), findsNWidgets(7));
+      expect(find.byType(EnjoyPressable), findsOneWidget);
+      expect(find.byType(Card), findsNothing);
+    });
+
+    testWidgets('groups the five modality sections under section headers', (
+      tester,
+    ) async {
+      final l10n = await settle(tester);
+      expect(find.text(l10n.aiPlaygroundSectionAsr), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundSectionChat), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundSectionTranslation), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundSectionDictionary), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundSectionTtsAssessment), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundActiveProviders), findsOneWidget);
+      expect(find.text(l10n.aiPlaygroundOutput), findsWidgets);
+    });
+
+    testWidgets('lists the active provider for every modality', (tester) async {
+      final l10n = await settle(tester);
+      expect(find.text(l10n.settingsAiProvidersModalityLlm), findsOneWidget);
+      expect(find.text(l10n.settingsAiProvidersModalityAsr), findsOneWidget);
+      expect(find.text(l10n.settingsAiProvidersModalityTts), findsOneWidget);
+      expect(
+        find.text(l10n.settingsAiProvidersModalityAssessment),
+        findsOneWidget,
+      );
+      expect(find.text(l10n.settingsAiProvidersEnjoyAi), findsNWidgets(9));
+      expect(find.text(l10n.settingsAiProvidersTileTitle), findsOneWidget);
+    });
+
+    testWidgets('renders every modality text field', (tester) async {
+      final l10n = await settle(tester);
+      expect(find.byType(TextField), findsNWidgets(10));
+      expect(
+        find.widgetWithText(TextField, l10n.aiPlaygroundChatSystem),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(TextField, l10n.aiPlaygroundDictWord),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('offers one primary run action per section', (tester) async {
+      final l10n = await settle(tester);
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundTranscribe),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundSendChat),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundTranslate),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundDictLookup),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundAssess),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundPickAudio),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundClearOutput),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows the console empty state until a request runs', (
+      tester,
+    ) async {
+      final l10n = await settle(tester);
+      expect(find.byType(EnjoyIconOrb), findsOneWidget);
+      expect(
+        tester
+            .widget<EnjoyButton>(
+              find.widgetWithText(EnjoyButton, l10n.aiPlaygroundClearOutput),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundSendChat),
+      );
       await tester.pumpAndSettle();
-      expect(find.byType(TextField), findsWidgets);
+
+      expect(fakeLlm.calls, 1);
+      expect(find.byType(EnjoyIconOrb), findsNothing);
+      expect(find.textContaining('fake chat reply'), findsOneWidget);
+      expect(
+        tester
+            .widget<EnjoyButton>(
+              find.widgetWithText(EnjoyButton, l10n.aiPlaygroundClearOutput),
+            )
+            .onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundClearOutput),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('fake chat reply'), findsNothing);
+      expect(find.byType(EnjoyIconOrb), findsOneWidget);
+    });
+
+    testWidgets('appends an error entry when a modality call fails', (
+      tester,
+    ) async {
+      fakeLlm.throwOnComplete = true;
+      final l10n = await settle(tester);
+
+      await tester.tap(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundSendChat),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('chat boom'), findsOneWidget);
     });
   });
 

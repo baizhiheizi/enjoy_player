@@ -1,7 +1,6 @@
 /// Debug screen to exercise Enjoy AI HTTP APIs (ASR, chat, translation, dictionary).
 library;
 
-import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -9,10 +8,23 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logging/logging.dart';
 
 import 'package:enjoy_player/core/errors/app_failure.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
+import 'package:enjoy_player/core/layout/enjoy_page_kind.dart';
 import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
+import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/features/ai/application/ai_byok_error_mapping.dart';
 import 'package:enjoy_player/features/ai/application/ai_modality_config_controller.dart';
 import 'package:enjoy_player/features/ai/application/ai_services.dart';
@@ -23,9 +35,12 @@ import 'package:enjoy_player/features/ai/domain/models/assessment_request.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_azure_error.dart';
 import 'package:enjoy_player/features/ai/presentation/ai_playground_provider_label.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
-import 'package:logging/logging.dart';
 
 final Logger _log = logNamed('ai.playground');
+
+const double _rowLeadingSize = 30;
+const double _rowLeadingGap = 12;
+const double _rowHorizontalPadding = 12;
 
 class AiPlaygroundScreen extends ConsumerStatefulWidget {
   const AiPlaygroundScreen({super.key});
@@ -48,9 +63,11 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
   final _assessRefCtrl = TextEditingController(text: 'Hello world.');
   final _assessLangCtrl = TextEditingController(text: 'en');
 
-  String _output = '';
+  final List<_ConsoleEntry> _entries = [];
+
   Uint8List? _pickedAudio;
   String _pickedName = 'audio.wav';
+  String? _busy;
 
   @override
   void dispose() {
@@ -67,11 +84,11 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     super.dispose();
   }
 
-  void _append(String line) {
-    setState(() {
-      _output = _output.isEmpty ? line : '$_output\n\n$line';
-    });
+  void _append(String line, {bool isError = false}) {
+    setState(() => _entries.insert(0, _ConsoleEntry(line, isError: isError)));
   }
+
+  void _clearOutput() => setState(_entries.clear);
 
   String _err(Object e) {
     if (e is ByokNotConfiguredFailure) {
@@ -96,7 +113,17 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     );
   }
 
-  Future<void> _pickAudio() async {
+  Future<void> _run(String action, Future<void> Function() body) async {
+    if (_busy != null) return;
+    setState(() => _busy = action);
+    try {
+      await body();
+    } finally {
+      if (mounted) setState(() => _busy = null);
+    }
+  }
+
+  Future<void> _pickAudio() => _run('pick', () async {
     final l10n = AppLocalizations.of(context)!;
     final f = await FilePicker.pickFile(
       type: FileType.custom,
@@ -115,7 +142,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
       bytes = await File(path).readAsBytes();
     }
     if (bytes == null) {
-      _append('${l10n.error}: could not read file bytes.');
+      _append('${l10n.error}: could not read file bytes.', isError: true);
       return;
     }
     setState(() {
@@ -123,13 +150,13 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
       _pickedName = f.name;
     });
     _append('Selected: ${f.name} (${bytes.length} bytes)');
-  }
+  });
 
-  Future<void> _runAsr() async {
+  Future<void> _runAsr() => _run('asr', () async {
     final l10n = AppLocalizations.of(context)!;
     final bytes = _pickedAudio;
     if (bytes == null) {
-      _append('${l10n.error}: pick an audio file first.');
+      _append('${l10n.error}: pick an audio file first.', isError: true);
       return;
     }
     try {
@@ -140,11 +167,11 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     } catch (e, st) {
       _log.warning('ASR failed', e, st);
       _maybePromptByokSettings(e);
-      _append('ASR ${_err(e)}');
+      _append('ASR ${_err(e)}', isError: true);
     }
-  }
+  });
 
-  Future<void> _runChat() async {
+  Future<void> _runChat() => _run('chat', () async {
     try {
       final messages = <ChatMessage>[
         if (_systemCtrl.text.trim().isNotEmpty)
@@ -161,11 +188,11 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     } catch (e, st) {
       _log.warning('Chat failed', e, st);
       _maybePromptByokSettings(e);
-      _append('Chat ${_err(e)}');
+      _append('Chat ${_err(e)}', isError: true);
     }
-  }
+  });
 
-  Future<void> _runTranslate() async {
+  Future<void> _runTranslate() => _run('translate', () async {
     try {
       final r = await ref
           .read(translationServiceProvider)
@@ -178,11 +205,11 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     } catch (e, st) {
       _log.warning('Translate failed', e, st);
       _maybePromptByokSettings(e);
-      _append('Translate ${_err(e)}');
+      _append('Translate ${_err(e)}', isError: true);
     }
-  }
+  });
 
-  Future<void> _runDictionary() async {
+  Future<void> _runDictionary() => _run('dictionary', () async {
     try {
       final r = await ref
           .read(dictionaryServiceProvider)
@@ -205,22 +232,23 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     } catch (e, st) {
       _log.warning('Dictionary failed', e, st);
       _maybePromptByokSettings(e);
-      _append('Dictionary ${_err(e)}');
+      _append('Dictionary ${_err(e)}', isError: true);
     }
-  }
+  });
 
-  Future<void> _runAssessment() async {
+  Future<void> _runAssessment() => _run('assessment', () async {
     final l10n = AppLocalizations.of(context)!;
     final bytes = _pickedAudio;
     if (bytes == null) {
       _append(
         '${l10n.error}: pick a WAV (or other) file first; assessment uses the same pick as ASR.',
+        isError: true,
       );
       return;
     }
     final refText = _assessRefCtrl.text.trim();
     if (refText.isEmpty) {
-      _append('${l10n.error}: enter reference text.');
+      _append('${l10n.error}: enter reference text.', isError: true);
       return;
     }
     try {
@@ -262,306 +290,530 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
       _log.warning('Assessment failed', e, st);
       _maybePromptByokSettings(e);
       if (isAzureSpeechException(e)) {
-        _append('Assessment ${formatAzureSpeechError(e)}');
+        _append('Assessment ${formatAzureSpeechError(e)}', isError: true);
       } else {
-        _append('Assessment ${_err(e)}');
+        _append('Assessment ${_err(e)}', isError: true);
       }
     }
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
+    final t = EnjoyThemeTokens.of(context);
     final configs = ref.watch(aiModalityConfigCtrlProvider);
     final llmLabel = formatPlaygroundProviderLabel(l10n, configs.llm);
+    final asrLabel = formatPlaygroundProviderLabel(l10n, configs.asr);
+    final ttsLabel = formatPlaygroundProviderLabel(l10n, configs.tts);
+    final assessmentLabel = formatPlaygroundProviderLabel(
+      l10n,
+      configs.assessment,
+    );
+    final busy = _busy;
+    final pickedBytes = _pickedAudio?.length;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.aiPlaygroundTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+    return EnjoyPage(
+      kind: EnjoyPageKind.hub,
+      title: l10n.aiPlaygroundTitle,
+      showBack: true,
+      body: (context, metrics) => ListView(
+        padding: metrics.padding(top: t.space16, bottom: t.space32),
         children: [
-          Text(l10n.aiPlaygroundIntro, style: tt.bodyMedium),
-          const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            color: cs.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          Text(
+            l10n.aiPlaygroundIntro,
+            style: tt.bodyMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: t.space24),
+          EnjoySectionHeader(title: l10n.aiPlaygroundActiveProviders),
+          SizedBox(height: t.space12),
+          EnjoyCard(
+            padding: EdgeInsets.symmetric(vertical: t.space4),
+            child: Column(
+              children: [
+                _GroupRow(
+                  icon: EnjoyIcons.robot,
+                  label: l10n.settingsAiProvidersModalityLlm,
+                  value: llmLabel,
+                ),
+                const _RowDivider(),
+                _GroupRow(
+                  icon: EnjoyIcons.mic,
+                  label: l10n.settingsAiProvidersModalityAsr,
+                  value: asrLabel,
+                ),
+                const _RowDivider(),
+                _GroupRow(
+                  icon: EnjoyIcons.speak,
+                  label: l10n.settingsAiProvidersModalityTts,
+                  value: ttsLabel,
+                ),
+                const _RowDivider(),
+                _GroupRow(
+                  icon: EnjoyIcons.insights,
+                  label: l10n.settingsAiProvidersModalityAssessment,
+                  value: assessmentLabel,
+                ),
+                const _RowDivider(),
+                _GroupRow(
+                  icon: EnjoyIcons.tune,
+                  label: l10n.settingsAiProvidersTileTitle,
+                  onTap: () => context.push(aiProvidersSettingsPath),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: t.space24),
+          _PlaygroundSection(
+            title: l10n.aiPlaygroundSectionAsr,
+            providerLabel: asrLabel,
+            children: [
+              if (pickedBytes != null) ...[
+                _PickedFileChip(name: _pickedName, byteCount: pickedBytes),
+                SizedBox(height: t.space12),
+              ],
+              Wrap(
+                spacing: t.space8,
+                runSpacing: t.space8,
                 children: [
-                  Text(
-                    l10n.aiPlaygroundActiveProviders,
-                    style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  EnjoyButton.secondary(
+                    onPressed: busy == null ? _pickAudio : null,
+                    icon: EnjoyIcons.upload,
+                    child: Text(l10n.aiPlaygroundPickAudio),
                   ),
-                  const SizedBox(height: 8),
-                  _ProviderRow(
-                    label: l10n.settingsAiProvidersModalityLlm,
-                    providerLabel: llmLabel,
-                  ),
-                  _ProviderRow(
-                    label: l10n.settingsAiProvidersModalityAsr,
-                    providerLabel: formatPlaygroundProviderLabel(
-                      l10n,
-                      configs.asr,
-                    ),
-                  ),
-                  _ProviderRow(
-                    label: l10n.settingsAiProvidersModalityTts,
-                    providerLabel: formatPlaygroundProviderLabel(
-                      l10n,
-                      configs.tts,
-                    ),
-                  ),
-                  _ProviderRow(
-                    label: l10n.settingsAiProvidersModalityAssessment,
-                    providerLabel: formatPlaygroundProviderLabel(
-                      l10n,
-                      configs.assessment,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.push(aiProvidersSettingsPath),
-                      child: Text(l10n.settingsAiProvidersTileTitle),
+                  EnjoyButton.primary(
+                    onPressed: busy == null ? _runAsr : null,
+                    child: _RunLabel(
+                      busy: busy == 'asr',
+                      label: l10n.aiPlaygroundTranscribe,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SectionTitle(
-            text: l10n.aiPlaygroundSectionAsr,
-            providerLabel: formatPlaygroundProviderLabel(l10n, configs.asr),
-          ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              EnjoyButton.tonal(
-                onPressed: _pickAudio,
-                child: Text(l10n.aiPlaygroundPickAudio),
-              ),
-              FilledButton(
-                onPressed: _runAsr,
-                child: Text(l10n.aiPlaygroundTranscribe),
-              ),
             ],
           ),
-          const SizedBox(height: 24),
-          _SectionTitle(
-            text: l10n.aiPlaygroundSectionChat,
+          _PlaygroundSection(
+            title: l10n.aiPlaygroundSectionChat,
             providerLabel: llmLabel,
+            children: [
+              TextField(
+                controller: _systemCtrl,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundChatSystem,
+                ),
+              ),
+              SizedBox(height: t.space12),
+              TextField(
+                controller: _userCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundChatUser,
+                ),
+              ),
+              SizedBox(height: t.space12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: EnjoyButton.primary(
+                  onPressed: busy == null ? _runChat : null,
+                  child: _RunLabel(
+                    busy: busy == 'chat',
+                    label: l10n.aiPlaygroundSendChat,
+                  ),
+                ),
+              ),
+            ],
           ),
-          TextField(
-            controller: _systemCtrl,
-            decoration: InputDecoration(labelText: l10n.aiPlaygroundChatSystem),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _userCtrl,
-            maxLines: 3,
-            decoration: InputDecoration(labelText: l10n.aiPlaygroundChatUser),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton(
-              onPressed: _runChat,
-              child: Text(l10n.aiPlaygroundSendChat),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _SectionTitle(
-            text: l10n.aiPlaygroundSectionTranslation,
+          _PlaygroundSection(
+            title: l10n.aiPlaygroundSectionTranslation,
             providerLabel: llmLabel,
-          ),
-          Row(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _translateSourceCtrl,
-                  decoration: InputDecoration(
-                    labelText: l10n.aiPlaygroundTranslateSource,
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _translateSourceCtrl,
+                      decoration: InputDecoration(
+                        labelText: l10n.aiPlaygroundTranslateSource,
+                      ),
+                    ),
                   ),
+                  SizedBox(width: t.space12),
+                  Expanded(
+                    child: TextField(
+                      controller: _translateTargetCtrl,
+                      decoration: InputDecoration(
+                        labelText: l10n.aiPlaygroundTranslateTarget,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: t.space12),
+              TextField(
+                controller: _translateTextCtrl,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundTranslateText,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _translateTargetCtrl,
-                  decoration: InputDecoration(
-                    labelText: l10n.aiPlaygroundTranslateTarget,
+              SizedBox(height: t.space12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: EnjoyButton.primary(
+                  onPressed: busy == null ? _runTranslate : null,
+                  child: _RunLabel(
+                    busy: busy == 'translate',
+                    label: l10n.aiPlaygroundTranslate,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _translateTextCtrl,
-            maxLines: 2,
-            decoration: InputDecoration(
-              labelText: l10n.aiPlaygroundTranslateText,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: EnjoyButton.tonal(
-              onPressed: _runTranslate,
-              child: Text(l10n.aiPlaygroundTranslate),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _SectionTitle(
-            text: l10n.aiPlaygroundSectionDictionary,
+          _PlaygroundSection(
+            title: l10n.aiPlaygroundSectionDictionary,
             providerLabel: llmLabel,
-          ),
-          TextField(
-            controller: _dictWordCtrl,
-            decoration: InputDecoration(labelText: l10n.aiPlaygroundDictWord),
-          ),
-          const SizedBox(height: 8),
-          Row(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _dictSourceCtrl,
-                  decoration: InputDecoration(
-                    labelText: l10n.aiPlaygroundDictSource,
-                  ),
+              TextField(
+                controller: _dictWordCtrl,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundDictWord,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _dictTargetCtrl,
-                  decoration: InputDecoration(
-                    labelText: l10n.aiPlaygroundDictTarget,
+              SizedBox(height: t.space12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _dictSourceCtrl,
+                      decoration: InputDecoration(
+                        labelText: l10n.aiPlaygroundDictSource,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: t.space12),
+                  Expanded(
+                    child: TextField(
+                      controller: _dictTargetCtrl,
+                      decoration: InputDecoration(
+                        labelText: l10n.aiPlaygroundDictTarget,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: t.space12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: EnjoyButton.primary(
+                  onPressed: busy == null ? _runDictionary : null,
+                  child: _RunLabel(
+                    busy: busy == 'dictionary',
+                    label: l10n.aiPlaygroundDictLookup,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: EnjoyButton.tonal(
-              onPressed: _runDictionary,
-              child: Text(l10n.aiPlaygroundDictLookup),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _SectionTitle(
-            text: l10n.aiPlaygroundSectionTtsAssessment,
-            providerLabel: formatPlaygroundProviderLabel(
-              l10n,
-              configs.assessment,
-            ),
-          ),
-          Text(l10n.aiPlaygroundAssessmentTtsNote, style: tt.bodySmall),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _assessRefCtrl,
-            maxLines: 2,
-            decoration: InputDecoration(
-              labelText: l10n.aiPlaygroundAssessmentReference,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _assessLangCtrl,
-            decoration: InputDecoration(
-              labelText: l10n.aiPlaygroundAssessmentLanguage,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: EnjoyButton.tonal(
-              onPressed: _runAssessment,
-              child: Text(l10n.aiPlaygroundAssess),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
+          _PlaygroundSection(
+            title: l10n.aiPlaygroundSectionTtsAssessment,
+            providerLabel: assessmentLabel,
             children: [
-              Expanded(child: _SectionTitle(text: l10n.aiPlaygroundOutput)),
-              TextButton(
-                onPressed: () => setState(() => _output = ''),
-                child: Text(l10n.aiPlaygroundClearOutput),
+              Text(
+                l10n.aiPlaygroundAssessmentTtsNote,
+                style: tt.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+              SizedBox(height: t.space12),
+              TextField(
+                controller: _assessRefCtrl,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundAssessmentReference,
+                ),
+              ),
+              SizedBox(height: t.space12),
+              TextField(
+                controller: _assessLangCtrl,
+                decoration: InputDecoration(
+                  labelText: l10n.aiPlaygroundAssessmentLanguage,
+                ),
+              ),
+              SizedBox(height: t.space12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: EnjoyButton.primary(
+                  onPressed: busy == null ? _runAssessment : null,
+                  child: _RunLabel(
+                    busy: busy == 'assessment',
+                    label: l10n.aiPlaygroundAssess,
+                  ),
+                ),
               ),
             ],
           ),
-          SelectableText(_output.isEmpty ? '—' : _output, style: tt.bodySmall),
+          EnjoySectionHeader(
+            title: l10n.aiPlaygroundOutput,
+            trailing: EnjoyButton.ghost(
+              onPressed: _entries.isEmpty ? null : _clearOutput,
+              icon: EnjoyIcons.clearAll,
+              size: EnjoyButtonSize.small,
+              child: Text(l10n.aiPlaygroundClearOutput),
+            ),
+          ),
+          SizedBox(height: t.space12),
+          EnjoyCard(
+            padding: EdgeInsets.all(t.space16),
+            child: _ConsolePanel(entries: _entries),
+          ),
         ],
       ),
     );
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.text, this.providerLabel});
+class _ConsoleEntry {
+  const _ConsoleEntry(this.text, {required this.isError});
 
   final String text;
-  final String? providerLabel;
+  final bool isError;
+}
+
+class _PlaygroundSection extends StatelessWidget {
+  const _PlaygroundSection({
+    required this.title,
+    required this.providerLabel,
+    required this.children,
+  });
+
+  final String title;
+  final String providerLabel;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
-
+    final t = EnjoyThemeTokens.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.only(bottom: t.space24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Text(
-              text,
-              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          EnjoySectionHeader(title: title, caption: providerLabel),
+          SizedBox(height: t.space12),
+          EnjoyCard(
+            padding: EdgeInsets.all(t.space16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: children,
             ),
           ),
-          if (providerLabel != null) ...[
-            const SizedBox(width: 8),
-            Text(
-              providerLabel!,
-              style: tt.labelMedium?.copyWith(color: cs.primary),
-            ),
-          ],
         ],
       ),
     );
   }
 }
 
-class _ProviderRow extends StatelessWidget {
-  const _ProviderRow({required this.label, required this.providerLabel});
+class _RunLabel extends StatelessWidget {
+  const _RunLabel({required this.busy, required this.label});
 
+  final bool busy;
   final String label;
-  final String providerLabel;
 
   @override
   Widget build(BuildContext context) {
+    if (!busy) return Text(label);
+    return LoadingIcon(
+      size: 18,
+      color: Theme.of(context).colorScheme.onPrimary,
+    );
+  }
+}
+
+class _GroupRow extends StatelessWidget {
+  const _GroupRow({
+    required this.icon,
+    required this.label,
+    this.value,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final value = this.value;
+
+    final body = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 52),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: _rowHorizontalPadding,
+          vertical: t.space8,
+        ),
+        child: Row(
+          children: [
+            EnjoyIconTile(icon: icon, size: _rowLeadingSize),
+            const SizedBox(width: _rowLeadingGap),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tt.bodyMedium,
+              ),
+            ),
+            if (value != null) ...[
+              SizedBox(width: t.space8),
+              Flexible(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ),
+            ] else
+              Icon(EnjoyIcons.chevronRight, size: 15, color: t.textFaint),
+          ],
+        ),
+      ),
+    );
+
+    if (onTap == null) return body;
+    return EnjoyPressable(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      pressedScale: 0.995,
+      child: body,
+    );
+  }
+}
+
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: _rowHorizontalPadding + _rowLeadingSize + _rowLeadingGap,
+      endIndent: _rowHorizontalPadding,
+      color: EnjoyThemeTokens.of(context).hairline,
+    );
+  }
+}
+
+class _PickedFileChip extends StatelessWidget {
+  const _PickedFileChip({required this.name, required this.byteCount});
+
+  final String name;
+  final int byteCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: tt.bodyMedium)),
-          Text(
-            providerLabel,
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: t.fill,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusSm),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: t.space12,
+          vertical: t.space8,
+        ),
+        child: Row(
+          children: [
+            Icon(EnjoyIcons.waveform, size: 16, color: cs.onSurfaceVariant),
+            SizedBox(width: t.space8),
+            Expanded(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: enjoyMonoStyle(context, size: 12.5),
+              ),
+            ),
+            SizedBox(width: t.space8),
+            Text(
+              '$byteCount B',
+              style: enjoyMonoStyle(
+                context,
+                size: 12,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConsolePanel extends StatelessWidget {
+  const _ConsolePanel({required this.entries});
+
+  final List<_ConsoleEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    if (entries.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: t.space16),
+        child: Column(
+          children: [
+            const EnjoyIconOrb(icon: EnjoyIcons.code, size: 56),
+            SizedBox(height: t.space16),
+            Text(
+              AppLocalizations.of(context)!.aiPlaygroundOutput,
+              textAlign: TextAlign.center,
+              style: enjoyDisplayStyle(context, size: 20, color: cs.onSurface),
+            ),
+            SizedBox(height: t.space8),
+            Text(
+              '—',
+              style: enjoyMonoStyle(context, size: 13, color: t.textFaint),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < entries.length; i++) ...[
+          if (i > 0) SizedBox(height: t.space16),
+          SelectableText(
+            entries[i].text,
+            style: enjoyMonoStyle(
+              context,
+              size: 12.5,
+              color: entries[i].isError ? cs.error : cs.onSurface,
+            ),
           ),
         ],
-      ),
+      ],
     );
   }
 }
