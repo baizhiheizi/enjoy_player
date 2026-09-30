@@ -53,7 +53,8 @@ void main() {
         () => runVocabularyAnkiExport(
           isPaid: false,
           listAll: () async => const [],
-          getContextsForItem: (_) async => const [],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(),
         ),
         throwsA(
@@ -88,7 +89,8 @@ void main() {
         () => runVocabularyAnkiExport(
           isPaid: true,
           listAll: () async => items,
-          getContextsForItem: (_) async => const [],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(
             status: VocabularyStatus.mastered,
           ),

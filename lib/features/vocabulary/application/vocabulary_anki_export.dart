@@ -50,8 +50,10 @@ final class VocabularyAnkiExportBundle {
 /// Loads filtered items + contexts and builds CSV. Throws [StateError] if empty.
 Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
   required Future<List<VocabularyItem>> Function() listAll,
-  required Future<List<VocabularyContext>> Function(String itemId)
-  getContextsForItem,
+  required Future<Map<String, List<VocabularyContext>>> Function(
+    Iterable<String> itemIds,
+  )
+  getContextsForItems,
   required VocabularyAnkiExportFilters filters,
   Map<String, AnkiSourceReference> sourceRefs = const {},
   void Function(double progress)? onProgress,
@@ -63,12 +65,9 @@ Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
     throw StateError('no_items_to_export');
   }
   onProgress?.call(0.3);
-  final contextsByItemId = <String, List<VocabularyContext>>{};
-  for (var i = 0; i < items.length; i++) {
-    final item = items[i];
-    contextsByItemId[item.id] = await getContextsForItem(item.id);
-    onProgress?.call(0.3 + 0.4 * ((i + 1) / items.length));
-  }
+  final contextsByItemId = await getContextsForItems(
+    items.map((item) => item.id),
+  );
   onProgress?.call(0.8);
   final csv = exportVocabularyToAnkiCsv(
     items: items,
@@ -88,8 +87,10 @@ Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
 Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExport({
   required bool isPaid,
   required Future<List<VocabularyItem>> Function() listAll,
-  required Future<List<VocabularyContext>> Function(String itemId)
-  getContextsForItem,
+  required Future<Map<String, List<VocabularyContext>>> Function(
+    Iterable<String> itemIds,
+  )
+  getContextsForItems,
   required VocabularyAnkiExportFilters filters,
   String? dialogTitle,
   void Function(double progress)? onProgress,
@@ -99,7 +100,7 @@ Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExport({
   }
   final bundle = await buildVocabularyAnkiExport(
     listAll: listAll,
-    getContextsForItem: getContextsForItem,
+    getContextsForItems: getContextsForItems,
     filters: filters,
     onProgress: onProgress,
   );
@@ -117,7 +118,7 @@ Future<VocabularyAnkiExportIoOutcome> runVocabularyAnkiExportWithRef({
   return runVocabularyAnkiExport(
     isPaid: vocabularyAnkiExportAllowed(ref),
     listAll: repo.listAll,
-    getContextsForItem: repo.getContextsForItem,
+    getContextsForItems: repo.getContextsForItems,
     filters: filters,
     dialogTitle: dialogTitle,
     onProgress: onProgress,

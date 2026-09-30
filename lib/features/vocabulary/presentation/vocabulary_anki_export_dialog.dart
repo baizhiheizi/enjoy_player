@@ -199,7 +199,7 @@ class _VocabularyAnkiExportDialogState
       final outcome = await runVocabularyAnkiExport(
         isPaid: isPaid,
         listAll: repo.listAll,
-        getContextsForItem: repo.getContextsForItem,
+        getContextsForItems: repo.getContextsForItems,
         filters: _filters,
         dialogTitle: l10n.vocabularyExportDialogTitle,
         onProgress: (p) {

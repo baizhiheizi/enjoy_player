@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show QueryExecutor;
 import 'package:drift/native.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
@@ -194,5 +195,102 @@ void main() {
       expect(r2.synced, 2);
       expect(api.callCount, 2);
     });
+
+    test('one page costs one bulk read + one batch upsert, no per-row reads '
+        '(issue #827 B3)', () async {
+      final countingDb = _CountingRecordingDb(NativeDatabase.memory());
+      addTearDown(countingDb.close);
+      api = _FakeRecordingApi([
+        List.generate(3, (i) => recording(i)),
+      ], _NullApiClient());
+      service = RecordingTargetSyncService(db: countingDb, recordingApi: api);
+
+      final result = await service.pullRecordingsForTarget(
+        targetType: 'audio',
+        targetId: 't1',
+        now: DateTime.utc(2024, 6, 1, 12),
+      );
+
+      expect(result.synced, 3);
+      expect(result.failed, 0);
+      expect(countingDb.recordingDaoOverride.getManyByIdsCalls, 1);
+      expect(countingDb.recordingDaoOverride.upsertRowsCalls, 1);
+      expect(countingDb.recordingDaoOverride.getByIdCalls, 0);
+      expect(countingDb.recordingDaoOverride.insertRowCalls, 0);
+    });
+
+    test('batch failure falls back to per-row inserts without losing rows '
+        '(issue #827 B3)', () async {
+      final countingDb = _CountingRecordingDb(NativeDatabase.memory());
+      addTearDown(countingDb.close);
+      countingDb.recordingDaoOverride.failNextBatchUpsert();
+      api = _FakeRecordingApi([
+        List.generate(3, (i) => recording(i)),
+      ], _NullApiClient());
+      service = RecordingTargetSyncService(db: countingDb, recordingApi: api);
+
+      final result = await service.pullRecordingsForTarget(
+        targetType: 'audio',
+        targetId: 't1',
+        now: DateTime.utc(2024, 6, 1, 12),
+      );
+
+      expect(result.synced, 3);
+      expect(result.failed, 0);
+      expect(result.success, isTrue);
+      expect(countingDb.recordingDaoOverride.insertRowCalls, 3);
+      expect(await countingDb.recordingDaoOverride.getById('r2'), isNotNull);
+    });
   });
+}
+
+class _CountingRecordingDao extends RecordingDao {
+  _CountingRecordingDao(super.db);
+
+  int getByIdCalls = 0;
+  int insertRowCalls = 0;
+  int getManyByIdsCalls = 0;
+  int upsertRowsCalls = 0;
+  bool _failNextBatch = false;
+
+  void failNextBatchUpsert() => _failNextBatch = true;
+
+  @override
+  Future<RecordingRow?> getById(String id) {
+    getByIdCalls++;
+    return super.getById(id);
+  }
+
+  @override
+  Future<void> insertRow(RecordingRow row) {
+    insertRowCalls++;
+    return super.insertRow(row);
+  }
+
+  @override
+  Future<Map<String, RecordingRow>> getManyByIds(Iterable<String> ids) {
+    getManyByIdsCalls++;
+    return super.getManyByIds(ids);
+  }
+
+  @override
+  Future<void> upsertRows(List<RecordingRow> rows) {
+    if (_failNextBatch) {
+      _failNextBatch = false;
+      throw StateError('simulated batch failure');
+    }
+    upsertRowsCalls++;
+    return super.upsertRows(rows);
+  }
+}
+
+class _CountingRecordingDb extends AppDatabase {
+  _CountingRecordingDb(QueryExecutor executor) : super(executor: executor);
+
+  late final _CountingRecordingDao recordingDaoOverride = _CountingRecordingDao(
+    this,
+  );
+
+  @override
+  RecordingDao get recordingDao => recordingDaoOverride;
 }

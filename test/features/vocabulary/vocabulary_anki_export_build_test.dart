@@ -78,12 +78,25 @@ void main() {
       final items = [item('1', 'hello'), item('2', 'world')];
       final bundle = await buildVocabularyAnkiExport(
         listAll: () async => items,
-        getContextsForItem: (_) async => const <VocabularyContext>[],
+        getContextsForItems: (_) async => {
+          '1': [
+            VocabularyContext(
+              id: 'c1',
+              vocabularyItemId: '1',
+              sourceType: VocabularySourceType.video,
+              sourceId: 'v1',
+              text: 'hi there',
+              locator: const MediaLocator(start: 0, duration: 1000),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ],
+        },
         filters: const VocabularyAnkiExportFilters(),
       );
 
       expect(bundle.items, items);
-      expect(bundle.contextsByItemId.keys.toList()..sort(), ['1', '2']);
+      expect(bundle.contextsByItemId.keys.toList(), ['1']);
       expect(bundle.csv, contains('#separator:Comma'));
       expect(bundle.csv, contains('hello'));
       expect(bundle.csv, contains('world'));
@@ -97,7 +110,8 @@ void main() {
       await expectLater(
         buildVocabularyAnkiExport(
           listAll: () async => items,
-          getContextsForItem: (_) async => const <VocabularyContext>[],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(
             status: VocabularyStatus.mastered,
           ),
@@ -117,7 +131,8 @@ void main() {
       final progress = <double>[];
       await buildVocabularyAnkiExport(
         listAll: () async => items,
-        getContextsForItem: (_) async => const <VocabularyContext>[],
+        getContextsForItems: (_) async =>
+            const <String, List<VocabularyContext>>{},
         filters: const VocabularyAnkiExportFilters(),
         onProgress: (p) => progress.add(p),
       );
@@ -127,18 +142,38 @@ void main() {
       expect(progress, contains(0.8));
     });
 
-    test('invokes getContextsForItem with each item id in order', () async {
+    test('invokes getContextsForItems once with all filtered ids', () async {
       final items = [item('1', 'hello'), item('2', 'world'), item('3', '!')];
-      final calls = <String>[];
+      var calls = 0;
+      Iterable<String>? requestedIds;
       await buildVocabularyAnkiExport(
         listAll: () async => items,
-        getContextsForItem: (id) async {
-          calls.add(id);
-          return const <VocabularyContext>[];
+        getContextsForItems: (ids) async {
+          calls++;
+          requestedIds = ids.toList();
+          return const <String, List<VocabularyContext>>{};
         },
         filters: const VocabularyAnkiExportFilters(),
       );
-      expect(calls, ['1', '2', '3']);
+      expect(calls, 1);
+      expect(requestedIds, ['1', '2', '3']);
+    });
+
+    test('filters ids before requesting bulk contexts', () async {
+      final items = [
+        item('1', 'hello', language: 'en'),
+        item('2', 'hola', language: 'es'),
+      ];
+      Iterable<String>? requestedIds;
+      await buildVocabularyAnkiExport(
+        listAll: () async => items,
+        getContextsForItems: (ids) async {
+          requestedIds = ids.toList();
+          return const <String, List<VocabularyContext>>{};
+        },
+        filters: const VocabularyAnkiExportFilters(language: 'en'),
+      );
+      expect(requestedIds, ['1']);
     });
 
     test('respects filters before going to IO', () async {
@@ -148,7 +183,8 @@ void main() {
       ];
       final bundle = await buildVocabularyAnkiExport(
         listAll: () async => items,
-        getContextsForItem: (_) async => const <VocabularyContext>[],
+        getContextsForItems: (_) async =>
+            const <String, List<VocabularyContext>>{},
         filters: const VocabularyAnkiExportFilters(language: 'en'),
       );
       expect(bundle.items.map((i) => i.id), ['1']);
@@ -160,7 +196,8 @@ void main() {
       await expectLater(
         buildVocabularyAnkiExport(
           listAll: () async => const <VocabularyItem>[],
-          getContextsForItem: (_) async => const <VocabularyContext>[],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(),
         ),
         throwsA(
@@ -180,7 +217,8 @@ void main() {
       };
       final bundle = await buildVocabularyAnkiExport(
         listAll: () async => items,
-        getContextsForItem: (_) async => const <VocabularyContext>[],
+        getContextsForItems: (_) async =>
+            const <String, List<VocabularyContext>>{},
         filters: const VocabularyAnkiExportFilters(),
         sourceRefs: refs,
       );
@@ -198,7 +236,8 @@ void main() {
             listAllCalled = true;
             return const <VocabularyItem>[];
           },
-          getContextsForItem: (_) async => const <VocabularyContext>[],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(),
         );
         fail('expected StateError');
@@ -230,7 +269,8 @@ void main() {
         () => runVocabularyAnkiExport(
           isPaid: false,
           listAll: () async => items,
-          getContextsForItem: (_) async => const <VocabularyContext>[],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(),
         ),
         throwsA(
@@ -248,7 +288,8 @@ void main() {
         () => runVocabularyAnkiExport(
           isPaid: false,
           listAll: () async => const <VocabularyItem>[],
-          getContextsForItem: (_) async => const <VocabularyContext>[],
+          getContextsForItems: (_) async =>
+              const <String, List<VocabularyContext>>{},
           filters: const VocabularyAnkiExportFilters(),
         ),
         throwsA(
@@ -268,7 +309,8 @@ void main() {
           await runVocabularyAnkiExport(
             isPaid: false,
             listAll: () async => const <VocabularyItem>[],
-            getContextsForItem: (_) async => const <VocabularyContext>[],
+            getContextsForItems: (_) async =>
+                const <String, List<VocabularyContext>>{},
             filters: const VocabularyAnkiExportFilters(),
             dialogTitle: title,
           );

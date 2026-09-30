@@ -13,6 +13,7 @@ import 'package:enjoy_player/data/api/services/audio_api.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/api/services/video_api.dart';
 import 'package:enjoy_player/data/api/services/vocabulary_api.dart';
+import 'package:enjoy_player/features/sync/data/sync_page_upsert.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -282,68 +283,14 @@ class SyncDownloadService {
       required Map<String, dynamic> server,
     })
     merge,
-  }) async {
-    Map<String, E>? locals;
-    try {
-      locals = await getManyByIds(pendingUpserts.keys.toList());
-    } on Object {
-      return _runPerRow<MapEntry<String, Map<String, dynamic>>, E>(
-        pendingUpserts.entries,
-        lookupLocal: (entry) => getLocal(entry.key),
-        insertOne: (entry, local) =>
-            insertRow(merge(local: local, server: entry.value)),
-      );
-    }
-
-    final mergedRows = <E>[];
-    final errors = <String>[];
-    for (final entry in pendingUpserts.entries) {
-      try {
-        mergedRows.add(merge(local: locals[entry.key], server: entry.value));
-      } catch (e) {
-        errors.add('$e');
-      }
-    }
-
-    try {
-      await upsertRows(mergedRows);
-      return (synced: mergedRows.length, failed: errors.length, errors: errors);
-    } on Object {
-      final fallback = await _runPerRow<E, E>(
-        mergedRows,
-        lookupLocal: (_) async => null,
-        insertOne: (row, _) => insertRow(row),
-      );
-      return (
-        synced: fallback.synced,
-        failed: errors.length + fallback.failed,
-        errors: [...errors, ...fallback.errors],
-      );
-    }
-  }
-
-  /// Runs [insertOne] over [items] one at a time, isolating per-item
-  /// failures so one bad row cannot fail its page neighbors. [lookupLocal]
-  /// resolves the local row an item merges against (or returns `null` when
-  /// the item is already merged).
-  Future<({int synced, int failed, List<String> errors})> _runPerRow<T, E>(
-    Iterable<T> items, {
-    required Future<E?> Function(T item) lookupLocal,
-    required Future<void> Function(T item, E? local) insertOne,
-  }) async {
-    var synced = 0;
-    final errors = <String>[];
-    for (final item in items) {
-      try {
-        final local = await lookupLocal(item);
-        await insertOne(item, local);
-        synced++;
-      } catch (e) {
-        errors.add('$e');
-      }
-    }
-    return (synced: synced, failed: errors.length, errors: errors);
-  }
+  }) => mergeAndUpsertPage<E>(
+    pendingUpserts,
+    getManyByIds: getManyByIds,
+    getLocal: getLocal,
+    upsertRows: upsertRows,
+    insertRow: insertRow,
+    merge: merge,
+  );
 
   Future<SyncResult> downloadAllEntitiesFresh() async {
     final a = await _downloadAudiosInternal(resetCursor: true);

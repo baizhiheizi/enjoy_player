@@ -222,11 +222,16 @@ class VocabularyReviewSession extends Notifier<ReviewSessionState> {
 
     _clearRunTallies();
 
+    final bulkContexts = await repo.getContextsForItems(
+      queue.map((item) => item.id),
+    );
     final contextsByItemId = <String, List<VocabularyContext>>{};
     final activeIndex = <String, int>{};
     for (final item in queue) {
-      final list = await repo.getContextsForItem(item.id);
-      list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final list = bulkContexts[item.id] ?? const <VocabularyContext>[];
+      if (list.length > 1) {
+        list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      }
       contextsByItemId[item.id] = list;
       activeIndex[item.id] = 0;
     }

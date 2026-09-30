@@ -335,6 +335,20 @@ class VocabularyRepository {
     return rows.map(_contextFromRow).toList();
   }
 
+  /// Contexts for many items in one bulk read (issue #827 B1/B2 — replaces
+  /// per-item [getContextsForItem] loops in Anki export and review-session
+  /// start). Items with no contexts are absent from the result map.
+  Future<Map<String, List<VocabularyContext>>> getContextsForItems(
+    Iterable<String> itemIds,
+  ) async {
+    final rows = await _db.vocabularyContextDao.getByItemIds(itemIds);
+    final byItemId = <String, List<VocabularyContext>>{};
+    for (final row in rows) {
+      (byItemId[row.vocabularyItemId] ??= []).add(_contextFromRow(row));
+    }
+    return byItemId;
+  }
+
   Future<List<VocabularyItem>> listDue({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final rows = await _db.vocabularyItemDao.listDue(at);
