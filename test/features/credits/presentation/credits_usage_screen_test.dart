@@ -209,6 +209,8 @@ void main() {
     expect(ringPainters.single.progress, closeTo(0.8, 0.001));
     expect(ringPainters.single.gradientColors, isNotNull);
     expect(find.text('50'), findsOneWidget);
+    expect(find.text('REQUIRED'), findsOneWidget);
+    expect(find.text('CREDITS USAGE'), findsNothing);
   });
 
   testWidgets('no Material Chip or TextButton surfaces remain', (tester) async {

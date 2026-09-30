@@ -414,7 +414,7 @@ class _UsageTotalsCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                EnjoyOverline(l10n.creditsUsageTitle),
+                EnjoyOverline(l10n.creditsUsageTableRequired),
                 SizedBox(height: t.space4),
                 Text(
                   figure,
@@ -429,7 +429,7 @@ class _UsageTotalsCard extends StatelessWidget {
                 ),
                 SizedBox(height: t.space4),
                 Text(
-                  '${l10n.creditsUsageTableRequired} · $shownLabel',
+                  shownLabel,
                   maxLines: 2,
                   style: tt.bodySmall?.copyWith(color: t.textFaint),
                 ),
