@@ -184,6 +184,18 @@ void main() {
   });
 
   group('extractArtworkPalette', () {
+    test('samples from a decode-resized image, not full resolution', () {
+      final file = File('${tmp.path}/cover.png');
+      final provider = artworkPaletteImageProvider(file);
+
+      expect(provider, isA<ResizeImage>());
+      final resize = provider as ResizeImage;
+      expect(resize.width, 200);
+      expect(resize.allowUpscaling, isFalse);
+      expect(resize.imageProvider, isA<FileImage>());
+      expect((resize.imageProvider as FileImage).file, file);
+    });
+
     test('returns null for null or empty input', () async {
       expect(await extractArtworkPalette(null), isNull);
       expect(await extractArtworkPalette(''), isNull);

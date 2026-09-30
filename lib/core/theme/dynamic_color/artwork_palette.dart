@@ -68,6 +68,18 @@ final _cache = <CacheKey, ArtworkPalette>{};
 final _cacheOrder = <CacheKey>[];
 const _kCacheMax = 32;
 
+/// Decode width cap for palette extraction. `FileImage` ignores the
+/// `ImageConfiguration.size` passed to `PaletteGenerator.fromImageProvider`,
+/// so without a [ResizeImage] wrapper the full-resolution thumbnail (e.g.
+/// 1280×720 ≈ 0.9 M px) is decoded and quantized on the UI isolate;
+/// resizing at decode time caps that at ~200×112 ≈ 22 K px.
+const _kPaletteDecodeWidth = 200;
+
+/// The image provider palette extraction samples from. Exposed for tests.
+@visibleForTesting
+ImageProvider artworkPaletteImageProvider(File file) =>
+    ResizeImage(FileImage(file), width: _kPaletteDecodeWidth);
+
 /// Reads-then-evicts: drops any cached entry for [path] whose recorded
 /// `(size, mtime)` no longer matches the file's current stat. Returns the
 /// matching live entry, or null when the cache has nothing current for it.
@@ -146,7 +158,7 @@ Future<ArtworkPalette?> extractArtworkPalette(String? thumbnailPath) async {
 
   try {
     final generator = await PaletteGenerator.fromImageProvider(
-      FileImage(file),
+      artworkPaletteImageProvider(file),
       size: const Size(200, 200),
       maximumColorCount: 16,
     );
