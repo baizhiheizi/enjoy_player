@@ -383,6 +383,7 @@ class _ScriptBlock extends StatefulWidget {
 
   /// Soft cap so very long scripts don't push actions off-screen.
   static const double maxScriptHeight = 240;
+  static const double accentBarWidth = 3;
 
   final String sourceLang;
   final String targetLang;
@@ -423,54 +424,54 @@ class _ScriptBlockState extends State<_ScriptBlock> {
       child: ClipRSuperellipse(
         borderRadius: BorderRadius.circular(t.radiusLg),
         clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ColoredBox(color: t.accentInk, child: const SizedBox(width: 3)),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    t.space16,
-                    t.space12,
-                    t.space16,
-                    t.space12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${widget.sourceLang}  →  ${widget.targetLang}',
-                        style: enjoyMonoStyle(
-                          context,
-                          size: 12.5,
-                          weight: FontWeight.w600,
-                          color: t.accentInk,
-                        ),
-                      ),
-                      SizedBox(height: t.space8),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxHeight: _ScriptBlock.maxScriptHeight,
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            primary: false,
-                            child: SelectableText(
-                              widget.text,
-                              style: scriptStyle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: ColoredBox(
+                color: t.accentInk,
+                child: const SizedBox(width: _ScriptBlock.accentBarWidth),
               ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                t.space16 + _ScriptBlock.accentBarWidth,
+                t.space12,
+                t.space16,
+                t.space12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${widget.sourceLang}  →  ${widget.targetLang}',
+                    style: enjoyMonoStyle(
+                      context,
+                      size: 12.5,
+                      weight: FontWeight.w600,
+                      color: t.accentInk,
+                    ),
+                  ),
+                  SizedBox(height: t.space8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxHeight: _ScriptBlock.maxScriptHeight,
+                    ),
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        primary: false,
+                        child: SelectableText(widget.text, style: scriptStyle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

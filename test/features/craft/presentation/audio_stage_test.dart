@@ -190,6 +190,56 @@ void main() {
     expect(selectable.data, longScript);
   });
 
+  testWidgets('AudioStage script accent bar spans the script without '
+      'IntrinsicHeight', (tester) async {
+    const longScript =
+        'So my plan was to read one video a day, but I did not do it '
+        'yesterday, the day before, or the day before that either. '
+        'I still want to keep going tomorrow morning after coffee.';
+
+    await tester.pumpWidget(
+      _harness(
+        overrides: [
+          authCtrlProvider.overrideWith(_AuthSignedInCtrl.new),
+          appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
+          craftTranslatorProvider.overrideWithValue(
+            _FixedTranslator(longScript),
+          ),
+          craftSynthesizerProvider.overrideWithValue(_FakeSynthesizer()),
+          craftTranscriberProvider.overrideWithValue(_FakeTranscriber()),
+          craftLibraryRepositoryProvider.overrideWithValue(
+            _FakeLibraryRepository(),
+          ),
+        ],
+        child: const AudioStage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AudioStage)),
+    );
+    await container.read(authCtrlProvider.future);
+    await container.read(appPreferencesCtrlProvider.future);
+    await container
+        .read(craftControllerProvider.notifier)
+        .useTextInput('source text for a longer rewrite');
+    await tester.pumpAndSettle();
+    await container.read(craftControllerProvider.notifier).generateAudio();
+    await tester.pumpAndSettle();
+
+    final accentBar = find.byWidgetPredicate(
+      (w) =>
+          w is ColoredBox &&
+          w.child is SizedBox &&
+          (w.child! as SizedBox).width == 3,
+    );
+    expect(accentBar, findsOneWidget);
+    final barHeight = tester.getSize(accentBar).height;
+    final scriptHeight = tester.getSize(find.byType(SelectableText)).height;
+    expect(barHeight, greaterThan(scriptHeight));
+  });
+
   testWidgets('AudioStage shows loading indicator while synthesizing', (
     tester,
   ) async {

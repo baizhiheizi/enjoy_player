@@ -53,8 +53,10 @@ class CraftFailureCard extends StatelessWidget {
     switch (failure.action) {
       case CraftFailureAction.openAiSettings:
         unawaited(context.push('/settings/ai-providers'));
+        return;
       case CraftFailureAction.signIn:
         unawaited(context.push('/sign-in'));
+        return;
       default:
         onRetry();
     }

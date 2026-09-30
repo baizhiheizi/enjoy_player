@@ -160,10 +160,12 @@ class _CraftHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final t = EnjoyThemeTokens.of(context);
     final dateFmt = DateFormat.yMMMd().add_jm();
 
     return SettingsRow(
       leadingIcon: EnjoyIcons.sparkle,
+      leadingIconTint: t.accentInk,
       title: media.title,
       subtitle: dateFmt.format(media.updatedAt.toLocal()),
       onTap: onTap,

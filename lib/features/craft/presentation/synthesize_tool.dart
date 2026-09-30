@@ -21,6 +21,7 @@ import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/craft/application/craft_controller.dart';
+import 'package:enjoy_player/features/craft/presentation/widgets/craft_field_border.dart';
 import 'package:enjoy_player/features/craft/domain/craft_failure.dart';
 import 'package:enjoy_player/features/subscription/presentation/credits_failure_actions.dart';
 import 'package:enjoy_player/features/craft/domain/craft_request.dart';
@@ -99,9 +100,9 @@ class _SynthesizeToolState extends ConsumerState<SynthesizeTool> {
             decoration: InputDecoration(
               labelText: l10n.craftSynthText,
               hintText: l10n.craftTextInputHint,
-              border: _toolFieldBorder(tokens),
-              enabledBorder: _toolFieldBorder(tokens),
-              focusedBorder: _toolFieldBorder(tokens, focused: true),
+              border: craftFieldBorder(tokens),
+              enabledBorder: craftFieldBorder(tokens),
+              focusedBorder: craftFieldBorder(tokens, focused: true),
               suffixIcon: EnjoyIconButton(
                 icon: EnjoyIcons.paste,
                 tooltip: l10n.craftPasteFromClipboard,
@@ -371,15 +372,3 @@ class _PreviewPlayer extends StatelessWidget {
     );
   }
 }
-
-/// Shared field outline for the tool panels: hairline at rest, iris on focus.
-OutlineInputBorder _toolFieldBorder(
-  EnjoyThemeTokens t, {
-  bool focused = false,
-}) => OutlineInputBorder(
-  borderRadius: BorderRadius.circular(t.radiusMd),
-  borderSide: BorderSide(
-    color: focused ? t.accentInk : t.hairline,
-    width: focused ? 1.5 : 1,
-  ),
-);
