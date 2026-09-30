@@ -1,5 +1,6 @@
 // ignore_for_file: scoped_providers_should_specify_dependencies
 import 'package:enjoy_player/features/vocabulary/application/vocabulary_list_controller.dart';
+import 'package:enjoy_player/features/vocabulary/application/vocabulary_providers.dart';
 import 'package:enjoy_player/features/vocabulary/domain/vocabulary_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -248,6 +249,61 @@ void main() {
       const filters = VocabularyListFilters(status: VocabularyStatus.reviewing);
       final result = filterVocabularyItems(items, filters);
       expect(result, isEmpty);
+    });
+  });
+
+  group('derived list providers (issue #827 C2)', () {
+    ProviderContainer containerWithItems(List<VocabularyItem> items) {
+      final c = ProviderContainer(
+        overrides: [
+          vocabularyItemsProvider.overrideWith((ref) => Stream.value(items)),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('languages provider emits distinct sorted languages', () async {
+      final c = containerWithItems([
+        _item(id: '1', word: 'a', language: 'ja'),
+        _item(id: '2', word: 'b', language: 'en'),
+        _item(id: '3', word: 'c', language: 'ja'),
+      ]);
+      c.listen(vocabularyListLanguagesProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(c.read(vocabularyListLanguagesProvider), ['en', 'ja']);
+    });
+
+    test('visible items provider applies the filters', () async {
+      final c = containerWithItems([
+        _item(id: '1', word: 'apple'),
+        _item(id: '2', word: 'banana', language: 'ja'),
+        _item(id: '3', word: 'apply', status: VocabularyStatus.mastered),
+      ]);
+      c.listen(vocabularyVisibleItemsProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      c
+          .read(vocabularyListFiltersProvider.notifier)
+          .setStatus(VocabularyStatus.learning);
+      c.read(vocabularyListFiltersProvider.notifier).setQuery('app');
+      await Future<void>.delayed(kVocabularySearchDebounce * 2);
+      expect(c.read(vocabularyVisibleItemsProvider).map((i) => i.id), ['1']);
+    });
+
+    test('visible items provider tracks filter changes', () async {
+      final c = containerWithItems([
+        _item(id: '1', word: 'apple'),
+        _item(id: '2', word: 'banana'),
+      ]);
+      c.listen(vocabularyVisibleItemsProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(c.read(vocabularyVisibleItemsProvider).map((i) => i.id), [
+        '1',
+        '2',
+      ]);
+      c.read(vocabularyListFiltersProvider.notifier).setQuery('ban');
+      await Future<void>.delayed(kVocabularySearchDebounce * 2);
+      expect(c.read(vocabularyVisibleItemsProvider).map((i) => i.id), ['2']);
     });
   });
 }

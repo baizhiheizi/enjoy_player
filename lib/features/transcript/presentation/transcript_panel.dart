@@ -10,10 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:enjoy_player/core/notices/app_notice.dart';
-import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/asr/presentation/asr_generation_launcher.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
-import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
@@ -112,7 +110,7 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
     );
     final showExtractButton = dexieTargetType == 'Video' && showLocalActions;
 
-    final signedIn = ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;
+    final signedIn = ref.watch(authIsSignedInProvider);
 
     ref.listen(transcriptLinesForMediaProvider(mediaId), (prev, next) {
       final lines = next.asData?.value;

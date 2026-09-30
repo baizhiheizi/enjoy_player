@@ -256,12 +256,14 @@ class _HomeHeader extends ConsumerWidget {
         : now.hour < 18
         ? l10n.homeGreetingAfternoon
         : l10n.homeGreetingEvening;
-    final name = ref
-        .watch(authCtrlProvider)
-        .maybeWhen(
+    final name = ref.watch(
+      authCtrlProvider.select(
+        (a) => a.maybeWhen(
           data: (s) => s is AuthSignedIn ? s.profile.name.trim() : null,
           orElse: () => null,
-        );
+        ),
+      ),
+    );
     final firstName = (name == null || name.isEmpty)
         ? null
         : name.split(RegExp(r'\s+')).first;
@@ -405,15 +407,10 @@ class _HomeInsightCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authAsync = ref.watch(authCtrlProvider);
-    final t = EnjoyThemeTokens.of(context);
-
-    final isSignedIn = authAsync.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
-    );
+    final isSignedIn = ref.watch(authIsSignedInProvider);
 
     if (!isSignedIn) return const SizedBox.shrink();
+    final t = EnjoyThemeTokens.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {

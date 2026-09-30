@@ -309,3 +309,11 @@ class AuthCtrl extends _$AuthCtrl {
     _pkceTimeoutTimer = null;
   }
 }
+
+/// Whether the session is signed in, leaf-scoped off [AuthCtrl] so
+/// profile refreshes (credits, avatar, name) do not rebuild consumers —
+/// one definition of the projection instead of a `select` per call site
+/// (issue #827 C1).
+@Riverpod(keepAlive: true)
+bool authIsSignedIn(Ref ref) =>
+    ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;

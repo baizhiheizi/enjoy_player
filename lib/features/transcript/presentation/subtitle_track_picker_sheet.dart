@@ -755,7 +755,7 @@ class _SubtitleTrackPickerSheetState
             .valueOrNull
             ?.effectiveNativeLanguage ??
         '';
-    final signedIn = ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;
+    final signedIn = ref.watch(authIsSignedInProvider);
     final readiness = ref.watch(
       transcriptDisplayReadinessForMediaProvider(widget.mediaId),
     );

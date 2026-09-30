@@ -38,6 +38,8 @@ class _VocabularyWordListState extends ConsumerState<VocabularyWordList> {
     final t = EnjoyThemeTokens.of(context);
     final itemsAsync = ref.watch(vocabularyItemsProvider);
     final filters = ref.watch(vocabularyListFiltersProvider);
+    final languages = ref.watch(vocabularyListLanguagesProvider);
+    final visible = ref.watch(vocabularyVisibleItemsProvider);
     final gutter = widget.metrics.horizontalInset;
     final filtersActive = filters.status != null || filters.language != null;
     final showFilters = _filtersOpen || filtersActive;
@@ -55,9 +57,6 @@ class _VocabularyWordListState extends ConsumerState<VocabularyWordList> {
         if (items.isEmpty) {
           return const VocabularyEmptyState(kind: VocabularyEmptyKind.noWords);
         }
-
-        final languages = items.map((i) => i.language).toSet().toList()..sort();
-        final visible = filterVocabularyItems(items, filters);
 
         return Column(
           children: [
