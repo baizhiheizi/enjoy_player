@@ -56,11 +56,7 @@ void main() {
   });
 
   test('empty sequences are rejected', () {
-    final empty = MfccFrames(
-      data: Float64List(0),
-      stride: 0,
-      frameCount: 0,
-    );
+    final empty = MfccFrames(data: Float64List(0), stride: 0, frameCount: 0);
     final one = _frames([_vec(1)]);
     expect(() => mapReferenceFramesToSource(empty, one), throwsArgumentError);
     expect(() => mapReferenceFramesToSource(one, empty), throwsArgumentError);

@@ -29,10 +29,7 @@ List<int> mapReferenceFramesToSource(
 
   final stride = math.min(reference.stride, source.stride);
 
-  var radius = math.min(
-    (windowPct * math.max(n, m)).round(),
-    maxDriftFrames,
-  );
+  var radius = math.min((windowPct * math.max(n, m)).round(), maxDriftFrames);
   radius = math.max(radius, (n - m).abs());
   radius = math.max(radius, 1);
 
