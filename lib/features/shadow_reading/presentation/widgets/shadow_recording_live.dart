@@ -1,9 +1,11 @@
 /// Live recording stage: paint-only countdown ring + ~10 Hz caption.
 ///
-/// Extracted from `shadow_reading_panel.dart` (issue #810 E2): the ring is
-/// driven by an [AnimationController] as its repaint listenable, so each
-/// vsync repaints the ring without rebuilding any element, and only the
-/// caption text re-renders on its coarse timer.
+/// Extracted from `shadow_reading_panel.dart` (issue #810 E2): a single
+/// [Ticker] is the only timing source — each vsync it sets the elapsed
+/// seconds on an [AnimationController] that exists purely as the painter's
+/// `repaint:` listenable (so the ring repaints without rebuilding any
+/// element) and re-evaluates the over-target pulse phase. Only the caption
+/// text re-renders on its own coarse timer.
 library;
 
 import 'dart:async';
@@ -46,15 +48,15 @@ class ShadowRecordingLive extends StatefulWidget {
 
 class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
     with TickerProviderStateMixin {
-  static const _kOverPulseInterval = Duration(milliseconds: 600);
+  static const _kOverPulseStepMs = 600;
 
   late final AnimationController _elapsedSec = AnimationController.unbounded(
     vsync: this,
   );
   late final Ticker _ticker = createTicker(_onTick);
-  Timer? _overPulseTimer;
   bool _overPulseHigh = false;
   bool _over = false;
+  int _overStartMs = 0;
 
   @override
   void initState() {
@@ -64,7 +66,6 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
 
   @override
   void dispose() {
-    _overPulseTimer?.cancel();
     _ticker.dispose();
     _elapsedSec.dispose();
     super.dispose();
@@ -73,21 +74,15 @@ class _ShadowRecordingLiveState extends State<ShadowRecordingLive>
   void _onTick(Duration elapsed) {
     _elapsedSec.value = elapsed.inMicroseconds / 1e6;
     final over = widget.targetSec > 0 && _elapsedSec.value > widget.targetSec;
-    if (over == _over) return;
-    if (over) {
-      _overPulseTimer ??= Timer.periodic(_kOverPulseInterval, (_) {
-        if (!mounted) return;
-        setState(() => _overPulseHigh = !_overPulseHigh);
-      });
-      setState(() => _over = true);
-    } else {
-      _overPulseTimer?.cancel();
-      _overPulseTimer = null;
-      setState(() {
-        _over = false;
-        _overPulseHigh = false;
-      });
-    }
+    if (over && !_over) _overStartMs = elapsed.inMilliseconds;
+    final overPulseHigh =
+        over &&
+        ((elapsed.inMilliseconds - _overStartMs) ~/ _kOverPulseStepMs).isOdd;
+    if (over == _over && overPulseHigh == _overPulseHigh) return;
+    setState(() {
+      _over = over;
+      _overPulseHigh = overPulseHigh;
+    });
   }
 
   @override
