@@ -1,6 +1,7 @@
 /// Single transcript cue row with timestamp, markup, and tap target.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 
@@ -404,16 +405,20 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             child: MouseRegion(
               onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
               onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-              child: Material(
-                color: bg ?? Colors.transparent,
-                clipBehavior: Clip.antiAlias,
-                shape: widget.groupedInEcho
-                    ? null
-                    : RoundedSuperellipseBorder(
-                        borderRadius: BorderRadius.circular(tok.radiusMd),
+              child: widget.groupedInEcho
+                  ? ColoredBox(color: bg ?? Colors.transparent, child: content)
+                  : DecoratedBox(
+                      decoration: ShapeDecoration(
+                        color: bg ?? Colors.transparent,
+                        shape: RoundedSuperellipseBorder(
+                          borderRadius: BorderRadius.circular(tok.radiusMd),
+                        ),
                       ),
-                child: content,
-              ),
+                      child: ClipRSuperellipse(
+                        borderRadius: BorderRadius.circular(tok.radiusMd),
+                        child: content,
+                      ),
+                    ),
             ),
           );
         }
@@ -423,12 +428,11 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
             container: true,
             label: semanticsLabel,
             button: true,
-            child: Material(
-              color: bg ?? Colors.transparent,
-              child: InkWell(
-                onTap: () => _handleTap(context),
-                highlightColor: scheme.onSurface.withValues(alpha: 0.04),
-                splashColor: scheme.primary.withValues(alpha: 0.06),
+            child: EnjoyPressable(
+              onTap: () => _handleTap(context),
+              borderRadius: BorderRadius.circular(tok.radiusMd),
+              child: ColoredBox(
+                color: bg ?? Colors.transparent,
                 child: content,
               ),
             ),
@@ -442,20 +446,22 @@ class _TranscriptLineTileState extends ConsumerState<TranscriptLineTile> {
           child: MouseRegion(
             onEnter: (_) => setValueNotifierOutsideMouseTracker(_hover, true),
             onExit: (_) => setValueNotifierOutsideMouseTracker(_hover, false),
-            child: Material(
-              color: bg ?? Colors.transparent,
-              clipBehavior: Clip.antiAlias,
+            child: EnjoyPressable(
               shape: RoundedSuperellipseBorder(
                 borderRadius: BorderRadius.circular(tok.radiusMd),
               ),
-              child: InkWell(
-                customBorder: RoundedSuperellipseBorder(
-                  borderRadius: BorderRadius.circular(tok.radiusMd),
+              onTap: () => _handleTap(context),
+              child: DecoratedBox(
+                decoration: ShapeDecoration(
+                  color: bg ?? Colors.transparent,
+                  shape: RoundedSuperellipseBorder(
+                    borderRadius: BorderRadius.circular(tok.radiusMd),
+                  ),
                 ),
-                onTap: () => _handleTap(context),
-                hoverColor: Colors.transparent,
-                highlightColor: scheme.onSurface.withValues(alpha: 0.05),
-                child: content,
+                child: ClipRSuperellipse(
+                  borderRadius: BorderRadius.circular(tok.radiusMd),
+                  child: content,
+                ),
               ),
             ),
           ),

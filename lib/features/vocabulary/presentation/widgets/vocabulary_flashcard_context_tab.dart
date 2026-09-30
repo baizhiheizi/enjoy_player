@@ -292,7 +292,7 @@ class _StructuredContextualMarkdown extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final doc = parseContextualMarkdownDocument(markdown);
-    final bodyStyle = buildLookupMarkdownStyleSheet(theme, t).copyWith(
+    final bodyStyle = buildLookupMarkdownStyleSheet(context, t).copyWith(
       p: theme.textTheme.bodyMedium?.copyWith(
         height: 1.55,
         color: cs.onSurface.withValues(alpha: 0.92),

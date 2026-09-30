@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
@@ -92,20 +93,17 @@ class DiscoverSubscriptionRow extends ConsumerWidget {
       return row;
     }
 
-    return Material(
-      color: cs.surfaceContainerLow,
+    return EnjoyTappableSurface(
       borderRadius: BorderRadius.circular(t.radiusLg),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: navigateToFeed
-            ? () {
-                Haptics.selection(context);
-                unawaited(
-                  context.push('/discover/channel/${channel.channelId}'),
-                );
-              }
-            : null,
-        child: row,
+      onTap: navigateToFeed
+          ? () {
+              Haptics.selection(context);
+              unawaited(context.push('/discover/channel/${channel.channelId}'));
+            }
+          : null,
+      child: ClipRSuperellipse(
+        borderRadius: BorderRadius.circular(t.radiusLg),
+        child: ColoredBox(color: cs.surfaceContainerLow, child: row),
       ),
     );
   }
@@ -122,26 +120,29 @@ class DiscoverSubscriptionList extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    return Material(
-      color: cs.surfaceContainerLow,
+    return ClipRSuperellipse(
       borderRadius: BorderRadius.circular(t.radiusLg),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent:
-                    t.space16 + DiscoverSubscriptionRow.avatarSize + t.space12,
-                endIndent: t.space16,
-                color: cs.outlineVariant.withValues(alpha: 0.25),
-              ),
-            children[i],
+      child: ColoredBox(
+        color: cs.surfaceContainerLow,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  indent:
+                      t.space16 +
+                      DiscoverSubscriptionRow.avatarSize +
+                      t.space12,
+                  endIndent: t.space16,
+                  color: cs.outlineVariant.withValues(alpha: 0.25),
+                ),
+              children[i],
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

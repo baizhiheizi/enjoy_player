@@ -274,20 +274,7 @@ class _ContentPanel extends StatelessWidget {
               color: light ? t.hairline : Colors.white.withValues(alpha: 0.06),
             ),
           ),
-          shadows: light
-              ? const [
-                  BoxShadow(
-                    color: Color(0x0D16161D),
-                    blurRadius: 2,
-                    offset: Offset(0, 1),
-                  ),
-                  BoxShadow(
-                    color: Color(0x0A16161D),
-                    blurRadius: 18,
-                    offset: Offset(0, 6),
-                  ),
-                ]
-              : const [],
+          shadows: light ? t.shadowFloat : const [],
         ),
         child: ClipRSuperellipse(
           borderRadius: radius,

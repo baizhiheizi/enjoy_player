@@ -10,6 +10,7 @@ import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -82,8 +83,10 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                       children: [
                         Text(
                           widget.error.toString(),
-                          style: tt.bodySmall?.copyWith(
-                            fontFamily: 'monospace',
+                          style: enjoyMonoStyle(
+                            context,
+                            size: 12,
+                            weight: FontWeight.w400,
                             color: cs.onSurfaceVariant,
                           ),
                           maxLines: 6,

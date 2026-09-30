@@ -49,7 +49,7 @@ class ContextualTranslationLookupSection extends ConsumerWidget {
     );
     final theme = Theme.of(context);
     final t = EnjoyThemeTokens.of(context);
-    final mdStyle = buildLookupMarkdownStyleSheet(theme, t);
+    final mdStyle = buildLookupMarkdownStyleSheet(context, t);
 
     return LookupExpansionCard(
       title: l10n.lookupSectionContextualTranslation,

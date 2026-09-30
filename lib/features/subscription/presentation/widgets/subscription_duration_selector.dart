@@ -1,6 +1,7 @@
 /// Preset and custom month selection for subscription checkout.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -182,31 +183,36 @@ class _DurationChip extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Material(
-      color: selected
-          ? cs.primaryContainer.withValues(alpha: 0.55)
-          : cs.surfaceContainerHighest.withValues(alpha: 0.55),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        side: BorderSide(
-          color: selected
-              ? cs.primary.withValues(alpha: 0.7)
-              : cs.outlineVariant.withValues(alpha: 0.35),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.55)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.55),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.7)
+                : cs.outlineVariant.withValues(alpha: 0.35),
+          ),
         ),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: t.space16,
-            vertical: t.space12,
-          ),
-          child: Text(
-            label,
-            style: tt.labelLarge?.copyWith(
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? cs.primary : cs.onSurface,
+      child: ClipRSuperellipse(
+        borderRadius: BorderRadius.circular(t.radiusMd),
+        child: EnjoyPressable(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          onTap: enabled ? onTap : null,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: t.space16,
+              vertical: t.space12,
+            ),
+            child: Text(
+              label,
+              style: tt.labelLarge?.copyWith(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? cs.primary : cs.onSurface,
+              ),
             ),
           ),
         ),

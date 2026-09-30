@@ -86,6 +86,7 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = EnjoyThemeTokens.of(context);
     final preview = ref.watch(recordingPreviewPlayerProvider);
     final lp = row.localPath;
     final canPlay = echoActive && lp != null && lp.isNotEmpty;
@@ -189,12 +190,16 @@ class ShadowTakesToolbarActions extends ConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: DecoratedBox(
-                                decoration: BoxDecoration(
+                                decoration: ShapeDecoration(
                                   color: assessmentScoreBackground(
                                     scheme,
                                     assessmentScoreLevel(score),
                                   ),
-                                  borderRadius: BorderRadius.circular(999),
+                                  shape: RoundedSuperellipseBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      t.radiusFull,
+                                    ),
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(

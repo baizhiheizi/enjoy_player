@@ -111,9 +111,11 @@ class CreditsPackagesSection extends ConsumerWidget {
                 horizontal: t.space12,
                 vertical: t.space8,
               ),
-              decoration: BoxDecoration(
+              decoration: ShapeDecoration(
                 color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(999),
+                shape: RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(t.radiusFull),
+                ),
               ),
               child: Text(
                 l10n.creditsPermanentAvailable(

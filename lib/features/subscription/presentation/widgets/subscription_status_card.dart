@@ -357,15 +357,18 @@ class _SoftChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: emphasized
             ? cs.primaryContainer.withValues(alpha: 0.85)
             : cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusFull),
+        ),
       ),
       child: Text(
         label,
@@ -391,10 +394,12 @@ class _InfoPill extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: t.space12, vertical: t.space8),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: cs.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.25)),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusFull),
+          side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.25)),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

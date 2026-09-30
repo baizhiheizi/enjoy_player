@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/interaction/horizontal_drag_scroll_behavior.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/riverpod/async_value_x.dart';
@@ -123,41 +124,46 @@ class _RecommendedAvatarTile extends ConsumerWidget {
     return Semantics(
       button: true,
       label: channel.name,
-      child: Material(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+      child: EnjoyPressable(
+        onTap: onTap,
         shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: DiscoverRecommendedAvatarStrip.avatarSize,
-            height: DiscoverRecommendedAvatarStrip.avatarSize,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                DiscoverChannelAvatar(
-                  url: avatarUrl,
-                  displayName: channel.name,
-                  seed: channel.channelId,
-                  size: DiscoverRecommendedAvatarStrip.avatarSize - 4,
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: cs.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: cs.surfaceContainerHigh,
-                        width: 1.5,
+        excludeSemantics: true,
+        child: ClipOval(
+          child: ColoredBox(
+            color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+            child: SizedBox(
+              width: DiscoverRecommendedAvatarStrip.avatarSize,
+              height: DiscoverRecommendedAvatarStrip.avatarSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  DiscoverChannelAvatar(
+                    url: avatarUrl,
+                    displayName: channel.name,
+                    seed: channel.channelId,
+                    size: DiscoverRecommendedAvatarStrip.avatarSize - 4,
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: cs.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: cs.surfaceContainerHigh,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        EnjoyIcons.add,
+                        size: 14,
+                        color: cs.onPrimary,
                       ),
                     ),
-                    child: Icon(EnjoyIcons.add, size: 14, color: cs.onPrimary),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -163,7 +164,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byKey(const ValueKey('inactive')),
-          matching: find.byType(InkWell),
+          matching: find.byType(EnjoyPressable),
         ),
       );
       expect(taps, 1);

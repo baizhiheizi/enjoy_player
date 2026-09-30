@@ -4,11 +4,14 @@
 /// The shared [_wordColors] helper stays file-private.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:azure_speech/azure_speech.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/enjoy_tappable.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/features/pronounce/domain/pronounce_target.dart';
 import 'package:enjoy_player/features/pronounce/presentation/pronounce_icon_button.dart';
 import 'package:enjoy_player/features/shadow_reading/domain/assessment_word_timing.dart';
@@ -88,6 +91,7 @@ class ScoreBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
     final level = assessmentScoreLevel(value);
     final tint = assessmentScoreColor(scheme, level);
@@ -108,8 +112,8 @@ class ScoreBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
+        ClipRSuperellipse(
+          borderRadius: BorderRadius.circular(t.radiusFull),
           child: LinearProgressIndicator(
             value: (value / 100).clamp(0.0, 1.0),
             minHeight: 8,
@@ -156,29 +160,26 @@ class WordChip extends StatelessWidget {
         : Colors.transparent;
     final highlightWidth = karaokeCurrent || selected ? 2.0 : 0.0;
 
-    return Material(
-      color: karaokeCurrent
-          ? scheme.tertiaryContainer.withValues(alpha: 0.55)
-          : (bg ?? scheme.surfaceContainerHighest),
+    return EnjoyPressable(
       borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: ShapeDecoration(
+          color: karaokeCurrent
+              ? scheme.tertiaryContainer.withValues(alpha: 0.55)
+              : (bg ?? scheme.surfaceContainerHighest),
+          shape: RoundedSuperellipseBorder(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: highlightBorder, width: highlightWidth),
+            side: BorderSide(color: highlightBorder, width: highlightWidth),
           ),
-          child: Text(
-            word.word,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: karaokeCurrent ? scheme.onTertiaryContainer : fg,
-              decoration: err == 'Insertion'
-                  ? TextDecoration.lineThrough
-                  : null,
-            ),
+        ),
+        child: Text(
+          word.word,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: karaokeCurrent ? scheme.onTertiaryContainer : fg,
+            decoration: err == 'Insertion' ? TextDecoration.lineThrough : null,
           ),
         ),
       ),
@@ -255,6 +256,7 @@ class SelectedWordPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     final pa = word.pronunciationAssessment;
     final err = pa.errorType;
     final acc = pa.accuracyScore;
@@ -335,8 +337,8 @@ class SelectedWordPanel extends StatelessWidget {
                 ),
               ],
             ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
+            ClipRSuperellipse(
+              borderRadius: BorderRadius.circular(t.radiusFull),
               child: LinearProgressIndicator(
                 value: (acc / 100).clamp(0.0, 1.0),
                 minHeight: 6,
@@ -359,9 +361,11 @@ class SelectedWordPanel extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '/${word.phonemes!.map((p) => p.phoneme).join('')}/',
-                style: tt.bodyMedium?.copyWith(
+                style: enjoyMonoStyle(
+                  context,
+                  size: 14,
+                  weight: FontWeight.w400,
                   color: scheme.onSurfaceVariant,
-                  fontFamily: 'monospace',
                 ),
               ),
             ],

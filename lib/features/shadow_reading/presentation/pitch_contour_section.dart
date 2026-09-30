@@ -1,6 +1,7 @@
 /// Collapsible pitch contour with analysis — mirrors web `PitchContourSection`.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -317,7 +318,7 @@ class _PitchContourSectionState extends ConsumerState<PitchContourSection> {
         if (widget.showHeader)
           Tooltip(
             message: pitchTooltip,
-            child: InkWell(
+            child: EnjoyPressable(
               onTap: () => unawaited(_toggleExpanded()),
               borderRadius: BorderRadius.circular(8),
               child: Padding(

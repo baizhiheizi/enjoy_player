@@ -60,8 +60,10 @@ class TransportThumbShape extends RoundSliderThumbShape {
     required Size sizeWithOverflow,
   }) {
     final canvas = context.canvas;
-    final color = sliderTheme.thumbColor ?? const Color(0xFF6750A4);
-    canvas.drawCircle(center, enabledThumbRadius + 4, _glowPaintFor(color));
+    final color = sliderTheme.thumbColor;
+    if (color != null) {
+      canvas.drawCircle(center, enabledThumbRadius + 4, _glowPaintFor(color));
+    }
     super.paint(
       context,
       center,

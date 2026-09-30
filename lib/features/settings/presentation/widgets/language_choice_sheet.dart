@@ -1,6 +1,7 @@
 /// Modal sheet to pick one of several BCP-47 tags or locale-backed options.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/interaction/haptics.dart';
@@ -63,40 +64,38 @@ Future<String?> showLanguageChoiceSheet({
                         Builder(
                           builder: (itemCtx) {
                             final selected = opt.value == selectedValue;
-                            return Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: Haptics.wrapTap(itemCtx, () {
-                                  Navigator.of(itemCtx).pop(opt.value);
-                                }),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: t.space20,
-                                    vertical: t.space12,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          opt.label,
-                                          style: Theme.of(itemCtx)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.copyWith(
-                                                fontWeight: selected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w400,
-                                              ),
-                                        ),
+                            return EnjoyPressable(
+                              borderRadius: BorderRadius.circular(t.radiusMd),
+                              onTap: Haptics.wrapTap(itemCtx, () {
+                                Navigator.of(itemCtx).pop(opt.value);
+                              }),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: t.space20,
+                                  vertical: t.space12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        opt.label,
+                                        style: Theme.of(itemCtx)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              fontWeight: selected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w400,
+                                            ),
                                       ),
-                                      if (selected)
-                                        EnjoyChromeIcon(
-                                          EnjoyChromeGlyph.check,
-                                          color: cs.primary,
-                                          size: 22,
-                                        ),
-                                    ],
-                                  ),
+                                    ),
+                                    if (selected)
+                                      EnjoyChromeIcon(
+                                        EnjoyChromeGlyph.check,
+                                        color: cs.primary,
+                                        size: 22,
+                                      ),
+                                  ],
                                 ),
                               ),
                             );

@@ -14,6 +14,7 @@
 /// silently swallowing it.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -563,16 +564,21 @@ class _PaymentOptionCard extends StatelessWidget {
       button: true,
       selected: selected,
       label: title,
-      child: Material(
-        color: bg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(t.radiusLg),
-          side: BorderSide(color: color, width: selected ? 1.6 : 1),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: bg,
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(t.radiusLg),
+            side: BorderSide(color: color, width: selected ? 1.6 : 1),
+          ),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(padding: const EdgeInsets.all(2), child: card),
+        child: ClipRSuperellipse(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          child: EnjoyPressable(
+            borderRadius: BorderRadius.circular(t.radiusLg),
+            onTap: onTap,
+            child: Padding(padding: const EdgeInsets.all(2), child: card),
+          ),
         ),
       ),
     );

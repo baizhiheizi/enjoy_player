@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:convert';
 
@@ -121,65 +122,62 @@ void main() {
     await pumpButton(tester, db: db, row: row);
 
     expect(find.text('91'), findsOneWidget);
-    final material = tester.widget<Material>(find.byType(Material).last);
-    expect(material.type, MaterialType.canvas);
 
-    await tester.tap(find.byType(InkWell).first);
+    await tester.tap(find.byType(EnjoyPressable).first);
     await tester.pumpAndSettle();
 
     expect(find.text('Pronunciation assessment'), findsOneWidget);
   });
 
-  testWidgets(
-    'unscored assessment button uses transparency Material so taps hit',
-    (WidgetTester tester) async {
-      final db = AppDatabase(executor: NativeDatabase.memory());
-      addTearDown(db.close);
+  testWidgets('unscored assessment button stays transparent so taps hit', (
+    WidgetTester tester,
+  ) async {
+    final db = AppDatabase(executor: NativeDatabase.memory());
+    addTearDown(db.close);
 
-      final id = const Uuid().v4();
-      final now = DateTime.now();
-      await db.recordingDao.insertRow(
-        RecordingRow(
-          id: id,
-          targetType: 'Audio',
-          targetId: 'm1',
-          referenceStart: 0,
-          referenceDuration: 5000,
-          referenceText: 'Hi',
-          language: 'en',
-          duration: 1000,
-          md5: null,
-          audioUrl: null,
-          pronunciationScore: null,
-          assessmentJson: null,
-          localPath: '/tmp/fake.wav',
-          syncStatus: 'local',
-          serverUpdatedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+    final id = const Uuid().v4();
+    final now = DateTime.now();
+    await db.recordingDao.insertRow(
+      RecordingRow(
+        id: id,
+        targetType: 'Audio',
+        targetId: 'm1',
+        referenceStart: 0,
+        referenceDuration: 5000,
+        referenceText: 'Hi',
+        language: 'en',
+        duration: 1000,
+        md5: null,
+        audioUrl: null,
+        pronunciationScore: null,
+        assessmentJson: null,
+        localPath: '/tmp/fake.wav',
+        syncStatus: 'local',
+        serverUpdatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
 
-      final row = (await db.recordingDao.getById(id))!;
-      await pumpButton(tester, db: db, row: row);
+    final row = (await db.recordingDao.getById(id))!;
+    await pumpButton(tester, db: db, row: row);
 
-      expect(find.byIcon(EnjoyIcons.sparkleFill), findsOneWidget);
-      final material = tester.widget<Material>(
-        find.descendant(
-          of: find.byType(RecordingAssessmentButton),
-          matching: find.byType(Material),
-        ),
-      );
-      expect(material.type, MaterialType.transparency);
-      expect(material.color, Colors.transparent);
+    expect(find.byIcon(EnjoyIcons.sparkleFill), findsOneWidget);
 
-      final inkWell = tester.widget<InkWell>(
-        find.descendant(
-          of: find.byType(RecordingAssessmentButton),
-          matching: find.byType(InkWell),
-        ),
-      );
-      expect(inkWell.onTap, isNotNull);
-    },
-  );
+    final fill = tester.widget<ColoredBox>(
+      find.descendant(
+        of: find.byType(RecordingAssessmentButton),
+        matching: find.byType(ColoredBox),
+      ),
+    );
+    expect(fill.color, Colors.transparent);
+
+    final pressable = tester.widget<EnjoyPressable>(
+      find.descendant(
+        of: find.byType(RecordingAssessmentButton),
+        matching: find.byType(EnjoyPressable),
+      ),
+    );
+    expect(pressable.onTap, isNotNull);
+  });
 }

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 
 /// Circular avatar: network image, else initials on an aurora-tinted disc.
 class EnjoyAvatar extends StatelessWidget {
@@ -225,11 +226,11 @@ class EnjoyKeycap extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        style: enjoyMonoStyle(
+          context,
+          size: 10.5,
+          weight: FontWeight.w600,
           color: t.textFaint,
-          fontSize: 10.5,
-          fontWeight: FontWeight.w600,
-          height: 1.35,
         ),
       ),
     );

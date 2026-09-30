@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -173,7 +174,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(InkWell), findsNothing);
+    expect(find.byType(EnjoyPressable), findsNothing);
     expect(taps, 0);
   });
 
@@ -201,7 +202,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(helloIpa), findsNothing);
-      await tester.tap(find.byType(InkWell));
+      await tester.tap(find.byType(EnjoyPressable));
       await tester.pump();
       expect(taps, 1);
     },

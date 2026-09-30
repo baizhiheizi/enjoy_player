@@ -1,6 +1,7 @@
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/lookup_markdown_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ThemeData _testTheme() {
@@ -20,14 +21,30 @@ ThemeData _testTheme() {
 }
 
 void main() {
-  test('lookup markdown blockquote uses dark surface, not light blue', () {
+  testWidgets('lookup markdown blockquote uses dark surface, not light blue', (
+    tester,
+  ) async {
     final theme = _testTheme();
     final tokens = theme.extension<EnjoyThemeTokens>()!;
 
-    final sheet = buildLookupMarkdownStyleSheet(theme, tokens);
+    late MarkdownStyleSheet sheet;
+    late BuildContext ctx;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: Builder(
+          builder: (context) {
+            ctx = context;
+            sheet = buildLookupMarkdownStyleSheet(context, tokens);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+
     final blockquote = sheet.blockquoteDecoration! as BoxDecoration;
 
-    expect(blockquote.color, theme.colorScheme.surfaceContainerHigh);
+    expect(blockquote.color, Theme.of(ctx).colorScheme.surfaceContainerHigh);
     expect(blockquote.color, isNot(Colors.blue.shade100));
   });
 }

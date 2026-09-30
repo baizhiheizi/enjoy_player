@@ -5,6 +5,7 @@
 /// 1px bottom divider; selected rows get a tinted card.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -88,7 +89,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
       ),
     );
 
-    final inkWell = InkWell(
+    final tappable = EnjoyPressable(
       onTap: !enabled
           ? null
           : onTap ??
@@ -100,14 +101,15 @@ class _CompactOptionRow<T> extends StatelessWidget {
     return Padding(
       padding: padding,
       child: selected
-          ? Material(
-              color: cs.primaryContainer.withValues(alpha: 0.34),
-              shape: RoundedRectangleBorder(
-                borderRadius: radius,
-                side: BorderSide(color: cs.primary.withValues(alpha: 0.42)),
+          ? DecoratedBox(
+              decoration: ShapeDecoration(
+                color: cs.primaryContainer.withValues(alpha: 0.34),
+                shape: RoundedSuperellipseBorder(
+                  borderRadius: radius,
+                  side: BorderSide(color: cs.primary.withValues(alpha: 0.42)),
+                ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: inkWell,
+              child: ClipRSuperellipse(borderRadius: radius, child: tappable),
             )
           : DecoratedBox(
               decoration: BoxDecoration(
@@ -117,7 +119,7 @@ class _CompactOptionRow<T> extends StatelessWidget {
                   ),
                 ),
               ),
-              child: inkWell,
+              child: tappable,
             ),
     );
   }

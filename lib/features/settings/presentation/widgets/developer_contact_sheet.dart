@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:enjoy_player/core/application/app_links.dart';
 import 'package:enjoy_player/core/interaction/haptics.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/core/theme/widgets/sheet_drag_handle.dart';
@@ -109,48 +110,46 @@ class _ContactCopyRow extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: Haptics.wrapTap(context, () => _copy(context)),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: t.space20,
-            vertical: t.space12,
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 22, color: cs.primary.withValues(alpha: 0.92)),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: tt.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
+    return EnjoyPressable(
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      onTap: Haptics.wrapTap(context, () => _copy(context)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: t.space20,
+          vertical: t.space12,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: cs.primary.withValues(alpha: 0.92)),
+            SizedBox(width: t.space12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: tt.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
                     ),
-                    SizedBox(height: t.space4),
-                    Text(
-                      value,
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant.withValues(alpha: 0.86),
-                        height: 1.35,
-                      ),
+                  ),
+                  SizedBox(height: t.space4),
+                  Text(
+                    value,
+                    style: tt.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.86),
+                      height: 1.35,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(
-                EnjoyIcons.copy,
-                size: 18,
-                color: cs.onSurfaceVariant.withValues(alpha: 0.55),
-              ),
-            ],
-          ),
+            ),
+            Icon(
+              EnjoyIcons.copy,
+              size: 18,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+            ),
+          ],
         ),
       ),
     );
