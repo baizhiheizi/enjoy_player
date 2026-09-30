@@ -119,6 +119,13 @@ flutter:
   assets:
     - assets/logo-light.svg
     - assets/discover/recommended_channels.json
+    # Aurora text faces (ADR-0089), bundled in the google_fonts asset layout so
+    # the first theme build loads them from the bundle instead of fetching
+    # fonts.gstatic.com (FOUT + full-app relayout + wrong fonts offline).
+    # Only the weights/styles the app requests ship; CJK Noto SC/Kr/Jp variant
+    # fallbacks stay on-demand runtime fetches (~40 MB, platform fonts cover
+    # offline). OFL-*.txt carry each family's license.
+    - assets/fonts/google_fonts/
     # Vendored eSpeak-NG voices/dicts; extracted to disk on Android at startup
     # (espeak_android_provisioner) because eSpeak fopens real files.
     # Flutter does not recurse: each directory needs its own entry or `lang/`

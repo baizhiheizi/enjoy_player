@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:enjoy_player/core/logging/log.dart';
-import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
+import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'youtube_watch_navigation_policy.dart';
 import 'youtube_webview_bridge.dart';
 import 'youtube_webview_controller.dart';
@@ -89,59 +89,61 @@ class _YoutubeWebViewHostState extends State<YoutubeWebViewHost> {
         : YoutubeWebViewBridge.watchUri(vid);
 
     return ExcludeSemantics(
-      child: InAppWebView(
-        webViewEnvironment: appWebViewEnvironment,
-        initialSettings: YoutubeWebViewSettings.forPlayer(),
-        onWebViewCreated: (controller) {
-          _controller = controller;
-          lifecycle.onWebViewCreated(
-            controller,
-            initialWatchUrlRequested: vid.isNotEmpty,
-          );
-        },
-        onEnterFullscreen: iosInlinePlayback
-            ? (controller) {
-                unawaited(lifecycle.exitNativeFullscreen(controller));
-              }
-            : null,
-        onExitFullscreen: iosInlinePlayback
-            ? (controller) {
-                unawaited(lifecycle.onNativeFullscreenExit(controller));
-              }
-            : null,
-        onLoadStop: (controller, url) async {
-          await lifecycle.onPageFinished(controller, url?.toString());
-        },
-        onConsoleMessage: (controller, consoleMessage) {
-          final message = consoleMessage.message;
-          if (message.trim().isEmpty) return;
-          _logWeb.fine(
-            'youtube console [${_consoleLevelLabel(consoleMessage.messageLevel)}] '
-            '${message.length > 300 ? message.substring(0, 300) : message}',
-          );
-        },
-        onReceivedHttpError: (controller, request, response) {
-          lifecycle.onWebResourceHttpError(
-            url: request.url.toString(),
-            statusCode: response.statusCode,
-            isForMainFrame: request.isForMainFrame ?? false,
-          );
-        },
-        onReceivedError: (controller, request, error) {
-          if (request.isForMainFrame != true) return;
-          lifecycle.onWebResourceLoadError(
-            url: request.url.toString(),
-            description: error.description,
-          );
-        },
-        onWebContentProcessDidTerminate: (controller) {
-          unawaited(lifecycle.onWebViewProcessTerminated());
-        },
-        onRenderProcessGone: (controller, detail) {
-          unawaited(lifecycle.onWebViewProcessTerminated());
-        },
-        shouldOverrideUrlLoading: _onShouldOverrideUrlLoading,
-        initialUrlRequest: URLRequest(url: initialUrl),
+      child: WebViewEnvironmentGate(
+        builder: (context, environment) => InAppWebView(
+          webViewEnvironment: environment,
+          initialSettings: YoutubeWebViewSettings.forPlayer(),
+          onWebViewCreated: (controller) {
+            _controller = controller;
+            lifecycle.onWebViewCreated(
+              controller,
+              initialWatchUrlRequested: vid.isNotEmpty,
+            );
+          },
+          onEnterFullscreen: iosInlinePlayback
+              ? (controller) {
+                  unawaited(lifecycle.exitNativeFullscreen(controller));
+                }
+              : null,
+          onExitFullscreen: iosInlinePlayback
+              ? (controller) {
+                  unawaited(lifecycle.onNativeFullscreenExit(controller));
+                }
+              : null,
+          onLoadStop: (controller, url) async {
+            await lifecycle.onPageFinished(controller, url?.toString());
+          },
+          onConsoleMessage: (controller, consoleMessage) {
+            final message = consoleMessage.message;
+            if (message.trim().isEmpty) return;
+            _logWeb.fine(
+              'youtube console [${_consoleLevelLabel(consoleMessage.messageLevel)}] '
+              '${message.length > 300 ? message.substring(0, 300) : message}',
+            );
+          },
+          onReceivedHttpError: (controller, request, response) {
+            lifecycle.onWebResourceHttpError(
+              url: request.url.toString(),
+              statusCode: response.statusCode,
+              isForMainFrame: request.isForMainFrame ?? false,
+            );
+          },
+          onReceivedError: (controller, request, error) {
+            if (request.isForMainFrame != true) return;
+            lifecycle.onWebResourceLoadError(
+              url: request.url.toString(),
+              description: error.description,
+            );
+          },
+          onWebContentProcessDidTerminate: (controller) {
+            unawaited(lifecycle.onWebViewProcessTerminated());
+          },
+          onRenderProcessGone: (controller, detail) {
+            unawaited(lifecycle.onWebViewProcessTerminated());
+          },
+          shouldOverrideUrlLoading: _onShouldOverrideUrlLoading,
+          initialUrlRequest: URLRequest(url: initialUrl),
+        ),
       ),
     );
   }

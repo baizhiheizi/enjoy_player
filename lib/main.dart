@@ -14,8 +14,6 @@ import 'app.dart';
 import 'core/platform/device_form_factor.dart';
 import 'core/platform/espeak_android_provisioner.dart';
 import 'core/recovery/widget_error_surface.dart';
-import 'core/logging/diagnostic_log_config.dart';
-import 'core/logging/diagnostic_session_header.dart';
 import 'core/logging/log.dart';
 import 'core/logging/setup_logging.dart';
 import 'core/platform/linux_url_scheme_handler.dart';
@@ -34,22 +32,16 @@ Future<void> _bootstrap() async {
     installReleaseWidgetErrorBuilder();
   }
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-  await Future.wait([
-    DiagnosticLogConfig.loadFromDeviceGlobalSettings(),
-    setupAppLogging(),
-    if (defaultTargetPlatform == TargetPlatform.windows)
-      ensureWindowsWebViewEnvironment(),
-    if (defaultTargetPlatform == TargetPlatform.android)
-      _provisionAndroidEspeak(),
-  ]);
+  unawaited(setupAppLogging());
+  if (defaultTargetPlatform == TargetPlatform.windows) {
+    unawaited(ensureWindowsWebViewEnvironment());
+  }
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    unawaited(_provisionAndroidEspeak());
+  }
   _installFrameworkErrorHandlers();
   if (defaultTargetPlatform == TargetPlatform.linux) {
     unawaited(ensureEnjoyplayerSchemeHandler());
-  }
-  try {
-    await writeDiagnosticSessionHeader();
-  } on Object catch (e, st) {
-    _bootstrapLog.warning('writeDiagnosticSessionHeader failed', e, st);
   }
   MediaKit.ensureInitialized();
 
@@ -73,8 +65,9 @@ Future<void> _bootstrap() async {
   runApp(app);
 }
 
-/// eSpeak-NG provisioning failures must not block startup; alignment then
-/// stays fail-closed (`spokenReferenceUnavailable`).
+/// eSpeak-NG provisioning runs off the startup critical path; alignment
+/// stays fail-closed (`spokenReferenceUnavailable`) until the provisioner
+/// pins the resolved paths.
 Future<void> _provisionAndroidEspeak() async {
   try {
     await ensureAndroidEspeakRuntime();

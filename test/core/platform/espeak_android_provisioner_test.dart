@@ -175,4 +175,58 @@ void main() {
     expect(loadCalls, 1);
     expect(File(p.join(dataDir.path, 'lang', 'en-us')).existsSync(), isTrue);
   });
+
+  test(
+    'interrupted extraction without marker re-provisions from scratch',
+    () async {
+      mockNativeLibraryDir(nativeLibDir.path);
+      final revisionDir = Directory(
+        p.join(supportPath, 'espeak-ng', kEspeakDataRevision),
+      );
+      final dataDir = Directory(p.join(revisionDir.path, 'espeak-ng-data'));
+      dataDir.createSync(recursive: true);
+      File(p.join(dataDir.path, 'phontab')).writeAsBytesSync([1, 2, 3]);
+      File(p.join(dataDir.path, 'en_dict')).writeAsBytesSync([4]);
+
+      final ok = await ensureAndroidEspeakRuntime(loadData: countingLoader);
+
+      expect(ok, isTrue);
+      expect(loadCalls, 1);
+      expect(File(p.join(dataDir.path, 'lang', 'en')).existsSync(), isTrue);
+      expect(
+        File(p.join(revisionDir.path, '.provisioned')).existsSync(),
+        isTrue,
+      );
+      for (final voice in kEspeakVoiceByLanguageTag.values) {
+        expect(
+          File(p.join(dataDir.path, 'lang', voice)).existsSync(),
+          isTrue,
+          reason: 'lang/$voice',
+        );
+      }
+    },
+  );
+
+  test(
+    'partial tree from prior session never satisfies the marker check',
+    () async {
+      mockNativeLibraryDir(nativeLibDir.path);
+      final revisionDir = Directory(
+        p.join(supportPath, 'espeak-ng', kEspeakDataRevision),
+      );
+      final dataDir = Directory(p.join(revisionDir.path, 'espeak-ng-data'));
+      dataDir.createSync(recursive: true);
+      File(p.join(dataDir.path, 'phontab')).writeAsBytesSync([1, 2, 3]);
+
+      final ok = await ensureAndroidEspeakRuntime(loadData: countingLoader);
+
+      expect(ok, isTrue);
+      expect(loadCalls, 1);
+      expect(
+        File(p.join(dataDir.path, 'lang', 'en')).existsSync(),
+        isTrue,
+        reason: 'every required file is rewritten, not just missing ones',
+      );
+    },
+  );
 }

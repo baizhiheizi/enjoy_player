@@ -11,7 +11,15 @@ import 'package:enjoy_player/core/logging/log_file_sink.dart';
 import 'package:enjoy_player/core/release/distribution_channel.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
 
+/// Awaits the inputs the banner embeds so its content is deterministic no
+/// matter when startup reaches it: the verbose flag (device-global DB read)
+/// and, on Windows, the shared WebView2 environment (`webViewUserData=`).
 Future<void> writeDiagnosticSessionHeader({String? localeTag}) async {
+  await DiagnosticLogConfig.loadFromDeviceGlobalSettings();
+  if (Platform.isWindows) {
+    await ensureWindowsWebViewEnvironment();
+  }
+
   final sink = LogFileSink.instance ?? await LogFileSink.ensureInitialized();
   if (sink == null) return;
 

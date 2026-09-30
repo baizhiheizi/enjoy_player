@@ -11,7 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/platform/linux_platform_availability.dart';
+import 'package:enjoy_player/core/presentation/loading_icon.dart';
 import 'package:enjoy_player/core/webview/platform_webview_environment.dart';
+import 'package:enjoy_player/core/webview/webview_environment_gate.dart';
 import 'package:enjoy_player/features/player/application/engines/youtube/youtube_webview_bridge.dart';
 import 'package:enjoy_player/features/player/application/youtube_auth_provider.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
@@ -32,7 +34,30 @@ class YoutubeLoginScreen extends ConsumerStatefulWidget {
 class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
   InAppWebViewController? _controller;
   bool _isLoading = true;
+  bool _isSigningOut = false;
   String? _currentTitle;
+
+  Future<void> _signOut() async {
+    if (_isSigningOut) return;
+    setState(() => _isSigningOut = true);
+    try {
+      unawaited(HapticFeedback.lightImpact());
+      final controller = _controller;
+      final environment = await ensureAppWebViewEnvironment();
+      if (!mounted) return;
+      await CookieManager.instance(
+        webViewEnvironment: environment,
+      ).deleteAllCookies();
+      if (!mounted) return;
+      await controller?.loadUrl(
+        urlRequest: URLRequest(url: WebUri('https://m.youtube.com')),
+      );
+      if (!mounted) return;
+      ref.invalidate(youtubeLoginStateProvider);
+    } finally {
+      if (mounted) setState(() => _isSigningOut = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,20 +124,11 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(EnjoyIcons.signOut, size: 22),
+                    icon: _isSigningOut
+                        ? LoadingIcon(color: colorScheme.onSurfaceVariant)
+                        : const Icon(EnjoyIcons.signOut, size: 22),
                     color: colorScheme.onSurfaceVariant,
-                    onPressed: () async {
-                      unawaited(HapticFeedback.lightImpact());
-                      await CookieManager.instance(
-                        webViewEnvironment: appWebViewEnvironment,
-                      ).deleteAllCookies();
-                      await _controller?.loadUrl(
-                        urlRequest: URLRequest(
-                          url: WebUri('https://m.youtube.com'),
-                        ),
-                      );
-                      ref.invalidate(youtubeLoginStateProvider);
-                    },
+                    onPressed: _isSigningOut ? null : _signOut,
                     tooltip: l10n.youtubeLogout,
                   ),
                 ],
@@ -125,43 +141,46 @@ class _YoutubeLoginScreenState extends ConsumerState<YoutubeLoginScreen> {
               ),
             Expanded(
               child: ExcludeSemantics(
-                child: InAppWebView(
-                  webViewEnvironment: appWebViewEnvironment,
-                  initialUrlRequest: URLRequest(
-                    url: WebUri(YoutubeLoginScreen._signInUrl),
+                child: WebViewEnvironmentGate(
+                  placeholder: const Center(child: CircularProgressIndicator()),
+                  builder: (context, environment) => InAppWebView(
+                    webViewEnvironment: environment,
+                    initialUrlRequest: URLRequest(
+                      url: WebUri(YoutubeLoginScreen._signInUrl),
+                    ),
+                    initialSettings: YoutubeWebViewSettings.forLogin(),
+                    onWebViewCreated: (controller) {
+                      _controller = controller;
+                    },
+                    onLoadStart: (_, _) {
+                      if (mounted) setState(() => _isLoading = true);
+                    },
+                    onLoadStop: (controller, url) async {
+                      if (!mounted) return;
+                      final title = await controller.getTitle();
+                      setState(() {
+                        _isLoading = false;
+                        _currentTitle = title;
+                      });
+                      ref.invalidate(youtubeLoginStateProvider);
+                    },
+                    onTitleChanged: (_, title) {
+                      if (mounted && title != null) {
+                        setState(() => _currentTitle = title);
+                      }
+                    },
+                    shouldOverrideUrlLoading: (controller, action) async {
+                      final url = action.request.url?.toString() ?? '';
+                      if (url.contains('youtube.com') ||
+                          url.contains('google.com') ||
+                          url.contains('googleapis.com') ||
+                          url.contains('gstatic.com') ||
+                          url.contains('accounts.google')) {
+                        return NavigationActionPolicy.ALLOW;
+                      }
+                      return NavigationActionPolicy.CANCEL;
+                    },
                   ),
-                  initialSettings: YoutubeWebViewSettings.forLogin(),
-                  onWebViewCreated: (controller) {
-                    _controller = controller;
-                  },
-                  onLoadStart: (_, _) {
-                    if (mounted) setState(() => _isLoading = true);
-                  },
-                  onLoadStop: (controller, url) async {
-                    if (!mounted) return;
-                    final title = await controller.getTitle();
-                    setState(() {
-                      _isLoading = false;
-                      _currentTitle = title;
-                    });
-                    ref.invalidate(youtubeLoginStateProvider);
-                  },
-                  onTitleChanged: (_, title) {
-                    if (mounted && title != null) {
-                      setState(() => _currentTitle = title);
-                    }
-                  },
-                  shouldOverrideUrlLoading: (controller, action) async {
-                    final url = action.request.url?.toString() ?? '';
-                    if (url.contains('youtube.com') ||
-                        url.contains('google.com') ||
-                        url.contains('googleapis.com') ||
-                        url.contains('gstatic.com') ||
-                        url.contains('accounts.google')) {
-                      return NavigationActionPolicy.ALLOW;
-                    }
-                    return NavigationActionPolicy.CANCEL;
-                  },
                 ),
               ),
             ),

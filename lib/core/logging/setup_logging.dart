@@ -6,6 +6,12 @@
 /// also mirrored to [debugPrint].
 ///
 /// All builds also persist redacted records to a rotating file when supported.
+/// The session banner ([writeDiagnosticSessionHeader]) is enqueued before any
+/// other record: records that arrive while it is still being composed are
+/// buffered and flushed after it, so the banner stays the first line of the
+/// session in the log file even though startup no longer awaits it. The buffer
+/// holds at most [kPreSessionBannerRecordCapacity] records (oldest dropped,
+/// one warning per session) so a slow sink init cannot grow it without bound.
 library;
 
 import 'dart:async';
@@ -15,32 +21,63 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 import 'diagnostic_log_config.dart';
+import 'diagnostic_session_header.dart';
 import 'log_file_sink.dart';
+
+/// Maximum records held while the session banner is composing; older records
+/// are dropped beyond this so a hanging sink init cannot grow the buffer
+/// without bound.
+const int kPreSessionBannerRecordCapacity = 256;
 
 bool _loggingHooked = false;
 StreamSubscription<LogRecord>? _logSubscription;
+Future<void>? _sessionBannerFuture;
+bool _sessionBannerReady = false;
+final List<LogRecord> _recordsBeforeSessionBanner = <LogRecord>[];
+bool _preBannerBufferOverflowWarned = false;
 
 /// Resets the [Logger.root] listener so a subsequent [setupAppLogging] call
 /// re-attaches logging. Safe to call even when logging was never initialized.
 ///
+/// All resettable state — including the generation bump, which precedes the
+/// buffer clear — is mutated in one synchronous prefix before the first
+/// await, so no listener callback or in-flight banner continuation can
+/// interleave; a banner that resumes afterwards fails its generation check
+/// instead of flushing stale records or flipping readiness.
+///
 /// Tests **must** call this between test runs (typically in [tearDown]) because
-/// [Logger.root] and [LogFileSink._instance] are process-global state.
+/// [Logger.root], [LogFileSink._instance], and the session-banner state are
+/// process-global.
 @visibleForTesting
 Future<void> debugResetAppLogging() async {
-  await _logSubscription?.cancel();
-  _logSubscription = null;
+  _sessionBannerGeneration++;
+  _recordsBeforeSessionBanner.clear();
+  _sessionBannerReady = false;
+  _sessionBannerFuture = null;
   _loggingHooked = false;
+  _preBannerBufferOverflowWarned = false;
   DiagnosticLogConfig.verboseEnabled = false;
+  final subscription = _logSubscription;
+  _logSubscription = null;
+  await subscription?.cancel();
 }
+
+/// The in-flight session banner write, or null when none is pending.
+@visibleForTesting
+Future<void>? get debugSessionBannerFuture => _sessionBannerFuture;
 
 /// Call once after [WidgetsFlutterBinding.ensureInitialized].
 ///
-/// Call [DiagnosticLogConfig.loadFromDeviceGlobalSettings] before this when possible.
+/// Never blocks the caller on the banner: it returns once the sink is ready
+/// and the root listener is attached; the banner write continues in the
+/// background and buffers early records until it lands.
 Future<void> setupAppLogging() async {
   if (_loggingHooked) return;
   _loggingHooked = true;
 
   await LogFileSink.ensureInitialized();
+  unawaited(DiagnosticLogConfig.loadFromDeviceGlobalSettings());
+  _scheduleSessionBanner();
 
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   _logSubscription = Logger.root.onRecord.listen((record) {
@@ -50,7 +87,7 @@ Future<void> setupAppLogging() async {
         record.stackTrace != null;
 
     if (DiagnosticLogConfig.shouldPersistRecord(record)) {
-      unawaited(LogFileSink.instance?.writeRecord(record));
+      _persistRecord(record);
     }
 
     if (mirrorToStdout || kDebugMode) {
@@ -71,4 +108,78 @@ Future<void> setupAppLogging() async {
       stackTrace: record.stackTrace,
     );
   });
+}
+
+int _sessionBannerGeneration = 0;
+
+void _scheduleSessionBanner() {
+  final generation = ++_sessionBannerGeneration;
+  _sessionBannerFuture = _writeSessionBanner(generation);
+}
+
+Future<void> _writeSessionBanner(int generation) async {
+  try {
+    await writeDiagnosticSessionHeader();
+  } on Object catch (e, st) {
+    Logger('logging').warning('session header write failed', e, st);
+  }
+  if (generation != _sessionBannerGeneration) return;
+  try {
+    await _flushRecordsBeforeSessionBanner();
+  } on Object catch (e, st) {
+    Logger('logging').warning('session record flush failed', e, st);
+  }
+  if (generation != _sessionBannerGeneration) return;
+  _sessionBannerReady = true;
+  _drainRecordsBufferedDuringFlush();
+}
+
+void _persistRecord(LogRecord record) {
+  if (_sessionBannerReady) {
+    unawaited(LogFileSink.instance?.writeRecord(record));
+    return;
+  }
+  _bufferRecordBeforeSessionBanner(record);
+}
+
+void _bufferRecordBeforeSessionBanner(LogRecord record) {
+  _recordsBeforeSessionBanner.add(record);
+  if (_recordsBeforeSessionBanner.length <= kPreSessionBannerRecordCapacity) {
+    return;
+  }
+  _recordsBeforeSessionBanner.removeAt(0);
+  if (_preBannerBufferOverflowWarned) return;
+  _preBannerBufferOverflowWarned = true;
+  scheduleMicrotask(() {
+    Logger('logging').warning(
+      'pre-banner record buffer capped at $kPreSessionBannerRecordCapacity; '
+      'oldest records dropped',
+    );
+  });
+}
+
+Future<void> _flushRecordsBeforeSessionBanner() async {
+  final sink = LogFileSink.instance;
+  if (sink == null) {
+    _recordsBeforeSessionBanner.clear();
+    return;
+  }
+  final writes = <Future<void>>[
+    for (final record in _recordsBeforeSessionBanner) sink.writeRecord(record),
+  ];
+  _recordsBeforeSessionBanner.clear();
+  await Future.wait(writes);
+}
+
+void _drainRecordsBufferedDuringFlush() {
+  final sink = LogFileSink.instance;
+  if (sink == null) {
+    _recordsBeforeSessionBanner.clear();
+    return;
+  }
+  final residual = List<LogRecord>.of(_recordsBeforeSessionBanner);
+  _recordsBeforeSessionBanner.clear();
+  for (final record in residual) {
+    unawaited(sink.writeRecord(record));
+  }
 }
