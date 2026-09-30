@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
 import 'package:enjoy_player/features/auth/presentation/widgets/auth_required_callout.dart';
@@ -31,17 +32,18 @@ class LookupSectionAuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authCtrlProvider);
-    return auth.when(
-      data: (state) {
-        if (state is! AuthSignedIn) {
-          return AuthRequiredCallout(surface: surface, compact: true);
-        }
-        return child;
-      },
-      loading: () => const LookupSectionShimmer(),
-      error: (Object e, StackTrace st) =>
-          AuthRequiredCallout(surface: surface, compact: true),
+    final gate = ref.watch(
+      authCtrlProvider.select(
+        (a) => (
+          loading: a.isLoading && !a.isRefreshing,
+          signedIn: a.valueOrNull is AuthSignedIn,
+        ),
+      ),
     );
+    if (gate.loading) return const LookupSectionShimmer();
+    if (!gate.signedIn) {
+      return AuthRequiredCallout(surface: surface, compact: true);
+    }
+    return child;
   }
 }

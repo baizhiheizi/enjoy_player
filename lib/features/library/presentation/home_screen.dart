@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:enjoy_player/core/presentation/language_labels.dart';
+import 'package:enjoy_player/core/riverpod/async_value_x.dart';
 import 'package:enjoy_player/core/routing/player_navigation.dart';
 import 'package:enjoy_player/core/utils/sliver_key_index.dart';
 import 'package:enjoy_player/core/theme/generative_media_cover.dart';
@@ -256,12 +257,14 @@ class _HomeHeader extends ConsumerWidget {
         : now.hour < 18
         ? l10n.homeGreetingAfternoon
         : l10n.homeGreetingEvening;
-    final name = ref
-        .watch(authCtrlProvider)
-        .maybeWhen(
+    final name = ref.watch(
+      authCtrlProvider.select(
+        (a) => a.maybeWhen(
           data: (s) => s is AuthSignedIn ? s.profile.name.trim() : null,
           orElse: () => null,
-        );
+        ),
+      ),
+    );
     final firstName = (name == null || name.isEmpty)
         ? null
         : name.split(RegExp(r'\s+')).first;
@@ -405,13 +408,10 @@ class _HomeInsightCards extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authAsync = ref.watch(authCtrlProvider);
-    final t = EnjoyThemeTokens.of(context);
-
-    final isSignedIn = authAsync.maybeWhen(
-      data: (s) => s is AuthSignedIn,
-      orElse: () => false,
+    final isSignedIn = ref.watch(
+      authCtrlProvider.select((a) => a.valueOrNull is AuthSignedIn),
     );
+    final t = EnjoyThemeTokens.of(context);
 
     if (!isSignedIn) return const SizedBox.shrink();
 

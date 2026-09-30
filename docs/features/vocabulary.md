@@ -452,6 +452,7 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
   Gutters match `EnjoyPage` hub metrics.
 - Rows: word title; one status chip + muted secondary line (`contexts · reviews · next-review`); language trailing + overflow delete (confirm).
 - Localized load-failure + retry; no-match empty copy.
+- The distinct-language list and the filtered list are derived in providers (`vocabularyListLanguagesProvider`, `vocabularyVisibleItemsProvider`, keyed on items + filters) rather than recomputed inside `build` on every rebuild (issue #827 C2).
 
 ### Add-to-vocabulary control (lookup sheet)
 

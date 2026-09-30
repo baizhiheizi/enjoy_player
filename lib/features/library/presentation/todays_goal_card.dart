@@ -66,10 +66,12 @@ class TodaysGoalCard extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final statsAsync = ref.watch(learningStatisticsProvider);
-    final authAsync = ref.watch(authCtrlProvider);
-
-    final profileGoal = authAsync.whenOrNull(
-      data: (auth) => auth is AuthSignedIn ? auth.profile.goal : null,
+    final profileGoal = ref.watch(
+      authCtrlProvider.select(
+        (a) => a.whenOrNull(
+          data: (auth) => auth is AuthSignedIn ? auth.profile.goal : null,
+        ),
+      ),
     );
 
     return statsAsync.when(

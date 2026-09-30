@@ -112,7 +112,9 @@ class _TranscriptPanelState extends ConsumerState<TranscriptPanel> {
     );
     final showExtractButton = dexieTargetType == 'Video' && showLocalActions;
 
-    final signedIn = ref.watch(authCtrlProvider).valueOrNull is AuthSignedIn;
+    final signedIn = ref.watch(
+      authCtrlProvider.select((a) => a.valueOrNull is AuthSignedIn),
+    );
 
     ref.listen(transcriptLinesForMediaProvider(mediaId), (prev, next) {
       final lines = next.asData?.value;
