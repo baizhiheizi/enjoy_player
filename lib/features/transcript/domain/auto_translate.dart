@@ -298,3 +298,8 @@ const kAutoTranslateMaxLineAttempts = 2;
 /// Only auto-request / keep waiting work within this many cues of the
 /// playback highlight (or estimated scroll window).
 const kAutoTranslateViewportWindow = 24;
+
+/// Window from the first buffered translated line to the row flush
+/// (issue #810 D1). A hard kill loses at most this much translated text;
+/// a normal screen exit flushes everything pending immediately.
+const Duration kAutoTranslateFlushInterval = Duration(milliseconds: 1000);

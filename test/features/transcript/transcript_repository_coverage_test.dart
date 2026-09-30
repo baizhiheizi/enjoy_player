@@ -908,7 +908,7 @@ void main() {
 
     tearDown(() => db.close());
 
-    test('returns same instance for same content hash', () {
+    test('returns same instance for the same revision', () {
       final now = DateTime.utc(2026);
       final json = jsonEncode([
         const TranscriptLine(text: 'x', startMs: 0, durationMs: 100).toJson(),

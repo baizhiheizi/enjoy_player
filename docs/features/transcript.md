@@ -115,6 +115,15 @@ Interface notes:
   auto-translate track management (`ensureAutoTranslateTrack`,
   `updateAutoTranslateLineText`, `isAutoTranslateTrackStale`) are class
   methods alongside the rest of the surface.
+- `updateAutoTranslateLineText` **buffers** the line and flushes the row at
+  most once per `kAutoTranslateFlushInterval` (1 s) window from the first
+  buffered line (issue #810 D1) — one row rewrite per burst instead of one
+  per line. Reads via `linesForRow` overlay the buffer, so controller and
+  UI see the logical state immediately. The autoDispose
+  `AutoTranslateCtrl` flushes on its own disposal (player screen unmount);
+  a hard kill inside the window loses at most 1 s of translated text. A
+  stale skeleton rebuild and `deleteTranscript` drop the buffer for that
+  track.
 - Reactive lines are repo-owned: `watchPrimaryLines(mediaId)` /
   `watchSecondaryLines(mediaId)` hide target-type resolution, the
   active-row-only fetch, the 16 KB isolate-preload threshold, and the
@@ -123,10 +132,24 @@ Interface notes:
   `autoDispose` families (issue #810 C2): decoded lines and their Drift
   watch streams are released once no widget watches the media, while the
   repository — and its `TranscriptTimelineCache` decode memo — survives for
-  warm re-entry. That memo is an `L1Store` LRU bounded to 8 rows with no
-  TTL (issue #810 C1): content-hash mismatch on the same row id and
-  explicit removal on row mutation are the only invalidations, and the
-  least-recently-used decode is dropped on overflow.
+  warm re-entry. That memo is an `L1Store` LRU bounded to 8 rows (issue
+  #810 C1): a `(updatedAt, timelineJson length)` revision mismatch on the
+  same row id and explicit removal on row mutation are the only
+  invalidations, and the least-recently-used decode is dropped on overflow.
+  The revision is sound because drift stores `updated_at` at whole-second
+  granularity and `TranscriptDao.upsert`/`upsertAll` nudge a same-second
+  consecutive write one second forward, so the pair changes on every
+  content change (issue #810 D5; replaces the previous SHA-1-over-JSON
+  identity, which hashed the full 1–10 MB timeline on every watch tick).
+- Transcript watches are light: `TranscriptDao.watchSummariesForTarget`
+  projects only track metadata + change-tick columns (`selectOnly`, no
+  `timeline_json`), and the lines/tracks watchers refetch payloads
+  themselves through the memoized codec path (issue #810 D2), so a write
+  no longer re-copies every timeline blob of that media to the UI isolate.
+- Timeline **encodes** are size-gated like decodes: every write site routes
+  through `encodeTimelineJsonGated` (16 KB estimate threshold), which keeps
+  small timelines inline and encodes large ones in a background isolate
+  (issue #810 D4).
 
 ## Blur practice (listening-focus) mode
 

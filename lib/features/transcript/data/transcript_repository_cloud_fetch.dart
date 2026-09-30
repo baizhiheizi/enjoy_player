@@ -84,19 +84,15 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     try {
       final list = await api.transcripts(targetId: mediaId, targetType: tt);
       final now = DateTime.now();
-      final rowsToUpsert = <TranscriptRow>[];
-      for (final item in list) {
-        final row = _transcriptRowFromServerMap(item, fallbackNow: now);
-        if (row != null) rowsToUpsert.add(row);
-      }
+      final mapped = await Future.wait(
+        list.map((item) => _transcriptRowFromServerMap(item, fallbackNow: now)),
+      );
+      final rowsToUpsert = <TranscriptRow>[
+        for (final row in mapped)
+          if (row != null) row,
+      ];
       if (rowsToUpsert.isNotEmpty) {
-        await _db.batch(
-          (b) => b.insertAll(
-            _db.transcripts,
-            rowsToUpsert,
-            mode: InsertMode.insertOrReplace,
-          ),
-        );
+        await _db.transcriptDao.upsertAll(rowsToUpsert);
       }
       final storedCount = rowsToUpsert.length;
 
@@ -127,10 +123,10 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     }
   }
 
-  TranscriptRow? _transcriptRowFromServerMap(
+  Future<TranscriptRow?> _transcriptRowFromServerMap(
     Map<String, dynamic> json, {
     required DateTime fallbackNow,
-  }) {
+  }) async {
     final id = json['id'] as String?;
     final targetType = json['targetType'] as String?;
     final targetId = json['targetId'] as String?;
@@ -150,7 +146,7 @@ extension _TranscriptRepositoryCloudFetch on TranscriptRepository {
     final lines = transcriptLinesFromApiTimeline(timeline);
     if (lines.isEmpty) return null;
 
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final timelineJson = await encodeTimelineJsonGated(lines);
     final createdAt = _parseServerDate(json['createdAt'], fallbackNow);
     final updatedAt = _parseServerDate(json['updatedAt'], fallbackNow);
     final label = (json['label'] as String?) ?? '';

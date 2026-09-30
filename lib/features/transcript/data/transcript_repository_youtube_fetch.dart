@@ -139,9 +139,7 @@ extension _TranscriptRepositoryYoutubeFetch on TranscriptRepository {
         language: trackResult.language,
         source: source,
       );
-      final timelineJson = jsonEncode(
-        trackResult.subtitles.map((e) => e.toJson()).toList(),
-      );
+      final timelineJson = await encodeTimelineJsonGated(trackResult.subtitles);
 
       await _db.transcriptDao.upsert(
         TranscriptRow(

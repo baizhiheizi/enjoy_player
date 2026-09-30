@@ -63,6 +63,40 @@ void main() {
     });
 
     test(
+      'same-length timeline edit in the same second never serves stale lines (#810 D5)',
+      () async {
+        final t = DateTime.utc(2025, 1, 1);
+        await db.transcriptDao.upsert(
+          makeRow(
+            id: 't1',
+            updatedAt: t,
+            timelineJson: '[{"text":"aaa","start":0,"duration":1000}]',
+          ),
+        );
+        final a = repo.linesForRow((await db.transcriptDao.getById('t1'))!);
+        expect(a.first.text, 'aaa');
+
+        await db.transcriptDao.upsert(
+          makeRow(
+            id: 't1',
+            updatedAt: t,
+            timelineJson: '[{"text":"bbb","start":0,"duration":1000}]',
+          ),
+        );
+        final rowAfter = (await db.transcriptDao.getById('t1'))!;
+        expect(
+          rowAfter.timelineJson.length,
+          '[{"text":"aaa","start":0,"duration":1000}]'.length,
+        );
+        expect(rowAfter.updatedAt.isAfter(t), isTrue);
+
+        final b = repo.linesForRow(rowAfter);
+        expect(identical(a, b), isFalse);
+        expect(b.first.text, 'bbb');
+      },
+    );
+
+    test(
       'setActiveTranscript and setSecondaryTranscript update session',
       () async {
         final now = DateTime.now();

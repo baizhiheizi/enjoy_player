@@ -86,50 +86,126 @@ void main() {
       expect(await db.transcriptDao.getById('keep'), isNotNull);
     });
 
-    test('watchForTarget orders by language ascending', () async {
-      await db.transcriptDao.upsert(_transcript(id: 't-1', language: 'zh'));
-      await db.transcriptDao.upsert(_transcript(id: 't-2', language: 'en'));
-      await db.transcriptDao.upsert(_transcript(id: 't-3', language: 'ja'));
-      final list = await db.transcriptDao.watchForTarget('video', 'v-1').first;
-      expect(list.map((r) => r.language), ['en', 'ja', 'zh']);
+    test(
+      'upsert nudges updatedAt forward on a same-second rewrite (issue #810 D5)',
+      () async {
+        final first = _transcript(id: 't-1', label: 'first');
+        await db.transcriptDao.upsert(first);
+        await db.transcriptDao.upsert(_transcript(id: 't-1', label: 'second'));
+
+        final stored = await db.transcriptDao.getById('t-1');
+        expect(
+          stored!.updatedAt.difference(first.updatedAt),
+          const Duration(seconds: 1),
+        );
+      },
+    );
+
+    test(
+      'upsert keeps the caller updatedAt when writes are a second apart',
+      () async {
+        final first = _transcript(id: 't-1');
+        await db.transcriptDao.upsert(first);
+        final later = _transcript(
+          id: 't-1',
+          timelineJson: '[{"text":"b","start":0,"duration":100}]',
+        ).copyWith(updatedAt: first.updatedAt.add(const Duration(seconds: 2)));
+        await db.transcriptDao.upsert(later);
+
+        final stored = await db.transcriptDao.getById('t-1');
+        expect(stored!.updatedAt, later.updatedAt);
+      },
+    );
+
+    test('upsertAll applies the same same-second revision guarantee', () async {
+      final t = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+      await db.transcriptDao.upsertAll([
+        _transcript(id: 't-1').copyWith(updatedAt: t),
+        _transcript(id: 't-2').copyWith(updatedAt: t),
+      ]);
+      await db.transcriptDao.upsertAll([
+        _transcript(id: 't-1', label: 'again').copyWith(updatedAt: t),
+      ]);
+
+      expect(
+        (await db.transcriptDao.getById('t-1'))!.updatedAt,
+        t.add(const Duration(seconds: 1)),
+      );
+      expect((await db.transcriptDao.getById('t-2'))!.updatedAt, t);
     });
 
-    test('watchForTarget filters by target', () async {
+    test(
+      'watchSummariesForTarget orders by source, language, createdAt',
+      () async {
+        final earlier = DateTime.fromMillisecondsSinceEpoch(1600000000000);
+        final later = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+        await db.transcriptDao.upsert(
+          _transcript(
+            id: 't-1',
+            source: 'yt',
+            language: 'en',
+          ).copyWith(createdAt: later),
+        );
+        await db.transcriptDao.upsert(
+          _transcript(
+            id: 't-2',
+            source: 'yt',
+            language: 'zh',
+          ).copyWith(createdAt: earlier),
+        );
+        await db.transcriptDao.upsert(
+          _transcript(
+            id: 't-3',
+            source: 'manual',
+            language: 'en',
+          ).copyWith(createdAt: earlier),
+        );
+        final list = await db.transcriptDao
+            .watchSummariesForTarget('video', 'v-1')
+            .first;
+        expect(list.map((r) => r.id), ['t-3', 't-1', 't-2']);
+      },
+    );
+
+    test('watchSummariesForTarget filters by target', () async {
       await db.transcriptDao.upsert(_transcript(id: 't-1', targetId: 'v-1'));
       await db.transcriptDao.upsert(_transcript(id: 't-2', targetId: 'v-2'));
-      final list = await db.transcriptDao.watchForTarget('video', 'v-1').first;
+      final list = await db.transcriptDao
+          .watchSummariesForTarget('video', 'v-1')
+          .first;
       expect(list.single.id, 't-1');
     });
 
-    test('watchAllForTarget orders by source, language, createdAt', () async {
-      final earlier = DateTime.fromMillisecondsSinceEpoch(1600000000000);
-      final later = DateTime.fromMillisecondsSinceEpoch(1700000000000);
-      await db.transcriptDao.upsert(
-        _transcript(
-          id: 't-1',
-          source: 'yt',
-          language: 'en',
-        ).copyWith(createdAt: later),
-      );
-      await db.transcriptDao.upsert(
-        _transcript(
-          id: 't-2',
-          source: 'yt',
-          language: 'zh',
-        ).copyWith(createdAt: earlier),
-      );
-      await db.transcriptDao.upsert(
-        _transcript(
-          id: 't-3',
-          source: 'manual',
-          language: 'en',
-        ).copyWith(createdAt: earlier),
-      );
-      final list = await db.transcriptDao
-          .watchAllForTarget('video', 'v-1')
-          .first;
-      expect(list.map((r) => r.id), ['t-3', 't-1', 't-2']);
-    });
+    test(
+      'watchSummariesForTarget fires on row change and carries light columns',
+      () async {
+        await db.transcriptDao.upsert(
+          _transcript(id: 't-1', label: 'first', trackIndex: 3),
+        );
+        final emissions = <List<TranscriptTrackSummary>>[];
+        final sub = db.transcriptDao
+            .watchSummariesForTarget('video', 'v-1')
+            .listen(emissions.add);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        await db.transcriptDao.upsert(
+          _transcript(id: 't-1', label: 'second', trackIndex: 3),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await sub.cancel();
+
+        expect(emissions, hasLength(2));
+        final first = emissions.first.single;
+        expect(first.id, 't-1');
+        expect(first.label, 'first');
+        expect(first.targetType, 'video');
+        expect(first.targetId, 'v-1');
+        expect(first.language, 'en');
+        expect(first.source, 'manual');
+        expect(first.trackIndex, 3);
+        expect(emissions.last.single.label, 'second');
+      },
+    );
 
     test('watchExistsForTarget emits false when empty', () async {
       final exists = await db.transcriptDao

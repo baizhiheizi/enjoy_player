@@ -151,8 +151,8 @@ The shared [`StreamDistinctExt.distinctBy<T>`](../lib/core/utils/stream_distinct
 ```dart
 import 'package:flutter/foundation.dart';
 
-_db.transcriptDao.watchAllForTarget(tt, mediaId)
-    .map((rows) => rows.map(_trackFromRow).toList())
+_db.transcriptDao.watchSummariesForTarget(tt, mediaId)
+    .map((rows) => rows.map(_trackFromSummary).toList())
     .distinctBy(listEquals);
 ```
 
@@ -193,7 +193,7 @@ Current call sites:
 - `LookupSheetResultCache` — same primitive after ADR-0045 slimmed down its internal maps.
 - [`DiscoverRepository`](../lib/features/discover/data/discover_repository.dart) — channel-avatar URL cache, 256 entries / 6 h TTL, see [features/discover.md § Channel avatar cache](features/discover.md#channel-avatar-cache).
 - [`youtubeProfiles`](../lib/features/transcript/data/youtube_profiles_provider.dart) — worker client-profile list, 1 entry / 24 h TTL.
-- [`TranscriptTimelineCache`](../lib/features/transcript/data/transcript_timeline_codec.dart) — decoded `timelineJson` memo, 8 rows / no TTL (invalidation is content-hash based), see [features/transcript.md](features/transcript.md).
+- [`TranscriptTimelineCache`](../lib/features/transcript/data/transcript_timeline_codec.dart) — decoded `timelineJson` memo, 8 rows / no TTL (invalidation is revision based: `(updatedAt, jsonLength)` guarded by the DAO's same-second upsert nudge), see [features/transcript.md](features/transcript.md).
 
 Behavior contract:
 

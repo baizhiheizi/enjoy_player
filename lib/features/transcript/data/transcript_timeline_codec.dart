@@ -1,12 +1,13 @@
 /// One home for the `timelineJson` contract: decode (strict + fail-closed),
-/// content-keyed memoization, and active-cue lookup (issue #766).
+/// revision-keyed memoization, size-gated encode, and active-cue lookup
+/// (issue #766; memo key reworked for issue #810 D5).
 ///
 /// ADR-0070 §"one JSON contract" used to hold only in the `TranscriptLine`
 /// model — the JSON was decoded by three independent decoders with two
 /// private memo caches (repository, Craft enricher, player interactions).
 /// Everything now crosses this module; cue lookups live here too so the two
-/// policies (UI highlight, transport) share one binary-search core instead
-/// of drifting.
+/// policies (UI highlight, transport) share one binary-search core instead of
+/// drifting.
 ///
 /// Both decodes pass through [TranscriptLine.fromJson], so the mixed-unit
 /// rule (word offsets in ms relative to the line; phone offsets in seconds
@@ -15,8 +16,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show compute;
 
 import '../../../core/cache/lru_store.dart';
 import '../../../data/subtitle/transcript_line.dart';
@@ -74,35 +74,81 @@ List<TranscriptLine>? tryDecodeTimelineJson(String timelineJson) {
   }
 }
 
-/// Content hash used as the memo identity for a `timelineJson` blob.
-///
-/// The full SHA-1 (40 hex chars, 160 bits), deliberately NOT truncated: the
-/// hash is the identity gate between a cached decode and a fresh one for the
-/// same row id, so a collision would return the WRONG lines for a row — the
-/// stale-line-index bug class this module exists to prevent (issue #659).
-/// At 64 bits a birthday collision is plausible within a heavy session; at
-/// 160 bits it is not. The extra 24 hex chars per entry are noise.
-String timelineJsonHash(String timelineJson) =>
-    sha1.convert(utf8.encode(timelineJson)).toString();
+/// Encodes [lines] as a `timelineJson` blob (the write-side counterpart of
+/// [decodeTimelineJson]).
+String encodeTimelineJson(List<TranscriptLine> lines) =>
+    jsonEncode([for (final line in lines) line.toJson()]);
+
+/// Timelines whose encoded size is estimated above this are encoded in a
+/// background isolate by [encodeTimelineJsonGated] (issue #810 D4 — the
+/// read side already had this gate, the write side had none).
+const int kEncodeTimelineJsonBytes = 16 * 1024;
+
+/// Encodes [lines] in a background isolate when the payload is large
+/// (mirroring the read-side [kPreloadTimelineJsonBytes] gate), inline
+/// otherwise.
+Future<String> encodeTimelineJsonGated(List<TranscriptLine> lines) {
+  if (timelineEncodeNeedsIsolate(lines)) {
+    return compute(encodeTimelineJson, lines);
+  }
+  return Future.value(encodeTimelineJson(lines));
+}
+
+/// Whether [encodeTimelineJsonGated] would leave the calling isolate for
+/// [lines].
+bool timelineEncodeNeedsIsolate(List<TranscriptLine> lines) =>
+    estimatedTimelineJsonBytes(lines) > kEncodeTimelineJsonBytes;
+
+/// Upper-bound estimate of the encoded byte length of [lines] — a UTF-8
+/// code unit costs at most three bytes, and every JSON field name and
+/// delimiter is covered by the fixed per-entry terms. Only used to pick the
+/// encode path, so overestimating is safe and underestimating is impossible
+/// up to these constants.
+int estimatedTimelineJsonBytes(List<TranscriptLine> lines) {
+  var bytes = 64;
+  for (final line in lines) {
+    bytes += 64 + 3 * line.text.length;
+    final words = line.timeline;
+    if (words == null) continue;
+    for (final word in words) {
+      bytes += 48 + 3 * word.text.length + 96 * (word.phones?.length ?? 0);
+    }
+  }
+  return bytes;
+}
+
+/// Per-row content revision for a `transcripts` row: the pair changes
+/// whenever the row's `timeline_json` changes, because drift stores
+/// `updated_at` at whole-second granularity and
+/// `TranscriptDao.upsert`/`upsertAll` nudge a same-second consecutive write
+/// one second forward (issue #810 D5).
+typedef TranscriptTimelineRevision = ({DateTime updatedAt, int jsonLength});
 
 /// Maximum number of decoded timelines kept memoized; the least-recently
 /// used decode is dropped on overflow (issue #810, item C1).
 const int kTranscriptTimelineMemoCapacity = 8;
 
 class _CachedLines {
-  const _CachedLines(this.hash, this.lines);
-  final String hash;
+  const _CachedLines(this.revision, this.lines);
+  final TranscriptTimelineRevision revision;
   final List<TranscriptLine> lines;
 }
 
-/// Memoized timeline decode keyed on row identity + content hash.
+/// Memoized timeline decode keyed on row identity + content revision.
 ///
-/// Keying on content — not the row id alone — is the issue-#659
-/// re-segmentation guard: a re-import re-segments cues under the *same* row
-/// id, the changed `timelineJson` hashes differently, and the cache serves a
-/// fresh decode instead of stale line indices. The hash-on-content key also
-/// skips re-decoding when an unrelated Drift bump shifts a row's
-/// `updatedAt` without touching `timelineJson`.
+/// The revision key replaces the previous SHA-1-over-JSON identity
+/// (issue #810 D5): hashing a 1–10 MB enriched timeline ran up to three
+/// times per DB tick (`isCached`, `store`, `linesFor` on every watch
+/// re-run), all on the UI isolate. A revision compare is two field
+/// comparisons.
+///
+/// Soundness of the key rests on a DAO invariant, not on caller discipline:
+/// `TranscriptDao` guarantees two consecutive stored writes to the same row
+/// never share a stored `updated_at` second, so any content change —
+/// including a same-length edit landing in the same wall-clock second, and
+/// re-segmentation under the same row id (issue #659) — changes the
+/// revision and forces a re-decode. Writes that bypass the DAO have no such
+/// guarantee.
 ///
 /// Eviction: entries are removed on the row's mutation points —
 /// `_deleteTranscript`, `_replaceTimeline`, and the auto-translate rewrite
@@ -118,36 +164,47 @@ class TranscriptTimelineCache {
     capacity: kTranscriptTimelineMemoCapacity,
   );
 
-  /// Decoded lines for `(rowId, timelineJson)`, memoized.
+  /// Decoded lines for `(rowId, revision)`, memoized. [timelineJson] is
+  /// decoded only on a miss, so callers holding a guaranteed cache hit may
+  /// omit it; a miss without it throws [StateError].
   List<TranscriptLine> linesFor({
     required String rowId,
-    required String timelineJson,
+    required TranscriptTimelineRevision revision,
+    String? timelineJson,
   }) {
-    final hash = timelineJsonHash(timelineJson);
     final hit = _entries.peek(rowId);
-    if (hit != null && hit.hash == hash) return hit.lines;
+    if (hit != null && hit.revision == revision) return hit.lines;
+    if (timelineJson == null) {
+      throw StateError(
+        'TranscriptTimelineCache.linesFor miss for row $rowId at revision '
+        '$revision requires timelineJson',
+      );
+    }
     final decoded = decodeTimelineJson(timelineJson);
-    _entries.put(rowId, _CachedLines(hash, decoded));
+    _entries.put(rowId, _CachedLines(revision, decoded));
     return decoded;
   }
 
-  /// Whether `(rowId, timelineJson)` already holds a decode.
+  /// Whether `(rowId, revision)` already holds a decode.
   ///
   /// A pure probe: unlike [linesFor] it does not touch the entry's LRU
   /// position, so a background pre-decode gate cannot keep a row resident
   /// or reorder the eviction queue.
-  bool isCached({required String rowId, required String timelineJson}) {
+  bool isCached({
+    required String rowId,
+    required TranscriptTimelineRevision revision,
+  }) {
     final hit = _entries.peekNoTouch(rowId);
-    return hit != null && hit.hash == timelineJsonHash(timelineJson);
+    return hit != null && hit.revision == revision;
   }
 
   /// Stores a decode produced off the UI isolate (background preload).
   void store({
     required String rowId,
-    required String timelineJson,
+    required TranscriptTimelineRevision revision,
     required List<TranscriptLine> lines,
   }) {
-    _entries.put(rowId, _CachedLines(timelineJsonHash(timelineJson), lines));
+    _entries.put(rowId, _CachedLines(revision, lines));
   }
 
   /// Evicts a row's decode (row deleted or its timeline rewritten without

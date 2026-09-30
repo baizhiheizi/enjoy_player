@@ -23,7 +23,7 @@ extension _TranscriptRepositoryYoutubeWorkerCache on TranscriptRepository {
       source: source,
     );
 
-    final timelineJson = jsonEncode(lines.map((e) => e.toJson()).toList());
+    final timelineJson = await encodeTimelineJsonGated(lines);
     final updated = DateTime.now();
 
     await _db.transcriptDao.upsert(
