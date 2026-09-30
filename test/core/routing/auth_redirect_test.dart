@@ -84,17 +84,24 @@ void main() {
       );
     });
 
-    test('auth loading redirects protected routes to sign-in', () {
+    test('auth loading stays on protected routes (no sign-in flash)', () {
       expect(
         resolveAuthRedirect(matchedLocation: '/', auth: const AsyncLoading()),
-        '/sign-in?from=%2F',
+        isNull,
       );
       expect(
         resolveAuthRedirect(
           matchedLocation: '/discover',
           auth: const AsyncLoading(),
         ),
-        '/sign-in?from=%2Fdiscover',
+        isNull,
+      );
+      expect(
+        resolveAuthRedirect(
+          matchedLocation: '/player/abc',
+          auth: const AsyncLoading(),
+        ),
+        isNull,
       );
     });
 
@@ -150,7 +157,7 @@ void main() {
       );
     });
 
-    test('auth error redirects like loading', () {
+    test('auth error still redirects protected routes to sign-in', () {
       expect(
         resolveAuthRedirect(
           matchedLocation: '/settings',

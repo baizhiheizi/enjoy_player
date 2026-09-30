@@ -70,6 +70,8 @@ Both entries run `SyncQueueRepository.addJob` — the dedup contract on `(entity
 
 Server wins when `server.updatedAt >= local.updatedAt`; local-only paths (`localUri`, `localPath`) are preserved on merge.
 
+Download (`SyncDownloadService`) applies that merge **per page**, not per row (issue #810 D3): each 50-row page costs one `WHERE id IN (…)` pre-read of existing local rows (DAO `getManyByIds`) plus one transactional batch upsert (DAO `upsertRows`) instead of two database round trips and one commit per row. If the bulk read or the batch fails, the page falls back to the historical per-row `getById` / merge / `insertRow` path so a single bad row still cannot fail its page neighbors; the merge callbacks themselves are unchanged.
+
 When the server accepts an upload but **omits** the `updatedAt` field in its response, [`SyncUploadService`](../../lib/features/sync/data/sync_upload_service.dart) throws a `SyncMissingUpdatedAtError` instead of silently stamping the row with `DateTime.now()`. The local `serverUpdatedAt` is preserved as-is and the queue row is marked for a follow-up pull — this prevents a clock-skewed "successful" upload from masking a real divergence on the next reconciliation. Callers should treat `SyncMissingUpdatedAtError` as a soft failure (retry eligible) rather than a hard conflict.
 
 **Vocabulary exception:** older `POST /mine/vocabulary_items|vocabulary_contexts` responses were only `{ success: true }` (`len=16`). The client refetches `GET …/:id` when the create body lacks `updatedAt`. The API should return the persisted row via `render :show` (same shape as GET show).

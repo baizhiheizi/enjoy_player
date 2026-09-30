@@ -49,6 +49,47 @@ void main() {
       expect(await db.vocabularyContextDao.getById('nope'), isNull);
     });
 
+    test(
+      'getManyByIds returns a map keyed by id, missing ids omitted',
+      () async {
+        await db.vocabularyContextDao.insertRow(_vocabContext(id: 'a'));
+        await db.vocabularyContextDao.insertRow(
+          _vocabContext(id: 'b', contextText: 'other'),
+        );
+        final found = await db.vocabularyContextDao.getManyByIds([
+          'b',
+          'nope',
+          'a',
+        ]);
+        expect(found.keys.toSet(), {'a', 'b'});
+        expect(found['b']!.contextText, 'other');
+      },
+    );
+
+    test('getManyByIds with empty input returns an empty map', () async {
+      expect(await db.vocabularyContextDao.getManyByIds([]), isEmpty);
+    });
+
+    test('upsertRows matches updateRow insert-or-replace semantics', () async {
+      await db.vocabularyContextDao.insertRow(
+        _vocabContext(id: 'a', contextText: 'old'),
+      );
+      await db.vocabularyContextDao.upsertRows([
+        _vocabContext(id: 'a', contextText: 'new'),
+        _vocabContext(id: 'z', contextText: 'fresh'),
+      ]);
+      expect((await db.vocabularyContextDao.getById('a'))!.contextText, 'new');
+      expect(
+        (await db.vocabularyContextDao.getById('z'))!.contextText,
+        'fresh',
+      );
+    });
+
+    test('upsertRows with empty input is a no-op', () async {
+      await db.vocabularyContextDao.upsertRows([]);
+      expect(await db.vocabularyContextDao.getById('a'), isNull);
+    });
+
     test('getByItemId returns contexts grouped by item id', () async {
       await db.vocabularyContextDao.insertRow(
         _vocabContext(id: 'a', vocabularyItemId: 'item-1'),

@@ -7,6 +7,7 @@ import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
 import 'package:enjoy_player/features/craft/data/craft_library_repository.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
+import 'package:enjoy_player/features/transcript/data/transcript_timeline_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
@@ -307,6 +308,65 @@ void main() {
       expect(source.language.startsWith('en'), isTrue);
       expect(source.sourceFlag, 'craft-direct');
     });
+
+    test('large primary timeline (>16 KB) still joins practiceText', () async {
+      final lines = List<Map<String, dynamic>>.generate(
+        40,
+        (i) => {
+          'text': 'line $i ${'p' * 500}',
+          'start': i * 1000,
+          'duration': 1000,
+        },
+      );
+      final timelineJson = jsonEncode(lines);
+      expect(timelineJson.length, greaterThan(16 * 1024));
+
+      final id = await repo.importCraftedFromText(
+        audioBytes: Uint8List.fromList([1, 2, 3]),
+        audioFormat: 'wav',
+        learningLanguage: 'en',
+        sourceLanguage: null,
+        text: 'Hello world this is a test.',
+        normalizedText: 'Hello world this is a test.',
+        primaryTimelineJson: timelineJson,
+        sourceFlag: 'craft-direct',
+        signedInUserId: _testUserId,
+      );
+
+      final source = await repo.getCraftEditSource(id);
+      expect(source!.practiceText, startsWith('line 0'));
+      expect(source.practiceText, contains('line 39'));
+    });
+
+    test(
+      'practiceText decode goes through the injected timeline decoder',
+      () async {
+        var decodeCalls = 0;
+        final injected = CraftLibraryRepository(
+          db,
+          FileStorage(),
+          decodeTimelineLines: (row) async {
+            decodeCalls++;
+            return decodeTimelineJson(row.timelineJson);
+          },
+        );
+        final id = await injected.importCraftedFromText(
+          audioBytes: Uint8List.fromList([1, 2, 3]),
+          audioFormat: 'wav',
+          learningLanguage: 'en',
+          sourceLanguage: null,
+          text: 'Hello world this is a test.',
+          normalizedText: 'Hello world this is a test.',
+          primaryTimelineJson: _solidTimeline('Hello world.'),
+          sourceFlag: 'craft-direct',
+          signedInUserId: _testUserId,
+        );
+
+        final source = await injected.getCraftEditSource(id);
+        expect(source!.practiceText, 'Hello world.');
+        expect(decodeCalls, 1);
+      },
+    );
 
     test(
       'blank Express save keeps practice text from description, not native sourceText',

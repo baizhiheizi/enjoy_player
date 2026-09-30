@@ -2,8 +2,23 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [VocabularyItems])
 class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
-    with _$VocabularyItemDaoMixin {
+    with
+        _$VocabularyItemDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VocabularyItemRow> {
   VocabularyItemDao(super.db);
+
+  @override
+  TableInfo<Table, VocabularyItemRow> get bulkPkTable => vocabularyItems;
+
+  @override
+  GeneratedColumn<String> get bulkPkColumn => vocabularyItems.id;
+
+  @override
+  String Function(VocabularyItemRow row) get bulkPkRowId =>
+      (row) => row.id;
+
+  @override
+  InsertMode get bulkPkInsertMode => InsertMode.replace;
 
   Future<VocabularyItemRow?> getById(String id) => (select(
     vocabularyItems,
