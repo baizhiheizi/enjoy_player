@@ -432,7 +432,7 @@ Empty states: no words; no due with **Custom review** CTA in the empty panel (no
 ### Flashcard session
 
 - Immersive study chrome (no dense AppBar): one header row with close, a 5px accent progress track, tabular `current / total`, quiet **Skip**, and undo. Close tooltip = exit review.
-- **Adaptive study stage:** the card fills the remaining column under the header (and the post-flip rating footer). Front/back share the same stage; fade-only flip.
+- **Adaptive study stage:** the card fills the remaining column under the header (and the post-flip rating footer). Front/back share the same stage; fade-only flip. Session start loads contexts for the whole queue in one bulk read (repository `getContextsForItems`, issue #827 B2) — no per-card context queries on the tap-to-first-card path.
 - Front: display-serif hero word; optional cached IPA · POS in mono (no fetch on the front); **Pronounce** as an accent text control under the word (Worker model audio via shared pronounce stack — [ADR-0064](../decisions/0064-word-pronounce-client.md)); locale from the card’s **`item.language`** (bare tags like `ja` resolve to regional Worker locales). Distinct from Context **Play segment** (media clip). Serif italic context quote with word highlight. Quiet flip hint (mobile “Tap to flip”; desktop “Space to flip · 1 / 2 / 3 to rate”) — not a filled pill.
 - Space **toggles** flip; tapping the card also flips / unflips (no **Flip back** control). Flipping prefetches contextual translation **and** dictionary when missing (signed-in).
 - Back: smaller serif headword + Pronounce icon; compact bordered pill tabs (**Notes hidden until implemented**):
@@ -561,6 +561,8 @@ Impl: `enjoy/apps/web/src/lib/anki/export-csv.ts`
 | Front | Large word + all contexts joined by `<hr>` |
 | Back | Context translations (markdown→HTML), IPA, translation, POS, numbered definitions, examples, source refs |
 | One card | Per vocabulary **item** (contexts merged) |
+
+Contexts are loaded with one bulk `WHERE vocabulary_item_id IN (…)` read (repository `getContextsForItems`, chunked at ≤900 ids per query) instead of one query per item (issue #827 B1); the progress dialog reports coarse phases (load items → load contexts → build CSV).
 
 Limitations to document in UI: ebook titles often unresolved; rich backs need cached explanations.
 

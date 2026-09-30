@@ -11,6 +11,7 @@ import 'package:enjoy_player/core/logging/log.dart';
 import 'package:enjoy_player/data/api/services/recording_api.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/settings_keys.dart';
+import 'package:enjoy_player/features/sync/data/sync_page_upsert.dart';
 import 'package:enjoy_player/features/sync/data/sync_serializers.dart';
 import 'package:enjoy_player/features/sync/domain/sync_types.dart';
 
@@ -89,18 +90,34 @@ class RecordingTargetSyncService {
 
       if (batch.isEmpty) break;
 
+      final pendingUpserts = <String, Map<String, dynamic>>{};
+      var duplicateIds = 0;
       for (final m in batch) {
-        try {
-          final id = m['id'] as String?;
-          if (id == null || id.isEmpty) continue;
-          final local = await _db.recordingDao.getById(id);
-          final merged = mergeRecordingLastWriteWins(local: local, server: m);
-          await _db.recordingDao.insertRow(merged);
-          synced++;
-        } catch (e) {
-          failed++;
-          errors.add('$e');
-        }
+        final id = m['id'] as String?;
+        if (id == null || id.isEmpty) continue;
+        if (pendingUpserts.containsKey(id)) duplicateIds++;
+        pendingUpserts[id] = m;
+      }
+      if (duplicateIds > 0) {
+        _log.warning(
+          '$duplicateIds duplicate ids in one server page '
+          '(${pendingUpserts.length} unique); keeping the last payload per id '
+          '(last-write-wins, matching the historical per-row path)',
+        );
+      }
+
+      if (pendingUpserts.isNotEmpty) {
+        final counts = await mergeAndUpsertPage<RecordingRow>(
+          pendingUpserts,
+          getManyByIds: _db.recordingDao.getManyByIds,
+          getLocal: _db.recordingDao.getById,
+          upsertRows: _db.recordingDao.upsertRows,
+          insertRow: _db.recordingDao.insertRow,
+          merge: mergeRecordingLastWriteWins,
+        );
+        synced += counts.synced;
+        failed += counts.failed;
+        errors.addAll(counts.errors);
       }
 
       final maxIso = _maxUpdatedAtIso(batch);

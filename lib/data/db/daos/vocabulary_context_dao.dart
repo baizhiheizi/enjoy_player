@@ -19,14 +19,27 @@ class VocabularyContextDao extends DatabaseAccessor<AppDatabase>
         vocabularyContexts,
       )..where((t) => t.vocabularyItemId.equals(vocabularyItemId))).get();
 
-  /// Bulk-fetch all contexts for the given item ids in a single query
-  /// (issue #468 — eliminates N+1 in vocabulary export).
-  Future<List<VocabularyContextRow>> getByItemIds(Iterable<String> itemIds) {
+  /// Max ids per `IN (…)` query — SQLite's default host variable limit is
+  /// 999, so long id lists are chunked below it (issue #827 B1).
+  static const _kMaxIdsPerQuery = 900;
+
+  /// Bulk-fetch all contexts for the given item ids (issue #468 —
+  /// eliminates N+1 in vocabulary export). One query per ≤900 ids.
+  Future<List<VocabularyContextRow>> getByItemIds(
+    Iterable<String> itemIds,
+  ) async {
     final ids = itemIds.toList();
-    if (ids.isEmpty) return Future.value([]);
-    return (select(
-      vocabularyContexts,
-    )..where((t) => t.vocabularyItemId.isIn(ids))).get();
+    if (ids.isEmpty) return const [];
+    final rows = <VocabularyContextRow>[];
+    for (var i = 0; i < ids.length; i += _kMaxIdsPerQuery) {
+      final chunk = ids.skip(i).take(_kMaxIdsPerQuery).toList();
+      rows.addAll(
+        await (select(
+          vocabularyContexts,
+        )..where((t) => t.vocabularyItemId.isIn(chunk))).get(),
+      );
+    }
+    return rows;
   }
 
   Future<List<VocabularyContextRow>> getByItemAndSource({
