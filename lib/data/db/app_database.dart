@@ -147,11 +147,19 @@ class AppDatabase extends _$AppDatabase {
           to: to,
         );
         if (backupPath == null) {
-          _log.severe(
-            'pre-v6 JSON backup failed; proceeding with destructive legacy '
-            'table drop without a recoverable snapshot',
+          throw StateError(
+            'Aborting the pre-v6 → $to upgrade: the JSON backup under '
+            '{applicationSupport}/migrations did not land, so dropping the '
+            'legacy tables would destroy the library with no recoverable '
+            'snapshot. Free disk space or fix write permissions on the '
+            'application-support directory, then relaunch — the legacy tables '
+            'are untouched and the upgrade retries from version $current.',
           );
         }
+        _log.warning(
+          'pre-v6 JSON backup written to $backupPath before destructive '
+          'migration ($current → $to)',
+        );
         await _dropLegacyTables(m);
         await m.createAll();
         return;

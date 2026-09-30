@@ -43,8 +43,7 @@ const List<String> kCjkSerifFallbacks = [
 /// read `.fontFamily` used to trigger a multi-megabyte runtime fetch plus a
 /// font registration — per transcript line, since [_withCjkFallbacks] runs in
 /// the text build path. A name the device does not have is skipped at no cost,
-/// after which the installed-platform lists above and below take over
-/// (issue #818).
+/// after which the installed-platform lists take over (issue #818).
 const List<String> kCjkNotoSerifFallbacks = [
   'NotoSerifKR',
   'NotoSerifSC',
@@ -58,25 +57,27 @@ const List<String> kCjkNotoSansFallbacks = [
 ];
 
 /// CJK fallbacks so Windows does not substitute low-quality system fonts.
-List<String> _transcriptCjkSerifFallbacks() => [
+///
+/// Every entry is a literal family name for the same reason as
+/// [kCjkNotoSansFallbacks]; `'Geist'` is the id `GoogleFonts.geist()` reports
+/// and is bundled, so naming it costs nothing and keeps the CJK path from ever
+/// constructing a `TextStyle` to read a name.
+const List<String> _kTranscriptCjkSerifFallbacks = [
   ...kCjkNotoSerifFallbacks,
   ...kCjkSerifFallbacks,
 ];
 
-List<String> _transcriptCjkSansFallbacks() {
-  final geist = GoogleFonts.geist().fontFamily;
-  return [
-    ...kCjkNotoSansFallbacks,
-    if (geist != null) geist,
-    ...kCjkSansFallbacks,
-  ];
-}
+const List<String> _kTranscriptCjkSansFallbacks = [
+  ...kCjkNotoSansFallbacks,
+  'Geist',
+  ...kCjkSansFallbacks,
+];
 
 TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
   return style.copyWith(
     fontFamilyFallback: serif
-        ? _transcriptCjkSerifFallbacks()
-        : _transcriptCjkSansFallbacks(),
+        ? _kTranscriptCjkSerifFallbacks
+        : _kTranscriptCjkSansFallbacks,
   );
 }
 

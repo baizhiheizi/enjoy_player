@@ -35,10 +35,22 @@ DriftNativeOptions driftNativeOptions(RootIsolateToken rootToken) {
   );
 }
 
-/// [driftNativeOptions] for the current binding, or `null` when no root token
-/// exists yet (pre-binding construction) and the executor keeps drift's
-/// channel-less default.
-DriftNativeOptions? defaultDriftNativeOptions() {
+/// [driftNativeOptions] for the current binding.
+///
+/// Throws when no root token exists. Returning `null` here would hand drift
+/// back its channel-less default and silently re-enable the bug this module
+/// exists to fix, so a pre-binding construction must fail loudly — the database
+/// path is unusable without a binding anyway, since `driftDatabase()` resolves
+/// its directory through `path_provider`.
+DriftNativeOptions defaultDriftNativeOptions() {
   final rootToken = ServicesBinding.rootIsolateToken;
-  return rootToken == null ? null : driftNativeOptions(rootToken);
+  if (rootToken == null) {
+    throw StateError(
+      'AppDatabase requires an initialized binding: ServicesBinding'
+      '.rootIsolateToken is null, so the Drift background isolate cannot get '
+      'a BinaryMessenger. Call WidgetsFlutterBinding.ensureInitialized() '
+      'before opening the database.',
+    );
+  }
+  return driftNativeOptions(rootToken);
 }
