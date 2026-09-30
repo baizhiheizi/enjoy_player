@@ -37,6 +37,8 @@ One stroke family — **Phosphor** (MIT) vendored as `PhosphorRegular` / `Phosph
 - Interaction: `EnjoyPressable` (press-scale, quiet hover / press wash, focus ring, keyboard activation, haptics). `NoSplash` globally.
 - Motion: `EnjoyThemeTokens.ease` (soft landing) and `.emphasized` (selection travel); `motionFast 160 / Medium 220 / Standard 280 ms`. Page transition = `EnjoyGlidePageTransitionsBuilder` everywhere except iOS (`CupertinoPageTransitionsBuilder`). `MediaQuery.disableAnimations` respected.
 
+**Enforcement (issue #793).** The shape / depth / interaction / type / icon rules above are pinned by `test/core/theme/aurora_design_language_test.dart`, which walks `lib/` and fails on a re-introduced `InkWell(` (a Material ink ripple), a Material `Icons.` reference, a raw `fontFamily: 'monospace'` (bypasses Geist Mono — use `enjoyMonoStyle()`), or a literal `Color(0x…)` outside `lib/core/theme/`. `lib/core/theme/` is exempt from the color rule because the palette itself lives there, and `appNoticeBackground()` stays a standalone `Brightness`-keyed function because ADR-0089 §9 sanctions the dark toast as its own surface. The `enjoySegmentedButtonStyle()` shim in `enjoy_segmented_control.dart` exists only to keep legacy `SegmentedButton` call sites on-theme; once its last caller (Craft) has merged, delete it and use `EnjoySegmentedControl` directly.
+
 ## Theme mode
 
 Porcelain light + midnight dark `ThemeData` (`buildAppTheme(Brightness)`, ADR-0089). `MaterialApp.themeMode` follows persisted `prefs.theme_mode` (`system` | `light` | `dark`, default **system**). Settings → Appearance exposes the three options. See [ADR-0083](../decisions/0083-paper-graphite-light-dark.md) (supersedes [ADR-0011](../decisions/0011-dark-mode-only.md)).

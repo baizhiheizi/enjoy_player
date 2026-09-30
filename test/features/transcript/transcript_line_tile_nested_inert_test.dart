@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -127,7 +128,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.byType(InkWell));
+    await tester.tap(find.byType(EnjoyPressable));
     expect(taps, 1);
     expect(find.text('Hello world'), findsOneWidget);
     expect(find.text('həˈloʊ'), findsNothing);

@@ -1,6 +1,7 @@
 /// Selectable payment processor row with brand method icons.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -81,62 +82,67 @@ class PaymentProcessorOption extends StatelessWidget {
       ],
     };
 
-    return Material(
-      color: selected
-          ? cs.primaryContainer.withValues(alpha: 0.35)
-          : cs.surfaceContainerHighest.withValues(alpha: 0.55),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        side: BorderSide(
-          color: selected
-              ? cs.primary.withValues(alpha: 0.65)
-              : cs.outlineVariant.withValues(alpha: 0.35),
-          width: selected ? 1.5 : 1,
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.35)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.55),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.65)
+                : cs.outlineVariant.withValues(alpha: 0.35),
+            width: selected ? 1.5 : 1,
+          ),
         ),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: enabled ? onSelected : null,
-        child: Padding(
-          padding: EdgeInsets.all(t.space12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: t.space4),
-                child: Icon(
-                  selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
-                  size: 20,
-                  color: selected ? cs.primary : cs.onSurfaceVariant,
+      child: ClipRSuperellipse(
+        borderRadius: BorderRadius.circular(t.radiusMd),
+        child: EnjoyPressable(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          onTap: enabled ? onSelected : null,
+          child: Padding(
+            padding: EdgeInsets.all(t.space12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: t.space4),
+                  child: Icon(
+                    selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
+                    size: 20,
+                    color: selected ? cs.primary : cs.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: tt.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: t.space8),
-                    Wrap(
-                      spacing: t.space12,
-                      runSpacing: t.space8,
-                      children: [
-                        for (final method in methods)
-                          PaymentMethodChip(
-                            icon: method.icon,
-                            label: method.label,
-                          ),
-                      ],
-                    ),
-                  ],
+                      SizedBox(height: t.space8),
+                      Wrap(
+                        spacing: t.space12,
+                        runSpacing: t.space8,
+                        children: [
+                          for (final method in methods)
+                            PaymentMethodChip(
+                              icon: method.icon,
+                              label: method.label,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -238,11 +238,14 @@ class _BalanceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: cs.secondaryContainer,
-        borderRadius: BorderRadius.circular(999),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusFull),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

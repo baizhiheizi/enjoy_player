@@ -191,4 +191,17 @@ void main() {
     expect(other.paints, 1);
     expect(TransportThumbShape.debugGlowPaintsCreated, 2);
   });
+
+  test('thumb glow asserts instead of vanishing when thumbColor is unset', () {
+    TransportThumbShape.debugResetGlowPaints();
+    final shape = _CountingThumbShape(enabledThumbRadius: 6);
+
+    expect(
+      () => _paintOnce(shape, const SliderThemeData()),
+      throwsA(isA<AssertionError>()),
+      reason:
+          'The strip always supplies thumbColor. A silent null-skip would '
+          'drop the hover glow with no signal at all.',
+    );
+  });
 }

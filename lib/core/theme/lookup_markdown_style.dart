@@ -5,15 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 
 /// Markdown styles aligned with Enjoy's dark UI.
 ///
 /// Avoids [MarkdownStyleSheet.fromTheme], which hard-codes light-blue
 /// blockquotes and other light-mode defaults that clash with our surfaces.
 MarkdownStyleSheet buildLookupMarkdownStyleSheet(
-  ThemeData theme,
+  BuildContext context,
   EnjoyThemeTokens tokens,
 ) {
+  final theme = Theme.of(context);
   final scheme = theme.colorScheme;
   final body = theme.textTheme.bodyMedium;
   final calloutFill = scheme.surfaceContainerHigh;
@@ -46,12 +48,11 @@ MarkdownStyleSheet buildLookupMarkdownStyleSheet(
     em: const TextStyle(fontStyle: FontStyle.italic),
     strong: body?.copyWith(fontWeight: FontWeight.w600),
     del: const TextStyle(decoration: TextDecoration.lineThrough),
-    code: body?.copyWith(
-      fontFamily: 'monospace',
-      fontSize: monospaceSize,
-      backgroundColor: calloutFill,
-      color: scheme.onSurface,
-    ),
+    code: enjoyMonoStyle(
+      context,
+      size: monospaceSize,
+      weight: FontWeight.w400,
+    ).copyWith(backgroundColor: calloutFill, color: scheme.onSurface),
     blockquote: body?.copyWith(color: scheme.onSurfaceVariant, height: 1.45),
     blockquotePadding: EdgeInsets.fromLTRB(
       tokens.space12,

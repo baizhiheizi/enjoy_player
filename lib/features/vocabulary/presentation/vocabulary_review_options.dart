@@ -1,6 +1,7 @@
 /// Review options sheet: due / all / status / language / random.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -252,52 +253,57 @@ class _ModeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
     final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: selected
-          ? cs.primaryContainer.withValues(alpha: 0.45)
-          : cs.surfaceContainerHighest.withValues(alpha: 0.28),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        side: BorderSide(
-          color: selected
-              ? cs.primary.withValues(alpha: 0.55)
-              : cs.outlineVariant.withValues(alpha: 0.25),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: selected
+            ? cs.primaryContainer.withValues(alpha: 0.45)
+            : cs.surfaceContainerHighest.withValues(alpha: 0.28),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(
+            color: selected
+                ? cs.primary.withValues(alpha: 0.55)
+                : cs.outlineVariant.withValues(alpha: 0.25),
+          ),
         ),
       ),
-      child: InkWell(
-        onTap: onTap,
+      child: ClipRSuperellipse(
         borderRadius: BorderRadius.circular(t.radiusMd),
-        child: Padding(
-          padding: EdgeInsets.all(t.space16),
-          child: Row(
-            children: [
-              Icon(
-                selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
-                color: selected ? cs.primary : cs.onSurfaceVariant,
-              ),
-              SizedBox(width: t.space12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: t.space4),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
+        child: EnjoyPressable(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          child: Padding(
+            padding: EdgeInsets.all(t.space16),
+            child: Row(
+              children: [
+                Icon(
+                  selected ? EnjoyIcons.radioOn : EnjoyIcons.radioOff,
+                  color: selected ? cs.primary : cs.onSurfaceVariant,
                 ),
-              ),
-            ],
+                SizedBox(width: t.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: t.space4),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

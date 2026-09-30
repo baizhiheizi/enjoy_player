@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -166,7 +167,7 @@ void main() {
       final ipaText = tester.widget<Text>(find.text(helloIpa).first);
       expect(ipaText.style?.color, AppColors.echoActive);
 
-      await tester.tap(find.byType(InkWell).first);
+      await tester.tap(find.byType(EnjoyPressable).first);
       expect(taps, 1);
 
       expect(lookedUp, isNull);

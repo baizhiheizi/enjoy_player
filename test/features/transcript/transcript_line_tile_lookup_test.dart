@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,7 +90,7 @@ void main() {
     );
 
     expect(find.byType(SelectableText), findsNothing);
-    expect(find.byType(InkWell), findsOneWidget);
+    expect(find.byType(EnjoyPressable), findsOneWidget);
   });
 
   testWidgets('grouped echo line remains tappable when not selectable', (
@@ -117,7 +118,7 @@ void main() {
     );
 
     expect(find.byType(SelectableText), findsNothing);
-    expect(find.byType(InkWell), findsOneWidget);
+    expect(find.byType(EnjoyPressable), findsOneWidget);
 
     await tester.tap(find.text('Hello world'));
 
@@ -324,14 +325,16 @@ void main() {
       final tokens = EnjoyThemeTokens.of(
         tester.element(find.byType(TranscriptLineTile)),
       );
-      final materials = tester.widgetList<Material>(
+      final boxes = tester.widgetList<DecoratedBox>(
         find.descendant(
           of: find.byType(TranscriptLineTile),
-          matching: find.byType(Material),
+          matching: find.byType(DecoratedBox),
         ),
       );
       expect(
-        materials.any((m) => m.color == tokens.accentSoft),
+        boxes.any(
+          (b) => (b.decoration as ShapeDecoration?)?.color == tokens.accentSoft,
+        ),
         isTrue,
         reason: 'active wash in $brightness',
       );

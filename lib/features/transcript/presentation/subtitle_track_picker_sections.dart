@@ -2,6 +2,7 @@
 /// primary and translation track lists in the subtitle picker.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -51,11 +52,12 @@ class CollapsibleTrackSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Material(
+              ColoredBox(
                 color: isExpanded
                     ? cs.primaryContainer.withValues(alpha: 0.12)
                     : Colors.transparent,
-                child: InkWell(
+                child: EnjoyPressable(
+                  borderRadius: BorderRadius.circular(t.radiusLg),
                   onTap: onToggle,
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(

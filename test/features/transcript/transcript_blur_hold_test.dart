@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/data/subtitle/transcript_line.dart';
 import 'package:enjoy_player/features/transcript/application/transcript_blur_mode_provider.dart';
 import 'package:enjoy_player/features/transcript/presentation/transcript_blur_text.dart';
@@ -55,7 +56,7 @@ void main() {
       isFalse,
     );
 
-    await tester.tap(find.byType(InkWell));
+    await tester.tap(find.byType(EnjoyPressable));
     await tester.pump();
     expect(tapped, 1);
     expect(
@@ -120,11 +121,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(InkWell).first);
+    await tester.tap(find.byType(EnjoyPressable).first);
     await tester.pump();
 
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.tap(find.byType(InkWell).last);
+    await tester.tap(find.byType(EnjoyPressable).last);
     await tester.pump();
 
     final blurs = tester.widgetList<TranscriptBlurText>(
@@ -142,7 +143,7 @@ void main() {
       harness(line: line, blurActive: false, onTap: () {}),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(InkWell));
+    await tester.tap(find.byType(EnjoyPressable));
     await tester.pump();
     expect(
       tester

@@ -4,6 +4,7 @@ library;
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -45,113 +46,119 @@ class _LookupExpansionCardState extends State<LookupExpansionCard> {
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Material(
-      color: scheme.surfaceContainerLow,
-      shape: RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.circular(t.radiusMd),
-        side: BorderSide(color: t.hairline),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: scheme.surfaceContainerLow,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          side: BorderSide(color: t.hairline),
+        ),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            expanded: _expanded,
-            button: true,
-            label: widget.title,
-            child: InkWell(
-              onTap: _toggle,
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(
-                  t.space12,
-                  t.space8,
-                  t.space8,
-                  t.space8,
-                ),
-                child: Row(
-                  children: [
-                    if (widget.leading != null) ...[
-                      IconTheme(
-                        data: IconThemeData(
-                          color: scheme.primary.withValues(alpha: 0.85),
-                          size: 18,
+      child: ClipRSuperellipse(
+        borderRadius: BorderRadius.circular(t.radiusMd),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Semantics(
+              expanded: _expanded,
+              button: true,
+              label: widget.title,
+              child: EnjoyPressable(
+                borderRadius: BorderRadius.circular(t.radiusSm),
+                onTap: _toggle,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    t.space12,
+                    t.space8,
+                    t.space8,
+                    t.space8,
+                  ),
+                  child: Row(
+                    children: [
+                      if (widget.leading != null) ...[
+                        IconTheme(
+                          data: IconThemeData(
+                            color: scheme.primary.withValues(alpha: 0.85),
+                            size: 18,
+                          ),
+                          child: widget.leading!,
                         ),
-                        child: widget.leading!,
+                        SizedBox(width: t.space8),
+                      ],
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: tt.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      SizedBox(width: t.space8),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0,
+                        duration: t.motionFast,
+                        curve: Curves.easeOutCubic,
+                        child: Icon(
+                          EnjoyIcons.chevronDown,
+                          color: scheme.onSurfaceVariant,
+                          size: 22,
+                        ),
+                      ),
                     ],
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: tt.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    AnimatedRotation(
-                      turns: _expanded ? 0.5 : 0,
-                      duration: t.motionFast,
-                      curve: Curves.easeOutCubic,
-                      child: Icon(
-                        EnjoyIcons.chevronDown,
-                        color: scheme.onSurfaceVariant,
-                        size: 22,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          AnimatedSize(
-            duration: t.motionStandard,
-            curve: Curves.easeInOutCubic,
-            alignment: Alignment.topCenter,
-            child: _expanded
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Divider(
-                        height: 1,
-                        color: scheme.outlineVariant.withValues(alpha: 0.18),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          t.space12,
-                          t.space12,
-                          t.space12,
-                          t.space12,
+            AnimatedSize(
+              duration: t.motionStandard,
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment.topCenter,
+              child: _expanded
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Divider(
+                          height: 1,
+                          color: scheme.outlineVariant.withValues(alpha: 0.18),
                         ),
-                        child: AnimatedSwitcher(
-                          duration: t.motionFast,
-                          layoutBuilder: (current, previous) => Stack(
-                            alignment: AlignmentDirectional.topStart,
-                            children: [...previous, ?current],
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            t.space12,
+                            t.space12,
+                            t.space12,
+                            t.space12,
                           ),
-                          child: _shouldLoad
-                              ? KeyedSubtree(
-                                  key: const ValueKey<String>('body'),
-                                  child: widget.bodyBuilder(context),
-                                )
-                              : KeyedSubtree(
-                                  key: const ValueKey<String>('hint'),
-                                  child: Align(
-                                    alignment: AlignmentDirectional.centerStart,
-                                    child: Text(
-                                      l10n.lookupTapToExpand,
-                                      style: tt.bodySmall?.copyWith(
-                                        color: scheme.onSurfaceVariant,
+                          child: AnimatedSwitcher(
+                            duration: t.motionFast,
+                            layoutBuilder: (current, previous) => Stack(
+                              alignment: AlignmentDirectional.topStart,
+                              children: [...previous, ?current],
+                            ),
+                            child: _shouldLoad
+                                ? KeyedSubtree(
+                                    key: const ValueKey<String>('body'),
+                                    child: widget.bodyBuilder(context),
+                                  )
+                                : KeyedSubtree(
+                                    key: const ValueKey<String>('hint'),
+                                    child: Align(
+                                      alignment:
+                                          AlignmentDirectional.centerStart,
+                                      child: Text(
+                                        l10n.lookupTapToExpand,
+                                        style: tt.bodySmall?.copyWith(
+                                          color: scheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
       ),
     );
   }

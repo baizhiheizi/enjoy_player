@@ -494,6 +494,7 @@ class EnjoyIconButton extends StatelessWidget {
           ),
         ),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        splashFactory: NoSplash.splashFactory,
         backgroundBuilder: variant == EnjoyButtonVariant.primary
             ? (context, states, child) => enjoyLitFillBuilder(
                 context,

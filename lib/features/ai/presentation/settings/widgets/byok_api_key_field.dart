@@ -2,6 +2,7 @@ import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/typography.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
 /// API key field with masked saved state and explicit edit toggle.
@@ -76,8 +77,9 @@ class _ByokApiKeyFieldState extends State<ByokApiKeyField> {
                   Expanded(
                     child: Text(
                       preview,
-                      style: tt.bodyMedium?.copyWith(
-                        fontFamily: 'monospace',
+                      style: enjoyMonoStyle(
+                        context,
+                        size: 14,
                         letterSpacing: 0.5,
                       ),
                     ),

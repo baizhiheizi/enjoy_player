@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
+import 'package:enjoy_player/core/recovery/recovery_text_style.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -82,10 +83,7 @@ class _RecoverySurfaceState extends State<RecoverySurface>
                       children: [
                         Text(
                           widget.error.toString(),
-                          style: tt.bodySmall?.copyWith(
-                            fontFamily: 'monospace',
-                            color: cs.onSurfaceVariant,
-                          ),
+                          style: recoveryMonoText(context, cs),
                           maxLines: 6,
                           overflow: TextOverflow.ellipsis,
                         ),

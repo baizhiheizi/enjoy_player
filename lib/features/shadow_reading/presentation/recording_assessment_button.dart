@@ -1,6 +1,7 @@
 /// Toolbar control: run / view pronunciation assessment for a take.
 library;
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -116,35 +117,32 @@ class RecordingAssessmentButton extends ConsumerWidget {
           child: SizedBox(
             width: 44,
             height: 44,
-            child: Material(
-              color: bg ?? Colors.transparent,
-              type: bg == null
-                  ? MaterialType.transparency
-                  : MaterialType.canvas,
+            child: EnjoyPressable(
               shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: !canInteract || isAssessing ? null : runAssess,
-                child: Center(
-                  child: isAssessing
-                      ? LoadingIcon(size: 18, color: scheme.primary)
-                      : score != null
-                      ? Text(
-                          '$score',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                color: fg,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        )
-                      : Icon(
-                          EnjoyIcons.sparkleFill,
-                          size: 20,
-                          color: canInteract
-                              ? scheme.primary
-                              : scheme.onSurfaceVariant,
-                        ),
+              onTap: !canInteract || isAssessing ? null : runAssess,
+              child: ClipOval(
+                child: ColoredBox(
+                  color: bg ?? Colors.transparent,
+                  child: Center(
+                    child: isAssessing
+                        ? LoadingIcon(size: 18, color: scheme.primary)
+                        : score != null
+                        ? Text(
+                            '$score',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: fg,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          )
+                        : Icon(
+                            EnjoyIcons.sparkleFill,
+                            size: 20,
+                            color: canInteract
+                                ? scheme.primary
+                                : scheme.onSurfaceVariant,
+                          ),
+                  ),
                 ),
               ),
             ),

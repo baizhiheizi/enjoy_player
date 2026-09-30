@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:enjoy_player/core/recovery/recovery_actions.dart';
 import 'package:enjoy_player/core/recovery/recovery_busy_action.dart';
+import 'package:enjoy_player/core/recovery/recovery_text_style.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
@@ -69,10 +70,7 @@ class _WidgetErrorSurfaceState extends State<WidgetErrorSurface>
                       children: [
                         Text(
                           message,
-                          style: tt.bodySmall?.copyWith(
-                            fontFamily: 'monospace',
-                            color: cs.onSurfaceVariant,
-                          ),
+                          style: recoveryMonoText(context, cs),
                           maxLines: 8,
                           overflow: TextOverflow.ellipsis,
                         ),

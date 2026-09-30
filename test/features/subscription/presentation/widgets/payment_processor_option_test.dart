@@ -1,3 +1,4 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -130,7 +131,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(InkWell).first);
+      await tester.tap(find.byType(EnjoyPressable).first);
       await tester.pumpAndSettle();
       expect(tapped, 1);
     });
@@ -146,7 +147,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(InkWell).first);
+      await tester.tap(find.byType(EnjoyPressable).first);
       await tester.pumpAndSettle();
       expect(tapped, 0);
     });
