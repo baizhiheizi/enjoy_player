@@ -192,8 +192,14 @@ void main() {
       container.dispose();
     });
 
-    Future<AppLocalizations> settle(WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1200, 4000);
+    const phoneSurface = Size(390, 844);
+    const fullPageSurface = Size(1200, 4000);
+
+    Future<AppLocalizations> settle(
+      WidgetTester tester, {
+      Size surface = phoneSurface,
+    }) async {
+      tester.view.physicalSize = surface;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(wrap());
@@ -224,7 +230,7 @@ void main() {
     testWidgets('uses Aurora surfaces instead of raw Material widgets', (
       tester,
     ) async {
-      await settle(tester);
+      await settle(tester, surface: fullPageSurface);
       expect(find.byType(EnjoyCard), findsNWidgets(7));
       expect(find.byType(EnjoySectionHeader), findsNWidgets(7));
       expect(find.byType(EnjoyIconTile), findsNWidgets(5));
@@ -236,7 +242,7 @@ void main() {
     testWidgets('groups the five modality sections under section headers', (
       tester,
     ) async {
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
       expect(find.text(l10n.aiPlaygroundSectionAsr), findsOneWidget);
       expect(find.text(l10n.aiPlaygroundSectionChat), findsOneWidget);
       expect(find.text(l10n.aiPlaygroundSectionTranslation), findsOneWidget);
@@ -247,7 +253,7 @@ void main() {
     });
 
     testWidgets('lists the active provider for every modality', (tester) async {
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
       expect(find.text(l10n.settingsAiProvidersModalityLlm), findsOneWidget);
       expect(find.text(l10n.settingsAiProvidersModalityAsr), findsOneWidget);
       expect(find.text(l10n.settingsAiProvidersModalityTts), findsOneWidget);
@@ -260,7 +266,7 @@ void main() {
     });
 
     testWidgets('renders every modality text field', (tester) async {
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
       expect(find.byType(TextField), findsNWidgets(10));
       expect(
         find.widgetWithText(TextField, l10n.aiPlaygroundChatSystem),
@@ -273,7 +279,7 @@ void main() {
     });
 
     testWidgets('offers one primary run action per section', (tester) async {
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
       expect(
         find.widgetWithText(EnjoyButton, l10n.aiPlaygroundTranscribe),
         findsOneWidget,
@@ -307,7 +313,7 @@ void main() {
     testWidgets('shows the console empty state until a request runs', (
       tester,
     ) async {
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
       expect(find.byType(EnjoyIconOrb), findsOneWidget);
       expect(
         tester
@@ -348,7 +354,7 @@ void main() {
       tester,
     ) async {
       fakeLlm.throwOnComplete = true;
-      final l10n = await settle(tester);
+      final l10n = await settle(tester, surface: fullPageSurface);
 
       await tester.tap(
         find.widgetWithText(EnjoyButton, l10n.aiPlaygroundSendChat),
@@ -356,6 +362,86 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('chat boom'), findsOneWidget);
+    });
+
+    testWidgets('keeps every section reachable by scrolling at phone size', (
+      tester,
+    ) async {
+      final l10n = await settle(tester);
+      await tester.scrollUntilVisible(
+        find.byType(EnjoyIconOrb),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundClearOutput),
+        findsOneWidget,
+      );
+      expect(find.byType(EnjoyIconOrb), findsOneWidget);
+    });
+
+    testWidgets('renders the newest entry first', (tester) async {
+      final l10n = await settle(tester, surface: fullPageSurface);
+
+      await tester.tap(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundSendChat),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(EnjoyButton, l10n.aiPlaygroundTranslate),
+      );
+      await tester.pumpAndSettle();
+
+      final texts = tester
+          .widgetList<SelectableText>(find.byType(SelectableText))
+          .map((entry) => entry.data ?? '')
+          .toList(growable: false);
+      expect(texts.first, contains('fake translation'));
+      expect(texts[1], contains('fake chat reply'));
+    });
+
+    testWidgets('caps the console and builds its entries lazily', (
+      tester,
+    ) async {
+      final l10n = await settle(tester);
+      final chatButton = find.widgetWithText(
+        EnjoyButton,
+        l10n.aiPlaygroundSendChat,
+      );
+      final translateButton = find.widgetWithText(
+        EnjoyButton,
+        l10n.aiPlaygroundTranslate,
+      );
+
+      await tester.ensureVisible(chatButton);
+      await tester.tap(chatButton);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(translateButton);
+      for (var i = 0; i < 206; i++) {
+        await tester.tap(translateButton);
+        await tester.pumpAndSettle();
+      }
+
+      final pagePosition = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      pagePosition.jumpTo(pagePosition.maxScrollExtent);
+      await tester.pumpAndSettle();
+
+      final consoleList = find.descendant(
+        of: find.byType(EnjoyCard),
+        matching: find.byType(ListView),
+      );
+      final delegate =
+          tester.widget<ListView>(consoleList).childrenDelegate
+              as SliverChildBuilderDelegate;
+      expect(delegate.childCount, 200);
+      expect(find.byType(SelectableText), findsWidgets);
+      expect(
+        tester.widgetList<SelectableText>(find.byType(SelectableText)).length,
+        lessThan(30),
+      );
     });
   });
 

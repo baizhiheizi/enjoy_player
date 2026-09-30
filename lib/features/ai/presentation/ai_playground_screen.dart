@@ -41,6 +41,10 @@ final Logger _log = logNamed('ai.playground');
 const double _rowLeadingSize = 30;
 const double _rowLeadingGap = 12;
 const double _rowHorizontalPadding = 12;
+const double _consoleViewportHeight = 320;
+const int _maxConsoleEntries = 200;
+
+enum _PlaygroundAction { pick, asr, chat, translate, dictionary, assessment }
 
 class AiPlaygroundScreen extends ConsumerStatefulWidget {
   const AiPlaygroundScreen({super.key});
@@ -67,7 +71,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
 
   Uint8List? _pickedAudio;
   String _pickedName = 'audio.wav';
-  String? _busy;
+  _PlaygroundAction? _busy;
 
   @override
   void dispose() {
@@ -85,7 +89,10 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
   }
 
   void _append(String line, {bool isError = false}) {
-    setState(() => _entries.insert(0, _ConsoleEntry(line, isError: isError)));
+    setState(() {
+      _entries.add(_ConsoleEntry(line, isError: isError));
+      if (_entries.length > _maxConsoleEntries) _entries.removeAt(0);
+    });
   }
 
   void _clearOutput() => setState(_entries.clear);
@@ -113,7 +120,10 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     );
   }
 
-  Future<void> _run(String action, Future<void> Function() body) async {
+  Future<void> _run(
+    _PlaygroundAction action,
+    Future<void> Function() body,
+  ) async {
     if (_busy != null) return;
     setState(() => _busy = action);
     try {
@@ -123,7 +133,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     }
   }
 
-  Future<void> _pickAudio() => _run('pick', () async {
+  Future<void> _pickAudio() => _run(_PlaygroundAction.pick, () async {
     final l10n = AppLocalizations.of(context)!;
     final f = await FilePicker.pickFile(
       type: FileType.custom,
@@ -152,7 +162,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     _append('Selected: ${f.name} (${bytes.length} bytes)');
   });
 
-  Future<void> _runAsr() => _run('asr', () async {
+  Future<void> _runAsr() => _run(_PlaygroundAction.asr, () async {
     final l10n = AppLocalizations.of(context)!;
     final bytes = _pickedAudio;
     if (bytes == null) {
@@ -171,7 +181,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     }
   });
 
-  Future<void> _runChat() => _run('chat', () async {
+  Future<void> _runChat() => _run(_PlaygroundAction.chat, () async {
     try {
       final messages = <ChatMessage>[
         if (_systemCtrl.text.trim().isNotEmpty)
@@ -192,7 +202,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     }
   });
 
-  Future<void> _runTranslate() => _run('translate', () async {
+  Future<void> _runTranslate() => _run(_PlaygroundAction.translate, () async {
     try {
       final r = await ref
           .read(translationServiceProvider)
@@ -209,7 +219,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     }
   });
 
-  Future<void> _runDictionary() => _run('dictionary', () async {
+  Future<void> _runDictionary() => _run(_PlaygroundAction.dictionary, () async {
     try {
       final r = await ref
           .read(dictionaryServiceProvider)
@@ -224,7 +234,9 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
       if (r.ipa != null) buf.writeln('ipa: ${r.ipa}');
       for (var i = 0; i < r.senses.length; i++) {
         final s = r.senses[i];
-        buf.writeln('\n[$i] ${s.partOfSpeech ?? ''}');
+        buf
+          ..writeln()
+          ..writeln('[$i] ${s.partOfSpeech ?? ''}');
         buf.writeln(s.definition);
         if (s.translation != null) buf.writeln('⇄ ${s.translation}');
       }
@@ -236,7 +248,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
     }
   });
 
-  Future<void> _runAssessment() => _run('assessment', () async {
+  Future<void> _runAssessment() => _run(_PlaygroundAction.assessment, () async {
     final l10n = AppLocalizations.of(context)!;
     final bytes = _pickedAudio;
     if (bytes == null) {
@@ -262,7 +274,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
             ),
           );
       final scores = r.detail.primaryScores;
-      final buf = StringBuffer('Pronunciation assessment\n');
+      final buf = StringBuffer()..writeln('Pronunciation assessment');
       if (scores != null) {
         buf.writeln(
           'PronScore: ${scores.pronScore.toStringAsFixed(1)} · '
@@ -277,7 +289,9 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
       buf.writeln('Display: ${r.detail.displayText}');
       final words = r.detail.nBest.isEmpty ? null : r.detail.nBest.first.words;
       if (words != null && words.isNotEmpty) {
-        buf.writeln('\nWords:');
+        buf
+          ..writeln()
+          ..writeln('Words:');
         for (final w in words) {
           buf.writeln(
             '  · ${w.word}  acc=${w.pronunciationAssessment.accuracyScore.toStringAsFixed(0)}  '
@@ -388,7 +402,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                   EnjoyButton.primary(
                     onPressed: busy == null ? _runAsr : null,
                     child: _RunLabel(
-                      busy: busy == 'asr',
+                      busy: busy == _PlaygroundAction.asr,
                       label: l10n.aiPlaygroundTranscribe,
                     ),
                   ),
@@ -420,7 +434,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 child: EnjoyButton.primary(
                   onPressed: busy == null ? _runChat : null,
                   child: _RunLabel(
-                    busy: busy == 'chat',
+                    busy: busy == _PlaygroundAction.chat,
                     label: l10n.aiPlaygroundSendChat,
                   ),
                 ),
@@ -466,7 +480,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 child: EnjoyButton.primary(
                   onPressed: busy == null ? _runTranslate : null,
                   child: _RunLabel(
-                    busy: busy == 'translate',
+                    busy: busy == _PlaygroundAction.translate,
                     label: l10n.aiPlaygroundTranslate,
                   ),
                 ),
@@ -511,7 +525,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 child: EnjoyButton.primary(
                   onPressed: busy == null ? _runDictionary : null,
                   child: _RunLabel(
-                    busy: busy == 'dictionary',
+                    busy: busy == _PlaygroundAction.dictionary,
                     label: l10n.aiPlaygroundDictLookup,
                   ),
                 ),
@@ -550,7 +564,7 @@ class _AiPlaygroundScreenState extends ConsumerState<AiPlaygroundScreen> {
                 child: EnjoyButton.primary(
                   onPressed: busy == null ? _runAssessment : null,
                   child: _RunLabel(
-                    busy: busy == 'assessment',
+                    busy: busy == _PlaygroundAction.assessment,
                     label: l10n.aiPlaygroundAssess,
                   ),
                 ),
@@ -799,21 +813,26 @@ class _ConsolePanel extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < entries.length; i++) ...[
-          if (i > 0) SizedBox(height: t.space16),
-          SelectableText(
-            entries[i].text,
-            style: enjoyMonoStyle(
-              context,
-              size: 12.5,
-              color: entries[i].isError ? cs.error : cs.onSurface,
+    return SizedBox(
+      height: _consoleViewportHeight,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: entries.length,
+        itemBuilder: (context, index) {
+          final entry = entries[entries.length - 1 - index];
+          return Padding(
+            padding: EdgeInsets.only(top: index == 0 ? 0 : t.space16),
+            child: SelectableText(
+              entry.text,
+              style: enjoyMonoStyle(
+                context,
+                size: 12.5,
+                color: entry.isError ? cs.error : cs.onSurface,
+              ),
             ),
-          ),
-        ],
-      ],
+          );
+        },
+      ),
     );
   }
 }
