@@ -1,12 +1,18 @@
 /// Settings rows for customizing shortcuts (Drift-backed via [HotkeysCtrl]).
 library;
 
-import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/notices/app_notice.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_avatar.dart';
+import 'package:enjoy_player/core/theme/enjoy_icons.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_card.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_modal.dart';
 import 'package:enjoy_player/features/hotkeys/application/hotkeys_ctrl.dart';
 import 'package:enjoy_player/features/hotkeys/domain/hotkey_definition.dart';
@@ -15,10 +21,16 @@ import 'package:enjoy_player/features/hotkeys/presentation/hotkey_capture_dialog
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_description.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/hotkeys_filter.dart';
 import 'package:enjoy_player/features/hotkeys/presentation/widgets/kbd_chip.dart';
+import 'package:enjoy_player/features/settings/presentation/widgets/settings_row.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Trailing action icons share a fixed column so edit/reset stay aligned.
-const double _kHotkeyActionsColumnWidth = 80;
+/// Per-scope tile glyph and tint for the grouped sections.
+const Map<HotkeyScope, ({IconData icon, Color tint})> _kScopeVisuals = {
+  HotkeyScope.global: (icon: EnjoyIcons.compass, tint: EnjoyTint.indigo),
+  HotkeyScope.player: (icon: EnjoyIcons.playCircle, tint: EnjoyTint.iris),
+  HotkeyScope.library: (icon: EnjoyIcons.book, tint: EnjoyTint.orange),
+  HotkeyScope.modal: (icon: EnjoyIcons.keyboard, tint: EnjoyTint.slate),
+};
 
 class HotkeysSettingsSection extends ConsumerStatefulWidget {
   const HotkeysSettingsSection({super.key});
@@ -71,78 +83,73 @@ class _HotkeysSettingsSectionState
     }
 
     final children = <Widget>[
-      TextField(
+      _FilterField(
         controller: _filter,
+        hint: l10n.hotkeysFilterHint,
+        clearTooltip: l10n.settingsSearchClear,
+        hasQuery: _filter.text.isNotEmpty,
         onChanged: (_) => setState(() {}),
-        decoration: InputDecoration(
-          hintText: l10n.hotkeysFilterHint,
-          prefixIcon: const Icon(EnjoyIcons.search),
-          isDense: true,
-          filled: true,
-          fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.45),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(t.radiusMd),
-            borderSide: BorderSide(
-              color: cs.outlineVariant.withValues(alpha: 0.6),
-            ),
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: t.space12,
-            vertical: t.space12,
-          ),
-        ),
+        onClear: () => setState(_filter.clear),
       ),
       SizedBox(height: t.space16),
     ];
 
-    var sectionCount = 0;
+    var groupCount = 0;
     for (final scope in HotkeyScope.values) {
       final defs = _definitionsFor(scope).where(matches).toList();
       if (defs.isEmpty) continue;
+      final visuals = _kScopeVisuals[scope]!;
+
+      if (groupCount > 0) children.add(SizedBox(height: t.space24));
+      groupCount++;
+
       children.add(
-        Padding(
-          padding: EdgeInsets.only(
-            top: sectionCount > 0 ? t.space12 : 0,
-            bottom: t.space8,
-          ),
-          child: Text(
-            hotkeysScopeLabel(l10n, scope).toUpperCase(),
-            style: tt.labelSmall?.copyWith(
-              letterSpacing: 1.0,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurfaceVariant,
+        Row(
+          children: [
+            EnjoyIconTile(
+              icon: visuals.icon,
+              color: visuals.tint,
+              size: kSettingsRowLeadingSize,
             ),
+            const SizedBox(width: kSettingsRowLeadingGap),
+            Expanded(
+              child: EnjoySectionHeader(
+                title: hotkeysScopeLabel(l10n, scope),
+                caption: '${defs.length}',
+              ),
+            ),
+          ],
+        ),
+      );
+      children.add(SizedBox(height: t.space12));
+      children.add(
+        EnjoyCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < defs.length; i++) ...[
+                if (i > 0) const SettingsRowDivider(insetForLeading: false),
+                _HotkeyEditRow(
+                  description: hotkeyDescription(l10n, defs[i]),
+                  customized: ctrl.hasCustomBinding(defs[i].id),
+                  customizedLabel: l10n.hotkeysCustomizedBadge,
+                  binding: ctrl.effectiveKeys(defs[i].id),
+                  editTooltip: l10n.hotkeysEditTooltip,
+                  resetTooltip: l10n.hotkeysResetTooltip,
+                  onEdit: () => editBinding(defs[i].id),
+                  onReset: ctrl.hasCustomBinding(defs[i].id)
+                      ? () => ctrl.resetBinding(defs[i].id)
+                      : null,
+                ),
+              ],
+            ],
           ),
         ),
       );
-      sectionCount++;
-      for (final def in defs) {
-        children.add(
-          _HotkeyEditRow(
-            description: hotkeyDescription(l10n, def),
-            customized: ctrl.hasCustomBinding(def.id),
-            customizedLabel: l10n.hotkeysCustomizedBadge,
-            binding: ctrl.effectiveKeys(def.id),
-            editTooltip: l10n.hotkeysEditTooltip,
-            resetTooltip: l10n.hotkeysResetTooltip,
-            onEdit: () => editBinding(def.id),
-            onReset: ctrl.hasCustomBinding(def.id)
-                ? () => ctrl.resetBinding(def.id)
-                : null,
-          ),
-        );
-      }
     }
 
-    if (sectionCount == 0) {
+    if (groupCount == 0) {
       children.add(
         Padding(
           padding: EdgeInsets.symmetric(vertical: t.space24),
@@ -159,6 +166,62 @@ class _HotkeysSettingsSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: children,
+    );
+  }
+}
+
+class _FilterField extends StatelessWidget {
+  const _FilterField({
+    required this.controller,
+    required this.hint,
+    required this.clearTooltip,
+    required this.hasQuery,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final String clearTooltip;
+  final bool hasQuery;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = EnjoyThemeTokens.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      style: Theme.of(context).textTheme.bodyMedium,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(
+          EnjoyIcons.search,
+          color: cs.onSurfaceVariant,
+          size: 20,
+        ),
+        suffixIcon: hasQuery
+            ? IconButton(
+                tooltip: clearTooltip,
+                icon: const Icon(EnjoyIcons.close, size: 18),
+                onPressed: onClear,
+              )
+            : null,
+        filled: true,
+        fillColor: cs.surfaceContainerHighest.withValues(alpha: 0.6),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(t.radiusLg),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: t.space16,
+          vertical: t.space12,
+        ),
+      ),
     );
   }
 }
@@ -189,73 +252,47 @@ class _HotkeyEditRow extends StatelessWidget {
     final t = EnjoyThemeTokens.of(context);
     final tt = Theme.of(context).textTheme;
 
-    final actionStyle = IconButton.styleFrom(
-      visualDensity: VisualDensity.compact,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      minimumSize: const Size(36, 36),
-      padding: EdgeInsets.zero,
-    );
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: t.space4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(t.radiusMd),
-          onTap: onEdit,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: t.space8,
-              horizontal: t.space4,
+    return EnjoyPressable(
+      onTap: onEdit,
+      borderRadius: BorderRadius.circular(t.radiusMd),
+      pressedScale: 0.995,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: t.space8 - 1,
+          horizontal: t.space12,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Wrap(
+                spacing: t.space8,
+                runSpacing: t.space4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(description, style: tt.bodyMedium),
+                  if (customized)
+                    EnjoyTierBadge(label: customizedLabel, muted: true),
+                ],
+              ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: t.space8,
-                    runSpacing: t.space4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(description, style: tt.bodyMedium),
-                      if (customized)
-                        Chip(
-                          label: Text(customizedLabel, style: tt.labelSmall),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          labelPadding: EdgeInsets.symmetric(
-                            horizontal: t.space8,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: t.space12),
-                KbdChordRow(binding: binding, compact: true),
-                SizedBox(width: t.space8),
-                SizedBox(
-                  width: _kHotkeyActionsColumnWidth,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        style: actionStyle,
-                        tooltip: editTooltip,
-                        icon: const Icon(EnjoyIcons.tune, size: 20),
-                        onPressed: onEdit,
-                      ),
-                      IconButton(
-                        style: actionStyle,
-                        tooltip: resetTooltip,
-                        onPressed: onReset,
-                        icon: const Icon(EnjoyIcons.refresh, size: 20),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            SizedBox(width: t.space12),
+            KbdChordRow(binding: binding, compact: true),
+            SizedBox(width: t.space8),
+            EnjoyIconButton(
+              icon: EnjoyIcons.tune,
+              onPressed: onEdit,
+              tooltip: editTooltip,
+              size: 30,
             ),
-          ),
+            SizedBox(width: t.space8),
+            EnjoyIconButton(
+              icon: EnjoyIcons.refresh,
+              onPressed: onReset,
+              tooltip: resetTooltip,
+              size: 30,
+            ),
+          ],
         ),
       ),
     );

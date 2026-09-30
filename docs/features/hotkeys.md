@@ -14,7 +14,18 @@ Keyboard shortcuts mirror the Enjoy web app defaults (`stores/hotkeys.ts`). Cust
 
 ## Customization
 
-Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings/keyboard` with filter, per-row edit/reset, and reset-all in the app bar (confirmation required). Editor rows use fixed **chord** and **action** columns so keycaps and edit/reset icons align vertically; scope labels match the cheatsheet’s muted style. From the cheatsheet, **Customize shortcuts** navigates to the same screen. Legacy `/settings?section=keyboard` redirects to `/settings/keyboard` on desktop. The capture dialog shows **live chord text** (including invalid attempts) with screen-reader semantics. Reset per row or reset all restores defaults. The cheatsheet dialog is up to **`contentMaxWidth` (720)** wide and **85%** of viewport height so the two-column grid and large text scales remain usable.
+Settings → **Keyboard shortcuts** → **Customize shortcuts** opens `/settings/keyboard` with filter, per-row edit/reset, and reset-all in the app bar (confirmation required). From the cheatsheet, **Customize shortcuts** navigates to the same screen. Legacy `/settings?section=keyboard` redirects to `/settings/keyboard` on desktop. The capture dialog shows **live chord text** (including invalid attempts) with screen-reader semantics. Reset per row or reset all restores defaults. The cheatsheet dialog is up to **`contentMaxWidth` (720)** wide and **85%** of viewport height so the two-column grid and large text scales remain usable.
+
+### Aurora layout (ADR-0089, issue #793)
+
+`/settings/keyboard` follows the Settings/Profile **grouped inset list** rhythm rather than a flat column:
+
+- Each hotkey **scope** (`global`, `player`, `library`, `modal`) is one group: an `EnjoyIconTile` (colored, glyph + tint per scope, mapped once in `hotkeys_settings_section.dart`) beside an `EnjoySectionHeader` carrying the scope label and a count, followed by an `EnjoyCard` holding that scope's rows. Only scopes that still have **customizable** definitions after filtering are rendered.
+- Rows are separated by `SettingsRowDivider(insetForLeading: false)` and are **not** individually inset, so the card reads as one unit. A group is omitted entirely when no row matches the filter.
+- Each row is an `EnjoyPressable` (press-scale, quiet hover wash, focus ring) — **no ink ripple**. The two trailing actions are `EnjoyIconButton`s; reset stays in place but disabled when the binding is still the default, so the edit/reset column keeps its alignment.
+- The chord is rendered by `KbdChordRow`, which composes the shared **`EnjoyKeycap`** primitive — the app has exactly **one** keycap style. The pre-Aurora `KbdChip` (and its `fontFamily: 'monospace'`, which resolved to an arbitrary system face) was removed. `KbdChordRow`'s public API is unchanged, so the cheatsheet dialog and the Settings **Keyboard shortcuts** row share this renderer.
+- A customized binding is marked with a muted **`EnjoyTierBadge`** reading “Custom” (not a Material `Chip`); default bindings show no badge and a disabled reset.
+- The filter field matches the established `SettingsSearchField` treatment (muted leading glyph, soft fill, `radiusLg`, clear suffix) and gains a clear action once a query is typed. Reset-all is an `EnjoyButton.ghost` in the app bar. The page keeps `EnjoyPageKind.hub`.
 
 ## Implementation entry points
 

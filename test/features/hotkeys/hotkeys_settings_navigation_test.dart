@@ -156,7 +156,7 @@ void main() {
 
       final ctrl = _RecordingHotkeysCtrl.last!;
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('GLOBAL'), findsOneWidget);
+      expect(find.text('Global'), findsOneWidget);
       expect(ctrl.resetAllCalled, isFalse);
 
       await tester.tap(find.text('Reset all shortcuts'));
@@ -191,7 +191,7 @@ void main() {
 
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
       expect(find.text(l10n.hotkeysHelpEmpty), findsOneWidget);
-      expect(find.text('GLOBAL'), findsNothing);
+      expect(find.text('Global'), findsNothing);
     });
   });
 
