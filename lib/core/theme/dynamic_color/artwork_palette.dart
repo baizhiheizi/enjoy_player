@@ -78,12 +78,11 @@ const _kPaletteDecodeWidth = 200;
 /// The image provider palette extraction samples from. Exposed for tests.
 /// `allowUpscaling: false` keeps small thumbnails at native resolution.
 @visibleForTesting
-ImageProvider artworkPaletteImageProvider(File file) =>
-    ResizeImage(
-      FileImage(file),
-      width: _kPaletteDecodeWidth,
-      allowUpscaling: false,
-    );
+ImageProvider artworkPaletteImageProvider(File file) => ResizeImage(
+  FileImage(file),
+  width: _kPaletteDecodeWidth,
+  allowUpscaling: false,
+);
 
 /// Provider actually handed to the generator by the last
 /// [extractArtworkPalette] call — lets tests pin the wiring, not just the

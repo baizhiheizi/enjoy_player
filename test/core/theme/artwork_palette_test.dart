@@ -191,9 +191,13 @@ void main() {
       await extractArtworkPalette(path);
 
       final provider = debugLastArtworkPaletteImageProvider;
-      expect(provider, isNotNull,
-          reason: 'extractArtworkPalette must hand the generator the '
-              'resize-wrapped provider');
+      expect(
+        provider,
+        isNotNull,
+        reason:
+            'extractArtworkPalette must hand the generator the '
+            'resize-wrapped provider',
+      );
       expect(provider, isA<ResizeImage>());
       final resize = provider as ResizeImage;
       expect(resize.width, 200);
