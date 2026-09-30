@@ -7,6 +7,7 @@ import 'sync_metadata.dart';
 
 @TableIndex(name: 'idx_audios_local_uri', columns: {#localUri})
 @TableIndex(name: 'idx_audios_md5', columns: {#md5})
+@TableIndex(name: 'idx_audios_updated_at', columns: {#updatedAt})
 @DataClassName('AudioRow')
 class Audios extends Table with SyncMetadataColumns {
   @override

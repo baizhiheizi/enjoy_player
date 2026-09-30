@@ -35,10 +35,14 @@ class VocabularyPracticeClipBody extends ConsumerWidget {
       vocabularyReviewSessionProvider.select((s) => s.practicePhase),
     );
     final player = ref.watch(playerControllerProvider.notifier);
-    final session = ref.watch(playerControllerProvider);
-    final playing = session == null
-        ? false
-        : (ref.watch(playerIsPlayingProvider).value ?? false);
+    final hasSession = ref.watch(
+      playerControllerProvider.select((s) => s != null),
+    );
+    final thumbnailUrl = ref.watch(
+      playerControllerProvider.select((s) => s?.thumbnailUrl),
+    );
+    final playing =
+        hasSession && (ref.watch(playerIsPlayingProvider).value ?? false);
     final mediaError = ref.watch(
       vocabularyReviewSessionProvider.select((s) => s.mediaError),
     );
@@ -47,7 +51,7 @@ class VocabularyPracticeClipBody extends ConsumerWidget {
     final opening = phase == ReviewPracticePhase.clipOpening;
 
     final poster = YoutubeVideoPoster(
-      primaryUrl: engine?.metadata?.posterUrl ?? session?.thumbnailUrl,
+      primaryUrl: engine?.metadata?.posterUrl ?? thumbnailUrl,
       visible: true,
     );
 

@@ -592,4 +592,83 @@ void main() {
       },
     );
   });
+
+  group('watchRecentByUpdatedAt', () {
+    test(
+      'merges both tables by updatedAt descending up to the limit',
+      () async {
+        final base = DateTime(2026, 7, 1);
+        await db.videoDao.insertRow(
+          _video(
+            id: 'v-old',
+            createdAt: base,
+          ).copyWith(updatedAt: base.add(const Duration(hours: 1))),
+        );
+        await db.audioDao.insertRow(
+          _audio(
+            id: 'a-mid',
+            createdAt: base,
+          ).copyWith(updatedAt: base.add(const Duration(hours: 2))),
+        );
+        await db.videoDao.insertRow(
+          _video(
+            id: 'v-new',
+            createdAt: base,
+          ).copyWith(updatedAt: base.add(const Duration(hours: 3))),
+        );
+        await db.audioDao.insertRow(
+          _audio(id: 'a-stale', createdAt: base).copyWith(updatedAt: base),
+        );
+
+        final top3 = <List<String>>[];
+        final all = <List<String>>[];
+        final subTop = registry
+            .watchRecentByUpdatedAt(3)
+            .map(_mediaIds)
+            .listen(top3.add);
+        final subAll = registry
+            .watchRecentByUpdatedAt(10)
+            .map(_mediaIds)
+            .listen(all.add);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(top3.last, ['v-new', 'a-mid', 'v-old']);
+        expect(all.last, ['v-new', 'a-mid', 'v-old', 'a-stale']);
+
+        await subTop.cancel();
+        await subAll.cancel();
+      },
+    );
+
+    test('re-emits when a newer item enters the top slice', () async {
+      final base = DateTime(2026, 7, 1);
+      await db.videoDao.insertRow(
+        _video(
+          id: 'v-1',
+          createdAt: base,
+        ).copyWith(updatedAt: base.add(const Duration(hours: 1))),
+      );
+
+      final emissions = <List<String>>[];
+      final sub = registry
+          .watchRecentByUpdatedAt(2)
+          .map(_mediaIds)
+          .listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+      expect(emissions.single, ['v-1']);
+
+      await db.videoDao.insertRow(
+        _video(
+          id: 'v-2',
+          createdAt: base,
+        ).copyWith(updatedAt: base.add(const Duration(hours: 2))),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(2));
+      expect(emissions.last, ['v-2', 'v-1']);
+
+      await sub.cancel();
+    });
+  });
 }

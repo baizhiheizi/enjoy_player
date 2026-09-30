@@ -8,8 +8,9 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/utils/stream_distinct.dart';
 import 'package:enjoy_player/core/logging/log.dart';
-import 'migration_backup.dart';
 import 'bulk_pk_rows_mixin.dart';
+import 'media_library_projection.dart';
+import 'migration_backup.dart';
 import 'settings_keys.dart';
 import 'youtube_subscription_source.dart';
 import 'tables/ai_cache.dart';
@@ -105,7 +106,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -270,6 +271,15 @@ class AppDatabase extends _$AppDatabase {
           'DELETE FROM sync_queue WHERE id NOT IN ('
           'SELECT MAX(id) FROM sync_queue '
           'GROUP BY entity_type, entity_id, action)',
+        );
+      } else if (next == 19) {
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_videos_updated_at '
+          'ON videos (updated_at DESC)',
+        );
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_audios_updated_at '
+          'ON audios (updated_at DESC)',
         );
       }
       current = next;

@@ -22,21 +22,17 @@ final libraryMediaProvider = StreamProvider<List<Media>>((ref) {
 
 /// Up to 12 most recently updated items for [HomeScreen] (pre-sorted).
 ///
-/// Subscribes to the registry's `watchAll()` and applies the same library-wide dedupe as
-/// [libraryFilteredListsProvider]: a single Drift tick that re-queries without
-/// changing the top-12 still produces a brand-new list, which would otherwise
-/// rebuild every `ConsumerWidget` watching this provider. Skip the emission
-/// when the new top-12 is element-wise equal to the previous one.
+/// Served from the registry's `LIMIT 12 ORDER BY updated_at DESC` merge
+/// (issue #810 D6) — the full library is no longer sorted in Dart on every
+/// table write. Applies the same library-wide dedupe as
+/// [libraryFilteredListsProvider]: a Drift tick that re-queries without
+/// changing the top-12 still produces a brand-new list, which would
+/// otherwise rebuild every `ConsumerWidget` watching this provider. Skip the
+/// emission when the new top-12 is element-wise equal to the previous one.
 final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
   const recentLimit = 12;
   final registry = ref.watch(mediaRegistryProvider);
-  return registry
-      .watchAll()
-      .map((items) {
-        final sorted = [...items]..sort(mediaByUpdatedAtDesc);
-        return sorted.take(recentLimit).toList();
-      })
-      .distinctBy(listEquals);
+  return registry.watchRecentByUpdatedAt(recentLimit);
 });
 
 /// Pre-filtered audio/video lists for [LibraryScreen], newest [Media.updatedAt]

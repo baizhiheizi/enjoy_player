@@ -2,25 +2,24 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [Audios])
 class AudioDao extends DatabaseAccessor<AppDatabase>
-    with _$AudioDaoMixin, BulkPkRowsMixin<AppDatabase, AudioRow> {
+    with
+        _$AudioDaoMixin,
+        BulkPkRowsMixin<AppDatabase, AudioRow>,
+        MediaLibraryProjection<AppDatabase> {
   AudioDao(super.db);
 
   @override
   TableInfo<Table, AudioRow> get bulkPkTable => audios;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => audios.id;
-
-  @override
   String Function(AudioRow row) get bulkPkRowId =>
       (row) => row.id;
 
   @override
-  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
+  TableInfo<Table, dynamic> get mediaLibraryTable => audios;
 
-  Stream<List<AudioRow>> watchAll() => (select(
-    audios,
-  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+  @override
+  GeneratedColumn<String> get mediaLibraryContentHash => audios.aid;
 
   Future<AudioRow?> getById(String id) =>
       (select(audios)..where((t) => t.id.equals(id))).getSingleOrNull();

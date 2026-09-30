@@ -2,25 +2,24 @@ part of '../app_database.dart';
 
 @DriftAccessor(tables: [Videos])
 class VideoDao extends DatabaseAccessor<AppDatabase>
-    with _$VideoDaoMixin, BulkPkRowsMixin<AppDatabase, VideoRow> {
+    with
+        _$VideoDaoMixin,
+        BulkPkRowsMixin<AppDatabase, VideoRow>,
+        MediaLibraryProjection<AppDatabase> {
   VideoDao(super.db);
 
   @override
   TableInfo<Table, VideoRow> get bulkPkTable => videos;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => videos.id;
-
-  @override
   String Function(VideoRow row) get bulkPkRowId =>
       (row) => row.id;
 
   @override
-  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
+  TableInfo<Table, dynamic> get mediaLibraryTable => videos;
 
-  Stream<List<VideoRow>> watchAll() => (select(
-    videos,
-  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+  @override
+  GeneratedColumn<String> get mediaLibraryContentHash => videos.vid;
 
   Future<VideoRow?> getById(String id) =>
       (select(videos)..where((t) => t.id.equals(id))).getSingleOrNull();

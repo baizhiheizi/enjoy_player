@@ -7,6 +7,7 @@ import 'sync_metadata.dart';
 
 @TableIndex(name: 'idx_videos_provider_vid', columns: {#provider, #vid})
 @TableIndex(name: 'idx_videos_local_uri', columns: {#localUri})
+@TableIndex(name: 'idx_videos_updated_at', columns: {#updatedAt})
 @DataClassName('VideoRow')
 class Videos extends Table with SyncMetadataColumns {
   @override

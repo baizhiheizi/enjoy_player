@@ -33,6 +33,7 @@ import 'package:enjoy_player/features/onboarding/application/onboarding_controll
 import 'package:enjoy_player/features/onboarding/application/practice_tip_trigger.dart';
 import 'package:enjoy_player/features/onboarding/domain/onboarding_tip_id.dart';
 import 'package:enjoy_player/features/onboarding/presentation/onboarding_target.dart';
+import 'package:enjoy_player/features/player/application/local_thumbnail_provider.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
@@ -459,7 +460,9 @@ class _HomeMediaTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final isVideo = media.kind == MediaKind.video;
-    final thumb = localThumbnailFileForMedia(media);
+    final thumb = ref
+        .watch(localThumbnailFileProvider(localThumbnailPathForMedia(media)))
+        .value;
     final netThumb = networkThumbnailForMedia(media);
     final dur = formatDurationHmsMs(media.durationMs);
     final accent = generativeAccentForSeed(media.coverSeed);

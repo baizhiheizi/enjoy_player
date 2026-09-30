@@ -72,10 +72,15 @@ String? youtubeMqFallbackForCardUrl(String? primaryUrl) {
   return youtubeMqThumbnailUrl(videoId);
 }
 
+/// Stored thumbnail path a card can render as a local file, or `null` when
+/// the path is absent or an `http(s)` URL.
+String? localThumbnailPathForCard(String? thumbnailPath) {
+  return isRemoteThumbnailUrl(thumbnailPath) ? null : thumbnailPath;
+}
+
 /// Local file artwork for cards when [thumbnailPath] is not an `http(s)` URL.
 File? localThumbnailFileForCard(String? thumbnailPath) {
-  if (isRemoteThumbnailUrl(thumbnailPath)) return null;
-  return localThumbnailFile(thumbnailPath);
+  return localThumbnailFile(localThumbnailPathForCard(thumbnailPath));
 }
 
 /// Network artwork for a library [Media] row (YouTube prefers 16:9 CDN URLs).
@@ -87,10 +92,17 @@ String? networkThumbnailForMedia(Media media) {
   );
 }
 
-/// Local artwork file when not superseded by a better remote YouTube URL.
-File? localThumbnailFileForMedia(Media media) {
+/// Stored thumbnail path a card can render as a local file for [media], or
+/// `null` when a remote YouTube URL supersedes local artwork or the path is
+/// remote.
+String? localThumbnailPathForMedia(Media media) {
   if (media.provider == 'youtube' && networkThumbnailForMedia(media) != null) {
     return null;
   }
-  return localThumbnailFileForCard(media.thumbnailPath);
+  return localThumbnailPathForCard(media.thumbnailPath);
+}
+
+/// Local artwork file when not superseded by a better remote YouTube URL.
+File? localThumbnailFileForMedia(Media media) {
+  return localThumbnailFile(localThumbnailPathForMedia(media));
 }

@@ -11,14 +11,8 @@ class VocabularyItemDao extends DatabaseAccessor<AppDatabase>
   TableInfo<Table, VocabularyItemRow> get bulkPkTable => vocabularyItems;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => vocabularyItems.id;
-
-  @override
   String Function(VocabularyItemRow row) get bulkPkRowId =>
       (row) => row.id;
-
-  @override
-  InsertMode get bulkPkInsertMode => InsertMode.replace;
 
   Future<VocabularyItemRow?> getById(String id) => (select(
     vocabularyItems,

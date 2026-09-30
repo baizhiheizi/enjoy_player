@@ -9,14 +9,8 @@ class RecordingDao extends DatabaseAccessor<AppDatabase>
   TableInfo<Table, RecordingRow> get bulkPkTable => recordings;
 
   @override
-  GeneratedColumn<String> get bulkPkColumn => recordings.id;
-
-  @override
   String Function(RecordingRow row) get bulkPkRowId =>
       (row) => row.id;
-
-  @override
-  InsertMode get bulkPkInsertMode => InsertMode.insertOrReplace;
 
   Stream<List<RecordingRow>> watchByTarget(
     String targetType,
