@@ -14,6 +14,14 @@ not import it from product features
 ([ADR-0071](../../docs/decisions/0071-on-device-alignment-engine.md),
 [ADR-0072](../../docs/decisions/0072-spoken-alignment-reference.md)).
 
+**Memory shape (issue #827 A2/A3).** MFCC frames are one flat
+`Float64List` (`MfccFrames`, row-major, 13 coefficients per frame) and the
+DTW keeps two rolling cost rows plus one `Uint8List` direction cell per
+band cell; the Sakoe-Chiba band is `min(20% of max(n, m), ±10 s of drift
+from the diagonal)` so a 90 s whole-clip input costs ~18 MB of band
+memory instead of the historical ~1 GB boxed `n × (2r+1)` triple. Clips up
+to 50 s keep the full 20% band, so alignment output there is unchanged.
+
 ## API
 
 ```dart

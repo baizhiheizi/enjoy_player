@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:mcfcc_nsn/mcfcc_nsn.dart';
 
 import '../constants.dart';
@@ -36,26 +38,57 @@ const MfccPreset kMfccPresetMedium = MfccPreset(
   hopSeconds: 0.010,
 );
 
+/// MFCC frames in one flat row-major [Float64List] of `frameCount × stride`
+/// cells — one typed allocation and no boxed per-coefficient doubles, which
+/// the DTW then walks by offset (issue #827 A3).
+final class MfccFrames {
+  const MfccFrames({
+    required this.data,
+    required this.stride,
+    required this.frameCount,
+  });
+
+  /// Flattens boxed `mcfcc_nsn` output (one `List<double>` per frame) into
+  /// contiguous rows. Every frame must share the first frame's length.
+  factory MfccFrames.fromBoxed(List<List<double>> frames) {
+    final count = frames.length;
+    final stride = count == 0 ? 0 : frames.first.length;
+    final flat = Float64List(count * stride);
+    var offset = 0;
+    for (final frame in frames) {
+      flat.setRange(offset, offset + frame.length, frame);
+      offset += frame.length;
+    }
+    return MfccFrames(data: flat, stride: stride, frameCount: count);
+  }
+
+  final Float64List data;
+  final int stride;
+  final int frameCount;
+
+  int offsetOf(int frame) => frame * stride;
+}
+
 /// MFCC frames for 16 kHz mono PCM. Pads short signals to one window.
-List<List<double>> extractMfccFrames(List<double> signal, MfccPreset preset) {
+MfccFrames extractMfccFrames(Float32List signal, MfccPreset preset) {
   final window = preset.windowLength;
   final fftSize = preset.fftSize;
-  var samples = signal;
-  if (samples.length < window) {
-    samples = List<double>.from(signal)
-      ..addAll(List<double>.filled(window - signal.length, 0));
+  Float32List samples;
+  if (signal.length < window) {
+    samples = Float32List(window);
+    samples.setRange(0, signal.length, signal);
+  } else {
+    samples = signal;
   }
   final frames = <List<double>>[];
   final stride = preset.windowStride;
   for (var i = 0; i + window <= samples.length; i += stride) {
-    final frame = List<double>.filled(fftSize, 0);
-    for (var j = 0; j < window; j++) {
-      frame[j] = samples[i + j];
-    }
+    final frame = Float64List(fftSize);
+    frame.setRange(0, window, samples, i);
     frames.add(frame);
   }
   if (frames.isEmpty) {
-    frames.add(List<double>.filled(fftSize, 0));
+    frames.add(Float64List(fftSize));
   }
   final processor = MFCC(
     sampleRate: kAlignmentSampleRate,
@@ -63,5 +96,5 @@ List<List<double>> extractMfccFrames(List<double> signal, MfccPreset preset) {
     numFilters: 26,
     numCoefs: 13,
   );
-  return processor.processFrames(frames);
+  return MfccFrames.fromBoxed(processor.processFrames(frames));
 }
