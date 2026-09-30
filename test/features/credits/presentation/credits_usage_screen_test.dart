@@ -1,4 +1,9 @@
+import 'package:enjoy_player/core/interaction/enjoy_pressable.dart';
 import 'package:enjoy_player/core/theme/enjoy_icons.dart';
+import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
+import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_icon_tile.dart';
+import 'package:enjoy_player/core/theme/widgets/enjoy_progress_ring.dart';
 import 'package:enjoy_player/data/api/api_client.dart';
 import 'package:enjoy_player/data/api/services/ai/ai_api_providers.dart';
 import 'package:enjoy_player/data/api/services/ai/credits_api.dart';
@@ -125,6 +130,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
+    expect(find.byType(EmptyState), findsOneWidget);
   });
 
   testWidgets('signed-in with logs renders usage data', (tester) async {
@@ -150,9 +156,95 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(CreditsUsageScreen), findsOneWidget);
-    expect(find.text('10'), findsOneWidget);
     expect(find.text('100'), findsOneWidget);
     expect(find.text('110'), findsOneWidget);
+  });
+
+  testWidgets('credits meter shows the page total with an aurora ring', (
+    tester,
+  ) async {
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(
+        logs: [
+          CreditsUsageLog(
+            id: 'l1',
+            userId: 'u1',
+            date: '2024-01-15',
+            timestampMs: DateTime.utc(2024, 1, 15).millisecondsSinceEpoch,
+            serviceType: 'llm',
+            tier: 'pro',
+            creditsRequired: 40,
+            usedBefore: 100,
+            usedAfter: 140,
+            allowed: true,
+          ),
+          CreditsUsageLog(
+            id: 'l2',
+            userId: 'u1',
+            date: '2024-01-15',
+            timestampMs: DateTime.utc(2024, 1, 15).millisecondsSinceEpoch,
+            serviceType: 'tts',
+            tier: 'pro',
+            creditsRequired: 10,
+            usedBefore: 140,
+            usedAfter: 150,
+            allowed: false,
+          ),
+        ],
+        hasMore: false,
+      );
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final ringPainters = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((p) => p.painter)
+        .whereType<EnjoyProgressRingPainter>();
+    expect(ringPainters, hasLength(1));
+    expect(ringPainters.single.progress, closeTo(0.8, 0.001));
+    expect(ringPainters.single.gradientColors, isNotNull);
+    expect(find.text('50'), findsOneWidget);
+  });
+
+  testWidgets('no Material Chip or TextButton surfaces remain', (tester) async {
+    tester.view.physicalSize = const Size(420, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final log = CreditsUsageLog(
+      id: 'l1',
+      userId: 'u1',
+      date: '2024-01-15',
+      timestampMs: DateTime.utc(2024, 1, 15).millisecondsSinceEpoch,
+      serviceType: 'llm',
+      tier: 'pro',
+      creditsRequired: 10,
+      usedBefore: 100,
+      usedAfter: 110,
+      allowed: true,
+    );
+    final stub = _StubCreditsApi(_fakeApiClient())
+      ..nextPage = CreditsUsagePage(logs: [log], hasMore: false);
+    await tester.pumpWidget(
+      _wrap(
+        stub: stub,
+        auth: AuthSignedIn(profile: _stubProfile()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Chip), findsNothing);
+    expect(find.byType(TextButton), findsNothing);
+    expect(find.byType(EnjoyPressable), findsNWidgets(2));
+    expect(find.byType(EnjoyIconTile), findsNWidgets(1));
+    expect(find.byType(EnjoySectionHeader), findsNWidgets(1));
+    expect(find.byType(DataTable), findsNothing);
   });
 
   testWidgets('error state shows retry button', (tester) async {
@@ -166,6 +258,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(EnjoyIcons.error), findsOneWidget);
+    expect(find.byType(EmptyState), findsOneWidget);
   });
 
   testWidgets('filter dropdown shows service type options', (tester) async {
