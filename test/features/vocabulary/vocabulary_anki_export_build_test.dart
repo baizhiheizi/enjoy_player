@@ -126,7 +126,7 @@ void main() {
       );
     });
 
-    test('reports progress 0.1 -> 0.3 -> 0.8 -> 1.0 in order', () async {
+    test('reports progress 0.1 -> 0.3 -> 0.5 -> 0.8 -> 1.0 in order', () async {
       final items = [item('1', 'hello')];
       final progress = <double>[];
       await buildVocabularyAnkiExport(
@@ -139,6 +139,7 @@ void main() {
       expect(progress.first, 0.1);
       expect(progress.last, 1.0);
       expect(progress, contains(0.3));
+      expect(progress, contains(0.5));
       expect(progress, contains(0.8));
     });
 

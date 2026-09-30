@@ -65,6 +65,7 @@ Future<VocabularyAnkiExportBundle> buildVocabularyAnkiExport({
     throw StateError('no_items_to_export');
   }
   onProgress?.call(0.3);
+  onProgress?.call(0.5);
   final contextsByItemId = await getContextsForItems(
     items.map((item) => item.id),
   );

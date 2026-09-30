@@ -10,12 +10,15 @@ import 'package:enjoy_player/core/logging/log.dart';
 
 final _log = logNamed('sync.pageUpsert');
 
+/// Per-page outcome of [mergeAndUpsertPage] / [runPerRowInsert].
+typedef PageUpsertCounts = ({int synced, int failed, List<String> errors});
+
 /// Merges [pendingUpserts] (keyed by server id) against local rows and
 /// upserts the results in one batch. A row whose `merge` throws is
 /// counted as failed and skipped; if the batch itself fails, every
 /// already-merged row is retried one at a time via [insertRow] so a
 /// single bad row cannot fail its page neighbors.
-Future<({int synced, int failed, List<String> errors})> mergeAndUpsertPage<E>(
+Future<PageUpsertCounts> mergeAndUpsertPage<E>(
   Map<String, Map<String, dynamic>> pendingUpserts, {
   required Future<Map<String, E>> Function(List<String> ids) getManyByIds,
   required Future<E?> Function(String id) getLocal,
@@ -27,7 +30,12 @@ Future<({int synced, int failed, List<String> errors})> mergeAndUpsertPage<E>(
   Map<String, E>? locals;
   try {
     locals = await getManyByIds(pendingUpserts.keys.toList());
-  } on Object {
+  } on Object catch (e, st) {
+    _log.warning(
+      'bulk pre-read failed; falling back to per-row lookups',
+      e,
+      st,
+    );
     final fallback =
         await runPerRowInsert<MapEntry<String, Map<String, dynamic>>, E>(
           pendingUpserts.entries,
@@ -70,7 +78,7 @@ Future<({int synced, int failed, List<String> errors})> mergeAndUpsertPage<E>(
 /// failures so one bad row cannot fail its page neighbors. [lookupLocal]
 /// resolves the local row an item merges against (or returns `null` when
 /// the item is already merged).
-Future<({int synced, int failed, List<String> errors})> runPerRowInsert<T, E>(
+Future<PageUpsertCounts> runPerRowInsert<T, E>(
   Iterable<T> items, {
   required Future<E?> Function(T item) lookupLocal,
   required Future<void> Function(T item, E? local) insertOne,

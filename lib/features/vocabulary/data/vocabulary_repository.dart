@@ -337,7 +337,9 @@ class VocabularyRepository {
 
   /// Contexts for many items in one bulk read (issue #827 B1/B2 — replaces
   /// per-item [getContextsForItem] loops in Anki export and review-session
-  /// start). Items with no contexts are absent from the result map.
+  /// start). Each list is ordered by `createdAt` ascending — this method is
+  /// the single owner of that ordering. Items with no contexts are absent
+  /// from the result map.
   Future<Map<String, List<VocabularyContext>>> getContextsForItems(
     Iterable<String> itemIds,
   ) async {
@@ -345,6 +347,11 @@ class VocabularyRepository {
     final byItemId = <String, List<VocabularyContext>>{};
     for (final row in rows) {
       (byItemId[row.vocabularyItemId] ??= []).add(_contextFromRow(row));
+    }
+    for (final list in byItemId.values) {
+      if (list.length > 1) {
+        list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      }
     }
     return byItemId;
   }

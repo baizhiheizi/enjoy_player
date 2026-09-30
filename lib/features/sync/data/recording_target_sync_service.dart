@@ -91,16 +91,19 @@ class RecordingTargetSyncService {
       if (batch.isEmpty) break;
 
       final pendingUpserts = <String, Map<String, dynamic>>{};
+      var duplicateIds = 0;
       for (final m in batch) {
         final id = m['id'] as String?;
         if (id == null || id.isEmpty) continue;
-        if (pendingUpserts.containsKey(id)) {
-          _log.warning(
-            'duplicate id "$id" in one server page; keeping the last payload '
-            '(last-write-wins, matching the historical per-row path)',
-          );
-        }
+        if (pendingUpserts.containsKey(id)) duplicateIds++;
         pendingUpserts[id] = m;
+      }
+      if (duplicateIds > 0) {
+        _log.warning(
+          '$duplicateIds duplicate ids in one server page '
+          '(${pendingUpserts.length} unique); keeping the last payload per id '
+          '(last-write-wins, matching the historical per-row path)',
+        );
       }
 
       if (pendingUpserts.isNotEmpty) {
