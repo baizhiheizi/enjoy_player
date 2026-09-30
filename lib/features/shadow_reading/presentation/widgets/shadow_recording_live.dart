@@ -1,11 +1,13 @@
-/// Live recording stage: paint-only countdown ring + ~10 Hz caption.
+/// Live recording stage: paint-only countdown ring + 10 Hz caption.
 ///
 /// Extracted from `shadow_reading_panel.dart` (issue #810 E2): a single
 /// [Ticker] is the only timing source — each vsync it sets the elapsed
 /// seconds on an [AnimationController] that exists purely as the painter's
 /// `repaint:` listenable (so the ring repaints without rebuilding any
-/// element) and re-evaluates the over-target pulse phase. Only the caption
-/// text re-renders on its own coarse timer.
+/// element) and re-evaluates the over-target pulse phase. The caption listens
+/// to that same controller and rebuilds only when the tenths-of-a-second
+/// bucket changes, so ring and caption cannot drift apart and no second
+/// timer runs (issue #818).
 library;
 
 import 'dart:async';
@@ -146,23 +148,37 @@ class _ShadowRecordingCaption extends StatefulWidget {
 }
 
 class _ShadowRecordingCaptionState extends State<_ShadowRecordingCaption> {
-  static const _kRefreshInterval = Duration(milliseconds: 100);
-
-  Timer? _refresh;
+  int _tenths = 0;
 
   @override
   void initState() {
     super.initState();
-    _refresh = Timer.periodic(_kRefreshInterval, (_) {
-      if (mounted) setState(() {});
-    });
+    _tenths = _tenthsOf(widget.elapsedSec.value);
+    widget.elapsedSec.addListener(_onElapsed);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ShadowRecordingCaption oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.elapsedSec == widget.elapsedSec) return;
+    oldWidget.elapsedSec.removeListener(_onElapsed);
+    _tenths = _tenthsOf(widget.elapsedSec.value);
+    widget.elapsedSec.addListener(_onElapsed);
   }
 
   @override
   void dispose() {
-    _refresh?.cancel();
+    widget.elapsedSec.removeListener(_onElapsed);
     super.dispose();
   }
+
+  void _onElapsed() {
+    final tenths = _tenthsOf(widget.elapsedSec.value);
+    if (tenths == _tenths) return;
+    setState(() => _tenths = tenths);
+  }
+
+  static int _tenthsOf(double seconds) => (seconds * 10).floor();
 
   @override
   Widget build(BuildContext context) {

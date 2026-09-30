@@ -35,15 +35,7 @@ class LocalLibraryTabView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listsAsync = ref.watch(libraryFilteredListsProvider);
-    final totals = ref.watch(
-      libraryMediaProvider.select((s) {
-        final items = s.asData?.value ?? const <Media>[];
-        return (
-          audio: items.where((m) => m.kind == MediaKind.audio).length,
-          video: items.where((m) => m.kind == MediaKind.video).length,
-        );
-      }),
-    );
+    final counts = ref.watch(libraryKindCountsProvider).asData?.value;
     final query = ref.watch(librarySearchProvider);
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
@@ -57,12 +49,12 @@ class LocalLibraryTabView extends ConsumerWidget {
             LocalVideoLibraryBody(
               items: lists.video,
               searchQuery: query,
-              totalInLibraryOfKind: totals.video,
+              totalInLibraryOfKind: counts?.video ?? 0,
             ),
             LocalAudioLibraryBody(
               items: lists.audio,
               searchQuery: query,
-              totalInLibraryOfKind: totals.audio,
+              totalInLibraryOfKind: counts?.audio ?? 0,
             ),
           ],
         );

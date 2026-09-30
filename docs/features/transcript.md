@@ -136,6 +136,10 @@ Interface notes:
   #810 C1): a `(updatedAt, timelineJson length)` revision mismatch on the
   same row id and explicit removal on row mutation are the only
   invalidations, and the least-recently-used decode is dropped on overflow.
+  `allTranscriptsForMediaProvider` (the per-media track list behind the
+  transport CC button and the subtitle picker) joined them as an
+  `autoDispose` family in issue #818, so it no longer pins one tracks watch
+  per media visited this session.
   The revision is sound because drift stores `updated_at` at whole-second
   granularity and `TranscriptDao.upsert`/`upsertAll` nudge a same-second
   consecutive write one second forward, so the pair changes on every

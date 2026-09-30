@@ -34,19 +34,43 @@ const List<String> kCjkSerifFallbacks = [
   'STSong',
 ];
 
+/// CJK Noto faces addressed by name, for `fontFamilyFallback` only.
+///
+/// These are the family ids `google_fonts` reports for the CJK variants. They
+/// are listed as plain names rather than built through `GoogleFonts.noto…()`
+/// because a `fontFamilyFallback` entry is resolved by the platform font
+/// matcher, not by loading an asset: instantiating the `TextStyle` only to
+/// read `.fontFamily` used to trigger a multi-megabyte runtime fetch plus a
+/// font registration — per transcript line, since [_withCjkFallbacks] runs in
+/// the text build path. A name the device does not have is skipped at no cost,
+/// after which the installed-platform lists above and below take over
+/// (issue #818).
+const List<String> kCjkNotoSerifFallbacks = [
+  'NotoSerifKR',
+  'NotoSerifSC',
+  'NotoSerifJP',
+];
+
+const List<String> kCjkNotoSansFallbacks = [
+  'NotoSansKR',
+  'NotoSansSC',
+  'NotoSansJP',
+];
+
 /// CJK fallbacks so Windows does not substitute low-quality system fonts.
 List<String> _transcriptCjkSerifFallbacks() => [
-  GoogleFonts.notoSerifKr().fontFamily,
-  GoogleFonts.notoSerifSc().fontFamily,
-  GoogleFonts.notoSerifJp().fontFamily,
-].whereType<String>().toList();
+  ...kCjkNotoSerifFallbacks,
+  ...kCjkSerifFallbacks,
+];
 
-List<String> _transcriptCjkSansFallbacks() => [
-  GoogleFonts.notoSansKr().fontFamily,
-  GoogleFonts.notoSansSc().fontFamily,
-  GoogleFonts.notoSansJp().fontFamily,
-  GoogleFonts.geist().fontFamily,
-].whereType<String>().toList();
+List<String> _transcriptCjkSansFallbacks() {
+  final geist = GoogleFonts.geist().fontFamily;
+  return [
+    ...kCjkNotoSansFallbacks,
+    if (geist != null) geist,
+    ...kCjkSansFallbacks,
+  ];
+}
 
 TextStyle _withCjkFallbacks(TextStyle style, {required bool serif}) {
   return style.copyWith(
@@ -309,7 +333,7 @@ class TranscriptTypographyTokens
           serif: true,
         ),
         secondaryStyle: _withCjkFallbacks(
-          GoogleFonts.notoSansSc(
+          GoogleFonts.notoSans(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             height: 1.55,
@@ -360,7 +384,7 @@ class TranscriptTypographyTokens
         serif: false,
       ),
       secondaryStyle: _withCjkFallbacks(
-        GoogleFonts.notoSansSc(
+        GoogleFonts.notoSans(
           fontSize: 13.5,
           fontWeight: FontWeight.w400,
           height: 1.55,

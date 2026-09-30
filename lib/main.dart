@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kDebugMode, kProfileMode, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:logging/logging.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
@@ -32,6 +33,7 @@ Future<void> _bootstrap() async {
     installReleaseWidgetErrorBuilder();
   }
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  GoogleFonts.config.allowRuntimeFetching = false;
   unawaited(setupAppLogging());
   if (defaultTargetPlatform == TargetPlatform.windows) {
     unawaited(ensureWindowsWebViewEnvironment());

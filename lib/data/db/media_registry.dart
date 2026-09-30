@@ -270,6 +270,23 @@ class MediaRegistry {
       videosStream: _db.videoDao.watchAll(),
       audiosStream: _db.audioDao.watchAll(),
       merge: _mergeRowsByCreatedAtDesc,
+      areEqual: _listEquals,
+    );
+  }
+
+  /// Per-kind row counts across both library tables.
+  ///
+  /// Computed inside the merge seam from the raw DAO halves, so the library
+  /// tab headers read `List.length` instead of walking the whole merged
+  /// `List<Media>` on every table write (issue #818). Counting the halves
+  /// pre-mapping is exact: every `videos` row becomes a
+  /// `MediaKind.video` and every `audios` row a `MediaKind.audio`.
+  Stream<({int audio, int video})> watchKindCounts() {
+    return _mergeLibraryRows(
+      videosStream: _db.videoDao.watchAll(),
+      audiosStream: _db.audioDao.watchAll(),
+      merge: (videos, audios) => (video: videos.length, audio: audios.length),
+      areEqual: (previous, current) => previous == current,
     );
   }
 
@@ -287,6 +304,7 @@ class MediaRegistry {
       audiosStream: _db.audioDao.watchRecentByUpdatedAt(limit),
       merge: (videos, audios) =>
           _mergeRowsByUpdatedAtDesc(videos, audios).take(limit).toList(),
+      areEqual: _listEquals,
     );
   }
 
@@ -320,7 +338,8 @@ class MediaRegistry {
     ];
   }
 
-  /// Merge machinery shared by [watchAll] and [watchRecentByUpdatedAt].
+  /// Merge machinery shared by [watchAll], [watchKindCounts], and
+  /// [watchRecentByUpdatedAt].
   ///
   /// The behaviors the merge layer must keep (pinned by
   /// `media_registry_test.dart`):
@@ -361,16 +380,17 @@ class MediaRegistry {
   ///   `distinctBy`. Each listener pays one cheap in-memory subscription
   ///   pair, and dedupe state, coalescing, and the `closed` cancellation
   ///   guard stay strictly per listener with no cross-talk.
-  Stream<List<Media>> _mergeLibraryRows({
+  Stream<T> _mergeLibraryRows<T>({
     required Stream<List<MediaLibraryRow>> videosStream,
     required Stream<List<MediaLibraryRow>> audiosStream,
-    required List<Media> Function(
+    required T Function(
       List<MediaLibraryRow> videos,
       List<MediaLibraryRow> audios,
     )
     merge,
+    required bool Function(T previous, T current) areEqual,
   }) {
-    return Stream<List<Media>>.multi((controller) {
+    return Stream<T>.multi((controller) {
       late StreamSubscription<List<MediaLibraryRow>> subV;
       late StreamSubscription<List<MediaLibraryRow>> subA;
       var videos = <MediaLibraryRow>[];
@@ -419,7 +439,7 @@ class MediaRegistry {
         unawaited(subV.cancel());
         unawaited(subA.cancel());
       };
-    }, isBroadcast: true).distinctBy(_listEquals);
+    }, isBroadcast: true).distinctBy(areEqual);
   }
 
   /// Insert-or-replace write choke points. Row construction stays with the

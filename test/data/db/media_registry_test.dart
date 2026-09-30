@@ -671,4 +671,70 @@ void main() {
       await sub.cancel();
     });
   });
+
+  group('watchKindCounts', () {
+    test('emits per-kind row counts across both tables', () async {
+      await db.videoDao.insertRow(_video(id: 'v-1'));
+      await db.videoDao.insertRow(_video(id: 'v-2', vid: 'vid-2'));
+      await db.audioDao.insertRow(_audio(id: 'a-1'));
+
+      final emissions = <({int audio, int video})>[];
+      final sub = registry.watchKindCounts().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions.last, (video: 2, audio: 1));
+
+      await sub.cancel();
+    });
+
+    test('empty library still produces a first emission', () async {
+      final emissions = <({int audio, int video})>[];
+      final sub = registry.watchKindCounts().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single, (video: 0, audio: 0));
+
+      await sub.cancel();
+    });
+
+    test('a write that keeps the counts unchanged does not re-emit', () async {
+      await db.videoDao.insertRow(_video(id: 'v-1'));
+      await db.videoDao.insertRow(_video(id: 'v-2', vid: 'vid-2'));
+
+      final emissions = <({int audio, int video})>[];
+      final sub = registry.watchKindCounts().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions, hasLength(1));
+
+      await db.videoDao.insertRow(
+        _video(
+          id: 'v-1',
+          title: 'Renamed',
+        ).copyWith(updatedAt: DateTime(2026, 7, 2)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emissions, hasLength(1));
+      expect(emissions.single, (video: 2, audio: 0));
+
+      await sub.cancel();
+    });
+
+    test('counts follow inserts and deletes', () async {
+      final emissions = <({int audio, int video})>[];
+      final sub = registry.watchKindCounts().listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await db.audioDao.insertRow(_audio(id: 'a-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions.last, (video: 0, audio: 1));
+
+      await db.audioDao.deleteId('a-1');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(emissions.last, (video: 0, audio: 0));
+
+      await sub.cancel();
+    });
+  });
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 import 'package:forced_alignment/forced_alignment.dart'
@@ -24,6 +25,7 @@ const kEspeakDataRevision = '1.52.0-3';
 
 const _channelName = 'ai.enjoy.player/espeak';
 const _assetPrefix = 'packages/forced_alignment/native/espeak-ng-data/';
+const _dataDirName = 'espeak-ng-data';
 
 /// Vendored data files keyed by path relative to `espeak-ng-data/`.
 typedef EspeakDataLoader = Future<Map<String, Uint8List>> Function();
@@ -88,7 +90,7 @@ Future<bool> ensureAndroidEspeakRuntime({
     final revisionDir = Directory(
       '${revisionsRoot.path}$sep$kEspeakDataRevision',
     );
-    final dataDir = Directory('${revisionDir.path}${sep}espeak-ng-data');
+    final dataDir = Directory('${revisionDir.path}$sep$_dataDirName');
 
     if (!_isProvisioned(revisionDir)) {
       final files = await (loadData ?? loadEspeakDataAssets)();
@@ -99,19 +101,12 @@ Future<bool> ensureAndroidEspeakRuntime({
         );
         return false;
       }
-      if (revisionsRoot.existsSync()) {
-        for (final entry in revisionsRoot.listSync()) {
-          if (entry is Directory) entry.deleteSync(recursive: true);
-        }
-      }
-      for (final entry in files.entries) {
-        final file = File('${dataDir.path}$sep${entry.key}');
-        file.parent.createSync(recursive: true);
-        file.writeAsBytesSync(entry.value);
-      }
-      File(
-        '${revisionDir.path}$sep.provisioned',
-      ).writeAsStringSync('${files.length}');
+      await _installEspeakRevision(
+        revisionsRootPath: revisionsRoot.path,
+        revisionDirPath: revisionDir.path,
+        dataDirPath: dataDir.path,
+        files: files,
+      );
     }
 
     setEspeakNativePathOverrides(libraryPath: libPath, dataPath: dataDir.path);
@@ -131,7 +126,7 @@ Future<bool> ensureAndroidEspeakRuntime({
 /// `.provisioned` marker, so warm launches skip asset enumeration.
 bool _isProvisioned(Directory revisionDir) {
   final sep = Platform.pathSeparator;
-  final dataDir = Directory('${revisionDir.path}${sep}espeak-ng-data');
+  final dataDir = Directory('${revisionDir.path}$sep$_dataDirName');
   if (!File('${revisionDir.path}$sep.provisioned').existsSync()) return false;
   return missingEspeakRequiredDataFiles(dataDir.path).isEmpty;
 }
@@ -139,4 +134,36 @@ bool _isProvisioned(Directory revisionDir) {
 bool _hasRequiredRelativeFiles(Iterable<String> relativePaths) {
   final keys = relativePaths.toSet();
   return kEspeakRequiredDataRelativePaths.every(keys.contains);
+}
+
+/// Prunes every stale revision, then materializes [files] into this revision.
+///
+/// Runs under [Isolate.run] because the `dart:io` file API is isolate-safe
+/// while the 31-file synchronous extraction of the vendored tree would
+/// otherwise hold the UI isolate for a visible window on first install and
+/// after every data-revision bump. Only sendable values (path strings and
+/// `Uint8List` payloads) cross the boundary.
+Future<void> _installEspeakRevision({
+  required String revisionsRootPath,
+  required String revisionDirPath,
+  required String dataDirPath,
+  required Map<String, Uint8List> files,
+}) {
+  return Isolate.run(() {
+    final sep = Platform.pathSeparator;
+    final revisionsRoot = Directory(revisionsRootPath);
+    if (revisionsRoot.existsSync()) {
+      for (final entry in revisionsRoot.listSync()) {
+        if (entry is Directory) entry.deleteSync(recursive: true);
+      }
+    }
+    for (final entry in files.entries) {
+      final file = File('$dataDirPath$sep${entry.key}');
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(entry.value);
+    }
+    File(
+      '$revisionDirPath$sep.provisioned',
+    ).writeAsStringSync('${files.length}');
+  });
 }

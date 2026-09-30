@@ -35,6 +35,26 @@ final libraryHomeRecentsProvider = StreamProvider<List<Media>>((ref) {
   return registry.watchRecentByUpdatedAt(recentLimit);
 });
 
+/// Total library row count per kind, for the library tab headers.
+///
+/// Counted inside the `MediaRegistry` merge seam from the two DAO halves, so
+/// `LocalLibraryTabView` reads `List.length` rather than walking the whole
+/// merged `List<Media>` on every library table write (issue #818). This is the
+/// unfiltered total, so a search query still reports "N of M" against the full
+/// library rather than the narrowed list.
+///
+/// Dedupe repeats the registry's own gate so the provider's contract holds on
+/// its own: a Drift tick that re-queries without changing either count must not
+/// rebuild the tab bodies.
+final libraryKindCountsProvider = StreamProvider<({int audio, int video})>((
+  ref,
+) {
+  return ref
+      .watch(mediaRegistryProvider)
+      .watchKindCounts()
+      .distinctBy((previous, current) => previous == current);
+});
+
 /// Pre-filtered audio/video lists for [LibraryScreen], newest [Media.updatedAt]
 /// first (same ordering as Home recent media).
 ///
