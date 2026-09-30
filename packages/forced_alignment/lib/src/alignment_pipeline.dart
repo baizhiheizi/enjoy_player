@@ -54,12 +54,13 @@ Object runAlignPipeline({
     refFrames,
     srcFrames,
     windowPct: kSakoeChibaWindowPct,
+    maxDriftFrames: (kSakoeChibaMaxDriftSeconds / preset.hopSeconds).round(),
   );
 
   double mapTime(double refTime) {
     if (frameMap.isEmpty) return timeOffset + refTime;
     final refFrame = (refTime / hop).round().clamp(0, frameMap.length - 1);
-    final srcFrame = frameMap[refFrame].clamp(0, srcFrames.length - 1);
+    final srcFrame = frameMap[refFrame].clamp(0, srcFrames.frameCount - 1);
     return timeOffset + srcFrame * hop;
   }
 
