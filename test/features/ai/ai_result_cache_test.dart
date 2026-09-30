@@ -187,18 +187,24 @@ void main() {
         'a',
         '{"v":"a-val","sourceLanguage":"en","targetLanguage":"es"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'es',
       );
       await db.aiCacheDao.upsert(
         'translation',
         'b',
         '{"v":"b-val","sourceLanguage":"en","targetLanguage":"fr"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'fr',
       );
       await db.aiCacheDao.upsert(
         'dictionary',
         'c',
         '{"v":"c-val","sourceLanguage":"en","targetLanguage":"es"}',
         DateTime.now(),
+        sourceLanguage: 'en',
+        targetLanguage: 'es',
       );
 
       await cache.evictForPair(sourceLanguage: 'en', targetLanguage: 'es');

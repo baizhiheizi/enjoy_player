@@ -126,50 +126,71 @@ void main() {
     });
 
     test(
-      'deleteByPayloadLike bulk-deletes matching rows in one statement',
+      'deleteForPair bulk-deletes matching rows across kinds (issue #827 C4)',
       () async {
         await db.aiCacheDao.upsert(
           'translation',
           'k1',
           '{"sourceLanguage":"en","targetLanguage":"es"}',
           DateTime.utc(2026),
+          sourceLanguage: 'en',
+          targetLanguage: 'es',
         );
         await db.aiCacheDao.upsert(
-          'translation',
+          'dictionary',
           'k2',
-          '{"sourceLanguage":"en","targetLanguage":"ja"}',
+          '{"sourceLanguage":"en","targetLanguage":"es"}',
           DateTime.utc(2026),
+          sourceLanguage: 'en',
+          targetLanguage: 'es',
         );
         await db.aiCacheDao.upsert(
           'translation',
           'k3',
+          '{"sourceLanguage":"en","targetLanguage":"ja"}',
+          DateTime.utc(2026),
+          sourceLanguage: 'en',
+          targetLanguage: 'ja',
+        );
+        await db.aiCacheDao.upsert(
+          'translation',
+          'k4',
           '{"sourceLanguage":"fr","targetLanguage":"de"}',
           DateTime.utc(2026),
+          sourceLanguage: 'fr',
+          targetLanguage: 'de',
         );
 
-        final deleted = await db.aiCacheDao.deleteByPayloadLike(
-          '%"sourceLanguage":"en"%',
-          '%"targetLanguage":"es"%',
-        );
-        expect(deleted, 1);
+        final deleted = await db.aiCacheDao.deleteForPair('en', 'es');
+        expect(deleted, 2);
         expect(await db.aiCacheDao.read('translation', 'k1'), isNull);
-        expect(await db.aiCacheDao.read('translation', 'k2'), isNotNull);
+        expect(await db.aiCacheDao.read('dictionary', 'k2'), isNull);
         expect(await db.aiCacheDao.read('translation', 'k3'), isNotNull);
+        expect(await db.aiCacheDao.read('translation', 'k4'), isNotNull);
       },
     );
 
-    test('deleteByPayloadLike returns 0 when no rows match', () async {
+    test('deleteForPair returns 0 when no rows match', () async {
       await db.aiCacheDao.upsert(
         'translation',
         'k1',
         '{"sourceLanguage":"en"}',
         DateTime.utc(2026),
       );
-      final deleted = await db.aiCacheDao.deleteByPayloadLike(
-        '%"sourceLanguage":"xx"%',
-        '%"targetLanguage":"yy"%',
-      );
+      final deleted = await db.aiCacheDao.deleteForPair('xx', 'yy');
       expect(deleted, 0);
+    });
+
+    test('deleteForPair never matches rows stored without a pair', () async {
+      await db.aiCacheDao.upsert(
+        'translation',
+        'k1',
+        '{"sourceLanguage":"en","targetLanguage":"es"}',
+        DateTime.utc(2026),
+      );
+      final deleted = await db.aiCacheDao.deleteForPair('en', 'es');
+      expect(deleted, 0);
+      expect(await db.aiCacheDao.read('translation', 'k1'), isNotNull);
     });
   });
 }

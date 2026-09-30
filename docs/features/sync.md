@@ -5,7 +5,7 @@
 **Local-first** metadata sync for **audio**, **video**, and **recording** rows:
 
 - **Upload**: `POST /api/v1/mine/audios|videos|recordings` with JSON metadata only (no file blobs).
-- **Outbound queue**: Drift table `sync_queue` (`entityType`, `entityId`, `action`, optional `payloadJson`, retries). Payload rows with `kind: youtube_upload` (entity `video`, enqueued by failed YouTube worker transcript uploads) are consumed by the worker transcripts API, not the cloud `/api/v1/mine` uploads — see [ADR-0049](../decisions/0049-youtube-language-aware-captions.md).
+- **Outbound queue**: Drift table `sync_queue` (`entityType`, `entityId`, `action`, optional `payloadJson`, retries). `peekBatch`'s `ORDER BY created_at` drain is served by `idx_sync_queue_created_at` (schema v20, issue #827 C3) — the pre-existing `(retry_count, created_at)` index cannot order a created_at-only scan. Payload rows with `kind: youtube_upload` (entity `video`, enqueued by failed YouTube worker transcript uploads) are consumed by the worker transcripts API, not the cloud `/api/v1/mine` uploads — see [ADR-0049](../decisions/0049-youtube-language-aware-captions.md).
 - **No automatic library mirror**: signing in does **not** download every remote audio/video/recording into the Library. Remote browsing is opt-in via the [Cloud](cloud.md) screen.
 
 ### Vocabulary (items + contexts) — auto-pull exception

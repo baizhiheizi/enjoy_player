@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   bool get isDeviceGlobalDatabase => _dbName == deviceGlobalDatabaseName;
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -315,6 +315,18 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS idx_audios_updated_at '
           'ON audios (updated_at DESC)',
         );
+      } else if (next == 20) {
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_sync_queue_created_at '
+          'ON sync_queue (created_at)',
+        );
+        await _addColumnIfMissing(m, aiCache, aiCache.sourceLanguage);
+        await _addColumnIfMissing(m, aiCache, aiCache.targetLanguage);
+        await m.database.customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_ai_cache_lang_pair '
+          'ON ai_cache (source_language, target_language)',
+        );
+        await _backfillAiCacheLanguagePairs(m.database);
       }
       current = next;
     }
@@ -346,6 +358,26 @@ class AppDatabase extends _$AppDatabase {
     if (rows.isNotEmpty) return;
     await m.addColumn(table, column);
   }
+
+  /// Migration 20 (issue #827 C4): projects the language pair out of each
+  /// cached AI payload into the new `source_language` / `target_language`
+  /// columns so pair eviction can match indexed columns instead of
+  /// scanning `payload_json` with a leading-wildcard `LIKE`. One set-based
+  /// `UPDATE ... json_extract` statement (the bundled SQLite ships JSON
+  /// built in); payloads without both fields — or that fail `json_valid` —
+  /// yield NULL and are never pair-evicted, matching the old LIKE's
+  /// both-patterns rule. The `AND` predicate only touches rows neither
+  /// migration step nor a partial write has populated yet.
+  Future<void> _backfillAiCacheLanguagePairs(GeneratedDatabase db) =>
+      db.customUpdate(
+        'UPDATE ai_cache SET '
+        'source_language = CASE WHEN json_valid(payload_json) '
+        "THEN json_extract(payload_json, '\$.sourceLanguage') ELSE NULL END, "
+        'target_language = CASE WHEN json_valid(payload_json) '
+        "THEN json_extract(payload_json, '\$.targetLanguage') ELSE NULL END "
+        'WHERE source_language IS NULL AND target_language IS NULL',
+        updates: {aiCache},
+      );
 
   Future<void> _dropLegacyTables(Migrator m) async {
     const tables = <String>[

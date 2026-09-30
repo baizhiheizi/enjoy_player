@@ -7,6 +7,7 @@ import 'package:drift/drift.dart';
   name: 'idx_sync_queue_retry_created',
   columns: {#retryCount, #createdAt},
 )
+@TableIndex(name: 'idx_sync_queue_created_at', columns: {#createdAt})
 @DataClassName('SyncQueueRow')
 class SyncQueue extends Table {
   @override

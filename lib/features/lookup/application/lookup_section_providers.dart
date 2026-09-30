@@ -47,6 +47,8 @@ Future<TranslationResult> lookupSheetTranslation(
   return cache.lookup(
     kind: AiKind.translation,
     key: key,
+    sourceLanguage: params.sourceLanguage,
+    targetLanguage: params.targetLanguage,
     loader: () => ref
         .read(translationServiceProvider)
         .translate(
@@ -78,6 +80,8 @@ Future<DictionaryResult> lookupSheetDictionary(
   final result = await cache.lookup(
     kind: AiKind.dictionary,
     key: key,
+    sourceLanguage: params.sourceLanguage,
+    targetLanguage: params.targetLanguage,
     loader: () => ref
         .read(dictionaryServiceProvider)
         .lookup(

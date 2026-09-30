@@ -245,7 +245,14 @@ void main() {
 
   test('AiCache uses composite kind + key primary key', () {
     final cols = tableColumns()['ai_cache']!;
-    expect(cols, <String>['kind', 'key', 'payload_json', 'updated_at']);
+    expect(cols, <String>[
+      'kind',
+      'key',
+      'payload_json',
+      'updated_at',
+      'source_language',
+      'target_language',
+    ]);
   });
 
   test('VocabularyItems exposes SRS columns and indexes', () {
