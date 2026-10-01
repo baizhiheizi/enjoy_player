@@ -1,5 +1,6 @@
 import 'package:enjoy_player/core/application/app_preferences_provider.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_button.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
 import 'package:enjoy_player/features/auth/domain/auth_state.dart';
@@ -46,11 +47,16 @@ Media _recent({required String id, required String title}) {
   );
 }
 
-List<Override> _homeOverrides({List<Media> recents = const []}) {
+List<Override> _homeOverrides({
+  List<Media> recents = const [],
+  Stream<List<Media>>? streamOverride,
+}) {
   return [
     authCtrlProvider.overrideWith(_SignedInAuthCtrl.new),
     appPreferencesCtrlProvider.overrideWith(_FakePrefsCtrl.new),
-    libraryHomeRecentsProvider.overrideWith((ref) => Stream.value(recents)),
+    libraryHomeRecentsProvider.overrideWith(
+      (ref) => streamOverride ?? Stream.value(recents),
+    ),
     learningStatisticsProvider.overrideWith(
       (ref) async => LearningStatistics.empty(),
     ),
@@ -167,6 +173,38 @@ void main() {
       expect(
         tester.getTopLeft(find.text('Practiced talk')).dx,
         lessThan(tester.getTopLeft(find.text('Other item')).dx),
+      );
+    });
+
+    testWidgets('loading recents shimmer on one shared ticker', (tester) async {
+      tester.view.physicalSize = const Size(1200, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+        ],
+      );
+      await tester.pumpWidget(
+        _themedHomeWithRouter(
+          router,
+          overrides: _homeOverrides(
+            recents: const [],
+            streamOverride: const Stream<List<Media>>.empty(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+
+      expect(find.byType(Skeleton), findsWidgets);
+      expect(
+        find.byType(SkeletonTickerHost),
+        findsOneWidget,
+        reason: 'the whole loading scroll view shares one shimmer clock',
       );
     });
   });

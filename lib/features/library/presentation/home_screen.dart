@@ -23,6 +23,7 @@ import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card/media_card_sync_badge.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -198,45 +199,47 @@ class _HomeLoadingScrollView extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final gutter = pageGutterOf(context, constraints.maxWidth);
-        return CustomScrollView(
-          slivers: [
-            const SliverToBoxAdapter(child: _HomeHeader()),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                gutter,
-                t.space12,
-                gutter,
-                t.space12,
+    return SkeletonTickerHost(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = pageGutterOf(context, constraints.maxWidth);
+          return CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(child: _HomeHeader()),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  gutter,
+                  t.space12,
+                  gutter,
+                  t.space12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: EnjoySectionHeader(title: l10n.homeRecentMedia),
+                ),
               ),
-              sliver: SliverToBoxAdapter(
-                child: EnjoySectionHeader(title: l10n.homeRecentMedia),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: gutter),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, gridConstraints) {
+                    return SliverGrid(
+                      gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+                        crossAxisExtent: gridConstraints.crossAxisExtent,
+                        mainAxisSpacing: t.space16,
+                        crossAxisSpacing: t.space16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => const _HomeRecentGridSkeletonTile(),
+                        childCount: _kSkeletonTileCount,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: gutter),
-              sliver: SliverLayoutBuilder(
-                builder: (context, gridConstraints) {
-                  return SliverGrid(
-                    gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
-                      crossAxisExtent: gridConstraints.crossAxisExtent,
-                      mainAxisSpacing: t.space16,
-                      crossAxisSpacing: t.space16,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => const _HomeRecentGridSkeletonTile(),
-                      childCount: _kSkeletonTileCount,
-                    ),
-                  );
-                },
-              ),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-          ],
-        );
-      },
+              SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -350,52 +353,44 @@ class _HomeRecentGridSkeletonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = EnjoyThemeTokens.of(context);
-    final base = t.fill;
-
-    return ClipRSuperellipse(
-      borderRadius: BorderRadius.circular(t.radiusMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: ColoredBox(color: base),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              t.space12,
-              t.space8,
-              t.space12,
-              t.space12,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: base,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+    return LayoutBuilder(
+      builder: (context, c) {
+        final width = c.maxWidth.isFinite ? c.maxWidth : 0.0;
+        final artworkHeight = width * 9 / 16;
+        return ClipRSuperellipse(
+          borderRadius: BorderRadius.circular(t.radiusMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Skeleton.box(
+                width: width,
+                height: artworkHeight,
+                borderRadius: BorderRadius.zero,
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  t.space12,
+                  t.space8,
+                  t.space12,
+                  t.space12,
                 ),
-                SizedBox(height: t.space4),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    height: 12,
-                    width: 88,
-                    decoration: BoxDecoration(
-                      color: base,
-                      borderRadius: BorderRadius.circular(4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Skeleton.line(width: double.infinity, height: 14),
+                    SizedBox(height: t.space4),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Skeleton.line(width: 88, height: 12),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
