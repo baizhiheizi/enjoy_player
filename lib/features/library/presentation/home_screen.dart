@@ -21,9 +21,9 @@ import 'package:enjoy_player/core/theme/enjoy_tokens.dart';
 import 'package:enjoy_player/core/theme/widgets/editorial_header.dart';
 import 'package:enjoy_player/core/theme/widgets/empty_state.dart';
 import 'package:enjoy_player/core/theme/widgets/enjoy_page.dart';
-import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card.dart';
 import 'package:enjoy_player/core/theme/widgets/media_card/media_card_sync_badge.dart';
+import 'package:enjoy_player/core/theme/widgets/skeleton.dart';
 import 'package:enjoy_player/core/utils/remote_thumbnail_url.dart';
 import 'package:enjoy_player/core/utils/time_format.dart';
 import 'package:enjoy_player/features/auth/application/auth_controller.dart';
@@ -199,45 +199,47 @@ class _HomeLoadingScrollView extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final t = EnjoyThemeTokens.of(context);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final gutter = pageGutterOf(context, constraints.maxWidth);
-        return CustomScrollView(
-          slivers: [
-            const SliverToBoxAdapter(child: _HomeHeader()),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                gutter,
-                t.space12,
-                gutter,
-                t.space12,
+    return SkeletonTickerHost(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = pageGutterOf(context, constraints.maxWidth);
+          return CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(child: _HomeHeader()),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  gutter,
+                  t.space12,
+                  gutter,
+                  t.space12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: EnjoySectionHeader(title: l10n.homeRecentMedia),
+                ),
               ),
-              sliver: SliverToBoxAdapter(
-                child: EnjoySectionHeader(title: l10n.homeRecentMedia),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: gutter),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, gridConstraints) {
+                    return SliverGrid(
+                      gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
+                        crossAxisExtent: gridConstraints.crossAxisExtent,
+                        mainAxisSpacing: t.space16,
+                        crossAxisSpacing: t.space16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => const _HomeRecentGridSkeletonTile(),
+                        childCount: _kSkeletonTileCount,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: gutter),
-              sliver: SliverLayoutBuilder(
-                builder: (context, gridConstraints) {
-                  return SliverGrid(
-                    gridDelegate: mediaCardTileGridDelegateForMinTileWidth(
-                      crossAxisExtent: gridConstraints.crossAxisExtent,
-                      mainAxisSpacing: t.space16,
-                      crossAxisSpacing: t.space16,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => const _HomeRecentGridSkeletonTile(),
-                      childCount: _kSkeletonTileCount,
-                    ),
-                  );
-                },
-              ),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: t.space24)),
-          ],
-        );
-      },
+              SliverToBoxAdapter(child: SizedBox(height: t.space24)),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -359,14 +361,10 @@ class _HomeRecentGridSkeletonTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
+              Skeleton.box(
                 width: width,
                 height: artworkHeight,
-                child: Skeleton.box(
-                  width: width,
-                  height: artworkHeight,
-                  borderRadius: BorderRadius.zero,
-                ),
+                borderRadius: BorderRadius.zero,
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(

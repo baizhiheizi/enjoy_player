@@ -76,6 +76,32 @@ a bounded `Column` of four track-row placeholders composed from `Skeleton.box`
 and `Skeleton.line`. Do not replace it with the scrollable transcript placeholder;
 that would reintroduce an unbounded nested viewport.
 
+## Shared shimmer clock
+
+A `Skeleton` with no `SkeletonTickerHost` above it hosts its **own**
+`AnimationController`, so a surface with N boxes drives N tickers. Wrap the
+loading surface in a single `SkeletonTickerHost` and every box below it shares
+one clock (issue #810 G):
+
+```dart
+SkeletonTickerHost(
+  child: CustomScrollView(
+    slivers: [ /* … */ ],
+  ),
+);
+```
+
+`SkeletonTickerHost` is an `InheritedWidget` provider, so the scope **crosses
+sliver boundaries** — a host placed *above* a `CustomScrollView` serves boxes
+inside `SliverGrid` / `SliverList` children. This is the fix for the Home
+recents grid, which would otherwise run 24 tickers (8 tiles × 3 shapes) in its
+initial-load window. See
+[`home_screen_test.dart`](../../test/features/library/home_screen_test.dart)
+(`loading recents shimmer on one shared ticker`).
+
+Reduced motion is handled by the host too: with `disableAnimations` on, its
+controller never starts and each `Skeleton` renders a flat rectangle.
+
 ## Placement rules
 
 A placeholder renders inside whatever parent it is given. Two parent shapes are
@@ -147,6 +173,7 @@ New placeholders should:
 | Scrollable placeholders | `SkeletonTranscript`, `SkeletonProfile` |
 | Bounded subtitle-picker dialog placeholder | [`_buildDialogSkeletonLoading`](../../lib/features/transcript/presentation/subtitle_track_picker_sheet.dart) |
 | Grid placeholder | `SkeletonMediaGrid` |
+| Home recents tile placeholder | `_HomeRecentGridSkeletonTile` in [`home_screen.dart`](../../lib/features/library/presentation/home_screen.dart) |
 | Layout regression tests | [`test/core/theme/skeleton_layout_test.dart`](../../test/core/theme/skeleton_layout_test.dart) |
 | Settings loading tests | [`test/features/settings/presentation/sections/settings_loading_states_test.dart`](../../test/features/settings/presentation/sections/settings_loading_states_test.dart) |
 
