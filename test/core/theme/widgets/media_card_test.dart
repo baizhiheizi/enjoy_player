@@ -362,7 +362,7 @@ void main() {
       );
     });
 
-    testWidgets('meta slot is clamped to the mediaCardTileMetaHeight budget', (
+    testWidgets('meta slot honours the mediaCardTileMetaHeight budget', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -377,13 +377,52 @@ void main() {
       final budget = find.ancestor(
         of: find.text('custom meta'),
         matching: find.byWidgetPredicate(
-          (w) => w is SizedBox && w.height == mediaCardTileMetaHeight,
+          (w) =>
+              w is ConstrainedBox &&
+              w.constraints.minHeight == mediaCardTileMetaHeight,
         ),
       );
       expect(budget, findsOneWidget);
       expect(
         tester.getSize(find.byType(MediaCardTile)).height,
         closeTo(157.5 + mediaCardTileMetaHeight, 0.1),
+      );
+    });
+
+    testWidgets('meta taller than its budget grows the tile, never overflows', (
+      tester,
+    ) async {
+      const tall = 96.0;
+      await tester.pumpWidget(
+        _wrap(
+          child: SizedBox(
+            width: 280,
+            child: MediaCardTile(
+              onTap: () {},
+              meta: const SizedBox(height: tall, child: Text('tall meta')),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(MediaCardTile)).height,
+        closeTo(157.5 + tall, 0.1),
+      );
+    });
+
+    test('grid aspect ratio follows a caller metaHeight', () {
+      const tileWidth = 320.0;
+      const tallMeta = 96.0;
+      final ratio = mediaCardTileGridAspectRatioForWidth(
+        tileWidth,
+        metaHeight: tallMeta,
+      );
+      expect(ratio, lessThan(mediaCardTileGridAspectRatioForWidth(tileWidth)));
+      expect(
+        tileWidth / ratio,
+        greaterThanOrEqualTo(tileWidth * 9 / 16 + tallMeta),
       );
     });
 

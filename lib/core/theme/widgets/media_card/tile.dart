@@ -40,6 +40,7 @@ class MediaCardTile extends StatefulWidget {
     this.adding = false,
     this.inLibrary = false,
     this.meta,
+    this.metaHeight = mediaCardTileMetaHeight,
   }) : assert(
          title == '' || meta == null,
          'MediaCardTile: pass either the built-in meta block '
@@ -100,13 +101,21 @@ class MediaCardTile extends StatefulWidget {
   final bool inLibrary;
 
   /// When non-null, replaces the built-in title/subtitle meta block under the
-  /// artwork (Discover passes its channel-avatar row). The slot is clamped to
-  /// the shared [mediaCardTileMetaHeight] box — the same vertical budget the
-  /// built-in block renders in and the grid aspect math assumes — so grid
-  /// rows stay aligned whichever slot a caller uses. The widget must lay out
-  /// within that height; taller content overflows the budget rather than
-  /// resizing the tile. Mutually exclusive with [title] (constructor assert).
+  /// artwork (Discover passes its channel-avatar row). The slot is at least
+  /// [metaHeight] tall — the shared [mediaCardTileMetaHeight] box the built-in
+  /// block renders in — so grid rows stay aligned whichever slot a caller
+  /// uses. Content taller than the budget (two-line title, a fallback font
+  /// with taller metrics, a larger platform text scale) grows the tile instead
+  /// of overflowing, so callers must size their grid with
+  /// [mediaCardTileGridAspectRatioForWidth] at the same [metaHeight] to keep
+  /// the grown tile inside its cell. Mutually exclusive with [title]
+  /// (constructor assert).
   final Widget? meta;
+
+  /// Vertical budget for the meta slot, matched by the caller's grid aspect
+  /// math. Defaults to the built-in block's [mediaCardTileMetaHeight]; a
+  /// custom [meta] slot with a two-line title needs its own.
+  final double metaHeight;
 
   @override
   State<MediaCardTile> createState() => _MediaCardTileState();
@@ -293,8 +302,8 @@ class _MediaCardTileState extends State<MediaCardTile> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AspectRatio(aspectRatio: 16 / 9, child: artwork),
-          SizedBox(
-            height: mediaCardTileMetaHeight,
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: widget.metaHeight),
             child:
                 widget.meta ??
                 Padding(

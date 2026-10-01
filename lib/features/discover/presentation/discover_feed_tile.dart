@@ -20,8 +20,20 @@ import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
 import 'package:enjoy_player/features/player/application/youtube_warm.dart';
 import 'package:enjoy_player/l10n/app_localizations.dart';
 
-/// Width / height for [SliverGrid] cells (16:9 thumb + compact metadata).
-const double discoverFeedTileGridAspectRatio = 1.24;
+/// Meta budget for the feed tile's channel-avatar row: 6 gap + two-line title
+/// (14 px × 1.25 leading) + 2 gap + published line (12.5 px × 1.2) ≈ 58, plus
+/// 6 of air. The air absorbs fonts whose line box runs taller than the `height`
+/// multiplier (see `docs/features/discover.md`) — without it the row overflows.
+const double discoverFeedTileMetaHeight = 64;
+
+/// Grid width÷height for a feed-tile column of [tileWidth], sized from
+/// [discoverFeedTileMetaHeight] so the cell always fits the tile.
+double discoverFeedTileGridAspectRatioForWidth(double tileWidth) {
+  return mediaCardTileGridAspectRatioForWidth(
+    tileWidth,
+    metaHeight: discoverFeedTileMetaHeight,
+  );
+}
 
 /// Per-locale bundle of `DateFormat` instances used by [_formatPublishedLabel].
 ///
@@ -152,6 +164,7 @@ class _DiscoverFeedTileState extends ConsumerState<DiscoverFeedTile> {
       durationLabel: durationLabel,
       adding: _adding,
       inLibrary: inLibrary,
+      metaHeight: discoverFeedTileMetaHeight,
       meta: Padding(
         padding: EdgeInsets.only(top: t.space8 - 2),
         child: Row(

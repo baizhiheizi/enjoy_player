@@ -76,9 +76,16 @@ const double mediaCardTileMetaHeight = 58;
 const double mediaCardTileBorderInset = 3;
 
 /// Grid width÷height for a [MediaCardTile] column of [tileWidth].
-double mediaCardTileGridAspectRatioForWidth(double tileWidth) {
+///
+/// [metaHeight] is the budget the tile's meta slot renders with
+/// ([MediaCardTile.metaHeight]) — pass the same value the tile was built with
+/// so the cell is exactly tall enough for it.
+double mediaCardTileGridAspectRatioForWidth(
+  double tileWidth, {
+  double metaHeight = mediaCardTileMetaHeight,
+}) {
   return tileWidth /
-      (tileWidth * 9 / 16 + mediaCardTileMetaHeight + mediaCardTileBorderInset);
+      (tileWidth * 9 / 16 + metaHeight + mediaCardTileBorderInset);
 }
 
 /// Default max column width for library / cloud video grids.
