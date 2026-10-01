@@ -4,8 +4,6 @@ import 'package:enjoy_player/core/ids/enjoy_ids.dart';
 import 'package:enjoy_player/data/db/app_database.dart';
 import 'package:enjoy_player/data/db/app_database_provider.dart';
 import 'package:enjoy_player/data/files/file_storage.dart';
-import 'package:enjoy_player/core/theme/widgets/media_card.dart'
-    show mediaCardTileMetaHeight;
 import 'package:enjoy_player/features/discover/application/discover_providers.dart';
 import 'package:enjoy_player/features/discover/data/discover_repository.dart';
 import 'package:enjoy_player/features/discover/domain/feed_entry.dart';
@@ -240,9 +238,88 @@ void main() {
 
       expect(
         tester.getSize(find.byType(DiscoverFeedTile)).height,
-        closeTo(157.5 + mediaCardTileMetaHeight, 0.1),
+        closeTo(157.5 + discoverFeedTileMetaHeight, 0.1),
       );
       expect(find.text('In library'), findsNothing);
     },
   );
+
+  testWidgets(
+    'two-line title at a larger platform text scale stays inside the slot',
+    (tester) async {
+      final db = AppDatabase(executor: NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final now = DateTime.now();
+      final entry = FeedEntry(
+        videoId: 'scaled',
+        channelId: 'UCAuUUnT6oDeKwE6v1NGQxug',
+        title:
+            'The Right to Life, Liberty — and Free Time | Daniel Roberts | TED',
+        publishedAt: now,
+        durationSeconds: 1234,
+      );
+
+      final repo = DiscoverRepository(
+        db,
+        libraryRepository: MediaLibraryRepository(db, FileStorage()),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            discoverRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(1.1)),
+              child: child!,
+            ),
+            home: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 320,
+                  child: DiscoverFeedTile(
+                    entry: entry,
+                    inLibrary: false,
+                    channelName: 'TED',
+                    channelAvatarUrl: null,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(DiscoverFeedTile)).height,
+        closeTo(180 + discoverFeedTileMetaHeight, 0.1),
+      );
+    },
+  );
+
+  test('grid cell is tall enough for the feed tile meta budget', () {
+    for (final tileWidth in <double>[280, 320, 400, 640]) {
+      final cellHeight =
+          tileWidth / discoverFeedTileGridAspectRatioForWidth(tileWidth);
+      expect(
+        cellHeight,
+        greaterThanOrEqualTo(tileWidth * 9 / 16 + discoverFeedTileMetaHeight),
+        reason: 'cell too short at tile width $tileWidth',
+      );
+    }
+  });
 }

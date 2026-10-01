@@ -72,9 +72,11 @@ class ChannelFeedScreen extends ConsumerWidget {
           }
           final gutter = metrics.gutter;
           const minTileWidth = 320.0;
-          final crossAxisCount = (metrics.paneWidth / minTileWidth)
-              .floor()
-              .clamp(1, 4);
+          final gridExtent = metrics.paneWidth - gutter * 2;
+          final crossAxisCount = (gridExtent / minTileWidth).floor().clamp(
+            1,
+            4,
+          );
 
           if (crossAxisCount == 1) {
             return ListView.separated(
@@ -95,13 +97,18 @@ class ChannelFeedScreen extends ConsumerWidget {
             );
           }
 
+          final tileWidth =
+              (gridExtent - t.space16 * (crossAxisCount - 1)) / crossAxisCount;
+
           return GridView.builder(
             padding: EdgeInsets.all(gutter),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: t.space20,
               crossAxisSpacing: t.space16,
-              childAspectRatio: discoverFeedTileGridAspectRatio,
+              childAspectRatio: discoverFeedTileGridAspectRatioForWidth(
+                tileWidth,
+              ),
             ),
             itemCount: entries.length,
             itemBuilder: (context, index) => Align(

@@ -225,12 +225,19 @@ class _DiscoverFeedSliver extends StatelessWidget {
                 );
               }
 
+              final tileWidth =
+                  (constraints.crossAxisExtent -
+                      t.space16 * (crossAxisCount - 1)) /
+                  crossAxisCount;
+
               return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
                   mainAxisSpacing: t.space20,
                   crossAxisSpacing: t.space16,
-                  childAspectRatio: discoverFeedTileGridAspectRatio,
+                  childAspectRatio: discoverFeedTileGridAspectRatioForWidth(
+                    tileWidth,
+                  ),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => Align(
