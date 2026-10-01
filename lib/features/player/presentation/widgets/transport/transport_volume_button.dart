@@ -1,4 +1,11 @@
 /// Volume icon + vertical slider overlay for the transport bar.
+///
+/// The overlay child is always wrapped in a [Stack]: the theatre lays a
+/// non-positioned overlay child out with tight constraints (Flutter 3.44
+/// `StackFit.expand` semantics), which would stretch the follower's
+/// [SizedBox] popup to the whole window. The [Stack] opts out, so the popup
+/// takes its intrinsic size on the hover path as well as the pinned one, and
+/// stays transparent to pointer events outside the popup unless it is pinned.
 library;
 
 import 'dart:async';
@@ -158,15 +165,15 @@ class _TransportVolumeButtonState extends ConsumerState<TransportVolumeButton> {
           offset: const Offset(0, -4),
           child: _sliderCard(overlayCtx),
         );
-        if (!_pinned) return popup;
         return Stack(
           children: [
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _dismissPinned,
+            if (_pinned)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _dismissPinned,
+                ),
               ),
-            ),
             popup,
           ],
         );
