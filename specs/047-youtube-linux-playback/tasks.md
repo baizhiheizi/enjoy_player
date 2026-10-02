@@ -138,7 +138,7 @@ Single Flutter project: `lib/` and `test/` at repository root (test/ mirrors lib
 
 ### Implementation for User Story 5
 
-- [ ] T035 [P] [US5] Changelog diff review of `flutter_inappwebview` 6.1.5…6.2.0-beta.3 (research D5a): list behavior-relevant changes in the PR, note which affect the four platforms, and map each to a smoke checklist step
+- [x] T035 [P] [US5] Changelog diff review of `flutter_inappwebview` 6.1.5…6.2.0-beta.3 (research D5a): list behavior-relevant changes in the PR, note which affect the four platforms, and map each to a smoke checklist step
 - [ ] T036 [US5] Full CI matrix green on the feature branch: Android, iOS, macOS, Windows, Linux build/test workflows (research D5b)
 - [ ] T037 [US5] Execute checklist C1–C12 from `specs/047-youtube-linux-playback/contracts/platform-smoke-checklist.md` on Android, iOS, macOS, and Windows builds; post the four result rows in the PR; any `behaviorDiff` → fix or explicit recorded trade per US5 scenario 3 (merge gate)
 
@@ -239,8 +239,8 @@ Engine work (US1→US3, Phases 3–5) and packaging/verification (T027–T034, U
 
 ## Phase 9: Convergence
 
-- [ ] T044 Add per-reason unavailable message keys (`runtimeMissing` / `runtimeInitFailed` / `disabledByBuild`) to `lib/l10n/app_en.arb` (+ `app_zh.arb`, `app_zh_CN.arb`), regenerate l10n, and map `YouTubeUnavailableReason` → message in `ExpandedPlayerYoutubeUnavailableBody` and `YoutubeLoginScreen` per FR-005 and data-model Entity 1/Entity 3 (partial)
-- [ ] T045 Reflect the bundled Linux WPE runtime in developer docs: add the WPE dev packages (`wpewebkit`/`libwpe`/`wpebackend-fdo` per distro) to the apt list in `docs/features/linux-platform.md` (Developer setup) and the toolchain notes in `README.md`, and add a Linux cookie-folder line (`{applicationSupport}/WPEWebView`) to the Login section of `docs/features/youtube.md` per FR-011 and contracts/release-artifact.md R7 (partial)
+- [x] T044 Add per-reason unavailable message keys (`runtimeMissing` / `runtimeInitFailed` / `disabledByBuild`) to `lib/l10n/app_en.arb` (+ `app_zh.arb`, `app_zh_CN.arb`), regenerate l10n, and map `YouTubeUnavailableReason` → message in `ExpandedPlayerYoutubeUnavailableBody` and `YoutubeLoginScreen` per FR-005 and data-model Entity 1/Entity 3 (partial)
+- [x] T045 Reflect the bundled Linux WPE runtime in developer docs: add the WPE dev packages (`wpewebkit`/`libwpe`/`wpebackend-fdo` per distro) to the apt list in `docs/features/linux-platform.md` (Developer setup) and the toolchain notes in `README.md`, and add a Linux cookie-folder line (`{applicationSupport}/WPEWebView`) to the Login section of `docs/features/youtube.md` per FR-011 and contracts/release-artifact.md R7 (partial)
 
 ---
 
